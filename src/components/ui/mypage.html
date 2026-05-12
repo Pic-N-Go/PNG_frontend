@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>PNG - 마이페이지</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+  <style>
+    :root {
+      --color-bg: #ffffff;
+      --color-surface: #f5f5f7;
+      --color-text-primary: #000000;
+      --color-text-secondary: rgba(0,0,0,0.48);
+      --color-text-tertiary: rgba(0,0,0,0.28);
+      --color-accent: #0071e3;
+      --color-accent-hover: #0062c4;
+      --color-link: #0066cc;
+      --color-border-light: rgba(0,0,0,0.06);
+      --color-success: #34c759;
+      --color-warning: #ff9f0a;
+      --font-family: 'Pretendard Variable', 'SF Pro Display', 'SF Pro Text', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      --radius-card: 14px;
+      --radius-btn: 26px;
+    }
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    html{font-size:16px;-webkit-font-smoothing:antialiased}
+    body{font-family:var(--font-family);background:#f0f0f0;display:flex;justify-content:center;min-height:100dvh}
+
+    .phone-frame{width:390px;background:var(--color-bg);position:relative;overflow-y:auto;overflow-x:hidden;padding-bottom:80px}
+
+    /* ====== Dark Header ====== */
+    .dark-header{background:linear-gradient(to bottom,#000,#1d1d1f);padding:0 20px 20px;position:relative}
+    .dark-header::after{content:'';position:absolute;bottom:-20px;left:0;right:0;height:24px;background:linear-gradient(to bottom,#1d1d1f,#fff)}
+
+    /* Status bar */
+    .status-bar{height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 14px}
+    .status-bar__time{font-size:15px;font-weight:600;color:#fff;letter-spacing:-0.3px}
+    .dynamic-island{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:106px;height:28px;background:rgba(255,255,255,0.1);border-radius:14px}
+    .status-bar__icons{display:flex;gap:6px}
+    .status-bar__icons svg{height:12px;fill:#fff}
+
+    /* Header nav */
+    .header-nav{display:flex;justify-content:space-between;margin-bottom:20px}
+    .header-nav__btn{width:28px;height:28px;border-radius:14px;background:rgba(255,255,255,0.08);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center}
+
+    /* Profile row */
+    .profile-row{display:flex;align-items:center;gap:16px;margin-bottom:16px}
+    .profile-row__avatar{width:72px;height:72px;border-radius:50%;background:linear-gradient(135deg,#2c5364,#4a7c8a);display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0}
+    .profile-row__avatar-text{font-size:20px;font-weight:600;color:rgba(255,255,255,0.8)}
+    .profile-row__badge{position:absolute;bottom:-2px;right:-2px;width:22px;height:22px;border-radius:50%;background:#0071e3;border:2px solid #1d1d1f;display:flex;align-items:center;justify-content:center}
+    .profile-row__info{flex:1}
+    .profile-row__name{font-size:20px;font-weight:600;color:#fff;letter-spacing:-0.4px;margin-bottom:2px}
+    .profile-row__handle{font-size:13px;color:rgba(255,255,255,0.4);margin-bottom:4px}
+    .profile-row__follow{font-size:12px;color:rgba(255,255,255,0.35)}
+    .profile-row__follow strong{color:rgba(255,255,255,0.6);font-weight:600}
+
+    /* Edit button */
+    .edit-btn{width:100%;height:36px;border-radius:10px;background:rgba(255,255,255,0.08);border:none;font-family:var(--font-family);font-size:13px;font-weight:500;color:rgba(255,255,255,0.6);cursor:pointer;margin-bottom:16px;transition:background 0.2s}
+    .edit-btn:hover{background:rgba(255,255,255,0.12)}
+
+    /* Stats */
+    .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+    .stat-card{padding:12px 0;border-radius:12px;background:rgba(255,255,255,0.06);border:0.5px solid rgba(255,255,255,0.06);text-align:center}
+    .stat-card__num{font-size:20px;font-weight:600;color:#fff;margin-bottom:2px}
+    .stat-card__label{font-size:11px;color:rgba(255,255,255,0.35)}
+
+    /* ====== Content ====== */
+    .content{padding:28px 20px 0;position:relative;z-index:1}
+
+    /* Section */
+    .section{margin-bottom:28px}
+    .section__header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px}
+    .section__title{font-size:20px;font-weight:600;color:var(--color-text-primary);letter-spacing:-0.3px}
+    .section__link{font-size:13px;color:var(--color-link);text-decoration:none}
+
+    /* ====== Photo Map ====== */
+    .photo-map{height:200px;border-radius:16px;background:var(--color-surface);position:relative;overflow:hidden}
+    .photo-map__grid{position:absolute;inset:0}
+    .photo-map__grid line{stroke:rgba(0,0,0,0.03);stroke-width:0.5}
+    .photo-map__pin{position:absolute;transform:translate(-50%,-50%);display:flex;align-items:center;justify-content:center;border-radius:50%}
+    .photo-map__pin--visit{width:24px;height:24px;background:#000;border:1.5px solid #fff;box-shadow:0 1px 3px rgba(0,0,0,0.15)}
+    .photo-map__pin--visit svg{color:#fff}
+    .photo-map__pin--featured{width:28px;height:28px;background:var(--color-accent);border:1.5px solid #fff;box-shadow:0 1px 4px rgba(0,113,227,0.3)}
+    .photo-map__pin--wish{width:22px;height:22px;border:1.5px dashed rgba(0,0,0,0.2);background:transparent}
+    .photo-map__pin--fav{width:22px;height:22px;background:var(--color-warning);border:1.5px solid #fff}
+
+    .map-legend{position:absolute;bottom:10px;left:12px;display:flex;gap:14px;align-items:center}
+    .map-legend__item{display:flex;align-items:center;gap:4px;font-size:10px;color:rgba(0,0,0,0.4)}
+    .map-legend__dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+    /* ====== Album scroll ====== */
+    .album-scroll{display:flex;gap:10px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px}
+    .album-scroll::-webkit-scrollbar{display:none}
+    .album-card{flex-shrink:0;width:160px;height:200px;border-radius:var(--radius-card);position:relative;overflow:hidden}
+    .album-card__bg{width:100%;height:100%;object-fit:cover}
+    .album-card__info{position:absolute;bottom:0;left:0;right:0;padding:10px 12px;background:linear-gradient(to top,rgba(0,0,0,0.5),transparent)}
+    .album-card__name{font-size:14px;font-weight:600;color:#fff;letter-spacing:-0.2px;margin-bottom:2px}
+    .album-card__meta{font-size:11px;color:rgba(255,255,255,0.5)}
+
+    /* ====== Report Card ====== */
+    .report-card{border-radius:16px;background:var(--color-surface);padding:20px;position:relative;overflow:hidden}
+    .report-card::before{content:'';position:absolute;inset:0;background:linear-gradient(to right,rgba(0,113,227,0.08),transparent);pointer-events:none;border-radius:16px}
+    .report__avg-label{font-size:12px;color:rgba(0,0,0,0.4);margin-bottom:6px}
+    .report__avg-row{display:flex;align-items:baseline;gap:8px;margin-bottom:16px}
+    .report__avg-num{font-size:32px;font-weight:600;color:var(--color-accent);line-height:1}
+    .report__avg-max{font-size:14px;color:rgba(0,0,0,0.25)}
+    .report__trend-badge{display:inline-flex;align-items:center;height:22px;padding:0 10px;border-radius:11px;background:rgba(52,199,89,0.1);font-size:11px;font-weight:500;color:var(--color-success)}
+    .report__body{display:flex;gap:16px}
+    .report__chart{flex:1}
+    .report__chart-label{font-size:11px;color:rgba(0,0,0,0.3);margin-bottom:8px}
+    .report__bars{display:flex;align-items:flex-end;gap:6px;height:70px}
+    .report__bar{flex:1;border-radius:4px;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-end}
+    .report__bar-fill{width:100%;border-radius:4px;transition:height 0.4s ease}
+    .report__bar-num{font-size:10px;color:rgba(0,0,0,0.25);margin-bottom:4px}
+    .report__bar-num--active{color:var(--color-accent);font-weight:500}
+    .report__bar-label{font-size:9px;color:rgba(0,0,0,0.25);margin-top:6px}
+    .report__best{width:120px}
+    .report__best-label{font-size:11px;color:rgba(0,0,0,0.3);margin-bottom:8px}
+    .report__best-card{padding:12px;border-radius:10px;background:#fff}
+    .report__best-name{font-size:13px;font-weight:600;color:#000;margin-bottom:2px}
+    .report__best-meta{font-size:11px;color:rgba(0,0,0,0.35);margin-bottom:8px}
+    .report__best-score{display:inline-flex;align-items:center;height:18px;padding:0 8px;border-radius:9px;background:rgba(0,113,227,0.08);font-size:10px;font-weight:600;color:var(--color-accent)}
+
+    /* ====== Wishlist scroll ====== */
+    .section__subtitle{font-size:13px;color:rgba(0,0,0,0.4);margin-top:-8px;margin-bottom:12px}
+    .wish-scroll{display:flex;gap:10px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+    .wish-scroll::-webkit-scrollbar{display:none}
+    .wish-card{flex-shrink:0;width:200px;height:120px;border-radius:var(--radius-card);position:relative;overflow:hidden;padding:0 12px 12px;display:flex;flex-direction:column;justify-content:flex-end}
+    .wish-card__bell{position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:14px;background:rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center}
+    .wish-card__name{font-size:14px;font-weight:600;color:#fff;letter-spacing:-0.2px;margin-bottom:2px}
+    .wish-card__cond{font-size:11px;color:rgba(255,255,255,0.5);margin-bottom:2px}
+    .wish-card__date{font-size:10px;color:rgba(255,159,10,0.8)}
+
+    /* ====== Equipment ====== */
+    .equip-card{border-radius:var(--radius-card);background:var(--color-surface);overflow:hidden}
+    .equip-item{display:flex;align-items:center;gap:12px;padding:14px 16px}
+    .equip-item+.equip-item{border-top:0.5px solid rgba(0,0,0,0.04)}
+    .equip-item__icon{width:28px;height:28px;border-radius:8px;background:rgba(0,0,0,0.05);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .equip-item__name{font-size:14px;font-weight:500;color:#000;letter-spacing:-0.15px}
+    .equip-item__desc{font-size:11px;color:rgba(0,0,0,0.35);margin-top:1px}
+    .equip-item__more{margin-left:auto;display:flex;align-items:center;gap:2px;font-size:12px;color:rgba(0,0,0,0.2)}
+
+    /* ====== Quick Actions ====== */
+    .quick-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+    .quick-action{height:48px;border-radius:12px;background:var(--color-surface);border:none;font-family:var(--font-family);font-size:12px;color:rgba(0,0,0,0.5);cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:background 0.2s}
+    .quick-action:hover{background:rgba(0,0,0,0.06)}
+    .quick-action svg{flex-shrink:0;color:rgba(0,0,0,0.3)}
+
+    /* ====== Tab Bar ====== */
+    .tab-bar{position:fixed;bottom:0;width:390px;height:80px;background:#fff;border-top:0.5px solid rgba(0,0,0,0.08);display:flex;align-items:flex-start;justify-content:space-around;padding-top:8px;z-index:50}
+    .tab{display:flex;flex-direction:column;align-items:center;gap:4px;background:none;border:none;cursor:pointer;padding:4px 10px}
+    .tab__icon{width:22px;height:18px;color:rgba(0,0,0,0.35)}
+    .tab__label{font-size:10px;color:rgba(0,0,0,0.35);font-family:var(--font-family)}
+    .tab.is-active .tab__icon{color:var(--color-accent)}
+    .tab.is-active .tab__label{color:var(--color-accent);font-weight:500}
+    .tab-bar__indicator{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:110px;height:5px;background:rgba(0,0,0,0.1);border-radius:2.5px}
+
+    @media(max-width:390px){.phone-frame,.tab-bar{width:100%}}
+    @media(min-width:391px){body{padding:20px 0}.phone-frame{border-radius:40px;box-shadow:0 20px 60px rgba(0,0,0,0.15);overflow:hidden}.tab-bar{border-radius:0 0 40px 40px}}
+  </style>
+</head>
+<body>
+<div class="phone-frame">
+
+  <!-- ====== Dark Header ====== -->
+  <div class="dark-header">
+    <div class="status-bar">
+      <span class="status-bar__time">9:41</span>
+      <div class="dynamic-island"></div>
+      <div class="status-bar__icons">
+        <svg viewBox="0 0 18 12"><rect x="0" y="9" width="3" height="3" rx=".75"/><rect x="4.5" y="6" width="3" height="6" rx=".75"/><rect x="9" y="3" width="3" height="9" rx=".75"/><rect x="13.5" y="0" width="3" height="12" rx=".75"/></svg>
+        <svg viewBox="0 0 16 14" fill="none" stroke="#fff" stroke-width="1.3" stroke-linecap="round"><path d="M3.5 10.5Q8 5 12.5 10.5"/><path d="M1 8Q8 1.5 15 8"/><circle cx="8" cy="12.5" r="1.2" fill="#fff" stroke="none"/></svg>
+        <svg viewBox="0 0 28 14"><rect x="0" y="0" width="25" height="12" rx="3.5" fill="none" stroke="rgba(255,255,255,.4)" stroke-width="1"/><rect x="1.5" y="1.5" width="20" height="9" rx="2" fill="#fff"/></svg>
+      </div>
+    </div>
+
+    <div class="header-nav">
+      <button class="header-nav__btn" aria-label="메뉴">
+        <svg width="16" height="14" viewBox="0 0 16 14" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.3" stroke-linecap="round"><line x1="0" y1="2" x2="16" y2="2"/><line x1="0" y1="7" x2="16" y2="7"/><line x1="0" y1="12" x2="16" y2="12"/></svg>
+      </button>
+      <button class="header-nav__btn" aria-label="설정">
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.2" stroke-linecap="round"><circle cx="8" cy="8" r="3.5"/><line x1="8" y1="1" x2="8" y2="3.5"/><line x1="8" y1="12.5" x2="8" y2="15"/><line x1="1" y1="8" x2="3.5" y2="8"/><line x1="12.5" y1="8" x2="15" y2="8"/></svg>
+      </button>
+    </div>
+
+    <div class="profile-row">
+      <div class="profile-row__avatar">
+        <span class="profile-row__avatar-text">JK</span>
+        <div class="profile-row__badge">
+          <svg width="12" height="10" viewBox="0 0 12 10" fill="none" stroke="#fff" stroke-width="0.9"><rect x="0" y="2" width="12" height="7" rx="1.5"/><circle cx="6" cy="6" r="2.2"/></svg>
+        </div>
+      </div>
+      <div class="profile-row__info">
+        <div class="profile-row__name">사진가_준혁</div>
+        <div class="profile-row__handle">@sunset_jk · 야경 · 바다</div>
+        <div class="profile-row__follow">팔로워 <strong>1,247</strong> &nbsp;·&nbsp; 팔로잉 <strong>356</strong></div>
+      </div>
+    </div>
+
+    <button class="edit-btn">프로필 편집</button>
+
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-card__num">28</div><div class="stat-card__label">방문 스팟</div></div>
+      <div class="stat-card"><div class="stat-card__num">142</div><div class="stat-card__label">사진</div></div>
+      <div class="stat-card"><div class="stat-card__num">12</div><div class="stat-card__label">리뷰</div></div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- 나만의 사진 지도 -->
+    <div class="section">
+      <div class="section__header">
+        <h2 class="section__title">나만의 사진 지도</h2>
+        <a href="#" class="section__link">전체보기</a>
+      </div>
+      <div class="photo-map">
+        <svg class="photo-map__grid" width="100%" height="100%">
+          <line x1="0" y1="67" x2="100%" y2="67"/><line x1="0" y1="134" x2="100%" y2="134"/>
+          <line x1="33%" y1="0" x2="33%" y2="100%"/><line x1="66%" y1="0" x2="66%" y2="100%"/>
+        </svg>
+        <!-- Visit pins -->
+        <div class="photo-map__pin photo-map__pin--visit" style="left:23%;top:28%">
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="#fff" stroke-width="1"><circle cx="5" cy="5" r="3"/></svg>
+        </div>
+        <div class="photo-map__pin photo-map__pin--visit" style="left:57%;top:40%">
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="#fff" stroke-width="1"><circle cx="5" cy="5" r="3"/></svg>
+        </div>
+        <div class="photo-map__pin photo-map__pin--featured" style="left:80%;top:23%">
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="#fff" stroke-width="1"><circle cx="5" cy="5" r="3"/></svg>
+        </div>
+        <div class="photo-map__pin photo-map__pin--visit" style="left:40%;top:60%">
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="#fff" stroke-width="1"><circle cx="5" cy="5" r="3"/></svg>
+        </div>
+        <!-- Wish pins -->
+        <div class="photo-map__pin photo-map__pin--wish" style="left:88%;top:55%">
+          <svg width="6" height="6" viewBox="0 0 6 6"><circle cx="3" cy="3" r="2.5" fill="rgba(0,0,0,0.15)"/></svg>
+        </div>
+        <div class="photo-map__pin photo-map__pin--wish" style="left:14%;top:70%">
+          <svg width="6" height="6" viewBox="0 0 6 6"><circle cx="3" cy="3" r="2.5" fill="rgba(0,0,0,0.15)"/></svg>
+        </div>
+        <!-- Fav pin -->
+        <div class="photo-map__pin photo-map__pin--fav" style="left:29%;top:78%">
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="#fff"><path d="M5 1L6 3.5L8.5 3.8L6.8 5.5L7.2 8L5 6.8L2.8 8L3.2 5.5L1.5 3.8L4 3.5Z" transform="scale(0.8) translate(1,1)"/></svg>
+        </div>
+        <div class="map-legend">
+          <div class="map-legend__item"><div class="map-legend__dot" style="background:#000"></div>방문</div>
+          <div class="map-legend__item"><div class="map-legend__dot" style="border:1.5px dashed rgba(0,0,0,0.2);background:transparent"></div>가고싶음</div>
+          <div class="map-legend__item"><div class="map-legend__dot" style="background:#ff9f0a"></div>즐겨찾기</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 지난 촬영 -->
+    <div class="section">
+      <div class="section__header">
+        <h2 class="section__title">지난 촬영</h2>
+        <a href="#" class="section__link">전체보기</a>
+      </div>
+      <div class="album-scroll">
+        <div class="album-card" style="background:linear-gradient(to bottom,#0f2027,#203a43,#e8a87c)">
+          <div class="album-card__info"><div class="album-card__name">광안리 일출</div><div class="album-card__meta">2026.03.28 · 12장</div></div>
+        </div>
+        <div class="album-card" style="background:linear-gradient(to bottom,#8b4a6b,#f0c89a)">
+          <div class="album-card__info"><div class="album-card__name">진해 벚꽃</div><div class="album-card__meta">2026.04.02 · 24장</div></div>
+        </div>
+        <div class="album-card" style="background:linear-gradient(to bottom,#0a1a0f,#4a8060)">
+          <div class="album-card__info"><div class="album-card__name">제주 사려니숲</div><div class="album-card__meta">2026.04.15 · 18장</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 포토제닉 월간 리포트 -->
+    <div class="section">
+      <div class="section__header">
+        <h2 class="section__title">5월 포토제닉 리포트</h2>
+      </div>
+      <div class="report-card">
+        <div class="report__avg-label">이번 달 평균</div>
+        <div class="report__avg-row">
+          <span class="report__avg-num">84.2</span>
+          <span class="report__avg-max">/100</span>
+          <span class="report__trend-badge">▲ 3.1</span>
+        </div>
+        <div class="report__body">
+          <div class="report__chart">
+            <div class="report__chart-label">주간 트렌드</div>
+            <div class="report__bars">
+              <div class="report__bar"><span class="report__bar-num">78</span><div class="report__bar-fill" style="height:48%;background:rgba(0,113,227,0.12)"></div><span class="report__bar-label">1주</span></div>
+              <div class="report__bar"><span class="report__bar-num">84</span><div class="report__bar-fill" style="height:64%;background:rgba(0,113,227,0.15)"></div><span class="report__bar-label">2주</span></div>
+              <div class="report__bar"><span class="report__bar-num report__bar-num--active">91</span><div class="report__bar-fill" style="height:85%;background:rgba(0,113,227,0.22)"></div><span class="report__bar-label">3주</span></div>
+              <div class="report__bar"><span class="report__bar-num">82</span><div class="report__bar-fill" style="height:58%;background:rgba(0,113,227,0.15)"></div><span class="report__bar-label">4주</span></div>
+            </div>
+          </div>
+          <div class="report__best">
+            <div class="report__best-label">이달의 베스트</div>
+            <div class="report__best-card">
+              <div class="report__best-name">광안리</div>
+              <div class="report__best-meta">야경 · 3회 방문</div>
+              <span class="report__best-score">91점</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 위시리스트 스팟 -->
+    <div class="section">
+      <div class="section__header">
+        <h2 class="section__title">위시리스트 스팟</h2>
+      </div>
+      <p class="section__subtitle">날씨 알림이 설정된 스팟</p>
+      <div class="wish-scroll">
+        <div class="wish-card" style="background:linear-gradient(to bottom,#1a1530,#b44a3a)">
+          <div class="wish-card__bell">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="0.9" stroke-linejoin="round"><path d="M6 1C4 1 3 2.5 3 4V6.5L2 8H10L9 6.5V4C9 2.5 8 1 6 1Z"/><path d="M4.5 8Q4.5 10 6 10T7.5 8" stroke-width="0.8"/></svg>
+          </div>
+          <div class="wish-card__name">경복궁 야간개장</div>
+          <div class="wish-card__cond">맑은 날 · 일몰 후</div>
+          <div class="wish-card__date">다음 조건 충족 예상: 5/18</div>
+        </div>
+        <div class="wish-card" style="background:linear-gradient(to bottom,#020010,#1a1545)">
+          <div class="wish-card__bell">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="0.9" stroke-linejoin="round"><path d="M6 1C4 1 3 2.5 3 4V6.5L2 8H10L9 6.5V4C9 2.5 8 1 6 1Z"/><path d="M4.5 8Q4.5 10 6 10T7.5 8" stroke-width="0.8"/></svg>
+          </div>
+          <div class="wish-card__name">영월 별마로천문대</div>
+          <div class="wish-card__cond">구름 없는 밤 · 새벽</div>
+          <div class="wish-card__date">다음 조건 충족 예상: 5/21</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 내 장비 -->
+    <div class="section">
+      <div class="section__header">
+        <h2 class="section__title">내 장비</h2>
+      </div>
+      <div class="equip-card">
+        <div class="equip-item">
+          <div class="equip-item__icon">
+            <svg width="14" height="12" viewBox="0 0 14 12" fill="none" stroke="rgba(0,0,0,0.3)" stroke-width="0.9"><rect x="0" y="3" width="14" height="8" rx="2"/><circle cx="7" cy="7.5" r="2.8"/><rect x="4" y="0" width="6" height="4" rx="1.5"/></svg>
+          </div>
+          <div><div class="equip-item__name">Sony A7IV</div><div class="equip-item__desc">메인 바디</div></div>
+        </div>
+        <div class="equip-item">
+          <div class="equip-item__icon">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="rgba(0,0,0,0.25)" stroke-width="0.9"><circle cx="7" cy="7" r="6"/><circle cx="7" cy="7" r="3"/></svg>
+          </div>
+          <div><div class="equip-item__name">16-35mm f/2.8 GM</div><div class="equip-item__desc">메인 렌즈 · 풍경/야경</div></div>
+          <div class="equip-item__more">+2 <svg width="8" height="12" viewBox="0 0 8 12" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><polyline points="2,2 6,6 2,10"/></svg></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 퀵 액션 -->
+    <div class="section">
+      <div class="quick-actions">
+        <button class="quick-action">
+          <svg width="14" height="16" viewBox="0 0 14 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round"><path d="M7 1C3.5 1 1 3.5 1 6.5C1 10.5 7 15 7 15S13 10.5 13 6.5C13 3.5 10.5 1 7 1Z"/><circle cx="7" cy="6" r="2"/></svg>
+          스팟 등록
+        </button>
+        <button class="quick-action">
+          <svg width="14" height="16" viewBox="0 0 14 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linejoin="round"><path d="M7 1C4.5 1 3 3 3 5V8.5L1.5 11H12.5L11 8.5V5C11 3 9.5 1 7 1Z"/><path d="M5 11Q5 14 7 14T9 11" stroke-width="0.9"/></svg>
+          알림 설정
+        </button>
+        <button class="quick-action">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round"><rect x="1" y="1" width="12" height="12" rx="2.5"/><line x1="5" y1="7" x2="9" y2="7"/><polyline points="6,4.5 4,7 6,9.5"/></svg>
+          고객센터
+        </button>
+      </div>
+    </div>
+
+    <div style="height:20px"></div>
+  </div>
+
+  <!-- Tab Bar -->
+  <div class="tab-bar">
+    <button class="tab"><svg class="tab__icon" viewBox="0 0 22 18" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="2" width="16" height="14" rx="2"/><polyline points="3,10 11,4 19,10"/></svg><span class="tab__label">홈</span></button>
+    <button class="tab"><svg class="tab__icon" viewBox="0 0 22 18" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"><path d="M2 3L8 1L14 5L20 3V15L14 17L8 13L2 15Z"/></svg><span class="tab__label">지도</span></button>
+    <button class="tab"><svg class="tab__icon" viewBox="0 0 22 18" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><rect x="3" y="0" width="16" height="18" rx="2.5"/><line x1="7" y1="5" x2="15" y2="5"/><line x1="7" y1="9" x2="15" y2="9"/><line x1="7" y1="13" x2="12" y2="13"/></svg><span class="tab__label">여행</span></button>
+    <button class="tab"><svg class="tab__icon" viewBox="0 0 24 18" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><circle cx="8" cy="5" r="4"/><circle cx="18" cy="5" r="4"/><path d="M1 18Q4 12 8 12T12 14Q13 12 18 12T25 18"/></svg><span class="tab__label">커뮤니티</span></button>
+    <button class="tab is-active"><svg class="tab__icon" viewBox="0 0 22 18" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><circle cx="11" cy="5" r="5"/><path d="M2 18Q5 12 11 12T20 18"/></svg><span class="tab__label">MY</span></button>
+    <div class="tab-bar__indicator"></div>
+  </div>
+</div>
+</body>
+</html>

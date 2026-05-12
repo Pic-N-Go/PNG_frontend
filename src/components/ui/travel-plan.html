@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>PNG - 여행 계획</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css">
+  <style>
+    :root {
+      --color-bg: #ffffff;
+      --color-surface: #f5f5f7;
+      --color-text-primary: #000000;
+      --color-text-secondary: rgba(0, 0, 0, 0.48);
+      --color-text-tertiary: rgba(0, 0, 0, 0.28);
+      --color-accent: #0071e3;
+      --color-accent-hover: #0062c4;
+      --color-link: #0066cc;
+      --color-border: rgba(0, 0, 0, 0.08);
+      --color-border-light: rgba(0, 0, 0, 0.06);
+      --color-success: #34c759;
+      --color-warning: #ff9f0a;
+      --font-family: 'Pretendard Variable', 'SF Pro Display', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+      --radius-card: 14px;
+      --radius-btn: 26px;
+    }
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { font-size: 16px; -webkit-font-smoothing: antialiased; }
+    body { font-family: var(--font-family); background: #f0f0f0; display: flex; justify-content: center; min-height: 100dvh; }
+
+    .phone-frame { width: 390px; background: var(--color-bg); position: relative; overflow-y: auto; overflow-x: hidden; padding-bottom: 80px; }
+
+    /* ======================== */
+    /* Header                   */
+    /* ======================== */
+    .header {
+      height: 140px; position: relative;
+      background: linear-gradient(to bottom, #1a1530 0%, #8b4a6b 50%, #d4856a 100%);
+    }
+    .header::after {
+      content: ''; position: absolute; bottom: -30px; left: 0; right: 0; height: 42px;
+      background: linear-gradient(to bottom, #d4856a, #fff 60%);
+    }
+    .header__landscape {
+      position: absolute; bottom: 0; left: 0; right: 0; height: 30px; background: rgba(0,0,0,0.1);
+      clip-path: polygon(0% 50%, 15% 30%, 30% 50%, 50% 15%, 65% 35%, 80% 10%, 100% 25%, 100% 100%, 0% 100%);
+    }
+
+    /* Status bar */
+    .status-bar { position: absolute; top: 0; left: 0; right: 0; height: 54px; z-index: 10; display: flex; align-items: center; justify-content: space-between; padding: 0 34px; }
+    .status-bar__time { font-size: 15px; font-weight: 600; color: #fff; letter-spacing: -0.3px; }
+    .dynamic-island { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); width: 106px; height: 28px; background: rgba(0,0,0,0.55); border-radius: 14px; }
+    .status-bar__icons { display: flex; gap: 6px; }
+    .status-bar__icons svg { height: 12px; fill: #fff; }
+
+    /* Nav */
+    .header__nav { position: absolute; top: 60px; left: 0; right: 0; z-index: 10; display: flex; align-items: center; justify-content: space-between; padding: 0 12px; }
+    .header__back, .header__more {
+      width: 32px; height: 32px; border-radius: 50%; border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center; transition: background 0.2s;
+    }
+    .header__back { background: rgba(0,0,0,0.2); }
+    .header__back:hover { background: rgba(0,0,0,0.35); }
+    .header__more { background: rgba(0,0,0,0.15); }
+    .header__title { font-size: 17px; font-weight: 600; color: #fff; letter-spacing: -0.4px; }
+
+    /* ======================== */
+    /* Content                  */
+    /* ======================== */
+    .content { position: relative; z-index: 1; padding: 24px 20px 0; }
+
+    /* ======================== */
+    /* Trip Summary             */
+    /* ======================== */
+    .trip-summary { padding: 16px; border-radius: 16px; background: var(--color-surface); margin-bottom: 20px; }
+    .trip-summary__name { font-size: 20px; font-weight: 600; color: var(--color-text-primary); letter-spacing: -0.4px; margin-bottom: 4px; }
+    .trip-summary__date { font-size: 13px; color: rgba(0,0,0,0.4); letter-spacing: -0.1px; margin-bottom: 16px; }
+    .trip-summary__stats { display: flex; gap: 0; }
+    .trip-stat { flex: 1; display: flex; align-items: flex-start; gap: 8px; }
+    .trip-stat__icon { width: 28px; height: 28px; border-radius: 8px; background: rgba(0,113,227,0.08); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .trip-stat__num { font-size: 13px; font-weight: 600; color: var(--color-text-primary); }
+    .trip-stat__label { font-size: 11px; color: rgba(0,0,0,0.3); margin-top: 1px; }
+
+    /* ======================== */
+    /* Day Tabs                 */
+    /* ======================== */
+    .day-tabs { display: flex; gap: 12px; margin-bottom: 8px; }
+    .day-tab {
+      height: 40px; padding: 0 24px; border-radius: 20px; border: none;
+      font-family: var(--font-family); font-size: 14px; font-weight: 500; cursor: pointer;
+      transition: all 0.2s; display: flex; align-items: center; justify-content: center;
+    }
+    .day-tab.is-active { background: var(--color-accent); color: #fff; font-weight: 600; }
+    .day-tab:not(.is-active) { background: var(--color-surface); color: rgba(0,0,0,0.5); }
+    .day-tab:not(.is-active):hover { background: rgba(0,0,0,0.06); }
+    .day-tab--add { width: 40px; padding: 0; font-size: 20px; color: rgba(0,0,0,0.25); }
+
+    .day-date { font-size: 13px; color: rgba(0,0,0,0.4); letter-spacing: -0.1px; margin-bottom: 16px; }
+
+    /* ======================== */
+    /* Timeline                 */
+    /* ======================== */
+    .timeline { position: relative; padding-left: 30px; }
+
+    /* Timeline line */
+    .timeline::before {
+      content: ''; position: absolute; left: 11px; top: 16px; bottom: 16px; width: 1.5px;
+      background: repeating-linear-gradient(to bottom, rgba(0,0,0,0.08) 0, rgba(0,0,0,0.08) 4px, transparent 4px, transparent 7px);
+    }
+
+    /* Spot entry */
+    .timeline__spot { position: relative; margin-bottom: 0; }
+    .timeline__dot {
+      position: absolute; left: -30px; top: 24px; width: 24px; height: 24px;
+      border-radius: 50%; background: var(--color-accent);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 10px; font-weight: 700; color: #fff; z-index: 2;
+    }
+
+    .spot-card {
+      border-radius: var(--radius-card); background: var(--color-surface);
+      padding: 12px; display: flex; gap: 12px; position: relative;
+      transition: transform 0.15s;
+    }
+    .spot-card:hover { transform: translateX(2px); }
+
+    .spot-card__thumb {
+      width: 72px; height: 72px; border-radius: 10px; flex-shrink: 0;
+    }
+    .spot-card__info { flex: 1; min-width: 0; }
+    .spot-card__name { font-size: 16px; font-weight: 600; color: var(--color-text-primary); letter-spacing: -0.2px; margin-bottom: 3px; }
+    .spot-card__loc { font-size: 12px; color: rgba(0,0,0,0.4); margin-bottom: 8px; }
+    .spot-card__time { display: flex; align-items: center; gap: 6px; font-size: 12px; color: rgba(0,0,0,0.5); margin-bottom: 8px; }
+    .spot-card__time svg { flex-shrink: 0; }
+    .spot-card__time span { color: rgba(0,0,0,0.25); margin-left: 4px; }
+    .spot-card__score {
+      display: inline-flex; align-items: center; height: 24px; padding: 0 10px;
+      border-radius: 12px; background: rgba(0,113,227,0.08);
+      font-size: 12px; font-weight: 600; color: var(--color-accent);
+    }
+    .spot-card__drag {
+      position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+      display: flex; flex-direction: column; gap: 3px; cursor: grab; padding: 8px 4px;
+    }
+    .spot-card__drag span { display: block; width: 14px; height: 1.5px; background: rgba(0,0,0,0.1); border-radius: 1px; }
+
+    /* Transport pill */
+    .timeline__transport {
+      display: flex; align-items: center; margin: 0; padding: 10px 0; position: relative;
+    }
+    .transport-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      height: 32px; padding: 0 14px; border-radius: 16px;
+      background: #fff; border: 0.5px solid rgba(0,0,0,0.06);
+      font-size: 12px; color: rgba(0,0,0,0.45);
+    }
+    .transport-pill svg { flex-shrink: 0; color: rgba(0,0,0,0.3); }
+
+    /* Add spot */
+    .timeline__add { position: relative; }
+    .timeline__add-dot {
+      position: absolute; left: -30px; top: 18px; width: 24px; height: 24px;
+      border-radius: 50%; border: 1.2px dashed rgba(0,0,0,0.12);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; color: rgba(0,0,0,0.2); z-index: 2;
+    }
+    .add-card {
+      border: 1px dashed rgba(0,0,0,0.08); border-radius: var(--radius-card);
+      height: 48px; display: flex; align-items: center; justify-content: center;
+      font-size: 14px; color: rgba(0,0,0,0.25); cursor: pointer; transition: all 0.2s;
+    }
+    .add-card:hover { background: rgba(0,113,227,0.03); border-color: var(--color-accent); color: var(--color-accent); }
+
+    /* ======================== */
+    /* Tip Banner               */
+    /* ======================== */
+    .tip-banner {
+      display: flex; gap: 12px; padding: 16px; border-radius: var(--radius-card);
+      background: var(--color-surface); margin-top: 24px;
+    }
+    .tip-banner__icon {
+      width: 28px; height: 28px; border-radius: 8px; background: rgba(255,159,10,0.1);
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .tip-banner__title { font-size: 14px; font-weight: 500; color: var(--color-text-primary); letter-spacing: -0.15px; margin-bottom: 4px; }
+    .tip-banner__desc { font-size: 12px; color: rgba(0,0,0,0.4); line-height: 1.5; }
+
+    /* ======================== */
+    /* Section                  */
+    /* ======================== */
+    .section { margin-top: 28px; }
+    .section__header { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px; }
+    .section__title { font-size: 18px; font-weight: 600; color: var(--color-text-primary); letter-spacing: -0.3px; }
+    .section__link { font-size: 13px; color: var(--color-link); text-decoration: none; }
+
+    /* ======================== */
+    /* Weather Row              */
+    /* ======================== */
+    .weather-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .weather-cell { padding: 12px 14px; border-radius: 12px; background: var(--color-surface); position: relative; }
+    .weather-cell__period { font-size: 11px; color: rgba(0,0,0,0.35); margin-bottom: 6px; }
+    .weather-cell__temp { font-size: 20px; font-weight: 600; color: var(--color-text-primary); margin-bottom: 2px; }
+    .weather-cell__desc { font-size: 11px; color: rgba(0,0,0,0.35); }
+    .weather-cell__icon { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); }
+
+    /* ======================== */
+    /* Mini Map                 */
+    /* ======================== */
+    .mini-map {
+      height: 140px; border-radius: var(--radius-card); background: #e8e8ed;
+      position: relative; overflow: hidden;
+    }
+    .mini-map__grid { position: absolute; inset: 0; }
+    .mini-map__grid line { stroke: rgba(0,0,0,0.03); stroke-width: 0.5; }
+    .mini-map__route { position: absolute; inset: 0; }
+    .mini-map__pin {
+      position: absolute; transform: translate(-50%, -50%);
+      width: 20px; height: 20px; border-radius: 50%; background: var(--color-accent);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 9px; font-weight: 700; color: #fff;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.15);
+    }
+
+    /* ======================== */
+    /* Bottom CTAs              */
+    /* ======================== */
+    .bottom-cta {
+      display: flex; gap: 12px; padding: 20px 20px; margin-top: 28px;
+      border-top: 0.5px solid rgba(0,0,0,0.06);
+    }
+    .btn {
+      flex: 1; height: 52px; border-radius: var(--radius-btn); border: none;
+      font-family: var(--font-family); font-size: 16px; font-weight: 500; letter-spacing: -0.2px;
+      cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn--secondary { background: var(--color-surface); color: var(--color-text-primary); }
+    .btn--secondary:hover { background: rgba(0,0,0,0.06); }
+    .btn--primary { background: var(--color-accent); color: #fff; }
+    .btn--primary:hover { background: var(--color-accent-hover); }
+
+    /* ======================== */
+    /* Tab Bar                  */
+    /* ======================== */
+    .tab-bar {
+      position: fixed; bottom: 0; width: 390px; height: 80px; background: #fff;
+      border-top: 0.5px solid rgba(0,0,0,0.08);
+      display: flex; align-items: flex-start; justify-content: space-around; padding-top: 8px; z-index: 50;
+    }
+    .tab { display: flex; flex-direction: column; align-items: center; gap: 4px; background: none; border: none; cursor: pointer; padding: 4px 10px; }
+    .tab__icon { width: 22px; height: 18px; color: rgba(0,0,0,0.35); }
+    .tab__label { font-size: 10px; color: rgba(0,0,0,0.35); font-family: var(--font-family); }
+    .tab.is-active .tab__icon { color: var(--color-accent); }
+    .tab.is-active .tab__label { color: var(--color-accent); font-weight: 500; }
+    .tab-bar__indicator { position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); width: 110px; height: 5px; background: rgba(0,0,0,0.1); border-radius: 2.5px; }
+
+    @media (max-width: 390px) { .phone-frame, .tab-bar { width: 100%; } }
+    @media (min-width: 391px) {
+      body { padding: 20px 0; }
+      .phone-frame { border-radius: 40px; box-shadow: 0 20px 60px rgba(0,0,0,0.15); overflow: hidden; }
+      .tab-bar { border-radius: 0 0 40px 40px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="phone-frame">
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <span class="status-bar__time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="status-bar__icons">
+      <svg viewBox="0 0 18 12"><rect x="0" y="9" width="3" height="3" rx=".75"/><rect x="4.5" y="6" width="3" height="6" rx=".75"/><rect x="9" y="3" width="3" height="9" rx=".75"/><rect x="13.5" y="0" width="3" height="12" rx=".75"/></svg>
+      <svg viewBox="0 0 16 14" fill="none" stroke="#fff" stroke-width="1.3" stroke-linecap="round"><path d="M3.5 10.5Q8 5 12.5 10.5"/><path d="M1 8Q8 1.5 15 8"/><circle cx="8" cy="12.5" r="1.2" fill="#fff" stroke="none"/></svg>
+      <svg viewBox="0 0 28 14"><rect x="0" y="0" width="25" height="12" rx="3.5" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="1"/><rect x="1.5" y="1.5" width="20" height="9" rx="2" fill="#fff"/></svg>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header__landscape"></div>
+    <div class="header__nav">
+      <button class="header__back" onclick="history.back()">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="11,3 5,9 11,15"/></svg>
+      </button>
+      <span class="header__title">여행 계획</span>
+      <button class="header__more">
+        <svg width="16" height="4" viewBox="0 0 16 4"><circle cx="2" cy="2" r="1.5" fill="rgba(255,255,255,0.7)"/><circle cx="8" cy="2" r="1.5" fill="rgba(255,255,255,0.7)"/><circle cx="14" cy="2" r="1.5" fill="rgba(255,255,255,0.7)"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- Trip Summary -->
+    <div class="trip-summary">
+      <div class="trip-summary__name">부산 1박 2일</div>
+      <div class="trip-summary__date">2026.05.17 (토) ~ 05.18 (일)</div>
+      <div class="trip-summary__stats">
+        <div class="trip-stat">
+          <div class="trip-stat__icon">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#0071e3" stroke-width="1.1" stroke-linecap="round">
+              <path d="M7 1C4.2 1 2 3.2 2 6C2 9.5 7 13 7 13S12 9.5 12 6C12 3.2 9.8 1 7 1Z"/><circle cx="7" cy="6" r="2"/>
+            </svg>
+          </div>
+          <div><div class="trip-stat__num">5곳</div><div class="trip-stat__label">포토스팟</div></div>
+        </div>
+        <div class="trip-stat">
+          <div class="trip-stat__icon">
+            <svg width="14" height="12" viewBox="0 0 14 12" fill="none" stroke="#0071e3" stroke-width="1">
+              <rect x="0" y="3" width="14" height="6" rx="2"/><circle cx="3.5" cy="9" r="1.3" fill="#0071e3"/><circle cx="10.5" cy="9" r="1.3" fill="#0071e3"/>
+            </svg>
+          </div>
+          <div><div class="trip-stat__num">142km</div><div class="trip-stat__label">총 이동거리</div></div>
+        </div>
+        <div class="trip-stat">
+          <div class="trip-stat__icon">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#0071e3" stroke-width="1">
+              <circle cx="7" cy="7" r="6"/><polyline points="7,3.5 7,7 9.5,9" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <div><div class="trip-stat__num">12시간</div><div class="trip-stat__label">예상 소요</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Day Tabs -->
+    <div class="day-tabs">
+      <button class="day-tab is-active" onclick="selectDay(this)">DAY 1</button>
+      <button class="day-tab" onclick="selectDay(this)">DAY 2</button>
+      <button class="day-tab day-tab--add">+</button>
+    </div>
+    <div class="day-date">5월 17일 토요일</div>
+
+    <!-- Timeline -->
+    <div class="timeline">
+
+      <!-- Spot 1 -->
+      <div class="timeline__spot">
+        <div class="timeline__dot">1</div>
+        <div class="spot-card">
+          <div class="spot-card__thumb" style="background:linear-gradient(to bottom,#0f2027,#2c5364)"></div>
+          <div class="spot-card__info">
+            <div class="spot-card__name">광안리 해수욕장</div>
+            <div class="spot-card__loc">부산 수영구 · 야경/바다</div>
+            <div class="spot-card__time">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="rgba(0,0,0,0.3)" stroke-width="1"><circle cx="6" cy="6" r="5"/><polyline points="6,3 6,6 8,7.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              06:30 ~ 08:00 <span>1시간 30분</span>
+            </div>
+            <div class="spot-card__score">87점</div>
+          </div>
+          <div class="spot-card__drag"><span></span><span></span><span></span></div>
+        </div>
+      </div>
+
+      <!-- Transport 1→2 -->
+      <div class="timeline__transport">
+        <div class="transport-pill">
+          <svg width="14" height="10" viewBox="0 0 14 10" fill="none" stroke="currentColor" stroke-width="0.9">
+            <rect x="0" y="2" width="14" height="5.5" rx="1.5"/><circle cx="3.5" cy="7.5" r="1.2" fill="rgba(0,0,0,0.25)" stroke="none"/><circle cx="10.5" cy="7.5" r="1.2" fill="rgba(0,0,0,0.25)" stroke="none"/>
+          </svg>
+          차량 25분 · 18km
+        </div>
+      </div>
+
+      <!-- Spot 2 -->
+      <div class="timeline__spot">
+        <div class="timeline__dot">2</div>
+        <div class="spot-card">
+          <div class="spot-card__thumb" style="background:linear-gradient(to bottom,#232526,#8e7b5a)"></div>
+          <div class="spot-card__info">
+            <div class="spot-card__name">해동용궁사</div>
+            <div class="spot-card__loc">부산 기장군 · 한옥/바다</div>
+            <div class="spot-card__time">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="rgba(0,0,0,0.3)" stroke-width="1"><circle cx="6" cy="6" r="5"/><polyline points="6,3 6,6 8,7.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              09:00 ~ 10:30 <span>1시간 30분</span>
+            </div>
+            <div class="spot-card__score">82점</div>
+          </div>
+          <div class="spot-card__drag"><span></span><span></span><span></span></div>
+        </div>
+      </div>
+
+      <!-- Transport 2→3 -->
+      <div class="timeline__transport">
+        <div class="transport-pill">
+          <svg width="10" height="16" viewBox="0 0 10 16" fill="none" stroke="currentColor" stroke-width="0.9" stroke-linecap="round">
+            <circle cx="5" cy="2.5" r="2"/><line x1="5" y1="5" x2="5" y2="10.5"/><line x1="2" y1="7.5" x2="8" y2="7.5"/><line x1="5" y1="10.5" x2="2.5" y2="14.5"/><line x1="5" y1="10.5" x2="7.5" y2="14.5"/>
+          </svg>
+          도보 12분 · 0.8km
+        </div>
+      </div>
+
+      <!-- Spot 3 -->
+      <div class="timeline__spot">
+        <div class="timeline__dot">3</div>
+        <div class="spot-card">
+          <div class="spot-card__thumb" style="background:linear-gradient(to bottom,#1a1530,#b44a3a)"></div>
+          <div class="spot-card__info">
+            <div class="spot-card__name">감천문화마을</div>
+            <div class="spot-card__loc">부산 사하구 · 인물/감성</div>
+            <div class="spot-card__time">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="rgba(0,0,0,0.3)" stroke-width="1"><circle cx="6" cy="6" r="5"/><polyline points="6,3 6,6 8,7.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              11:00 ~ 13:00 <span>2시간</span>
+            </div>
+            <div class="spot-card__score">79점</div>
+          </div>
+          <div class="spot-card__drag"><span></span><span></span><span></span></div>
+        </div>
+      </div>
+
+      <!-- Add spot -->
+      <div class="timeline__add">
+        <div class="timeline__add-dot">+</div>
+        <div class="add-card">+ 스팟 추가하기</div>
+      </div>
+    </div>
+
+    <!-- Tip Banner -->
+    <div class="tip-banner">
+      <div class="tip-banner__icon">
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#ff9f0a" stroke-width="1.2">
+          <circle cx="7" cy="7" r="6"/><line x1="7" y1="5.5" x2="7" y2="8" stroke-linecap="round"/><circle cx="7" cy="10" r="0.6" fill="#ff9f0a"/>
+        </svg>
+      </div>
+      <div>
+        <div class="tip-banner__title">오늘의 촬영 팁</div>
+        <div class="tip-banner__desc">광안리 일출 시간 05:32 · 골든아워 06:00~06:40<br>미세먼지 좋음 · 일출 포인트로 이동 추천</div>
+      </div>
+    </div>
+
+    <!-- Weather -->
+    <div class="section">
+      <div class="section__header"><h3 class="section__title">DAY 1 날씨</h3></div>
+      <div class="weather-row">
+        <div class="weather-cell">
+          <div class="weather-cell__period">오전</div>
+          <div class="weather-cell__temp">18°</div>
+          <div class="weather-cell__desc">맑음</div>
+          <div class="weather-cell__icon">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="11" cy="11" r="5" fill="rgba(255,159,10,0.3)"/><circle cx="11" cy="11" r="8" stroke="rgba(255,159,10,0.2)" stroke-width="1"/></svg>
+          </div>
+        </div>
+        <div class="weather-cell">
+          <div class="weather-cell__period">오후</div>
+          <div class="weather-cell__temp">24°</div>
+          <div class="weather-cell__desc">구름 조금</div>
+          <div class="weather-cell__icon">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><circle cx="10" cy="9" r="4" fill="rgba(255,159,10,0.2)"/><path d="M6 15Q6 12 10 12T16 12Q20 12 20 15Q20 18 16 18H8Q6 18 6 15Z" fill="rgba(0,0,0,0.06)"/></svg>
+          </div>
+        </div>
+        <div class="weather-cell">
+          <div class="weather-cell__period">저녁</div>
+          <div class="weather-cell__temp">20°</div>
+          <div class="weather-cell__desc">맑음</div>
+          <div class="weather-cell__icon">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none"><path d="M14 4Q8 5 8 11Q8 17 14 18Q10 17 10 11Q10 5 14 4Z" fill="rgba(0,0,0,0.1)"/></svg>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Mini Map -->
+    <div class="section">
+      <div class="section__header">
+        <h3 class="section__title">이동 경로</h3>
+        <a href="#" class="section__link">지도에서 보기</a>
+      </div>
+      <div class="mini-map">
+        <svg class="mini-map__grid" width="100%" height="100%">
+          <line x1="0" y1="47" x2="100%" y2="47"/><line x1="0" y1="94" x2="100%" y2="94"/>
+          <line x1="33%" y1="0" x2="33%" y2="100%"/><line x1="66%" y1="0" x2="66%" y2="100%"/>
+        </svg>
+        <svg class="mini-map__route" width="100%" height="100%">
+          <polyline points="80,50 160,70 280,90" fill="none" stroke="#0071e3" stroke-width="2" stroke-linecap="round" stroke-dasharray="6 4"/>
+        </svg>
+        <div class="mini-map__pin" style="left:23%;top:36%">1</div>
+        <div class="mini-map__pin" style="left:46%;top:50%">2</div>
+        <div class="mini-map__pin" style="left:80%;top:64%">3</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom CTAs -->
+  <div class="bottom-cta">
+    <button class="btn btn--secondary">코스 편집</button>
+    <button class="btn btn--primary">출발하기</button>
+  </div>
+
+  <!-- Tab Bar -->
+  <div class="tab-bar">
+    <button class="tab">
+      <svg class="tab__icon" viewBox="0 0 22 18" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="2" width="16" height="14" rx="2"/><polyline points="3,10 11,4 19,10"/></svg>
+      <span class="tab__label">홈</span>
+    </button>
+    <button class="tab">
+      <svg class="tab__icon" viewBox="0 0 22 18" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"><path d="M2 3L8 1L14 5L20 3V15L14 17L8 13L2 15Z"/></svg>
+      <span class="tab__label">지도</span>
+    </button>
+    <button class="tab is-active">
+      <svg class="tab__icon" viewBox="0 0 22 18" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><rect x="3" y="0" width="16" height="18" rx="2.5"/><line x1="7" y1="5" x2="15" y2="5"/><line x1="7" y1="9" x2="15" y2="9"/><line x1="7" y1="13" x2="12" y2="13"/></svg>
+      <span class="tab__label">여행</span>
+    </button>
+    <button class="tab">
+      <svg class="tab__icon" viewBox="0 0 22 18" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><circle cx="8" cy="5" r="4"/><circle cx="16" cy="5" r="4"/><path d="M1 18Q4 12 8 12T12 14Q13 12 16 12T23 18"/></svg>
+      <span class="tab__label">커뮤니티</span>
+    </button>
+    <button class="tab">
+      <svg class="tab__icon" viewBox="0 0 22 18" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><circle cx="11" cy="5" r="5"/><path d="M2 18Q5 12 11 12T20 18"/></svg>
+      <span class="tab__label">MY</span>
+    </button>
+    <div class="tab-bar__indicator"></div>
+  </div>
+</div>
+
+<script>
+  function selectDay(el) {
+    document.querySelectorAll('.day-tab:not(.day-tab--add)').forEach(t => t.classList.remove('is-active'));
+    el.classList.add('is-active');
+  }
+</script>
+
+</body>
+</html>
