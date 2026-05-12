@@ -1,0 +1,23 @@
+<svg width="390" height="360" viewBox="0 0 390 360" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2a2e35"/>
+      <stop offset="35%" stop-color="#3a4048"/>
+      <stop offset="65%" stop-color="#505860"/>
+      <stop offset="100%" stop-color="#6a7580"/>
+    </linearGradient>
+  </defs>
+  <rect width="390" height="360" fill="url(#bg)"/>
+  <line x1="50" y1="20" x2="45" y2="80" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+  <line x1="110" y1="40" x2="105" y2="120" stroke="rgba(255,255,255,0.035)" stroke-width="1"/>
+  <line x1="170" y1="10" x2="165" y2="90" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+  <line x1="230" y1="50" x2="225" y2="130" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+  <line x1="290" y1="25" x2="285" y2="105" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+  <line x1="350" y1="45" x2="345" y2="125" stroke="rgba(255,255,255,0.035)" stroke-width="1"/>
+  <line x1="80" y1="100" x2="75" y2="180" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
+  <line x1="200" y1="120" x2="195" y2="200" stroke="rgba(255,255,255,0.04)" stroke-width="1"/>
+  <line x1="320" y1="110" x2="315" y2="190" stroke="rgba(255,255,255,0.035)" stroke-width="1"/>
+  <ellipse cx="120" cy="330" rx="40" ry="6" fill="rgba(255,255,255,0.03)"/>
+  <ellipse cx="280" cy="340" rx="50" ry="5" fill="rgba(255,255,255,0.025)"/>
+  <path d="M0 280 Q80 265 160 275 Q240 285 320 265 Q360 255 390 260 L390 360 L0 360Z" fill="rgba(0,0,0,0.08)"/>
+</svg>
