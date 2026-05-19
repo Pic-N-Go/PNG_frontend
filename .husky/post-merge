@@ -1,0 +1,23 @@
+#!/usr/bin/env sh
+
+set -e
+
+BASE_REF=""
+
+if git rev-parse --verify ORIG_HEAD >/dev/null 2>&1; then
+  BASE_REF="ORIG_HEAD"
+elif git rev-parse --verify HEAD@{1} >/dev/null 2>&1; then
+  BASE_REF="HEAD@{1}"
+fi
+
+if [ -z "$BASE_REF" ]; then
+  echo "[post-merge] base ref not found, skip dependency check."
+  exit 0
+fi
+
+if ! git diff --quiet "$BASE_REF" HEAD -- "pnpm-lock.yaml" "package.json"; then
+  echo "[post-merge] dependency files changed. Running pnpm install --frozen-lockfile..."
+  pnpm install --frozen-lockfile
+else
+  echo "[post-merge] no dependency file changes. Skipping pnpm install."
+fi
