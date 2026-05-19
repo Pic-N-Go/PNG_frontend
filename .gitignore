@@ -1,5 +1,6 @@
 # dependencies
 node_modules/
+package-lock.json
 
 # Expo
 .expo/
@@ -56,5 +57,6 @@ Desktop.ini
 /ios
 /android
 
-# Claude
+# AI
 .claude
+.cursor

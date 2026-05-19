@@ -145,3 +145,34 @@ const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 ```
 
 > `.env` 파일은 git에 커밋하지 않습니다. `.env.example`을 참고하세요.
+
+---
+
+## 협업 및 자동화 규칙
+
+### 브랜치/PR 컨벤션
+
+- 브랜치 네이밍, PR 제목 prefix, 라벨 규칙은 `.github/CONVENTIONS.md`를 따릅니다.
+- PR 템플릿은 `.github/pull_request_template.md`를 사용합니다.
+
+### CI
+
+- `main`/`develop` 대상 `push` 및 `pull_request`에서 아래 검사가 자동 실행됩니다.
+  - Type check: `pnpm exec tsc --noEmit`
+  - Lint: `pnpm lint`
+
+### PR 라벨 자동화
+
+- `.github/workflows/labeler.yml`과 `.github/labeler.yml`로 PR 제목/브랜치 기준 라벨이 자동 적용됩니다.
+- 예: `feat: ...` -> `feature`, `fix: ...` -> `bug`, `test: ...` -> `test`
+
+### 의존성 동기화 (pull 이후)
+
+- Husky `post-merge` hook이 활성화되어 있습니다.
+- `git pull` 이후 `pnpm-lock.yaml` 또는 `package.json`이 바뀐 경우에만 자동으로 `pnpm install --frozen-lockfile`를 실행합니다.
+- 의존성 파일 변경이 없으면 자동 설치를 건너뜁니다.
+
+### Lockfile 정책
+
+- 이 프로젝트는 `pnpm` 기준입니다.
+- `pnpm-lock.yaml`만 관리하며, `package-lock.json`은 커밋하지 않습니다.
