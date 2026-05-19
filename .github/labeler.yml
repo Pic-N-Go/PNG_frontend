@@ -1,0 +1,27 @@
+feature:
+  - title: ['^feat(\(.+\))?:', '^feature(\(.+\))?:']
+  - head-branch: ['^feature\/']
+
+bug:
+  - title: ['^fix(\(.+\))?:', '^bugfix(\(.+\))?:']
+  - head-branch: ['^fix\/', '^bugfix\/']
+
+refactor:
+  - title: ['^refactor(\(.+\))?:']
+  - head-branch: ['^refactor\/']
+
+style:
+  - title: ['^style(\(.+\))?:']
+  - head-branch: ['^style\/']
+
+chore:
+  - title: ['^chore(\(.+\))?:']
+  - head-branch: ['^chore\/']
+
+docs:
+  - title: ['^docs(\(.+\))?:']
+  - head-branch: ['^docs\/']
+
+test:
+  - title: ['^test(\(.+\))?:']
+  - head-branch: ['^test\/']
