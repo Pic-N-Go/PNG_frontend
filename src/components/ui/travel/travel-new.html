@@ -1,0 +1,708 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>PNG - 새 출사 계획</title>
+  <link rel="stylesheet" href="../fonts.css">
+  <style>
+    :root {
+      --color-bg: #ffffff;
+      --color-surface: #f5f5f7;
+      --color-text-primary: #000000;
+      --color-text-secondary: rgba(0,0,0,0.48);
+      --color-text-tertiary: rgba(0,0,0,0.28);
+      --color-accent: #e31b59;
+      --color-accent-hover: #c91550;
+      --color-tab-active: #e31b59;
+      --color-border-light: rgba(0,0,0,0.06);
+      --color-success: #34c759;
+      --color-warning: #ff9f0a;
+      --radius-card: 14px;
+      --radius-btn: 26px;
+    }
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    html{font-size:16px;-webkit-font-smoothing:antialiased}
+    body{font-family:var(--font-family);background:#f0f0f0;display:flex;justify-content:center;min-height:100dvh}
+    .phone-frame{width:390px;background:var(--color-bg);position:relative;overflow-y:auto;overflow-x:hidden;padding-bottom:20px}
+
+    /* ── 상태바 ── */
+    .status-bar{height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 28px;position:relative;background:#000}
+    .status-bar__time{font-size:15px;font-weight:600;color:#fff;letter-spacing:-0.3px}
+    .dynamic-island{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:106px;height:28px;background:#111;border-radius:14px}
+    .status-bar__icons{display:flex;gap:6px;align-items:center}
+    .status-bar__icons svg{height:12px;fill:#fff}
+
+    /* ── 네비 ── */
+    .nav{height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;background:#000;border-bottom:0.5px solid rgba(255,255,255,0.06)}
+    .nav__back{width:36px;height:36px;border-radius:50%;border:none;background:rgba(255,255,255,0.08);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.15s}
+    .nav__back:hover{background:rgba(255,255,255,0.14)}
+    .nav__title{font-size:17px;font-weight:600;color:#fff;letter-spacing:-0.4px}
+    .nav__placeholder{width:36px}
+
+    /* ── 섹션 구분 ── */
+    .section{padding:28px 28px 0}
+    .section + .section{padding-top:24px}
+    .section__label{font-size:12px;font-weight:500;color:rgba(0,0,0,0.4);letter-spacing:-0.1px;margin-bottom:8px}
+
+    /* ── 입력 필드 ── */
+    .field-input{width:100%;height:52px;border-radius:12px;border:1.5px solid transparent;background:var(--color-surface);padding:0 16px;font-family:var(--font-family);font-size:16px;font-weight:500;color:var(--color-text-primary);letter-spacing:-0.3px;outline:none;transition:border-color 0.2s, background 0.2s}
+    .field-input:focus{border-color:var(--color-accent);background:#fff}
+    .field-input::placeholder{color:rgba(0,0,0,0.22);font-weight:400;font-size:15px}
+
+    /* ── 날짜 행 ── */
+    .date-row{display:flex;gap:8px;align-items:center}
+    .date-btn{flex:1;height:52px;border-radius:12px;border:1.5px solid transparent;background:var(--color-surface);padding:0 14px;font-family:var(--font-family);font-size:14px;color:rgba(0,0,0,0.25);outline:none;cursor:pointer;display:flex;align-items:center;justify-content:space-between;transition:border-color 0.2s, background 0.2s}
+    .date-btn.is-set{color:var(--color-text-primary);font-weight:500}
+    .date-btn:focus,.date-btn:active{border-color:var(--color-accent);background:#fff}
+    .date-sep{font-size:13px;color:rgba(0,0,0,0.2);flex-shrink:0}
+
+    /* ── 일정 유형 칩 ── */
+    .chips{display:flex;gap:8px;flex-wrap:wrap}
+    .chip{height:36px;padding:0 16px;border-radius:18px;border:none;background:var(--color-surface);font-family:var(--font-family);font-size:13px;font-weight:500;color:rgba(0,0,0,0.45);cursor:pointer;transition:all 0.18s}
+    .chip.is-active{background:var(--color-accent);color:#fff}
+    .chip:hover:not(.is-active){background:rgba(0,0,0,0.06)}
+
+    /* ── 구분선 ── */
+    .divider{height:0.5px;background:var(--color-border-light);margin:24px 0 0}
+
+    /* ── 데이 탭 ── */
+    .day-section{padding:20px 28px 0}
+    .day-tabs{display:flex;gap:8px;margin-bottom:8px;overflow-x:auto;scrollbar-width:none}
+    .day-tabs::-webkit-scrollbar{display:none}
+    .day-tab{height:38px;padding:0 20px;border-radius:19px;border:none;font-family:var(--font-family);font-size:13px;font-weight:500;cursor:pointer;transition:all 0.18s;flex-shrink:0}
+    .day-tab.is-active{background:#000;color:#fff;font-weight:600}
+    .day-tab:not(.is-active){background:var(--color-surface);color:rgba(0,0,0,0.5)}
+    .day-tab--add{width:38px;padding:0;font-size:18px;color:rgba(0,0,0,0.25);background:var(--color-surface)}
+    .day-date{font-size:13px;color:rgba(0,0,0,0.35);letter-spacing:-0.1px;margin-bottom:20px}
+
+    /* ── 타임라인 ── */
+    .timeline{position:relative;padding-left:32px}
+    .timeline.is-empty::before{display:none}
+    .timeline::before{content:'';position:absolute;left:11px;top:16px;bottom:16px;width:1.5px;background:repeating-linear-gradient(to bottom,rgba(0,0,0,0.08) 0,rgba(0,0,0,0.08) 4px,transparent 4px,transparent 7px)}
+    .timeline__add{position:relative}
+    .timeline__add-dot{position:absolute;left:-32px;top:50%;transform:translateY(-50%);width:24px;height:24px;border-radius:50%;border:1.5px dashed rgba(0,0,0,0.12);display:flex;align-items:center;justify-content:center;color:rgba(0,0,0,0.18);font-size:16px}
+
+    /* 빈 상태 */
+    .timeline.is-empty{padding-left:0}
+    .empty-state{display:flex;flex-direction:column;align-items:center;padding:36px 0 28px;gap:6px;text-align:center}
+    .empty-state__icon{width:52px;height:52px;border-radius:16px;background:var(--color-surface);display:flex;align-items:center;justify-content:center;margin-bottom:6px}
+    .empty-state__title{font-size:15px;font-weight:500;color:rgba(0,0,0,0.38);letter-spacing:-0.2px}
+    .empty-state__desc{font-size:13px;color:rgba(0,0,0,0.22);line-height:1.55;letter-spacing:-0.1px}
+
+    /* 스팟 추가 카드 */
+    .add-card{border:1.5px dashed rgba(0,0,0,0.1);border-radius:var(--radius-card);height:54px;display:flex;align-items:center;justify-content:center;gap:8px;font-size:14px;font-weight:500;color:rgba(0,0,0,0.25);cursor:pointer;transition:all 0.2s;letter-spacing:-0.1px}
+    .add-card:hover{background:rgba(227,27,89,0.04);border-color:var(--color-accent);color:var(--color-accent)}
+
+    /* ── 타임라인 스팟 카드 ── */
+    .timeline__item{position:relative;margin-bottom:10px}
+    .timeline__dot{position:absolute;left:-32px;top:16px;width:22px;height:22px;border-radius:50%;background:var(--color-accent);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;color:#fff;z-index:1}
+    .spot-card{background:var(--color-surface);border-radius:var(--radius-card);padding:12px;display:flex;align-items:center;gap:12px;transition:background 0.15s}
+    .spot-card:active{background:rgba(0,0,0,0.04)}
+    .spot-card__thumb{width:60px;height:60px;border-radius:10px;flex-shrink:0;overflow:hidden}
+    .spot-card__info{flex:1;min-width:0}
+    .spot-card__name{font-size:15px;font-weight:600;color:#000;letter-spacing:-0.2px;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .spot-card__loc{font-size:12px;color:rgba(0,0,0,0.38);letter-spacing:-0.1px;margin-bottom:6px;display:flex;align-items:center;gap:3px}
+    .spot-card__meta{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+    .spot-card__tag{height:20px;padding:0 8px;border-radius:10px;background:rgba(0,0,0,0.06);font-size:11px;color:rgba(0,0,0,0.45);display:flex;align-items:center}
+    .spot-card__score{font-size:11px;font-weight:600;color:var(--color-accent);margin-left:2px}
+    .spot-card__remove{width:28px;height:28px;border-radius:50%;background:rgba(0,0,0,0.06);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.15s;color:rgba(0,0,0,0.35);font-size:16px;line-height:1}
+    .spot-card__remove:hover{background:rgba(0,0,0,0.1);color:rgba(0,0,0,0.6)}
+    .timeline__add{position:relative;margin-top:12px}
+
+    /* ── 날짜 선택 시트 ── */
+    .sheet-backdrop{position:fixed;top:0;bottom:0;left:50%;transform:translateX(-50%);width:390px;background:rgba(0,0,0,0.4);z-index:100;opacity:0;pointer-events:none;transition:opacity 0.28s}
+    .sheet-backdrop.is-open{opacity:1;pointer-events:auto}
+    @media(min-width:391px){.sheet-backdrop{top:20px;bottom:20px;border-radius:40px}}
+    .date-sheet{position:fixed;left:50%;bottom:0;transform:translateX(-50%) translateY(100%);width:390px;background:#fff;border-radius:24px 24px 0 0;z-index:101;transition:transform 0.32s cubic-bezier(0.32,0.72,0,1)}
+    .date-sheet.is-open{transform:translateX(-50%) translateY(0)}
+    @media(min-width:391px){.date-sheet{bottom:20px;border-radius:24px}}
+    .ds-handle{width:36px;height:4px;border-radius:2px;background:rgba(0,0,0,0.12);margin:10px auto 0}
+    .ds-header{padding:16px 20px 0;display:flex;align-items:center;justify-content:space-between}
+    .ds-title{font-size:18px;font-weight:600;letter-spacing:-0.35px}
+    .ds-close{width:32px;height:32px;border-radius:50%;border:none;background:rgba(0,0,0,0.06);cursor:pointer;display:flex;align-items:center;justify-content:center}
+    .ds-month-nav{display:flex;align-items:center;justify-content:space-between;padding:16px 20px 8px}
+    .ds-month-label{font-size:16px;font-weight:600;letter-spacing:-0.2px}
+    .ds-nav-btn{width:32px;height:32px;border-radius:50%;border:none;background:var(--color-surface);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.15s}
+    .ds-nav-btn:hover{background:rgba(0,0,0,0.1)}
+    .cal-dow{display:grid;grid-template-columns:repeat(7,1fr);padding:0 16px;margin-bottom:4px}
+    .cal-dow-cell{text-align:center;font-size:12px;font-weight:500;color:rgba(0,0,0,0.35);height:32px;display:flex;align-items:center;justify-content:center}
+    .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);padding:0 16px;gap:2px 0}
+    .cal-day{height:40px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:500;color:#000;cursor:pointer;position:relative;transition:background 0.15s;border-radius:50%}
+    .cal-day:hover:not(.is-empty):not(.is-disabled){background:rgba(227,27,89,0.1)}
+    .cal-day.is-empty{pointer-events:none}
+    .cal-day.is-disabled{color:rgba(0,0,0,0.2);pointer-events:none}
+    .cal-day.is-selected{background:var(--color-accent);color:#fff}
+    .cal-day.is-range{background:rgba(227,27,89,0.1);border-radius:0;color:#000}
+    .cal-day.is-range-start{background:var(--color-accent);color:#fff;border-radius:50% 0 0 50%}
+    .cal-day.is-range-end{background:var(--color-accent);color:#fff;border-radius:0 50% 50% 0}
+    .cal-day.is-today::after{content:'';position:absolute;bottom:5px;left:50%;transform:translateX(-50%);width:4px;height:4px;border-radius:50%;background:var(--color-accent)}
+    .cal-day.is-selected.is-today::after,.cal-day.is-range-start.is-today::after,.cal-day.is-range-end.is-today::after{background:#fff}
+    .ds-footer{padding:16px 20px 28px}
+    .ds-confirm{width:100%;height:52px;border-radius:26px;border:none;background:var(--color-accent);color:#fff;font-family:var(--font-family);font-size:16px;font-weight:500;letter-spacing:-0.2px;cursor:pointer;transition:background 0.15s}
+    .ds-confirm:hover{background:var(--color-accent-hover)}
+    .ds-confirm:disabled{background:var(--color-surface);color:rgba(0,0,0,0.25);pointer-events:none}
+
+    /* ── 삭제 확인 시트 ── */
+    .del-sheet{position:fixed;left:50%;bottom:0;transform:translateX(-50%) translateY(100%);width:390px;background:#fff;border-radius:24px 24px 0 0;z-index:101;transition:transform 0.32s cubic-bezier(0.32,0.72,0,1);padding:0 20px 32px}
+    .del-sheet.is-open{transform:translateX(-50%) translateY(0)}
+    @media(min-width:391px){.del-sheet{bottom:20px;border-radius:24px}}
+    .del-icon{width:52px;height:52px;border-radius:16px;background:rgba(227,27,89,0.08);display:flex;align-items:center;justify-content:center;margin:28px auto 16px}
+    .del-title{font-size:18px;font-weight:600;color:#000;letter-spacing:-0.35px;text-align:center;margin-bottom:8px}
+    .del-desc{font-size:14px;color:rgba(0,0,0,0.45);letter-spacing:-0.15px;text-align:center;line-height:1.55;margin-bottom:28px}
+    .del-actions{display:flex;flex-direction:column;gap:10px}
+    .btn-del-confirm{width:100%;height:52px;border-radius:26px;border:none;background:var(--color-accent);color:#fff;font-family:var(--font-family);font-size:16px;font-weight:500;letter-spacing:-0.2px;cursor:pointer;transition:background 0.15s}
+    .btn-del-confirm:hover{background:var(--color-accent-hover)}
+    .btn-del-cancel{width:100%;height:52px;border-radius:26px;border:none;background:var(--color-surface);color:#000;font-family:var(--font-family);font-size:16px;font-weight:500;letter-spacing:-0.2px;cursor:pointer;transition:background 0.15s}
+    .btn-del-cancel:hover{background:rgba(0,0,0,0.08)}
+
+    /* ── 저장하지 않고 나가기 시트 ── */
+    .unsaved-sheet{position:fixed;left:50%;bottom:0;transform:translateX(-50%) translateY(100%);width:390px;background:#fff;border-radius:24px 24px 0 0;z-index:201;transition:transform 0.32s cubic-bezier(0.32,0.72,0,1);padding:0 20px 40px}
+    .unsaved-sheet.is-open{transform:translateX(-50%) translateY(0)}
+    @media(min-width:391px){.unsaved-sheet{bottom:20px;border-radius:24px}}
+    .unsaved-handle{display:flex;justify-content:center;padding:12px 0 20px}
+    .unsaved-handle__bar{width:36px;height:5px;border-radius:2.5px;background:rgba(0,0,0,0.1)}
+    .unsaved-icon{width:52px;height:52px;border-radius:16px;background:var(--color-surface);display:flex;align-items:center;justify-content:center;margin:0 auto 16px}
+    .unsaved-title{font-size:18px;font-weight:600;color:#000;letter-spacing:-0.35px;text-align:center;margin-bottom:8px}
+    .unsaved-desc{font-size:14px;color:rgba(0,0,0,0.45);letter-spacing:-0.15px;text-align:center;line-height:1.55;margin-bottom:28px}
+    .unsaved-actions{display:flex;flex-direction:column;gap:10px}
+    .btn-unsaved-keep{width:100%;height:52px;border-radius:26px;border:none;background:var(--color-accent);color:#fff;font-family:var(--font-family);font-size:16px;font-weight:500;letter-spacing:-0.2px;cursor:pointer;transition:background 0.15s}
+    .btn-unsaved-keep:hover{background:var(--color-accent-hover)}
+    .btn-unsaved-leave{width:100%;height:52px;border-radius:26px;border:none;background:var(--color-surface);color:rgba(0,0,0,0.6);font-family:var(--font-family);font-size:16px;font-weight:500;letter-spacing:-0.2px;cursor:pointer;transition:background 0.15s}
+    .btn-unsaved-leave:hover{background:rgba(0,0,0,0.07)}
+
+    /* ── 하단 CTA ── */
+    .bottom-cta{display:flex;gap:12px;padding:20px 28px;border-top:0.5px solid var(--color-border-light)}
+    .btn{flex:1;height:52px;border-radius:var(--radius-btn);border:none;font-family:var(--font-family);font-size:16px;font-weight:500;letter-spacing:-0.2px;cursor:pointer;transition:all 0.18s;display:flex;align-items:center;justify-content:center}
+    .btn:active{transform:scale(0.98)}
+    .btn--secondary{background:var(--color-surface);color:var(--color-text-primary)}
+    .btn--secondary:hover{background:rgba(0,0,0,0.06)}
+    .btn--primary{background:var(--color-accent);color:#fff}
+    .btn--primary:hover{background:var(--color-accent-hover)}
+    .btn--primary:disabled{background:var(--color-surface);color:rgba(0,0,0,0.25);cursor:not-allowed;transform:none}
+
+    @media(max-width:390px){.phone-frame{width:100%}}
+    @media(min-width:391px){
+      body{padding:20px 0}
+      .phone-frame{border-radius:40px;box-shadow:0 20px 60px rgba(0,0,0,0.15);overflow:hidden}
+    }
+  
+      /* ── 스크롤바 숨김 ── */
+      * { scrollbar-width: none; -ms-overflow-style: none; }
+      *::-webkit-scrollbar { display: none; }
+</style>
+</head>
+<body>
+<div class="phone-frame">
+
+  <!-- 상태바 -->
+  <div class="status-bar">
+    <span class="status-bar__time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="status-bar__icons">
+      <svg viewBox="0 0 18 12"><rect x="0" y="9" width="3" height="3" rx=".75"/><rect x="4.5" y="6" width="3" height="6" rx=".75"/><rect x="9" y="3" width="3" height="9" rx=".75"/><rect x="13.5" y="0" width="3" height="12" rx=".75"/></svg>
+      <svg viewBox="0 0 16 14" fill="none" stroke="#fff" stroke-width="1.3" stroke-linecap="round"><path d="M5 10.5A4 4 0 0 1 11 10.5"/><path d="M2.5 7A8 8 0 0 1 13.5 7"/><circle cx="8" cy="13" r="1.2" fill="#fff" stroke="none"/></svg>
+      <svg viewBox="0 0 28 14"><rect x="0" y="0" width="25" height="12" rx="3.5" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="1"/><rect x="1.5" y="1.5" width="20" height="9" rx="2" fill="#fff"/></svg>
+    </div>
+  </div>
+
+  <!-- 네비 -->
+  <div class="nav">
+    <button class="nav__back" onclick="handleBack()" aria-label="뒤로가기">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="11,3 5,9 11,15"/></svg>
+    </button>
+    <span class="nav__title">새 출사 계획</span>
+    <div class="nav__placeholder"></div>
+  </div>
+
+  <!-- 출사 이름 -->
+  <div class="section">
+    <div class="section__label">출사 이름</div>
+    <input class="field-input" type="text" placeholder="예) 부산 1박 2일, 서울 야경 투어" id="tripName" oninput="checkReady()">
+  </div>
+
+  <!-- 날짜 -->
+  <div class="section">
+    <div class="section__label">날짜</div>
+    <div class="date-row">
+      <div class="date-btn" id="dateStart" onclick="pickDate('start')">
+        <span>출발일 선택</span>
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="rgba(0,0,0,0.2)" stroke-width="1.2" stroke-linecap="round"><rect x="1" y="2" width="12" height="11" rx="2"/><line x1="4" y1="1" x2="4" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="1" y1="6" x2="13" y2="6"/></svg>
+      </div>
+      <span class="date-sep">—</span>
+      <div class="date-btn" id="dateEnd" onclick="pickDate('end')">
+        <span>도착일 선택</span>
+        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="rgba(0,0,0,0.2)" stroke-width="1.2" stroke-linecap="round"><rect x="1" y="2" width="12" height="11" rx="2"/><line x1="4" y1="1" x2="4" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="1" y1="6" x2="13" y2="6"/></svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- 일정 유형 -->
+  <div class="section">
+    <div class="section__label">일정 유형</div>
+    <div class="chips">
+      <button class="chip" onclick="selectChip(this)">당일치기</button>
+      <button class="chip is-active" onclick="selectChip(this)">1박 2일</button>
+      <button class="chip" onclick="selectChip(this)">2박 3일</button>
+      <button class="chip" onclick="selectChip(this)">3박 이상</button>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- 데이 탭 + 타임라인 -->
+  <div class="day-section">
+    <div class="day-tabs" id="dayTabs">
+      <button class="day-tab" onclick="selectDay(this)">DAY 1</button>
+      <button class="day-tab is-active" onclick="selectDay(this)">DAY 2</button>
+      <button class="day-tab day-tab--add" onclick="addDay()">+</button>
+    </div>
+    <div class="day-date" id="dayDate">날짜를 선택해주세요</div>
+    <div class="timeline" id="timeline"></div>
+  </div>
+
+  <!-- 하단 CTA -->
+  <div class="bottom-cta" id="bottomCta">
+    <button class="btn btn--primary" id="saveBtn" disabled onclick="savePlan()">저장하기</button>
+  </div>
+
+
+</div>
+
+<!-- 날짜 선택 시트 -->
+<div class="sheet-backdrop" id="dateBackdrop" onclick="closeDateSheet()"></div>
+<div class="date-sheet" id="dateSheet">
+  <div class="ds-handle"></div>
+  <div class="ds-header">
+    <div class="ds-title" id="dsTitle">출발일 선택</div>
+    <button class="ds-close" onclick="closeDateSheet()">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="rgba(0,0,0,0.5)" stroke-width="1.8" stroke-linecap="round">
+        <line x1="2" y1="2" x2="12" y2="12"/><line x1="12" y1="2" x2="2" y2="12"/>
+      </svg>
+    </button>
+  </div>
+  <div class="ds-month-nav">
+    <button class="ds-nav-btn" onclick="changeMonth(-1)">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#000" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="10,3 5,8 10,13"/></svg>
+    </button>
+    <span class="ds-month-label" id="dsMonthLabel"></span>
+    <button class="ds-nav-btn" onclick="changeMonth(1)">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#000" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="6,3 11,8 6,13"/></svg>
+    </button>
+  </div>
+  <div class="cal-dow">
+    <div class="cal-dow-cell" style="color:rgba(220,60,60,0.7)">일</div>
+    <div class="cal-dow-cell">월</div>
+    <div class="cal-dow-cell">화</div>
+    <div class="cal-dow-cell">수</div>
+    <div class="cal-dow-cell">목</div>
+    <div class="cal-dow-cell">금</div>
+    <div class="cal-dow-cell" style="color:rgba(60,60,220,0.7)">토</div>
+  </div>
+  <div class="cal-grid" id="calGrid"></div>
+  <div class="ds-footer">
+    <button class="ds-confirm" id="dsConfirm" disabled onclick="confirmDate()">확인</button>
+  </div>
+</div>
+
+<!-- 저장하지 않고 나가기 시트 -->
+<div class="sheet-backdrop" id="unsavedBackdrop" onclick="closeUnsavedSheet()"></div>
+<div class="unsaved-sheet" id="unsavedSheet">
+  <div class="unsaved-handle"><div class="unsaved-handle__bar"></div></div>
+  <div class="unsaved-icon">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,0.4)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+      <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 1.83 -1.19"/>
+      <path d="M7 11l5 5l2 -2m2 -2l1 -1"/>
+      <path d="M12 4v4m0 4v4"/>
+      <path d="M3 3l18 18"/>
+    </svg>
+  </div>
+  <div class="unsaved-title">저장하지 않고 나갈까요?</div>
+  <div class="unsaved-desc">변경 사항이 저장되지 않아요.</div>
+  <div class="unsaved-actions">
+    <button class="btn-unsaved-keep" onclick="closeUnsavedSheet()">계속 편집</button>
+    <button class="btn-unsaved-leave" onclick="leaveWithoutSaving()">나가기</button>
+  </div>
+</div>
+
+<!-- 삭제 확인 시트 -->
+<div class="sheet-backdrop" id="delBackdrop" onclick="closeDelSheet()"></div>
+<div class="del-sheet" id="delSheet">
+  <div class="ds-handle"></div>
+  <div class="del-icon">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#e31b59" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+    </svg>
+  </div>
+  <div class="del-title">출사 계획을 삭제할까요?</div>
+  <div class="del-desc">지금까지 작성한 내용이 모두 삭제되며<br>복구할 수 없어요.</div>
+  <div class="del-actions">
+    <button class="btn-del-confirm" onclick="confirmDelete()">삭제하기</button>
+    <button class="btn-del-cancel" onclick="closeDelSheet()">취소</button>
+  </div>
+</div>
+
+<script>
+  /* ── 샘플 데이터 (Day 2 스팟 추가된 상태 예시) ── */
+  const daySpots = {
+    1: [],
+    2: [
+      {
+        id: 'gwanganri',
+        name: '광안리 해변',
+        loc: '부산 수영구',
+        tags: ['바다', '야경'],
+        score: '9.2',
+        photo: 'linear-gradient(150deg,#1a6b8a 0%,#2d9cdb 50%,#56ccf2 100%)'
+      },
+      {
+        id: 'cheongsapo',
+        name: '청사포 다릿돌전망대',
+        loc: '부산 해운대구',
+        tags: ['일몰', '바다뷰'],
+        score: '8.7',
+        photo: 'linear-gradient(150deg,#c84b31 0%,#e8734a 50%,#f0c27f 100%)'
+      }
+    ]
+  };
+  let activeDay = 2;
+
+  /* ── 변경 사항 추적 ── */
+  let isDirty = false;
+  function markDirty() { isDirty = true; }
+
+  function handleBack() {
+    if (isDirty) {
+      document.getElementById('unsavedSheet').classList.add('is-open');
+      document.getElementById('unsavedBackdrop').classList.add('is-open');
+    } else {
+      location.href = './travel-list.html';
+    }
+  }
+  function closeUnsavedSheet() {
+    document.getElementById('unsavedSheet').classList.remove('is-open');
+    document.getElementById('unsavedBackdrop').classList.remove('is-open');
+  }
+  function leaveWithoutSaving() {
+    location.href = './travel-list.html';
+  }
+
+  /* 일정 유형 칩 */
+  function selectChip(el) {
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('is-active'));
+    el.classList.add('is-active');
+    markDirty();
+  }
+
+  /* 데이 탭 선택 */
+  function selectDay(el) {
+    document.querySelectorAll('.day-tab:not(.day-tab--add)').forEach(t => t.classList.remove('is-active'));
+    el.classList.add('is-active');
+    const tabs = Array.from(document.querySelectorAll('.day-tab:not(.day-tab--add)'));
+    activeDay = tabs.indexOf(el) + 1;
+    renderTimeline();
+    updateDayDate();
+    updateCta();
+  }
+
+  /* 타임라인 렌더링 */
+  function renderTimeline() {
+    const tl = document.getElementById('timeline');
+    const spots = daySpots[activeDay] || [];
+
+    if (spots.length === 0) {
+      tl.className = 'timeline is-empty';
+      tl.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state__icon">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="rgba(0,0,0,0.2)" stroke-width="1.3" stroke-linecap="round"><path d="M11 2C7 2 4 5 4 8.5C4 13.5 11 20 11 20S18 13.5 18 8.5C18 5 15 2 11 2Z"/><circle cx="11" cy="8" r="3"/></svg>
+          </div>
+          <div class="empty-state__title">아직 추가된 스팟이 없어요</div>
+          <div class="empty-state__desc">아래 버튼으로 포토스팟을<br>추가해보세요</div>
+        </div>
+        <div class="timeline__add">
+          <div class="add-card" onclick="location.href='../home/map.html#plan'">
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><line x1="7.5" y1="2" x2="7.5" y2="13"/><line x1="2" y1="7.5" x2="13" y2="7.5"/></svg>
+            스팟 추가하기
+          </div>
+        </div>`;
+    } else {
+      tl.className = 'timeline';
+      const pinSvg = `<svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><path d="M5 1C3 1 1.5 2.5 1.5 4.2C1.5 6.8 5 9.5 5 9.5S8.5 6.8 8.5 4.2C8.5 2.5 7 1 5 1Z"/><circle cx="5" cy="4" r="1.3"/></svg>`;
+      const items = spots.map((spot, i) => `
+        <div class="timeline__item">
+          <div class="timeline__dot">${i + 1}</div>
+          <div class="spot-card">
+            <div class="spot-card__thumb" style="background:${spot.photo}"></div>
+            <div class="spot-card__info">
+              <div class="spot-card__name">${spot.name}</div>
+              <div class="spot-card__loc">${pinSvg}${spot.loc}</div>
+              <div class="spot-card__meta">
+                ${spot.tags.map(t => `<span class="spot-card__tag">${t}</span>`).join('')}
+                <span class="spot-card__score">★ ${spot.score}</span>
+              </div>
+            </div>
+            <button class="spot-card__remove" onclick="removeSpot(${activeDay},'${spot.id}')" aria-label="삭제">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><line x1="2" y1="2" x2="10" y2="10"/><line x1="10" y1="2" x2="2" y2="10"/></svg>
+            </button>
+          </div>
+        </div>`).join('');
+
+      tl.innerHTML = items + `
+        <div class="timeline__add">
+          <div class="add-card" onclick="location.href='../home/map.html#plan'">
+            <svg width="15" height="15" viewBox="0 0 15 15" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><line x1="7.5" y1="2" x2="7.5" y2="13"/><line x1="2" y1="7.5" x2="13" y2="7.5"/></svg>
+            스팟 추가하기
+          </div>
+        </div>`;
+    }
+  }
+
+  /* 스팟 제거 */
+  function removeSpot(dayIdx, spotId) {
+    if (!daySpots[dayIdx]) return;
+    daySpots[dayIdx] = daySpots[dayIdx].filter(s => s.id !== spotId);
+    markDirty();
+    renderTimeline();
+  }
+
+  /* 하단 CTA 동적 업데이트 */
+  function updateCta() {
+    const tabs = Array.from(document.querySelectorAll('.day-tab:not(.day-tab--add)'));
+    const isDay1 = activeDay === 1;
+    const cta = document.getElementById('bottomCta');
+    const name = document.getElementById('tripName').value.trim();
+
+    if (isDay1) {
+      cta.innerHTML = `<button class="btn btn--primary" id="saveBtn" ${name ? '' : 'disabled'} onclick="savePlan()">저장하기</button>`;
+    } else {
+      cta.innerHTML = `
+        <button class="btn btn--secondary" onclick="deleteCurrentDay()">이 날 삭제</button>
+        <button class="btn btn--primary" id="saveBtn" ${name ? '' : 'disabled'} onclick="savePlan()">저장하기</button>`;
+    }
+  }
+
+  /* 현재 DAY 삭제 */
+  function deleteCurrentDay() {
+    if (activeDay === 1) return;
+    const tabs = Array.from(document.querySelectorAll('.day-tab:not(.day-tab--add)'));
+    const activeTab = document.querySelector('.day-tab.is-active:not(.day-tab--add)');
+    const idx = tabs.indexOf(activeTab);
+    delete daySpots[activeDay];
+    activeTab.remove();
+    // 탭 번호 재정렬
+    document.querySelectorAll('.day-tab:not(.day-tab--add)').forEach((t, i) => {
+      t.textContent = 'DAY ' + (i + 1);
+    });
+    const remaining = Array.from(document.querySelectorAll('.day-tab:not(.day-tab--add)'));
+    selectDay(remaining[idx - 1] || remaining[0]);
+  }
+
+  /* 날짜 선택 시트 */
+  const dates = { start: null, end: null };
+  let pickType = null;
+  let tempSelected = null;
+  const today = new Date();
+  let calYear = today.getFullYear();
+  let calMonth = today.getMonth();
+
+  function pickDate(type) {
+    pickType = type;
+    tempSelected = null;
+    document.getElementById('dsTitle').textContent = type === 'start' ? '출발일 선택' : '도착일 선택';
+    // 출발일이 설정된 경우 도착일 달력을 출발월로 이동
+    if (type === 'end' && dates.start) {
+      const parts = dates.start.split('.');
+      calYear = parseInt(parts[0]);
+      calMonth = parseInt(parts[1]) - 1;
+    }
+    renderCalendar();
+    updateDsConfirm();
+    document.getElementById('dateSheet').classList.add('is-open');
+    document.getElementById('dateBackdrop').classList.add('is-open');
+  }
+
+  function closeDateSheet() {
+    document.getElementById('dateSheet').classList.remove('is-open');
+    document.getElementById('dateBackdrop').classList.remove('is-open');
+    tempSelected = null;
+  }
+
+  function changeMonth(dir) {
+    calMonth += dir;
+    if (calMonth < 0) { calMonth = 11; calYear--; }
+    if (calMonth > 11) { calMonth = 0; calYear++; }
+    renderCalendar();
+  }
+
+  function toDateObj(str) {
+    if (!str) return null;
+    const p = str.split('.');
+    return new Date(parseInt(p[0]), parseInt(p[1]) - 1, parseInt(p[2]));
+  }
+  function toDateStr(y, m, d) {
+    return `${y}.${String(m+1).padStart(2,'0')}.${String(d).padStart(2,'0')}`;
+  }
+
+  function renderCalendar() {
+    const months = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+    document.getElementById('dsMonthLabel').textContent = `${calYear}년 ${months[calMonth]}`;
+    const grid = document.getElementById('calGrid');
+    grid.innerHTML = '';
+
+    const firstDay = new Date(calYear, calMonth, 1).getDay();
+    const daysInMonth = new Date(calYear, calMonth + 1, 0).getDate();
+    const todayMid = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+
+    const selDate = tempSelected ? toDateObj(tempSelected) : toDateObj(pickType === 'start' ? dates.start : dates.end);
+    const otherDate = toDateObj(pickType === 'start' ? dates.end : dates.start);
+
+    // 빈 칸
+    for (let i = 0; i < firstDay; i++) {
+      const cell = document.createElement('div');
+      cell.className = 'cal-day is-empty';
+      grid.appendChild(cell);
+    }
+
+    for (let d = 1; d <= daysInMonth; d++) {
+      const cell = document.createElement('div');
+      const dateObj = new Date(calYear, calMonth, d);
+      const dateStr = toDateStr(calYear, calMonth, d);
+      const isPast = dateObj < todayMid;
+      const isToday = dateObj.getTime() === todayMid.getTime();
+
+      // 도착일 선택 시 출발일 이전 날짜 비활성화
+      const isBeforeStart = pickType === 'end' && dates.start && dateObj < toDateObj(dates.start);
+
+      let cls = 'cal-day';
+      if (isToday) cls += ' is-today';
+      if (isPast || isBeforeStart) { cls += ' is-disabled'; cell.className = cls; cell.textContent = d; grid.appendChild(cell); continue; }
+
+      // 선택 / 범위 표시
+      if (selDate && dateObj.getTime() === selDate.getTime()) {
+        if (otherDate) {
+          cls += pickType === 'start' ? ' is-range-start' : ' is-range-end';
+        } else {
+          cls += ' is-selected';
+        }
+      } else if (otherDate && dateObj.getTime() === otherDate.getTime()) {
+        cls += pickType === 'start' ? ' is-range-end' : ' is-range-start';
+      } else if (selDate && otherDate) {
+        const lo = selDate < otherDate ? selDate : otherDate;
+        const hi = selDate < otherDate ? otherDate : selDate;
+        if (dateObj > lo && dateObj < hi) cls += ' is-range';
+      }
+
+      cell.className = cls;
+      cell.textContent = d;
+      cell.dataset.date = dateStr;
+      cell.onclick = () => selectCalDay(dateStr);
+      grid.appendChild(cell);
+    }
+  }
+
+  function selectCalDay(dateStr) {
+    tempSelected = dateStr;
+    renderCalendar();
+    updateDsConfirm();
+  }
+
+  function updateDsConfirm() {
+    document.getElementById('dsConfirm').disabled = !tempSelected;
+  }
+
+  function confirmDate() {
+    if (!tempSelected) return;
+    dates[pickType] = tempSelected;
+    const elId = pickType === 'start' ? 'dateStart' : 'dateEnd';
+    const el = document.getElementById(elId);
+    const parts = tempSelected.split('.');
+    el.querySelector('span').textContent = `${parseInt(parts[1])}월 ${parseInt(parts[2])}일`;
+    el.classList.add('is-set');
+    el.querySelector('svg').querySelectorAll('rect,line').forEach(s => s.setAttribute('stroke', '#e31b59'));
+    closeDateSheet();
+    updateDayDate();
+    markDirty();
+    checkReady();
+  }
+
+  function updateDayDate() {
+    const el = document.getElementById('dayDate');
+    if (!dates.start) { el.textContent = '날짜를 선택해주세요'; return; }
+    const sp = dates.start.split('.');
+    const base = new Date(parseInt(sp[0]), parseInt(sp[1]) - 1, parseInt(sp[2]));
+    base.setDate(base.getDate() + (activeDay - 1));
+    el.textContent = `${base.getMonth() + 1}월 ${base.getDate()}일`;
+  }
+
+  /* DAY 추가 */
+  function addDay() {
+    const tabs = document.querySelector('.day-tabs');
+    const addBtn = tabs.querySelector('.day-tab--add');
+    const count = tabs.querySelectorAll('.day-tab:not(.day-tab--add)').length + 1;
+    if (!daySpots[count]) daySpots[count] = [];
+    const newTab = document.createElement('button');
+    newTab.className = 'day-tab';
+    newTab.textContent = 'DAY ' + count;
+    newTab.onclick = function() { selectDay(this); };
+    tabs.insertBefore(newTab, addBtn);
+    selectDay(newTab);
+  }
+
+  /* 저장 버튼 활성화 */
+  function checkReady() {
+    updateCta();
+  }
+
+  /* 삭제 확인 시트 */
+  function openDelSheet() {
+    document.getElementById('delSheet').classList.add('is-open');
+    document.getElementById('delBackdrop').classList.add('is-open');
+  }
+  function closeDelSheet() {
+    document.getElementById('delSheet').classList.remove('is-open');
+    document.getElementById('delBackdrop').classList.remove('is-open');
+  }
+  function confirmDelete() {
+    location.href = './travel-list.html';
+  }
+
+  /* 저장 */
+  function savePlan() {
+    const name = document.getElementById('tripName').value.trim();
+    if (!name) return;
+    const btn = document.getElementById('saveBtn');
+    btn.textContent = '저장 중...';
+    btn.disabled = true;
+    setTimeout(() => { location.href = './travel-plan.html'; }, 700);
+  }
+
+  /* ── 초기화 ── */
+  (function init() {
+    // 출사 이름 변경 시 dirty 처리
+    document.getElementById('tripName').addEventListener('input', markDirty);
+
+    // 예시: 출사 이름 + 날짜 pre-fill
+    document.getElementById('tripName').value = '부산 2박 3일';
+    dates.start = '2026.06.07';
+    dates.end = '2026.06.09';
+
+    const startEl = document.getElementById('dateStart');
+    startEl.querySelector('span').textContent = '6월 7일';
+    startEl.classList.add('is-set');
+    startEl.querySelectorAll('rect,line').forEach(s => s.setAttribute('stroke', '#e31b59'));
+
+    const endEl = document.getElementById('dateEnd');
+    endEl.querySelector('span').textContent = '6월 9일';
+    endEl.classList.add('is-set');
+    endEl.querySelectorAll('rect,line').forEach(s => s.setAttribute('stroke', '#e31b59'));
+
+    // Day 2가 활성 상태이므로 렌더링
+    renderTimeline();
+    updateDayDate();
+    updateCta();
+  })();
+</script>
+</body>
+</html>

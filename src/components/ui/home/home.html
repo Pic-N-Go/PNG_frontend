@@ -1,0 +1,2002 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>PNG - 홈</title>
+    <link rel="stylesheet" href="../fonts.css" />
+    <style>
+      :root {
+        --color-bg: #ffffff;
+        --color-surface: #f5f5f7;
+        --color-text-primary: #000000;
+        --color-text-secondary: rgba(0, 0, 0, 0.48);
+        --color-text-tertiary: rgba(0, 0, 0, 0.28);
+        --color-text-placeholder: rgba(0, 0, 0, 0.3);
+        --color-accent: #e31b59;
+        --color-accent-hover: #c91550;
+        --color-link: #e31b59;
+        --color-tab-active: #e31b59;
+        --color-border: rgba(0, 0, 0, 0.08);
+        --color-border-light: rgba(0, 0, 0, 0.06);
+        --color-error: #ff453a;
+        --color-success: #34c759;
+        --color-warning: #ff9f0a;
+        --radius-input: 12px;
+        --radius-btn: 26px;
+        --radius-card: 16px;
+        --radius-pill: 17px;
+      }
+      *,
+      *::before,
+      *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html {
+        font-size: 16px;
+        -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
+      }
+      body {
+        font-family: var(--font-family);
+        background: #f0f0f0;
+        display: flex;
+        justify-content: center;
+        min-height: 100dvh;
+      }
+      .phone-frame {
+        width: 390px;
+        min-height: 100dvh;
+        background: var(--color-bg);
+        position: relative;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding-bottom: 80px;
+      }
+
+      /* ── 상태바 ── */
+      .status-bar {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 54px;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 34px;
+      }
+      .status-bar__time {
+        font-size: 15px;
+        font-weight: 600;
+        color: #fff;
+        letter-spacing: -0.3px;
+      }
+      .dynamic-island {
+        position: absolute;
+        top: 8px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 106px;
+        height: 28px;
+        background: rgba(0, 0, 0, 0.55);
+        border-radius: 14px;
+      }
+      .status-bar__icons {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .status-bar__icons svg {
+        height: 12px;
+        fill: #fff;
+      }
+
+      /* ── 히어로 ── */
+      .hero {
+        height: 340px;
+        background: linear-gradient(
+          to bottom,
+          #1a1530 0%,
+          #2d1b4e 20%,
+          #8b4a6b 45%,
+          #d4856a 65%,
+          #e8a87c 82%,
+          #f0c89a 100%
+        );
+        position: relative;
+        padding: 0 20px;
+      }
+      .hero::after {
+        content: "";
+        position: absolute;
+        bottom: -40px;
+        left: 0;
+        right: 0;
+        height: 60px;
+        background: linear-gradient(to bottom, #f0c89a, #ffffff 55%);
+      }
+      .hero__landscape {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 70px;
+        background: rgba(0, 0, 0, 0.12);
+        clip-path: polygon(
+          0% 55%,
+          10% 35%,
+          22% 50%,
+          38% 18%,
+          52% 38%,
+          68% 10%,
+          82% 32%,
+          100% 18%,
+          100% 100%,
+          0% 100%
+        );
+      }
+      .hero__sun {
+        position: absolute;
+        top: 108px;
+        right: 70px;
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: rgba(248, 216, 176, 0.7);
+        box-shadow: 0 0 30px rgba(248, 216, 176, 0.35);
+      }
+      .hero__stars {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 180px;
+      }
+      .hero__stars span {
+        position: absolute;
+        width: 2px;
+        height: 2px;
+        background: rgba(255, 255, 255, 0.4);
+        border-radius: 50%;
+      }
+      .hero__stars span:nth-child(1) {
+        top: 55px;
+        left: 70px;
+      }
+      .hero__stars span:nth-child(2) {
+        top: 38px;
+        left: 140px;
+        opacity: 0.3;
+      }
+      .hero__stars span:nth-child(3) {
+        top: 65px;
+        left: 220px;
+        opacity: 0.25;
+      }
+      .hero__stars span:nth-child(4) {
+        top: 48px;
+        left: 340px;
+        opacity: 0.3;
+      }
+
+      /* 히어로 네비 */
+      .hero-nav {
+        position: relative;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-top: 62px;
+      }
+      .hero-nav__logo {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .hero-nav__logo svg {
+        width: 26px;
+        height: 26px;
+      }
+      .hero-nav__logo span {
+        font-size: 17px;
+        font-weight: 600;
+        color: #fff;
+        letter-spacing: -0.5px;
+      }
+      .hero-nav__right {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+      .hero-nav__icon {
+        width: 38px;
+        height: 38px;
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
+      .hero-nav__badge {
+        position: absolute;
+        top: 2px;
+        right: 2px;
+        width: 8px;
+        height: 8px;
+        background: var(--color-error);
+        border-radius: 50%;
+        border: 1.5px solid rgba(0, 0, 0, 0.2);
+      }
+
+      .hero__content {
+        position: relative;
+        z-index: 10;
+        margin-top: 32px;
+      }
+      .hero__title {
+        font-size: 30px;
+        font-weight: 600;
+        color: #fff;
+        letter-spacing: -0.6px;
+        line-height: 1.35;
+      }
+      .hero__weather {
+        margin-top: 10px;
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.65);
+        letter-spacing: -0.15px;
+      }
+
+      /* ── 검색바 ── */
+      .search-bar {
+        position: relative;
+        z-index: 10;
+        margin: -4px 20px 0;
+      }
+      .search-bar__inner {
+        display: flex;
+        align-items: center;
+        height: 48px;
+        padding: 0 16px;
+        background: rgba(255, 255, 255, 0.92);
+        border-radius: 24px;
+        border: 0.5px solid rgba(255, 255, 255, 0.6);
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+      }
+      .search-bar__icon {
+        flex-shrink: 0;
+        width: 18px;
+        height: 18px;
+        color: rgba(0, 0, 0, 0.3);
+        margin-right: 10px;
+      }
+      .search-bar__input {
+        flex: 1;
+        border: none;
+        background: none;
+        outline: none;
+        font-family: var(--font-family);
+        font-size: 15px;
+        color: var(--color-text-primary);
+        letter-spacing: -0.2px;
+      }
+      .search-bar__input::placeholder {
+        color: rgba(0, 0, 0, 0.35);
+      }
+      .search-bar__filter {
+        flex-shrink: 0;
+        width: 32px;
+        height: 32px;
+        border: none;
+        background: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: rgba(0, 0, 0, 0.25);
+        transition: color 0.2s;
+        position: relative;
+      }
+      .search-bar__filter:hover { color: rgba(0, 0, 0, 0.5); }
+      .search-bar__filter.is-active { color: var(--color-accent); }
+      .search-bar__filter-badge {
+        display: none;
+        position: absolute;
+        top: 2px; right: 2px;
+        width: 8px; height: 8px;
+        background: var(--color-accent);
+        border-radius: 50%;
+        border: 1.5px solid #fff;
+      }
+      .search-bar__filter.is-active .search-bar__filter-badge { display: block; }
+
+      /* ── 필터 바텀시트 ── */
+      .filter-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.4);
+        z-index: 60;
+        opacity: 0;
+        transition: opacity 0.25s;
+      }
+      .filter-overlay.is-open { display: block; opacity: 1; }
+
+      .filter-sheet {
+        position: fixed;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%) translateY(100%);
+        width: 390px;
+        background: #fff;
+        border-radius: 24px 24px 0 0;
+        z-index: 61;
+        transition: transform 0.32s cubic-bezier(0.32,0.72,0,1);
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+      }
+      .filter-sheet.is-open { transform: translateX(-50%) translateY(0); }
+
+      .filter-sheet__handle {
+        width: 36px; height: 4px;
+        background: rgba(0,0,0,0.1);
+        border-radius: 2px;
+        margin: 12px auto 0;
+      }
+      .filter-sheet__head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px 12px;
+      }
+      .filter-sheet__title {
+        font-size: 17px; font-weight: 600;
+        letter-spacing: -0.4px;
+      }
+      .filter-sheet__reset {
+        font-size: 14px;
+        color: rgba(0,0,0,0.35);
+        background: none; border: none;
+        cursor: pointer;
+        font-family: var(--font-family);
+        transition: color 0.2s;
+      }
+      .filter-sheet__reset:hover { color: var(--color-accent); }
+
+      .filter-section { padding: 0 20px 20px; }
+      .filter-section__label {
+        font-size: 12px; font-weight: 600;
+        color: rgba(0,0,0,0.35);
+        letter-spacing: 0.2px;
+        text-transform: uppercase;
+        margin-bottom: 10px;
+      }
+      .filter-chips {
+        display: flex; flex-wrap: wrap; gap: 8px;
+      }
+      .filter-chip {
+        height: 36px; padding: 0 16px;
+        border-radius: 18px;
+        border: 1.5px solid rgba(0,0,0,0.1);
+        background: #fff;
+        font-family: var(--font-family);
+        font-size: 14px;
+        color: rgba(0,0,0,0.55);
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .filter-chip.is-selected {
+        border-color: var(--color-accent);
+        color: var(--color-accent);
+        background: rgba(227,27,89,0.04);
+        font-weight: 500;
+      }
+      .filter-divider {
+        height: 1px;
+        background: rgba(0,0,0,0.06);
+        margin: 0 20px 20px;
+      }
+      .filter-sheet__footer {
+        padding: 8px 20px 28px;
+      }
+      .filter-sheet__apply {
+        width: 100%; height: 52px;
+        border-radius: var(--radius-btn);
+        border: none;
+        background: var(--color-accent);
+        font-family: var(--font-family);
+        font-size: 16px; font-weight: 500;
+        color: #fff; cursor: pointer;
+        transition: background 0.2s;
+      }
+      .filter-sheet__apply:hover { background: var(--color-accent-hover); }
+      .filter-sheet__apply:active { transform: scale(0.98); }
+
+      /* ── 카테고리 ── */
+      .categories {
+        display: flex;
+        gap: 6px;
+        padding: 20px 20px 0;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      .categories::-webkit-scrollbar {
+        display: none;
+      }
+      .category-pill {
+        flex-shrink: 0;
+        height: 34px;
+        padding: 0 16px;
+        border-radius: var(--radius-pill);
+        background: var(--color-surface);
+        border: none;
+        font-family: var(--font-family);
+        font-size: 13px;
+        color: rgba(0, 0, 0, 0.55);
+        cursor: pointer;
+        transition: all 0.2s;
+        white-space: nowrap;
+      }
+      .category-pill:hover {
+        background: rgba(0, 0, 0, 0.06);
+      }
+      .category-pill.is-active {
+        background: var(--color-accent);
+        color: #fff;
+        font-weight: 500;
+      }
+
+      /* ── 섹션 ── */
+      .section {
+        padding: 28px 20px 0;
+      }
+      .section__header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 4px;
+      }
+      .section__title {
+        font-size: 22px;
+        font-weight: 600;
+        color: var(--color-text-primary);
+        letter-spacing: -0.4px;
+      }
+      .section__link {
+        font-size: 14px;
+        color: var(--color-link);
+        text-decoration: none;
+        transition: opacity 0.2s;
+      }
+      .section__link:hover {
+        opacity: 0.7;
+      }
+      .section__subtitle {
+        font-size: 13px;
+        color: rgba(0, 0, 0, 0.4);
+        letter-spacing: -0.1px;
+        margin-bottom: 14px;
+      }
+
+      /* ── 미니맵 배너 ── */
+      .map-banner {
+        width: 100%;
+        height: 160px;
+        border-radius: var(--radius-card);
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+        transition: transform 0.15s;
+      }
+      .map-banner:active {
+        transform: scale(0.99);
+      }
+      .map-banner__bg {
+        position: absolute;
+        inset: 0;
+        background: #e8e8ed;
+      }
+      .map-banner__grid {
+        position: absolute;
+        inset: 0;
+      }
+      .map-banner__grid line {
+        stroke: rgba(0, 0, 0, 0.04);
+        stroke-width: 0.5;
+      }
+      .map-banner__road {
+        position: absolute;
+        inset: 0;
+      }
+      .map-banner__road path {
+        fill: none;
+        stroke: rgba(0, 0, 0, 0.06);
+        stroke-width: 3;
+      }
+      .map-banner__pin {
+        position: absolute;
+        transform: translate(-50%, -100%);
+        pointer-events: none;
+      }
+      .map-banner__me {
+        position: absolute;
+        transform: translate(-50%, -50%);
+        pointer-events: none;
+      }
+      .map-banner__me-ring {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: rgba(227, 27, 89, 0.12);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .map-banner__me-dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: var(--color-accent);
+        border: 2px solid #fff;
+      }
+      .map-banner__overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          to top,
+          rgba(0, 0, 0, 0.18) 0%,
+          transparent 55%
+        );
+      }
+      .map-banner__count {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        height: 24px;
+        padding: 0 10px;
+        border-radius: 12px;
+        background: rgba(0, 0, 0, 0.35);
+        font-size: 11px;
+        font-weight: 500;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+
+      /* ── 스팟 스크롤 ── */
+      .spot-scroll {
+        display: flex;
+        gap: 12px;
+        padding: 14px 20px 4px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x mandatory;
+        scroll-padding-left: 20px;
+      }
+      .spot-scroll::-webkit-scrollbar {
+        display: none;
+      }
+      .spot-card {
+        flex-shrink: 0;
+        width: 220px;
+        border-radius: var(--radius-card);
+        background: var(--color-surface);
+        overflow: hidden;
+        scroll-snap-align: start;
+        transition: transform 0.2s;
+      }
+      .spot-card:active {
+        transform: scale(0.98);
+      }
+      .spot-card__photo {
+        height: 160px;
+        position: relative;
+      }
+      .spot-card__badge {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        height: 22px;
+        padding: 0 10px;
+        border-radius: 11px;
+        font-size: 10px;
+        font-weight: 600;
+        color: #fff;
+        letter-spacing: 0.3px;
+        display: flex;
+        align-items: center;
+      }
+      .spot-card__badge--hot {
+        background: rgba(0, 0, 0, 0.45);
+      }
+      .spot-card__badge--new {
+        background: rgba(227, 27, 89, 0.85);
+      }
+      .spot-card__bookmark {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.25);
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.2s;
+      }
+      .spot-card__bookmark:hover {
+        background: rgba(0, 0, 0, 0.45);
+      }
+      .spot-card__body {
+        padding: 12px 14px 14px;
+      }
+      .spot-card__name {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--color-text-primary);
+        letter-spacing: -0.2px;
+        margin-bottom: 3px;
+      }
+      .spot-card__loc {
+        font-size: 12px;
+        color: rgba(0, 0, 0, 0.4);
+        margin-bottom: 10px;
+      }
+      .spot-card__rating {
+        font-size: 12px;
+        color: var(--color-warning);
+        margin-bottom: 10px;
+      }
+      .spot-card__rating span {
+        color: rgba(0, 0, 0, 0.3);
+        margin-left: 4px;
+      }
+      .spot-card__score {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 28px;
+        padding: 0 10px;
+        border-radius: 8px;
+        background: #fff;
+      }
+      .spot-card__score-label {
+        font-size: 11px;
+        color: rgba(0, 0, 0, 0.4);
+      }
+      .spot-card__score-value {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--color-accent);
+      }
+      .spot-card__score-max {
+        font-size: 10px;
+        color: rgba(0, 0, 0, 0.2);
+        margin-left: 1px;
+      }
+
+      /* ── 캘린더 ── */
+      .calendar-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        padding-top: 8px;
+      }
+      .cal-card {
+        border-radius: var(--radius-card);
+        background: var(--color-surface);
+        overflow: hidden;
+        transition: transform 0.15s, box-shadow 0.15s;
+      }
+      .cal-card:active {
+        transform: scale(0.98);
+      }
+      .cal-card__header {
+        padding: 10px 14px;
+        color: #fff;
+      }
+      .cal-card__header--dark {
+        background: #000;
+      }
+      .cal-card__header--gray {
+        background: #1d1d1f;
+      }
+      .cal-card__date {
+        font-size: 10px;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.5);
+        letter-spacing: 1px;
+        margin-bottom: 4px;
+      }
+      .cal-card__event {
+        font-size: 15px;
+        font-weight: 600;
+      }
+      .cal-card__body {
+        padding: 12px 14px 14px;
+      }
+      .cal-card__place {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--color-text-primary);
+        margin-bottom: 2px;
+      }
+      .cal-card__tip {
+        font-size: 12px;
+        color: rgba(0, 0, 0, 0.4);
+        margin-bottom: 10px;
+      }
+      .cal-card__score {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 32px;
+        padding: 0 10px;
+        border-radius: 8px;
+        background: #fff;
+        margin-bottom: 8px;
+      }
+      .cal-card__tag {
+        display: inline-flex;
+        align-items: center;
+        height: 22px;
+        padding: 0 10px;
+        border-radius: 11px;
+        background: #fff;
+        font-size: 10px;
+        color: rgba(0, 0, 0, 0.4);
+      }
+
+      /* ── 위시리스트 배너 ── */
+      .wishlist-banner {
+        margin: 28px 20px 0;
+        padding: 14px 16px;
+        border-radius: var(--radius-card);
+        background: var(--color-surface);
+        border: 1px solid rgba(227, 27, 89, 0.1);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .wishlist-banner:hover {
+        background: rgba(227, 27, 89, 0.04);
+      }
+      .wishlist-banner__icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: rgba(227, 27, 89, 0.08);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      .wishlist-banner__text {
+        flex: 1;
+      }
+      .wishlist-banner__title {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--color-text-primary);
+        letter-spacing: -0.15px;
+      }
+      .wishlist-banner__desc {
+        font-size: 12px;
+        color: rgba(0, 0, 0, 0.4);
+        margin-top: 1px;
+      }
+      .wishlist-banner__arrow {
+        color: rgba(0, 0, 0, 0.2);
+        flex-shrink: 0;
+      }
+
+      /* ── 탭바 ── */
+      .tab-bar {
+        position: fixed;
+        bottom: 0;
+        width: 390px;
+        height: 80px;
+        background: #fff;
+        border-top: 0.5px solid rgba(0, 0, 0, 0.08);
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-around;
+        padding-top: 8px;
+        z-index: 50;
+      }
+      .tab {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 4px 10px;
+        transition: opacity 0.15s;
+      }
+      .tab:hover {
+        opacity: 0.7;
+      }
+      .tab__icon {
+        width: 22px;
+        height: 22px;
+        color: rgba(0, 0, 0, 0.35);
+      }
+      .tab__label {
+        font-size: 10px;
+        color: rgba(0, 0, 0, 0.35);
+        font-family: var(--font-family);
+      }
+      .tab.is-active .tab__icon {
+        color: var(--color-tab-active);
+      }
+      .tab.is-active .tab__label {
+        color: var(--color-tab-active);
+        font-weight: 500;
+      }
+      .tab-bar__indicator {
+        position: absolute;
+        bottom: 8px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 110px;
+        height: 5px;
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 2.5px;
+      }
+
+      @media (max-width: 390px) {
+        .phone-frame,
+        .tab-bar {
+          width: 100%;
+        }
+      }
+      @media (min-width: 391px) {
+        body {
+          padding: 20px 0;
+        }
+        .phone-frame {
+          border-radius: 40px;
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+          height: calc(100dvh - 40px);
+          overflow-y: auto;
+          overflow-x: hidden;
+        }
+        .tab-bar {
+          border-radius: 0 0 40px 40px;
+        }
+      }
+    
+      /* ══════════════════════════════
+         검색 패널 공통
+         ══════════════════════════════ */
+      .search-panel {
+        position: fixed;
+        top: 0; bottom: 0;
+        left: 50%;
+        transform: translateX(-50%) translateY(8px);
+        width: 390px;
+        background: #fff;
+        z-index: 50;
+        display: flex;
+        flex-direction: column;
+        opacity: 0;
+        pointer-events: none;
+        transition: transform 0.22s cubic-bezier(0.32,0.72,0,1), opacity 0.18s;
+      }
+      .search-panel.is-open {
+        transform: translateX(-50%) translateY(0);
+        opacity: 1;
+        pointer-events: auto;
+      }
+      @media(min-width: 391px) {
+        .search-panel {
+          top: 20px; bottom: 20px;
+          border-radius: 40px;
+          overflow: hidden;
+        }
+      }
+
+      /* 검색 패널 상단 입력 행 */
+      .sp-nav {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 16px 10px;
+        flex-shrink: 0;
+      }
+      .sp-nav__back {
+        flex-shrink: 0;
+        width: 32px; height: 32px;
+        border: none; background: none;
+        cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        color: rgba(0,0,0,0.5);
+      }
+      .sp-nav__input-wrap {
+        flex: 1;
+        display: flex; align-items: center; gap: 8px;
+        height: 42px;
+        background: var(--color-surface);
+        border-radius: 12px;
+        padding: 0 14px;
+      }
+      .sp-nav__input {
+        flex: 1;
+        border: none; background: none; outline: none;
+        font-family: var(--font-family);
+        font-size: 15px; color: #000;
+        letter-spacing: -0.2px;
+      }
+      .sp-nav__input::placeholder { color: rgba(0,0,0,0.3); }
+      .sp-nav__clear {
+        flex-shrink: 0;
+        width: 18px; height: 18px;
+        border-radius: 50%;
+        background: rgba(0,0,0,0.15);
+        border: none; cursor: pointer;
+        display: none; align-items: center; justify-content: center;
+      }
+      .sp-nav__clear.is-visible { display: flex; }
+      .sp-nav__cancel {
+        flex-shrink: 0;
+        font-family: var(--font-family);
+        font-size: 15px; color: rgba(0,0,0,0.45);
+        background: none; border: none; cursor: pointer;
+        white-space: nowrap;
+      }
+
+      .sp-divider { height: 1px; background: rgba(0,0,0,0.06); margin: 0; flex-shrink: 0; }
+
+      /* ── ① 포커스 패널 ── */
+      .sp-body { flex: 1; overflow-y: auto; padding: 4px 0 80px; }
+
+      .sp-section { padding: 18px 20px 0; }
+      .sp-section__head {
+        display: flex; align-items: center; justify-content: space-between;
+        margin-bottom: 12px;
+      }
+      .sp-section__title {
+        font-size: 13px; font-weight: 600;
+        color: rgba(0,0,0,0.35);
+        letter-spacing: 0.1px;
+      }
+      .sp-section__action {
+        font-size: 13px; color: rgba(0,0,0,0.35);
+        background: none; border: none; cursor: pointer;
+        font-family: var(--font-family);
+      }
+      .sp-section__action:hover { color: var(--color-accent); }
+
+      /* 최근 검색어 */
+      .recent-list { display: flex; flex-direction: column; }
+      .recent-item {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 11px 0;
+        border-bottom: 0.5px solid rgba(0,0,0,0.05);
+        cursor: pointer;
+      }
+      .recent-item:last-child { border-bottom: none; }
+      .recent-item__left { display: flex; align-items: center; gap: 10px; }
+      .recent-item__icon { color: rgba(0,0,0,0.2); flex-shrink: 0; }
+      .recent-item__text { font-size: 15px; color: #000; letter-spacing: -0.2px; }
+      .recent-item__del {
+        width: 20px; height: 20px;
+        display: flex; align-items: center; justify-content: center;
+        background: none; border: none; cursor: pointer;
+        color: rgba(0,0,0,0.2); flex-shrink: 0;
+      }
+      .recent-item__del:hover { color: rgba(0,0,0,0.5); }
+
+      /* 인기 검색어 */
+      .popular-list { display: flex; flex-direction: column; }
+      .popular-item {
+        display: flex; align-items: center; gap: 12px;
+        padding: 11px 0;
+        border-bottom: 0.5px solid rgba(0,0,0,0.05);
+        cursor: pointer;
+      }
+      .popular-item:last-child { border-bottom: none; }
+      .popular-item__rank {
+        font-size: 15px; font-weight: 600;
+        color: var(--color-accent);
+        width: 18px; text-align: center; flex-shrink: 0;
+      }
+      .popular-item__rank--top { color: #000; }
+      .popular-item__text { flex: 1; font-size: 15px; color: #000; letter-spacing: -0.2px; }
+      .popular-item__badge {
+        font-size: 11px; font-weight: 600;
+        padding: 2px 7px; border-radius: 10px;
+        flex-shrink: 0;
+      }
+      .popular-item__badge--new { background: rgba(227,27,89,0.08); color: var(--color-accent); }
+      .popular-item__badge--up { color: #34c759; }
+      .popular-item__badge--down { color: rgba(0,0,0,0.25); }
+
+      /* ── ③ 결과 패널 ── */
+      .sr-meta {
+        display: flex; align-items: center; justify-content: space-between;
+        padding: 14px 20px 10px;
+        flex-shrink: 0;
+      }
+      .sr-meta__count {
+        font-size: 13px; color: rgba(0,0,0,0.4);
+      }
+      .sr-meta__count strong { color: #000; font-weight: 600; }
+      .sr-sort {
+        display: flex; align-items: center; gap: 4px;
+        font-size: 13px; color: rgba(0,0,0,0.45);
+        background: none; border: none; cursor: pointer;
+        font-family: var(--font-family);
+      }
+
+      .sr-list { flex: 1; overflow-y: auto; padding: 0 20px 80px; }
+
+      .sr-card {
+        display: flex; gap: 14px;
+        padding: 14px 0;
+        border-bottom: 0.5px solid rgba(0,0,0,0.06);
+        cursor: pointer;
+      }
+      .sr-card:last-child { border-bottom: none; }
+      .sr-card__thumb {
+        width: 80px; height: 80px;
+        border-radius: 12px;
+        flex-shrink: 0;
+        overflow: hidden;
+        background: var(--color-surface);
+      }
+      .sr-card__thumb img {
+        width: 100%; height: 100%; object-fit: cover;
+      }
+      .sr-card__thumb--1 { background: linear-gradient(135deg,#1a1530,#8b4a6b); }
+      .sr-card__thumb--2 { background: linear-gradient(135deg,#0f2027,#2c5364); }
+      .sr-card__thumb--3 { background: linear-gradient(135deg,#2d3561,#c05c7e); }
+      .sr-card__thumb--4 { background: linear-gradient(135deg,#134e5e,#71b280); }
+      .sr-card__thumb--5 { background: linear-gradient(135deg,#373b44,#4286f4); }
+
+      .sr-card__info { flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+      .sr-card__name {
+        font-size: 15px; font-weight: 600;
+        color: #000; letter-spacing: -0.3px;
+        margin-bottom: 3px;
+      }
+      .sr-card__addr {
+        font-size: 12px; color: rgba(0,0,0,0.4);
+        margin-bottom: 8px;
+      }
+      .sr-card__bottom { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+      .sr-card__score {
+        font-size: 12px; font-weight: 600;
+        color: var(--color-accent);
+        background: rgba(227,27,89,0.07);
+        padding: 2px 8px; border-radius: 8px;
+      }
+      .sr-card__tag {
+        font-size: 12px; color: rgba(0,0,0,0.4);
+        background: var(--color-surface);
+        padding: 2px 8px; border-radius: 8px;
+      }
+
+      /* empty state */
+      .sr-empty {
+        display: flex; flex-direction: column;
+        align-items: center; justify-content: center;
+        padding: 80px 20px;
+        gap: 12px;
+      }
+      .sr-empty__icon { color: rgba(0,0,0,0.12); }
+      .sr-empty__title { font-size: 16px; font-weight: 600; color: rgba(0,0,0,0.5); }
+      .sr-empty__sub { font-size: 14px; color: rgba(0,0,0,0.3); text-align: center; line-height: 1.5; }
+
+      /* ── 스크롤바 숨김 ── */
+      * { scrollbar-width: none; -ms-overflow-style: none; }
+      *::-webkit-scrollbar { display: none; }
+</style>
+  </head>
+  <body>
+    <div class="phone-frame">
+      <div class="status-bar">
+        <span class="status-bar__time">9:41</span>
+        <div class="dynamic-island"></div>
+        <div class="status-bar__icons">
+          <svg viewBox="0 0 18 12">
+            <rect x="0" y="9" width="3" height="3" rx=".75" />
+            <rect x="4.5" y="6" width="3" height="6" rx=".75" />
+            <rect x="9" y="3" width="3" height="9" rx=".75" />
+            <rect x="13.5" y="0" width="3" height="12" rx=".75" />
+          </svg>
+          <svg
+            viewBox="0 0 16 14"
+            fill="none"
+            stroke="#fff"
+            stroke-width="1.3"
+            stroke-linecap="round"
+          >
+            <path d="M5 10.5A4 4 0 0 1 11 10.5" />
+            <path d="M2.5 7A8 8 0 0 1 13.5 7" />
+            <circle cx="8" cy="13" r="1.2" fill="#fff" stroke="none" />
+          </svg>
+          <svg viewBox="0 0 28 14">
+            <rect
+              x="0"
+              y="0"
+              width="25"
+              height="12"
+              rx="3.5"
+              fill="none"
+              stroke="rgba(255,255,255,.5)"
+              stroke-width="1"
+            />
+            <rect x="1.5" y="1.5" width="20" height="9" rx="2" fill="#fff" />
+          </svg>
+        </div>
+      </div>
+
+      <div class="hero">
+        <div class="hero__stars">
+          <span></span><span></span><span></span><span></span>
+        </div>
+        <div class="hero__sun"></div>
+        <div class="hero__landscape"></div>
+        <div class="hero-nav">
+          <div class="hero-nav__logo">
+            <svg
+              viewBox="0 0 26 26"
+              fill="none"
+              stroke="rgba(255,255,255,.85)"
+              stroke-width="1.4"
+            >
+              <circle cx="13" cy="13" r="11.5" />
+              <circle cx="13" cy="13" r="5" stroke-opacity=".6" />
+            </svg>
+            <span>PNG</span>
+          </div>
+          <div class="hero-nav__right">
+            <div
+              class="hero-nav__icon"
+              onclick="location.href = '../mypage/notification.html'"
+              role="button"
+              aria-label="알림"
+            >
+              <svg
+                width="22"
+                height="22"
+                viewBox="0 0 22 22"
+                fill="none"
+                stroke="rgba(255,255,255,.8)"
+                stroke-width="1.3"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M11 2C7.5 2 5 5 5 8V12L3 15H19L17 12V8C17 5 14.5 2 11 2Z"
+                />
+                <path d="M8.5 15Q8.5 18 11 18T13.5 15" stroke-width="1.2" />
+              </svg>
+              <div class="hero-nav__badge"></div>
+            </div>
+          </div>
+        </div>
+        <div class="hero__content">
+          <div class="hero__title">오늘의 출사,<br />어디로 떠나볼까요?</div>
+          <div class="hero__weather">
+            서울 · 맑음 · 미세먼지 좋음 · 골든아워 18:42
+          </div>
+        </div>
+      </div>
+
+      <div class="search-bar">
+        <div class="search-bar__inner">
+          <svg
+            class="search-bar__icon"
+            viewBox="0 0 18 18"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+          >
+            <circle cx="8" cy="8" r="6.5" />
+            <line x1="13" y1="13" x2="16.5" y2="16.5" />
+          </svg>
+          <input
+            class="search-bar__input"
+            type="text"
+            placeholder="장소, 테마, 키워드 검색"
+            onfocus="openSearch()"
+            readonly
+          />
+          <button class="search-bar__filter" aria-label="필터" onclick="openFilterSheet()">
+            <svg
+              width="18" height="18" viewBox="0 0 18 18"
+              fill="none" stroke="currentColor"
+              stroke-width="1.2" stroke-linecap="round"
+            >
+              <line x1="1" y1="4" x2="17" y2="4" />
+              <line x1="1" y1="9" x2="17" y2="9" />
+              <line x1="1" y1="14" x2="17" y2="14" />
+              <circle cx="5" cy="4" r="1.8" fill="#fff" />
+              <circle cx="12" cy="9" r="1.8" fill="#fff" />
+              <circle cx="6" cy="14" r="1.8" fill="#fff" />
+            </svg>
+            <span class="search-bar__filter-badge"></span>
+          </button>
+        </div>
+      </div>
+
+      <div class="categories">
+        <button class="category-pill is-active">전체</button>
+        <button class="category-pill" onclick="selectCat(this)">야경</button>
+        <button class="category-pill" onclick="selectCat(this)">바다</button>
+        <button class="category-pill" onclick="selectCat(this)">한옥</button>
+        <button class="category-pill" onclick="selectCat(this)">꽃</button>
+        <button class="category-pill" onclick="selectCat(this)">카페</button>
+        <button class="category-pill" onclick="selectCat(this)">인물</button>
+        <button class="category-pill" onclick="selectCat(this)">축제</button>
+      </div>
+
+      <div class="section">
+        <div class="section__header">
+          <h2 class="section__title">내 주변 포토스팟</h2>
+        </div>
+        <p class="section__subtitle">
+          서울시 기준 · 반경 5km · 탭하면 전체 지도로 이동
+        </p>
+        <div class="map-banner" onclick="location.href = './map.html'">
+          <div class="map-banner__bg"></div>
+          <svg class="map-banner__grid" width="100%" height="100%">
+            <line x1="0" y1="53" x2="100%" y2="53" />
+            <line x1="0" y1="106" x2="100%" y2="106" />
+            <line x1="33%" y1="0" x2="33%" y2="100%" />
+            <line x1="66%" y1="0" x2="66%" y2="100%" />
+          </svg>
+          <svg class="map-banner__road" width="100%" height="100%">
+            <path d="M0 90Q80 70 150 82Q230 95 310 65" />
+            <path d="M150 0Q138 60 150 82Q162 104 140 160" />
+          </svg>
+          <div class="map-banner__pin" style="left: 30%; top: 42%">
+            <svg width="22" height="27" viewBox="0 0 28 34" fill="none">
+              <path
+                d="M14 0C6.3 0 0 6.3 0 14C0 23 14 34 14 34S28 23 28 14C28 6.3 21.7 0 14 0Z"
+                fill="#E31B59"
+              />
+              <circle cx="14" cy="12" r="5" fill="#fff" />
+            </svg>
+          </div>
+          <div class="map-banner__pin" style="left: 62%; top: 32%">
+            <svg width="18" height="22" viewBox="0 0 24 30" fill="none">
+              <path
+                d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z"
+                fill="#E31B59"
+              />
+              <circle cx="12" cy="10.5" r="4" fill="#fff" />
+            </svg>
+          </div>
+          <div class="map-banner__pin" style="left: 80%; top: 65%">
+            <svg width="18" height="22" viewBox="0 0 24 30" fill="none">
+              <path
+                d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z"
+                fill="#E31B59"
+              />
+              <circle cx="12" cy="10.5" r="4" fill="#fff" />
+            </svg>
+          </div>
+          <div class="map-banner__pin" style="left: 46%; top: 74%">
+            <svg width="18" height="22" viewBox="0 0 24 30" fill="none">
+              <path
+                d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z"
+                fill="#E31B59"
+              />
+              <circle cx="12" cy="10.5" r="4" fill="#fff" />
+            </svg>
+          </div>
+          <div class="map-banner__me" style="left: 50%; top: 52%">
+            <div class="map-banner__me-ring">
+              <div class="map-banner__me-dot"></div>
+            </div>
+          </div>
+          <div class="map-banner__overlay"></div>
+          <div class="map-banner__count">
+            <svg
+              width="10"
+              height="10"
+              viewBox="0 0 12 12"
+              fill="none"
+              stroke="#fff"
+              stroke-width="1"
+            >
+              <path
+                d="M6 1C3.5 1 1.5 3 1.5 5.5C1.5 8.5 6 12 6 12S10.5 8.5 10.5 5.5C10.5 3 8.5 1 6 1Z"
+              />
+              <circle cx="6" cy="5" r="1.5" />
+            </svg>
+            주변 스팟 4개
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section__header">
+          <h2 class="section__title">이번 주 인기 스팟</h2>
+          <a href="../spot/spot-list.html" class="section__link">모두 보기</a>
+        </div>
+      </div>
+
+      <div class="spot-scroll">
+        <div
+          class="spot-card"
+          onclick="location.href = '../spot/spot-detail.html'"
+          style="cursor: pointer"
+        >
+          <div
+            class="spot-card__photo"
+            style="
+              background: linear-gradient(to bottom, #0f2027, #203a43, #2c5364);
+            "
+          >
+            <span class="spot-card__badge spot-card__badge--hot">HOT</span>
+            <button class="spot-card__bookmark" aria-label="북마크">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 14 14"
+                fill="none"
+                stroke="#fff"
+                stroke-width="1.3"
+                stroke-linejoin="round"
+              >
+                <path d="M3 1V13L7 10.5L11 13V1Z" />
+              </svg>
+            </button>
+          </div>
+          <div class="spot-card__body">
+            <div class="spot-card__name">광안리 해수욕장</div>
+            <div class="spot-card__loc">부산 수영구 · 야경/바다</div>
+            <div class="spot-card__rating">★★★★★ <span>4.8</span></div>
+            <div class="spot-card__score">
+              <span class="spot-card__score-label">포토제닉 지수</span
+              ><span
+                ><span class="spot-card__score-value">87</span
+                ><span class="spot-card__score-max">/100</span></span
+              >
+            </div>
+          </div>
+        </div>
+        <div
+          class="spot-card"
+          onclick="location.href = '../spot/spot-detail.html'"
+          style="cursor: pointer"
+        >
+          <div
+            class="spot-card__photo"
+            style="
+              background: linear-gradient(to bottom, #232526, #414345, #8e7b5a);
+            "
+          >
+            <span class="spot-card__badge spot-card__badge--new">NEW</span>
+            <button class="spot-card__bookmark" aria-label="북마크">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 14 14"
+                fill="none"
+                stroke="#fff"
+                stroke-width="1.3"
+                stroke-linejoin="round"
+              >
+                <path d="M3 1V13L7 10.5L11 13V1Z" />
+              </svg>
+            </button>
+          </div>
+          <div class="spot-card__body">
+            <div class="spot-card__name">경복궁 야간개장</div>
+            <div class="spot-card__loc">서울 종로구 · 야경/한옥</div>
+            <div class="spot-card__rating">★★★★★ <span>4.9</span></div>
+            <div class="spot-card__score">
+              <span class="spot-card__score-label">포토제닉 지수</span
+              ><span
+                ><span class="spot-card__score-value">91</span
+                ><span class="spot-card__score-max">/100</span></span
+              >
+            </div>
+          </div>
+        </div>
+        <div
+          class="spot-card"
+          onclick="location.href = '../spot/spot-detail.html'"
+          style="cursor: pointer"
+        >
+          <div
+            class="spot-card__photo"
+            style="
+              background: linear-gradient(to bottom, #1d4350, #4a8d7e, #a3d9c8);
+            "
+          >
+            <button class="spot-card__bookmark" aria-label="북마크">
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 14 14"
+                fill="none"
+                stroke="#fff"
+                stroke-width="1.3"
+                stroke-linejoin="round"
+              >
+                <path d="M3 1V13L7 10.5L11 13V1Z" />
+              </svg>
+            </button>
+          </div>
+          <div class="spot-card__body">
+            <div class="spot-card__name">제주 사려니숲길</div>
+            <div class="spot-card__loc">제주 서귀포시 · 숲/안개</div>
+            <div class="spot-card__rating">★★★★☆ <span>4.7</span></div>
+            <div class="spot-card__score">
+              <span class="spot-card__score-label">포토제닉 지수</span
+              ><span
+                ><span class="spot-card__score-value">78</span
+                ><span class="spot-card__score-max">/100</span></span
+              >
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section__header">
+          <h2 class="section__title">이달의 출사 캘린더</h2>
+        </div>
+        <p class="section__subtitle">시기별 추천 포토스팟을 놓치지 마세요</p>
+        <div class="calendar-grid">
+          <div class="cal-card" onclick="location.href='../spot/spot-detail.html#from=home'" style="cursor:pointer">
+            <div class="cal-card__header cal-card__header--dark">
+              <div class="cal-card__date">5월 12일 ~ 5월 20일</div>
+              <div class="cal-card__event">장미 축제</div>
+            </div>
+            <div class="cal-card__body">
+              <div class="cal-card__place">에버랜드 장미원</div>
+              <div class="cal-card__tip">만개 시기 · 오전 촬영 추천</div>
+              <div class="cal-card__score">
+                <span class="spot-card__score-label">포토제닉 지수</span
+                ><span
+                  ><span class="spot-card__score-value">92</span
+                  ><span class="spot-card__score-max">/100</span></span
+                >
+              </div>
+              <span class="cal-card__tag">맑음 · 미세먼지 좋음</span>
+            </div>
+          </div>
+          <div class="cal-card" onclick="location.href='../spot/spot-detail.html#from=home'" style="cursor:pointer">
+            <div class="cal-card__header cal-card__header--gray">
+              <div class="cal-card__date">5월 중 · 매일 새벽</div>
+              <div class="cal-card__event">은하수 시즌</div>
+            </div>
+            <div class="cal-card__body">
+              <div class="cal-card__place">영월 별마로천문대</div>
+              <div class="cal-card__tip">새벽 2~4시 · 삼각대 필수</div>
+              <div class="cal-card__score">
+                <span class="spot-card__score-label">포토제닉 지수</span
+                ><span
+                  ><span class="spot-card__score-value">85</span
+                  ><span class="spot-card__score-max">/100</span></span
+                >
+              </div>
+              <span class="cal-card__tag">구름 없음 · 광해 최소</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="wishlist-banner" onclick="location.href = '../wishlist/wishlist.html#from=home'">
+        <div class="wishlist-banner__icon">
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="#e31b59"
+            stroke-width="1.6"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path
+              d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6"
+            />
+            <path d="M9 17v1a3 3 0 0 0 6 0v-1" />
+          </svg>
+        </div>
+        <div class="wishlist-banner__text">
+          <div class="wishlist-banner__title">촬영 조건 위시리스트</div>
+          <div class="wishlist-banner__desc">원하는 날씨가 되면 알려드려요</div>
+        </div>
+        <svg
+          class="wishlist-banner__arrow"
+          width="8"
+          height="14"
+          viewBox="0 0 8 14"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.3"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <polyline points="1,1 7,7 1,13" />
+        </svg>
+      </div>
+
+      <div style="height: 40px"></div>
+
+      <div class="tab-bar">
+        <button class="tab is-active">
+          <svg
+            class="tab__icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M5 12l-2 0l9 -9l9 9l-2 0" />
+            <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
+            <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" />
+          </svg>
+          <span class="tab__label">홈</span>
+        </button>
+        <button class="tab" onclick="location.href = './map.html'">
+          <svg
+            class="tab__icon"
+            viewBox="0 0 22 22"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.3"
+            stroke-linejoin="round"
+          >
+            <path d="M2 5L8 3L14 7L20 5V17L14 19L8 15L2 17Z" />
+          </svg>
+          <span class="tab__label">지도</span>
+        </button>
+        <button class="tab" onclick="location.href = '../travel/travel-list.html'">
+          <svg
+            class="tab__icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="6" cy="19" r="2" />
+            <circle cx="18" cy="5" r="2" />
+            <path d="M12 19h4.5a3.5 3.5 0 0 0 0 -7h-8a3.5 3.5 0 0 1 0 -7h3.5" />
+          </svg>
+          <span class="tab__label">출사</span>
+        </button>
+        <button class="tab" onclick="location.href = '../community/community-feed.html'">
+          <svg class="tab__icon" viewBox="2 3 20 19" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 4a3 3 0 0 1 3 3v8a3 3 0 0 1 -3 3h-5l-5 3v-3h-2a3 3 0 0 1 -3 -3v-8a3 3 0 0 1 3 -3h12"/>
+            <path d="M9.5 9h.01"/><path d="M14.5 9h.01"/>
+            <path d="M9.5 13a3.5 3.5 0 0 0 5 0"/>
+          </svg>
+          <span class="tab__label">커뮤니티</span>
+        </button>
+        <button class="tab" onclick="location.href = '../mypage/mypage.html'">
+          <svg
+            class="tab__icon"
+            viewBox="0 0 22 22"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.3"
+            stroke-linecap="round"
+          >
+            <circle cx="11" cy="7" r="5" />
+            <path d="M2 20Q5 13 11 13T20 20" />
+          </svg>
+          <span class="tab__label">MY</span>
+        </button>
+        <div class="tab-bar__indicator"></div>
+      </div>
+    </div>
+
+    <!-- ① 검색 포커스 패널 -->
+    <div class="search-panel" id="searchFocusPanel">
+      <div class="sp-nav">
+        <button class="sp-nav__back" onclick="closeSearch()">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="11,3 5,9 11,15"/></svg>
+        </button>
+        <div class="sp-nav__input-wrap">
+          <svg width="15" height="15" viewBox="0 0 18 18" fill="none" stroke="rgba(0,0,0,0.28)" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="6.5"/><line x1="13" y1="13" x2="16.5" y2="16.5"/></svg>
+          <input class="sp-nav__input" id="searchInput" type="text" placeholder="장소, 테마, 키워드 검색" oninput="onSearchInput(this.value)" onkeydown="onSearchKeydown(event)" />
+          <button class="sp-nav__clear" id="searchClear" onclick="clearSearch()">
+            <svg width="8" height="8" viewBox="0 0 8 8" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round"><line x1="1" y1="1" x2="7" y2="7"/><line x1="7" y1="1" x2="1" y2="7"/></svg>
+          </button>
+        </div>
+        <button class="sp-nav__cancel" onclick="closeSearch()">취소</button>
+      </div>
+      <div class="sp-divider"></div>
+      <div class="sp-body">
+        <!-- 최근 검색어 -->
+        <div class="sp-section">
+          <div class="sp-section__head">
+            <span class="sp-section__title">최근 검색어</span>
+            <button class="sp-section__action" onclick="clearAllRecent()">전체 삭제</button>
+          </div>
+          <div class="recent-list" id="recentList">
+            <div class="recent-item" onclick="submitSearch('광안리 해수욕장')">
+              <div class="recent-item__left">
+                <svg class="recent-item__icon" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><circle cx="6" cy="6" r="5"/><line x1="10" y1="10" x2="13" y2="13"/></svg>
+                <span class="recent-item__text">광안리 해수욕장</span>
+              </div>
+              <button class="recent-item__del" onclick="event.stopPropagation();removeRecent(this)">
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="1" y1="1" x2="9" y2="9"/><line x1="9" y1="1" x2="1" y2="9"/></svg>
+              </button>
+            </div>
+            <div class="recent-item" onclick="submitSearch('부산 야경')">
+              <div class="recent-item__left">
+                <svg class="recent-item__icon" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><circle cx="6" cy="6" r="5"/><line x1="10" y1="10" x2="13" y2="13"/></svg>
+                <span class="recent-item__text">부산 야경</span>
+              </div>
+              <button class="recent-item__del" onclick="event.stopPropagation();removeRecent(this)">
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="1" y1="1" x2="9" y2="9"/><line x1="9" y1="1" x2="1" y2="9"/></svg>
+              </button>
+            </div>
+            <div class="recent-item" onclick="submitSearch('제주 성산일출봉')">
+              <div class="recent-item__left">
+                <svg class="recent-item__icon" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><circle cx="6" cy="6" r="5"/><line x1="10" y1="10" x2="13" y2="13"/></svg>
+                <span class="recent-item__text">제주 성산일출봉</span>
+              </div>
+              <button class="recent-item__del" onclick="event.stopPropagation();removeRecent(this)">
+                <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><line x1="1" y1="1" x2="9" y2="9"/><line x1="9" y1="1" x2="1" y2="9"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+        <!-- 인기 검색어 -->
+        <div class="sp-section" style="margin-top:8px">
+          <div class="sp-section__head">
+            <span class="sp-section__title">인기 검색어</span>
+          </div>
+          <div class="popular-list">
+            <div class="popular-item" onclick="submitSearch('광안리 해수욕장')">
+              <span class="popular-item__rank popular-item__rank--top">1</span>
+              <span class="popular-item__text">광안리 해수욕장</span>
+              <span class="popular-item__badge popular-item__badge--up">▲ 2</span>
+            </div>
+            <div class="popular-item" onclick="submitSearch('제주 오름')">
+              <span class="popular-item__rank popular-item__rank--top">2</span>
+              <span class="popular-item__text">제주 오름</span>
+              <span class="popular-item__badge popular-item__badge--up">▲ 1</span>
+            </div>
+            <div class="popular-item" onclick="submitSearch('경복궁 야경')">
+              <span class="popular-item__rank">3</span>
+              <span class="popular-item__text">경복궁 야경</span>
+              <span class="popular-item__badge popular-item__badge--new">NEW</span>
+            </div>
+            <div class="popular-item" onclick="submitSearch('순천만 갈대밭')">
+              <span class="popular-item__rank">4</span>
+              <span class="popular-item__text">순천만 갈대밭</span>
+              <span class="popular-item__badge popular-item__badge--down">▼ 1</span>
+            </div>
+            <div class="popular-item" onclick="submitSearch('해운대 블루라인')">
+              <span class="popular-item__rank">5</span>
+              <span class="popular-item__text">해운대 블루라인</span>
+              <span class="popular-item__badge popular-item__badge--up">▲ 3</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ③ 검색 결과 패널 -->
+    <div class="search-panel" id="searchResultPanel">
+      <div class="sp-nav">
+        <button class="sp-nav__back" onclick="backToFocus()">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="11,3 5,9 11,15"/></svg>
+        </button>
+        <div class="sp-nav__input-wrap">
+          <svg width="15" height="15" viewBox="0 0 18 18" fill="none" stroke="rgba(0,0,0,0.28)" stroke-width="1.5" stroke-linecap="round"><circle cx="8" cy="8" r="6.5"/><line x1="13" y1="13" x2="16.5" y2="16.5"/></svg>
+          <input class="sp-nav__input" id="searchResultInput" type="text" onkeydown="onSearchKeydown(event)" />
+          <button class="sp-nav__clear is-visible" onclick="backToFocus()">
+            <svg width="8" height="8" viewBox="0 0 8 8" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round"><line x1="1" y1="1" x2="7" y2="7"/><line x1="7" y1="1" x2="1" y2="7"/></svg>
+          </button>
+        </div>
+        <button class="sp-nav__cancel" onclick="closeSearch()">취소</button>
+      </div>
+      <div class="sp-divider"></div>
+      <div class="sr-meta">
+        <span class="sr-meta__count">스팟 <strong id="srCount">24</strong>개</span>
+        <button class="sr-sort">
+          관련순
+          <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><polyline points="2,3.5 5,6.5 8,3.5"/></svg>
+        </button>
+      </div>
+      <div class="sp-divider"></div>
+      <div class="sr-list" id="srList">
+        <div class="sr-card" onclick="location.href='../spot/spot-detail.html'">
+          <div class="sr-card__thumb sr-card__thumb--1"></div>
+          <div class="sr-card__info">
+            <div>
+              <div class="sr-card__name">광안리 해수욕장</div>
+              <div class="sr-card__addr">부산 수영구 · 2.1km</div>
+            </div>
+            <div class="sr-card__bottom">
+              <span class="sr-card__score">92점</span>
+              <span class="sr-card__tag">야경</span>
+              <span class="sr-card__tag">바다</span>
+            </div>
+          </div>
+        </div>
+        <div class="sr-card" onclick="location.href='../spot/spot-detail.html'">
+          <div class="sr-card__thumb sr-card__thumb--2"></div>
+          <div class="sr-card__info">
+            <div>
+              <div class="sr-card__name">광안대교 전망대</div>
+              <div class="sr-card__addr">부산 수영구 · 2.4km</div>
+            </div>
+            <div class="sr-card__bottom">
+              <span class="sr-card__score">88점</span>
+              <span class="sr-card__tag">야경</span>
+              <span class="sr-card__tag">도심</span>
+            </div>
+          </div>
+        </div>
+        <div class="sr-card" onclick="location.href='../spot/spot-detail.html'">
+          <div class="sr-card__thumb sr-card__thumb--3"></div>
+          <div class="sr-card__info">
+            <div>
+              <div class="sr-card__name">민락수변공원</div>
+              <div class="sr-card__addr">부산 수영구 · 1.8km</div>
+            </div>
+            <div class="sr-card__bottom">
+              <span class="sr-card__score">85점</span>
+              <span class="sr-card__tag">일출</span>
+              <span class="sr-card__tag">공원</span>
+            </div>
+          </div>
+        </div>
+        <div class="sr-card" onclick="location.href='../spot/spot-detail.html'">
+          <div class="sr-card__thumb sr-card__thumb--4"></div>
+          <div class="sr-card__info">
+            <div>
+              <div class="sr-card__name">해운대 해수욕장</div>
+              <div class="sr-card__addr">부산 해운대구 · 5.3km</div>
+            </div>
+            <div class="sr-card__bottom">
+              <span class="sr-card__score">90점</span>
+              <span class="sr-card__tag">바다</span>
+              <span class="sr-card__tag">일출</span>
+            </div>
+          </div>
+        </div>
+        <div class="sr-card" onclick="location.href='../spot/spot-detail.html'">
+          <div class="sr-card__thumb sr-card__thumb--5"></div>
+          <div class="sr-card__info">
+            <div>
+              <div class="sr-card__name">황령산 전망대</div>
+              <div class="sr-card__addr">부산 남구 · 6.1km</div>
+            </div>
+            <div class="sr-card__bottom">
+              <span class="sr-card__score">87점</span>
+              <span class="sr-card__tag">야경</span>
+              <span class="sr-card__tag">산</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 필터 오버레이 -->
+    <div class="filter-overlay" id="filterOverlay" onclick="closeFilterSheet()"></div>
+
+    <!-- 필터 바텀시트 -->
+    <div class="filter-sheet" id="filterSheet">
+      <div class="filter-sheet__handle"></div>
+      <div class="filter-sheet__head">
+        <span class="filter-sheet__title">필터</span>
+        <button class="filter-sheet__reset" onclick="resetFilters()">초기화</button>
+      </div>
+
+      <!-- 거리 -->
+      <div class="filter-section">
+        <div class="filter-section__label">거리</div>
+        <div class="filter-chips" id="filterDistance">
+          <button class="filter-chip" onclick="selectSingle(this, 'filterDistance')">1km</button>
+          <button class="filter-chip" onclick="selectSingle(this, 'filterDistance')">3km</button>
+          <button class="filter-chip" onclick="selectSingle(this, 'filterDistance')">5km</button>
+          <button class="filter-chip" onclick="selectSingle(this, 'filterDistance')">10km</button>
+          <button class="filter-chip" onclick="selectSingle(this, 'filterDistance')">전체</button>
+        </div>
+      </div>
+      <div class="filter-divider"></div>
+
+      <!-- 시간대 -->
+      <div class="filter-section">
+        <div class="filter-section__label">시간대</div>
+        <div class="filter-chips" id="filterTime">
+          <button class="filter-chip" onclick="toggleFilter(this)">일출</button>
+          <button class="filter-chip" onclick="toggleFilter(this)">낮</button>
+          <button class="filter-chip" onclick="toggleFilter(this)">일몰</button>
+          <button class="filter-chip" onclick="toggleFilter(this)">야간</button>
+        </div>
+      </div>
+      <div class="filter-divider"></div>
+
+      <!-- 날씨 -->
+      <div class="filter-section">
+        <div class="filter-section__label">날씨</div>
+        <div class="filter-chips" id="filterWeather">
+          <button class="filter-chip" onclick="toggleFilter(this)">맑음</button>
+          <button class="filter-chip" onclick="toggleFilter(this)">흐림</button>
+          <button class="filter-chip" onclick="toggleFilter(this)">눈</button>
+          <button class="filter-chip" onclick="toggleFilter(this)">안개</button>
+        </div>
+      </div>
+      <div class="filter-divider"></div>
+
+      <!-- 포토제닉 스코어 -->
+      <div class="filter-section">
+        <div class="filter-section__label">포토제닉 스코어</div>
+        <div class="filter-chips" id="filterScore">
+          <button class="filter-chip" onclick="selectSingle(this, 'filterScore')">60점 이상</button>
+          <button class="filter-chip" onclick="selectSingle(this, 'filterScore')">70점 이상</button>
+          <button class="filter-chip" onclick="selectSingle(this, 'filterScore')">80점 이상</button>
+          <button class="filter-chip" onclick="selectSingle(this, 'filterScore')">90점 이상</button>
+        </div>
+      </div>
+
+      <div class="filter-sheet__footer">
+        <button class="filter-sheet__apply" onclick="applyFilters()">적용하기</button>
+      </div>
+    </div>
+
+    <script>
+      function selectCat(el) {
+        document
+          .querySelectorAll(".category-pill")
+          .forEach((p) => p.classList.remove("is-active"));
+        el.classList.add("is-active");
+      }
+
+      // ── 필터 바텀시트 ──
+      function openFilterSheet() {
+        document.getElementById('filterOverlay').classList.add('is-open');
+        document.getElementById('filterSheet').classList.add('is-open');
+      }
+
+      function closeFilterSheet() {
+        document.getElementById('filterOverlay').classList.remove('is-open');
+        document.getElementById('filterSheet').classList.remove('is-open');
+      }
+
+      // 단일 선택 (거리, 포토제닉 스코어)
+      function selectSingle(el, groupId) {
+        document.getElementById(groupId)
+          .querySelectorAll('.filter-chip')
+          .forEach(c => c.classList.remove('is-selected'));
+        el.classList.toggle('is-selected');
+        // 이미 선택된 걸 다시 누르면 해제 — toggle이 처리
+      }
+
+      // 복수 선택 (시간대, 날씨)
+      function toggleFilter(el) {
+        el.classList.toggle('is-selected');
+      }
+
+      function resetFilters() {
+        document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('is-selected'));
+        updateFilterBadge();
+      }
+
+      function applyFilters() {
+        updateFilterBadge();
+        closeFilterSheet();
+      }
+
+      function updateFilterBadge() {
+        var count = document.querySelectorAll('.filter-chip.is-selected').length;
+        var btn = document.querySelector('.search-bar__filter');
+        btn.classList.toggle('is-active', count > 0);
+      }
+
+      // ── 검색 패널 ──
+      function openSearch() {
+        document.getElementById('searchFocusPanel').classList.add('is-open');
+        setTimeout(function() {
+          document.getElementById('searchInput').focus();
+        }, 50);
+      }
+
+      function closeSearch() {
+        document.getElementById('searchFocusPanel').classList.remove('is-open');
+        document.getElementById('searchResultPanel').classList.remove('is-open');
+        document.getElementById('searchInput').value = '';
+        document.getElementById('searchClear').classList.remove('is-visible');
+      }
+
+      function onSearchInput(val) {
+        document.getElementById('searchClear').classList.toggle('is-visible', val.length > 0);
+      }
+
+      function onSearchKeydown(e) {
+        if (e.key === 'Enter') {
+          var val = document.getElementById('searchInput').value.trim();
+          if (val) submitSearch(val);
+        }
+      }
+
+      function clearSearch() {
+        document.getElementById('searchInput').value = '';
+        document.getElementById('searchClear').classList.remove('is-visible');
+        document.getElementById('searchInput').focus();
+      }
+
+      function submitSearch(query) {
+        // 결과 패널로 전환
+        document.getElementById('searchFocusPanel').classList.remove('is-open');
+        document.getElementById('searchResultInput').value = query;
+        document.getElementById('searchResultPanel').classList.add('is-open');
+        // 검색어가 없는 결과 시뮬레이션 (테스트용: '없는검색어' 입력 시 empty state)
+        var isEmpty = query === '없는검색어';
+        document.getElementById('srList').innerHTML = isEmpty ? emptyState() : defaultResults();
+        document.getElementById('srCount').textContent = isEmpty ? '0' : '24';
+      }
+
+      function backToFocus() {
+        document.getElementById('searchResultPanel').classList.remove('is-open');
+        document.getElementById('searchFocusPanel').classList.add('is-open');
+        var q = document.getElementById('searchResultInput').value;
+        document.getElementById('searchInput').value = q;
+        document.getElementById('searchClear').classList.toggle('is-visible', q.length > 0);
+        setTimeout(function() { document.getElementById('searchInput').focus(); }, 50);
+      }
+
+      function removeRecent(btn) {
+        btn.closest('.recent-item').remove();
+      }
+
+      function clearAllRecent() {
+        document.getElementById('recentList').innerHTML =
+          '<div style="padding:16px 0;font-size:14px;color:rgba(0,0,0,0.3)">최근 검색어가 없어요</div>';
+      }
+
+      function emptyState() {
+        return '<div class="sr-empty">' +
+          '<svg class="sr-empty__icon" width="48" height="48" viewBox="0 0 48 48" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><circle cx="22" cy="22" r="16"/><line x1="33" y1="33" x2="43" y2="43"/><line x1="16" y1="22" x2="28" y2="22"/></svg>' +
+          '<div class="sr-empty__title">검색 결과가 없어요</div>' +
+          '<div class="sr-empty__sub">다른 키워드로 검색하거나<br>철자를 확인해보세요</div>' +
+          '</div>';
+      }
+
+      function defaultResults() {
+        var cards = [
+          { thumb:'1', name:'광안리 해수욕장', addr:'부산 수영구 · 2.1km', score:'92', tags:['야경','바다'] },
+          { thumb:'2', name:'광안대교 전망대', addr:'부산 수영구 · 2.4km', score:'88', tags:['야경','도심'] },
+          { thumb:'3', name:'민락수변공원', addr:'부산 수영구 · 1.8km', score:'85', tags:['일출','공원'] },
+          { thumb:'4', name:'해운대 해수욕장', addr:'부산 해운대구 · 5.3km', score:'90', tags:['바다','일출'] },
+          { thumb:'5', name:'황령산 전망대', addr:'부산 남구 · 6.1km', score:'87', tags:['야경','산'] },
+        ];
+        return cards.map(function(c) {
+          var tags = c.tags.map(function(t) { return '<span class="sr-card__tag">' + t + '</span>'; }).join('');
+          return '<div class="sr-card" onclick="location.href=\'../spot/spot-detail.html\'">' +
+            '<div class="sr-card__thumb sr-card__thumb--' + c.thumb + '"></div>' +
+            '<div class="sr-card__info">' +
+              '<div><div class="sr-card__name">' + c.name + '</div>' +
+              '<div class="sr-card__addr">' + c.addr + '</div></div>' +
+              '<div class="sr-card__bottom"><span class="sr-card__score">' + c.score + '점</span>' + tags + '</div>' +
+            '</div></div>';
+        }).join('');
+      }
+    </script>
+  </body>
+</html>

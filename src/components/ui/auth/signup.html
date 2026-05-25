@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>PNG - 회원가입</title>
+  <link rel="stylesheet" href="../fonts.css">
+  <style>
+    /* ======================== */
+    /* Design Tokens (Apple DS) */
+    /* ======================== */
+    :root {
+      --color-bg: #ffffff;
+      --color-surface: #f5f5f7;
+      --color-text-primary: #000000;
+      --color-text-secondary: rgba(0, 0, 0, 0.48);
+      --color-text-tertiary: rgba(0, 0, 0, 0.28);
+      --color-text-placeholder: rgba(0, 0, 0, 0.3);
+      --color-text-hint: rgba(0, 0, 0, 0.25);
+      --color-accent: #e31b59;
+      --color-accent-hover: #c91550;
+      --color-accent-disabled: rgba(227, 27, 89, 0.25);
+      --color-link: #e31b59;
+      --color-border: rgba(0, 0, 0, 0.08);
+      --color-border-light: rgba(0, 0, 0, 0.06);
+      --color-input-bg: #f5f5f7;
+      --color-input-border-focus: #e31b59;
+      --color-error: #ff453a;
+      --color-success: #34c759;
+      --color-warning: #ff9f0a;
+      --color-checkbox-border: rgba(0, 0, 0, 0.18);
+      --color-checkbox-border-light: rgba(0, 0, 0, 0.12);
+
+      --space-xs: 4px;
+      --space-sm: 8px;
+      --space-md: 16px;
+      --space-lg: 24px;
+      --space-xl: 32px;
+
+      --radius-input: 12px;
+      --radius-btn: 26px;
+    }
+
+    /* ======================== */
+    /* Reset & Base             */
+    /* ======================== */
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      font-size: 16px;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      font-family: var(--font-family);
+      background: #f0f0f0;
+      display: flex;
+      justify-content: center;
+      min-height: 100dvh;
+    }
+
+    /* ======================== */
+    /* Phone Frame              */
+    /* ======================== */
+    .phone-frame {
+      width: 390px;
+      background: var(--color-bg);
+      position: relative;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    /* ======================== */
+    /* Hero Header (compact)    */
+    /* ======================== */
+    .hero-header {
+      height: 160px;
+      background: linear-gradient(
+        to bottom,
+        #2d1b4e 0%,
+        #8b4a6b 60%,
+        #d4856a 100%
+      );
+      position: relative;
+    }
+
+    .hero-header::after {
+      content: '';
+      position: absolute;
+      bottom: -40px;
+      left: 0;
+      right: 0;
+      height: 52px;
+      background: linear-gradient(to bottom, #d4856a, #ffffff 60%);
+    }
+
+    .hero-header__landscape {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 40px;
+      background: rgba(0, 0, 0, 0.1);
+      clip-path: polygon(
+        0% 55%, 12% 35%, 28% 50%, 42% 20%, 58% 38%, 72% 12%, 88% 30%, 100% 18%, 100% 100%, 0% 100%
+      );
+    }
+
+    /* ======================== */
+    /* Status Bar               */
+    /* ======================== */
+    .status-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 54px;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 34px;
+    }
+
+    .status-bar__time {
+      font-size: 15px;
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: -0.3px;
+    }
+
+    .dynamic-island {
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 106px;
+      height: 28px;
+      background: rgba(0, 0, 0, 0.55);
+      border-radius: 14px;
+    }
+
+    .status-bar__icons svg {
+      height: 12px;
+      fill: #fff;
+    }
+
+    /* ======================== */
+    /* Nav Bar                  */
+    /* ======================== */
+    .nav-bar {
+      position: absolute;
+      top: 60px;
+      left: 0;
+      right: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 12px;
+    }
+
+    .nav-bar__back {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.2);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+
+    .nav-bar__back:hover {
+      background: rgba(0, 0, 0, 0.35);
+    }
+
+    .nav-bar__logo {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .nav-bar__logo svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    .nav-bar__logo span {
+      font-size: 15px;
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: -0.5px;
+    }
+
+    /* ======================== */
+    /* Content                  */
+    /* ======================== */
+    .content {
+      position: relative;
+      z-index: 1;
+      padding: 32px 28px 40px;
+    }
+
+    .content__title {
+      font-size: 28px;
+      font-weight: 600;
+      color: var(--color-text-primary);
+      letter-spacing: -0.6px;
+      line-height: 1.35;
+      margin-bottom: 6px;
+    }
+
+    .content__subtitle {
+      font-size: 15px;
+      color: var(--color-text-secondary);
+      letter-spacing: -0.2px;
+      margin-bottom: var(--space-xl);
+    }
+
+    /* ======================== */
+    /* Section Label            */
+    /* ======================== */
+    .section-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: rgba(0, 0, 0, 0.5);
+      letter-spacing: -0.08px;
+      margin-bottom: 4px;
+      padding-left: 4px;
+    }
+
+    .section-label__optional {
+      color: var(--color-text-hint);
+    }
+
+    /* ======================== */
+    /* Input Group              */
+    /* ======================== */
+    .input-group {
+      position: relative;
+      margin-bottom: 18px;
+    }
+
+    .input-group__field {
+      width: 100%;
+      height: 54px;
+      background: var(--color-input-bg);
+      border: 1.5px solid transparent;
+      border-radius: var(--radius-input);
+      padding: 0 48px 0 46px;
+      font-family: var(--font-family);
+      font-size: 16px;
+      color: var(--color-text-primary);
+      letter-spacing: -0.3px;
+      outline: none;
+      transition: border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .input-group__field::placeholder {
+      color: var(--color-text-placeholder);
+    }
+
+    .input-group__field:focus {
+      border-color: var(--color-input-border-focus);
+      background: #fff;
+    }
+
+    .input-group__field.is-invalid {
+      border-color: var(--color-error);
+      background: #fff;
+    }
+
+    .input-group__icon {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 20px;
+      height: 20px;
+      color: rgba(0, 0, 0, 0.25);
+      pointer-events: none;
+      transition: color 0.2s;
+    }
+
+    .input-group__field:focus ~ .input-group__icon {
+      color: var(--color-accent);
+    }
+
+    .input-group__toggle {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      color: rgba(0, 0, 0, 0.2);
+      transition: color 0.2s;
+    }
+
+    .input-group__toggle:hover {
+      color: rgba(0, 0, 0, 0.45);
+    }
+
+    /* Input with side button (email + verify) */
+    .input-row {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .input-row .input-group {
+      flex: 1;
+      margin-bottom: 0;
+    }
+
+    .btn--verify {
+      flex-shrink: 0;
+      width: 80px;
+      height: 54px;
+      background: var(--color-accent);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-input);
+      font-family: var(--font-family);
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: -0.15px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .btn--verify:hover {
+      background: var(--color-accent-hover);
+    }
+
+    .btn--verify:active {
+      transform: scale(0.97);
+    }
+
+    /* Character counter */
+    .input-group__counter {
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 12px;
+      color: rgba(0, 0, 0, 0.15);
+      pointer-events: none;
+    }
+
+    .input-group--with-counter .input-group__field {
+      padding-right: 54px;
+    }
+
+    .form-feedback {
+      display: none;
+      margin-top: -10px;
+      margin-bottom: 14px;
+      padding-left: 4px;
+      font-size: 12px;
+      color: var(--color-error);
+      letter-spacing: -0.1px;
+      line-height: 1.35;
+    }
+
+    .form-feedback.is-visible {
+      display: block;
+    }
+
+    .form-feedback--terms {
+      margin-top: -8px;
+      margin-bottom: 0;
+    }
+
+    /* ======================== */
+    /* Password Strength        */
+    /* ======================== */
+    .pw-strength {
+      display: flex;
+      gap: 4px;
+      margin-top: -8px;
+      margin-bottom: var(--space-md);
+      padding: 0 4px;
+    }
+
+    .pw-strength__bar {
+      flex: 1;
+      height: 2.5px;
+      background: rgba(0, 0, 0, 0.06);
+      border-radius: 1.25px;
+      transition: background 0.3s;
+    }
+
+    /* ======================== */
+    /* Divider                  */
+    /* ======================== */
+    .divider {
+      height: 0.5px;
+      background: var(--color-border-light);
+      margin: var(--space-lg) 0;
+    }
+
+    /* ======================== */
+    /* Theme Pills              */
+    /* ======================== */
+    .theme-section {
+      margin-bottom: var(--space-lg);
+    }
+
+    .theme-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .theme-pill {
+      height: 36px;
+      padding: 0 16px;
+      border-radius: 18px;
+      background: var(--color-surface);
+      border: 1px solid transparent;
+      font-family: var(--font-family);
+      font-size: 13px;
+      color: rgba(0, 0, 0, 0.5);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+    }
+
+    .theme-pill:hover {
+      background: rgba(0, 0, 0, 0.06);
+    }
+
+    .theme-pill.is-selected {
+      background: rgba(227, 27, 89, 0.08);
+      border-color: var(--color-accent);
+      color: var(--color-accent);
+      font-weight: 500;
+    }
+
+    /* ======================== */
+    /* Terms                    */
+    /* ======================== */
+    .terms {
+      margin-bottom: var(--space-lg);
+    }
+
+    .terms__all {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding-bottom: 14px;
+      border-bottom: 0.5px solid var(--color-border-light);
+      margin-bottom: 14px;
+      cursor: pointer;
+    }
+
+    .terms__all-label {
+      font-size: 15px;
+      font-weight: 500;
+      color: var(--color-text-primary);
+      letter-spacing: -0.2px;
+    }
+
+    .terms__item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 0;
+      cursor: pointer;
+    }
+
+    .terms__item-left {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .terms__item-label {
+      font-size: 13px;
+      color: rgba(0, 0, 0, 0.45);
+      letter-spacing: -0.1px;
+    }
+
+    .terms__item-link {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+      font-size: 12px;
+      color: rgba(0, 0, 0, 0.2);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .terms__item-link:hover {
+      color: rgba(0, 0, 0, 0.45);
+    }
+
+    /* Checkbox */
+    .checkbox {
+      width: 22px;
+      height: 22px;
+      border-radius: 6px;
+      border: 1.2px solid var(--color-checkbox-border);
+      background: transparent;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+
+    .checkbox--sm {
+      width: 18px;
+      height: 18px;
+      border-radius: 5px;
+      border-color: var(--color-checkbox-border-light);
+    }
+
+    .checkbox.is-checked {
+      background: var(--color-accent);
+      border-color: var(--color-accent);
+    }
+
+    .checkbox.is-checked svg {
+      opacity: 1;
+    }
+
+    .checkbox svg {
+      width: 12px;
+      height: 12px;
+      opacity: 0;
+      transition: opacity 0.15s;
+    }
+
+    /* ======================== */
+    /* Buttons                  */
+    /* ======================== */
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 52px;
+      border-radius: var(--radius-btn);
+      border: none;
+      font-family: var(--font-family);
+      font-size: 17px;
+      font-weight: 500;
+      letter-spacing: -0.3px;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.1s ease;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn--primary {
+      background: var(--color-accent);
+      color: #fff;
+    }
+
+    .btn--primary:hover {
+      background: var(--color-accent-hover);
+    }
+
+    .btn--disabled {
+      background: var(--color-accent-disabled);
+      color: rgba(0, 0, 0, 0.3);
+      pointer-events: none;
+    }
+
+    /* ======================== */
+    /* Login Link               */
+    /* ======================== */
+    .login-link {
+      text-align: center;
+      margin-top: var(--space-lg);
+      font-size: 14px;
+      color: rgba(0, 0, 0, 0.4);
+      letter-spacing: -0.15px;
+    }
+
+    .login-link a {
+      color: var(--color-link);
+      font-weight: 600;
+      text-decoration: none;
+      margin-left: 4px;
+      transition: opacity 0.2s;
+    }
+
+    .login-link a:hover {
+      opacity: 0.7;
+    }
+
+    /* ======================== */
+    /* Responsive               */
+    /* ======================== */
+    @media (max-width: 390px) {
+      .phone-frame { width: 100%; }
+    }
+
+    @media (min-width: 391px) {
+      body { padding: 20px 0; }
+      .phone-frame {
+        border-radius: 40px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+          height: calc(100dvh - 40px);
+          overflow-y: auto;
+          overflow-x: hidden;
+      }
+    }
+  
+      /* ── 스크롤바 숨김 ── */
+      * { scrollbar-width: none; -ms-overflow-style: none; }
+      *::-webkit-scrollbar { display: none; }
+</style>
+</head>
+<body>
+
+<div class="phone-frame">
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <span class="status-bar__time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="status-bar__icons">
+      <svg viewBox="0 0 18 12"><rect x="0" y="9" width="3" height="3" rx="0.75"/><rect x="4.5" y="6" width="3" height="6" rx="0.75"/><rect x="9" y="3" width="3" height="9" rx="0.75"/><rect x="13.5" y="0" width="3" height="12" rx="0.75"/></svg>
+      <svg viewBox="0 0 16 14" fill="none" stroke="#fff" stroke-width="1.3" stroke-linecap="round"><path d="M5 10.5A4 4 0 0 1 11 10.5"/><path d="M2.5 7A8 8 0 0 1 13.5 7"/><circle cx="8" cy="13" r="1.2" fill="#fff" stroke="none"/></svg>
+      <svg viewBox="0 0 28 14"><rect x="0" y="0" width="25" height="12" rx="3.5" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1"/><rect x="1.5" y="1.5" width="20" height="9" rx="2" fill="#fff"/></svg>
+    </div>
+  </div>
+
+  <!-- Hero Header -->
+  <div class="hero-header">
+    <div class="hero-header__landscape"></div>
+
+    <!-- Nav Bar -->
+    <div class="nav-bar">
+      <button class="nav-bar__back" onclick="location.href='./login.html'" aria-label="뒤로가기">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="11,3 5,9 11,15"/>
+        </svg>
+      </button>
+      <div class="nav-bar__logo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.8)" stroke-width="1.2">
+          <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4" stroke-opacity="0.6"/>
+        </svg>
+        <span>PNG</span>
+      </div>
+      <div style="width:32px"></div>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+    <h1 class="content__title">회원가입</h1>
+    <p class="content__subtitle">기본 정보를 입력하고 시작하세요</p>
+
+    <!-- Email + Verify -->
+    <label class="section-label">이메일</label>
+    <div class="input-row">
+      <div class="input-group">
+        <input type="email" id="emailInput" class="input-group__field" placeholder="이메일 주소" autocomplete="email" oninput="checkForm()">
+        <svg class="input-group__icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="1" y="4" width="18" height="13" rx="2.5"/><polyline points="1,5 10,12 19,5"/>
+        </svg>
+      </div>
+      <button type="button" class="btn--verify">인증하기</button>
+    </div>
+    <p class="form-feedback" id="emailError">올바른 이메일 형식으로 입력해 주세요.</p>
+
+    <!-- Password -->
+    <label class="section-label">비밀번호</label>
+    <div class="input-group">
+      <input type="password" id="pw1" class="input-group__field" placeholder="8자 이상, 영문/숫자/특수문자" oninput="updateStrength(this.value)">
+      <svg class="input-group__icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round">
+        <rect x="3" y="9" width="14" height="10" rx="2.5"/><path d="M6 9V6C6 3.2 7.8 1 10 1C12.2 1 14 3.2 14 6V9"/>
+      </svg>
+      <button type="button" class="input-group__toggle" onclick="togglePw('pw1')" aria-label="비밀번호 표시">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.2">
+          <ellipse cx="10" cy="10" rx="9" ry="6"/><circle cx="10" cy="10" r="3"/>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Password Strength -->
+    <div class="pw-strength">
+      <div class="pw-strength__bar" id="str1"></div>
+      <div class="pw-strength__bar" id="str2"></div>
+      <div class="pw-strength__bar" id="str3"></div>
+      <div class="pw-strength__bar" id="str4"></div>
+    </div>
+    <p class="form-feedback" id="pwError">비밀번호는 8자 이상이며 영문과 숫자를 포함해야 해요.</p>
+
+    <!-- Password Confirm -->
+    <label class="section-label">비밀번호 확인</label>
+    <div class="input-group">
+      <input type="password" id="pw2" class="input-group__field" placeholder="비밀번호를 다시 입력하세요" oninput="checkForm()">
+      <svg class="input-group__icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round">
+        <path d="M10 1L1 5V11C1 16.5 10 19.5 10 19.5C10 19.5 19 16.5 19 11V5L10 1Z"/>
+      </svg>
+    </div>
+    <p class="form-feedback" id="pw2Error">비밀번호가 일치하지 않아요.</p>
+
+    <!-- Nickname -->
+    <label class="section-label">닉네임</label>
+    <div class="input-group input-group--with-counter">
+      <input type="text" id="nicknameInput" class="input-group__field" placeholder="2~12자 한글, 영문, 숫자" maxlength="12" oninput="updateCounter(this); checkForm()">
+      <svg class="input-group__icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round">
+        <circle cx="10" cy="7" r="5"/><path d="M1 19C3 13 6.5 11 10 11C13.5 11 17 13 19 19"/>
+      </svg>
+      <span class="input-group__counter" id="nickCounter">0/12</span>
+    </div>
+    <p class="form-feedback" id="nicknameError">닉네임은 2~12자 한글, 영문, 숫자만 사용할 수 있어요.</p>
+
+    <!-- Divider -->
+    <div class="divider"></div>
+
+    <!-- Interest Themes -->
+    <div class="theme-section">
+      <label class="section-label">관심 테마 <span class="section-label__optional">(선택, 복수가능)</span></label>
+      <div class="theme-pills" style="margin-top:8px">
+        <button class="theme-pill is-selected" onclick="toggleTheme(this)">야경</button>
+        <button class="theme-pill" onclick="toggleTheme(this)">바다</button>
+        <button class="theme-pill" onclick="toggleTheme(this)">한옥</button>
+        <button class="theme-pill" onclick="toggleTheme(this)">꽃</button>
+        <button class="theme-pill" onclick="toggleTheme(this)">카페</button>
+        <button class="theme-pill" onclick="toggleTheme(this)">인물</button>
+        <button class="theme-pill is-selected" onclick="toggleTheme(this)">축제</button>
+        <button class="theme-pill" onclick="toggleTheme(this)">커플</button>
+        <button class="theme-pill" onclick="toggleTheme(this)">반려동물</button>
+        <button class="theme-pill" onclick="toggleTheme(this)">드론</button>
+        <button class="theme-pill" onclick="toggleTheme(this)">일출/일몰</button>
+        <button class="theme-pill" onclick="toggleTheme(this)">비오는날</button>
+        <button class="theme-pill" onclick="toggleTheme(this)">은하수</button>
+        <button class="theme-pill" onclick="toggleTheme(this)">필름</button>
+      </div>
+    </div>
+
+    <!-- Divider -->
+    <div class="divider"></div>
+
+    <!-- Terms -->
+    <div class="terms">
+      <div class="terms__all" onclick="toggleAllTerms()">
+        <div class="checkbox" id="checkAll">
+          <svg viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="2,6 5,9 10,3"/>
+          </svg>
+        </div>
+        <span class="terms__all-label">전체 동의</span>
+      </div>
+
+      <div class="terms__item" onclick="toggleTerm(this)">
+        <div class="terms__item-left">
+          <div class="checkbox checkbox--sm">
+            <svg viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,6 5,9 10,3"/></svg>
+          </div>
+          <span class="terms__item-label">[필수] 이용약관 동의</span>
+        </div>
+        <a href="#" class="terms__item-link" onclick="event.stopPropagation()">
+          보기
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><polyline points="5,3 8,6 5,9"/></svg>
+        </a>
+      </div>
+
+      <div class="terms__item" onclick="toggleTerm(this)">
+        <div class="terms__item-left">
+          <div class="checkbox checkbox--sm">
+            <svg viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,6 5,9 10,3"/></svg>
+          </div>
+          <span class="terms__item-label">[필수] 개인정보 수집 · 이용 동의</span>
+        </div>
+        <a href="#" class="terms__item-link" onclick="event.stopPropagation()">
+          보기
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><polyline points="5,3 8,6 5,9"/></svg>
+        </a>
+      </div>
+
+      <div class="terms__item" onclick="toggleTerm(this)">
+        <div class="terms__item-left">
+          <div class="checkbox checkbox--sm">
+            <svg viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,6 5,9 10,3"/></svg>
+          </div>
+          <span class="terms__item-label">[선택] 마케팅 정보 수신 동의</span>
+        </div>
+        <a href="#" class="terms__item-link" onclick="event.stopPropagation()">
+          보기
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><polyline points="5,3 8,6 5,9"/></svg>
+        </a>
+      </div>
+    </div>
+    <p class="form-feedback form-feedback--terms" id="termsError">필수 약관 2개 모두 동의해 주세요.</p>
+
+    <!-- Signup Button (disabled by default) -->
+    <button type="button" class="btn btn--disabled" id="signupBtn" onclick="handleSignup()">가입하기</button>
+
+    <!-- Login Link -->
+    <div class="login-link">
+      이미 계정이 있으신가요?<a href="./login.html">로그인</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  let attemptedSubmit = false;
+
+  function getPwStrengthLevel(val) {
+    let level = 0;
+    if (val.length >= 4) level = 1;
+    if (val.length >= 8 && /[a-zA-Z]/.test(val) && /[0-9]/.test(val)) level = 2;
+    if (val.length >= 8 && /[a-zA-Z]/.test(val) && /[0-9]/.test(val) && /[^a-zA-Z0-9]/.test(val)) level = 3;
+    if (level === 3 && val.length >= 12) level = 4;
+    return level;
+  }
+
+  function setFieldError(inputId, errorId, isVisible) {
+    const input = document.getElementById(inputId);
+    const error = document.getElementById(errorId);
+    input.classList.toggle('is-invalid', isVisible);
+    error.classList.toggle('is-visible', isVisible);
+  }
+
+  /* Password visibility toggle */
+  function togglePw(id) {
+    const el = document.getElementById(id);
+    el.type = el.type === 'password' ? 'text' : 'password';
+  }
+
+  /* Password strength indicator */
+  function updateStrength(val) {
+    const bars = [
+      document.getElementById('str1'),
+      document.getElementById('str2'),
+      document.getElementById('str3'),
+      document.getElementById('str4')
+    ];
+    const level = getPwStrengthLevel(val);
+
+    const colors = {
+      0: 'rgba(0,0,0,0.06)',
+      1: '#ff453a',
+      2: '#ff9f0a',
+      3: '#34c759',
+      4: '#34c759'
+    };
+
+    bars.forEach((bar, i) => {
+      bar.style.background = i < level ? colors[level] : 'rgba(0,0,0,0.06)';
+    });
+
+    checkForm();
+  }
+
+  /* Nickname character counter */
+  function updateCounter(input) {
+    document.getElementById('nickCounter').textContent = input.value.length + '/12';
+  }
+
+  /* Theme pill toggle */
+  function toggleTheme(el) {
+    el.classList.toggle('is-selected');
+  }
+
+  /* Terms checkbox toggle */
+  function toggleTerm(item) {
+    const cb = item.querySelector('.checkbox');
+    cb.classList.toggle('is-checked');
+    syncAllCheck();
+    checkForm();
+  }
+
+  function toggleAllTerms() {
+    const allCb = document.getElementById('checkAll');
+    const isChecked = !allCb.classList.contains('is-checked');
+    const items = document.querySelectorAll('.terms__item .checkbox');
+
+    allCb.classList.toggle('is-checked', isChecked);
+    items.forEach(cb => cb.classList.toggle('is-checked', isChecked));
+    checkForm();
+  }
+
+  function syncAllCheck() {
+    const items = document.querySelectorAll('.terms__item .checkbox');
+    const allChecked = [...items].every(cb => cb.classList.contains('is-checked'));
+    document.getElementById('checkAll').classList.toggle('is-checked', allChecked);
+  }
+
+  /* 가입하기 버튼 활성화 조건 체크 */
+  function checkForm() {
+    const email   = document.getElementById('emailInput').value.trim();
+    const pw1     = document.getElementById('pw1').value;
+    const pw2     = document.getElementById('pw2').value;
+    const nickname = document.getElementById('nicknameInput').value.trim();
+    const termBoxes = document.querySelectorAll('.terms__item .checkbox');
+
+    const emailOk   = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    const pwLevel   = getPwStrengthLevel(pw1);
+    const pwOk      = pwLevel >= 2;
+    const matchOk   = pw1.length > 0 && pw1 === pw2;
+    const nicknameOk = nickname.length === 0 || /^[가-힣a-zA-Z0-9]{2,12}$/.test(nickname);
+    const term1Ok   = termBoxes[0]?.classList.contains('is-checked');
+    const term2Ok   = termBoxes[1]?.classList.contains('is-checked');
+    const termOk    = term1Ok && term2Ok;
+
+    setFieldError('emailInput', 'emailError', email.length > 0 && !emailOk);
+    setFieldError('pw1', 'pwError', pw1.length > 0 && !pwOk);
+    setFieldError('pw2', 'pw2Error', pw2.length > 0 && !matchOk);
+    setFieldError('nicknameInput', 'nicknameError', nickname.length > 0 && !nicknameOk);
+
+    const showTermsError = (attemptedSubmit || term1Ok || term2Ok) && !termOk;
+    document.getElementById('termsError').classList.toggle('is-visible', showTermsError);
+
+    const allOk = emailOk && pwOk && matchOk && termOk && nicknameOk;
+
+    const btn = document.getElementById('signupBtn');
+    btn.classList.toggle('btn--primary', allOk);
+    btn.classList.toggle('btn--disabled', !allOk);
+  }
+
+  /* 가입하기 버튼 클릭 핸들러 */
+  function handleSignup() {
+    attemptedSubmit = true;
+    checkForm();
+
+    const btn = document.getElementById('signupBtn');
+    if (btn.classList.contains('btn--disabled')) return;
+    location.href = '../home/home.html';
+  }
+
+  checkForm();
+</script>
+
+</body>
+</html>

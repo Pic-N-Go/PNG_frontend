@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>PNG - 스팟 등록</title>
+  <link rel="stylesheet" href="../fonts.css">
+  <style>
+    :root {
+      --color-bg:#ffffff;--color-surface:#f5f5f7;--color-text-primary:#000;--color-text-secondary:rgba(0,0,0,0.48);
+      --color-text-tertiary:rgba(0,0,0,0.28);--color-accent:#e31b59;--color-accent-hover:#c91550;
+      --color-success:#34c759;--color-warning:#ff9f0a;--color-error:#ff453a;
+      --radius-card:14px;--radius-btn:26px;--radius-input:12px;
+    }
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    html{font-size:16px;-webkit-font-smoothing:antialiased}
+    body{font-family:var(--font);background:#f0f0f0;display:flex;justify-content:center;min-height:100dvh}
+    .phone-frame{width:390px;background:var(--color-bg);position:relative;overflow:hidden;display:flex;flex-direction:column;height:100dvh;max-height:920px}
+
+    /* Status bar */
+    .status-bar{height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 34px;flex-shrink:0}
+    .status-bar__time{font-size:15px;font-weight:600;color:#000}
+    .dynamic-island{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:106px;height:28px;background:#000;border-radius:14px}
+
+    /* Nav */
+    .nav{display:flex;align-items:center;justify-content:space-between;padding:0 12px;height:44px;flex-shrink:0}
+    .nav__btn{width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,0.04);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.2s}
+    .nav__btn:hover{background:rgba(0,0,0,0.08)}
+    .nav__title{font-size:17px;font-weight:600;color:#000;letter-spacing:-0.4px}
+
+    /* Progress */
+    .progress{padding:12px 20px 0;flex-shrink:0}
+    .progress__bar{height:4px;border-radius:2px;background:var(--color-surface);overflow:hidden}
+    .progress__fill{height:100%;border-radius:2px;background:var(--color-accent);transition:width 0.4s ease}
+    .progress__label{display:flex;gap:6px;margin-top:8px;font-size:12px}
+    .progress__step{font-weight:600;color:var(--color-accent)}
+    .progress__name{color:rgba(0,0,0,0.35)}
+
+    /* Steps container */
+    .steps{flex:1;position:relative;overflow:hidden}
+    .step{position:absolute;inset:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:20px 20px 100px;transition:transform 0.4s cubic-bezier(0.32,0.72,0,1),opacity 0.3s;will-change:transform}
+    .step.is-prev{transform:translateX(-100%);opacity:0;pointer-events:none}
+    .step.is-active{transform:translateX(0);opacity:1}
+    .step.is-next{transform:translateX(100%);opacity:0;pointer-events:none}
+
+    /* Section title */
+    .step__title{font-size:24px;font-weight:600;color:#000;letter-spacing:-0.4px;line-height:1.3;margin-bottom:4px}
+    .step__sub{font-size:14px;color:rgba(0,0,0,0.35);margin-bottom:20px}
+
+    /* Photo upload */
+    .photo-main{width:100%;height:280px;border-radius:16px;background:var(--color-surface);border:1.5px dashed rgba(227,27,89,0.15);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer;transition:border-color 0.2s,background 0.2s;margin-bottom:16px}
+    .photo-main:hover{border-color:rgba(227,27,89,0.3);background:rgba(227,27,89,0.02)}
+    .photo-main__icon{display:flex;align-items:center;justify-content:center}
+    .photo-main__label{font-size:15px;font-weight:500;color:rgba(0,0,0,0.3)}
+    .photo-main__hint{font-size:12px;color:rgba(0,0,0,0.2)}
+
+    .photo-row{display:flex;gap:10px;margin-bottom:16px}
+    .photo-row__label{font-size:13px;color:rgba(0,0,0,0.4);margin-bottom:8px}
+    .photo-thumb{width:72px;height:72px;border-radius:12px;position:relative;flex-shrink:0}
+    .photo-thumb--filled{background:linear-gradient(to bottom,#0f2027,#2c5364)}
+    .photo-thumb--filled2{background:#232526}
+    .photo-thumb__del{position:absolute;top:-4px;right:-4px;width:20px;height:20px;border-radius:50%;background:rgba(0,0,0,0.5);display:flex;align-items:center;justify-content:center;cursor:pointer}
+    .photo-thumb--add{background:var(--color-surface);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:background 0.2s}
+    .photo-thumb--add:hover{background:rgba(0,0,0,0.06)}
+    .photo-thumb--empty{background:var(--color-surface);opacity:0.5}
+
+    /* Tip / Info banners */
+    .tip-bar{display:flex;align-items:center;gap:10px;padding:14px;border-radius:12px;margin-bottom:12px;font-size:12px;color:rgba(0,0,0,0.45)}
+    .tip-bar--warn{background:rgba(255,159,10,0.06)}
+    .tip-bar--success{background:rgba(52,199,89,0.06)}
+    .tip-bar--info{background:var(--color-surface)}
+    .tip-bar__icon{width:20px;height:20px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+
+    .exif-bar{display:flex;align-items:center;gap:10px;padding:14px;border-radius:12px;background:var(--color-surface)}
+    .exif-bar__icon{width:20px;height:20px;flex-shrink:0}
+    .exif-bar__text{flex:1}
+    .exif-bar__title{font-size:13px;font-weight:500;color:#000}
+    .exif-bar__detail{font-size:11px;color:rgba(0,0,0,0.35);margin-top:1px}
+
+    /* Map */
+    .map-area{width:100%;height:320px;border-radius:16px;background:linear-gradient(to bottom,#e8e8ed,#d4d4d8);position:relative;overflow:hidden;margin-bottom:12px}
+    .map-area__grid line{stroke:rgba(0,0,0,0.03);stroke-width:0.5}
+    .map-area__pin{position:absolute;left:50%;top:40%;transform:translate(-50%,-100%)}
+    .map-area__controls{position:absolute;right:12px;top:12px;display:flex;flex-direction:column;gap:8px}
+    .map-area__ctrl{width:36px;height:36px;border-radius:10px;background:#fff;border:0.5px solid rgba(0,0,0,0.08);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:18px;color:rgba(0,0,0,0.3)}
+
+    .search-bar{width:100%;height:48px;border-radius:var(--radius-input);background:var(--color-surface);display:flex;align-items:center;gap:10px;padding:0 14px;margin-bottom:12px}
+    .search-bar__text{font-size:14px;color:rgba(0,0,0,0.25)}
+
+    .location-card{display:flex;align-items:center;gap:12px;padding:14px 16px;border-radius:var(--radius-card);background:var(--color-surface);margin-bottom:12px}
+    .location-card__icon{width:28px;height:28px;border-radius:8px;background:rgba(227,27,89,0.08);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .location-card__text{flex:1}
+    .location-card__addr{font-size:14px;font-weight:500;color:#000}
+    .location-card__source{font-size:12px;color:rgba(0,0,0,0.35);margin-top:1px}
+    .location-card__edit{font-size:13px;color:var(--color-accent);background:none;border:none;cursor:pointer;font-family:var(--font)}
+
+    /* Form inputs */
+    .field{margin-bottom:20px}
+    .field__label{font-size:13px;font-weight:500;color:rgba(0,0,0,0.5);margin-bottom:8px}
+    .field__input{width:100%;height:50px;border-radius:var(--radius-input);background:var(--color-surface);border:none;padding:0 16px;font-family:var(--font);font-size:15px;color:#000;transition:box-shadow 0.2s}
+    .field__input:focus{outline:none;box-shadow:0 0 0 2px rgba(227,27,89,0.3)}
+    .field__textarea{width:100%;height:120px;border-radius:var(--radius-input);background:var(--color-surface);border:none;padding:14px 16px;font-family:var(--font);font-size:14px;color:#000;resize:none;line-height:1.5;transition:box-shadow 0.2s}
+    .field__textarea:focus{outline:none;box-shadow:0 0 0 2px rgba(227,27,89,0.3)}
+    .field__count{text-align:right;font-size:11px;color:rgba(0,0,0,0.2);margin-top:4px}
+
+    /* Chips */
+    .chips{display:flex;flex-wrap:wrap;gap:8px}
+    .chip{height:34px;padding:0 16px;border-radius:17px;border:none;font-family:var(--font);font-size:13px;cursor:pointer;transition:all 0.2s}
+    .chip:not(.is-selected){background:var(--color-surface);color:rgba(0,0,0,0.45)}
+    .chip:not(.is-selected):hover{background:rgba(0,0,0,0.06)}
+    .chip.is-selected{background:var(--color-accent);color:#fff}
+
+    /* Toggle row */
+    .toggle-card{border-radius:var(--radius-card);background:var(--color-surface);overflow:hidden;margin-bottom:20px}
+    .toggle-item{display:flex;align-items:center;justify-content:space-between;padding:14px 16px}
+    .toggle-item+.toggle-item{border-top:0.5px solid rgba(0,0,0,0.04)}
+    .toggle-item__label{font-size:14px;color:#000}
+    .toggle{width:40px;height:24px;border-radius:12px;border:none;cursor:pointer;position:relative;transition:background 0.2s}
+    .toggle:not(.is-on){background:rgba(0,0,0,0.08)}
+    .toggle.is-on{background:var(--color-success)}
+    .toggle__knob{position:absolute;top:2px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.15);transition:left 0.2s}
+    .toggle:not(.is-on) .toggle__knob{left:2px}
+    .toggle.is-on .toggle__knob{left:18px}
+
+    /* Bottom CTA */
+    .bottom-cta{position:absolute;bottom:0;left:0;right:0;padding:12px 20px 28px;background:linear-gradient(to top,#fff 70%,transparent)}
+    .btn-primary{width:100%;height:52px;border-radius:var(--radius-btn);border:none;background:var(--color-accent);font-family:var(--font);font-size:16px;font-weight:500;color:#fff;cursor:pointer;transition:background 0.2s}
+    .btn-primary:hover{background:var(--color-accent-hover)}
+    .btn-primary:active{transform:scale(0.98)}
+    .btn-primary.is-disabled{background:rgba(227,27,89,0.25);cursor:default;pointer-events:none}
+    .btn-primary.is-disabled:hover{background:rgba(227,27,89,0.25)}
+
+    /* 필수 표시 */
+    .field__label .required{color:var(--color-accent);margin-left:2px;font-size:13px}
+
+    @media(max-width:390px){.phone-frame{width:100%;max-height:none;height:100dvh}}
+    @media(min-width:391px){body{padding:20px 0}.phone-frame{border-radius:40px;box-shadow:0 20px 60px rgba(0,0,0,0.15);height:calc(100dvh - 40px);overflow-y:auto;overflow-x:hidden}}
+  
+      /* ── 스크롤바 숨김 ── */
+      * { scrollbar-width: none; -ms-overflow-style: none; }
+      *::-webkit-scrollbar { display: none; }
+</style>
+</head>
+<body>
+<div class="phone-frame">
+
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <span class="status-bar__time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div style="display:flex;gap:6px">
+      <svg height="12" viewBox="0 0 18 12" fill="#000"><rect x="0" y="9" width="3" height="3" rx=".75"/><rect x="4.5" y="6" width="3" height="6" rx=".75"/><rect x="9" y="3" width="3" height="9" rx=".75"/><rect x="13.5" y="0" width="3" height="12" rx=".75"/></svg>
+      <svg height="12" viewBox="0 0 28 14"><rect x="0" y="0" width="25" height="12" rx="3.5" fill="none" stroke="rgba(0,0,0,.3)" stroke-width="1"/><rect x="1.5" y="1.5" width="20" height="9" rx="2" fill="#34c759"/></svg>
+    </div>
+  </div>
+
+  <!-- Nav -->
+  <div class="nav">
+    <button class="nav__btn" onclick="prevStep()" id="backBtn">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="rgba(0,0,0,0.5)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="11,3 5,9 11,15"/></svg>
+    </button>
+    <span class="nav__title">스팟 등록</span>
+    <button class="nav__btn" onclick="location.href='../mypage/mypage.html'">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="rgba(0,0,0,0.4)" stroke-width="1.5" stroke-linecap="round"><line x1="1" y1="1" x2="13" y2="13"/><line x1="13" y1="1" x2="1" y2="13"/></svg>
+    </button>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress">
+    <div class="progress__bar"><div class="progress__fill" id="progressFill" style="width:33.3%"></div></div>
+    <div class="progress__label"><span class="progress__step" id="stepNum">1/3</span><span class="progress__name" id="stepName">사진 등록</span></div>
+  </div>
+
+  <!-- Steps -->
+  <div class="steps">
+
+    <!-- STEP 1: 사진 -->
+    <div class="step is-active" id="step1">
+      <div class="step__title">촬영한 사진을<br>올려주세요</div>
+      <div class="step__sub">대표 사진 1장 + 추가 사진 최대 9장</div>
+
+      <div class="photo-main">
+        <div class="photo-main__icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,0.18)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+            <path d="M12 20h-7a2 2 0 0 1 -2 -2v-9a2 2 0 0 1 2 -2h1a2 2 0 0 0 2 -2a1 1 0 0 1 1 -1h6a1 1 0 0 1 1 1a2 2 0 0 0 2 2h1a2 2 0 0 1 2 2v3.5"/>
+            <path d="M16 19h6"/>
+            <path d="M19 16v6"/>
+            <path d="M9 13a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"/>
+          </svg>
+        </div>
+        <span class="photo-main__label">대표 사진 추가</span>
+        <span class="photo-main__hint">탭하여 앨범에서 선택</span>
+      </div>
+
+      <div class="photo-row__label">추가 사진</div>
+      <div class="photo-row">
+        <div class="photo-thumb photo-thumb--filled">
+          <div class="photo-thumb__del"><svg width="8" height="8" viewBox="0 0 8 8" fill="none" stroke="#fff" stroke-width="1.2" stroke-linecap="round"><line x1="1" y1="1" x2="7" y2="7"/><line x1="7" y1="1" x2="1" y2="7"/></svg></div>
+        </div>
+        <div class="photo-thumb photo-thumb--filled2">
+          <div class="photo-thumb__del"><svg width="8" height="8" viewBox="0 0 8 8" fill="none" stroke="#fff" stroke-width="1.2" stroke-linecap="round"><line x1="1" y1="1" x2="7" y2="7"/><line x1="7" y1="1" x2="1" y2="7"/></svg></div>
+        </div>
+        <div class="photo-thumb photo-thumb--add">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="rgba(0,0,0,0.15)" stroke-width="1.5" stroke-linecap="round"><line x1="8" y1="3" x2="8" y2="13"/><line x1="3" y1="8" x2="13" y2="8"/></svg>
+        </div>
+        <div class="photo-thumb photo-thumb--empty"></div>
+      </div>
+
+      <div class="tip-bar tip-bar--warn">
+        <div class="tip-bar__icon"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="rgba(255,159,10,0.5)" stroke-width="1.1"><circle cx="9" cy="9" r="8"/><line x1="9" y1="6" x2="9" y2="10" stroke-linecap="round"/><circle cx="9" cy="13" r="0.8" fill="rgba(255,159,10,0.5)"/></svg></div>
+        풍경이 잘 보이는 수평 사진을 추천해요
+      </div>
+
+      <div class="exif-bar">
+        <div class="exif-bar__icon"><svg width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="rgba(0,0,0,0.25)" stroke-width="1"><rect x="0" y="3" width="18" height="10" rx="2.5"/><circle cx="9" cy="8.5" r="3.5"/><rect x="5" y="0" width="8" height="4" rx="2"/></svg></div>
+        <div class="exif-bar__text">
+          <div class="exif-bar__title">EXIF 자동 감지됨</div>
+          <div class="exif-bar__detail">Sony A7IV · 24mm · f/2.8 · 2026.05.10 06:32</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2: 위치 -->
+    <div class="step is-next" id="step2">
+      <div class="step__title">촬영 위치를<br>알려주세요</div>
+      <div class="step__sub"></div>
+
+      <div class="search-bar">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="rgba(0,0,0,0.25)" stroke-width="1.3"><circle cx="8" cy="8" r="6.5"/><line x1="13" y1="13" x2="16" y2="16" stroke-linecap="round"/></svg>
+        <span class="search-bar__text">장소명 또는 주소 검색</span>
+      </div>
+
+      <div class="map-area">
+        <svg width="100%" height="100%" style="position:absolute;inset:0">
+          <line x1="0" y1="80" x2="100%" y2="80" class="map-area__grid"/><line x1="0" y1="160" x2="100%" y2="160" class="map-area__grid"/><line x1="0" y1="240" x2="100%" y2="240" class="map-area__grid"/>
+          <line x1="25%" y1="0" x2="25%" y2="100%" class="map-area__grid"/><line x1="50%" y1="0" x2="50%" y2="100%" class="map-area__grid"/><line x1="75%" y1="0" x2="75%" y2="100%" class="map-area__grid"/>
+          <path d="M0 170 Q80 150 175 165 Q270 180 350 155" fill="none" stroke="rgba(0,0,0,0.06)" stroke-width="3"/>
+        </svg>
+        <div class="map-area__pin">
+          <svg width="36" height="48" viewBox="0 0 36 48"><ellipse cx="18" cy="44" rx="10" ry="4" fill="rgba(0,0,0,0.1)"/><path d="M18 0C10 0 4 6 4 13.5C4 22 18 40 18 40S32 22 32 13.5C32 6 26 0 18 0Z" fill="#e31b59"/><circle cx="18" cy="13" r="6" fill="#fff"/><circle cx="18" cy="13" r="3" fill="#e31b59"/></svg>
+        </div>
+        <div class="map-area__controls">
+          <div class="map-area__ctrl">+</div>
+          <div class="map-area__ctrl">−</div>
+          <div class="map-area__ctrl" style="margin-top:4px">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="rgba(0,0,0,0.3)" stroke-width="1.2"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2" fill="rgba(227,27,89,0.5)" stroke="none"/></svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="location-card">
+        <div class="location-card__icon">
+          <svg width="14" height="18" viewBox="0 0 14 18" fill="none" stroke="#e31b59" stroke-width="1"><path d="M7 1C3.5 1 1 3.5 1 6.5C1 10.5 7 17 7 17S13 10.5 13 6.5C13 3.5 10.5 1 7 1Z"/><circle cx="7" cy="6.5" r="2.2"/></svg>
+        </div>
+        <div class="location-card__text">
+          <div class="location-card__addr">부산 수영구 광안해변로 219</div>
+          <div class="location-card__source">EXIF GPS 기반 자동 감지</div>
+        </div>
+        <button class="location-card__edit">수정</button>
+      </div>
+
+      <div class="tip-bar tip-bar--success">
+        <div class="tip-bar__icon"><svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="rgba(52,199,89,0.6)" stroke-width="1.2"><circle cx="9" cy="9" r="8"/><polyline points="5.5,9 8,11.5 12.5,6.5" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+        사진 EXIF에서 GPS 위치를 자동으로 가져왔어요
+      </div>
+    </div>
+
+    <!-- STEP 3: 정보 -->
+    <div class="step is-next" id="step3">
+      <div class="step__title">스팟 정보를<br>알려주세요</div>
+      <div class="step__sub"></div>
+
+      <div class="field">
+        <div class="field__label">장소명<span class="required">*</span></div>
+        <input class="field__input" id="spotNameInput" type="text" value="광안리 해수욕장" oninput="validateStep3()" placeholder="장소명을 입력해주세요" />
+      </div>
+
+      <div class="field">
+        <div class="field__label">카테고리</div>
+        <div class="chips">
+          <button class="chip is-selected" onclick="toggleChip(this)">바다</button>
+          <button class="chip is-selected" onclick="toggleChip(this)">야경</button>
+          <button class="chip" onclick="toggleChip(this)">숲</button>
+          <button class="chip" onclick="toggleChip(this)">한옥</button>
+          <button class="chip" onclick="toggleChip(this)">카페</button>
+          <button class="chip" onclick="toggleChip(this)">인물</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field__label">추천 시간대</div>
+        <div class="chips">
+          <button class="chip is-selected" onclick="toggleChip(this)">새벽</button>
+          <button class="chip is-selected" onclick="toggleChip(this)">일출</button>
+          <button class="chip" onclick="toggleChip(this)">오전</button>
+          <button class="chip" onclick="toggleChip(this)">오후</button>
+          <button class="chip" onclick="toggleChip(this)">일몰</button>
+          <button class="chip" onclick="toggleChip(this)">야간</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field__label">추천 날씨</div>
+        <div class="chips">
+          <button class="chip is-selected" onclick="toggleChip(this)">맑음</button>
+          <button class="chip" onclick="toggleChip(this)">흐림</button>
+          <button class="chip" onclick="toggleChip(this)">비</button>
+          <button class="chip" onclick="toggleChip(this)">눈</button>
+          <button class="chip" onclick="toggleChip(this)">안개</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field__label">접근 난이도</div>
+        <div class="chips">
+          <button class="chip is-selected" onclick="selectOne(this)">쉬움</button>
+          <button class="chip" onclick="selectOne(this)">보통</button>
+          <button class="chip" onclick="selectOne(this)">어려움</button>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="field__label">촬영 팁 / 메모</div>
+        <textarea class="field__textarea" oninput="updateCount(this)">새벽 5시쯤 도착하면 일출 촬영하기 좋아요. 삼각대 설치 공간 넓음. 주차장에서 도보 3분 거리.</textarea>
+        <div class="field__count"><span id="charCount">42</span>/500</div>
+      </div>
+
+      <div class="toggle-card">
+        <div class="toggle-item">
+          <span class="toggle-item__label">주차 가능</span>
+          <button class="toggle is-on" onclick="toggleSwitch(this)"><div class="toggle__knob"></div></button>
+        </div>
+        <div class="toggle-item">
+          <span class="toggle-item__label">삼각대 설치 가능</span>
+          <button class="toggle is-on" onclick="toggleSwitch(this)"><div class="toggle__knob"></div></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom CTA -->
+  <div class="bottom-cta">
+    <button class="btn-primary" id="ctaBtn" onclick="nextStep()">다음</button>
+  </div>
+</div>
+
+<script>
+  let current = 1;
+  const steps = ['사진 등록', '위치 선택', '상세 정보'];
+
+  function updateUI() {
+    document.getElementById('progressFill').style.width = (current / 3 * 100) + '%';
+    document.getElementById('stepNum').textContent = current + '/3';
+    document.getElementById('stepName').textContent = steps[current - 1];
+    document.getElementById('ctaBtn').textContent = current === 3 ? '등록하기' : '다음';
+    for (let i = 1; i <= 3; i++) {
+      const el = document.getElementById('step' + i);
+      el.className = 'step ' + (i < current ? 'is-prev' : i === current ? 'is-active' : 'is-next');
+    }
+    // step 3 진입 시 버튼 상태 초기화
+    if (current === 3) {
+      validateStep3();
+    } else {
+      document.getElementById('ctaBtn').classList.remove('is-disabled');
+    }
+  }
+
+  function validateStep3() {
+    var name = document.getElementById('spotNameInput').value.trim();
+    var btn = document.getElementById('ctaBtn');
+    if (name.length > 0) {
+      btn.classList.remove('is-disabled');
+    } else {
+      btn.classList.add('is-disabled');
+    }
+  }
+
+  function nextStep() {
+    var btn = document.getElementById('ctaBtn');
+    if (btn.classList.contains('is-disabled')) return;
+    if (current < 3) { current++; updateUI(); }
+    else { location.href = '../home/home.html'; }
+  }
+
+  function prevStep() {
+    if (current > 1) { current--; updateUI(); }
+    else { location.href = '../mypage/mypage.html'; }
+  }
+
+  function toggleChip(el) { el.classList.toggle('is-selected'); }
+
+  function selectOne(el) {
+    el.parentElement.querySelectorAll('.chip').forEach(c => c.classList.remove('is-selected'));
+    el.classList.add('is-selected');
+  }
+
+  function toggleSwitch(el) { el.classList.toggle('is-on'); }
+
+  function updateCount(el) {
+    document.getElementById('charCount').textContent = el.value.length;
+  }
+</script>
+</body>
+</html>

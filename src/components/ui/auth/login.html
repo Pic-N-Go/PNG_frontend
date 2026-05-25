@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>PNG - 로그인</title>
+  <link rel="stylesheet" href="../fonts.css">
+  <style>
+    /* ======================== */
+    /* Design Tokens (Apple DS) */
+    /* ======================== */
+    :root {
+      /* Colors */
+      --color-bg: #ffffff;
+      --color-surface: #f5f5f7;
+      --color-text-primary: #000000;
+      --color-text-secondary: rgba(0, 0, 0, 0.48);
+      --color-text-tertiary: rgba(0, 0, 0, 0.28);
+      --color-text-placeholder: rgba(0, 0, 0, 0.3);
+      --color-accent: #e31b59;
+      --color-accent-hover: #c91550;
+      --color-link: #e31b59;
+      --color-border: rgba(0, 0, 0, 0.08);
+      --color-input-bg: #f5f5f7;
+      --color-input-border: transparent;
+      --color-input-border-focus: #e31b59;
+      --color-kakao: #FEE500;
+      --color-kakao-text: #391B1B;
+      --color-error: #ff453a;
+      --color-success: #34c759;
+
+      /* Typography */
+      /* Spacing (8px grid) */
+      --space-xs: 4px;
+      --space-sm: 8px;
+      --space-md: 16px;
+      --space-lg: 24px;
+      --space-xl: 32px;
+      --space-2xl: 48px;
+
+      /* Radius */
+      --radius-input: 12px;
+      --radius-btn: 26px;
+      --radius-card: 16px;
+    }
+
+    /* ======================== */
+    /* Reset & Base             */
+    /* ======================== */
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      font-size: 16px;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      font-family: var(--font-family);
+      background: #f0f0f0;
+      display: flex;
+      justify-content: center;
+      min-height: 100dvh;
+    }
+
+    /* ======================== */
+    /* Phone Frame              */
+    /* ======================== */
+    .phone-frame {
+      width: 390px;
+      min-height: 844px;
+      background: var(--color-bg);
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* ======================== */
+    /* Status Bar               */
+    /* ======================== */
+    .status-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 54px;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 34px;
+    }
+
+    .status-bar__time {
+      font-size: 15px;
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: -0.3px;
+    }
+
+    .status-bar__icons {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-bar__icons svg {
+      height: 12px;
+      fill: #fff;
+    }
+
+    .dynamic-island {
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 106px;
+      height: 28px;
+      background: rgba(0, 0, 0, 0.65);
+      border-radius: 14px;
+    }
+
+    /* ======================== */
+    /* Hero Section             */
+    /* ======================== */
+    .hero {
+      height: 380px;
+      background: linear-gradient(
+        to bottom,
+        #1a1530 0%,
+        #2d1b4e 25%,
+        #8b4a6b 50%,
+        #d4856a 70%,
+        #e8a87c 85%,
+        #f0c89a 100%
+      );
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding-top: 20px;
+    }
+
+    .hero::after {
+      content: '';
+      position: absolute;
+      bottom: -40px;
+      left: 0;
+      right: 0;
+      height: 80px;
+      background: linear-gradient(to bottom, #f0c89a, #ffffff 60%);
+    }
+
+    .hero__landscape {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 80px;
+      background: rgba(0, 0, 0, 0.12);
+      clip-path: polygon(
+        0% 60%, 10% 40%, 25% 55%, 40% 25%, 55% 40%, 65% 15%, 80% 35%, 100% 20%, 100% 100%, 0% 100%
+      );
+    }
+
+    .hero__sun {
+      position: absolute;
+      top: 110px;
+      right: 70px;
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(248, 216, 176, 0.75);
+      box-shadow: 0 0 40px rgba(248, 216, 176, 0.4);
+    }
+
+    .hero__stars {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 200px;
+    }
+
+    .hero__stars span {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background: rgba(255, 255, 255, 0.4);
+      border-radius: 50%;
+    }
+
+    .hero__stars span:nth-child(1) { top: 55px; left: 80px; }
+    .hero__stars span:nth-child(2) { top: 35px; left: 150px; opacity: 0.3; }
+    .hero__stars span:nth-child(3) { top: 70px; left: 220px; width: 2.5px; height: 2.5px; opacity: 0.25; }
+    .hero__stars span:nth-child(4) { top: 50px; left: 340px; opacity: 0.3; }
+    .hero__stars span:nth-child(5) { top: 95px; left: 180px; width: 1.5px; height: 1.5px; opacity: 0.2; }
+
+    /* ======================== */
+    /* Logo                    */
+    /* ======================== */
+    .logo {
+      position: relative;
+      z-index: 2;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    .logo__icon {
+      width: 52px;
+      height: 52px;
+      margin: 0 auto 8px;
+    }
+
+    .logo__wordmark {
+      font-size: 32px;
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: -1.2px;
+      line-height: 1.1;
+    }
+
+    .logo__sub {
+      font-size: 11px;
+      font-weight: 400;
+      color: rgba(255, 255, 255, 0.6);
+      letter-spacing: 3.5px;
+      margin-top: 4px;
+    }
+
+    /* ======================== */
+    /* Content Area             */
+    /* ======================== */
+    .content {
+      position: relative;
+      z-index: 1;
+      padding: 36px 28px 0;
+    }
+
+    .content__title {
+      font-size: 28px;
+      font-weight: 600;
+      color: var(--color-text-primary);
+      letter-spacing: -0.6px;
+      line-height: 1.35;
+      margin-bottom: 6px;
+    }
+
+    .content__subtitle {
+      font-size: 15px;
+      color: var(--color-text-secondary);
+      letter-spacing: -0.2px;
+      margin-bottom: var(--space-xl);
+    }
+
+    /* ======================== */
+    /* Input Group              */
+    /* ======================== */
+    .input-group {
+      position: relative;
+      margin-bottom: var(--space-md);
+    }
+
+    .input-group__field {
+      width: 100%;
+      height: 52px;
+      background: var(--color-input-bg);
+      border: 1.5px solid transparent;
+      border-radius: var(--radius-input);
+      padding: 0 48px 0 46px;
+      font-family: var(--font-family);
+      font-size: 16px;
+      color: var(--color-text-primary);
+      letter-spacing: -0.3px;
+      outline: none;
+      transition: border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .input-group__field::placeholder {
+      color: var(--color-text-placeholder);
+    }
+
+    .input-group__field:focus {
+      border-color: var(--color-input-border-focus);
+      background: #fff;
+    }
+
+    .input-group__icon {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 20px;
+      height: 20px;
+      color: rgba(0, 0, 0, 0.25);
+      pointer-events: none;
+    }
+
+    .input-group__field:focus ~ .input-group__icon {
+      color: var(--color-accent);
+    }
+
+    .input-group__toggle {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 4px;
+      color: rgba(0, 0, 0, 0.2);
+      transition: color 0.2s;
+    }
+
+    .input-group__toggle:hover {
+      color: rgba(0, 0, 0, 0.45);
+    }
+
+    /* ======================== */
+    /* Forgot Link              */
+    /* ======================== */
+    .forgot-link {
+      display: block;
+      text-align: right;
+      font-size: 13px;
+      color: var(--color-link);
+      text-decoration: none;
+      letter-spacing: -0.1px;
+      margin-top: -4px;
+      margin-bottom: var(--space-lg);
+      transition: opacity 0.2s;
+    }
+
+    .forgot-link:hover {
+      opacity: 0.7;
+    }
+
+    /* ======================== */
+    /* Buttons                  */
+    /* ======================== */
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 52px;
+      border-radius: var(--radius-btn);
+      border: none;
+      font-family: var(--font-family);
+      font-size: 17px;
+      font-weight: 500;
+      letter-spacing: -0.3px;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.1s ease;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn--primary {
+      background: var(--color-accent);
+      color: #fff;
+    }
+
+    .btn--primary:hover {
+      background: var(--color-accent-hover);
+    }
+
+    /* ======================== */
+    /* Divider                  */
+    /* ======================== */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin: var(--space-lg) 0;
+    }
+
+    .divider__line {
+      flex: 1;
+      height: 0.5px;
+      background: var(--color-border);
+    }
+
+    .divider__text {
+      font-size: 12px;
+      color: rgba(0, 0, 0, 0.25);
+      letter-spacing: 0.3px;
+    }
+
+    /* ======================== */
+    /* Social Buttons           */
+    /* ======================== */
+    .social-row {
+      display: flex;
+      gap: 14px;
+    }
+
+    .btn--social {
+      flex: 1;
+      height: 48px;
+      border-radius: 24px;
+      border: none;
+      font-family: var(--font-family);
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: -0.2px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+
+    .btn--social:active {
+      transform: scale(0.97);
+    }
+
+    .btn--social:hover {
+      opacity: 0.88;
+    }
+
+    .btn--kakao {
+      background: var(--color-kakao);
+      color: var(--color-kakao-text);
+    }
+
+    .btn--apple {
+      background: #000;
+      color: #fff;
+    }
+
+    .btn--social svg {
+      width: 18px;
+      height: 18px;
+      flex-shrink: 0;
+    }
+
+    /* ======================== */
+    /* Signup Link              */
+    /* ======================== */
+    .signup-link {
+      text-align: center;
+      margin-top: var(--space-xl);
+      font-size: 14px;
+      color: rgba(0, 0, 0, 0.4);
+      letter-spacing: -0.15px;
+      padding-bottom: var(--space-xl);
+    }
+
+    .signup-link a {
+      color: var(--color-link);
+      font-weight: 600;
+      text-decoration: none;
+      margin-left: 4px;
+      transition: opacity 0.2s;
+    }
+
+    .signup-link a:hover {
+      opacity: 0.7;
+    }
+
+    /* ======================== */
+    /* Bottom Sheet (비밀번호 찾기) */
+    /* ======================== */
+    .sheet-dim {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.4);
+      z-index: 200;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s;
+    }
+    .sheet-dim.is-open {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .bottom-sheet {
+      position: fixed;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%) translateY(100%);
+      width: 390px;
+      background: #fff;
+      border-radius: 20px 20px 0 0;
+      z-index: 201;
+      transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1);
+      padding-bottom: 40px;
+    }
+    .bottom-sheet.is-open {
+      transform: translateX(-50%) translateY(0);
+    }
+    .sheet-handle-wrap {
+      padding: 12px 0 4px;
+      display: flex;
+      justify-content: center;
+    }
+    .sheet-handle {
+      width: 36px;
+      height: 5px;
+      border-radius: 2.5px;
+      background: rgba(0, 0, 0, 0.1);
+    }
+    .sheet-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 24px 4px;
+    }
+    .sheet-header__title {
+      font-size: 20px;
+      font-weight: 600;
+      letter-spacing: -0.4px;
+      color: #000;
+    }
+    .sheet-close {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--color-surface);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s;
+    }
+    .sheet-close:hover {
+      background: rgba(0, 0, 0, 0.08);
+    }
+    .sheet-desc {
+      font-size: 14px;
+      color: rgba(0, 0, 0, 0.45);
+      line-height: 1.55;
+      letter-spacing: -0.15px;
+      padding: 6px 24px 20px;
+    }
+    .sheet-body {
+      padding: 0 24px;
+    }
+    .sheet-step {
+      display: none;
+    }
+    .sheet-step.is-active {
+      display: block;
+    }
+    .sheet-field {
+      margin-bottom: 14px;
+    }
+    .sheet-field__label {
+      font-size: 12px;
+      font-weight: 500;
+      color: rgba(0, 0, 0, 0.4);
+      margin-bottom: 6px;
+      letter-spacing: -0.08px;
+    }
+    .sheet-input {
+      width: 100%;
+      height: 50px;
+      border-radius: 12px;
+      border: 1.5px solid transparent;
+      background: var(--color-surface);
+      padding: 0 16px;
+      font-family: var(--font-family);
+      font-size: 16px;
+      color: #000;
+      letter-spacing: -0.3px;
+      outline: none;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .sheet-input:focus {
+      border-color: var(--color-accent);
+      background: #fff;
+    }
+    .sheet-input::placeholder {
+      color: rgba(0, 0, 0, 0.28);
+    }
+    /* 인증코드 입력: 큰 숫자 스타일 */
+    .sheet-input--code {
+      font-size: 24px;
+      font-weight: 600;
+      letter-spacing: 8px;
+      text-align: center;
+      padding: 0 16px;
+    }
+    .sheet-hint {
+      font-size: 12px;
+      color: rgba(0, 0, 0, 0.35);
+      line-height: 1.5;
+      margin-top: 8px;
+      letter-spacing: -0.1px;
+    }
+    .sheet-hint--timer {
+      color: var(--color-accent);
+      font-weight: 500;
+    }
+    .sheet-submit {
+      width: 100%;
+      height: 52px;
+      border-radius: 26px;
+      border: none;
+      background: var(--color-accent);
+      font-family: var(--font-family);
+      font-size: 16px;
+      font-weight: 500;
+      color: #fff;
+      letter-spacing: -0.3px;
+      cursor: pointer;
+      margin-top: 8px;
+      transition: background 0.15s, transform 0.1s;
+    }
+    .sheet-submit:hover {
+      background: var(--color-accent-hover);
+    }
+    .sheet-submit:active {
+      transform: scale(0.98);
+    }
+    .sheet-submit:disabled {
+      background: var(--color-accent-disabled, rgba(227,27,89,0.25));
+      color: rgba(0,0,0,0.3);
+      pointer-events: none;
+    }
+    /* 토스트 */
+    .toast {
+      position: fixed;
+      bottom: 48px;
+      left: 50%;
+      transform: translateX(-50%) translateY(16px);
+      height: 44px;
+      padding: 0 20px;
+      border-radius: 22px;
+      background: rgba(0, 0, 0, 0.75);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #fff;
+      letter-spacing: -0.2px;
+      z-index: 300;
+      opacity: 0;
+      pointer-events: none;
+      white-space: nowrap;
+      transition: opacity 0.3s, transform 0.3s;
+    }
+    .toast.is-visible {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ======================== */
+    /* Home Indicator           */
+    /* ======================== */
+    .home-indicator {
+      position: fixed;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 110px;
+      height: 5px;
+      background: rgba(0, 0, 0, 0.1);
+      border-radius: 2.5px;
+    }
+
+    /* ======================== */
+    /* Responsive               */
+    /* ======================== */
+    @media (max-width: 390px) {
+      .phone-frame {
+        width: 100%;
+      }
+    }
+
+    @media (min-width: 391px) {
+      body {
+        padding: 20px 0;
+      }
+      .phone-frame {
+        border-radius: 40px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+          height: calc(100dvh - 40px);
+          overflow-y: auto;
+          overflow-x: hidden;
+      }
+      .home-indicator {
+        position: absolute;
+      }
+    }
+  
+      /* ── 스크롤바 숨김 ── */
+      * { scrollbar-width: none; -ms-overflow-style: none; }
+      *::-webkit-scrollbar { display: none; }
+</style>
+  <style>
+    #splash-screen {
+      position: absolute;
+      inset: 0;
+      z-index: 9999;
+      background: #E31B59;
+      opacity: 1;
+      transition: opacity 0.4s ease;
+    }
+    #splash-screen svg {
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+
+<div class="phone-frame">
+  <div id="splash-screen">
+    <svg viewBox="0 0 390 844" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid slice">
+      <!-- 배경 -->
+      <rect width="390" height="844" fill="#E31B59"/>
+
+      <!-- 상태바 시간 -->
+      <text x="34" y="38" font-family="-apple-system, sans-serif" font-size="15" font-weight="600" fill="white">9:41</text>
+
+      <!-- 다이나믹 아일랜드 (solid black) -->
+      <rect x="142" y="8" width="106" height="28" rx="14" fill="#111111"/>
+
+      <!-- 상태바 아이콘 (오른쪽 34px 패딩 기준, x=298~356) -->
+      <!-- 신호 막대 -->
+      <rect x="298" y="29" width="3" height="3" rx="0.75" fill="white"/>
+      <rect x="302.5" y="26" width="3" height="6" rx="0.75" fill="white"/>
+      <rect x="307" y="23" width="3" height="9" rx="0.75" fill="white"/>
+      <rect x="311.5" y="20" width="3" height="12" rx="0.75" fill="white"/>
+      <!-- 와이파이 -->
+      <path d="M323.5 28.5Q327 24 330.5 28.5" fill="none" stroke="white" stroke-width="1.3" stroke-linecap="round"/>
+      <path d="M321 26Q327 18.5 333 26" fill="none" stroke="white" stroke-width="1.3" stroke-linecap="round"/>
+      <circle cx="327" cy="30.5" r="1.2" fill="white"/>
+      <!-- 배터리 -->
+      <rect x="336" y="22" width="18" height="9" rx="2.5" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1"/>
+      <rect x="337.5" y="23.5" width="13" height="6" rx="1.5" fill="white"/>
+      <rect x="354.5" y="25.5" width="1.5" height="4" rx="0.75" fill="rgba(255,255,255,0.5)"/>
+
+      <!-- PNG 로고 그림자 레이어 -->
+      <path d="M75.0586 443V356.633H110.766C114.805 356.633 118.758 357.363 122.625 358.824C126.492 360.285 129.973 362.434 133.066 365.27C136.246 368.02 138.738 371.414 140.543 375.453C142.434 379.406 143.379 383.961 143.379 389.117C143.379 395.391 141.875 400.891 138.867 405.617C135.945 410.258 132.035 413.91 127.137 416.574C122.238 419.152 116.91 420.441 111.152 420.441C106.512 420.441 102.473 420.012 99.0352 419.152C95.5977 418.293 92.8477 417.219 90.7852 415.93V401.234C92.6758 402.18 95.168 403.082 98.2617 403.941C101.441 404.715 104.75 405.102 108.188 405.102C113.344 405.102 117.426 403.684 120.434 400.848C123.527 397.926 125.074 394.016 125.074 389.117C125.074 385.594 124.258 382.715 122.625 380.48C121.078 378.16 118.973 376.398 116.309 375.195C113.73 373.992 110.895 373.391 107.801 373.391H92.9766V443H75.0586ZM229.875 443.645L178.699 391.566V443H160.781V355.988H167.227L218.402 408.84V356.633H236.32V443.645H229.875ZM300 444.934C293.812 444.934 287.969 443.859 282.469 441.711C277.055 439.477 272.199 436.383 267.902 432.43C263.691 428.391 260.383 423.621 257.977 418.121C255.57 412.535 254.367 406.434 254.367 399.816C254.367 393.113 255.57 387.012 257.977 381.512C260.383 376.012 263.691 371.285 267.902 367.332C272.199 363.293 277.055 360.199 282.469 358.051C287.969 355.816 293.812 354.699 300 354.699C305.414 354.699 310.098 355.473 314.051 357.02C318.004 358.48 321.441 360.5 324.363 363.078V381.125C322.301 379.492 320.152 377.988 317.918 376.613C315.684 375.152 313.191 373.949 310.441 373.004C307.691 372.059 304.383 371.586 300.516 371.586C295.359 371.586 290.676 372.832 286.465 375.324C282.254 377.73 278.902 381.082 276.41 385.379C273.918 389.59 272.672 394.402 272.672 399.816C272.672 405.145 273.918 409.957 276.41 414.254C278.902 418.465 282.254 421.816 286.465 424.309C290.676 426.715 295.359 427.918 300.516 427.918C303.695 427.918 306.359 427.617 308.508 427.016C310.742 426.328 312.547 425.555 313.922 424.695C315.383 423.75 316.5 422.891 317.273 422.117L332.484 431.398C330.078 433.891 327.242 436.168 323.977 438.23C320.711 440.293 317.059 441.926 313.02 443.129C309.066 444.332 304.727 444.934 300 444.934ZM315.855 439.133V409.227L303.094 409.098V396.207H332.484V431.398L315.855 439.133Z" fill="#8B0030"/>
+
+      <!-- PNG 로고 흰색 레이어 -->
+      <path d="M69.0586 437V350.633H104.766C108.805 350.633 112.758 351.363 116.625 352.824C120.492 354.285 123.973 356.434 127.066 359.27C130.246 362.02 132.738 365.414 134.543 369.453C136.434 373.406 137.379 377.961 137.379 383.117C137.379 389.391 135.875 394.891 132.867 399.617C129.945 404.258 126.035 407.91 121.137 410.574C116.238 413.152 110.91 414.441 105.152 414.441C100.512 414.441 96.4727 414.012 93.0352 413.152C89.5977 412.293 86.8477 411.219 84.7852 409.93V395.234C86.6758 396.18 89.168 397.082 92.2617 397.941C95.4414 398.715 98.75 399.102 102.188 399.102C107.344 399.102 111.426 397.684 114.434 394.848C117.527 391.926 119.074 388.016 119.074 383.117C119.074 379.594 118.258 376.715 116.625 374.48C115.078 372.16 112.973 370.398 110.309 369.195C107.73 367.992 104.895 367.391 101.801 367.391H86.9766V437H69.0586ZM223.875 437.645L172.699 385.566V437H154.781V349.988H161.227L212.402 402.84V350.633H230.32V437.645H223.875ZM294 438.934C287.812 438.934 281.969 437.859 276.469 435.711C271.055 433.477 266.199 430.383 261.902 426.43C257.691 422.391 254.383 417.621 251.977 412.121C249.57 406.535 248.367 400.434 248.367 393.816C248.367 387.113 249.57 381.012 251.977 375.512C254.383 370.012 257.691 365.285 261.902 361.332C266.199 357.293 271.055 354.199 276.469 352.051C281.969 349.816 287.812 348.699 294 348.699C299.414 348.699 304.098 349.473 308.051 351.02C312.004 352.48 315.441 354.5 318.363 357.078V375.125C316.301 373.492 314.152 371.988 311.918 370.613C309.684 369.152 307.191 367.949 304.441 367.004C301.691 366.059 298.383 365.586 294.516 365.586C289.359 365.586 284.676 366.832 280.465 369.324C276.254 371.73 272.902 375.082 270.41 379.379C267.918 383.59 266.672 388.402 266.672 393.816C266.672 399.145 267.918 403.957 270.41 408.254C272.902 412.465 276.254 415.816 280.465 418.309C284.676 420.715 289.359 421.918 294.516 421.918C297.695 421.918 300.359 421.617 302.508 421.016C304.742 420.328 306.547 419.555 307.922 418.695C309.383 417.75 310.5 416.891 311.273 416.117L326.484 425.398C324.078 427.891 321.242 430.168 317.977 432.23C314.711 434.293 311.059 435.926 307.02 437.129C303.066 438.332 298.727 438.934 294 438.934ZM309.855 433.133V403.227L297.094 403.098V390.207H326.484V425.398L309.855 433.133Z" fill="white"/>
+
+      <!-- PIC N GO 서브타이틀 -->
+      <path d="M155.247 497V485.223H160.116C160.667 485.223 161.206 485.322 161.733 485.521C162.261 485.721 162.735 486.014 163.157 486.4C163.591 486.775 163.931 487.238 164.177 487.789C164.435 488.328 164.563 488.949 164.563 489.652C164.563 490.508 164.358 491.258 163.948 491.902C163.55 492.535 163.017 493.033 162.349 493.396C161.681 493.748 160.954 493.924 160.169 493.924C159.536 493.924 158.985 493.865 158.517 493.748C158.048 493.631 157.673 493.484 157.392 493.309V491.305C157.649 491.434 157.989 491.557 158.411 491.674C158.845 491.779 159.296 491.832 159.765 491.832C160.468 491.832 161.024 491.639 161.435 491.252C161.856 490.854 162.067 490.32 162.067 489.652C162.067 489.172 161.956 488.779 161.733 488.475C161.522 488.158 161.235 487.918 160.872 487.754C160.521 487.59 160.134 487.508 159.712 487.508H157.69V497H155.247ZM168.923 497V485.223H171.366V497H168.923ZM166.849 497V494.891H173.44V497H166.849ZM166.849 487.332V485.223H173.44V487.332H166.849ZM181.685 497.264C180.841 497.264 180.044 497.117 179.294 496.824C178.556 496.52 177.894 496.098 177.308 495.559C176.733 495.008 176.282 494.357 175.954 493.607C175.626 492.846 175.462 492.014 175.462 491.111C175.462 490.197 175.626 489.365 175.954 488.615C176.282 487.865 176.733 487.221 177.308 486.682C177.894 486.131 178.556 485.709 179.294 485.416C180.044 485.111 180.841 484.959 181.685 484.959C182.423 484.959 183.062 485.064 183.601 485.275C184.14 485.475 184.608 485.75 185.007 486.102V488.562C184.726 488.34 184.433 488.135 184.128 487.947C183.823 487.748 183.483 487.584 183.108 487.455C182.733 487.326 182.282 487.262 181.755 487.262C181.052 487.262 180.413 487.432 179.839 487.771C179.265 488.1 178.808 488.557 178.468 489.143C178.128 489.717 177.958 490.373 177.958 491.111C177.958 491.838 178.128 492.494 178.468 493.08C178.808 493.654 179.265 494.111 179.839 494.451C180.413 494.779 181.052 494.943 181.755 494.943C182.54 494.943 183.196 494.82 183.724 494.574C184.263 494.328 184.749 494.035 185.183 493.695V496.068C184.784 496.42 184.286 496.707 183.688 496.93C183.091 497.152 182.423 497.264 181.685 497.264ZM202.339 497.088L195.36 489.986V497H192.917V485.135H193.796L200.774 492.342V485.223H203.218V497.088H202.339ZM217.175 497.264C216.331 497.264 215.534 497.117 214.784 496.824C214.046 496.52 213.384 496.098 212.798 495.559C212.224 495.008 211.772 494.357 211.444 493.607C211.116 492.846 210.952 492.014 210.952 491.111C210.952 490.197 211.116 489.365 211.444 488.615C211.772 487.865 212.224 487.221 212.798 486.682C213.384 486.131 214.046 485.709 214.784 485.416C215.534 485.111 216.331 484.959 217.175 484.959C217.913 484.959 218.552 485.064 219.091 485.275C219.63 485.475 220.099 485.75 220.497 486.102V488.562C220.216 488.34 219.923 488.135 219.618 487.947C219.313 487.748 218.974 487.584 218.599 487.455C218.224 487.326 217.772 487.262 217.245 487.262C216.542 487.262 215.903 487.432 215.329 487.771C214.755 488.1 214.298 488.557 213.958 489.143C213.618 489.717 213.448 490.373 213.448 491.111C213.448 491.838 213.618 492.494 213.958 493.08C214.298 493.654 214.755 494.111 215.329 494.451C215.903 494.779 216.542 494.943 217.245 494.943C217.679 494.943 218.042 494.902 218.335 494.82C218.64 494.727 218.886 494.621 219.073 494.504C219.272 494.375 219.425 494.258 219.53 494.152L221.604 495.418C221.276 495.758 220.89 496.068 220.444 496.35C219.999 496.631 219.501 496.854 218.95 497.018C218.411 497.182 217.819 497.264 217.175 497.264ZM219.337 496.473V492.395L217.597 492.377V490.619H221.604V495.418L219.337 496.473ZM229.392 497.264C228.548 497.264 227.751 497.117 227.001 496.824C226.263 496.52 225.606 496.098 225.032 495.559C224.47 495.008 224.024 494.357 223.696 493.607C223.38 492.846 223.222 492.014 223.222 491.111C223.222 490.197 223.38 489.365 223.696 488.615C224.024 487.865 224.47 487.221 225.032 486.682C225.606 486.131 226.263 485.709 227.001 485.416C227.751 485.111 228.548 484.959 229.392 484.959C230.235 484.959 231.026 485.111 231.765 485.416C232.503 485.709 233.153 486.131 233.716 486.682C234.29 487.221 234.735 487.865 235.052 488.615C235.38 489.365 235.544 490.197 235.544 491.111C235.544 492.014 235.38 492.846 235.052 493.607C234.735 494.357 234.29 495.008 233.716 495.559C233.153 496.098 232.503 496.52 231.765 496.824C231.026 497.117 230.235 497.264 229.392 497.264ZM229.392 494.943C230.095 494.943 230.722 494.779 231.272 494.451C231.823 494.111 232.257 493.654 232.573 493.08C232.89 492.506 233.048 491.85 233.048 491.111C233.048 490.373 232.89 489.717 232.573 489.143C232.257 488.557 231.823 488.1 231.272 487.771C230.722 487.432 230.095 487.262 229.392 487.262C228.688 487.262 228.062 487.432 227.511 487.771C226.96 488.1 226.521 488.557 226.192 489.143C225.876 489.729 225.718 490.385 225.718 491.111C225.718 491.838 225.876 492.494 226.192 493.08C226.509 493.654 226.942 494.111 227.493 494.451C228.056 494.779 228.688 494.943 229.392 494.943Z" fill="white" fill-opacity="0.85"/>
+
+      <!-- 로딩 바 (배경) -->
+      <rect x="145" y="760" width="100" height="3" rx="1.5" fill="white" fill-opacity="0.2"/>
+      <!-- 로딩 바 (진행) -->
+      <rect x="145" y="760" width="38" height="3" rx="1.5" fill="white" fill-opacity="0.9"/>
+
+      <!-- 홈 인디케이터 -->
+      <rect x="145" y="820" width="100" height="5" rx="2.5" fill="white" fill-opacity="0.3"/>
+    </svg>
+  </div>
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <span class="status-bar__time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="status-bar__icons">
+      <svg viewBox="0 0 18 12" xmlns="http://www.w3.org/2000/svg">
+        <rect x="0" y="9" width="3" height="3" rx="0.75"/>
+        <rect x="4.5" y="6" width="3" height="6" rx="0.75"/>
+        <rect x="9" y="3" width="3" height="9" rx="0.75"/>
+        <rect x="13.5" y="0" width="3" height="12" rx="0.75"/>
+      </svg>
+      <svg viewBox="0 0 16 14" xmlns="http://www.w3.org/2000/svg" fill="none" stroke="#fff" stroke-width="1.3" stroke-linecap="round">
+        <path d="M5 10.5A4 4 0 0 1 11 10.5"/>
+        <path d="M2.5 7A8 8 0 0 1 13.5 7"/>
+        <circle cx="8" cy="13" r="1.2" fill="#fff" stroke="none"/>
+      </svg>
+      <svg viewBox="0 0 28 14" xmlns="http://www.w3.org/2000/svg">
+        <rect x="0" y="0" width="25" height="12" rx="3.5" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1"/>
+        <rect x="1.5" y="1.5" width="20" height="9" rx="2" fill="#fff"/>
+        <rect x="25.5" y="3.5" width="1.5" height="5" rx="0.75" fill="rgba(255,255,255,0.5)"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero__stars">
+      <span></span><span></span><span></span><span></span><span></span>
+    </div>
+    <div class="hero__sun"></div>
+    <div class="hero__landscape"></div>
+
+    <!-- Logo -->
+    <div class="logo">
+      <svg class="logo__icon" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="26" cy="26" r="23" stroke="rgba(255,255,255,0.9)" stroke-width="1.6"/>
+        <circle cx="26" cy="26" r="9.5" stroke="rgba(255,255,255,0.7)" stroke-width="1.2"/>
+        <circle cx="26" cy="26" r="3" fill="rgba(255,255,255,0.35)"/>
+        <line x1="26" y1="5" x2="29" y2="16" stroke="rgba(255,255,255,0.4)" stroke-width="0.8" stroke-linecap="round"/>
+        <line x1="44" y1="16" x2="37" y2="22" stroke="rgba(255,255,255,0.4)" stroke-width="0.8" stroke-linecap="round"/>
+        <line x1="44" y1="36" x2="37" y2="30" stroke="rgba(255,255,255,0.4)" stroke-width="0.8" stroke-linecap="round"/>
+        <line x1="26" y1="47" x2="23" y2="36" stroke="rgba(255,255,255,0.4)" stroke-width="0.8" stroke-linecap="round"/>
+        <line x1="8" y1="36" x2="15" y2="30" stroke="rgba(255,255,255,0.4)" stroke-width="0.8" stroke-linecap="round"/>
+        <line x1="8" y1="16" x2="15" y2="22" stroke="rgba(255,255,255,0.4)" stroke-width="0.8" stroke-linecap="round"/>
+        <circle cx="21" cy="21" r="3.5" fill="rgba(255,255,255,0.1)"/>
+      </svg>
+      <div class="logo__wordmark">PNG</div>
+      <div class="logo__sub">PICK N GO</div>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+    <h1 class="content__title">당신만의 포토스팟을<br>발견하세요.</h1>
+    <p class="content__subtitle">촬영 조건, 날씨, 골든아워까지 한눈에.</p>
+
+    <!-- Email -->
+    <div class="input-group">
+      <input type="email" class="input-group__field" placeholder="이메일" autocomplete="email">
+      <svg class="input-group__icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="1" y="4" width="18" height="13" rx="2.5"/>
+        <polyline points="1,5 10,12 19,5"/>
+      </svg>
+    </div>
+
+    <!-- Password -->
+    <div class="input-group">
+      <input type="password" id="pw" class="input-group__field" placeholder="비밀번호" autocomplete="current-password">
+      <svg class="input-group__icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round">
+        <rect x="3" y="9" width="14" height="10" rx="2.5"/>
+        <path d="M6 9V6C6 3.2 7.8 1 10 1C12.2 1 14 3.2 14 6V9"/>
+      </svg>
+      <button type="button" class="input-group__toggle" onclick="togglePw()" aria-label="비밀번호 표시">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.3">
+          <ellipse cx="10" cy="10" rx="9" ry="6"/>
+          <circle cx="10" cy="10" r="3.2"/>
+        </svg>
+      </button>
+    </div>
+
+    <a href="#" class="forgot-link" onclick="event.preventDefault(); openForgotSheet()">비밀번호를 잊으셨나요?</a>
+
+    <!-- Login Button -->
+    <button type="button" class="btn btn--primary" onclick="location.href='../home/home.html'">로그인</button>
+
+    <!-- Divider -->
+    <div class="divider">
+      <span class="divider__line"></span>
+      <span class="divider__text">또는</span>
+      <span class="divider__line"></span>
+    </div>
+
+    <!-- Social Login -->
+    <div class="social-row">
+      <button type="button" class="btn--social btn--kakao" onclick="location.href='./oauth-onboarding.html?provider=kakao'">
+        <svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+          <path d="M10 2C4.5 2 0 5.8 0 10.4c0 2.9 1.9 5.5 4.8 7l-.9 3.3c-.05.2.12.35.3.22l4.2-2.8c.5.08 1.1.12 1.6.12 5.5 0 10-3.8 10-8.4C20 5.8 15.5 2 10 2z" fill="#391B1B"/>
+        </svg>
+        카카오
+      </button>
+      <button type="button" class="btn--social btn--apple" onclick="location.href='./oauth-onboarding.html?provider=apple'">
+        <svg viewBox="0 0 18 20" xmlns="http://www.w3.org/2000/svg" fill="#fff">
+          <path d="M14.94 10.56c-.03-2.96 2.42-4.38 2.53-4.45-1.38-2.01-3.52-2.29-4.28-2.32-1.82-.18-3.56 1.07-4.48 1.07-.93 0-2.36-1.05-3.88-1.02-2 .03-3.84 1.16-4.87 2.95-2.08 3.6-.53 8.94 1.49 11.87.99 1.43 2.17 3.04 3.73 2.98 1.49-.06 2.06-.97 3.87-.97s2.32.97 3.9.94c1.61-.03 2.63-1.46 3.61-2.9.78-1.13 1.1-2.23 1.12-2.29-.02-.01-2.15-.82-2.17-3.27zM12.87 2.54C13.73 1.5 14.3.12 14.15-.14c-1.17.05-2.59.78-3.43 1.76-.75.87-1.41 2.26-1.23 3.59 1.3.1 2.63-.66 3.38-1.67z"/>
+        </svg>
+        Apple
+      </button>
+    </div>
+
+    <!-- Signup -->
+    <div class="signup-link">
+      계정이 없으신가요?<a href="./signup.html">회원가입</a>
+    </div>
+  </div>
+
+  <div class="home-indicator"></div>
+</div>
+
+<!-- 딤 -->
+<div class="sheet-dim" id="sheetDim" onclick="closeForgotSheet()"></div>
+
+<!-- 비밀번호 찾기 바텀시트 -->
+<div class="bottom-sheet" id="forgotSheet">
+  <div class="sheet-handle-wrap"><div class="sheet-handle"></div></div>
+  <div class="sheet-header">
+    <span class="sheet-header__title" id="sheetTitle">비밀번호 찾기</span>
+    <button class="sheet-close" onclick="closeForgotSheet()" aria-label="닫기">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="rgba(0,0,0,0.4)" stroke-width="1.8" stroke-linecap="round">
+        <line x1="1" y1="1" x2="11" y2="11"/>
+        <line x1="11" y1="1" x2="1" y2="11"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Step 1: 이메일 입력 -->
+  <div class="sheet-step is-active" id="step1">
+    <p class="sheet-desc">가입하신 이메일을 입력하면<br>인증코드를 보내드려요.</p>
+    <div class="sheet-body">
+      <div class="sheet-field">
+        <div class="sheet-field__label">이메일</div>
+        <input
+          type="email"
+          id="forgotEmail"
+          class="sheet-input"
+          placeholder="가입한 이메일 주소"
+          autocomplete="email"
+          oninput="checkForgotEmail()"
+        >
+      </div>
+      <button class="sheet-submit" id="sendCodeBtn" onclick="sendCode()" disabled>인증코드 발송</button>
+    </div>
+  </div>
+
+  <!-- Step 2: 인증코드 입력 -->
+  <div class="sheet-step" id="step2">
+    <p class="sheet-desc" id="step2Desc"></p>
+    <div class="sheet-body">
+      <div class="sheet-field">
+        <div class="sheet-field__label">인증코드 6자리</div>
+        <input
+          type="text"
+          id="codeInput"
+          class="sheet-input sheet-input--code"
+          placeholder="000000"
+          maxlength="6"
+          inputmode="numeric"
+          autocomplete="one-time-code"
+          oninput="checkCode()"
+        >
+        <p class="sheet-hint">
+          코드를 받지 못하셨나요?
+          <span class="sheet-hint--timer" id="resendTimer">재발송 (3:00)</span>
+        </p>
+      </div>
+      <button class="sheet-submit" id="verifyBtn" onclick="verifyCode()" disabled>확인</button>
+    </div>
+  </div>
+</div>
+
+<!-- 토스트 -->
+<div class="toast" id="toast"></div>
+
+<script>
+  function togglePw() {
+    const pw = document.getElementById('pw');
+    pw.type = pw.type === 'password' ? 'text' : 'password';
+  }
+
+  /* ── 비밀번호 찾기 바텀시트 ── */
+  let resendInterval = null;
+
+  function openForgotSheet() {
+    document.getElementById('sheetDim').classList.add('is-open');
+    document.getElementById('forgotSheet').classList.add('is-open');
+    // 초기화
+    goStep(1);
+    document.getElementById('forgotEmail').value = '';
+    document.getElementById('sendCodeBtn').disabled = true;
+    setTimeout(() => document.getElementById('forgotEmail').focus(), 350);
+  }
+
+  function closeForgotSheet() {
+    document.getElementById('sheetDim').classList.remove('is-open');
+    document.getElementById('forgotSheet').classList.remove('is-open');
+    clearInterval(resendInterval);
+  }
+
+  function goStep(n) {
+    document.querySelectorAll('.sheet-step').forEach(el => el.classList.remove('is-active'));
+    document.getElementById('step' + n).classList.add('is-active');
+  }
+
+  // Step 1: 이메일 유효성 → 버튼 활성화
+  function checkForgotEmail() {
+    const val = document.getElementById('forgotEmail').value.trim();
+    const ok = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val);
+    document.getElementById('sendCodeBtn').disabled = !ok;
+  }
+
+  // Step 1 → Step 2
+  function sendCode() {
+    const email = document.getElementById('forgotEmail').value.trim();
+    document.getElementById('step2Desc').textContent =
+      email + ' 으로 인증코드를 발송했어요.';
+    goStep(2);
+    document.getElementById('sheetTitle').textContent = '인증코드 확인';
+    document.getElementById('codeInput').value = '';
+    document.getElementById('verifyBtn').disabled = true;
+    startTimer();
+    setTimeout(() => document.getElementById('codeInput').focus(), 100);
+  }
+
+  // Step 2: 코드 6자리 입력 → 버튼 활성화
+  function checkCode() {
+    const val = document.getElementById('codeInput').value.replace(/\D/g, '');
+    document.getElementById('codeInput').value = val;
+    document.getElementById('verifyBtn').disabled = val.length < 6;
+  }
+
+  // Step 2 → 완료
+  function verifyCode() {
+    clearInterval(resendInterval);
+    closeForgotSheet();
+    showToast('임시 비밀번호를 이메일로 발송했어요');
+  }
+
+  // 재발송 타이머 (3:00 카운트다운)
+  function startTimer() {
+    clearInterval(resendInterval);
+    let remaining = 180;
+    updateTimerDisplay(remaining);
+    resendInterval = setInterval(() => {
+      remaining--;
+      updateTimerDisplay(remaining);
+      if (remaining <= 0) {
+        clearInterval(resendInterval);
+        document.getElementById('resendTimer').textContent = '재발송';
+        document.getElementById('resendTimer').style.cursor = 'pointer';
+        document.getElementById('resendTimer').onclick = resendCode;
+      }
+    }, 1000);
+  }
+
+  function updateTimerDisplay(sec) {
+    const m = String(Math.floor(sec / 60)).padStart(1, '0');
+    const s = String(sec % 60).padStart(2, '0');
+    document.getElementById('resendTimer').textContent = '재발송 (' + m + ':' + s + ')';
+  }
+
+  function resendCode() {
+    document.getElementById('resendTimer').onclick = null;
+    document.getElementById('resendTimer').style.cursor = 'default';
+    startTimer();
+    showToast('인증코드를 다시 발송했어요');
+  }
+
+  /* ── 토스트 ── */
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('is-visible');
+    setTimeout(() => t.classList.remove('is-visible'), 2800);
+  }
+</script>
+
+<script>
+  (function () {
+    var splash = document.getElementById('splash-screen');
+    setTimeout(function () {
+      splash.style.opacity = '0';
+
+      var fallback = setTimeout(function () {
+        splash.style.display = 'none';
+      }, 500);
+
+      splash.addEventListener('transitionend', function () {
+        clearTimeout(fallback);
+        splash.style.display = 'none';
+      }, { once: true });
+    }, 2500);
+  })();
+</script>
+
+</body>
+</html>

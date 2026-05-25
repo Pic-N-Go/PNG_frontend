@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>PNG - 알림</title>
+  <link rel="stylesheet" href="../fonts.css">
+  <style>
+    :root {
+      --color-bg: #ffffff;
+      --color-surface: #f5f5f7;
+      --color-text-primary: #000000;
+      --color-text-secondary: rgba(0, 0, 0, 0.48);
+      --color-text-tertiary: rgba(0, 0, 0, 0.28);
+      --color-accent: #e31b59;
+      --color-accent-hover: #c91550;
+      --color-border: rgba(0, 0, 0, 0.08);
+      --color-border-light: rgba(0, 0, 0, 0.06);
+      --color-error: #ff453a;
+      --color-success: #34c759;
+      --color-warning: #ff9f0a;
+      --radius-card: 16px;
+      --radius-pill: 17px;
+      --radius-btn: 26px;
+    }
+
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    html { font-size: 16px; -webkit-font-smoothing: antialiased; }
+    body {
+      font-family: var(--font-family);
+      background: #f0f0f0;
+      display: flex; justify-content: center; min-height: 100dvh;
+    }
+
+    .phone-frame {
+      width: 390px; background: var(--color-bg);
+      position: relative; overflow: hidden;
+      display: flex; flex-direction: column; height: 100dvh;
+    }
+
+    /* ── 홈 배경 (딤 처리 전 상태 보여주기용) ── */
+    .home-bg {
+      position: absolute; inset: 0; z-index: 0;
+      background: linear-gradient(to bottom, #1a1530 0%, #2d1b4e 20%, #8b4a6b 45%, #d4856a 65%, #e8a87c 82%, #f0c89a 100%);
+      height: 340px;
+    }
+    .home-bg-white {
+      position: absolute; top: 340px; inset-inline: 0; bottom: 0;
+      background: var(--color-bg); z-index: 0;
+    }
+
+    /* ── 딤 오버레이 ── */
+    .dim {
+      position: absolute; inset: 0; z-index: 10;
+      background: rgba(0, 0, 0, 0.45);
+    }
+
+    /* ── 알림 패널 ── */
+    .notif-panel {
+      position: absolute; top: 0; left: 0; right: 0; z-index: 20;
+      background: var(--color-bg);
+      border-radius: 0 0 28px 28px;
+      display: flex; flex-direction: column;
+      max-height: 88dvh;
+      overflow: hidden;
+    }
+
+    /* 상단 핸들 + 헤더 */
+    .notif-handle {
+      width: 36px; height: 4px; border-radius: 2px;
+      background: rgba(0,0,0,0.12); margin: 10px auto 0;
+      flex-shrink: 0;
+    }
+
+    .notif-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 20px 0; flex-shrink: 0;
+    }
+    .notif-header__title {
+      font-size: 22px; font-weight: 600;
+      color: var(--color-text-primary); letter-spacing: -0.4px;
+    }
+    .notif-header__actions { display: flex; align-items: center; gap: 14px; }
+    .notif-header__btn {
+      font-size: 14px; color: var(--color-accent);
+      background: none; border: none; cursor: pointer; letter-spacing: -0.1px;
+    }
+    .notif-header__close {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--color-surface); border: none; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    /* 탭 필터 */
+    .notif-tabs {
+      display: flex; gap: 6px; padding: 14px 20px 0; flex-shrink: 0;
+      overflow-x: auto; scrollbar-width: none;
+    }
+    .notif-tabs::-webkit-scrollbar { display: none; }
+    .notif-tab {
+      flex-shrink: 0; height: 30px; padding: 0 14px;
+      border-radius: var(--radius-pill); border: none; cursor: pointer;
+      font-family: var(--font-family); font-size: 13px; font-weight: 500;
+      transition: all 0.18s;
+    }
+    .notif-tab.active {
+      background: var(--color-text-primary); color: #fff;
+    }
+    .notif-tab:not(.active) {
+      background: var(--color-surface); color: rgba(0,0,0,0.5);
+    }
+
+    /* 알림 목록 스크롤 영역 */
+    .notif-list {
+      flex: 1; overflow-y: auto; overflow-x: hidden;
+      padding: 10px 0 28px;
+    }
+    .notif-list::-webkit-scrollbar { display: none; }
+
+    /* 날짜 그룹 헤더 */
+    .notif-group-label {
+      font-size: 12px; font-weight: 600;
+      color: rgba(0,0,0,0.3); letter-spacing: 0.2px;
+      padding: 14px 20px 6px;
+    }
+
+    /* 알림 아이템 */
+    .notif-item {
+      display: flex; align-items: flex-start; gap: 12px;
+      padding: 12px 20px; cursor: pointer;
+      transition: background 0.15s; position: relative;
+    }
+    .notif-item:hover { background: rgba(0,0,0,0.02); }
+    .notif-item.is-unread { background: rgba(227,27,89,0.03); }
+    .notif-item.is-unread:hover { background: rgba(227,27,89,0.05); }
+
+    /* 읽음 여부 점 */
+    .notif-item__dot {
+      position: absolute; left: 10px; top: 18px;
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--color-accent); flex-shrink: 0;
+    }
+
+    /* 아이콘 영역 */
+    .notif-item__icon {
+      width: 44px; height: 44px; border-radius: 13px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .notif-item__icon--pink   { background: rgba(227,27,89,0.08); }
+    .notif-item__icon--green  { background: rgba(52,199,89,0.1); }
+    .notif-item__icon--orange { background: rgba(255,159,10,0.1); }
+    .notif-item__icon--red    { background: rgba(255,69,58,0.08); }
+    .notif-item__icon--gray   { background: var(--color-surface); }
+
+    /* 텍스트 */
+    .notif-item__body { flex: 1; min-width: 0; }
+    .notif-item__top {
+      display: flex; align-items: baseline;
+      justify-content: space-between; gap: 8px; margin-bottom: 2px;
+    }
+    .notif-item__label {
+      font-size: 12px; font-weight: 600;
+      letter-spacing: 0.2px;
+    }
+    .notif-item__label--pink   { color: var(--color-accent); }
+    .notif-item__label--green  { color: var(--color-success); }
+    .notif-item__label--orange { color: var(--color-warning); }
+    .notif-item__label--red    { color: var(--color-error); }
+    .notif-item__label--gray   { color: rgba(0,0,0,0.4); }
+
+    .notif-item__time {
+      font-size: 11px; color: rgba(0,0,0,0.28);
+      flex-shrink: 0; letter-spacing: -0.1px;
+    }
+    .notif-item__title {
+      font-size: 15px; font-weight: 500;
+      color: var(--color-text-primary); letter-spacing: -0.2px;
+      line-height: 1.35; margin-bottom: 3px;
+    }
+    .notif-item__desc {
+      font-size: 13px; color: rgba(0,0,0,0.45);
+      line-height: 1.4; letter-spacing: -0.1px;
+    }
+
+    /* 인라인 CTA 버튼 */
+    .notif-item__ctas {
+      display: flex; gap: 8px; margin-top: 10px;
+    }
+    .notif-item__cta {
+      height: 32px; padding: 0 14px; border-radius: 16px;
+      border: none; cursor: pointer; font-family: var(--font-family);
+      font-size: 13px; font-weight: 500; transition: all 0.18s;
+    }
+    .notif-item__cta--primary {
+      background: var(--color-accent); color: #fff;
+    }
+    .notif-item__cta--primary:hover { background: var(--color-accent-hover); }
+    .notif-item__cta--secondary {
+      background: var(--color-surface); color: rgba(0,0,0,0.55);
+    }
+    .notif-item__cta--secondary:hover { background: rgba(0,0,0,0.07); }
+
+    /* 포토제닉 점수 인라인 배지 */
+    .notif-score-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      height: 22px; padding: 0 10px; border-radius: 11px;
+      background: rgba(227,27,89,0.08); margin-top: 6px;
+    }
+    .notif-score-badge__val {
+      font-size: 13px; font-weight: 600; color: var(--color-accent);
+    }
+    .notif-score-badge__label {
+      font-size: 11px; color: rgba(0,0,0,0.35);
+    }
+
+    /* 구분선 */
+    .notif-divider {
+      height: 0.5px; background: var(--color-border-light);
+      margin: 0 20px;
+    }
+
+    /* 빈 상태 */
+    .notif-empty {
+      display: flex; flex-direction: column; align-items: center;
+      padding: 48px 20px; gap: 10px;
+    }
+    .notif-empty__icon {
+      width: 56px; height: 56px; border-radius: 16px;
+      background: var(--color-surface);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 6px;
+    }
+    .notif-empty__title {
+      font-size: 16px; font-weight: 500;
+      color: var(--color-text-primary); letter-spacing: -0.2px;
+    }
+    .notif-empty__desc {
+      font-size: 13px; color: rgba(0,0,0,0.38);
+      text-align: center; line-height: 1.5; letter-spacing: -0.1px;
+    }
+
+    @media (max-width: 390px) { .phone-frame { width: 100%; } }
+    @media (min-width: 391px) {
+      body { padding: 20px 0; }
+      .phone-frame {
+        border-radius: 40px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        height: calc(100dvh - 40px);
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
+    }
+  </style>
+</head>
+<body>
+<div class="phone-frame">
+
+  <!-- 홈 배경 (딤 처리 전 상태) -->
+  <div class="home-bg"></div>
+  <div class="home-bg-white"></div>
+
+  <!-- 딤 오버레이 -->
+  <div class="dim" onclick="history.back()"></div>
+
+  <!-- ── 알림 패널 ── -->
+  <div class="notif-panel">
+    <div class="notif-handle"></div>
+
+    <!-- 헤더 -->
+    <div class="notif-header">
+      <h1 class="notif-header__title">알림</h1>
+      <div class="notif-header__actions">
+        <button class="notif-header__btn" onclick="markAllRead()">모두 읽음</button>
+        <button class="notif-header__close" onclick="history.back()" aria-label="닫기">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="rgba(0,0,0,0.4)" stroke-width="1.8" stroke-linecap="round">
+            <line x1="1" y1="1" x2="11" y2="11"/><line x1="11" y1="1" x2="1" y2="11"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- 탭 필터 -->
+    <div class="notif-tabs">
+      <button class="notif-tab active" data-tab="all" onclick="switchTab(this)">전체</button>
+      <button class="notif-tab" data-tab="wishlist" onclick="switchTab(this)">위시리스트</button>
+      <button class="notif-tab" data-tab="weather" onclick="switchTab(this)">날씨</button>
+      <button class="notif-tab" data-tab="community" onclick="switchTab(this)">커뮤니티</button>
+    </div>
+
+    <!-- 알림 목록 -->
+    <div class="notif-list" id="notif-list">
+
+      <!-- ── 오늘 ── -->
+      <div class="notif-group-label">오늘</div>
+
+      <!-- 위시리스트 달성 (CTA 포함, 안읽음) -->
+      <div class="notif-item is-unread" data-type="wishlist">
+        <div class="notif-item__dot"></div>
+        <div class="notif-item__icon notif-item__icon--pink">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#e31b59" stroke-width="1.4" stroke-linejoin="round">
+            <path d="M11 2C8 2 6 4.5 6 7V11L4 13.5H18L16 11V7C16 4.5 14 2 11 2Z"/>
+            <path d="M8.5 13.5Q8.5 16 11 16T13.5 13.5" stroke-width="1.2"/>
+            <circle cx="17" cy="5" r="3" fill="#e31b59" stroke="none"/>
+          </svg>
+        </div>
+        <div class="notif-item__body">
+          <div class="notif-item__top">
+            <span class="notif-item__label notif-item__label--pink">위시리스트 달성</span>
+            <span class="notif-item__time">방금</span>
+          </div>
+          <div class="notif-item__title">광안리 해수욕장 — 조건 충족!</div>
+          <div class="notif-item__desc">미세먼지 좋음 · 골든아워 오전 6:32 · 맑음</div>
+          <div class="notif-score-badge">
+            <span class="notif-score-badge__val">87</span>
+            <span class="notif-score-badge__label">포토제닉 지수</span>
+          </div>
+          <div class="notif-item__ctas">
+            <button class="notif-item__cta notif-item__cta--primary" onclick="location.href='../spot/spot-detail.html'">바로 출발</button>
+            <button class="notif-item__cta notif-item__cta--secondary">나중에</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="notif-divider"></div>
+
+      <!-- 날씨 예보 (안읽음) -->
+      <div class="notif-item is-unread" data-type="weather">
+        <div class="notif-item__dot"></div>
+        <div class="notif-item__icon notif-item__icon--orange">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#ff9f0a" stroke-width="1.4" stroke-linecap="round">
+            <circle cx="11" cy="11" r="4.5"/>
+            <line x1="11" y1="2" x2="11" y2="4.5"/>
+            <line x1="11" y1="17.5" x2="11" y2="20"/>
+            <line x1="2" y1="11" x2="4.5" y2="11"/>
+            <line x1="17.5" y1="11" x2="20" y2="11"/>
+            <line x1="4.6" y1="4.6" x2="6.4" y2="6.4"/>
+            <line x1="15.6" y1="15.6" x2="17.4" y2="17.4"/>
+            <line x1="17.4" y1="4.6" x2="15.6" y2="6.4"/>
+            <line x1="6.4" y1="15.6" x2="4.6" y2="17.4"/>
+          </svg>
+        </div>
+        <div class="notif-item__body">
+          <div class="notif-item__top">
+            <span class="notif-item__label notif-item__label--orange">날씨 예보</span>
+            <span class="notif-item__time">1시간 전</span>
+          </div>
+          <div class="notif-item__title">경복궁 — 내일 오전 촬영 최적</div>
+          <div class="notif-item__desc">맑음 · 미세먼지 좋음 · 골든아워 5:58 예상</div>
+        </div>
+      </div>
+
+      <div class="notif-divider"></div>
+
+      <!-- 커뮤니티 좋아요 (읽음) -->
+      <div class="notif-item" data-type="community">
+        <div class="notif-item__icon notif-item__icon--red">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#ff453a" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M11 19S3 13.5 3 8A4 4 0 0 1 11 6.5 4 4 0 0 1 19 8C19 13.5 11 19 11 19Z"/>
+          </svg>
+        </div>
+        <div class="notif-item__body">
+          <div class="notif-item__top">
+            <span class="notif-item__label notif-item__label--red">좋아요</span>
+            <span class="notif-item__time">3시간 전</span>
+          </div>
+          <div class="notif-item__title">김준혁 외 12명이 좋아해요</div>
+          <div class="notif-item__desc">광안리 일출 사진 · 오늘 오전 게시</div>
+        </div>
+      </div>
+
+      <div class="notif-divider"></div>
+
+      <!-- 커뮤니티 댓글 (읽음) -->
+      <div class="notif-item" data-type="community">
+        <div class="notif-item__icon notif-item__icon--gray">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="rgba(0,0,0,0.4)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 4H18C19.1 4 20 4.9 20 6V14C20 15.1 19.1 16 18 16H8L4 20V6C4 4.9 4.9 4 6 4H18"/>
+          </svg>
+        </div>
+        <div class="notif-item__body">
+          <div class="notif-item__top">
+            <span class="notif-item__label notif-item__label--gray">댓글</span>
+            <span class="notif-item__time">4시간 전</span>
+          </div>
+          <div class="notif-item__title">이수연 · "삼각대 어떤 거 쓰셨어요?"</div>
+          <div class="notif-item__desc">광안리 일출 사진에 댓글</div>
+        </div>
+      </div>
+
+      <!-- ── 어제 ── -->
+      <div class="notif-group-label">어제</div>
+
+      <!-- 위시리스트 예보 (읽음) -->
+      <div class="notif-item" data-type="wishlist">
+        <div class="notif-item__icon notif-item__icon--pink">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#e31b59" stroke-width="1.4" stroke-linejoin="round">
+            <path d="M11 2C8 2 6 4.5 6 7V11L4 13.5H18L16 11V7C16 4.5 14 2 11 2Z"/>
+            <path d="M8.5 13.5Q8.5 16 11 16T13.5 13.5" stroke-width="1.2"/>
+          </svg>
+        </div>
+        <div class="notif-item__body">
+          <div class="notif-item__top">
+            <span class="notif-item__label notif-item__label--pink">위시리스트 예보</span>
+            <span class="notif-item__time">어제 18:20</span>
+          </div>
+          <div class="notif-item__title">제주 사려니숲길 — 내일 안개 예상</div>
+          <div class="notif-item__desc">오전 7~9시 안개 예보 · 촬영 최적 조건</div>
+          <div class="notif-score-badge">
+            <span class="notif-score-badge__val">78</span>
+            <span class="notif-score-badge__label">포토제닉 지수</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="notif-divider"></div>
+
+      <!-- 날씨 변경 (읽음) -->
+      <div class="notif-item" data-type="weather">
+        <div class="notif-item__icon notif-item__icon--green">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#34c759" stroke-width="1.4" stroke-linecap="round">
+            <path d="M5 14.5A5.5 5.5 0 0 1 8.5 4a5.5 5.5 0 0 1 10 3.5H20a3 3 0 0 1 0 6H6"/>
+            <polyline points="5,17 8,20 11,17" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="notif-item__body">
+          <div class="notif-item__top">
+            <span class="notif-item__label notif-item__label--green">날씨 개선</span>
+            <span class="notif-item__time">어제 09:04</span>
+          </div>
+          <div class="notif-item__title">영월 별마로천문대 — 구름 해소</div>
+          <div class="notif-item__desc">오늘 밤 구름 없음 · 은하수 촬영 가능</div>
+        </div>
+      </div>
+
+      <div class="notif-divider"></div>
+
+      <!-- 커뮤니티 팔로우 (읽음) -->
+      <div class="notif-item" data-type="community">
+        <div class="notif-item__icon notif-item__icon--gray">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="rgba(0,0,0,0.4)" stroke-width="1.4" stroke-linecap="round">
+            <circle cx="9" cy="7" r="4"/><path d="M2 19Q5 13 9 13T16 17"/>
+            <line x1="17" y1="10" x2="17" y2="16"/><line x1="14" y1="13" x2="20" y2="13"/>
+          </svg>
+        </div>
+        <div class="notif-item__body">
+          <div class="notif-item__top">
+            <span class="notif-item__label notif-item__label--gray">새 팔로워</span>
+            <span class="notif-item__time">어제 07:30</span>
+          </div>
+          <div class="notif-item__title">박민준이 팔로우했어요</div>
+          <div class="notif-item__desc">팔로워 38명</div>
+        </div>
+      </div>
+
+      <!-- ── 이전 ── -->
+      <div class="notif-group-label">이전</div>
+
+      <div class="notif-item" data-type="wishlist">
+        <div class="notif-item__icon notif-item__icon--pink">
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#e31b59" stroke-width="1.4" stroke-linejoin="round">
+            <path d="M11 2C8 2 6 4.5 6 7V11L4 13.5H18L16 11V7C16 4.5 14 2 11 2Z"/>
+            <path d="M8.5 13.5Q8.5 16 11 16T13.5 13.5" stroke-width="1.2"/>
+          </svg>
+        </div>
+        <div class="notif-item__body">
+          <div class="notif-item__top">
+            <span class="notif-item__label notif-item__label--pink">위시리스트 달성</span>
+            <span class="notif-item__time">5월 10일</span>
+          </div>
+          <div class="notif-item__title">에버랜드 장미원 — 만개 조건 충족</div>
+          <div class="notif-item__desc">개화율 94% · 맑음 · 미세먼지 좋음</div>
+          <div class="notif-score-badge">
+            <span class="notif-score-badge__val">92</span>
+            <span class="notif-score-badge__label">포토제닉 지수</span>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /notif-list -->
+  </div><!-- /notif-panel -->
+
+</div><!-- /phone-frame -->
+
+<script>
+  /* ── 탭 필터 ── */
+  function switchTab(el) {
+    document.querySelectorAll('.notif-tab').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+
+    const tab = el.dataset.tab;
+    document.querySelectorAll('.notif-item').forEach(item => {
+      if (tab === 'all') {
+        item.style.display = '';
+      } else {
+        item.style.display = item.dataset.type === tab ? '' : 'none';
+      }
+    });
+
+    document.querySelectorAll('.notif-divider, .notif-group-label').forEach(el => {
+      el.style.display = '';
+    });
+  }
+
+  /* ── 모두 읽음 ── */
+  function markAllRead() {
+    document.querySelectorAll('.notif-item.is-unread').forEach(item => {
+      item.classList.remove('is-unread');
+    });
+    document.querySelectorAll('.notif-item__dot').forEach(dot => {
+      dot.remove();
+    });
+  }
+</script>
+</body>
+</html>

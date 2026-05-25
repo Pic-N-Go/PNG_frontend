@@ -1,0 +1,931 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>PNG - PIC MAP</title>
+    <link rel="stylesheet" href="../fonts.css" />
+    <style>
+      :root {
+        --color-bg: #ffffff;
+        --color-surface: #f5f5f7;
+        --color-text-primary: #000000;
+        --color-text-secondary: rgba(0, 0, 0, 0.48);
+        --color-accent: #e31b59;
+        --color-accent-hover: #c91550;
+        --color-border-light: rgba(0, 0, 0, 0.06);
+        --radius-card: 14px;
+      }
+      *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+      html { font-size: 16px; -webkit-font-smoothing: antialiased; }
+      body {
+        font-family: var(--font-family);
+        background: #f0f0f0;
+        display: flex;
+        justify-content: center;
+        min-height: 100dvh;
+      }
+      .phone-frame {
+        width: 390px;
+        height: 100dvh;
+        background: #e8e8ed;
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* ======= 네비 (지도 위 플로팅) ======= */
+      .nav-bar {
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        z-index: 50;
+        height: 54px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 16px;
+        background: rgba(255,255,255,0.92);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-bottom: 0.5px solid var(--color-border-light);
+      }
+      .nav-bar__back {
+        width: 36px; height: 36px;
+        border-radius: 50%;
+        background: none; border: none;
+        cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        transition: background 0.15s;
+        flex-shrink: 0;
+      }
+      .nav-bar__back:hover { background: rgba(0,0,0,0.05); }
+      .nav-bar__title {
+        font-size: 17px; font-weight: 600;
+        color: var(--color-text-primary);
+        letter-spacing: -0.3px;
+      }
+
+      /* ======= 필터 칩 (네비 바로 아래) ======= */
+      .filter-bar {
+        position: absolute;
+        top: 54px; left: 0; right: 0;
+        z-index: 40;
+        display: flex;
+        gap: 7px;
+        padding: 10px 16px;
+        background: rgba(255,255,255,0.88);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border-bottom: 0.5px solid var(--color-border-light);
+      }
+      .filter-chip {
+        height: 30px;
+        padding: 0 14px;
+        border-radius: 15px;
+        border: none;
+        font-family: var(--font-family);
+        font-size: 13px;
+        font-weight: 500;
+        white-space: nowrap;
+        cursor: pointer;
+        transition: all 0.15s;
+        letter-spacing: -0.1px;
+      }
+      .filter-chip.is-active {
+        background: var(--color-text-primary);
+        color: #fff;
+      }
+      .filter-chip:not(.is-active) {
+        background: var(--color-surface);
+        color: rgba(0,0,0,0.5);
+      }
+      .filter-chip--fav.is-active { background: var(--color-accent); }
+
+      /* ======= 지도 캔버스 ======= */
+      .map-canvas {
+        position: absolute;
+        inset: 0;
+        overflow: hidden;
+      }
+      /* 배경 블록들 */
+      .map-block {
+        position: absolute;
+        background: #d1d1d6;
+        border-radius: 3px;
+      }
+      /* 도로 */
+      .map-road {
+        position: absolute;
+        background: #fff;
+      }
+      /* 공원 */
+      .map-park {
+        position: absolute;
+        background: #c8e6c9;
+        border-radius: 4px;
+      }
+      /* 강 */
+      .map-water {
+        position: absolute;
+        background: #b3d4f0;
+        border-radius: 2px;
+      }
+      /* 그리드 */
+      .map-grid {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+      }
+      .map-grid line { stroke: rgba(0,0,0,0.04); stroke-width: 0.5; }
+
+      /* ======= 현재 위치 ======= */
+      .map-me {
+        position: absolute;
+        width: 20px; height: 20px;
+        transform: translate(-50%, -50%);
+      }
+      .map-me__pulse {
+        position: absolute;
+        inset: -6px;
+        border-radius: 50%;
+        background: rgba(0,113,227,0.12);
+        animation: pulse 2.4s ease-out infinite;
+      }
+      .map-me__ring {
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        border: 2px solid rgba(0,113,227,0.3);
+      }
+      .map-me__dot {
+        position: absolute;
+        inset: 4px;
+        border-radius: 50%;
+        background: #0071e3;
+        border: 2px solid #fff;
+        box-shadow: 0 1px 4px rgba(0,113,227,0.4);
+      }
+      @keyframes pulse {
+        0%   { transform: scale(1);   opacity: 1; }
+        100% { transform: scale(2.8); opacity: 0; }
+      }
+
+      /* ======= 핀 ======= */
+      .map-pin {
+        position: absolute;
+        transform: translate(-50%, -100%);
+        line-height: 0;
+        cursor: pointer;
+        transition: filter 0.15s, transform 0.15s;
+      }
+      .map-pin:hover { transform: translate(-50%, -110%); }
+      .map-pin--visit { filter: drop-shadow(0 2px 4px rgba(0,0,0,0.25)); }
+      .map-pin--fav   { filter: drop-shadow(0 2px 6px rgba(227,27,89,0.45)); }
+      .map-pin.is-active.map-pin--visit { filter: drop-shadow(0 3px 8px rgba(0,0,0,0.35)); }
+      .map-pin.is-active.map-pin--fav   { filter: drop-shadow(0 3px 10px rgba(227,27,89,0.6)); }
+
+      /* ======= 지도 컨트롤 ======= */
+      .map-controls {
+        position: absolute;
+        right: 14px;
+        bottom: 220px;
+        z-index: 30;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .map-ctrl-group {
+        display: flex;
+        flex-direction: column;
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+        overflow: hidden;
+      }
+      .map-ctrl-btn {
+        width: 40px; height: 40px;
+        background: none; border: none;
+        cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        transition: background 0.15s;
+        color: rgba(0,0,0,0.55);
+        font-size: 20px; line-height: 1;
+        font-weight: 300;
+      }
+      .map-ctrl-btn:hover { background: rgba(0,0,0,0.04); }
+      .map-ctrl-btn + .map-ctrl-btn { border-top: 0.5px solid rgba(0,0,0,0.07); }
+      .map-ctrl-loc {
+        width: 40px; height: 40px;
+        background: #fff;
+        border-radius: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+        border: none; cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        transition: background 0.15s;
+      }
+      .map-ctrl-loc:hover { background: rgba(0,0,0,0.04); }
+
+      /* ======= 레전드 ======= */
+      .map-legend {
+        position: absolute;
+        left: 14px;
+        bottom: 220px;
+        z-index: 30;
+        background: rgba(255,255,255,0.88);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border-radius: 10px;
+        padding: 8px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      }
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        color: rgba(0,0,0,0.55);
+        letter-spacing: -0.1px;
+      }
+      .legend-pin {
+        line-height: 0; flex-shrink: 0;
+      }
+
+      /* ======= 스팟 바텀 시트 ======= */
+      .spot-sheet {
+        position: absolute;
+        bottom: 0; left: 0; right: 0;
+        z-index: 60;
+        background: #fff;
+        border-radius: 20px 20px 0 0;
+        padding: 0 0 32px;
+        transform: translateY(100%);
+        transition: transform 0.32s cubic-bezier(0.32,0.72,0,1);
+        box-shadow: 0 -4px 24px rgba(0,0,0,0.1);
+      }
+      .spot-sheet.is-open { transform: translateY(0); }
+      .sheet-handle-wrap {
+        padding: 12px 0 2px;
+        display: flex; justify-content: center;
+      }
+      .sheet-handle {
+        width: 36px; height: 5px;
+        border-radius: 2.5px;
+        background: rgba(0,0,0,0.1);
+      }
+
+      /* 스팟 리스트 시트 (전체 목록) */
+      .spot-list-sheet {
+        position: absolute;
+        bottom: 0; left: 0; right: 0;
+        z-index: 55;
+        background: #fff;
+        border-radius: 20px 20px 0 0;
+        max-height: 70vh;
+        display: flex;
+        flex-direction: column;
+        transform: translateY(calc(100% - 200px)); /* 살짝 열린 상태 */
+        transition: transform 0.32s cubic-bezier(0.32,0.72,0,1);
+        box-shadow: 0 -4px 24px rgba(0,0,0,0.1);
+      }
+      .spot-list-sheet.is-expanded { transform: translateY(0); }
+      .spot-list-sheet.is-hidden   { transform: translateY(100%); }
+
+      .sheet-top {
+        padding: 0 20px 0;
+        flex-shrink: 0;
+      }
+      .sheet-top__drag {
+        padding: 12px 0 8px;
+        display: flex; justify-content: center;
+        cursor: pointer;
+      }
+      .sheet-summary {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        padding-bottom: 12px;
+        border-bottom: 0.5px solid rgba(0,0,0,0.06);
+      }
+      .sheet-summary__title {
+        font-size: 17px; font-weight: 600;
+        color: #000; letter-spacing: -0.3px;
+      }
+      .sheet-summary__count {
+        font-size: 13px; color: rgba(0,0,0,0.35);
+        letter-spacing: -0.1px;
+      }
+      .sheet-list {
+        overflow-y: auto;
+        flex: 1;
+        padding: 8px 20px 16px;
+      }
+      .sheet-list::-webkit-scrollbar { display: none; }
+
+      /* 스팟 행 */
+      .spot-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 0;
+        border-bottom: 0.5px solid rgba(0,0,0,0.05);
+        cursor: pointer;
+        transition: background 0.1s;
+      }
+      .spot-row:last-child { border-bottom: none; }
+      .spot-row:hover { background: rgba(0,0,0,0.02); margin: 0 -4px; padding: 10px 4px; border-radius: 8px; }
+      .spot-row__thumb {
+        width: 52px; height: 52px;
+        border-radius: 10px;
+        flex-shrink: 0;
+        position: relative;
+        overflow: hidden;
+      }
+      .spot-row__pin {
+        position: absolute;
+        bottom: 4px; left: 4px;
+        line-height: 0;
+      }
+      .spot-row__info { flex: 1; min-width: 0; }
+      .spot-row__name {
+        font-size: 15px; font-weight: 600;
+        color: #000; letter-spacing: -0.2px;
+        margin-bottom: 2px;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      }
+      .spot-row__meta {
+        font-size: 12px; color: rgba(0,0,0,0.38);
+        letter-spacing: -0.1px; margin-bottom: 4px;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      }
+      .spot-row__tags { display: flex; gap: 5px; }
+      .spot-row__tag {
+        height: 18px; padding: 0 7px;
+        border-radius: 9px;
+        font-size: 10px; font-weight: 500;
+        display: inline-flex; align-items: center;
+      }
+      .spot-row__tag--date  { background: rgba(0,0,0,0.06); color: rgba(0,0,0,0.4); }
+      .spot-row__tag--score { background: rgba(227,27,89,0.08); color: var(--color-accent); font-weight: 600; }
+      .spot-row__tag--fav   { background: rgba(227,27,89,0.08); color: var(--color-accent); }
+      .spot-row__arrow {
+        color: rgba(0,0,0,0.18); flex-shrink: 0;
+      }
+
+      /* 단일 스팟 미리보기 카드 */
+      .spot-preview {
+        padding: 0 20px 0;
+      }
+      .spot-preview__thumb {
+        width: 100%; height: 130px;
+        border-radius: 14px;
+        margin-bottom: 14px;
+        position: relative;
+        overflow: hidden;
+      }
+      .spot-preview__gradient {
+        position: absolute; inset: 0;
+        background: linear-gradient(to top, rgba(0,0,0,0.45), transparent);
+      }
+      .spot-preview__badge {
+        position: absolute;
+        bottom: 10px; left: 12px;
+        display: flex; gap: 5px;
+      }
+      .spot-preview__tag {
+        height: 20px; padding: 0 8px;
+        border-radius: 10px;
+        background: rgba(255,255,255,0.18);
+        backdrop-filter: blur(4px);
+        font-size: 11px; font-weight: 500;
+        color: rgba(255,255,255,0.9);
+        display: inline-flex; align-items: center;
+      }
+      .spot-preview__name {
+        font-size: 18px; font-weight: 600;
+        color: #000; letter-spacing: -0.3px;
+        margin-bottom: 3px;
+      }
+      .spot-preview__loc {
+        font-size: 13px; color: rgba(0,0,0,0.4);
+        margin-bottom: 14px; letter-spacing: -0.1px;
+      }
+      .spot-preview__row {
+        display: flex; gap: 8px;
+        margin-bottom: 16px;
+      }
+      .spot-preview__stat {
+        flex: 1;
+        background: var(--color-surface);
+        border-radius: 10px;
+        padding: 10px 12px;
+      }
+      .spot-preview__stat-label {
+        font-size: 10px; color: rgba(0,0,0,0.35);
+        margin-bottom: 3px; letter-spacing: -0.05px;
+      }
+      .spot-preview__stat-val {
+        font-size: 15px; font-weight: 600;
+        color: #000; letter-spacing: -0.2px;
+      }
+      .spot-preview__stat-val--accent { color: var(--color-accent); }
+      .spot-preview__btn {
+        width: 100%; height: 48px;
+        border-radius: 24px;
+        border: none;
+        background: #000;
+        font-family: var(--font-family);
+        font-size: 15px; font-weight: 500;
+        color: #fff; letter-spacing: -0.2px;
+        cursor: pointer;
+        transition: opacity 0.15s;
+      }
+      .spot-preview__btn:hover { opacity: 0.85; }
+
+      /* 다이머 */
+      .dim {
+        position: absolute; inset: 0;
+        background: rgba(0,0,0,0.3);
+        z-index: 54;
+        opacity: 0; pointer-events: none;
+        transition: opacity 0.25s;
+      }
+      .dim.is-visible { opacity: 1; pointer-events: all; }
+
+      @media (max-width: 390px) { .phone-frame { width: 100%; } }
+      @media (min-width: 391px) {
+        body { padding: 20px 0; }
+        .phone-frame {
+          border-radius: 40px;
+          overflow: hidden;
+          height: calc(100dvh - 40px);
+          box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="phone-frame">
+
+      <!-- 지도 캔버스 -->
+      <div class="map-canvas">
+        <!-- 배경 블록 (건물/구역) -->
+        <div class="map-block" style="left:0;top:0;width:100%;height:100%;background:#e8e8ed;border-radius:0;"></div>
+        <!-- 도로 -->
+        <div class="map-road" style="left:0;top:43%;width:100%;height:14px;"></div>
+        <div class="map-road" style="left:0;top:65%;width:100%;height:10px;"></div>
+        <div class="map-road" style="left:30%;top:0;width:14px;height:100%;"></div>
+        <div class="map-road" style="left:62%;top:0;width:10px;height:100%;"></div>
+        <div class="map-road" style="left:0;top:22%;width:100%;height:8px;"></div>
+        <div class="map-road" style="left:50%;top:0;width:8px;height:43%;"></div>
+        <!-- 공원 -->
+        <div class="map-park" style="left:33%;top:47%;width:27%;height:16%;"></div>
+        <div class="map-park" style="left:3%;top:25%;width:25%;height:16%;"></div>
+        <!-- 강/수변 -->
+        <div class="map-water" style="left:0;top:78%;width:100%;height:22%;border-radius:0;"></div>
+        <!-- 블록들 -->
+        <div class="map-block" style="left:3%;top:6%;width:25%;height:14%;"></div>
+        <div class="map-block" style="left:32%;top:6%;width:17%;height:14%;"></div>
+        <div class="map-block" style="left:65%;top:6%;width:31%;height:14%;"></div>
+        <div class="map-block" style="left:3%;top:47%;width:24%;height:16%;"></div>
+        <div class="map-block" style="left:64%;top:47%;width:32%;height:16%;"></div>
+        <div class="map-block" style="left:3%;top:67%;width:24%;height:10%;"></div>
+        <div class="map-block" style="left:64%;top:67%;width:32%;height:10%;"></div>
+        <!-- 그리드 -->
+        <svg class="map-grid" width="100%" height="100%" viewBox="0 0 390 844" preserveAspectRatio="none">
+          <line x1="0" y1="100" x2="390" y2="100"/>
+          <line x1="0" y1="200" x2="390" y2="200"/>
+          <line x1="0" y1="300" x2="390" y2="300"/>
+          <line x1="0" y1="400" x2="390" y2="400"/>
+          <line x1="0" y1="500" x2="390" y2="500"/>
+          <line x1="0" y1="600" x2="390" y2="600"/>
+          <line x1="0" y1="700" x2="390" y2="700"/>
+          <line x1="100" y1="0" x2="100" y2="844"/>
+          <line x1="200" y1="0" x2="200" y2="844"/>
+          <line x1="300" y1="0" x2="300" y2="844"/>
+        </svg>
+
+        <!-- 현재 위치 -->
+        <div class="map-me" style="left:52%;top:49%">
+          <div class="map-me__pulse"></div>
+          <div class="map-me__ring"></div>
+          <div class="map-me__dot"></div>
+        </div>
+
+        <!-- 방문 핀 (검정) -->
+        <div class="map-pin map-pin--visit" style="left:18%;top:32%" onclick="showSpot('gwanganri')">
+          <svg width="22" height="28" viewBox="0 0 24 30" fill="none">
+            <path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill="#1c1c1e"/>
+            <circle cx="12" cy="10.5" r="4.5" fill="#fff"/>
+          </svg>
+        </div>
+        <div class="map-pin map-pin--visit" style="left:65%;top:26%" onclick="showSpot('gyeongbokgung')">
+          <svg width="22" height="28" viewBox="0 0 24 30" fill="none">
+            <path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill="#1c1c1e"/>
+            <circle cx="12" cy="10.5" r="4.5" fill="#fff"/>
+          </svg>
+        </div>
+        <div class="map-pin map-pin--visit" style="left:42%;top:57%" onclick="showSpot('jeju')">
+          <svg width="22" height="28" viewBox="0 0 24 30" fill="none">
+            <path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill="#1c1c1e"/>
+            <circle cx="12" cy="10.5" r="4.5" fill="#fff"/>
+          </svg>
+        </div>
+        <div class="map-pin map-pin--visit" style="left:78%;top:56%" onclick="showSpot('gamcheon')">
+          <svg width="22" height="28" viewBox="0 0 24 30" fill="none">
+            <path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill="#1c1c1e"/>
+            <circle cx="12" cy="10.5" r="4.5" fill="#fff"/>
+          </svg>
+        </div>
+        <div class="map-pin map-pin--visit" style="left:25%;top:63%" onclick="showSpot('yeongwol')">
+          <svg width="22" height="28" viewBox="0 0 24 30" fill="none">
+            <path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill="#1c1c1e"/>
+            <circle cx="12" cy="10.5" r="4.5" fill="#fff"/>
+          </svg>
+        </div>
+        <div class="map-pin map-pin--visit" style="left:55%;top:71%" onclick="showSpot('gyeongju')">
+          <svg width="22" height="28" viewBox="0 0 24 30" fill="none">
+            <path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill="#1c1c1e"/>
+            <circle cx="12" cy="10.5" r="4.5" fill="#fff"/>
+          </svg>
+        </div>
+
+        <!-- 즐겨찾기 핀 (핑크, 크게) -->
+        <div class="map-pin map-pin--fav" style="left:18%;top:32%;margin-top:-4px" onclick="showSpot('gwanganri')" id="fav-gwanganri">
+          <!-- 방문 핀과 겹치는 위치에 즐겨찾기 핀은 별도 위치로 표시 -->
+        </div>
+        <div class="map-pin map-pin--fav" style="left:86%;top:38%" onclick="showSpot('jinhe')">
+          <svg width="26" height="33" viewBox="0 0 24 30" fill="none">
+            <path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill="#E31B59"/>
+            <circle cx="12" cy="10.5" r="4.5" fill="#fff"/>
+          </svg>
+        </div>
+        <div class="map-pin map-pin--fav" style="left:8%;top:54%" onclick="showSpot('gwanganri')">
+          <svg width="26" height="33" viewBox="0 0 24 30" fill="none">
+            <path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill="#E31B59"/>
+            <circle cx="12" cy="10.5" r="4.5" fill="#fff"/>
+          </svg>
+        </div>
+      </div>
+      <!-- /map-canvas -->
+
+      <!-- 네비 바 -->
+      <div class="nav-bar">
+        <button class="nav-bar__back" onclick="location.href='./mypage.html'" aria-label="뒤로가기">
+          <svg width="10" height="18" viewBox="0 0 10 18" fill="none" stroke="rgba(0,0,0,0.65)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="8,2 2,9 8,16"/>
+          </svg>
+        </button>
+        <span class="nav-bar__title">PIC MAP</span>
+        <div style="width:36px"></div>
+      </div>
+
+      <!-- 필터 -->
+      <div class="filter-bar">
+        <button class="filter-chip is-active" id="chip-all" onclick="filterPins('all')">전체 28</button>
+        <button class="filter-chip" id="chip-visit" onclick="filterPins('visit')">방문 21</button>
+        <button class="filter-chip filter-chip--fav" id="chip-fav" onclick="filterPins('fav')">즐겨찾기 7</button>
+      </div>
+
+      <!-- 지도 컨트롤 -->
+      <div class="map-controls">
+        <div class="map-ctrl-group">
+          <button class="map-ctrl-btn" aria-label="확대">+</button>
+          <button class="map-ctrl-btn" aria-label="축소">−</button>
+        </div>
+        <button class="map-ctrl-loc" aria-label="내 위치">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(0,113,227,0.8)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- 레전드 -->
+      <div class="map-legend">
+        <div class="legend-item">
+          <span class="legend-pin">
+            <svg width="10" height="13" viewBox="0 0 24 30" fill="none">
+              <path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill="#1c1c1e"/>
+              <circle cx="12" cy="10.5" r="4.5" fill="#fff"/>
+            </svg>
+          </span>
+          방문
+        </div>
+        <div class="legend-item">
+          <span class="legend-pin">
+            <svg width="10" height="13" viewBox="0 0 24 30" fill="none">
+              <path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill="#E31B59"/>
+              <circle cx="12" cy="10.5" r="4.5" fill="#fff"/>
+            </svg>
+          </span>
+          즐겨찾기
+        </div>
+      </div>
+
+      <!-- 다이머 (스팟 시트 열릴 때) -->
+      <div class="dim" id="dim" onclick="closeSpot()"></div>
+
+      <!-- 스팟 목록 바텀 시트 (기본 상태: 살짝 올라온 요약) -->
+      <div class="spot-list-sheet" id="spotListSheet" onclick="expandList(event)">
+        <div class="sheet-top">
+          <div class="sheet-top__drag">
+            <div class="sheet-handle"></div>
+          </div>
+          <div class="sheet-summary">
+            <span class="sheet-summary__title">방문한 스팟</span>
+            <span class="sheet-summary__count" id="summaryCount">28곳</span>
+          </div>
+        </div>
+        <div class="sheet-list" id="spotList">
+          <!-- 방문 스팟 목록 -->
+          <div class="spot-row" onclick="showSpot('gwanganri'); event.stopPropagation()">
+            <div class="spot-row__thumb" style="background:linear-gradient(135deg,#0f2027,#2c5364)">
+              <div class="spot-row__pin">
+                <svg width="12" height="15" viewBox="0 0 24 30" fill="none">
+                  <path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill="#E31B59"/>
+                  <circle cx="12" cy="10.5" r="4" fill="#fff"/>
+                </svg>
+              </div>
+            </div>
+            <div class="spot-row__info">
+              <div class="spot-row__name">광안리 해수욕장</div>
+              <div class="spot-row__meta">부산 · 수영구</div>
+              <div class="spot-row__tags">
+                <span class="spot-row__tag spot-row__tag--date">2026.03.28</span>
+                <span class="spot-row__tag spot-row__tag--score">91점</span>
+                <span class="spot-row__tag spot-row__tag--fav">즐겨찾기</span>
+              </div>
+            </div>
+            <svg class="spot-row__arrow" width="7" height="12" viewBox="0 0 7 12" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="1,1 6,6 1,11"/>
+            </svg>
+          </div>
+
+          <div class="spot-row" onclick="showSpot('gyeongbokgung'); event.stopPropagation()">
+            <div class="spot-row__thumb" style="background:linear-gradient(135deg,#1a1530,#b44a3a)">
+              <div class="spot-row__pin">
+                <svg width="12" height="15" viewBox="0 0 24 30" fill="none">
+                  <path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill="#1c1c1e"/>
+                  <circle cx="12" cy="10.5" r="4" fill="#fff"/>
+                </svg>
+              </div>
+            </div>
+            <div class="spot-row__info">
+              <div class="spot-row__name">경복궁</div>
+              <div class="spot-row__meta">서울 · 종로구</div>
+              <div class="spot-row__tags">
+                <span class="spot-row__tag spot-row__tag--date">2026.03.08</span>
+                <span class="spot-row__tag spot-row__tag--score">85점</span>
+              </div>
+            </div>
+            <svg class="spot-row__arrow" width="7" height="12" viewBox="0 0 7 12" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="1,1 6,6 1,11"/>
+            </svg>
+          </div>
+
+          <div class="spot-row" onclick="showSpot('jeju'); event.stopPropagation()">
+            <div class="spot-row__thumb" style="background:linear-gradient(135deg,#0a1a0f,#4a8060)">
+              <div class="spot-row__pin">
+                <svg width="12" height="15" viewBox="0 0 24 30" fill="none">
+                  <path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill="#1c1c1e"/>
+                  <circle cx="12" cy="10.5" r="4" fill="#fff"/>
+                </svg>
+              </div>
+            </div>
+            <div class="spot-row__info">
+              <div class="spot-row__name">사려니숲길</div>
+              <div class="spot-row__meta">제주 · 조천읍</div>
+              <div class="spot-row__tags">
+                <span class="spot-row__tag spot-row__tag--date">2026.04.15</span>
+                <span class="spot-row__tag spot-row__tag--score">79점</span>
+              </div>
+            </div>
+            <svg class="spot-row__arrow" width="7" height="12" viewBox="0 0 7 12" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="1,1 6,6 1,11"/>
+            </svg>
+          </div>
+
+          <div class="spot-row" onclick="showSpot('jinhe'); event.stopPropagation()">
+            <div class="spot-row__thumb" style="background:linear-gradient(135deg,#8b4a6b,#f0c89a)">
+              <div class="spot-row__pin">
+                <svg width="12" height="15" viewBox="0 0 24 30" fill="none">
+                  <path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill="#E31B59"/>
+                  <circle cx="12" cy="10.5" r="4" fill="#fff"/>
+                </svg>
+              </div>
+            </div>
+            <div class="spot-row__info">
+              <div class="spot-row__name">진해 경화역</div>
+              <div class="spot-row__meta">경남 · 창원시</div>
+              <div class="spot-row__tags">
+                <span class="spot-row__tag spot-row__tag--date">2026.04.02</span>
+                <span class="spot-row__tag spot-row__tag--score">88점</span>
+                <span class="spot-row__tag spot-row__tag--fav">즐겨찾기</span>
+              </div>
+            </div>
+            <svg class="spot-row__arrow" width="7" height="12" viewBox="0 0 7 12" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="1,1 6,6 1,11"/>
+            </svg>
+          </div>
+
+          <div class="spot-row" onclick="showSpot('gamcheon'); event.stopPropagation()">
+            <div class="spot-row__thumb" style="background:linear-gradient(135deg,#3a2a1a,#c8804a)">
+              <div class="spot-row__pin">
+                <svg width="12" height="15" viewBox="0 0 24 30" fill="none">
+                  <path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill="#1c1c1e"/>
+                  <circle cx="12" cy="10.5" r="4" fill="#fff"/>
+                </svg>
+              </div>
+            </div>
+            <div class="spot-row__info">
+              <div class="spot-row__name">감천문화마을</div>
+              <div class="spot-row__meta">부산 · 사하구</div>
+              <div class="spot-row__tags">
+                <span class="spot-row__tag spot-row__tag--date">2026.02.14</span>
+                <span class="spot-row__tag spot-row__tag--score">82점</span>
+              </div>
+            </div>
+            <svg class="spot-row__arrow" width="7" height="12" viewBox="0 0 7 12" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="1,1 6,6 1,11"/>
+            </svg>
+          </div>
+
+          <div class="spot-row" onclick="showSpot('yeongwol'); event.stopPropagation()">
+            <div class="spot-row__thumb" style="background:linear-gradient(135deg,#020010,#1a1545)">
+              <div class="spot-row__pin">
+                <svg width="12" height="15" viewBox="0 0 24 30" fill="none">
+                  <path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill="#1c1c1e"/>
+                  <circle cx="12" cy="10.5" r="4" fill="#fff"/>
+                </svg>
+              </div>
+            </div>
+            <div class="spot-row__info">
+              <div class="spot-row__name">영월 별마로천문대</div>
+              <div class="spot-row__meta">강원 · 영월군</div>
+              <div class="spot-row__tags">
+                <span class="spot-row__tag spot-row__tag--date">2025.10.03</span>
+                <span class="spot-row__tag spot-row__tag--score">94점</span>
+              </div>
+            </div>
+            <svg class="spot-row__arrow" width="7" height="12" viewBox="0 0 7 12" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="1,1 6,6 1,11"/>
+            </svg>
+          </div>
+
+          <div class="spot-row" onclick="showSpot('gyeongju'); event.stopPropagation()">
+            <div class="spot-row__thumb" style="background:linear-gradient(135deg,#5a3010,#c87020)">
+              <div class="spot-row__pin">
+                <svg width="12" height="15" viewBox="0 0 24 30" fill="none">
+                  <path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill="#1c1c1e"/>
+                  <circle cx="12" cy="10.5" r="4" fill="#fff"/>
+                </svg>
+              </div>
+            </div>
+            <div class="spot-row__info">
+              <div class="spot-row__name">경주 불국사</div>
+              <div class="spot-row__meta">경북 · 경주시</div>
+              <div class="spot-row__tags">
+                <span class="spot-row__tag spot-row__tag--date">2025.11.05</span>
+                <span class="spot-row__tag spot-row__tag--score">87점</span>
+              </div>
+            </div>
+            <svg class="spot-row__arrow" width="7" height="12" viewBox="0 0 7 12" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="1,1 6,6 1,11"/>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- 단일 스팟 미리보기 시트 -->
+      <div class="spot-sheet" id="spotSheet">
+        <div class="sheet-handle-wrap"><div class="sheet-handle"></div></div>
+        <div class="spot-preview" id="spotPreviewContent">
+          <!-- JS로 동적 렌더링 -->
+        </div>
+      </div>
+
+    </div>
+    <!-- /phone-frame -->
+
+    <script>
+      var spots = {
+        gwanganri: {
+          name: '광안리 해수욕장', loc: '부산 · 수영구',
+          bg: 'linear-gradient(135deg,#0f2027,#203a43,#e8a87c)',
+          date: '2026.03.28', count: 12, score: 91, fav: true, time: '일출'
+        },
+        gyeongbokgung: {
+          name: '경복궁', loc: '서울 · 종로구',
+          bg: 'linear-gradient(135deg,#1a1530,#b44a3a)',
+          date: '2026.03.08', count: 31, score: 85, fav: false, time: '야경'
+        },
+        jeju: {
+          name: '사려니숲길', loc: '제주 · 조천읍',
+          bg: 'linear-gradient(135deg,#0a1a0f,#4a8060)',
+          date: '2026.04.15', count: 18, score: 79, fav: false, time: '낮'
+        },
+        jinhe: {
+          name: '진해 경화역', loc: '경남 · 창원시',
+          bg: 'linear-gradient(135deg,#8b4a6b,#f0c89a)',
+          date: '2026.04.02', count: 24, score: 88, fav: true, time: '낮'
+        },
+        gamcheon: {
+          name: '감천문화마을', loc: '부산 · 사하구',
+          bg: 'linear-gradient(135deg,#3a2a1a,#c8804a)',
+          date: '2026.02.14', count: 17, score: 82, fav: false, time: '낮'
+        },
+        yeongwol: {
+          name: '영월 별마로천문대', loc: '강원 · 영월군',
+          bg: 'linear-gradient(135deg,#020010,#1a1545)',
+          date: '2025.10.03', count: 22, score: 94, fav: false, time: '야경'
+        },
+        gyeongju: {
+          name: '경주 불국사', loc: '경북 · 경주시',
+          bg: 'linear-gradient(135deg,#5a3010,#c87020)',
+          date: '2025.11.05', count: 18, score: 87, fav: false, time: '낮'
+        }
+      };
+
+      var listExpanded = false;
+      var currentSpot = null;
+
+      function showSpot(id) {
+        var s = spots[id];
+        if (!s) return;
+        currentSpot = id;
+        var favTag = s.fav
+          ? '<span class="spot-preview__tag">즐겨찾기</span>'
+          : '';
+        document.getElementById('spotPreviewContent').innerHTML = `
+          <div class="spot-preview__thumb" style="background:${s.bg}">
+            <div class="spot-preview__gradient"></div>
+            <div class="spot-preview__badge">
+              <span class="spot-preview__tag">${s.time}</span>
+              ${favTag}
+            </div>
+          </div>
+          <div class="spot-preview__name">${s.name}</div>
+          <div class="spot-preview__loc">${s.loc}</div>
+          <div class="spot-preview__row">
+            <div class="spot-preview__stat">
+              <div class="spot-preview__stat-label">포토제닉 점수</div>
+              <div class="spot-preview__stat-val spot-preview__stat-val--accent">${s.score}점</div>
+            </div>
+            <div class="spot-preview__stat">
+              <div class="spot-preview__stat-label">촬영 사진</div>
+              <div class="spot-preview__stat-val">${s.count}장</div>
+            </div>
+            <div class="spot-preview__stat">
+              <div class="spot-preview__stat-label">최근 방문</div>
+              <div class="spot-preview__stat-val" style="font-size:12px;letter-spacing:-0.1px">${s.date}</div>
+            </div>
+          </div>
+          <button class="spot-preview__btn" onclick="location.href='../spot/spot-detail.html'">스팟 상세보기</button>
+        `;
+        document.getElementById('spotSheet').classList.add('is-open');
+        document.getElementById('dim').classList.add('is-visible');
+        collapseList();
+      }
+
+      function closeSpot() {
+        document.getElementById('spotSheet').classList.remove('is-open');
+        document.getElementById('dim').classList.remove('is-visible');
+        currentSpot = null;
+      }
+
+      function expandList(e) {
+        if (currentSpot) return;
+        if (!listExpanded) {
+          document.getElementById('spotListSheet').classList.add('is-expanded');
+          listExpanded = true;
+        }
+      }
+
+      function collapseList() {
+        document.getElementById('spotListSheet').classList.remove('is-expanded');
+        listExpanded = false;
+      }
+
+      function filterPins(type) {
+        document.querySelectorAll('.filter-chip').forEach(function(c) {
+          c.classList.remove('is-active');
+        });
+        var id = type === 'all' ? 'chip-all' : type === 'visit' ? 'chip-visit' : 'chip-fav';
+        document.getElementById(id).classList.add('is-active');
+        /* 목업: 필터 선택만 시각화 */
+        var countEl = document.getElementById('summaryCount');
+        var titleEl = document.querySelector('.sheet-summary__title');
+        if (type === 'all')   { countEl.textContent = '28곳'; titleEl.textContent = '방문한 스팟'; }
+        if (type === 'visit') { countEl.textContent = '21곳'; titleEl.textContent = '방문'; }
+        if (type === 'fav')   { countEl.textContent = '7곳';  titleEl.textContent = '즐겨찾기'; }
+      }
+    </script>
+  </body>
+</html>

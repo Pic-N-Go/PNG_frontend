@@ -43,12 +43,13 @@ import { useAuthStore } from "@/store/useAuthStore";
 | Directory | Purpose |
 |---|---|
 | `src/api/` | Raw fetch functions (no hooks, no state) |
-| `src/components/ui/` | Pure UI publishing files (HTML mockups); React components go in `src/components/` |
+| `src/components/ui/` | HTML mockups grouped by feature (`auth/` `home/` `travel/` `community/` `spot/` `mypage/` `wishlist/`) — see `docs/ui-publishing.md` |
 | `src/hooks/` | Custom hooks (typically wrap TanStack Query calls) |
 | `src/screens/` | Screen-level components |
 | `src/store/` | Zustand stores |
 | `src/types/` | Shared TypeScript types |
 | `src/utils/` | Pure utility functions |
+| `docs/` | Project documentation (UI structure, conventions) |
 
 ### Environment Variables
 
@@ -62,7 +63,7 @@ const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 
 Full spec is in `.claude/design.md`. Key rules:
 
-- **Accent color**: `#0071e3` — used exclusively for interactive elements (CTA buttons, active states, focus borders). No other accent colors.
+- **Brand / Accent color**: `#E31B59` (Pink) — used for all interactive elements (CTA buttons, active states, active tabs, focus borders). Primary palette: Black · White · Pink.
 - **Backgrounds**: page `#ffffff`, card/input `#f5f5f7`
 - **Cards**: no border, no shadow — elevation via background color contrast only
 - **Buttons**: pill shape (`border-radius: 50%` of height), primary height 52px
@@ -79,4 +80,4 @@ Full spec is in `.claude/design.md`. Key rules:
 - `/home` — hero + search + category filter + nearby spots map + popular spots scroll + calendar
 - `/spot/:id` — spot detail with Photogenic Score (weather/golden hour/dust/congestion/season)
 
-HTML mockups for all screens are in `src/components/ui/*.html`.
+HTML mockups are in `src/components/ui/` (grouped by feature). Full structure and navigation flow in `docs/ui-publishing.md`.

@@ -1,0 +1,1491 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>PNG - 출사 계획</title>
+    <link rel="stylesheet" href="../fonts.css" />
+    <style>
+      :root {
+        --color-bg: #ffffff;
+        --color-surface: #f5f5f7;
+        --color-text-primary: #000000;
+        --color-text-secondary: rgba(0, 0, 0, 0.48);
+        --color-text-tertiary: rgba(0, 0, 0, 0.28);
+        --color-accent: #e31b59;
+        --color-accent-hover: #c91550;
+        --color-link: #e31b59;
+        --color-border: rgba(0, 0, 0, 0.08);
+        --color-border-light: rgba(0, 0, 0, 0.06);
+        --color-success: #34c759;
+        --color-warning: #ff9f0a;
+        --color-brand: #e31b59;
+        --radius-card: 16px;
+        --radius-btn: 26px;
+      }
+      *,
+      *::before,
+      *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html {
+        font-size: 16px;
+        -webkit-font-smoothing: antialiased;
+      }
+      body {
+        font-family: var(--font-family);
+        background: #f0f0f0;
+        display: flex;
+        justify-content: center;
+        min-height: 100dvh;
+      }
+      .phone-frame {
+        width: 390px;
+        min-height: 100dvh;
+        background: var(--color-bg);
+        position: relative;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding-bottom: 20px;
+      }
+
+      /* ── 상태바 ── */
+      .status-bar {
+        height: 54px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 34px;
+        background: var(--color-bg);
+        position: relative;
+        z-index: 10;
+      }
+      .status-bar__time {
+        font-size: 15px;
+        font-weight: 600;
+        color: #000;
+        letter-spacing: -0.3px;
+      }
+      .dynamic-island {
+        position: absolute;
+        top: 8px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 106px;
+        height: 28px;
+        background: #000;
+        border-radius: 14px;
+      }
+      .status-bar__icons {
+        display: flex;
+        gap: 6px;
+      }
+      .status-bar__icons svg {
+        height: 12px;
+        fill: #000;
+      }
+
+      /* ── 출사 네비 바 ── */
+      .trip-nav {
+        height: 52px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0 14px;
+        background: var(--color-bg);
+        border-bottom: 0.5px solid var(--color-border-light);
+      }
+      .trip-nav__back {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(0,0,0,0.05);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: background 0.15s;
+      }
+      .trip-nav__back:hover { background: rgba(0,0,0,0.09); }
+      .trip-nav__info { flex: 1; min-width: 0; }
+      .trip-nav__title {
+        display: block;
+        font-size: 16px;
+        font-weight: 600;
+        letter-spacing: -0.35px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .trip-nav__date {
+        display: block;
+        font-size: 11px;
+        color: rgba(0,0,0,0.4);
+        letter-spacing: -0.1px;
+        margin-top: 1px;
+      }
+      .trip-nav__actions { display: flex; gap: 4px; }
+      .trip-nav__action {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(0,0,0,0.05);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.15s;
+        color: rgba(0,0,0,0.6);
+      }
+      .trip-nav__action:hover { background: rgba(0,0,0,0.09); }
+
+      /* ── 지도 헤더 ── */
+      .trip-map {
+        position: relative;
+        height: 210px;
+        overflow: hidden;
+        background: #e8e8ed;
+      }
+      .trip-map__canvas { position: absolute; inset: 0; }
+      .trip-map__grid { position: absolute; inset: 0; }
+      .trip-map__grid line { stroke: rgba(0,0,0,0.04); stroke-width: 0.5; }
+      .trip-map__block { position: absolute; border-radius: 4px; background: rgba(0,0,0,0.06); }
+      .trip-map__roads { position: absolute; inset: 0; }
+      .trip-map__roads path { fill: none; stroke: rgba(255,255,255,0.9); stroke-linecap: round; }
+      .trip-map__roads path.road-main { stroke-width: 8; }
+      .trip-map__roads path.road-sub { stroke-width: 4; stroke: rgba(255,255,255,0.7); }
+      .trip-map__route { position: absolute; inset: 0; pointer-events: none; }
+
+      /* ── Day 색상 팔레트 ── */
+      :root {
+        --day-1: #f59e0b;
+        --day-2: #3b82f6;
+        --day-3: #10b981;
+      }
+
+      /* 번호 핀 */
+      .trip-pin {
+        position: absolute;
+        transform: translate(-50%, -50%);
+        z-index: 5;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 600;
+        color: #fff;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+        transition: opacity 0.2s, transform 0.2s;
+      }
+      .trip-pin--day1 { background: var(--day-1); }
+      .trip-pin--day2 { background: var(--day-2); }
+      .trip-pin--day3 { background: var(--day-3); }
+      .trip-pin.is-focus { width: 34px; height: 34px; font-size: 13px; z-index: 10; }
+      .trip-pin.is-dim { opacity: 0.25; }
+
+      /* 지도 범례 */
+      .map-legend {
+        position: absolute;
+        bottom: 10px;
+        left: 10px;
+        display: flex;
+        gap: 6px;
+        z-index: 10;
+      }
+      .map-legend__item {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        background: rgba(255,255,255,0.92);
+        border-radius: 10px;
+        padding: 4px 9px;
+        font-size: 11px;
+        font-weight: 600;
+        color: rgba(0,0,0,0.6);
+        box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+        transition: opacity 0.2s;
+      }
+      .map-legend__dot {
+        width: 8px; height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+      .map-legend__item.is-dim { opacity: 0.35; }
+
+      /* 드래그 핸들 */
+      .trip-map__handle {
+        height: 22px;
+        background: var(--color-bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-bottom: 0.5px solid var(--color-border-light);
+      }
+      .trip-map__handle::before {
+        content: '';
+        display: block;
+        width: 36px;
+        height: 4px;
+        border-radius: 2px;
+        background: rgba(0,0,0,0.12);
+      }
+
+      /* ── 컨텐츠 ── */
+      .content {
+        position: relative;
+        z-index: 1;
+        padding: 24px 20px 0;
+      }
+
+      /* ── 출사 요약 ── */
+      .trip-summary {
+        padding: 16px;
+        border-radius: 16px;
+        background: var(--color-surface);
+        margin-bottom: 20px;
+      }
+      .trip-summary__name {
+        font-size: 20px;
+        font-weight: 600;
+        color: var(--color-text-primary);
+        letter-spacing: -0.4px;
+        margin-bottom: 4px;
+      }
+      .trip-summary__date {
+        font-size: 13px;
+        color: rgba(0, 0, 0, 0.4);
+        letter-spacing: -0.1px;
+        margin-bottom: 16px;
+      }
+      .trip-summary__stats {
+        display: flex;
+        gap: 0;
+      }
+      .trip-stat {
+        flex: 1;
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+      }
+      .trip-stat__icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        background: rgba(227, 27, 89, 0.08);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      .trip-stat__num {
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--color-text-primary);
+      }
+      .trip-stat__label {
+        font-size: 11px;
+        color: rgba(0, 0, 0, 0.3);
+        margin-top: 1px;
+      }
+
+      /* ── 데이 탭 ── */
+      .day-tabs {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 8px;
+      }
+      .day-tab {
+        height: 40px;
+        padding: 0 24px;
+        border-radius: 20px;
+        border: none;
+        font-family: var(--font-family);
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .day-tab.is-active {
+        background: #000;
+        color: #fff;
+        font-weight: 600;
+      }
+      .day-tab:not(.is-active) {
+        background: var(--color-surface);
+        color: rgba(0, 0, 0, 0.5);
+      }
+      .day-tab:not(.is-active):hover {
+        background: rgba(0, 0, 0, 0.06);
+      }
+      .day-tab__dot {
+        width: 8px; height: 8px;
+        border-radius: 50%;
+        margin-right: 6px;
+        flex-shrink: 0;
+      }
+      .day-tab--add {
+        width: 40px;
+        padding: 0;
+        font-size: 20px;
+        color: rgba(0, 0, 0, 0.25);
+      }
+      .day-date {
+        font-size: 13px;
+        color: rgba(0, 0, 0, 0.4);
+        letter-spacing: -0.1px;
+        margin-bottom: 16px;
+      }
+
+      /* ── 타임라인 ── */
+      .timeline {
+        position: relative;
+        padding-left: 30px;
+      }
+      .timeline::before {
+        content: "";
+        position: absolute;
+        left: 11px;
+        top: 16px;
+        bottom: 16px;
+        width: 1.5px;
+        background: repeating-linear-gradient(
+          to bottom,
+          rgba(0, 0, 0, 0.08) 0,
+          rgba(0, 0, 0, 0.08) 4px,
+          transparent 4px,
+          transparent 7px
+        );
+      }
+      .timeline__spot {
+        position: relative;
+        margin-bottom: 0;
+      }
+      .timeline__dot {
+        position: absolute;
+        left: -30px;
+        top: 24px;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        background: var(--color-brand);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        font-weight: 600;
+        color: #fff;
+        z-index: 2;
+      }
+      .spot-card {
+        border-radius: var(--radius-card);
+        background: var(--color-surface);
+        padding: 12px;
+        display: flex;
+        gap: 12px;
+        position: relative;
+        transition: transform 0.15s;
+      }
+      .spot-card:active {
+        transform: scale(0.98);
+      }
+      .spot-card__thumb {
+        width: 72px;
+        height: 72px;
+        border-radius: 10px;
+        flex-shrink: 0;
+      }
+      .spot-card__info {
+        flex: 1;
+        min-width: 0;
+        padding-right: 36px; /* 드래그·삭제 버튼 겹침 방지 */
+      }
+      .spot-card__name-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 3px;
+      }
+      .spot-card__name {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--color-text-primary);
+        letter-spacing: -0.2px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        flex: 1;
+        min-width: 0;
+      }
+      .spot-card__loc {
+        font-size: 12px;
+        color: rgba(0, 0, 0, 0.4);
+        margin-bottom: 8px;
+      }
+      .spot-card__time {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        color: rgba(0, 0, 0, 0.5);
+        margin-bottom: 8px;
+      }
+      .spot-card__time svg {
+        flex-shrink: 0;
+      }
+      .spot-card__time span {
+        color: rgba(0, 0, 0, 0.25);
+        margin-left: 4px;
+      }
+      /* ── 점수: pill 스타일 ── */
+      .spot-card__score {
+        display: inline-flex;
+        align-items: center;
+        height: 24px;
+        padding: 0 10px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+        color: #fff;
+      }
+
+      .spot-card__drag {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        cursor: grab;
+        padding: 8px 4px;
+      }
+      .spot-card__drag span {
+        display: block;
+        width: 14px;
+        height: 1.5px;
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 1px;
+      }
+      .timeline__transport {
+        display: flex;
+        align-items: center;
+        margin: 0;
+        padding: 10px 0;
+        position: relative;
+      }
+      .transport-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        height: 32px;
+        padding: 0 14px;
+        border-radius: 16px;
+        background: #fff;
+        border: 0.5px solid rgba(0, 0, 0, 0.06);
+        font-size: 12px;
+        color: rgba(0, 0, 0, 0.45);
+      }
+      .transport-pill svg {
+        flex-shrink: 0;
+        color: rgba(0, 0, 0, 0.3);
+      }
+      .add-card {
+        border: 1px dashed rgba(0, 0, 0, 0.08);
+        border-radius: var(--radius-card);
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        color: rgba(0, 0, 0, 0.25);
+        cursor: pointer;
+        transition: all 0.2s;
+      }
+      .add-card:hover {
+        background: rgba(227, 27, 89, 0.03);
+        border-color: var(--color-brand);
+        color: var(--color-brand);
+      }
+
+      /* ── 팁 배너 ── */
+      .tip-banner {
+        display: flex;
+        gap: 12px;
+        padding: 16px;
+        border-radius: var(--radius-card);
+        background: var(--color-surface);
+        margin-top: 24px;
+      }
+      .tip-banner__icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        background: rgba(255, 159, 10, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      .tip-banner__title {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--color-text-primary);
+        letter-spacing: -0.15px;
+        margin-bottom: 4px;
+      }
+      .tip-banner__desc {
+        font-size: 12px;
+        color: rgba(0, 0, 0, 0.4);
+        line-height: 1.5;
+      }
+
+      /* ── 섹션 ── */
+      .section {
+        margin-top: 28px;
+      }
+      .section__header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 12px;
+      }
+      .section__title {
+        font-size: 18px;
+        font-weight: 600;
+        color: var(--color-text-primary);
+        letter-spacing: -0.3px;
+      }
+      .section__link {
+        font-size: 13px;
+        color: var(--color-link);
+        text-decoration: none;
+      }
+
+      /* ── 날씨 ── */
+      .weather-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+      }
+      .weather-cell {
+        padding: 12px 14px;
+        border-radius: 12px;
+        background: var(--color-surface);
+        position: relative;
+      }
+      .weather-cell__period {
+        font-size: 11px;
+        color: rgba(0, 0, 0, 0.35);
+        margin-bottom: 6px;
+      }
+      .weather-cell__temp {
+        font-size: 20px;
+        font-weight: 600;
+        color: var(--color-text-primary);
+        margin-bottom: 2px;
+      }
+      .weather-cell__desc {
+        font-size: 11px;
+        color: rgba(0, 0, 0, 0.35);
+      }
+      .weather-cell__icon {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+      }
+
+      /* ── 미니맵 ── */
+      .mini-map {
+        height: 140px;
+        border-radius: var(--radius-card);
+        background: #e8e8ed;
+        position: relative;
+        overflow: hidden;
+      }
+      .mini-map__grid {
+        position: absolute;
+        inset: 0;
+      }
+      .mini-map__grid line {
+        stroke: rgba(0, 0, 0, 0.03);
+        stroke-width: 0.5;
+      }
+      .mini-map__route {
+        position: absolute;
+        inset: 0;
+      }
+      .mini-map__pin {
+        position: absolute;
+        transform: translate(-50%, -50%);
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: var(--color-brand);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 9px;
+        font-weight: 600;
+        color: #fff;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+      }
+
+      /* ── 하단 CTA ── */
+      .bottom-cta {
+        display: flex;
+        gap: 12px;
+        padding: 20px;
+        margin-top: 28px;
+        border-top: 0.5px solid rgba(0, 0, 0, 0.06);
+      }
+      .btn {
+        flex: 1;
+        height: 52px;
+        border-radius: var(--radius-btn);
+        border: none;
+        font-family: var(--font-family);
+        font-size: 16px;
+        font-weight: 500;
+        letter-spacing: -0.2px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .btn:active {
+        transform: scale(0.98);
+      }
+      .btn--secondary {
+        background: var(--color-surface);
+        color: var(--color-text-primary);
+      }
+      .btn--secondary:hover {
+        background: rgba(0, 0, 0, 0.06);
+      }
+      .btn--primary {
+        background: var(--color-brand);
+        color: #fff;
+      }
+      .btn--primary:hover {
+        opacity: 0.88;
+      }
+
+      @media (max-width: 390px) {
+        .phone-frame {
+          width: 100%;
+        }
+      }
+      @media (min-width: 391px) {
+        body {
+          padding: 20px 0;
+        }
+        .phone-frame {
+          border-radius: 40px;
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+          height: calc(100dvh - 40px);
+          overflow-y: auto;
+          overflow-x: hidden;
+        }
+      }
+    
+      /* ── 스크롤바 숨김 ── */
+      * { scrollbar-width: none; -ms-overflow-style: none; }
+      *::-webkit-scrollbar { display: none; }
+
+      /* 코스 편집 모드 */
+      .spot-card.is-editing { cursor: default !important; }
+      .spot-card__del { width: 32px; height: 32px; border-radius: 50%; border: none; background: rgba(0,0,0,0.06); cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: rgba(0,0,0,0.4); transition: background 0.15s; }
+      .spot-card__del:hover { background: rgba(227,27,89,0.1); color: #e31b59; }
+
+      /* ── 바텀시트 (바로 출발) ── */
+      .sheet-backdrop {
+        position: fixed;
+        top: 0; bottom: 0;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 390px;
+        background: rgba(0,0,0,0.4);
+        z-index: 100;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.28s ease;
+      }
+      .sheet-backdrop.is-open { opacity: 1; pointer-events: auto; }
+      @media (min-width: 391px) {
+        .sheet-backdrop { top: 20px; bottom: 20px; border-radius: 40px; }
+      }
+      .bottom-sheet {
+        position: fixed;
+        left: 50%; bottom: 0;
+        transform: translateX(-50%) translateY(100%);
+        width: 390px;
+        background: #fff;
+        border-radius: 24px 24px 0 0;
+        z-index: 101;
+        transition: transform 0.32s cubic-bezier(0.32,0.72,0,1);
+        max-height: 80dvh;
+        display: flex;
+        flex-direction: column;
+      }
+      .bottom-sheet.is-open { transform: translateX(-50%) translateY(0); }
+      @media (min-width: 391px) {
+        .bottom-sheet { bottom: 20px; border-radius: 24px; }
+      }
+      .sheet-handle {
+        width: 36px; height: 4px;
+        border-radius: 2px;
+        background: rgba(0,0,0,0.12);
+        margin: 10px auto 0;
+        flex-shrink: 0;
+      }
+      .sheet-header { padding: 16px 20px 12px; flex-shrink: 0; }
+      .sheet-title { font-size: 18px; font-weight: 600; color: #000; letter-spacing: -0.35px; }
+      .sheet-body { overflow-y: auto; flex: 1; padding: 0 20px; }
+      .sheet-footer { padding: 12px 20px 28px; flex-shrink: 0; }
+      .sheet-btn-primary {
+        width: 100%; height: 52px;
+        border-radius: 26px; border: none;
+        background: var(--color-accent); color: #fff;
+        font-family: var(--font-family);
+        font-size: 16px; font-weight: 500;
+        letter-spacing: -0.2px;
+        cursor: pointer;
+        transition: background 0.15s, transform 0.1s;
+      }
+      .sheet-btn-primary:hover { background: var(--color-accent-hover); }
+      .sheet-btn-primary:active { transform: scale(0.98); }
+
+      /* 바로 출발 시트 내부 */
+      .navi-route-card {
+        padding: 16px;
+        border-radius: 14px;
+        background: var(--color-surface);
+        margin-bottom: 10px;
+      }
+      .navi-route-row { display: flex; align-items: flex-start; gap: 12px; }
+      .navi-route-col { width: 16px; display: flex; justify-content: center; padding-top: 3px; flex-shrink: 0; }
+      .navi-route-dot {
+        width: 14px; height: 14px;
+        border-radius: 50%;
+        display: flex; align-items: center; justify-content: center;
+      }
+      .navi-route-dot__inner { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.9); }
+      .navi-route-line { width: 1.5px; height: 20px; background: rgba(0,0,0,0.12); margin: 4px auto; }
+      .navi-route-text__main { font-size: 14px; font-weight: 500; color: #000; letter-spacing: -0.15px; }
+      .navi-route-text__sub { font-size: 12px; color: rgba(0,0,0,0.4); margin-top: 2px; }
+      .navi-time-card {
+        display: flex; align-items: center; gap: 12px;
+        padding: 14px 16px;
+        border-radius: 14px;
+        background: var(--color-surface);
+        margin-bottom: 20px;
+      }
+      .navi-time-icon { width: 36px; height: 36px; border-radius: 10px; background: rgba(227,27,89,0.08); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+      .navi-time-text { font-size: 14px; font-weight: 500; color: #000; letter-spacing: -0.15px; }
+      .navi-time-sub { font-size: 12px; color: rgba(0,0,0,0.4); margin-top: 2px; }
+      .navi-apps-label { font-size: 13px; font-weight: 600; color: rgba(0,0,0,0.4); letter-spacing: -0.1px; margin-bottom: 12px; }
+      .navi-apps { display: flex; gap: 12px; }
+      .navi-app-btn {
+        flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px;
+        border: none; background: none; cursor: pointer; padding: 0;
+      }
+      .navi-app-btn:active { opacity: 0.7; }
+      .navi-app-icon { width: 56px; height: 56px; border-radius: 16px; display: flex; align-items: center; justify-content: center; }
+      .navi-app-name { font-size: 12px; font-weight: 500; color: rgba(0,0,0,0.55); letter-spacing: -0.1px; }
+
+      /* 드래그 리오더 */
+      .timeline__spot[draggable="true"] { touch-action: none; }
+      .timeline__spot[draggable="true"] .spot-card { cursor: default; }
+      .timeline__spot[draggable="true"] .spot-card:hover { transform: none; }
+      .timeline__spot.is-dragging { opacity: 0.3; pointer-events: none; }
+      .timeline__spot.is-drag-over .spot-card {
+        background: rgba(227,27,89,0.05);
+        outline: 1.5px dashed rgba(227,27,89,0.28);
+      }
+      .spot-card__drag { cursor: grab; }
+      .spot-card__drag:active { cursor: grabbing; }
+
+      /* 스팟 추가 (편집 모드에서만) */
+      .timeline__add { margin-top: 12px; }
+</style>
+  </head>
+  <body>
+    <div class="phone-frame">
+      <!-- 상태바 -->
+      <div class="status-bar">
+        <span class="status-bar__time">9:41</span>
+        <div class="dynamic-island"></div>
+        <div class="status-bar__icons">
+          <svg viewBox="0 0 18 12">
+            <rect x="0" y="9" width="3" height="3" rx=".75" />
+            <rect x="4.5" y="6" width="3" height="6" rx=".75" />
+            <rect x="9" y="3" width="3" height="9" rx=".75" />
+            <rect x="13.5" y="0" width="3" height="12" rx=".75" />
+          </svg>
+          <svg viewBox="0 0 16 14" fill="none" stroke="#000" stroke-width="1.3" stroke-linecap="round">
+            <path d="M5 10.5A4 4 0 0 1 11 10.5" />
+            <path d="M2.5 7A8 8 0 0 1 13.5 7" />
+            <circle cx="8" cy="13" r="1.2" fill="#000" stroke="none" />
+          </svg>
+          <svg viewBox="0 0 28 14">
+            <rect x="0" y="0" width="25" height="12" rx="3.5" fill="none" stroke="rgba(0,0,0,0.3)" stroke-width="1" />
+            <rect x="1.5" y="1.5" width="20" height="9" rx="2" fill="#000" />
+          </svg>
+        </div>
+      </div>
+
+      <!-- 출사 네비 바 -->
+      <div class="trip-nav">
+        <button class="trip-nav__back" onclick="location.href='./travel-list.html'" aria-label="뒤로가기">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="rgba(0,0,0,0.6)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="11,3 5,9 11,15" />
+          </svg>
+        </button>
+        <div class="trip-nav__info">
+          <span class="trip-nav__title">부산 1박 2일</span>
+          <span class="trip-nav__date">2026.05.17 (토) ~ 05.18 (일)</span>
+        </div>
+        <div class="trip-nav__actions">
+          <!-- 공유 -->
+          <button class="trip-nav__action" aria-label="공유">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M15 8l-5-6-5 6M10 2v12"/><path d="M4 14v3a1 1 0 001 1h10a1 1 0 001-1v-3"/>
+            </svg>
+          </button>
+          <!-- 지도 전체보기 -->
+          <button class="trip-nav__action" aria-label="지도 전체보기">
+            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="1,4 7,2 13,4 19,2 19,16 13,18 7,16 1,18"/>
+              <line x1="7" y1="2" x2="7" y2="16"/><line x1="13" y1="4" x2="13" y2="18"/>
+            </svg>
+          </button>
+          <!-- 더보기 -->
+          <button class="trip-nav__action" aria-label="더보기">
+            <svg width="16" height="4" viewBox="0 0 16 4">
+              <circle cx="2" cy="2" r="1.5" fill="rgba(0,0,0,0.5)" />
+              <circle cx="8" cy="2" r="1.5" fill="rgba(0,0,0,0.5)" />
+              <circle cx="14" cy="2" r="1.5" fill="rgba(0,0,0,0.5)" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- 지도 헤더 -->
+      <div class="trip-map">
+        <!-- 캔버스 배경 -->
+        <div class="trip-map__canvas">
+          <svg class="trip-map__grid" width="100%" height="100%">
+            <line x1="0" y1="70" x2="100%" y2="70"/><line x1="0" y1="140" x2="100%" y2="140"/>
+            <line x1="78" y1="0" x2="78" y2="100%"/><line x1="156" y1="0" x2="156" y2="100%"/>
+            <line x1="234" y1="0" x2="234" y2="100%"/><line x1="312" y1="0" x2="312" y2="100%"/>
+          </svg>
+          <!-- 건물 블록 -->
+          <div class="trip-map__block" style="left:8px;top:10px;width:55px;height:36px"></div>
+          <div class="trip-map__block" style="left:72px;top:8px;width:48px;height:44px"></div>
+          <div class="trip-map__block" style="left:132px;top:14px;width:60px;height:32px"></div>
+          <div class="trip-map__block" style="left:206px;top:10px;width:50px;height:42px"></div>
+          <div class="trip-map__block" style="left:268px;top:8px;width:64px;height:36px"></div>
+          <div class="trip-map__block" style="left:344px;top:12px;width:40px;height:40px"></div>
+          <div class="trip-map__block" style="left:8px;top:110px;width:52px;height:40px"></div>
+          <div class="trip-map__block" style="left:74px;top:108px;width:58px;height:34px"></div>
+          <div class="trip-map__block" style="left:144px;top:112px;width:44px;height:46px"></div>
+          <div class="trip-map__block" style="left:204px;top:106px;width:66px;height:38px"></div>
+          <div class="trip-map__block" style="left:284px;top:110px;width:50px;height:42px"></div>
+          <div class="trip-map__block" style="left:346px;top:108px;width:38px;height:36px"></div>
+          <!-- 도로 -->
+          <svg class="trip-map__roads" width="100%" height="100%">
+            <path class="road-main" d="M0 78Q100 72 195 76Q290 80 390 74"/>
+            <path class="road-main" d="M156 0Q150 55 156 110Q162 165 150 210"/>
+            <path class="road-sub" d="M0 148Q100 142 195 146Q290 150 390 144"/>
+            <path class="road-sub" d="M78 0Q72 55 78 110Q84 165 72 210"/>
+            <path class="road-sub" d="M312 0Q306 55 312 110Q318 165 306 210"/>
+          </svg>
+        </div>
+
+        <!-- 루트 선 -->
+        <svg class="trip-map__route" width="100%" height="100%">
+          <!-- Day 1 경로 -->
+          <polyline id="route-day1"
+            points="68,155 140,52 230,88 310,160 260,48"
+            fill="none"
+            stroke="#f59e0b"
+            stroke-width="2.5"
+            stroke-dasharray="5 4"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            opacity="0.85"
+          />
+          <!-- Day 2 경로 -->
+          <polyline id="route-day2"
+            points="55,105 175,140 290,80 340,130"
+            fill="none"
+            stroke="#3b82f6"
+            stroke-width="2.5"
+            stroke-dasharray="5 4"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            opacity="0.85"
+          />
+        </svg>
+
+        <!-- Day 1 핀 -->
+        <div class="trip-pin trip-pin--day1" data-day="1" style="left:68px;top:155px">1</div>
+        <div class="trip-pin trip-pin--day1" data-day="1" style="left:140px;top:52px">2</div>
+        <div class="trip-pin trip-pin--day1 is-focus" data-day="1" style="left:230px;top:88px">3</div>
+        <div class="trip-pin trip-pin--day1" data-day="1" style="left:310px;top:160px">4</div>
+        <div class="trip-pin trip-pin--day1" data-day="1" style="left:260px;top:48px">5</div>
+
+        <!-- Day 2 핀 -->
+        <div class="trip-pin trip-pin--day2" data-day="2" style="left:55px;top:105px">1</div>
+        <div class="trip-pin trip-pin--day2" data-day="2" style="left:175px;top:140px">2</div>
+        <div class="trip-pin trip-pin--day2" data-day="2" style="left:290px;top:80px">3</div>
+        <div class="trip-pin trip-pin--day2" data-day="2" style="left:340px;top:130px">4</div>
+
+        <!-- 범례 -->
+        <div class="map-legend">
+          <div class="map-legend__item" id="legend-day1">
+            <div class="map-legend__dot" style="background:var(--day-1)"></div>DAY 1
+          </div>
+          <div class="map-legend__item" id="legend-day2">
+            <div class="map-legend__dot" style="background:var(--day-2)"></div>DAY 2
+          </div>
+        </div>
+      </div>
+
+      <!-- 드래그 핸들 -->
+      <div class="trip-map__handle"></div>
+
+      <div class="content">
+        <!-- 출사 요약 (통계) -->
+        <div class="trip-summary">
+          <div class="trip-summary__stats">
+            <div class="trip-stat">
+              <div class="trip-stat__icon">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 14 14"
+                  fill="none"
+                  stroke="#e31b59"
+                  stroke-width="1.1"
+                  stroke-linecap="round"
+                >
+                  <path
+                    d="M7 1C4.2 1 2 3.2 2 6C2 9.5 7 13 7 13S12 9.5 12 6C12 3.2 9.8 1 7 1Z"
+                  />
+                  <circle cx="7" cy="6" r="2" />
+                </svg>
+              </div>
+              <div>
+                <div class="trip-stat__num">5곳</div>
+                <div class="trip-stat__label">포토스팟</div>
+              </div>
+            </div>
+            <div class="trip-stat">
+              <div class="trip-stat__icon">
+                <svg
+                  width="14"
+                  height="12"
+                  viewBox="0 0 14 12"
+                  fill="none"
+                  stroke="#e31b59"
+                  stroke-width="1"
+                >
+                  <rect x="0" y="3" width="14" height="6" rx="2" />
+                  <circle cx="3.5" cy="9" r="1.3" fill="#e31b59" />
+                  <circle cx="10.5" cy="9" r="1.3" fill="#e31b59" />
+                </svg>
+              </div>
+              <div>
+                <div class="trip-stat__num">142km</div>
+                <div class="trip-stat__label">총 이동거리</div>
+              </div>
+            </div>
+            <div class="trip-stat">
+              <div class="trip-stat__icon">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 14 14"
+                  fill="none"
+                  stroke="#e31b59"
+                  stroke-width="1"
+                >
+                  <circle cx="7" cy="7" r="6" />
+                  <polyline
+                    points="7,3.5 7,7 9.5,9"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  />
+                </svg>
+              </div>
+              <div>
+                <div class="trip-stat__num">12시간</div>
+                <div class="trip-stat__label">예상 소요</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 데이 탭 -->
+        <div class="day-tabs">
+          <button class="day-tab is-active" data-day="1" onclick="selectDay(this)">
+            <span class="day-tab__dot" style="background:var(--day-1)"></span>DAY 1
+          </button>
+          <button class="day-tab" data-day="2" onclick="selectDay(this)">
+            <span class="day-tab__dot" style="background:var(--day-2)"></span>DAY 2
+          </button>
+          <button class="day-tab day-tab--add">+</button>
+        </div>
+        <div class="day-date">5월 17일 토요일</div>
+
+        <!-- 타임라인 -->
+        <div class="timeline" id="spotTimeline"></div>
+
+        <!-- 팁 배너 -->
+        <div class="tip-banner">
+          <div class="tip-banner__icon">
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 14 14"
+              fill="none"
+              stroke="#ff9f0a"
+              stroke-width="1.2"
+            >
+              <circle cx="7" cy="7" r="6" />
+              <line x1="7" y1="5.5" x2="7" y2="8" stroke-linecap="round" />
+              <circle cx="7" cy="10" r="0.6" fill="#ff9f0a" />
+            </svg>
+          </div>
+          <div>
+            <div class="tip-banner__title">오늘의 촬영 팁</div>
+            <div class="tip-banner__desc">
+              광안리 일출 시간 05:32 · 골든아워 06:00~06:40<br />미세먼지 좋음 ·
+              일출 포인트로 이동 추천
+            </div>
+          </div>
+        </div>
+
+        <!-- 날씨 -->
+        <div class="section">
+          <div class="section__header">
+            <h3 class="section__title" id="weatherTitle">DAY 1 날씨</h3>
+          </div>
+          <div class="weather-row">
+            <div class="weather-cell">
+              <div class="weather-cell__period">오전</div>
+              <div class="weather-cell__temp">18°</div>
+              <div class="weather-cell__desc">맑음</div>
+              <div class="weather-cell__icon">
+                <img src="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/clear-day.svg" width="20" height="20" alt="맑음" draggable="false">
+              </div>
+            </div>
+            <div class="weather-cell">
+              <div class="weather-cell__period">오후</div>
+              <div class="weather-cell__temp">24°</div>
+              <div class="weather-cell__desc">구름 조금</div>
+              <div class="weather-cell__icon">
+                <img src="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/partly-cloudy-day.svg" width="20" height="20" alt="구름 조금" draggable="false">
+              </div>
+            </div>
+            <div class="weather-cell">
+              <div class="weather-cell__period">저녁</div>
+              <div class="weather-cell__temp">20°</div>
+              <div class="weather-cell__desc">맑음</div>
+              <div class="weather-cell__icon">
+                <img src="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/clear-night.svg" width="20" height="20" alt="맑음(야간)" draggable="false">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 이동 경로 -->
+        <div class="section">
+          <div class="section__header">
+            <h3 class="section__title">이동 경로</h3>
+            <a href="../home/map.html#view/1" id="viewOnMapLink" class="section__link">지도에서 보기</a>
+          </div>
+          <div class="mini-map" id="miniMap">
+            <svg class="mini-map__grid" width="100%" height="100%">
+              <line x1="0" y1="47" x2="100%" y2="47" />
+              <line x1="0" y1="94" x2="100%" y2="94" />
+              <line x1="33%" y1="0" x2="33%" y2="100%" />
+              <line x1="66%" y1="0" x2="66%" y2="100%" />
+            </svg>
+            <svg class="mini-map__route" id="miniMapRoute" width="100%" height="100%"></svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- 하단 CTA -->
+      <div class="bottom-cta" id="planCta">
+        <button class="btn btn--secondary" onclick="toggleEditMode()">코스 편집</button>
+        <button class="btn btn--primary" onclick="openNaviSheet()">출발하기</button>
+      </div>
+
+      <!-- ======= 바로 출발 바텀시트 ======= -->
+      <div class="sheet-backdrop" id="naviBackdrop" onclick="closeNaviSheet()"></div>
+      <div class="bottom-sheet" id="naviSheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-header">
+          <div class="sheet-title">바로 출발</div>
+        </div>
+        <div class="sheet-body">
+          <!-- 경로 카드 -->
+          <div class="navi-route-card">
+            <div class="navi-route-row">
+              <div class="navi-route-col">
+                <div class="navi-route-dot" style="background:#34C759"><div class="navi-route-dot__inner"></div></div>
+              </div>
+              <div>
+                <div class="navi-route-text__main" style="color:rgba(0,0,0,0.4);font-weight:400">현재 위치</div>
+              </div>
+            </div>
+            <div class="navi-route-row" style="padding-left:7px">
+              <div class="navi-route-line"></div>
+            </div>
+            <div class="navi-route-row">
+              <div class="navi-route-col">
+                <div class="navi-route-dot" style="background:var(--color-accent)"><div class="navi-route-dot__inner"></div></div>
+              </div>
+              <div>
+                <div class="navi-route-text__main" id="naviDestName">광안리 해수욕장</div>
+                <div class="navi-route-text__sub" id="naviDestAddr">부산광역시 수영구 광안해변로 219</div>
+              </div>
+            </div>
+          </div>
+          <!-- 소요 시간 -->
+          <div class="navi-time-card">
+            <div class="navi-time-icon">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="rgba(0,0,0,0.5)" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="10" cy="10" r="7.5"/><polyline points="10,6 10,10 12.5,12"/>
+              </svg>
+            </div>
+            <div>
+              <div class="navi-time-text" id="naviTimeText">첫 번째 스팟까지 차로 약 18분</div>
+              <div class="navi-time-sub">실시간 교통 기준</div>
+            </div>
+          </div>
+          <!-- 앱 선택 -->
+          <div class="navi-apps-label">길 안내 앱 선택</div>
+          <div class="navi-apps">
+            <button class="navi-app-btn" onclick="launchNavi('kakao')">
+              <div class="navi-app-icon" style="background:#FEE500">
+                <svg width="30" height="20" viewBox="0 0 30 20" fill="none">
+                  <path d="M15 1.5C8.6 1.5 3.5 5.6 3.5 10.7C3.5 14 5.5 16.9 8.5 18.7L7 24L13.5 19.8C14 19.9 14.5 20 15 20C21.4 20 26.5 15.9 26.5 10.7C26.5 5.6 21.4 1.5 15 1.5Z" fill="#3C1E1E"/>
+                </svg>
+              </div>
+              <span class="navi-app-name">카카오맵</span>
+            </button>
+            <button class="navi-app-btn" onclick="launchNavi('naver')">
+              <div class="navi-app-icon" style="background:#03C75A">
+                <svg width="20" height="20" viewBox="0 0 26 26" fill="none">
+                  <path d="M7 7H11L14.5 13V7H18V19H14L10.5 13V19H7V7Z" fill="white"/>
+                </svg>
+              </div>
+              <span class="navi-app-name">네이버 지도</span>
+            </button>
+            <button class="navi-app-btn" onclick="launchNavi('apple')">
+              <div class="navi-app-icon" style="background:#E8E8ED">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="12" r="8" stroke="rgba(0,0,0,0.18)" stroke-width="0.8"/>
+                  <line x1="12" y1="4" x2="12" y2="6" stroke="#0071E3" stroke-width="1.4" stroke-linecap="round"/>
+                  <circle cx="12" cy="12.5" r="2.2" fill="#FF453A"/>
+                </svg>
+              </div>
+              <span class="navi-app-name">Apple 지도</span>
+            </button>
+          </div>
+          <div style="height:4px"></div>
+        </div>
+        <div class="sheet-footer">
+          <button class="sheet-btn-primary" onclick="launchNaviDefault()">바로 출발</button>
+        </div>
+      </div>
+
+    </div>
+
+    <script>
+      var dayColors = { '1': '#f59e0b', '2': '#3b82f6' };
+      var currentDay = '1';
+      var isEditMode = false;
+
+      /* ── Day별 데이터 ── */
+      var dayData = {
+        '1': {
+          date: '5월 17일 토요일',
+          tip: '광안리 일출 시간 05:32 · 골든아워 06:00~06:40<br>미세먼지 좋음 · 일출 포인트로 이동 추천',
+          spots: [
+            { name: '광안리 해수욕장', loc: '부산 수영구 · 야경/바다', time: '06:30 ~ 08:00', dur: '1시간 30분', score: '87점', bg: 'linear-gradient(150deg,#0f2027,#2c5364)' },
+            { name: '해동용궁사', loc: '부산 기장군 · 한옥/바다', time: '09:00 ~ 10:30', dur: '1시간 30분', score: '82점', bg: 'linear-gradient(150deg,#232526,#8e7b5a)' },
+            { name: '감천문화마을', loc: '부산 사하구 · 인물/감성', time: '11:00 ~ 13:00', dur: '2시간', score: '79점', bg: 'linear-gradient(150deg,#1a1530,#b44a3a)' }
+          ],
+          transports: [
+            { type: 'car', label: '차량 25분 · 18km' },
+            { type: 'walk', label: '도보 12분· 0.8km' }
+          ],
+          miniMap: {
+            route: '60,105 160,62 290,95',
+            pins: [{ x: '17%', y: '75%', n: 1 }, { x: '46%', y: '45%', n: 2 }, { x: '80%', y: '68%', n: 3 }]
+          }
+        },
+        '2': {
+          date: '5월 18일 일요일',
+          tip: '영도 일몰 시간 19:22 · 골든아워 18:40~19:22<br>미세먼지 보통 · 흰여울마을 오전 방문 추천',
+          spots: [
+            { name: '흰여울문화마을', loc: '부산 영도구 · 뷰/감성', time: '09:30 ~ 11:00', dur: '1시간 30분', score: '91점', bg: 'linear-gradient(150deg,#667eea,#764ba2)' },
+            { name: '태종대 유원지', loc: '부산 영도구 · 바다/절벽', time: '11:30 ~ 13:30', dur: '2시간', score: '88점', bg: 'linear-gradient(150deg,#1a6b8a,#56ccf2)' }
+          ],
+          transports: [
+            { type: 'car', label: '차량 15분 · 7km' }
+          ],
+          miniMap: {
+            route: '75,88 275,46',
+            pins: [{ x: '22%', y: '63%', n: 1 }, { x: '77%', y: '33%', n: 2 }]
+          }
+        }
+      };
+
+      /* ── SVG 아이콘 ── */
+      var icons = {
+        clock: '<svg width="20" height="20" viewBox="0 0 12 12" fill="none" stroke="rgba(0,0,0,0.3)" stroke-width="1"><circle cx="6" cy="6" r="5"/><polyline points="6,3 6,6 8,7.5" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+        car: '<svg width="14" height="10" viewBox="0 0 14 10" fill="none" stroke="currentColor" stroke-width="0.9"><rect x="0" y="2" width="14" height="5.5" rx="1.5"/><circle cx="3.5" cy="7.5" r="1.2" fill="rgba(0,0,0,0.25)" stroke="none"/><circle cx="10.5" cy="7.5" r="1.2" fill="rgba(0,0,0,0.25)" stroke="none"/></svg>',
+        walk: '<svg width="10" height="16" viewBox="0 0 10 16" fill="none" stroke="currentColor" stroke-width="0.9" stroke-linecap="round"><circle cx="5" cy="2.5" r="2"/><line x1="5" y1="5" x2="5" y2="10.5"/><line x1="2" y1="7.5" x2="8" y2="7.5"/><line x1="5" y1="10.5" x2="2.5" y2="14.5"/><line x1="5" y1="10.5" x2="7.5" y2="14.5"/></svg>',
+        drag: '<div class="spot-card__drag"><span></span><span></span><span></span></div>'
+      };
+
+      /* ── 점수 → 색상 ── */
+      function scoreColor(scoreStr) {
+        var n = parseInt(scoreStr);
+        if (n >= 90) return '#e31b59';
+        if (n >= 80) return '#ff9f0a';
+        if (n >= 70) return '#34c759';
+        return 'rgba(0,0,0,0.45)';
+      }
+
+      function scoreHtml(scoreStr) {
+        return '<div class="spot-card__score" style="background:' + scoreColor(scoreStr) + '">' + scoreStr + '</div>';
+      }
+
+      /* ── 타임라인 렌더링 ── */
+      function renderTimeline(d) {
+        var data = dayData[d];
+        var color = dayColors[d];
+        var html = '';
+        data.spots.forEach(function(spot, i) {
+          var rightSlot = isEditMode
+            ? '<button class="spot-card__del" onclick="deleteSpotFromDay(\'' + d + '\',' + i + ')"><svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="1.5" y1="1.5" x2="9.5" y2="9.5"/><line x1="9.5" y1="1.5" x2="1.5" y2="9.5"/></svg></button>'
+            : icons.drag;
+
+          // 드래그 속성은 노멀 모드(핸들 표시될 때)에만 활성화
+          var dndAttrs = !isEditMode
+            ? ' draggable="true"'
+              + ' ondragstart="dndStart(event,\'' + d + '\',' + i + ')"'
+              + ' ondragover="dndOver(event)"'
+              + ' ondragleave="dndLeave(event)"'
+              + ' ondrop="dndDrop(event,\'' + d + '\',' + i + ')"'
+              + ' ondragend="dndEnd(event)"'
+            : '';
+
+          html += '<div class="timeline__spot"' + dndAttrs + '>'
+            + '<div class="timeline__dot" style="background:' + color + '">' + (i + 1) + '</div>'
+            + '<div class="spot-card' + (isEditMode ? ' is-editing' : '') + '" onclick="' + (isEditMode ? '' : 'location.href=\'../spot/spot-detail.html#from=travel\'') + '" style="cursor:' + (isEditMode ? 'default' : 'pointer') + '">'
+            + '<div class="spot-card__thumb" style="background:' + spot.bg + '"></div>'
+            + '<div class="spot-card__info">'
+            + '<div class="spot-card__name-row"><div class="spot-card__name">' + spot.name + '</div>' + scoreHtml(spot.score) + '</div>'
+            + '<div class="spot-card__loc">' + spot.loc + '</div>'
+            + '<div class="spot-card__time">' + icons.clock + spot.time + '<span>' + spot.dur + '</span></div>'
+            + '</div>' + rightSlot + '</div></div>';
+          if (i < data.transports.length) {
+            var t = data.transports[i];
+            html += '<div class="timeline__transport"><div class="transport-pill">' + icons[t.type] + t.label + '</div></div>';
+          }
+        });
+        // 스팟 추가 버튼은 편집 모드에서만 표시
+        if (isEditMode) {
+          html += '<div class="timeline__add"><div class="add-card" onclick="location.href=\'../home/map.html#plan\'">+ 스팟 추가하기</div></div>';
+        }
+        document.getElementById('spotTimeline').innerHTML = html;
+      }
+
+      /* ── 드래그 & 드롭 ── */
+      var _dragDay = null;
+      var _dragSrcIdx = -1;
+
+      function dndStart(e, d, idx) {
+        _dragDay = d;
+        _dragSrcIdx = idx;
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', idx); // Firefox 필수
+        // 약간의 딜레이 후 페이드 처리 (ghost 이미지 생성 후)
+        var el = e.currentTarget;
+        setTimeout(function() { el.classList.add('is-dragging'); }, 0);
+      }
+
+      function dndOver(e) {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        e.currentTarget.classList.add('is-drag-over');
+      }
+
+      function dndLeave(e) {
+        // 자식 요소로 이동할 때 false positive 방지
+        if (!e.currentTarget.contains(e.relatedTarget)) {
+          e.currentTarget.classList.remove('is-drag-over');
+        }
+      }
+
+      function dndDrop(e, d, targetIdx) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.currentTarget.classList.remove('is-drag-over');
+        if (_dragSrcIdx === -1 || _dragSrcIdx === targetIdx) return;
+        var spots = dayData[d].spots;
+        var moved = spots.splice(_dragSrcIdx, 1)[0];
+        spots.splice(targetIdx, 0, moved);
+        // transport는 스팟 수 - 1 개이므로 재정렬 불필요 (순서대로 대응)
+        _dragSrcIdx = -1;
+        _dragDay = null;
+        renderTimeline(d);
+      }
+
+      function dndEnd(e) {
+        document.querySelectorAll('.timeline__spot').forEach(function(el) {
+          el.classList.remove('is-drag-over');
+          el.classList.remove('is-dragging');
+        });
+        _dragSrcIdx = -1;
+        _dragDay = null;
+      }
+
+      /* ── 미니맵 렌더링 ── */
+      function renderMiniMap(d) {
+        var mm = dayData[d].miniMap;
+        var color = dayColors[d];
+        var routeSvg = '<polyline points="' + mm.route + '" fill="none" stroke="' + color + '" stroke-width="2.5" stroke-linecap="round" stroke-dasharray="6 4"/>';
+        document.getElementById('miniMapRoute').innerHTML = routeSvg;
+        var container = document.getElementById('miniMap');
+        container.querySelectorAll('.mini-map__pin').forEach(function(p) { p.remove(); });
+        mm.pins.forEach(function(pin) {
+          var el = document.createElement('div');
+          el.className = 'mini-map__pin';
+          el.style.cssText = 'left:' + pin.x + ';top:' + pin.y + ';background:' + color;
+          el.textContent = pin.n;
+          container.appendChild(el);
+        });
+      }
+
+      /* ── 탭 선택 ── */
+      function selectDay(el) {
+        document.querySelectorAll('.day-tab:not(.day-tab--add)').forEach(function(t) {
+          t.classList.remove('is-active');
+        });
+        el.classList.add('is-active');
+        var d = el.dataset.day;
+        currentDay = d;
+
+        // 날짜
+        document.querySelector('.day-date').textContent = dayData[d].date;
+
+        // 상단 지도 핀 & 경로
+        document.querySelectorAll('.trip-pin').forEach(function(pin) {
+          pin.classList.toggle('is-dim', pin.dataset.day !== d);
+        });
+        ['1','2'].forEach(function(n) {
+          var r = document.getElementById('route-day' + n);
+          if (r) r.setAttribute('opacity', n === d ? '0.9' : '0.15');
+          var l = document.getElementById('legend-day' + n);
+          if (l) l.classList.toggle('is-dim', n !== d);
+        });
+
+        // 타임라인 & 미니맵 & 날씨 제목 & 팁
+        renderTimeline(d);
+        renderMiniMap(d);
+        document.getElementById('weatherTitle').textContent = 'DAY ' + d + ' 날씨';
+        document.querySelector('.tip-banner__desc').innerHTML = dayData[d].tip;
+        // 지도에서 보기 링크 업데이트
+        var viewLink = document.getElementById('viewOnMapLink');
+        if (viewLink) viewLink.href = '../home/map.html#view/' + d;
+        // CTA 재렌더링
+        renderBottomCta();
+      }
+
+      /* ── 하단 CTA 렌더링 ── */
+      function renderBottomCta() {
+        var cta = document.getElementById('planCta');
+        if (!cta) return;
+        if (isEditMode) {
+          cta.innerHTML = '<button class="btn btn--primary" onclick="toggleEditMode()" style="flex:1">편집 완료</button>';
+        } else {
+          cta.innerHTML = '<button class="btn btn--secondary" onclick="toggleEditMode()">코스 편집</button><button class="btn btn--primary" onclick="openNaviSheet()">출발하기</button>';
+        }
+      }
+
+      /* ── 편집 모드 토글 ── */
+      function toggleEditMode() {
+        isEditMode = !isEditMode;
+        renderTimeline(currentDay);
+        renderBottomCta();
+      }
+
+      /* ── 스팟 삭제 ── */
+      function deleteSpotFromDay(d, idx) {
+        dayData[d].spots.splice(idx, 1);
+        // transport도 같이 정리
+        if (dayData[d].transports.length >= dayData[d].spots.length) {
+          dayData[d].transports.splice(Math.max(0, idx - 1), 1);
+        }
+        renderTimeline(d);
+      }
+
+      /* ── 바로 출발 바텀시트 ── */
+      function openNaviSheet() {
+        // 현재 Day의 첫 번째 스팟을 목적지로 설정
+        var spots = dayData[currentDay].spots;
+        var dest = spots && spots.length > 0 ? spots[0] : null;
+        if (dest) {
+          document.getElementById('naviDestName').textContent = dest.name;
+          document.getElementById('naviDestAddr').textContent = dest.loc;
+          document.getElementById('naviTimeText').textContent = 'DAY ' + currentDay + ' 첫 번째 스팟까지 차로 약 18분';
+        }
+        document.getElementById('naviSheet').classList.add('is-open');
+        document.getElementById('naviBackdrop').classList.add('is-open');
+      }
+      function closeNaviSheet() {
+        document.getElementById('naviSheet').classList.remove('is-open');
+        document.getElementById('naviBackdrop').classList.remove('is-open');
+      }
+      function launchNavi(app) {
+        closeNaviSheet();
+      }
+      function launchNaviDefault() {
+        closeNaviSheet();
+      }
+
+      /* ── 초기화 ── */
+      (function() {
+        var firstTab = document.querySelector('.day-tab[data-day="1"]');
+        if (firstTab) selectDay(firstTab);
+        renderBottomCta();
+      })();
+    </script>
+  </body>
+</html>

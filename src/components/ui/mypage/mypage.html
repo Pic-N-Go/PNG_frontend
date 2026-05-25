@@ -1,0 +1,2467 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>PNG - 마이페이지</title>
+    <link rel="stylesheet" href="../fonts.css" />
+    <style>
+      :root {
+        --color-bg: #ffffff;
+        --color-surface: #f5f5f7;
+        --color-text-primary: #000000;
+        --color-text-secondary: rgba(0, 0, 0, 0.48);
+        --color-text-tertiary: rgba(0, 0, 0, 0.28);
+        --color-accent: #e31b59;
+        --color-accent-hover: #c91550;
+        --color-link: #e31b59;
+        --color-border-light: rgba(0, 0, 0, 0.06);
+        --color-success: #34c759;
+        --color-warning: #ff9f0a;
+        --radius-card: 14px;
+        --radius-btn: 26px;
+      }
+      *,
+      *::before,
+      *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html {
+        font-size: 16px;
+        -webkit-font-smoothing: antialiased;
+      }
+      body {
+        font-family: var(--font-family);
+        background: #f0f0f0;
+        display: flex;
+        justify-content: center;
+        min-height: 100dvh;
+      }
+      .phone-frame {
+        width: 390px;
+        min-height: 100dvh;
+        background: var(--color-bg);
+        position: relative;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding-bottom: 80px;
+      }
+
+      /* ====== Dark Header ====== */
+      .dark-header {
+        background: linear-gradient(to bottom, #000, #1d1d1f);
+        padding: 0 20px 20px;
+        position: relative;
+      }
+      .dark-header::after {
+        content: "";
+        position: absolute;
+        bottom: -20px;
+        left: 0;
+        right: 0;
+        height: 24px;
+        background: linear-gradient(to bottom, #1d1d1f, #fff);
+      }
+      .status-bar {
+        height: 54px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 14px;
+      }
+      .status-bar__time {
+        font-size: 15px;
+        font-weight: 600;
+        color: #fff;
+        letter-spacing: -0.3px;
+      }
+      .dynamic-island {
+        position: absolute;
+        top: 8px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 106px;
+        height: 28px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 14px;
+      }
+      .status-bar__icons {
+        display: flex;
+        gap: 6px;
+      }
+      .status-bar__icons svg {
+        height: 12px;
+        fill: #fff;
+      }
+      .header-nav {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 20px;
+      }
+      .header-nav__btn {
+        width: 28px;
+        height: 28px;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.08);
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .profile-row {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        margin-bottom: 16px;
+      }
+      .profile-row__avatar {
+        width: 72px;
+        height: 72px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #2c5364, #4a7c8a);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        flex-shrink: 0;
+      }
+      .profile-row__badge {
+        position: absolute;
+        bottom: -2px;
+        right: -2px;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: #e31b59;
+        border: 2px solid #1d1d1f;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .profile-row__info {
+        flex: 1;
+      }
+      .profile-row__name {
+        font-size: 20px;
+        font-weight: 600;
+        color: #fff;
+        letter-spacing: -0.4px;
+        margin-bottom: 2px;
+      }
+      .profile-row__handle {
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.4);
+        margin-bottom: 4px;
+      }
+      .profile-row__themes {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        margin-top: 6px;
+        margin-bottom: 5px;
+      }
+      .theme-tag {
+        display: inline-flex;
+        align-items: center;
+        height: 20px;
+        padding: 0 9px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.13);
+        font-size: 11px;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.75);
+        letter-spacing: -0.1px;
+      }
+      .profile-row__bio {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.5);
+        line-height: 1.5;
+        letter-spacing: -0.1px;
+        margin-bottom: 6px;
+      }
+      .profile-row__follow {
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.35);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .profile-row__follow-btn {
+        background: none;
+        border: none;
+        padding: 0;
+        cursor: pointer;
+        font-family: var(--font-family);
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.35);
+        letter-spacing: -0.1px;
+        transition: color 0.15s;
+      }
+      .profile-row__follow-btn:hover {
+        color: rgba(255, 255, 255, 0.7);
+      }
+      .profile-row__follow-btn strong {
+        color: rgba(255, 255, 255, 0.65);
+        font-weight: 600;
+      }
+      .profile-row__follow-sep {
+        color: rgba(255, 255, 255, 0.2);
+      }
+      .edit-btn {
+        width: 100%;
+        height: 36px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.08);
+        border: none;
+        font-family: var(--font-family);
+        font-size: 13px;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.6);
+        cursor: pointer;
+        margin-bottom: 16px;
+        transition: background 0.2s;
+      }
+      .edit-btn:hover {
+        background: rgba(255, 255, 255, 0.12);
+      }
+      .stats-row {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+      .stats-row__follow {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 8px;
+      }
+      .stats-row__activity {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+      }
+      .stat-card {
+        padding: 12px 0;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.06);
+        border: 0.5px solid rgba(255, 255, 255, 0.06);
+        text-align: center;
+      }
+      .stat-card--tap {
+        cursor: pointer;
+        font-family: var(--font-family);
+        transition: background 0.15s;
+      }
+      .stat-card--tap:hover {
+        background: rgba(255, 255, 255, 0.11);
+      }
+      .stat-card--tap:active {
+        background: rgba(255, 255, 255, 0.15);
+      }
+      .stat-card__num {
+        font-size: 20px;
+        font-weight: 600;
+        color: #fff;
+        margin-bottom: 2px;
+      }
+      .stat-card__label {
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.35);
+      }
+
+      /* ====== Content ====== */
+      .content {
+        padding: 28px 20px 0;
+        position: relative;
+        z-index: 1;
+      }
+      .section {
+        margin-bottom: 28px;
+      }
+      .section__header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 12px;
+      }
+      .section__title {
+        font-size: 20px;
+        font-weight: 600;
+        color: var(--color-text-primary);
+        letter-spacing: -0.3px;
+      }
+      .section__link {
+        font-size: 13px;
+        color: var(--color-link);
+        text-decoration: none;
+      }
+
+      /* ====== Photo Map ====== */
+      .photo-map {
+        height: 200px;
+        border-radius: 16px;
+        background: var(--color-surface);
+        position: relative;
+        overflow: hidden;
+      }
+      .photo-map__grid {
+        position: absolute;
+        inset: 0;
+      }
+      .photo-map__grid line {
+        stroke: rgba(0, 0, 0, 0.03);
+        stroke-width: 0.5;
+      }
+      .photo-map__pin {
+        position: absolute;
+        transform: translate(-50%, -100%);
+        line-height: 0;
+      }
+      .photo-map__pin--visit {
+        filter: drop-shadow(0 1px 3px rgba(0,0,0,0.22));
+      }
+      .photo-map__pin--featured {
+        filter: drop-shadow(0 1px 5px rgba(227,27,89,0.4));
+      }
+      .photo-map__pin--wish {
+        filter: drop-shadow(0 1px 2px rgba(0,0,0,0.1));
+      }
+      .photo-map__pin--fav {
+        filter: drop-shadow(0 1px 3px rgba(255,159,10,0.35));
+      }
+      .map-legend {
+        position: absolute;
+        bottom: 10px;
+        left: 12px;
+        display: flex;
+        gap: 14px;
+        align-items: center;
+      }
+      .map-legend__item {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 10px;
+        color: rgba(0, 0, 0, 0.4);
+      }
+      .map-legend__dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        flex-shrink: 0;
+      }
+
+      /* ====== Album ====== */
+      .album-scroll {
+        display: flex;
+        gap: 10px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: 4px;
+      }
+      .album-scroll::-webkit-scrollbar {
+        display: none;
+      }
+      .album-card {
+        flex-shrink: 0;
+        width: 160px;
+        height: 200px;
+        border-radius: var(--radius-card);
+        position: relative;
+        overflow: hidden;
+      }
+      .album-card__info {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 10px 12px;
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.5), transparent);
+      }
+      .album-card__name {
+        font-size: 14px;
+        font-weight: 600;
+        color: #fff;
+        letter-spacing: -0.2px;
+        margin-bottom: 2px;
+      }
+      .album-card__meta {
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.5);
+      }
+
+      /* ====== Report ====== */
+      .report-card {
+        border-radius: 16px;
+        background: var(--color-surface);
+        padding: 20px;
+        position: relative;
+        overflow: hidden;
+      }
+      .report-card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          to right,
+          rgba(227, 27, 89, 0.06),
+          transparent
+        );
+        pointer-events: none;
+        border-radius: 16px;
+      }
+      .report__avg-label {
+        font-size: 12px;
+        color: rgba(0, 0, 0, 0.4);
+        margin-bottom: 6px;
+      }
+      .report__avg-row {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+        margin-bottom: 16px;
+      }
+      .report__avg-num {
+        font-size: 32px;
+        font-weight: 600;
+        color: var(--color-accent);
+        line-height: 1;
+      }
+      .report__avg-max {
+        font-size: 14px;
+        color: rgba(0, 0, 0, 0.25);
+      }
+      .report__trend-badge {
+        display: inline-flex;
+        align-items: center;
+        height: 22px;
+        padding: 0 10px;
+        border-radius: 11px;
+        background: rgba(52, 199, 89, 0.1);
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--color-success);
+      }
+      .report__body {
+        display: flex;
+        gap: 16px;
+      }
+      .report__chart {
+        flex: 1;
+      }
+      .report__chart-label {
+        font-size: 11px;
+        color: rgba(0, 0, 0, 0.3);
+        margin-bottom: 6px;
+      }
+      .report__bar-nums {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 4px;
+      }
+      .report__bar-num {
+        flex: 1;
+        text-align: center;
+        font-size: 10px;
+        color: rgba(0, 0, 0, 0.25);
+      }
+      .report__bar-num--active {
+        color: var(--color-accent);
+        font-weight: 600;
+      }
+      .report__bars {
+        display: flex;
+        align-items: flex-end;
+        gap: 6px;
+        height: 56px;
+      }
+      .report__bar {
+        flex: 1;
+        height: 100%;
+        display: flex;
+        align-items: flex-end;
+      }
+      .report__bar-fill {
+        width: 100%;
+        border-radius: 4px;
+        transition: height 0.4s ease;
+      }
+      .report__bar-weeks {
+        display: flex;
+        gap: 6px;
+        margin-top: 5px;
+      }
+      .report__bar-label {
+        flex: 1;
+        text-align: center;
+        font-size: 9px;
+        color: rgba(0, 0, 0, 0.25);
+      }
+      .report__best {
+        width: 120px;
+      }
+      .report__best-label {
+        font-size: 11px;
+        color: rgba(0, 0, 0, 0.3);
+        margin-bottom: 8px;
+      }
+      .report__best-card {
+        padding: 12px;
+        border-radius: 10px;
+        background: #fff;
+      }
+      .report__best-name {
+        font-size: 13px;
+        font-weight: 600;
+        color: #000;
+        margin-bottom: 2px;
+      }
+      .report__best-meta {
+        font-size: 11px;
+        color: rgba(0, 0, 0, 0.35);
+        margin-bottom: 8px;
+      }
+      .report__best-score {
+        display: inline-flex;
+        align-items: center;
+        height: 18px;
+        padding: 0 8px;
+        border-radius: 9px;
+        background: rgba(227, 27, 89, 0.08);
+        font-size: 10px;
+        font-weight: 600;
+        color: var(--color-accent);
+      }
+
+      /* ====== Wishlist ====== */
+      .section__subtitle {
+        font-size: 13px;
+        color: rgba(0, 0, 0, 0.4);
+        margin-top: -8px;
+        margin-bottom: 12px;
+      }
+      .wish-scroll {
+        display: flex;
+        gap: 10px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+      .wish-scroll::-webkit-scrollbar {
+        display: none;
+      }
+      .wish-card {
+        flex-shrink: 0;
+        width: 200px;
+        height: 120px;
+        border-radius: var(--radius-card);
+        position: relative;
+        overflow: hidden;
+        padding: 0 12px 12px;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+      }
+      .wish-card__bell {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        width: 28px;
+        height: 28px;
+        border-radius: 14px;
+        background: rgba(0, 0, 0, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .wish-card__name {
+        font-size: 14px;
+        font-weight: 600;
+        color: #fff;
+        letter-spacing: -0.2px;
+        margin-bottom: 2px;
+      }
+      .wish-card__cond {
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.5);
+        margin-bottom: 2px;
+      }
+      .wish-card__date {
+        font-size: 10px;
+        color: rgba(255, 159, 10, 0.8);
+      }
+
+      /* ====== Equipment ====== */
+      .equip-card {
+        border-radius: var(--radius-card);
+        background: var(--color-surface);
+        overflow: hidden;
+      }
+      .equip-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 16px;
+      }
+      .equip-item + .equip-item {
+        border-top: 0.5px solid rgba(0, 0, 0, 0.04);
+      }
+      .equip-item__icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        background: rgba(0, 0, 0, 0.05);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      .equip-item__name {
+        font-size: 14px;
+        font-weight: 500;
+        color: #000;
+        letter-spacing: -0.15px;
+      }
+      .equip-item__desc {
+        font-size: 11px;
+        color: rgba(0, 0, 0, 0.35);
+        margin-top: 1px;
+      }
+      .equip-item__more {
+        margin-left: auto;
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        font-size: 12px;
+        color: rgba(0, 0, 0, 0.2);
+        cursor: pointer;
+        padding: 4px;
+        transition: color 0.15s;
+      }
+      .equip-item__more:hover {
+        color: var(--color-accent);
+      }
+
+      /* 관리 버튼 */
+      .equip-manage-btn {
+        height: 26px;
+        padding: 0 12px;
+        border-radius: 13px;
+        border: none;
+        background: rgba(227, 27, 89, 0.08);
+        font-family: var(--font-family);
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--color-accent);
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      .equip-manage-btn:hover {
+        background: rgba(227, 27, 89, 0.14);
+      }
+
+      /* ====== Quick Actions ====== */
+      .quick-actions {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+      }
+      .quick-action {
+        height: 48px;
+        border-radius: 12px;
+        background: var(--color-surface);
+        border: none;
+        font-family: var(--font-family);
+        font-size: 12px;
+        color: rgba(0, 0, 0, 0.5);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        transition: background 0.2s;
+      }
+      .quick-action:hover {
+        background: rgba(0, 0, 0, 0.06);
+      }
+      .quick-action svg {
+        flex-shrink: 0;
+        color: rgba(0, 0, 0, 0.3);
+      }
+
+      /* ====== 장비 바텀 시트 ====== */
+      .sheet-dim {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: 100;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.25s;
+      }
+      .sheet-dim.is-open {
+        opacity: 1;
+        pointer-events: all;
+      }
+      .bottom-sheet {
+        position: fixed;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%) translateY(100%);
+        width: 390px;
+        background: #fff;
+        border-radius: 20px 20px 0 0;
+        z-index: 101;
+        transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1);
+        max-height: 80vh;
+        display: flex;
+        flex-direction: column;
+      }
+      .bottom-sheet.is-open {
+        transform: translateX(-50%) translateY(0);
+      }
+      .sheet-handle-wrap {
+        padding: 12px 0 4px;
+        display: flex;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      .sheet-handle {
+        width: 36px;
+        height: 5px;
+        border-radius: 2.5px;
+        background: rgba(0, 0, 0, 0.1);
+      }
+      .sheet-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 20px 14px;
+        flex-shrink: 0;
+      }
+      .sheet-header__title {
+        font-size: 20px;
+        font-weight: 600;
+        letter-spacing: -0.3px;
+      }
+      .sheet-close {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: var(--color-surface);
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.15s;
+      }
+      .sheet-close:hover {
+        background: rgba(0, 0, 0, 0.08);
+      }
+
+      /* 장비 목록 */
+      .sheet-equip-list {
+        overflow-y: auto;
+        flex: 1;
+        padding: 0 20px;
+      }
+      .sheet-equip-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 0;
+        border-bottom: 0.5px solid rgba(0, 0, 0, 0.05);
+      }
+      .sheet-equip-item:last-child {
+        border-bottom: none;
+      }
+      .sheet-equip-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: var(--color-surface);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      .sheet-equip-info {
+        flex: 1;
+        min-width: 0;
+      }
+      .sheet-equip-name {
+        font-size: 15px;
+        font-weight: 500;
+        color: #000;
+        letter-spacing: -0.15px;
+        margin-bottom: 2px;
+      }
+      .sheet-equip-type {
+        font-size: 11px;
+        color: rgba(0, 0, 0, 0.35);
+      }
+      .sheet-equip-badge {
+        height: 18px;
+        padding: 0 8px;
+        border-radius: 9px;
+        font-size: 10px;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        margin-left: 6px;
+      }
+      .sheet-equip-badge--camera {
+        background: rgba(0, 0, 0, 0.06);
+        color: rgba(0, 0, 0, 0.4);
+      }
+      .sheet-equip-badge--lens {
+        background: rgba(227, 27, 89, 0.08);
+        color: #e31b59;
+      }
+      .sheet-equip-del {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(255, 69, 58, 0.06);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: background 0.15s;
+      }
+      .sheet-equip-del:hover {
+        background: rgba(255, 69, 58, 0.12);
+      }
+
+      /* 장비 추가 영역 */
+      .sheet-add-area {
+        padding: 16px 20px 20px;
+        border-top: 0.5px solid rgba(0, 0, 0, 0.06);
+        flex-shrink: 0;
+      }
+      .sheet-add-row {
+        display: none;
+        gap: 8px;
+        margin-bottom: 10px;
+        flex-wrap: wrap;
+      }
+      .sheet-add-row.is-visible {
+        display: flex;
+      }
+      .sheet-type-chips {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 8px;
+      }
+      .sheet-type-chip {
+        height: 30px;
+        padding: 0 14px;
+        border-radius: 15px;
+        border: none;
+        background: var(--color-surface);
+        font-family: var(--font-family);
+        font-size: 12px;
+        color: rgba(0, 0, 0, 0.45);
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .sheet-type-chip.is-active {
+        background: #000;
+        color: #fff;
+        font-weight: 500;
+      }
+      .sheet-input-row {
+        display: flex;
+        gap: 8px;
+      }
+      .sheet-equip-input {
+        flex: 1;
+        height: 42px;
+        border-radius: 12px;
+        border: none;
+        background: var(--color-surface);
+        padding: 0 14px;
+        font-family: var(--font-family);
+        font-size: 14px;
+        color: #000;
+        outline: none;
+        transition: box-shadow 0.2s;
+      }
+      .sheet-equip-input:focus {
+        box-shadow: 0 0 0 1.5px var(--color-accent);
+        background: #fff;
+      }
+      .sheet-equip-input::placeholder {
+        color: rgba(0, 0, 0, 0.25);
+      }
+      .sheet-input-confirm {
+        height: 42px;
+        padding: 0 18px;
+        border-radius: 12px;
+        border: none;
+        background: var(--color-accent);
+        font-family: var(--font-family);
+        font-size: 14px;
+        font-weight: 500;
+        color: #fff;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: opacity 0.15s;
+      }
+      .sheet-input-confirm:hover {
+        opacity: 0.88;
+      }
+      .sheet-add-btn {
+        width: 100%;
+        height: 46px;
+        border-radius: 23px;
+        border: 1.5px dashed rgba(0, 0, 0, 0.12);
+        background: none;
+        font-family: var(--font-family);
+        font-size: 14px;
+        font-weight: 500;
+        color: rgba(0, 0, 0, 0.3);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        transition: all 0.2s;
+      }
+      .sheet-add-btn:hover {
+        border-color: var(--color-accent);
+        color: var(--color-accent);
+        background: rgba(227, 27, 89, 0.02);
+      }
+
+      /* ====== 팔로워/팔로잉 시트 ====== */
+      .follow-tabs {
+        display: flex;
+        border-bottom: 0.5px solid rgba(0,0,0,0.07);
+        margin: 0 20px;
+      }
+      .follow-tab {
+        flex: 1;
+        height: 44px;
+        background: none;
+        border: none;
+        font-family: var(--font-family);
+        font-size: 14px;
+        font-weight: 500;
+        color: rgba(0,0,0,0.35);
+        cursor: pointer;
+        position: relative;
+        transition: color 0.2s;
+        letter-spacing: -0.15px;
+      }
+      .follow-tab.is-active {
+        color: #000;
+        font-weight: 600;
+      }
+      .follow-tab.is-active::after {
+        content: '';
+        position: absolute;
+        bottom: -0.5px;
+        left: 20%;
+        right: 20%;
+        height: 2px;
+        background: #000;
+        border-radius: 1px;
+      }
+      .follow-list {
+        overflow-y: auto;
+        max-height: 400px;
+        padding: 4px 20px 20px;
+      }
+      .follow-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 0;
+        border-bottom: 0.5px solid rgba(0,0,0,0.04);
+      }
+      .follow-item:last-child { border-bottom: none; }
+      .follow-item__avatar {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        font-weight: 600;
+        color: #fff;
+      }
+      .follow-item__info {
+        flex: 1;
+        min-width: 0;
+      }
+      .follow-item__name {
+        font-size: 14px;
+        font-weight: 600;
+        color: #000;
+        letter-spacing: -0.2px;
+        margin-bottom: 1px;
+      }
+      .follow-item__handle {
+        font-size: 12px;
+        color: rgba(0,0,0,0.35);
+        letter-spacing: -0.1px;
+      }
+      .follow-item__action {
+        flex-shrink: 0;
+        height: 30px;
+        padding: 0 14px;
+        border-radius: 15px;
+        border: none;
+        font-family: var(--font-family);
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .follow-item__action--remove {
+        background: var(--color-surface);
+        color: rgba(0,0,0,0.45);
+      }
+      .follow-item__action--remove:hover {
+        background: rgba(255,69,58,0.08);
+        color: #ff453a;
+      }
+      .follow-item__action--following {
+        background: var(--color-surface);
+        color: rgba(0,0,0,0.55);
+      }
+      .follow-item__action--following:hover {
+        background: rgba(255,69,58,0.08);
+        color: #ff453a;
+      }
+      .follow-item__action--follow {
+        background: #000;
+        color: #fff;
+      }
+      .follow-empty {
+        padding: 40px 0;
+        text-align: center;
+        font-size: 14px;
+        color: rgba(0,0,0,0.3);
+      }
+
+      /* ====== 프로필 편집 시트 추가 스타일 ====== */
+      .profile-sheet-avatar {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 8px 20px 24px;
+        gap: 12px;
+      }
+      .profile-sheet-avatar__img {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #2c5364, #4a7c8a);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        cursor: pointer;
+      }
+      .profile-sheet-avatar__overlay {
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        background: rgba(0,0,0,0.35);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.2s;
+      }
+      .profile-sheet-avatar__img:hover .profile-sheet-avatar__overlay {
+        opacity: 1;
+      }
+      .profile-sheet-avatar__label {
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--color-accent);
+        cursor: pointer;
+        letter-spacing: -0.1px;
+      }
+      .profile-sheet-fields {
+        padding: 0 20px;
+      }
+      .profile-sheet-field {
+        margin-bottom: 16px;
+      }
+      .profile-sheet-field__label {
+        font-size: 12px;
+        font-weight: 500;
+        color: rgba(0,0,0,0.4);
+        margin-bottom: 6px;
+        letter-spacing: -0.08px;
+      }
+      .profile-sheet-input {
+        width: 100%;
+        height: 50px;
+        border-radius: 12px;
+        border: 1.5px solid transparent;
+        background: var(--color-surface);
+        padding: 0 16px;
+        font-family: var(--font-family);
+        font-size: 16px;
+        color: #000;
+        letter-spacing: -0.3px;
+        outline: none;
+        transition: border-color 0.2s, background 0.2s;
+      }
+      .profile-sheet-input:focus {
+        border-color: var(--color-accent);
+        background: #fff;
+      }
+      .profile-sheet-input::placeholder {
+        color: rgba(0,0,0,0.28);
+      }
+      .profile-sheet-textarea {
+        width: 100%;
+        height: 80px;
+        border-radius: 12px;
+        border: 1.5px solid transparent;
+        background: var(--color-surface);
+        padding: 12px 16px;
+        font-family: var(--font-family);
+        font-size: 15px;
+        color: #000;
+        letter-spacing: -0.2px;
+        outline: none;
+        resize: none;
+        line-height: 1.5;
+        transition: border-color 0.2s, background 0.2s;
+      }
+      .profile-sheet-textarea:focus {
+        border-color: var(--color-accent);
+        background: #fff;
+      }
+      .profile-sheet-textarea::placeholder {
+        color: rgba(0,0,0,0.28);
+      }
+      .profile-sheet-counter {
+        text-align: right;
+        font-size: 11px;
+        color: rgba(0,0,0,0.25);
+        margin-top: 4px;
+      }
+      .profile-sheet-save {
+        width: 100%;
+        height: 52px;
+        border-radius: 26px;
+        border: none;
+        background: var(--color-accent);
+        font-family: var(--font-family);
+        font-size: 16px;
+        font-weight: 500;
+        color: #fff;
+        letter-spacing: -0.3px;
+        cursor: pointer;
+        margin-top: 8px;
+        transition: background 0.15s, transform 0.1s;
+      }
+      .profile-sheet-save:hover { background: var(--color-accent-hover); }
+      .profile-sheet-save:active { transform: scale(0.98); }
+
+      /* 토스트 */
+      .toast {
+        position: fixed;
+        bottom: 96px;
+        left: 50%;
+        transform: translateX(-50%) translateY(16px);
+        height: 44px;
+        padding: 0 20px;
+        border-radius: 22px;
+        background: rgba(0,0,0,0.75);
+        display: flex;
+        align-items: center;
+        font-size: 14px;
+        font-weight: 500;
+        color: #fff;
+        letter-spacing: -0.2px;
+        z-index: 300;
+        opacity: 0;
+        pointer-events: none;
+        white-space: nowrap;
+        transition: opacity 0.3s, transform 0.3s;
+      }
+      .toast.is-visible {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+
+      /* ====== 내 리뷰 시트 ====== */
+      .my-review-list {
+        overflow-y: auto;
+        max-height: 440px;
+        padding: 4px 20px 20px;
+      }
+      .my-review-item {
+        padding: 14px 0;
+        border-bottom: 0.5px solid rgba(0,0,0,0.05);
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .my-review-item:last-child { border-bottom: none; }
+      .my-review-item__top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .my-review-item__left { flex: 1; min-width: 0; }
+      .my-review-item__spot {
+        font-size: 15px;
+        font-weight: 600;
+        color: #000;
+        letter-spacing: -0.2px;
+        margin-bottom: 4px;
+      }
+      .my-review-item__meta {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 11px;
+        color: rgba(0,0,0,0.35);
+      }
+      .my-review-item__stars {
+        font-size: 11px;
+        color: var(--color-warning);
+        letter-spacing: 1px;
+      }
+      .my-review-item__badge {
+        display: inline-flex;
+        align-items: center;
+        height: 16px;
+        padding: 0 6px;
+        border-radius: 8px;
+        background: rgba(0,0,0,0.06);
+        font-size: 10px;
+        font-weight: 500;
+        color: rgba(0,0,0,0.4);
+      }
+      .my-review-item__text {
+        font-size: 13px;
+        color: rgba(0,0,0,0.6);
+        line-height: 1.55;
+        letter-spacing: -0.1px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      .my-review-item__photos {
+        display: flex;
+        gap: 5px;
+      }
+      .my-review-item__photo {
+        width: 52px;
+        height: 52px;
+        border-radius: 8px;
+        flex-shrink: 0;
+      }
+      .my-review-item__del {
+        flex-shrink: 0;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(255,69,58,0.07);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.15s;
+        margin-top: 2px;
+      }
+      .my-review-item__del:hover { background: rgba(255,69,58,0.14); }
+      .my-review-empty {
+        padding: 40px 0;
+        text-align: center;
+        font-size: 14px;
+        color: rgba(0,0,0,0.3);
+      }
+
+      /* ====== Tab Bar ====== */
+      .tab-bar {
+        position: fixed;
+        bottom: 0;
+        width: 390px;
+        height: 80px;
+        background: #fff;
+        border-top: 0.5px solid rgba(0, 0, 0, 0.08);
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-around;
+        padding-top: 8px;
+        z-index: 50;
+      }
+      .tab {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 4px 10px;
+      }
+      .tab__icon {
+        width: 22px;
+        height: 18px;
+        color: rgba(0, 0, 0, 0.35);
+      }
+      .tab__label {
+        font-size: 10px;
+        color: rgba(0, 0, 0, 0.35);
+        font-family: var(--font-family);
+      }
+      .tab.is-active .tab__icon {
+        color: var(--color-accent);
+      }
+      .tab.is-active .tab__label {
+        color: var(--color-accent);
+        font-weight: 500;
+      }
+      .tab-bar__indicator {
+        position: absolute;
+        bottom: 8px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 110px;
+        height: 5px;
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 2.5px;
+      }
+
+      @media (max-width: 390px) {
+        .phone-frame,
+        .tab-bar,
+        .bottom-sheet {
+          width: 100%;
+        }
+      }
+      @media (min-width: 391px) {
+        body {
+          padding: 20px 0;
+        }
+        .phone-frame {
+          border-radius: 40px;
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+          height: calc(100dvh - 40px);
+          overflow-y: auto;
+          overflow-x: hidden;
+        }
+        .tab-bar {
+          border-radius: 0 0 40px 40px;
+        }
+      }
+    
+      /* ── 스크롤바 숨김 ── */
+      * { scrollbar-width: none; -ms-overflow-style: none; }
+      *::-webkit-scrollbar { display: none; }
+</style>
+  </head>
+  <body>
+    <div class="phone-frame">
+      <!-- Dark Header -->
+      <div class="dark-header">
+        <div class="status-bar">
+          <span class="status-bar__time">9:41</span>
+          <div class="dynamic-island"></div>
+          <div class="status-bar__icons">
+            <svg viewBox="0 0 18 12">
+              <rect x="0" y="9" width="3" height="3" rx=".75" />
+              <rect x="4.5" y="6" width="3" height="6" rx=".75" />
+              <rect x="9" y="3" width="3" height="9" rx=".75" />
+              <rect x="13.5" y="0" width="3" height="12" rx=".75" />
+            </svg>
+            <svg
+              viewBox="0 0 16 14"
+              fill="none"
+              stroke="#fff"
+              stroke-width="1.3"
+              stroke-linecap="round"
+            >
+              <path d="M5 10.5A4 4 0 0 1 11 10.5" />
+              <path d="M2.5 7A8 8 0 0 1 13.5 7" />
+              <circle cx="8" cy="13" r="1.2" fill="#fff" stroke="none" />
+            </svg>
+            <svg viewBox="0 0 28 14">
+              <rect
+                x="0"
+                y="0"
+                width="25"
+                height="12"
+                rx="3.5"
+                fill="none"
+                stroke="rgba(255,255,255,.4)"
+                stroke-width="1"
+              />
+              <rect x="1.5" y="1.5" width="20" height="9" rx="2" fill="#fff" />
+            </svg>
+          </div>
+        </div>
+        <div class="header-nav">
+          <div style="width: 28px"></div>
+          <button
+            class="header-nav__btn"
+            aria-label="설정"
+            onclick="location.href = './setting.html'"
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="rgba(255,255,255,0.6)"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path
+                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 0 0-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 0 0-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 0 0-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 0 0-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 0 0 1.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+              />
+              <circle cx="12" cy="12" r="3" />
+            </svg>
+          </button>
+        </div>
+        <div class="profile-row">
+          <div class="profile-row__avatar">
+            <svg
+              width="34"
+              height="34"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="rgba(255,255,255,0.75)"
+              stroke-width="1.5"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="12" cy="7" r="4" />
+              <path d="M4 21v-1a8 8 0 0 1 16 0v1" />
+            </svg>
+          </div>
+          <div class="profile-row__info">
+            <div class="profile-row__name" id="displayName">사진가_준혁</div>
+            <div class="profile-row__themes" id="displayThemes">
+              <span class="theme-tag">야경</span>
+              <span class="theme-tag">바다</span>
+            </div>
+            <div class="profile-row__bio" id="displayBio">야경과 바다를 좋아하는 사진가입니다.</div>
+          </div>
+        </div>
+        <button class="edit-btn" onclick="openProfileSheet()">프로필 편집</button>
+        <div class="stats-row">
+          <div class="stats-row__follow">
+            <button class="stat-card stat-card--tap" onclick="openFollowSheet('followers')">
+              <div class="stat-card__num" id="followerCount">1,247</div>
+              <div class="stat-card__label">팔로워</div>
+            </button>
+            <button class="stat-card stat-card--tap" onclick="openFollowSheet('following')">
+              <div class="stat-card__num" id="followingCount">356</div>
+              <div class="stat-card__label">팔로잉</div>
+            </button>
+          </div>
+          <div class="stats-row__activity">
+            <button class="stat-card stat-card--tap" onclick="location.href='../spot/spot-list.html?view=visited'">
+              <div class="stat-card__num">28</div>
+              <div class="stat-card__label">방문 스팟</div>
+            </button>
+            <button class="stat-card stat-card--tap" onclick="location.href='./my-photos.html'">
+              <div class="stat-card__num">142</div>
+              <div class="stat-card__label">사진</div>
+            </button>
+            <button class="stat-card stat-card--tap" onclick="openMyReviewSheet()">
+              <div class="stat-card__num" id="myReviewCount">12</div>
+              <div class="stat-card__label">리뷰</div>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="content">
+        <!-- 나만의 사진 지도 -->
+        <div class="section">
+          <div class="section__header">
+            <h2 class="section__title">PIC MAP</h2>
+            <a href="./photo-map.html" class="section__link">전체보기</a>
+          </div>
+          <div class="photo-map">
+            <svg class="photo-map__grid" width="100%" height="100%">
+              <line x1="0" y1="67" x2="100%" y2="67" />
+              <line x1="0" y1="134" x2="100%" y2="134" />
+              <line x1="33%" y1="0" x2="33%" y2="100%" />
+              <line x1="66%" y1="0" x2="66%" y2="100%" />
+            </svg>
+            <!-- 방문 핀 (검정) -->
+            <div class="photo-map__pin photo-map__pin--visit" style="left:23%;top:34%">
+              <svg width="16" height="20" viewBox="0 0 24 30" fill="none">
+                <path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill="#1c1c1e"/>
+                <circle cx="12" cy="10.5" r="4.5" fill="#fff"/>
+              </svg>
+            </div>
+            <div class="photo-map__pin photo-map__pin--visit" style="left:57%;top:46%">
+              <svg width="16" height="20" viewBox="0 0 24 30" fill="none">
+                <path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill="#1c1c1e"/>
+                <circle cx="12" cy="10.5" r="4.5" fill="#fff"/>
+              </svg>
+            </div>
+            <div class="photo-map__pin photo-map__pin--visit" style="left:40%;top:66%">
+              <svg width="16" height="20" viewBox="0 0 24 30" fill="none">
+                <path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill="#1c1c1e"/>
+                <circle cx="12" cy="10.5" r="4.5" fill="#fff"/>
+              </svg>
+            </div>
+            <!-- 즐겨찾기 핀 (핑크) -->
+            <div class="photo-map__pin photo-map__pin--featured" style="left:80%;top:29%">
+              <svg width="20" height="25" viewBox="0 0 24 30" fill="none">
+                <path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill="#E31B59"/>
+                <circle cx="12" cy="10.5" r="4.5" fill="#fff"/>
+              </svg>
+            </div>
+            <div class="photo-map__pin photo-map__pin--featured" style="left:29%;top:83%">
+              <svg width="20" height="25" viewBox="0 0 24 30" fill="none">
+                <path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill="#E31B59"/>
+                <circle cx="12" cy="10.5" r="4.5" fill="#fff"/>
+              </svg>
+            </div>
+            <div class="map-legend">
+              <div class="map-legend__item">
+                <div class="map-legend__dot" style="background:#1c1c1e"></div>
+                방문
+              </div>
+              <div class="map-legend__item">
+                <div class="map-legend__dot" style="background:#E31B59"></div>
+                즐겨찾기
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 지난 촬영 -->
+        <div class="section">
+          <div class="section__header">
+            <h2 class="section__title">지난 촬영</h2>
+            <a href="./my-photos.html" class="section__link">전체보기</a>
+          </div>
+          <div class="album-scroll">
+            <div
+              class="album-card"
+              style="
+                background: linear-gradient(
+                  to bottom,
+                  #0f2027,
+                  #203a43,
+                  #e8a87c
+                );
+              "
+            >
+              <div class="album-card__info">
+                <div class="album-card__name">광안리 일출</div>
+                <div class="album-card__meta">2026.03.28 · 12장</div>
+              </div>
+            </div>
+            <div
+              class="album-card"
+              style="background: linear-gradient(to bottom, #8b4a6b, #f0c89a)"
+            >
+              <div class="album-card__info">
+                <div class="album-card__name">진해 벚꽃</div>
+                <div class="album-card__meta">2026.04.02 · 24장</div>
+              </div>
+            </div>
+            <div
+              class="album-card"
+              style="background: linear-gradient(to bottom, #0a1a0f, #4a8060)"
+            >
+              <div class="album-card__info">
+                <div class="album-card__name">제주 사려니숲</div>
+                <div class="album-card__meta">2026.04.15 · 18장</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 포토제닉 월간 리포트 -->
+        <div class="section">
+          <div class="section__header">
+            <h2 class="section__title">5월 포토제닉 리포트</h2>
+          </div>
+          <div class="report-card">
+            <div class="report__avg-label">이번 달 평균</div>
+            <div class="report__avg-row">
+              <span class="report__avg-num">84.2</span>
+              <span class="report__avg-max">/100</span>
+              <span class="report__trend-badge">전월 대비 ▲ 3.1점</span>
+            </div>
+            <div class="report__body">
+              <div class="report__chart">
+                <div class="report__chart-label">주차별 평균 포토제닉 점수</div>
+                <div class="report__bar-nums">
+                  <span class="report__bar-num">78</span>
+                  <span class="report__bar-num">84</span>
+                  <span class="report__bar-num report__bar-num--active"
+                    >91★</span
+                  >
+                  <span class="report__bar-num">82</span>
+                </div>
+                <div class="report__bars">
+                  <div class="report__bar">
+                    <div
+                      class="report__bar-fill"
+                      style="height: 48%; background: rgba(227, 27, 89, 0.18)"
+                    ></div>
+                  </div>
+                  <div class="report__bar">
+                    <div
+                      class="report__bar-fill"
+                      style="height: 64%; background: rgba(227, 27, 89, 0.22)"
+                    ></div>
+                  </div>
+                  <div class="report__bar">
+                    <div
+                      class="report__bar-fill"
+                      style="height: 85%; background: rgba(227, 27, 89, 0.75)"
+                    ></div>
+                  </div>
+                  <div class="report__bar">
+                    <div
+                      class="report__bar-fill"
+                      style="height: 58%; background: rgba(227, 27, 89, 0.22)"
+                    ></div>
+                  </div>
+                </div>
+                <div class="report__bar-weeks">
+                  <span class="report__bar-label">1주</span>
+                  <span class="report__bar-label">2주</span>
+                  <span class="report__bar-label">3주</span>
+                  <span class="report__bar-label">4주</span>
+                </div>
+              </div>
+              <div class="report__best">
+                <div class="report__best-label">이달의 베스트</div>
+                <div class="report__best-card">
+                  <div class="report__best-name">광안리</div>
+                  <div class="report__best-meta">야경 · 3회 방문</div>
+                  <span class="report__best-score">91점</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 위시리스트 스팟 -->
+        <div class="section">
+          <div class="section__header">
+            <h2 class="section__title">위시리스트 스팟</h2>
+          </div>
+          <p class="section__subtitle">날씨 알림이 설정된 스팟</p>
+          <div class="wish-scroll">
+            <div
+              class="wish-card"
+              style="background: linear-gradient(to bottom, #1a1530, #b44a3a)"
+            >
+              <div class="wish-card__bell">
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 12 12"
+                  fill="none"
+                  stroke="#fff"
+                  stroke-width="0.9"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M6 1C4 1 3 2.5 3 4V6.5L2 8H10L9 6.5V4C9 2.5 8 1 6 1Z"
+                  />
+                  <path d="M4.5 8Q4.5 10 6 10T7.5 8" stroke-width="0.8" />
+                </svg>
+              </div>
+              <div class="wish-card__name">경복궁 야간개장</div>
+              <div class="wish-card__cond">맑은 날 · 일몰 후</div>
+              <div class="wish-card__date">다음 조건 충족 예상: 5/18</div>
+            </div>
+            <div
+              class="wish-card"
+              style="background: linear-gradient(to bottom, #020010, #1a1545)"
+            >
+              <div class="wish-card__bell">
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 12 12"
+                  fill="none"
+                  stroke="#fff"
+                  stroke-width="0.9"
+                  stroke-linejoin="round"
+                >
+                  <path
+                    d="M6 1C4 1 3 2.5 3 4V6.5L2 8H10L9 6.5V4C9 2.5 8 1 6 1Z"
+                  />
+                  <path d="M4.5 8Q4.5 10 6 10T7.5 8" stroke-width="0.8" />
+                </svg>
+              </div>
+              <div class="wish-card__name">영월 별마로천문대</div>
+              <div class="wish-card__cond">구름 없는 밤 · 새벽</div>
+              <div class="wish-card__date">다음 조건 충족 예상: 5/21</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 내 장비 -->
+        <div class="section">
+          <div class="section__header">
+            <h2 class="section__title">내 장비</h2>
+            <button class="equip-manage-btn" onclick="openEquipSheet()">
+              관리
+            </button>
+          </div>
+          <div class="equip-card">
+            <div class="equip-item">
+              <div class="equip-item__icon">
+                <svg
+                  width="14"
+                  height="12"
+                  viewBox="0 0 14 12"
+                  fill="none"
+                  stroke="rgba(0,0,0,0.3)"
+                  stroke-width="0.9"
+                >
+                  <rect x="0" y="3" width="14" height="8" rx="2" />
+                  <circle cx="7" cy="7.5" r="2.8" />
+                  <rect x="4" y="0" width="6" height="4" rx="1.5" />
+                </svg>
+              </div>
+              <div>
+                <div class="equip-item__name">Sony A7IV</div>
+                <div class="equip-item__desc">카메라 바디</div>
+              </div>
+            </div>
+            <div class="equip-item">
+              <div class="equip-item__icon">
+                <svg
+                  width="14"
+                  height="14"
+                  viewBox="0 0 14 14"
+                  fill="none"
+                  stroke="rgba(0,0,0,0.25)"
+                  stroke-width="0.9"
+                >
+                  <circle cx="7" cy="7" r="6" />
+                  <circle cx="7" cy="7" r="3" />
+                </svg>
+              </div>
+              <div>
+                <div class="equip-item__name">16-35mm f/2.8 GM</div>
+                <div class="equip-item__desc">렌즈 · 풍경/야경</div>
+              </div>
+              <div class="equip-item__more" onclick="openEquipSheet()">
+                +2
+                <svg
+                  width="8"
+                  height="12"
+                  viewBox="0 0 8 12"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.2"
+                  stroke-linecap="round"
+                >
+                  <polyline points="2,2 6,6 2,10" />
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 퀵 액션 -->
+        <div class="section">
+          <div class="quick-actions">
+            <button
+              class="quick-action"
+              onclick="location.href = '../spot/spot-register.html'"
+            >
+              <svg
+                width="14"
+                height="16"
+                viewBox="0 0 14 16"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1"
+                stroke-linecap="round"
+              >
+                <path
+                  d="M7 1C3.5 1 1 3.5 1 6.5C1 10.5 7 15 7 15S13 10.5 13 6.5C13 3.5 10.5 1 7 1Z"
+                />
+                <circle cx="7" cy="6" r="2" />
+              </svg>
+              스팟 등록
+            </button>
+            <button
+              class="quick-action"
+              onclick="location.href = '../wishlist/wishlist.html'"
+            >
+              <svg
+                width="14"
+                height="16"
+                viewBox="0 0 14 16"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M7 1C4.5 1 3 3 3 5V8.5L1.5 11H12.5L11 8.5V5C11 3 9.5 1 7 1Z"
+                />
+                <path d="M5 11Q5 14 7 14T9 11" stroke-width="0.9" />
+              </svg>
+              위시 설정
+            </button>
+            <button
+              class="quick-action"
+              onclick="location.href = './setting.html'"
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 14 14"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1"
+                stroke-linecap="round"
+              >
+                <circle cx="7" cy="7" r="2.5" />
+                <path
+                  d="M7 1.5V3M7 11V12.5M1.5 7H3M11 7H12.5M3.1 3.1L4.2 4.2M9.8 9.8L10.9 10.9M10.9 3.1L9.8 4.2M4.2 9.8L3.1 10.9"
+                />
+              </svg>
+              설정
+            </button>
+          </div>
+        </div>
+
+        <div style="height: 20px"></div>
+      </div>
+
+      <!-- Tab Bar -->
+      <div class="tab-bar">
+        <button class="tab" onclick="location.href = '../home/home.html'">
+          <svg
+            class="tab__icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M5 12l-2 0l9 -9l9 9l-2 0" />
+            <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
+            <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" />
+          </svg>
+          <span class="tab__label">홈</span>
+        </button>
+        <button class="tab" onclick="location.href = '../home/map.html'">
+          <svg
+            class="tab__icon"
+            viewBox="0 0 22 18"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.3"
+            stroke-linejoin="round"
+          >
+            <path d="M2 3L8 1L14 5L20 3V15L14 17L8 13L2 15Z" /></svg
+          ><span class="tab__label">지도</span>
+        </button>
+        <button class="tab" onclick="location.href = '../travel/travel-list.html'">
+          <svg
+            class="tab__icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="6" cy="19" r="2" />
+            <circle cx="18" cy="5" r="2" />
+            <path d="M12 19h4.5a3.5 3.5 0 0 0 0 -7h-8a3.5 3.5 0 0 1 0 -7h3.5" />
+          </svg>
+          <span class="tab__label">출사</span>
+        </button>
+        <button class="tab" onclick="location.href = '../community/community-feed.html'">
+          <svg class="tab__icon" viewBox="2 3 20 19" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 4a3 3 0 0 1 3 3v8a3 3 0 0 1 -3 3h-5l-5 3v-3h-2a3 3 0 0 1 -3 -3v-8a3 3 0 0 1 3 -3h12"/>
+            <path d="M9.5 9h.01"/><path d="M14.5 9h.01"/>
+            <path d="M9.5 13a3.5 3.5 0 0 0 5 0"/>
+          </svg><span class="tab__label">커뮤니티</span>
+        </button>
+        <button class="tab is-active">
+          <svg
+            class="tab__icon"
+            viewBox="0 0 22 18"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.3"
+            stroke-linecap="round"
+          >
+            <circle cx="11" cy="5" r="5" />
+            <path d="M2 18Q5 12 11 12T20 18" /></svg
+          ><span class="tab__label">MY</span>
+        </button>
+        <div class="tab-bar__indicator"></div>
+      </div>
+
+      <!-- 팔로워/팔로잉 딤 -->
+      <div class="sheet-dim" id="followDim" onclick="closeFollowSheet()"></div>
+
+      <!-- 팔로워/팔로잉 바텀시트 -->
+      <div class="bottom-sheet" id="followSheet">
+        <div class="sheet-handle-wrap"><div class="sheet-handle"></div></div>
+        <div class="sheet-header">
+          <span class="sheet-header__title" id="followSheetTitle">팔로워</span>
+          <button class="sheet-close" onclick="closeFollowSheet()" aria-label="닫기">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="rgba(0,0,0,0.4)" stroke-width="1.8" stroke-linecap="round">
+              <line x1="1" y1="1" x2="11" y2="11"/>
+              <line x1="11" y1="1" x2="1" y2="11"/>
+            </svg>
+          </button>
+        </div>
+        <!-- 탭 -->
+        <div class="follow-tabs">
+          <button class="follow-tab is-active" id="tabFollowers" onclick="switchFollowTab('followers')">팔로워</button>
+          <button class="follow-tab" id="tabFollowing" onclick="switchFollowTab('following')">팔로잉</button>
+        </div>
+        <!-- 목록 -->
+        <div class="follow-list" id="followList"></div>
+      </div>
+
+      <!-- 내 리뷰 딤 -->
+      <div class="sheet-dim" id="myReviewDim" onclick="closeMyReviewSheet()"></div>
+
+      <!-- 내 리뷰 바텀시트 -->
+      <div class="bottom-sheet" id="myReviewSheet">
+        <div class="sheet-handle-wrap"><div class="sheet-handle"></div></div>
+        <div class="sheet-header">
+          <span class="sheet-header__title">내가 쓴 리뷰</span>
+          <button class="sheet-close" onclick="closeMyReviewSheet()" aria-label="닫기">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="rgba(0,0,0,0.4)" stroke-width="1.8" stroke-linecap="round">
+              <line x1="1" y1="1" x2="11" y2="11"/>
+              <line x1="11" y1="1" x2="1" y2="11"/>
+            </svg>
+          </button>
+        </div>
+        <div class="my-review-list" id="myReviewList"></div>
+      </div>
+
+      <!-- 프로필 편집 딤 -->
+      <div class="sheet-dim" id="profileDim" onclick="closeProfileSheet()"></div>
+
+      <!-- 프로필 편집 바텀시트 -->
+      <div class="bottom-sheet" id="profileSheet">
+        <div class="sheet-handle-wrap"><div class="sheet-handle"></div></div>
+        <div class="sheet-header">
+          <span class="sheet-header__title">프로필 편집</span>
+          <button class="sheet-close" onclick="closeProfileSheet()" aria-label="닫기">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="rgba(0,0,0,0.4)" stroke-width="1.8" stroke-linecap="round">
+              <line x1="1" y1="1" x2="11" y2="11"/>
+              <line x1="11" y1="1" x2="1" y2="11"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- 프로필 이미지 -->
+        <div class="profile-sheet-avatar">
+          <div class="profile-sheet-avatar__img" onclick="changePhoto()">
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.75)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="7" r="4"/>
+              <path d="M4 21v-1a8 8 0 0 1 16 0v1"/>
+            </svg>
+            <div class="profile-sheet-avatar__overlay">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                <circle cx="12" cy="13" r="4"/>
+              </svg>
+            </div>
+          </div>
+          <span class="profile-sheet-avatar__label" onclick="changePhoto()">사진 변경</span>
+        </div>
+
+        <!-- 입력 필드 -->
+        <div class="profile-sheet-fields">
+          <div class="profile-sheet-field">
+            <div class="profile-sheet-field__label">닉네임</div>
+            <input
+              type="text"
+              id="editNickname"
+              class="profile-sheet-input"
+              value="사진가_준혁"
+              maxlength="12"
+              oninput="updateNickCounter(this)"
+            >
+            <div class="profile-sheet-counter"><span id="nickCount">6</span>/12</div>
+          </div>
+          <div class="profile-sheet-field">
+            <div class="profile-sheet-field__label">한 줄 소개</div>
+            <textarea
+              id="editBio"
+              class="profile-sheet-textarea"
+              maxlength="60"
+              placeholder="나를 소개하는 짧은 문장을 써보세요"
+              oninput="updateBioCounter(this)"
+            >야경과 바다를 좋아하는 사진가입니다.</textarea>
+            <div class="profile-sheet-counter"><span id="bioCount">19</span>/60</div>
+          </div>
+          <button class="profile-sheet-save" onclick="saveProfile()">저장</button>
+        </div>
+      </div>
+
+      <!-- 장비 딤 -->
+      <div class="sheet-dim" id="equipDim" onclick="closeEquipSheet()"></div>
+
+      <!-- 장비 관리 바텀 시트 -->
+      <div class="bottom-sheet" id="equipSheet">
+        <div class="sheet-handle-wrap"><div class="sheet-handle"></div></div>
+        <div class="sheet-header">
+          <span class="sheet-header__title">내 장비</span>
+          <button
+            class="sheet-close"
+            onclick="closeEquipSheet()"
+            aria-label="닫기"
+          >
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 12 12"
+              fill="none"
+              stroke="rgba(0,0,0,0.4)"
+              stroke-width="1.8"
+              stroke-linecap="round"
+            >
+              <line x1="1" y1="1" x2="11" y2="11" />
+              <line x1="11" y1="1" x2="1" y2="11" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- 장비 목록 -->
+        <div class="sheet-equip-list" id="equipList">
+          <!-- JS로 렌더링 -->
+        </div>
+
+        <!-- 추가 영역 -->
+        <div class="sheet-add-area">
+          <!-- 입력 폼 (추가 버튼 탭 시 노출) -->
+          <div class="sheet-add-row" id="addForm">
+            <div class="sheet-type-chips">
+              <button
+                class="sheet-type-chip is-active"
+                onclick="selectType(this, '카메라')"
+              >
+                카메라
+              </button>
+              <button
+                class="sheet-type-chip"
+                onclick="selectType(this, '렌즈')"
+              >
+                렌즈
+              </button>
+            </div>
+            <div class="sheet-input-row">
+              <input
+                class="sheet-equip-input"
+                id="equipInput"
+                type="text"
+                placeholder="장비명 입력 (예: Canon R6II)"
+              />
+              <button class="sheet-input-confirm" onclick="confirmAdd()">
+                추가
+              </button>
+            </div>
+          </div>
+          <button class="sheet-add-btn" id="addBtn" onclick="toggleAddForm()">
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 14 14"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+            >
+              <line x1="7" y1="2" x2="7" y2="12" />
+              <line x1="2" y1="7" x2="12" y2="7" />
+            </svg>
+            장비 추가하기
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- 토스트 -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+      /* ── 내 리뷰 데이터 ── */
+      var myReviews = [
+        {
+          id: 1,
+          spot: '광안리 해수욕장',
+          stars: 5,
+          period: '야경',
+          date: '2026.04.12',
+          text: '광안대교 야경이 정말 환상적이에요. 삼각대 없으면 흔들려서 꼭 챙겨가세요. 일몰 30분 후가 골든타임입니다.',
+          photos: ['linear-gradient(135deg,#0f2027,#2c5364)', 'linear-gradient(135deg,#203a43,#4a7c8a)']
+        },
+        {
+          id: 2,
+          spot: '진해 경화역',
+          stars: 5,
+          period: '낮',
+          date: '2026.04.02',
+          text: '벚꽃 시즌에 다녀왔는데 정말 예뻤어요. 기차와 벚꽃 조합이 환상적입니다. 주말엔 사람이 많으니 평일 오전 추천해요.',
+          photos: ['linear-gradient(135deg,#8b4a6b,#f0c89a)']
+        },
+        {
+          id: 3,
+          spot: '제주 사려니숲',
+          stars: 4,
+          period: '낮',
+          date: '2026.04.15',
+          text: '피톤치드 가득한 숲길에서 촬영했어요. 빛이 나무 사이로 들어오는 장면이 정말 좋았습니다.',
+          photos: []
+        },
+        {
+          id: 4,
+          spot: '경복궁',
+          stars: 5,
+          period: '야간',
+          date: '2026.03.08',
+          text: '야간 개장 때 촬영했어요. 조명이 정말 멋지고 인파가 있어도 구도 잘 잡으면 훌륭한 사진을 얻을 수 있어요.',
+          photos: ['linear-gradient(135deg,#1a1530,#b44a3a)']
+        },
+      ];
+
+      function openMyReviewSheet() {
+        document.getElementById('myReviewDim').classList.add('is-open');
+        document.getElementById('myReviewSheet').classList.add('is-open');
+        renderMyReviews();
+      }
+
+      function closeMyReviewSheet() {
+        document.getElementById('myReviewDim').classList.remove('is-open');
+        document.getElementById('myReviewSheet').classList.remove('is-open');
+      }
+
+      function renderMyReviews() {
+        var list = document.getElementById('myReviewList');
+        if (!myReviews.length) {
+          list.innerHTML = '<div class="my-review-empty">아직 작성한 리뷰가 없어요</div>';
+          return;
+        }
+        list.innerHTML = myReviews.map(function(r) {
+          var stars = '★'.repeat(r.stars) + '☆'.repeat(5 - r.stars);
+          var photosHtml = r.photos.length
+            ? '<div class="my-review-item__photos">' +
+                r.photos.map(function(bg) {
+                  return '<div class="my-review-item__photo" style="background:' + bg + '"></div>';
+                }).join('') +
+              '</div>'
+            : '';
+          return '<div class="my-review-item" id="my-review-' + r.id + '">' +
+            '<div class="my-review-item__top">' +
+              '<div class="my-review-item__left">' +
+                '<div class="my-review-item__spot">' + r.spot + '</div>' +
+                '<div class="my-review-item__meta">' +
+                  '<span class="my-review-item__stars">' + stars + '</span>' +
+                  '<span class="my-review-item__badge">' + r.period + '</span>' +
+                  '<span>' + r.date + '</span>' +
+                '</div>' +
+              '</div>' +
+              '<button class="my-review-item__del" onclick="deleteMyReview(' + r.id + ')" aria-label="삭제">' +
+                '<svg width="12" height="12" viewBox="0 0 12 14" fill="none" stroke="#ff453a" stroke-width="1.3" stroke-linecap="round">' +
+                  '<line x1="1" y1="0" x2="11" y2="0"/><rect x="0" y="1.5" width="12" height="11" rx="2" stroke-width="1"/>' +
+                  '<line x1="4.5" y1="4.5" x2="4.5" y2="10"/><line x1="7.5" y1="4.5" x2="7.5" y2="10"/>' +
+                '</svg>' +
+              '</button>' +
+            '</div>' +
+            '<p class="my-review-item__text">' + r.text + '</p>' +
+            photosHtml +
+          '</div>';
+        }).join('');
+      }
+
+      function deleteMyReview(id) {
+        var idx = myReviews.findIndex(function(r) { return r.id === id; });
+        if (idx === -1) return;
+        myReviews.splice(idx, 1);
+        var countEl = document.getElementById('myReviewCount');
+        countEl.textContent = Math.max(0, parseInt(countEl.textContent) - 1);
+        renderMyReviews();
+        showToast('리뷰가 삭제됐어요');
+      }
+
+      /* ── 팔로워 / 팔로잉 데이터 ── */
+      const followData = {
+        followers: [
+          { id: 1, name: '한강뷰어', handle: '@hangang_view', color: '#2c5364', initial: '한', mutual: true },
+          { id: 2, name: '봄날의사진', handle: '@spring_shot', color: '#4a3060', initial: '봄', mutual: false },
+          { id: 3, name: '골든아워헌터', handle: '@golden_h', color: '#6b3a2a', initial: '골', mutual: true },
+          { id: 4, name: '제주스냅', handle: '@jeju_snap', color: '#1a4a3a', initial: '제', mutual: false },
+          { id: 5, name: '야경마스터', handle: '@night_master', color: '#2a2a5a', initial: '야', mutual: true },
+        ],
+        following: [
+          { id: 1, name: '한강뷰어', handle: '@hangang_view', color: '#2c5364', initial: '한', following: true },
+          { id: 2, name: '골든아워헌터', handle: '@golden_h', color: '#6b3a2a', initial: '골', following: true },
+          { id: 3, name: '야경마스터', handle: '@night_master', color: '#2a2a5a', initial: '야', following: true },
+          { id: 4, name: '부산사진관', handle: '@busan_photo', color: '#1a3a5a', initial: '부', following: true },
+          { id: 5, name: '새벽빛', handle: '@dawn_light', color: '#3a4a2a', initial: '새', following: false },
+        ]
+      };
+
+      let currentFollowTab = 'followers';
+
+      function openFollowSheet(tab) {
+        currentFollowTab = tab;
+        document.getElementById('followDim').classList.add('is-open');
+        document.getElementById('followSheet').classList.add('is-open');
+        switchFollowTab(tab);
+      }
+
+      function closeFollowSheet() {
+        document.getElementById('followDim').classList.remove('is-open');
+        document.getElementById('followSheet').classList.remove('is-open');
+      }
+
+      function switchFollowTab(tab) {
+        currentFollowTab = tab;
+        document.getElementById('tabFollowers').classList.toggle('is-active', tab === 'followers');
+        document.getElementById('tabFollowing').classList.toggle('is-active', tab === 'following');
+        renderFollowList(tab);
+      }
+
+      function renderFollowList(tab) {
+        const list = document.getElementById('followList');
+        const data = followData[tab];
+
+        if (!data.length) {
+          list.innerHTML = `<div class="follow-empty">${tab === 'followers' ? '팔로워가 없어요' : '팔로잉한 사람이 없어요'}</div>`;
+          return;
+        }
+
+        list.innerHTML = data.map(u => {
+          const actionBtn = tab === 'followers'
+            ? `<button class="follow-item__action follow-item__action--remove" onclick="removeFollower(${u.id})">삭제</button>`
+            : (u.following
+                ? `<button class="follow-item__action follow-item__action--following" onclick="toggleFollow(${u.id}, this)">팔로잉</button>`
+                : `<button class="follow-item__action follow-item__action--follow" onclick="toggleFollow(${u.id}, this)">팔로우</button>`
+              );
+          return `
+            <div class="follow-item" id="follow-item-${tab}-${u.id}">
+              <div class="follow-item__avatar" style="background:${u.color}">${u.initial}</div>
+              <div class="follow-item__info">
+                <div class="follow-item__name">${u.name}</div>
+                <div class="follow-item__handle">${u.handle}</div>
+              </div>
+              ${actionBtn}
+            </div>`;
+        }).join('');
+      }
+
+      function removeFollower(id) {
+        const idx = followData.followers.findIndex(u => u.id === id);
+        if (idx === -1) return;
+        followData.followers.splice(idx, 1);
+        // 카운트 업데이트
+        const countEl = document.getElementById('followerCount');
+        const current = Number(countEl.textContent.replace(/,/g, ''));
+        const next = current - 1;
+        countEl.textContent = next >= 1000 ? next.toLocaleString() : next;
+        renderFollowList('followers');
+        showToast('팔로워를 삭제했어요');
+      }
+
+      function toggleFollow(id, btn) {
+        const user = followData.following.find(u => u.id === id);
+        if (!user) return;
+        user.following = !user.following;
+        if (user.following) {
+          btn.textContent = '팔로잉';
+          btn.className = 'follow-item__action follow-item__action--following';
+        } else {
+          btn.textContent = '팔로우';
+          btn.className = 'follow-item__action follow-item__action--follow';
+          showToast(`${user.name} 팔로우를 취소했어요`);
+        }
+      }
+
+      /* ── 프로필 편집 ── */
+      function openProfileSheet() {
+        document.getElementById('profileDim').classList.add('is-open');
+        document.getElementById('profileSheet').classList.add('is-open');
+        // 카운터 초기화
+        const nick = document.getElementById('editNickname');
+        const bio  = document.getElementById('editBio');
+        document.getElementById('nickCount').textContent = nick.value.length;
+        document.getElementById('bioCount').textContent  = bio.value.length;
+      }
+
+      function closeProfileSheet() {
+        document.getElementById('profileDim').classList.remove('is-open');
+        document.getElementById('profileSheet').classList.remove('is-open');
+      }
+
+      function changePhoto() {
+        // 퍼블리싱 목업: 실제 파일 선택 대신 토스트로 안내
+        showToast('사진 선택 기능은 앱에서 제공돼요');
+      }
+
+      function updateNickCounter(el) {
+        document.getElementById('nickCount').textContent = el.value.length;
+      }
+
+      function updateBioCounter(el) {
+        document.getElementById('bioCount').textContent = el.value.length;
+      }
+
+      function saveProfile() {
+        const nickname = document.getElementById('editNickname').value.trim();
+        if (!nickname) return;
+        const bio = document.getElementById('editBio').value.trim();
+        // 헤더 반영
+        document.getElementById('displayName').textContent = nickname;
+        const bioEl = document.getElementById('displayBio');
+        if (bio) {
+          bioEl.textContent = bio;
+          bioEl.style.display = '';
+        } else {
+          bioEl.style.display = 'none';
+        }
+        closeProfileSheet();
+        showToast('프로필이 저장됐어요');
+      }
+
+      /* ── 토스트 ── */
+      function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.classList.add('is-visible');
+        setTimeout(() => t.classList.remove('is-visible'), 2800);
+      }
+
+      /* ── 장비 데이터 ── */
+      const equipments = [
+        { id: 1, type: "카메라", name: "Sony A7IV" },
+        { id: 2, type: "렌즈", name: "16-35mm f/2.8 GM" },
+        { id: 3, type: "렌즈", name: "50mm f/1.4 GM" },
+        { id: 4, type: "렌즈", name: "70-200mm f/2.8 GM" },
+      ];
+      let selectedType = "카메라";
+
+      function renderEquipList() {
+        const list = document.getElementById("equipList");
+        list.innerHTML = equipments
+          .map(
+            (e) => `
+      <div class="sheet-equip-item" id="equip-${e.id}">
+        <div class="sheet-equip-icon">
+          ${
+            e.type === "카메라"
+              ? `<svg width="14" height="12" viewBox="0 0 14 12" fill="none" stroke="rgba(0,0,0,0.3)" stroke-width="0.9"><rect x="0" y="3" width="14" height="8" rx="2"/><circle cx="7" cy="7.5" r="2.8"/><rect x="4" y="0" width="6" height="4" rx="1.5"/></svg>`
+              : `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="rgba(0,0,0,0.25)" stroke-width="0.9"><circle cx="7" cy="7" r="6"/><circle cx="7" cy="7" r="3"/></svg>`
+          }
+        </div>
+        <div class="sheet-equip-info">
+          <div class="sheet-equip-name">
+            ${e.name}
+            <span class="sheet-equip-badge sheet-equip-badge--${e.type === "카메라" ? "camera" : "lens"}">${e.type}</span>
+          </div>
+        </div>
+        <button class="sheet-equip-del" onclick="deleteEquip(${e.id})" aria-label="삭제">
+          <svg width="12" height="12" viewBox="0 0 12 14" fill="none" stroke="#ff453a" stroke-width="1.2" stroke-linecap="round">
+            <line x1="1" y1="0" x2="11" y2="0"/><rect x="0" y="1.5" width="12" height="11" rx="2" stroke-width="1"/>
+            <line x1="4.5" y1="4" x2="4.5" y2="10"/><line x1="7.5" y1="4" x2="7.5" y2="10"/>
+          </svg>
+        </button>
+      </div>
+    `,
+          )
+          .join("");
+      }
+
+      function deleteEquip(id) {
+        const idx = equipments.findIndex((e) => e.id === id);
+        if (idx !== -1) equipments.splice(idx, 1);
+        renderEquipList();
+      }
+
+      function selectType(el, type) {
+        selectedType = type;
+        document
+          .querySelectorAll(".sheet-type-chip")
+          .forEach((c) => c.classList.remove("is-active"));
+        el.classList.add("is-active");
+      }
+
+      function toggleAddForm() {
+        const form = document.getElementById("addForm");
+        const btn = document.getElementById("addBtn");
+        const isVisible = form.classList.contains("is-visible");
+        form.classList.toggle("is-visible");
+        btn.style.display = isVisible ? "flex" : "none";
+        if (!isVisible) document.getElementById("equipInput").focus();
+      }
+
+      function confirmAdd() {
+        const input = document.getElementById("equipInput");
+        const name = input.value.trim();
+        if (!name) return;
+        const newId = Date.now();
+        equipments.push({ id: newId, type: selectedType, name });
+        input.value = "";
+        document.getElementById("addForm").classList.remove("is-visible");
+        document.getElementById("addBtn").style.display = "flex";
+        renderEquipList();
+      }
+
+      /* Enter 키로 추가 */
+      document.addEventListener("DOMContentLoaded", () => {
+        document
+          .getElementById("equipInput")
+          .addEventListener("keydown", (e) => {
+            if (e.key === "Enter") confirmAdd();
+          });
+        renderEquipList();
+      });
+
+      /* ── 바텀 시트 열기/닫기 ── */
+      function openEquipSheet() {
+        document.getElementById("equipSheet").classList.add("is-open");
+        document.getElementById("equipDim").classList.add("is-open");
+        document.body.style.overflow = "hidden";
+        renderEquipList();
+      }
+
+      function closeEquipSheet() {
+        document.getElementById("equipSheet").classList.remove("is-open");
+        document.getElementById("equipDim").classList.remove("is-open");
+        document.body.style.overflow = "";
+        document.getElementById("addForm").classList.remove("is-visible");
+        document.getElementById("addBtn").style.display = "flex";
+      }
+    </script>
+  </body>
+</html>
