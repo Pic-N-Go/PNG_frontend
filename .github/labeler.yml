@@ -1,27 +1,34 @@
 feature:
-  - title: ['^feat(\(.+\))?:', '^feature(\(.+\))?:']
-  - head-branch: ['^feature\/']
+  - any:
+    - title: ['^feat(\(.+\))?:', '^feature(\(.+\))?:']
+    - head-branch: ['^feat\/', '^feature\/']
 
 bug:
-  - title: ['^fix(\(.+\))?:', '^bugfix(\(.+\))?:']
-  - head-branch: ['^fix\/', '^bugfix\/']
+  - any:
+    - title: ['^fix(\(.+\))?:', '^bugfix(\(.+\))?:']
+    - head-branch: ['^fix\/', '^bugfix\/']
 
 refactor:
-  - title: ['^refactor(\(.+\))?:']
-  - head-branch: ['^refactor\/']
+  - any:
+    - title: ['^refactor(\(.+\))?:']
+    - head-branch: ['^refactor\/']
 
 style:
-  - title: ['^style(\(.+\))?:']
-  - head-branch: ['^style\/']
+  - any:
+    - title: ['^style(\(.+\))?:']
+    - head-branch: ['^style\/']
 
 chore:
-  - title: ['^chore(\(.+\))?:']
-  - head-branch: ['^chore\/']
+  - any:
+    - title: ['^chore(\(.+\))?:']
+    - head-branch: ['^chore\/']
 
 docs:
-  - title: ['^docs(\(.+\))?:']
-  - head-branch: ['^docs\/']
+  - any:
+    - title: ['^docs(\(.+\))?:']
+    - head-branch: ['^docs\/']
 
 test:
-  - title: ['^test(\(.+\))?:']
-  - head-branch: ['^test\/']
+  - any:
+    - title: ['^test(\(.+\))?:']
+    - head-branch: ['^test\/']
