@@ -1931,7 +1931,7 @@
 
       function onSearchKeydown(e) {
         if (e.key === 'Enter') {
-          var val = document.getElementById('searchInput').value.trim();
+          var val = e.target.value.trim();
           if (val) submitSearch(val);
         }
       }

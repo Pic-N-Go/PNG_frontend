@@ -8,11 +8,11 @@ import { Text, View } from "react-native";
 const queryClient = new QueryClient();
 
 export default function App() {
-  const [fontsLoaded] = useFonts({
+  const [fontsLoaded, fontError] = useFonts({
     PretendardVariable: require("./assets/fonts/PretendardVariable.ttf"),
   });
 
-  if (!fontsLoaded) return null;
+  if (!fontsLoaded && !fontError) return null;
 
   return (
     <QueryClientProvider client={queryClient}>

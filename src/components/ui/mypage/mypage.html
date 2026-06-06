@@ -2298,6 +2298,12 @@
         const user = followData.following.find(u => u.id === id);
         if (!user) return;
         user.following = !user.following;
+
+        const countEl = document.getElementById('followingCount');
+        const current = Number(countEl.textContent.replace(/,/g, ''));
+        const next = user.following ? current + 1 : current - 1;
+        countEl.textContent = next >= 1000 ? next.toLocaleString() : next;
+
         if (user.following) {
           btn.textContent = '팔로잉';
           btn.className = 'follow-item__action follow-item__action--following';
