@@ -176,3 +176,28 @@ const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 
 - 이 프로젝트는 `pnpm` 기준입니다.
 - `pnpm-lock.yaml`만 관리하며, `package-lock.json`은 커밋하지 않습니다.
+
+### Gemini Code Review
+
+- PR이 열리거나 업데이트될 때 Gemini AI가 자동으로 코드 리뷰 코멘트를 달아줍니다.
+- 워크플로우: `.github/workflows/gemini-review.yml`
+- 동작 조건: `main` / `develop` 대상 PR
+
+### ESLint 인라인 리뷰 (Reviewdog)
+
+- PR에서 ESLint 오류가 발생한 줄에 직접 코멘트가 달립니다.
+- 워크플로우: `.github/workflows/reviewdog.yml`
+- 동작 조건: `main` / `develop` 대상 PR
+
+### 이슈 템플릿
+
+- 이슈 작성 시 **버그 리포트** / **기능 요청** 템플릿 중 하나를 선택해 작성합니다.
+- 템플릿 선택 시 라벨(`bug` / `feature`)이 자동 적용됩니다.
+- 이슈 제목 prefix(`fix:`, `feat:` 등)로도 라벨이 자동 적용됩니다.
+- 워크플로우: `.github/workflows/issue-labeler.yml`
+
+### 의존성 자동 업데이트 (Dependabot)
+
+- 매주 월요일 오전 9시(KST)에 의존성 버전을 확인하고 업데이트 PR을 자동으로 생성합니다.
+- 생성된 PR에는 `chore` 라벨이 자동으로 붙습니다.
+- 설정 파일: `.github/dependabot.yml`
