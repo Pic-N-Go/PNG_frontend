@@ -1882,11 +1882,13 @@
 
       // 단일 선택 (거리, 포토제닉 스코어)
       function selectSingle(el, groupId) {
+        const wasSelected = el.classList.contains('is-selected');
         document.getElementById(groupId)
           .querySelectorAll('.filter-chip')
           .forEach(c => c.classList.remove('is-selected'));
-        el.classList.toggle('is-selected');
-        // 이미 선택된 걸 다시 누르면 해제 — toggle이 처리
+        if (!wasSelected) {
+          el.classList.add('is-selected');
+        }
       }
 
       // 복수 선택 (시간대, 날씨)
