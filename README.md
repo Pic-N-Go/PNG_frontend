@@ -177,12 +177,6 @@ const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 - 이 프로젝트는 `pnpm` 기준입니다.
 - `pnpm-lock.yaml`만 관리하며, `package-lock.json`은 커밋하지 않습니다.
 
-### Gemini Code Review
-
-- PR이 열리거나 업데이트될 때 Gemini AI가 자동으로 코드 리뷰 코멘트를 달아줍니다.
-- 워크플로우: `.github/workflows/gemini-review.yml`
-- 동작 조건: `main` / `develop` 대상 PR
-
 ### ESLint 인라인 리뷰 (Reviewdog)
 
 - PR에서 ESLint 오류가 발생한 줄에 직접 코멘트가 달립니다.

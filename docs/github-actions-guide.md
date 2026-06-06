@@ -11,7 +11,6 @@
 |---|---|---|
 | `ci.yml` | PR 오픈·업데이트, main/develop push | 타입 체크 + 린트 |
 | `labeler.yml` | PR 오픈·업데이트 | PR 제목/브랜치 기준 라벨 자동 적용 |
-| `gemini-review.yml` | PR 오픈·업데이트 (main/develop 대상) | Gemini AI 코드 리뷰 코멘트 |
 | `reviewdog.yml` | PR 오픈·업데이트 (src 파일 변경 시) | ESLint 결과 인라인 코멘트 |
 | `issue-labeler.yml` | 이슈 생성·수정 | 이슈 제목 기준 라벨 자동 적용 |
 
@@ -112,10 +111,10 @@ git commit -m "chore: pnpm-lock.yaml 동기화"
 git push
 ```
 
-### Gemini / Reviewdog 실패
+### Reviewdog 실패
 
 `src/` 파일 변경이 없는 PR(예: Dependabot PR)에서는 Reviewdog가 자동으로 스킵됩니다.  
-Gemini나 Reviewdog가 실패해도 머지를 막지는 않습니다 (`fail_level: none`).
+Reviewdog가 실패해도 머지를 막지는 않습니다 (`fail_level: none`).
 
 ---
 
