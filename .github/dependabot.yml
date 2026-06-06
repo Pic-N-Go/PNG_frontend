@@ -11,3 +11,19 @@ updates:
       - chore
     commit-message:
       prefix: "chore"
+    open-pull-requests-limit: 3
+    ignore:
+      # expo — 패치만 허용 (마이너·메이저 직접 관리)
+      - dependency-name: "expo"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+      # react-native — 패치만 허용
+      - dependency-name: "react-native"
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+      # react — 메이저만 차단
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major"]
+      # nativewind / tailwindcss — 메이저만 차단
+      - dependency-name: "nativewind"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "tailwindcss"
+        update-types: ["version-update:semver-major"]
