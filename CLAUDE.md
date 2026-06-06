@@ -30,6 +30,8 @@ No lint or test scripts are configured yet.
 
 NativeWind (Tailwind CSS v3) is used for all styling. Use `className` props directly on React Native components. Global CSS is in `global.css`. The tailwind config is at `tailwind.config.js`.
 
+**Do NOT use `StyleSheet.create()`** — all styles must be written as NativeWind `className`. Using StyleSheet breaks design token consistency and makes it harder to match the HTML mockups.
+
 ### Path Alias
 
 `@/` maps to `src/`. Always use this alias for imports within the project.
