@@ -30,5 +30,6 @@
     "husky": "^9.1.7",
     "typescript": "~5.9.2"
   },
-  "private": true
+  "private": true,
+  "packageManager": "pnpm@10.10.0"
 }
