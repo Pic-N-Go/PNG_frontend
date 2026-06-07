@@ -78,7 +78,7 @@
     .toast.is-visible{opacity:1;transform:translateX(-50%) translateY(0)}
 
     @media(max-width:390px){.phone-frame,.cta-bar{width:100%}}
-    @media(min-width:391px){body{padding:20px 0}.phone-frame{border-radius:40px;box-shadow:0 20px 60px rgba(0,0,0,0.15);overflow:hidden}.cta-bar{border-radius:0 0 40px 40px}}
+    @media(min-width:391px){body{padding:20px 0}.phone-frame{border-radius:40px;box-shadow:0 20px 60px rgba(0,0,0,0.15);min-height:unset;height:calc(100dvh - 40px);overflow-y:auto;overflow-x:hidden}.cta-bar{border-radius:0 0 40px 40px}}
   
       /* ── 스크롤바 숨김 ── */
       * { scrollbar-width: none; -ms-overflow-style: none; }
@@ -135,8 +135,8 @@
     <!-- 바이오 -->
     <div class="form-group">
       <div class="form-label">소개</div>
-      <textarea class="form-textarea" id="bioText" maxlength="100" placeholder="나를 소개해보세요" oninput="updateBioCount()">야경과 바다를 사랑하는 아마추어 사진가 📷</textarea>
-      <div class="form-count"><span id="bioCount">22</span>/100</div>
+      <textarea class="form-textarea" id="bioText" maxlength="100" placeholder="나를 소개해보세요" oninput="updateBioCount()">야경과 바다를 사랑하는 아마추어 사진가</textarea>
+      <div class="form-count"><span id="bioCount">20</span>/100</div>
     </div>
 
     <div class="divider"></div>

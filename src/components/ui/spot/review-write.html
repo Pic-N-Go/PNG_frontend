@@ -634,7 +634,6 @@
             type="date"
             id="visitDate"
             class="date-input"
-            max="2026-05-24"
             onchange="validateForm()"
           />
           <span class="date-input-icon">
@@ -870,11 +869,16 @@
         tags.forEach(function(tag) {
           var chip = document.createElement('span');
           chip.className = 'tag-chip';
-          chip.innerHTML = '#' + tag +
-            '<button class="tag-chip__del" onclick="removeTag(\'' + tag + '\')" type="button">' +
+          chip.textContent = '#' + tag;
+          var delBtn = document.createElement('button');
+          delBtn.className = 'tag-chip__del';
+          delBtn.type = 'button';
+          delBtn.innerHTML =
             '<svg width="8" height="8" viewBox="0 0 8 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">' +
             '<line x1="1.5" y1="1.5" x2="6.5" y2="6.5"/><line x1="6.5" y1="1.5" x2="1.5" y2="6.5"/>' +
-            '</svg></button>';
+            '</svg>';
+          delBtn.addEventListener('click', function() { removeTag(tag); });
+          chip.appendChild(delBtn);
           wrap.insertBefore(chip, field);
         });
         field.placeholder = tags.length >= MAX_TAGS ? '' : '#태그 입력 후 스페이스 또는 엔터';
@@ -1022,7 +1026,14 @@
 
       /* 날짜 기본값 오늘로 */
       document.addEventListener('DOMContentLoaded', function() {
-        document.getElementById('visitDate').value = '2026-05-24';
+        var today = new Date();
+        var yyyy = today.getFullYear();
+        var mm = String(today.getMonth() + 1).padStart(2, '0');
+        var dd = String(today.getDate()).padStart(2, '0');
+        var isoToday = yyyy + '-' + mm + '-' + dd;
+        var dateInput = document.getElementById('visitDate');
+        dateInput.max = isoToday;
+        dateInput.value = isoToday;
         validateForm();
       });
     </script>
