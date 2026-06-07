@@ -61,7 +61,9 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const MIN_DIMENSION = 400; // px
 
 function validatePhoto(file: File): { valid: boolean; error?: string } {
-  if (!ALLOWED_TYPES.includes(file.type)) {
+  const extension = file.name.split('.').pop()?.toLowerCase();
+  const isHeic = extension === 'heic' || extension === 'heif';
+  if (!ALLOWED_TYPES.includes(file.type) && !isHeic) {
     return { valid: false, error: 'JPEG, PNG, HEIC 형식만 업로드할 수 있어요.' };
   }
   if (file.size > MAX_FILE_SIZE) {

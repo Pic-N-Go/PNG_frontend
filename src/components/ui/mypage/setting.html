@@ -1704,10 +1704,16 @@
 
       /* 문의 전송 */
       function submitInquiry() {
+        const select = document.querySelector(".inquiry-form__select");
+        if (select.selectedIndex === 0) {
+          showToast("문의 유형을 선택해주세요");
+          return;
+        }
         const text = document.getElementById("inquiryText").value.trim();
         if (!text) return;
         document.getElementById("inquiryText").value = "";
         document.getElementById("inquiryCount").textContent = "0";
+        select.selectedIndex = 0;
         showToast("문의가 접수됐어요 ✓");
       }
 

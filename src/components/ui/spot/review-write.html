@@ -853,13 +853,13 @@
         if (tags.indexOf(tag) !== -1) return; // 중복 방지
         tags.push(tag);
         renderTags();
-        checkSubmit();
+        validateForm();
       }
 
       function removeTag(tag) {
         tags = tags.filter(function(t) { return t !== tag; });
         renderTags();
-        checkSubmit();
+        validateForm();
       }
 
       function renderTags() {

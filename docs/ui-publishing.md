@@ -243,9 +243,11 @@ auth/login
 ```js
 const frame = document.querySelector('.phone-frame');
 const nav = document.getElementById('page-nav');
-frame.addEventListener('scroll', () => {
-  nav.classList.toggle('is-scrolled', frame.scrollTop > 44);
-});
+if (frame && nav) {
+  frame.addEventListener('scroll', () => {
+    nav.classList.toggle('is-scrolled', frame.scrollTop > 44);
+  });
+}
 ```
 
 - `is-scrolled` 시 `.page-nav__large` (큰 타이틀) 접힘, `.page-nav__compact-title` 노출

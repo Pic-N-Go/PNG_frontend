@@ -1966,6 +1966,10 @@
 
       function removeRecent(btn) {
         btn.closest('.recent-item').remove();
+        const list = document.getElementById('recentList');
+        if (list.querySelectorAll('.recent-item').length === 0) {
+          clearAllRecent();
+        }
       }
 
       function clearAllRecent() {
