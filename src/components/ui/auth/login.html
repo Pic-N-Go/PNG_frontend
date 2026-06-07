@@ -1011,6 +1011,9 @@
   // 재발송 타이머 (3:00 카운트다운)
   function startTimer() {
     clearInterval(resendInterval);
+    const resendTimer = document.getElementById('resendTimer');
+    resendTimer.onclick = null;
+    resendTimer.style.cursor = 'default';
     let remaining = 180;
     updateTimerDisplay(remaining);
     resendInterval = setInterval(() => {

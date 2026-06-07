@@ -1710,7 +1710,10 @@
           return;
         }
         const text = document.getElementById("inquiryText").value.trim();
-        if (!text) return;
+        if (!text) {
+          showToast("문의 내용을 입력해주세요");
+          return;
+        }
         document.getElementById("inquiryText").value = "";
         document.getElementById("inquiryCount").textContent = "0";
         select.selectedIndex = 0;

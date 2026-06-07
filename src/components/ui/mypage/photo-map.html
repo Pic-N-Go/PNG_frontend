@@ -637,7 +637,7 @@
       <div class="dim" id="dim" onclick="closeSpot()"></div>
 
       <!-- 스팟 목록 바텀 시트 (기본 상태: 살짝 올라온 요약) -->
-      <div class="spot-list-sheet" id="spotListSheet" onclick="expandList(event)">
+      <div class="spot-list-sheet" id="spotListSheet" onclick="expandList()">
         <div class="sheet-top">
           <div class="sheet-top__drag">
             <div class="sheet-handle"></div>
@@ -904,7 +904,7 @@
         currentSpot = null;
       }
 
-      function expandList(e) {
+      function expandList() {
         if (currentSpot) return;
         if (!listExpanded) {
           document.getElementById('spotListSheet').classList.add('is-expanded');

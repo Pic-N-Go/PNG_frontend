@@ -66,6 +66,7 @@ const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 Full spec is in `.claude/design.md`. Key rules:
 
 - **Brand / Accent color**: `#E31B59` (Pink) — used for all interactive elements (CTA buttons, active states, active tabs, focus borders). Primary palette: Black · White · Pink.
+  - 예외: 알림 화면(`notification.html`)의 필터 탭 활성 상태는 Black(`#000`) 사용 (의도된 디자인)
 - **Backgrounds**: page `#ffffff`, card/input `#f5f5f7`
 - **Cards**: no border, no shadow — elevation via background color contrast only
 - **Buttons**: pill shape (`border-radius: 50%` of height), primary height 52px
