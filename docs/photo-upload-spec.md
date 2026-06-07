@@ -64,7 +64,7 @@ function validatePhoto(file: File): { valid: boolean; error?: string } {
   const extension = file.name.split('.').pop()?.toLowerCase();
   const isHeic = extension === 'heic' || extension === 'heif';
   if (!ALLOWED_TYPES.includes(file.type) && !isHeic) {
-    return { valid: false, error: 'JPEG, PNG, HEIC 형식만 업로드할 수 있어요.' };
+    return { valid: false, error: 'JPEG, PNG, HEIC, HEIF 형식만 업로드할 수 있어요.' };
   }
   if (file.size > MAX_FILE_SIZE) {
     return { valid: false, error: '파일 크기는 10MB 이하여야 해요.' };

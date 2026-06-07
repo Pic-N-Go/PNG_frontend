@@ -56,7 +56,7 @@
 | `spot/spot-register.html` | `50px` | `52px` |
 | `spot/review-write.html` | `50px` | `52px` |
 | `mypage/profile-edit.html` | `50px` | `52px` |
-| `mypage/wishlist-setting.html` | `46px` | `52px` |
+| `wishlist/wishlist-setting.html` | `46px` | `52px` |
 | `mypage/setting.html` | `46px` | `52px` |
 
 **수정 방법**: `.input-group__field`, `.sheet-input`, 그 외 인풋 래퍼의 `height` 값 교체.  
