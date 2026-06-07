@@ -426,7 +426,7 @@
         background: rgba(227, 27, 89, 0.1);
         color: var(--color-accent);
         font-size: 11px;
-        font-weight: 700;
+        font-weight: 600;
         letter-spacing: -0.1px;
         padding: 4px 10px;
         border-radius: 20px;
@@ -513,7 +513,7 @@
         color: rgba(0, 0, 0, 0.6);
         letter-spacing: -0.15px;
       }
-      .pg-golden-callout strong { color: #C77700; font-weight: 700; }
+      .pg-golden-callout strong { color: #C77700; font-weight: 600; }
 
       /* 구분선 */
       .pg-divider {
@@ -556,7 +556,7 @@
       }
       .pg-factor__score {
         font-size: 12px;
-        font-weight: 700;
+        font-weight: 600;
         letter-spacing: -0.1px;
         color: var(--color-accent);
         background: rgba(227, 27, 89, 0.08);
@@ -1945,7 +1945,10 @@
         .phone-frame {
           border-radius: 40px;
           box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+          min-height: unset;
           height: calc(100dvh - 40px);
+          overflow-y: auto;
+          overflow-x: hidden;
         }
       }
     </style>

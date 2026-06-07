@@ -958,6 +958,7 @@
     document.getElementById('forgotSheet').classList.add('is-open');
     // 초기화
     goStep(1);
+    document.getElementById('sheetTitle').textContent = '비밀번호 찾기';
     document.getElementById('forgotEmail').value = '';
     document.getElementById('sendCodeBtn').disabled = true;
     setTimeout(() => document.getElementById('forgotEmail').focus(), 350);
@@ -996,9 +997,9 @@
 
   // Step 2: 코드 6자리 입력 → 버튼 활성화
   function checkCode() {
-    const val = document.getElementById('codeInput').value.replace(/\D/g, '');
+    const val = document.getElementById('codeInput').value.replace(/\D/g, '').slice(0, 6);
     document.getElementById('codeInput').value = val;
-    document.getElementById('verifyBtn').disabled = val.length < 6;
+    document.getElementById('verifyBtn').disabled = val.length !== 6;
   }
 
   // Step 2 → 완료

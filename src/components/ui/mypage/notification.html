@@ -498,8 +498,22 @@
       }
     });
 
-    document.querySelectorAll('.notif-divider, .notif-group-label').forEach(el => {
-      el.style.display = '';
+    document.querySelectorAll('.notif-group-label').forEach(label => {
+      let next = label.nextElementSibling;
+      let hasVisible = false;
+      while (next && !next.classList.contains('notif-group-label')) {
+        if (next.classList.contains('notif-item') && next.style.display !== 'none') {
+          hasVisible = true;
+          break;
+        }
+        next = next.nextElementSibling;
+      }
+      label.style.display = hasVisible ? '' : 'none';
+    });
+
+    document.querySelectorAll('.notif-divider').forEach(divider => {
+      const prev = divider.previousElementSibling;
+      divider.style.display = (prev && prev.style.display !== 'none' && prev.classList.contains('notif-item')) ? '' : 'none';
     });
   }
 
