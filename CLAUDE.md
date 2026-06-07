@@ -61,6 +61,17 @@ Copy `.env.example` to `.env`. Only variables prefixed with `EXPO_PUBLIC_` are e
 const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 ```
 
+## 지원 기기
+
+- **대상**: 스마트폰 (iOS / Android), 태블릿 미지원
+- **지원 범위**: `360dp ~ 430dp` (안드로이드 보급형 ~ iPhone 15 Pro Max)
+- **디자인 기준**: `390dp` (iPhone 15 Pro)
+- **스케일링 유틸**: `src/utils/normalize.ts` — 고정 픽셀(버튼 높이, 폰트 크기 등)에 한해 사용
+- **레이아웃 상수**: `src/constants/layout.ts` — 버튼 높이, 패딩, radius 등 디자인 기준값 상수 모음
+- 상세 지원 기기 목록, 상수 사용 예시, 태블릿 향후 계획 → `docs/device-support.md`
+
+> NativeWind `className` 기반 스타일은 대부분 자동 스케일됩니다. 고정값이 필요한 경우 raw 숫자 대신 `src/constants/layout.ts` 상수를 사용하세요.
+
 ## Design System
 
 Full spec is in `.claude/design.md`. Key rules:
