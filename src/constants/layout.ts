@@ -18,6 +18,7 @@ export const SPACING_XS = normalize(4);
 export const SPACING_SM = normalize(8);
 export const SPACING_MD = normalize(16);
 export const SPACING_LG = normalize(24);
+export const SPACING_XL = normalize(32);
 
 // ── 아이콘 ───────────────────────────────────
 export const ICON_SM = normalize(18);
@@ -32,5 +33,9 @@ export const FONT_LG = normalizeFontSize(17);
 export const FONT_XL = normalizeFontSize(22);
 export const FONT_2XL = normalizeFontSize(28);
 
-// ── 탭바 ─────────────────────────────────────
+// ── 탭바 / 네비게이션 ─────────────────────────
 export const TAB_BAR_HEIGHT = normalize(80);
+export const HEADER_HEIGHT = normalize(52);
+
+// ── 바텀시트 ──────────────────────────────────
+export const BOTTOM_SHEET_RADIUS = normalize(24);

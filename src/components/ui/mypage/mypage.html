@@ -2362,11 +2362,13 @@
       }
 
       /* ── 토스트 ── */
+      let toastTimeout = null;
       function showToast(msg) {
         const t = document.getElementById('toast');
         t.textContent = msg;
         t.classList.add('is-visible');
-        setTimeout(() => t.classList.remove('is-visible'), 2800);
+        clearTimeout(toastTimeout);
+        toastTimeout = setTimeout(() => t.classList.remove('is-visible'), 2800);
       }
 
       /* ── 장비 데이터 ── */

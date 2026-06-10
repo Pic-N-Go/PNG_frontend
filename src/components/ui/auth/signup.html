@@ -920,10 +920,10 @@
     const term2Ok   = termBoxes[1]?.classList.contains('is-checked');
     const termOk    = term1Ok && term2Ok;
 
-    setFieldError('emailInput', 'emailError', email.length > 0 && !emailOk);
-    setFieldError('pw1', 'pwError', pw1.length > 0 && !pwOk);
-    setFieldError('pw2', 'pw2Error', pw2.length > 0 && !matchOk);
-    setFieldError('nicknameInput', 'nicknameError', nickname.length > 0 && !nicknameOk);
+    setFieldError('emailInput', 'emailError', (attemptedSubmit || email.length > 0) && !emailOk);
+    setFieldError('pw1', 'pwError', (attemptedSubmit || pw1.length > 0) && !pwOk);
+    setFieldError('pw2', 'pw2Error', (attemptedSubmit || pw2.length > 0) && !matchOk);
+    setFieldError('nicknameInput', 'nicknameError', (attemptedSubmit || nickname.length > 0) && !nicknameOk);
 
     const showTermsError = attemptedSubmit && !termOk;
     document.getElementById('termsError').classList.toggle('is-visible', showTermsError);

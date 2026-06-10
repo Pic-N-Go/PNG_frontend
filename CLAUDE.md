@@ -70,7 +70,7 @@ const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 - **레이아웃 상수**: `src/constants/layout.ts` — 버튼 높이, 패딩, radius 등 디자인 기준값 상수 모음
 - 상세 지원 기기 목록, 상수 사용 예시, 태블릿 향후 계획 → `docs/device-support.md`
 
-> NativeWind `className` 기반 스타일은 대부분 자동 스케일됩니다. 고정값이 필요한 경우 raw 숫자 대신 `src/constants/layout.ts` 상수를 사용하세요.
+> NativeWind `className`의 Tailwind 단위(`px-7` 등)는 고정 픽셀입니다. 기기 너비에 따라 스케일이 필요한 값(버튼 높이, 폰트 크기 등)은 `src/constants/layout.ts` 상수를 사용하세요. 패딩·마진·gap은 `className`으로 표현합니다.
 
 ## Design System
 
