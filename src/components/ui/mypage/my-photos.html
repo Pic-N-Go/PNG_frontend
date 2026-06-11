@@ -769,8 +769,21 @@
           c.classList.remove('is-active');
         });
         el.classList.add('is-active');
-        // 목업: 필터 적용 시 앨범 뷰에서 시간대 배지 기준으로 시각 피드백
         filterAlbums(filter);
+        filterGrid(filter);
+      }
+
+      function filterGrid(filter) {
+        document.querySelectorAll('.photo-cell').forEach(function(cell) {
+          if (filter === 'all') {
+            cell.style.opacity = '1';
+            cell.style.pointerEvents = '';
+          } else {
+            var match = cell.dataset.badge === filter;
+            cell.style.opacity = match ? '1' : '0.35';
+            cell.style.pointerEvents = match ? '' : 'none';
+          }
+        });
       }
 
       function filterAlbums(filter) {

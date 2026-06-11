@@ -56,9 +56,12 @@
 | `CARD_RADIUS` | 16px | 카드 border-radius |
 | `CONTENT_PADDING` | 28px | 페이지 콘텐츠 좌우 패딩 |
 | `GRID_PADDING` | 20px | 카드 그리드 좌우 패딩 |
+| `SPACING_XS / SM / MD / LG / XL` | 4/8/16/24/32px | 섹션·컴포넌트 간격 |
 | `ICON_SM / MD / LG` | 18/22/28px | 아이콘 크기 |
 | `FONT_XS ~ 2XL` | 11~28px | 폰트 크기 |
 | `TAB_BAR_HEIGHT` | 80px | 하단 탭바 높이 |
+| `HEADER_HEIGHT` | 52px | 상단 네비게이션 바 높이 |
+| `BOTTOM_SHEET_RADIUS` | 24px | 바텀시트 상단 border-radius |
 
 ### 사용 예시
 
