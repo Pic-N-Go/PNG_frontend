@@ -1,0 +1,1043 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>PNG - 리뷰 작성</title>
+    <link rel="stylesheet" href="../fonts.css" />
+    <style>
+      :root {
+        --color-bg: #ffffff;
+        --color-surface: #f5f5f7;
+        --color-text-primary: #000000;
+        --color-text-secondary: rgba(0, 0, 0, 0.48);
+        --color-accent: #e31b59;
+        --color-accent-hover: #c91550;
+        --color-border-light: rgba(0, 0, 0, 0.06);
+        --color-success: #34c759;
+        --color-warning: #ff9f0a;
+        --radius-card: 16px;
+        --radius-btn: 26px;
+      }
+      *, *::before, *::after {
+        margin: 0; padding: 0; box-sizing: border-box;
+      }
+      html {
+        font-size: 16px;
+        -webkit-font-smoothing: antialiased;
+      }
+      body {
+        font-family: var(--font-family);
+        background: #f0f0f0;
+        display: flex;
+        justify-content: center;
+        min-height: 100dvh;
+      }
+      .phone-frame {
+        width: 390px;
+        min-height: 100dvh;
+        background: var(--color-bg);
+        position: relative;
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
+
+      /* ======= 상단 네비 ======= */
+      .nav-bar {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        height: 54px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 16px;
+        border-bottom: 0.5px solid var(--color-border-light);
+      }
+      .nav-bar__back {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: none;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.15s;
+      }
+      .nav-bar__back:hover { background: rgba(0,0,0,0.05); }
+      .nav-bar__title {
+        font-size: 17px;
+        font-weight: 600;
+        color: var(--color-text-primary);
+        letter-spacing: -0.3px;
+      }
+      .nav-bar__submit {
+        height: 34px;
+        padding: 0 16px;
+        border-radius: 17px;
+        border: none;
+        background: var(--color-accent);
+        font-family: var(--font-family);
+        font-size: 14px;
+        font-weight: 500;
+        color: #fff;
+        cursor: pointer;
+        transition: background 0.15s, opacity 0.15s;
+        letter-spacing: -0.1px;
+      }
+      .nav-bar__submit:disabled {
+        opacity: 0.35;
+        cursor: default;
+      }
+      .nav-bar__submit:not(:disabled):hover { background: var(--color-accent-hover); }
+
+      /* ======= 스팟 정보 헤더 ======= */
+      .spot-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 16px 20px;
+        border-bottom: 0.5px solid var(--color-border-light);
+      }
+      .spot-header__thumb {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #0f2027, #4a7c8a);
+        flex-shrink: 0;
+      }
+      .spot-header__name {
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--color-text-primary);
+        letter-spacing: -0.25px;
+        margin-bottom: 3px;
+      }
+      .spot-header__addr {
+        font-size: 12px;
+        color: rgba(0, 0, 0, 0.4);
+      }
+
+      /* ======= 섹션 공통 ======= */
+      .section {
+        padding: 24px 20px 0;
+      }
+      .section__label {
+        font-size: 13px;
+        font-weight: 600;
+        color: rgba(0, 0, 0, 0.45);
+        letter-spacing: -0.1px;
+        margin-bottom: 12px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .section__label .required {
+        color: var(--color-accent);
+        font-size: 14px;
+        line-height: 1;
+      }
+
+      /* ======= 별점 ======= */
+      .star-row {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .star-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 4px;
+        font-size: 36px;
+        line-height: 1;
+        color: rgba(0, 0, 0, 0.1);
+        transition: color 0.15s, transform 0.1s;
+      }
+      .star-btn.is-active { color: var(--color-warning); }
+      .star-btn:hover { transform: scale(1.12); }
+      .star-label {
+        font-size: 14px;
+        font-weight: 500;
+        color: rgba(0, 0, 0, 0.4);
+        margin-left: 8px;
+        letter-spacing: -0.15px;
+        min-width: 60px;
+      }
+
+      /* ======= 방문 날짜 ======= */
+      .date-input-wrap {
+        position: relative;
+      }
+      .date-input {
+        width: 100%;
+        height: 52px;
+        border-radius: var(--radius-card);
+        border: 1.5px solid transparent;
+        background: var(--color-surface);
+        padding: 0 16px;
+        font-family: var(--font-family);
+        font-size: 16px;
+        color: var(--color-text-primary);
+        letter-spacing: -0.2px;
+        outline: none;
+        appearance: none;
+        -webkit-appearance: none;
+        cursor: pointer;
+        transition: border-color 0.2s, background 0.2s;
+      }
+      .date-input:focus {
+        border-color: var(--color-accent);
+        background: #fff;
+      }
+      .date-input::-webkit-calendar-picker-indicator {
+        opacity: 0;
+        position: absolute;
+        right: 0;
+        width: 100%;
+        cursor: pointer;
+      }
+      .date-input-icon {
+        position: absolute;
+        right: 14px;
+        top: 50%;
+        transform: translateY(-50%);
+        pointer-events: none;
+      }
+
+      /* ======= 시간대 칩 ======= */
+      .period-chips {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 8px;
+      }
+      .period-chip {
+        height: 48px;
+        border-radius: 12px;
+        border: 1.5px solid transparent;
+        background: var(--color-surface);
+        font-family: var(--font-family);
+        font-size: 13px;
+        font-weight: 500;
+        color: rgba(0, 0, 0, 0.45);
+        cursor: pointer;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        transition: all 0.15s;
+        letter-spacing: -0.1px;
+      }
+      .period-chip__icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        height: 20px;
+      }
+      .period-chip.is-active {
+        background: rgba(227, 27, 89, 0.06);
+        border-color: var(--color-accent);
+        color: var(--color-accent);
+        font-weight: 600;
+      }
+      .period-chip:hover:not(.is-active) {
+        background: rgba(0, 0, 0, 0.05);
+      }
+
+      /* ======= 텍스트 리뷰 ======= */
+      .review-textarea {
+        width: 100%;
+        height: 130px;
+        border-radius: var(--radius-card);
+        border: 1.5px solid transparent;
+        background: var(--color-surface);
+        padding: 14px 16px;
+        font-family: var(--font-family);
+        font-size: 15px;
+        color: var(--color-text-primary);
+        letter-spacing: -0.2px;
+        outline: none;
+        resize: none;
+        line-height: 1.6;
+        transition: border-color 0.2s, background 0.2s;
+      }
+      .review-textarea:focus {
+        border-color: var(--color-accent);
+        background: #fff;
+      }
+      .review-textarea::placeholder { color: rgba(0, 0, 0, 0.28); }
+      .textarea-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: 6px;
+      }
+      .textarea-hint {
+        font-size: 11px;
+        color: rgba(0, 0, 0, 0.3);
+        letter-spacing: -0.1px;
+      }
+      .textarea-hint.is-error { color: #ff453a; }
+      .textarea-counter {
+        font-size: 11px;
+        color: rgba(0, 0, 0, 0.25);
+      }
+
+      /* ======= 태그 입력 ======= */
+      .tag-input-wrap {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 7px;
+        align-items: center;
+        min-height: 46px;
+        background: var(--color-surface);
+        border-radius: 12px;
+        border: 1.5px solid transparent;
+        padding: 10px 14px;
+        cursor: text;
+        transition: border-color 0.18s;
+      }
+      .tag-input-wrap:focus-within {
+        border-color: var(--color-accent);
+        background: #fff;
+      }
+      .tag-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        background: rgba(227, 27, 89, 0.08);
+        color: var(--color-accent);
+        font-size: 13px;
+        font-weight: 500;
+        letter-spacing: -0.15px;
+        padding: 4px 10px 4px 10px;
+        border-radius: 20px;
+        white-space: nowrap;
+      }
+      .tag-chip__del {
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: rgba(227, 27, 89, 0.18);
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        flex-shrink: 0;
+      }
+      .tag-chip__del:hover { background: rgba(227, 27, 89, 0.3); }
+      .tag-input-field {
+        border: none;
+        outline: none;
+        background: transparent;
+        font-family: var(--font-family);
+        font-size: 14px;
+        color: var(--color-text-primary);
+        letter-spacing: -0.15px;
+        min-width: 100px;
+        flex: 1;
+      }
+      .tag-input-field::placeholder { color: rgba(0,0,0,0.28); }
+      .tag-suggestions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 10px;
+      }
+      .tag-suggest-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        background: var(--color-surface);
+        border: 1px solid rgba(0,0,0,0.07);
+        border-radius: 20px;
+        padding: 5px 11px;
+        font-size: 12px;
+        font-weight: 500;
+        color: rgba(0,0,0,0.55);
+        letter-spacing: -0.1px;
+        cursor: pointer;
+        font-family: var(--font-family);
+        transition: all 0.15s;
+      }
+      .tag-suggest-chip:hover {
+        background: rgba(227, 27, 89, 0.06);
+        border-color: rgba(227, 27, 89, 0.2);
+        color: var(--color-accent);
+      }
+      .tag-suggest-chip__plus {
+        font-size: 14px;
+        line-height: 1;
+        color: rgba(0,0,0,0.3);
+      }
+      .tag-hint {
+        font-size: 11px;
+        color: rgba(0,0,0,0.28);
+        letter-spacing: -0.1px;
+        margin-top: 7px;
+      }
+
+      /* ======= 사진 첨부 ======= */
+      .photo-attach {
+        display: flex;
+        gap: 8px;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding-bottom: 2px;
+      }
+      .photo-attach::-webkit-scrollbar { display: none; }
+      .photo-slot {
+        width: 72px;
+        height: 72px;
+        border-radius: 12px;
+        background: var(--color-surface);
+        border: 1.5px dashed rgba(0, 0, 0, 0.12);
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        position: relative;
+        overflow: hidden;
+        transition: all 0.15s;
+      }
+      .photo-slot:hover { border-color: var(--color-accent); background: rgba(227,27,89,0.03); }
+      .photo-slot--add {
+        flex-direction: column;
+        gap: 4px;
+      }
+      .photo-slot--add span {
+        font-size: 10px;
+        color: rgba(0, 0, 0, 0.3);
+        letter-spacing: -0.1px;
+      }
+      .photo-slot__img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .photo-slot__del {
+        position: absolute;
+        top: 4px;
+        right: 4px;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.5);
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .photo-slot__preview {
+        width: 100%;
+        height: 100%;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        color: rgba(255,255,255,0.7);
+      }
+
+      /* ======= 장비 선택 ======= */
+      .equip-select-list {
+        display: flex;
+        flex-direction: column;
+        border-radius: var(--radius-card);
+        background: var(--color-surface);
+        overflow: hidden;
+      }
+      .equip-select-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 16px;
+        cursor: pointer;
+        transition: background 0.15s;
+        border-bottom: 0.5px solid rgba(0,0,0,0.04);
+      }
+      .equip-select-item:last-child { border-bottom: none; }
+      .equip-select-item:hover { background: rgba(0,0,0,0.03); }
+      .equip-select-item__check {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        border: 1.5px solid rgba(0, 0, 0, 0.14);
+        background: transparent;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        transition: all 0.15s;
+      }
+      .equip-select-item.is-selected .equip-select-item__check {
+        background: var(--color-accent);
+        border-color: var(--color-accent);
+      }
+      .equip-select-item__icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        background: rgba(0,0,0,0.06);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      .equip-select-item__name {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--color-text-primary);
+        letter-spacing: -0.15px;
+      }
+      .equip-select-item__type {
+        font-size: 11px;
+        color: rgba(0, 0, 0, 0.35);
+        margin-top: 1px;
+      }
+      .equip-optional-label {
+        font-size: 11px;
+        color: rgba(0,0,0,0.28);
+        font-weight: 400;
+        margin-left: 4px;
+      }
+
+      /* ======= 제출 버튼 ======= */
+      .submit-area {
+        padding: 24px 20px 36px;
+      }
+      .btn-submit {
+        width: 100%;
+        height: 52px;
+        border-radius: var(--radius-btn);
+        border: none;
+        background: var(--color-accent);
+        font-family: var(--font-family);
+        font-size: 16px;
+        font-weight: 500;
+        color: #fff;
+        letter-spacing: -0.2px;
+        cursor: pointer;
+        transition: background 0.15s, transform 0.1s, opacity 0.15s;
+      }
+      .btn-submit:disabled {
+        opacity: 0.35;
+        cursor: default;
+      }
+      .btn-submit:not(:disabled):hover { background: var(--color-accent-hover); }
+      .btn-submit:not(:disabled):active { transform: scale(0.98); }
+
+      /* ======= 토스트 ======= */
+      .toast {
+        position: fixed;
+        bottom: 40px;
+        left: 50%;
+        transform: translateX(-50%) translateY(16px);
+        height: 44px;
+        padding: 0 20px;
+        border-radius: 22px;
+        background: rgba(0,0,0,0.75);
+        display: flex;
+        align-items: center;
+        font-size: 14px;
+        font-weight: 500;
+        color: #fff;
+        letter-spacing: -0.2px;
+        z-index: 300;
+        opacity: 0;
+        pointer-events: none;
+        white-space: nowrap;
+        transition: opacity 0.3s, transform 0.3s;
+      }
+      .toast.is-visible {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+
+      @media (max-width: 390px) {
+        .phone-frame { width: 100%; }
+      }
+      @media (min-width: 391px) {
+        body { padding: 20px 0; }
+        .phone-frame {
+          border-radius: 40px;
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+          min-height: unset;
+          height: calc(100dvh - 40px);
+          overflow-y: auto;
+          overflow-x: hidden;
+        }
+      }
+    
+      /* ── 스크롤바 숨김 ── */
+      * { scrollbar-width: none; -ms-overflow-style: none; }
+      *::-webkit-scrollbar { display: none; }
+</style>
+  </head>
+  <body>
+    <div class="phone-frame">
+
+      <!-- 상단 네비 -->
+      <div class="nav-bar">
+        <button class="nav-bar__back" onclick="history.back()" aria-label="뒤로가기">
+          <svg width="10" height="18" viewBox="0 0 10 18" fill="none" stroke="rgba(0,0,0,0.65)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="8,2 2,9 8,16"/>
+          </svg>
+        </button>
+        <span class="nav-bar__title">리뷰 작성</span>
+        <button class="nav-bar__submit" id="navSubmitBtn" disabled onclick="submitReview()">등록</button>
+      </div>
+
+      <!-- 스팟 정보 -->
+      <div class="spot-header">
+        <div class="spot-header__thumb"></div>
+        <div>
+          <div class="spot-header__name">광안리 해수욕장</div>
+          <div class="spot-header__addr">부산광역시 수영구 광안해변로 219</div>
+        </div>
+      </div>
+
+      <!-- 별점 -->
+      <div class="section">
+        <div class="section__label">
+          별점 <span class="required">*</span>
+        </div>
+        <div class="star-row">
+          <button class="star-btn" data-val="1" onclick="setRating(1)" aria-label="1점">★</button>
+          <button class="star-btn" data-val="2" onclick="setRating(2)" aria-label="2점">★</button>
+          <button class="star-btn" data-val="3" onclick="setRating(3)" aria-label="3점">★</button>
+          <button class="star-btn" data-val="4" onclick="setRating(4)" aria-label="4점">★</button>
+          <button class="star-btn" data-val="5" onclick="setRating(5)" aria-label="5점">★</button>
+          <span class="star-label" id="starLabel">선택 안 됨</span>
+        </div>
+      </div>
+
+      <!-- 방문 날짜 -->
+      <div class="section">
+        <div class="section__label">
+          방문 날짜 <span class="required">*</span>
+        </div>
+        <div class="date-input-wrap">
+          <input
+            type="date"
+            id="visitDate"
+            class="date-input"
+            onchange="validateForm()"
+          />
+          <span class="date-input-icon">
+            <svg width="20" height="20" viewBox="0 0 16 16" fill="none" stroke="rgba(0,0,0,0.3)" stroke-width="1.3" stroke-linecap="round">
+              <rect x="1" y="3" width="14" height="12" rx="2"/>
+              <line x1="4" y1="1" x2="4" y2="5"/>
+              <line x1="12" y1="1" x2="12" y2="5"/>
+              <line x1="1" y1="7" x2="15" y2="7" stroke-opacity="0.4"/>
+            </svg>
+          </span>
+        </div>
+      </div>
+
+      <!-- 시간대 -->
+      <div class="section">
+        <div class="section__label">
+          시간대 <span class="required">*</span>
+        </div>
+        <div class="period-chips">
+          <button class="period-chip" data-period="일출" onclick="selectPeriod(this)">
+            <span class="period-chip__icon"><img src="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/sunrise.svg" width="20" height="20" draggable="false"></span>
+            일출
+          </button>
+          <button class="period-chip" data-period="낮" onclick="selectPeriod(this)">
+            <span class="period-chip__icon"><img src="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/clear-day.svg" width="20" height="20" draggable="false"></span>
+            낮
+          </button>
+          <button class="period-chip" data-period="일몰" onclick="selectPeriod(this)">
+            <span class="period-chip__icon"><img src="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/sunset.svg" width="20" height="20" draggable="false"></span>
+            일몰
+          </button>
+          <button class="period-chip" data-period="야간" onclick="selectPeriod(this)">
+            <span class="period-chip__icon"><img src="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/clear-night.svg" width="20" height="20" draggable="false"></span>
+            야간
+          </button>
+        </div>
+      </div>
+
+      <!-- 텍스트 리뷰 -->
+      <div class="section">
+        <div class="section__label">
+          리뷰 <span class="required">*</span>
+        </div>
+        <textarea
+          id="reviewText"
+          class="review-textarea"
+          maxlength="500"
+          placeholder="촬영 팁, 혼잡도, 주차 정보 등 다른 사진가에게 도움이 될 내용을 자유롭게 작성해 주세요. (최소 20자)"
+          oninput="onTextInput()"
+        ></textarea>
+        <div class="textarea-footer">
+          <span class="textarea-hint" id="textHint">최소 20자 이상 입력해 주세요</span>
+          <span class="textarea-counter"><span id="textCount">0</span>/500</span>
+        </div>
+      </div>
+
+      <!-- 태그 입력 -->
+      <div class="section">
+        <div class="section__label">
+          태그
+          <span style="font-size:11px;color:rgba(0,0,0,0.28);font-weight:400;margin-left:2px">선택 · 최대 5개</span>
+        </div>
+        <div class="tag-input-wrap" id="tagInputWrap" onclick="document.getElementById('tagField').focus()">
+          <!-- 입력된 태그 칩들이 여기 쌓임 -->
+          <input
+            type="text"
+            id="tagField"
+            class="tag-input-field"
+            placeholder="#태그 입력 후 스페이스 또는 엔터"
+            maxlength="20"
+            oninput="onTagInput()"
+            onkeydown="onTagKeydown(event)"
+          />
+        </div>
+        <!-- 추천 태그 -->
+        <div class="tag-suggestions" id="tagSuggestions">
+          <button class="tag-suggest-chip" onclick="addSuggestTag(this)" type="button">
+            <span class="tag-suggest-chip__plus">+</span>#채광맛집
+          </button>
+          <button class="tag-suggest-chip" onclick="addSuggestTag(this)" type="button">
+            <span class="tag-suggest-chip__plus">+</span>#인생샷
+          </button>
+          <button class="tag-suggest-chip" onclick="addSuggestTag(this)" type="button">
+            <span class="tag-suggest-chip__plus">+</span>#감성사진
+          </button>
+          <button class="tag-suggest-chip" onclick="addSuggestTag(this)" type="button">
+            <span class="tag-suggest-chip__plus">+</span>#야경명소
+          </button>
+          <button class="tag-suggest-chip" onclick="addSuggestTag(this)" type="button">
+            <span class="tag-suggest-chip__plus">+</span>#주차편함
+          </button>
+          <button class="tag-suggest-chip" onclick="addSuggestTag(this)" type="button">
+            <span class="tag-suggest-chip__plus">+</span>#삼각대필수
+          </button>
+        </div>
+        <p class="tag-hint">자주 쓰인 태그는 스팟 상세 페이지에 노출됩니다</p>
+      </div>
+
+      <!-- 사진 첨부 -->
+      <div class="section">
+        <div class="section__label">
+          사진 첨부
+          <span style="font-size:11px;color:rgba(0,0,0,0.28);font-weight:400;margin-left:2px">최대 5장</span>
+        </div>
+        <div class="photo-attach" id="photoAttach">
+          <div class="photo-slot photo-slot--add" onclick="addPhoto()" id="addPhotoSlot">
+            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="rgba(0,0,0,0.25)" stroke-width="1.6" stroke-linecap="round">
+              <rect x="1" y="4" width="20" height="14" rx="3"/>
+              <circle cx="11" cy="11" r="3.5"/>
+              <path d="M7 4L8.5 1.5H13.5L15 4"/>
+            </svg>
+            <span id="photoCount">0/5</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 장비 선택 (선택) -->
+      <div class="section">
+        <div class="section__label">
+          사용 장비
+          <span class="equip-optional-label">선택</span>
+        </div>
+        <div class="equip-select-list">
+          <div class="equip-select-item" onclick="toggleEquip(this)">
+            <div class="equip-select-item__check">
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="2,5 4,7.5 8,3"/>
+              </svg>
+            </div>
+            <div class="equip-select-item__icon">
+              <svg width="14" height="12" viewBox="0 0 14 12" fill="none" stroke="rgba(0,0,0,0.3)" stroke-width="0.9">
+                <rect x="0" y="3" width="14" height="8" rx="2"/><circle cx="7" cy="7.5" r="2.8"/><rect x="4" y="0" width="6" height="4" rx="1.5"/>
+              </svg>
+            </div>
+            <div>
+              <div class="equip-select-item__name">Sony A7IV</div>
+              <div class="equip-select-item__type">카메라 바디</div>
+            </div>
+          </div>
+          <div class="equip-select-item" onclick="toggleEquip(this)">
+            <div class="equip-select-item__check">
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="2,5 4,7.5 8,3"/>
+              </svg>
+            </div>
+            <div class="equip-select-item__icon">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="rgba(0,0,0,0.25)" stroke-width="0.9">
+                <circle cx="7" cy="7" r="6"/><circle cx="7" cy="7" r="3"/>
+              </svg>
+            </div>
+            <div>
+              <div class="equip-select-item__name">16-35mm f/2.8 GM</div>
+              <div class="equip-select-item__type">렌즈 · 풍경/야경</div>
+            </div>
+          </div>
+          <div class="equip-select-item" onclick="toggleEquip(this)">
+            <div class="equip-select-item__check">
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="2,5 4,7.5 8,3"/>
+              </svg>
+            </div>
+            <div class="equip-select-item__icon">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="rgba(0,0,0,0.25)" stroke-width="0.9">
+                <circle cx="7" cy="7" r="6"/><circle cx="7" cy="7" r="3"/>
+              </svg>
+            </div>
+            <div>
+              <div class="equip-select-item__name">50mm f/1.4 GM</div>
+              <div class="equip-select-item__type">렌즈 · 인물/스냅</div>
+            </div>
+          </div>
+          <div class="equip-select-item" onclick="toggleEquip(this)">
+            <div class="equip-select-item__check">
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="2,5 4,7.5 8,3"/>
+              </svg>
+            </div>
+            <div class="equip-select-item__icon">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="rgba(0,0,0,0.25)" stroke-width="0.9">
+                <circle cx="7" cy="7" r="6"/><circle cx="7" cy="7" r="3"/>
+              </svg>
+            </div>
+            <div>
+              <div class="equip-select-item__name">70-200mm f/2.8 GM</div>
+              <div class="equip-select-item__type">렌즈 · 망원</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 등록 버튼 -->
+      <div class="submit-area">
+        <button class="btn-submit" id="submitBtn" disabled onclick="submitReview()">리뷰 등록하기</button>
+      </div>
+
+    </div>
+    <!-- /phone-frame -->
+
+    <!-- 토스트 -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+      var rating = 0;
+      var selectedPeriod = '';
+      var photoCount = 0;
+      var MAX_PHOTOS = 5;
+      var tags = [];
+      var MAX_TAGS = 5;
+
+      var starLabels = ['', '별로예요', '아쉬워요', '괜찮아요', '좋아요', '최고예요'];
+
+      /* ── 태그 ── */
+      function addTag(raw) {
+        var tag = raw.replace(/^#+/, '').trim();
+        if (!tag || tags.length >= MAX_TAGS) return;
+        if (tags.indexOf(tag) !== -1) return; // 중복 방지
+        tags.push(tag);
+        renderTags();
+        validateForm();
+      }
+
+      function removeTag(tag) {
+        tags = tags.filter(function(t) { return t !== tag; });
+        renderTags();
+        validateForm();
+      }
+
+      function renderTags() {
+        var wrap = document.getElementById('tagInputWrap');
+        var field = document.getElementById('tagField');
+        // 기존 칩 제거
+        wrap.querySelectorAll('.tag-chip').forEach(function(c) { c.remove(); });
+        tags.forEach(function(tag) {
+          var chip = document.createElement('span');
+          chip.className = 'tag-chip';
+          chip.textContent = '#' + tag;
+          var delBtn = document.createElement('button');
+          delBtn.className = 'tag-chip__del';
+          delBtn.type = 'button';
+          delBtn.innerHTML =
+            '<svg width="8" height="8" viewBox="0 0 8 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">' +
+            '<line x1="1.5" y1="1.5" x2="6.5" y2="6.5"/><line x1="6.5" y1="1.5" x2="1.5" y2="6.5"/>' +
+            '</svg>';
+          delBtn.addEventListener('click', function() { removeTag(tag); });
+          chip.appendChild(delBtn);
+          wrap.insertBefore(chip, field);
+        });
+        field.placeholder = tags.length >= MAX_TAGS ? '' : '#태그 입력 후 스페이스 또는 엔터';
+        field.disabled = tags.length >= MAX_TAGS;
+      }
+
+      function onTagInput() {
+        var field = document.getElementById('tagField');
+        var val = field.value;
+        // 스페이스 입력 시 태그 확정
+        if (val.slice(-1) === ' ') {
+          var word = val.trim();
+          if (word) addTag(word);
+          field.value = '';
+        }
+      }
+
+      function onTagKeydown(e) {
+        var field = document.getElementById('tagField');
+        if (e.key === 'Enter') {
+          e.preventDefault();
+          var word = field.value.trim();
+          if (word) addTag(word);
+          field.value = '';
+        }
+        if (e.key === 'Backspace' && field.value === '' && tags.length > 0) {
+          removeTag(tags[tags.length - 1]);
+        }
+      }
+
+      function addSuggestTag(btn) {
+        var text = btn.textContent.trim().replace(/^\+/, '').trim();
+        addTag(text);
+      }
+
+      /* ── 별점 ── */
+      function setRating(val) {
+        rating = val;
+        document.querySelectorAll('.star-btn').forEach(function(btn) {
+          btn.classList.toggle('is-active', parseInt(btn.dataset.val) <= val);
+        });
+        document.getElementById('starLabel').textContent = starLabels[val];
+        validateForm();
+      }
+
+      /* ── 시간대 ── */
+      function selectPeriod(el) {
+        document.querySelectorAll('.period-chip').forEach(function(c) {
+          c.classList.remove('is-active');
+        });
+        el.classList.add('is-active');
+        selectedPeriod = el.dataset.period;
+        validateForm();
+      }
+
+      /* ── 텍스트 입력 ── */
+      function onTextInput() {
+        var text = document.getElementById('reviewText').value;
+        var len = text.length;
+        document.getElementById('textCount').textContent = len;
+        var hint = document.getElementById('textHint');
+        if (len === 0) {
+          hint.textContent = '최소 20자 이상 입력해 주세요';
+          hint.classList.remove('is-error');
+        } else if (len < 20) {
+          hint.textContent = '20자 이상 입력해 주세요 (' + (20 - len) + '자 더 필요)';
+          hint.classList.add('is-error');
+        } else {
+          hint.textContent = '좋아요! 잘 작성되고 있어요';
+          hint.classList.remove('is-error');
+        }
+        validateForm();
+      }
+
+      /* ── 사진 첨부 (목업) ── */
+      var photoColors = ['#2c5364','#4a3060','#6b3a2a','#1a4a3a','#2a2a5a'];
+
+      function addPhoto() {
+        if (photoCount >= MAX_PHOTOS) return;
+        photoCount++;
+
+        var attach = document.getElementById('photoAttach');
+        var addSlot = document.getElementById('addPhotoSlot');
+
+        var slot = document.createElement('div');
+        slot.className = 'photo-slot';
+        var idx = photoCount - 1;
+        slot.innerHTML =
+          '<div class="photo-slot__preview" style="background:' + photoColors[idx % photoColors.length] + ';width:100%;height:100%;border-radius:10px">' +
+            '<svg width="18" height="18" viewBox="0 0 22 22" fill="none" stroke="rgba(255,255,255,0.6)" stroke-width="1.4" stroke-linecap="round"><rect x="1" y="4" width="20" height="14" rx="3"/><circle cx="11" cy="11" r="3.5"/></svg>' +
+          '</div>' +
+          '<button class="photo-slot__del" onclick="removePhoto(this)" aria-label="삭제">' +
+            '<svg width="8" height="8" viewBox="0 0 8 8" fill="none" stroke="#fff" stroke-width="1.6" stroke-linecap="round"><line x1="1" y1="1" x2="7" y2="7"/><line x1="7" y1="1" x2="1" y2="7"/></svg>' +
+          '</button>';
+
+        attach.insertBefore(slot, addSlot);
+        updatePhotoCount();
+      }
+
+      function removePhoto(btn) {
+        var slot = btn.parentElement;
+        slot.parentElement.removeChild(slot);
+        photoCount--;
+        updatePhotoCount();
+      }
+
+      function updatePhotoCount() {
+        document.getElementById('photoCount').textContent = photoCount + '/' + MAX_PHOTOS;
+        var addSlot = document.getElementById('addPhotoSlot');
+        addSlot.style.display = photoCount >= MAX_PHOTOS ? 'none' : '';
+      }
+
+      /* ── 장비 토글 ── */
+      function toggleEquip(el) {
+        el.classList.toggle('is-selected');
+      }
+
+      /* ── 폼 유효성 ── */
+      function validateForm() {
+        var text = document.getElementById('reviewText').value.trim();
+        var date = document.getElementById('visitDate').value;
+        var valid = rating > 0 && date !== '' && selectedPeriod !== '' && text.length >= 20;
+        document.getElementById('submitBtn').disabled = !valid;
+        document.getElementById('navSubmitBtn').disabled = !valid;
+      }
+
+      /* ── 제출 ── */
+      function submitReview() {
+        var text = document.getElementById('reviewText').value.trim();
+        var date = document.getElementById('visitDate').value;
+        if (!rating || !date || !selectedPeriod || text.length < 20) return;
+        showToast('리뷰가 등록됐어요');
+        setTimeout(function() {
+          location.href = './spot-detail.html';
+        }, 1400);
+      }
+
+      /* ── 토스트 ── */
+      function showToast(msg) {
+        var t = document.getElementById('toast');
+        t.textContent = msg;
+        t.classList.add('is-visible');
+        setTimeout(function() { t.classList.remove('is-visible'); }, 2600);
+      }
+
+      /* 날짜 기본값 오늘로 */
+      document.addEventListener('DOMContentLoaded', function() {
+        var today = new Date();
+        var yyyy = today.getFullYear();
+        var mm = String(today.getMonth() + 1).padStart(2, '0');
+        var dd = String(today.getDate()).padStart(2, '0');
+        var isoToday = yyyy + '-' + mm + '-' + dd;
+        var dateInput = document.getElementById('visitDate');
+        dateInput.max = isoToday;
+        dateInput.value = isoToday;
+        validateForm();
+      });
+    </script>
+  </body>
+</html>

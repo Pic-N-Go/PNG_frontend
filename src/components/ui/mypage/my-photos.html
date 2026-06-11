@@ -1,0 +1,876 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>PNG - 내 사진</title>
+    <link rel="stylesheet" href="../fonts.css" />
+    <style>
+      :root {
+        --color-bg: #ffffff;
+        --color-surface: #f5f5f7;
+        --color-text-primary: #000000;
+        --color-text-secondary: rgba(0, 0, 0, 0.48);
+        --color-accent: #e31b59;
+        --color-accent-hover: #c91550;
+        --color-border-light: rgba(0, 0, 0, 0.06);
+        --color-warning: #ff9f0a;
+        --radius-card: 16px;
+      }
+      *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+      html { font-size: 16px; -webkit-font-smoothing: antialiased; }
+      body {
+        font-family: var(--font-family);
+        background: #f0f0f0;
+        display: flex;
+        justify-content: center;
+        min-height: 100dvh;
+      }
+      .phone-frame {
+        width: 390px;
+        min-height: 100dvh;
+        background: var(--color-bg);
+        position: relative;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding-bottom: 32px;
+      }
+
+      /* ======= 네비 ======= */
+      .nav-bar {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        background: rgba(255,255,255,0.92);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        height: 54px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 16px;
+        border-bottom: 0.5px solid var(--color-border-light);
+      }
+      .nav-bar__back {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: none;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.15s;
+        flex-shrink: 0;
+      }
+      .nav-bar__back:hover { background: rgba(0,0,0,0.05); }
+      .nav-bar__title {
+        font-size: 17px;
+        font-weight: 600;
+        color: var(--color-text-primary);
+        letter-spacing: -0.3px;
+      }
+      /* 뷰 토글 */
+      .view-toggle {
+        display: flex;
+        background: var(--color-surface);
+        border-radius: 8px;
+        padding: 2px;
+        gap: 2px;
+      }
+      .view-toggle__btn {
+        width: 32px;
+        height: 28px;
+        border-radius: 6px;
+        border: none;
+        background: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s;
+        color: rgba(0,0,0,0.3);
+      }
+      .view-toggle__btn.is-active {
+        background: #fff;
+        color: var(--color-text-primary);
+        box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+      }
+
+      /* ======= 요약 카드 ======= */
+      .summary-card {
+        margin: 14px 20px 0;
+        background: var(--color-surface);
+        border-radius: var(--radius-card);
+        padding: 16px 0;
+        display: flex;
+        align-items: center;
+      }
+      .summary-stat {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+      }
+      .summary-stat__num {
+        font-size: 22px;
+        font-weight: 600;
+        color: var(--color-text-primary);
+        letter-spacing: -0.5px;
+        line-height: 1;
+      }
+      .summary-stat__label {
+        font-size: 11px;
+        color: rgba(0,0,0,0.38);
+        letter-spacing: -0.1px;
+      }
+      .summary-divider {
+        width: 0.5px;
+        height: 28px;
+        background: rgba(0,0,0,0.08);
+        flex-shrink: 0;
+      }
+
+      /* ======= 필터 칩 (sticky) ======= */
+      .filter-row {
+        position: sticky;
+        top: 54px;
+        z-index: 40;
+        background: rgba(255,255,255,0.95);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        border-bottom: 0.5px solid var(--color-border-light);
+        display: flex;
+        gap: 7px;
+        padding: 10px 20px;
+        margin-top: 14px;
+        overflow-x: auto;
+        scrollbar-width: none;
+      }
+      .filter-row::-webkit-scrollbar { display: none; }
+      .filter-chip {
+        height: 32px;
+        padding: 0 14px;
+        border-radius: 16px;
+        border: none;
+        font-family: var(--font-family);
+        font-size: 13px;
+        font-weight: 500;
+        white-space: nowrap;
+        cursor: pointer;
+        transition: all 0.15s;
+        flex-shrink: 0;
+        letter-spacing: -0.1px;
+      }
+      .filter-chip.is-active {
+        background: var(--color-accent);
+        color: #fff;
+      }
+      .filter-chip:not(.is-active) {
+        background: var(--color-surface);
+        color: rgba(0,0,0,0.5);
+      }
+
+      /* ======= 앨범 뷰 ======= */
+      #view-album { padding: 20px 20px 0; }
+
+      .album-year {
+        font-size: 12px;
+        font-weight: 600;
+        color: rgba(0,0,0,0.3);
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+        margin-bottom: 10px;
+        margin-top: 0;
+        padding-top: 4px;
+      }
+      .album-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 24px;
+      }
+      .album-item {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 12px;
+        background: var(--color-surface);
+        border-radius: var(--radius-card);
+        cursor: pointer;
+        transition: background 0.15s;
+        text-decoration: none;
+      }
+      .album-item:hover { background: rgba(0,0,0,0.05); }
+      .album-item__thumb {
+        width: 72px;
+        height: 72px;
+        border-radius: 10px;
+        flex-shrink: 0;
+        position: relative;
+        overflow: hidden;
+      }
+      .album-item__thumb-stack {
+        position: absolute;
+        bottom: -4px;
+        right: -4px;
+        width: 68px;
+        height: 68px;
+        border-radius: 9px;
+        border: 2px solid #fff;
+        opacity: 0.5;
+      }
+      .album-item__info { flex: 1; min-width: 0; }
+      .album-item__name {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--color-text-primary);
+        letter-spacing: -0.2px;
+        margin-bottom: 3px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .album-item__loc {
+        font-size: 12px;
+        color: rgba(0,0,0,0.38);
+        letter-spacing: -0.1px;
+        margin-bottom: 6px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .album-item__meta {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .album-item__count {
+        font-size: 12px;
+        color: rgba(0,0,0,0.4);
+        letter-spacing: -0.1px;
+      }
+      .album-item__time-badge {
+        display: inline-flex;
+        align-items: center;
+        height: 18px;
+        padding: 0 7px;
+        border-radius: 9px;
+        background: rgba(0,0,0,0.06);
+        font-size: 10px;
+        font-weight: 500;
+        color: rgba(0,0,0,0.4);
+      }
+      .album-item__score {
+        display: inline-flex;
+        align-items: center;
+        height: 18px;
+        padding: 0 7px;
+        border-radius: 9px;
+        background: rgba(227,27,89,0.08);
+        font-size: 10px;
+        font-weight: 600;
+        color: var(--color-accent);
+      }
+      .album-item__arrow {
+        color: rgba(0,0,0,0.18);
+        flex-shrink: 0;
+      }
+
+      /* ======= 그리드 뷰 ======= */
+      #view-grid { display: none; padding-top: 20px; }
+      #view-grid.is-active { display: block; }
+      #view-album.is-active { display: block; }
+      #view-album { display: none; }
+
+      .grid-section { margin-bottom: 8px; }
+      .grid-section__title {
+        font-size: 12px;
+        font-weight: 600;
+        color: rgba(0,0,0,0.3);
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+        padding: 0 20px 10px;
+      }
+      .photo-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 2px;
+      }
+      .photo-cell {
+        aspect-ratio: 1;
+        overflow: hidden;
+        cursor: pointer;
+        position: relative;
+      }
+      .photo-cell__inner {
+        width: 100%;
+        height: 100%;
+        transition: transform 0.2s;
+      }
+      .photo-cell:hover .photo-cell__inner { transform: scale(1.04); }
+      .photo-cell__badge {
+        position: absolute;
+        bottom: 6px;
+        left: 6px;
+        height: 16px;
+        padding: 0 6px;
+        border-radius: 8px;
+        background: rgba(0,0,0,0.45);
+        font-size: 9px;
+        font-weight: 500;
+        color: rgba(255,255,255,0.85);
+        display: flex;
+        align-items: center;
+      }
+
+      /* ======= 사진 라이트박스 ======= */
+      .photo-lightbox {
+        position: fixed;
+        top: 0; bottom: 0;
+        left: 50%; transform: translateX(-50%);
+        width: 390px;
+        background: #000;
+        z-index: 300;
+        display: none;
+        flex-direction: column;
+      }
+      .photo-lightbox.is-open { display: flex; }
+      .photo-lightbox__header {
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 88px;
+        padding: 54px 16px 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: linear-gradient(to bottom, rgba(0,0,0,0.55), transparent);
+        z-index: 2;
+      }
+      .photo-lightbox__close {
+        width: 36px; height: 36px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.14);
+        border: none; cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        backdrop-filter: blur(6px);
+        transition: background 0.15s;
+      }
+      .photo-lightbox__close:hover { background: rgba(255,255,255,0.22); }
+      .photo-lightbox__counter {
+        font-size: 13px; font-weight: 500;
+        color: rgba(255,255,255,0.65);
+        letter-spacing: -0.1px;
+      }
+      .photo-lightbox__img {
+        flex: 1;
+        background-size: cover;
+        background-position: center;
+      }
+      .photo-lightbox__footer {
+        padding: 20px 20px 36px;
+        background: linear-gradient(to top, rgba(0,0,0,0.7), transparent);
+        position: absolute;
+        bottom: 0; left: 0; right: 0;
+      }
+      .photo-lightbox__spot {
+        font-size: 17px; font-weight: 600;
+        color: #fff; letter-spacing: -0.3px;
+        margin-bottom: 4px;
+      }
+      .photo-lightbox__meta {
+        font-size: 12px;
+        color: rgba(255,255,255,0.5);
+        letter-spacing: -0.1px;
+        display: flex; align-items: center; gap: 8px;
+      }
+      .photo-lightbox__badge {
+        height: 18px; padding: 0 8px;
+        border-radius: 9px;
+        background: rgba(255,255,255,0.15);
+        font-size: 10px; font-weight: 500;
+        color: rgba(255,255,255,0.75);
+        display: flex; align-items: center;
+      }
+      .photo-lightbox__nav {
+        position: absolute;
+        top: 50%; transform: translateY(-50%);
+        width: 40px; height: 40px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.12);
+        border: none; cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        backdrop-filter: blur(6px);
+        transition: background 0.15s;
+        z-index: 3;
+      }
+      .photo-lightbox__nav:hover { background: rgba(255,255,255,0.22); }
+      .photo-lightbox__nav--prev { left: 14px; }
+      .photo-lightbox__nav--next { right: 14px; }
+      .photo-lightbox__nav.is-hidden { opacity: 0; pointer-events: none; }
+
+      @media (max-width: 390px) { .phone-frame { width: 100%; } }
+      @media (max-width: 390px) { .photo-lightbox { width: 100%; } }
+      @media (min-width: 391px) {
+        body { padding: 20px 0; }
+        .phone-frame {
+          border-radius: 40px;
+          box-shadow: 0 20px 60px rgba(0,0,0,0.15);
+          min-height: unset;
+          height: calc(100dvh - 40px);
+          overflow-y: auto;
+          overflow-x: hidden;
+        }
+        .photo-lightbox { top: 20px; bottom: 20px; border-radius: 40px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="phone-frame">
+
+      <!-- 네비 -->
+      <div class="nav-bar">
+        <button class="nav-bar__back" onclick="location.href='./mypage.html'" aria-label="뒤로가기">
+          <svg width="10" height="18" viewBox="0 0 10 18" fill="none" stroke="rgba(0,0,0,0.65)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="8,2 2,9 8,16"/>
+          </svg>
+        </button>
+        <span class="nav-bar__title">내 사진</span>
+        <div class="view-toggle">
+          <button class="view-toggle__btn is-active" id="btnAlbum" onclick="switchView('album')" aria-label="앨범 뷰">
+            <!-- 리스트(앨범) 아이콘: 썸네일 + 텍스트 행 -->
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="1" y="1.5" width="4" height="4" rx="1"/>
+              <line x1="7" y1="3" x2="13" y2="3"/>
+              <line x1="7" y1="5" x2="11" y2="5"/>
+              <rect x="1" y="8.5" width="4" height="4" rx="1"/>
+              <line x1="7" y1="10" x2="13" y2="10"/>
+              <line x1="7" y1="12" x2="11" y2="12"/>
+            </svg>
+          </button>
+          <button class="view-toggle__btn" id="btnGrid" onclick="switchView('grid')" aria-label="그리드 뷰">
+            <!-- 그리드 아이콘: 2×2 블록 -->
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="1" y="1" width="5" height="5" rx="1.5"/>
+              <rect x="8" y="1" width="5" height="5" rx="1.5"/>
+              <rect x="1" y="8" width="5" height="5" rx="1.5"/>
+              <rect x="8" y="8" width="5" height="5" rx="1.5"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- 요약 카드 -->
+      <div class="summary-card">
+        <div class="summary-stat">
+          <span class="summary-stat__num">142</span>
+          <span class="summary-stat__label">전체 사진</span>
+        </div>
+        <div class="summary-divider"></div>
+        <div class="summary-stat">
+          <span class="summary-stat__num">7</span>
+          <span class="summary-stat__label">촬영 앨범</span>
+        </div>
+        <div class="summary-divider"></div>
+        <div class="summary-stat">
+          <span class="summary-stat__num">6</span>
+          <span class="summary-stat__label">방문 지역</span>
+        </div>
+      </div>
+
+      <!-- 필터 칩 -->
+      <div class="filter-row" id="filterRow">
+        <button class="filter-chip is-active" onclick="selectFilter(this, 'all')">전체</button>
+        <button class="filter-chip" onclick="selectFilter(this, '야경')">야경</button>
+        <button class="filter-chip" onclick="selectFilter(this, '일출')">일출</button>
+        <button class="filter-chip" onclick="selectFilter(this, '일몰')">일몰</button>
+        <button class="filter-chip" onclick="selectFilter(this, '낮')">낮</button>
+      </div>
+
+      <!-- ===== 앨범 뷰 ===== -->
+      <div id="view-album" class="is-active">
+
+        <!-- 2026년 -->
+        <div class="album-year">2026</div>
+        <div class="album-list">
+
+          <div class="album-item" onclick="location.href='../spot/spot-detail.html'">
+            <div class="album-item__thumb" style="background:linear-gradient(135deg,#0f2027,#2c5364)">
+              <div class="album-item__thumb-stack" style="background:linear-gradient(135deg,#203a43,#4a7c8a)"></div>
+            </div>
+            <div class="album-item__info">
+              <div class="album-item__name">광안리 일출</div>
+              <div class="album-item__loc">부산 · 광안리 해수욕장</div>
+              <div class="album-item__meta">
+                <span class="album-item__count">2026.03.28 · 12장</span>
+                <span class="album-item__time-badge">일출</span>
+                <span class="album-item__score">91점</span>
+              </div>
+            </div>
+            <svg class="album-item__arrow" width="7" height="12" viewBox="0 0 7 12" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="1,1 6,6 1,11"/>
+            </svg>
+          </div>
+
+          <div class="album-item" onclick="location.href='../spot/spot-detail.html'">
+            <div class="album-item__thumb" style="background:linear-gradient(135deg,#8b4a6b,#f0c89a)">
+              <div class="album-item__thumb-stack" style="background:linear-gradient(135deg,#d4856a,#e8a87c)"></div>
+            </div>
+            <div class="album-item__info">
+              <div class="album-item__name">진해 벚꽃</div>
+              <div class="album-item__loc">경남 · 경화역</div>
+              <div class="album-item__meta">
+                <span class="album-item__count">2026.04.02 · 24장</span>
+                <span class="album-item__time-badge">낮</span>
+                <span class="album-item__score">88점</span>
+              </div>
+            </div>
+            <svg class="album-item__arrow" width="7" height="12" viewBox="0 0 7 12" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="1,1 6,6 1,11"/>
+            </svg>
+          </div>
+
+          <div class="album-item" onclick="location.href='../spot/spot-detail.html'">
+            <div class="album-item__thumb" style="background:linear-gradient(135deg,#0a1a0f,#4a8060)">
+              <div class="album-item__thumb-stack" style="background:linear-gradient(135deg,#1a3a2a,#3a6a50)"></div>
+            </div>
+            <div class="album-item__info">
+              <div class="album-item__name">제주 사려니숲</div>
+              <div class="album-item__loc">제주 · 사려니숲길</div>
+              <div class="album-item__meta">
+                <span class="album-item__count">2026.04.15 · 18장</span>
+                <span class="album-item__time-badge">낮</span>
+                <span class="album-item__score">79점</span>
+              </div>
+            </div>
+            <svg class="album-item__arrow" width="7" height="12" viewBox="0 0 7 12" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="1,1 6,6 1,11"/>
+            </svg>
+          </div>
+
+          <div class="album-item" onclick="location.href='../spot/spot-detail.html'">
+            <div class="album-item__thumb" style="background:linear-gradient(135deg,#1a1530,#b44a3a)">
+              <div class="album-item__thumb-stack" style="background:linear-gradient(135deg,#2d1b4e,#8b4a6b)"></div>
+            </div>
+            <div class="album-item__info">
+              <div class="album-item__name">경복궁 야간개장</div>
+              <div class="album-item__loc">서울 · 경복궁</div>
+              <div class="album-item__meta">
+                <span class="album-item__count">2026.03.08 · 31장</span>
+                <span class="album-item__time-badge">야경</span>
+                <span class="album-item__score">85점</span>
+              </div>
+            </div>
+            <svg class="album-item__arrow" width="7" height="12" viewBox="0 0 7 12" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="1,1 6,6 1,11"/>
+            </svg>
+          </div>
+
+          <div class="album-item" onclick="location.href='../spot/spot-detail.html'">
+            <div class="album-item__thumb" style="background:linear-gradient(135deg,#3a2a1a,#c8804a)">
+              <div class="album-item__thumb-stack" style="background:linear-gradient(135deg,#5a3a2a,#d89060)"></div>
+            </div>
+            <div class="album-item__info">
+              <div class="album-item__name">부산 감천문화마을</div>
+              <div class="album-item__loc">부산 · 사하구 감천동</div>
+              <div class="album-item__meta">
+                <span class="album-item__count">2026.02.14 · 17장</span>
+                <span class="album-item__time-badge">낮</span>
+                <span class="album-item__score">82점</span>
+              </div>
+            </div>
+            <svg class="album-item__arrow" width="7" height="12" viewBox="0 0 7 12" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="1,1 6,6 1,11"/>
+            </svg>
+          </div>
+
+        </div>
+
+        <!-- 2025년 -->
+        <div class="album-year">2025</div>
+        <div class="album-list">
+
+          <div class="album-item" onclick="location.href='../spot/spot-detail.html'">
+            <div class="album-item__thumb" style="background:linear-gradient(135deg,#020010,#1a1545)">
+              <div class="album-item__thumb-stack" style="background:linear-gradient(135deg,#0a0020,#2a2a6a)"></div>
+            </div>
+            <div class="album-item__info">
+              <div class="album-item__name">영월 별마로천문대</div>
+              <div class="album-item__loc">강원 · 영월군</div>
+              <div class="album-item__meta">
+                <span class="album-item__count">2025.10.03 · 22장</span>
+                <span class="album-item__time-badge">야경</span>
+                <span class="album-item__score">94점</span>
+              </div>
+            </div>
+            <svg class="album-item__arrow" width="7" height="12" viewBox="0 0 7 12" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="1,1 6,6 1,11"/>
+            </svg>
+          </div>
+
+          <div class="album-item" onclick="location.href='../spot/spot-detail.html'">
+            <div class="album-item__thumb" style="background:linear-gradient(135deg,#5a3010,#c87020)">
+              <div class="album-item__thumb-stack" style="background:linear-gradient(135deg,#7a4020,#e09030)"></div>
+            </div>
+            <div class="album-item__info">
+              <div class="album-item__name">경주 불국사</div>
+              <div class="album-item__loc">경북 · 경주시</div>
+              <div class="album-item__meta">
+                <span class="album-item__count">2025.11.05 · 18장</span>
+                <span class="album-item__time-badge">낮</span>
+                <span class="album-item__score">87점</span>
+              </div>
+            </div>
+            <svg class="album-item__arrow" width="7" height="12" viewBox="0 0 7 12" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="1,1 6,6 1,11"/>
+            </svg>
+          </div>
+
+        </div>
+      </div>
+      <!-- /view-album -->
+
+      <!-- ===== 그리드 뷰 ===== -->
+      <div id="view-grid">
+
+        <div class="grid-section">
+          <div class="grid-section__title">2026년 4월</div>
+          <div class="photo-grid">
+            <div class="photo-cell" onclick="openPhotoLightbox(this)" data-spot="제주 사려니숲" data-date="2026.04.15" data-bg="linear-gradient(135deg,#0a1a0f,#4a8060)"><div class="photo-cell__inner" style="background:linear-gradient(135deg,#0a1a0f,#4a8060)"></div></div>
+            <div class="photo-cell" onclick="openPhotoLightbox(this)" data-spot="제주 사려니숲" data-date="2026.04.15" data-bg="linear-gradient(135deg,#1a3a2a,#3a6a50)"><div class="photo-cell__inner" style="background:linear-gradient(135deg,#1a3a2a,#3a6a50)"></div></div>
+            <div class="photo-cell" onclick="openPhotoLightbox(this)" data-spot="제주 사려니숲" data-date="2026.04.15" data-bg="linear-gradient(135deg,#0f2a1a,#5a8a60)"><div class="photo-cell__inner" style="background:linear-gradient(135deg,#0f2a1a,#5a8a60)"></div></div>
+            <div class="photo-cell" onclick="openPhotoLightbox(this)" data-spot="진해 경화역" data-date="2026.04.02" data-bg="linear-gradient(135deg,#8b4a6b,#f0c89a)"><div class="photo-cell__inner" style="background:linear-gradient(135deg,#8b4a6b,#f0c89a)"></div></div>
+            <div class="photo-cell" onclick="openPhotoLightbox(this)" data-spot="진해 경화역" data-date="2026.04.02" data-badge="낮" data-bg="linear-gradient(135deg,#d4856a,#e8a87c)"><div class="photo-cell__inner" style="background:linear-gradient(135deg,#d4856a,#e8a87c)"></div><div class="photo-cell__badge">낮</div></div>
+            <div class="photo-cell" onclick="openPhotoLightbox(this)" data-spot="진해 경화역" data-date="2026.04.02" data-bg="linear-gradient(135deg,#c9705a,#f0a07a)"><div class="photo-cell__inner" style="background:linear-gradient(135deg,#c9705a,#f0a07a)"></div></div>
+            <div class="photo-cell" onclick="openPhotoLightbox(this)" data-spot="진해 경화역" data-date="2026.04.02" data-bg="linear-gradient(135deg,#9b3a5b,#e8a87c)"><div class="photo-cell__inner" style="background:linear-gradient(135deg,#9b3a5b,#e8a87c)"></div></div>
+            <div class="photo-cell" onclick="openPhotoLightbox(this)" data-spot="진해 경화역" data-date="2026.04.02" data-bg="linear-gradient(135deg,#b44a3a,#d4856a)"><div class="photo-cell__inner" style="background:linear-gradient(135deg,#b44a3a,#d4856a)"></div></div>
+            <div class="photo-cell" onclick="openPhotoLightbox(this)" data-spot="진해 경화역" data-date="2026.04.02" data-bg="linear-gradient(135deg,#8b4050,#d4706a)"><div class="photo-cell__inner" style="background:linear-gradient(135deg,#8b4050,#d4706a)"></div></div>
+          </div>
+        </div>
+
+        <div class="grid-section">
+          <div class="grid-section__title">2026년 3월</div>
+          <div class="photo-grid">
+            <div class="photo-cell" onclick="openPhotoLightbox(this)" data-spot="광안리 해수욕장" data-date="2026.03.28" data-badge="일출" data-bg="linear-gradient(135deg,#0f2027,#2c5364)"><div class="photo-cell__inner" style="background:linear-gradient(135deg,#0f2027,#2c5364)"></div><div class="photo-cell__badge">일출</div></div>
+            <div class="photo-cell" onclick="openPhotoLightbox(this)" data-spot="광안리 해수욕장" data-date="2026.03.28" data-bg="linear-gradient(135deg,#203a43,#4a7c8a)"><div class="photo-cell__inner" style="background:linear-gradient(135deg,#203a43,#4a7c8a)"></div></div>
+            <div class="photo-cell" onclick="openPhotoLightbox(this)" data-spot="광안리 해수욕장" data-date="2026.03.28" data-bg="linear-gradient(135deg,#2c5364,#6a9aaa)"><div class="photo-cell__inner" style="background:linear-gradient(135deg,#2c5364,#6a9aaa)"></div></div>
+            <div class="photo-cell" onclick="openPhotoLightbox(this)" data-spot="광안리 해수욕장" data-date="2026.03.28" data-bg="linear-gradient(135deg,#0a2030,#3a6a8a)"><div class="photo-cell__inner" style="background:linear-gradient(135deg,#0a2030,#3a6a8a)"></div></div>
+            <div class="photo-cell" onclick="openPhotoLightbox(this)" data-spot="광안리 해수욕장" data-date="2026.03.28" data-bg="linear-gradient(135deg,#1a3a50,#4a8aaa)"><div class="photo-cell__inner" style="background:linear-gradient(135deg,#1a3a50,#4a8aaa)"></div></div>
+            <div class="photo-cell" onclick="openPhotoLightbox(this)" data-spot="광안리 해수욕장" data-date="2026.03.28" data-bg="linear-gradient(135deg,#0f2a3a,#2a5a7a)"><div class="photo-cell__inner" style="background:linear-gradient(135deg,#0f2a3a,#2a5a7a)"></div></div>
+            <div class="photo-cell" onclick="openPhotoLightbox(this)" data-spot="경복궁" data-date="2026.03.08" data-badge="야경" data-bg="linear-gradient(135deg,#1a1530,#b44a3a)"><div class="photo-cell__inner" style="background:linear-gradient(135deg,#1a1530,#b44a3a)"></div><div class="photo-cell__badge">야경</div></div>
+            <div class="photo-cell" onclick="openPhotoLightbox(this)" data-spot="경복궁" data-date="2026.03.08" data-bg="linear-gradient(135deg,#2d1b4e,#8b4a6b)"><div class="photo-cell__inner" style="background:linear-gradient(135deg,#2d1b4e,#8b4a6b)"></div></div>
+            <div class="photo-cell" onclick="openPhotoLightbox(this)" data-spot="경복궁" data-date="2026.03.08" data-bg="linear-gradient(135deg,#1a1030,#6a2a5a)"><div class="photo-cell__inner" style="background:linear-gradient(135deg,#1a1030,#6a2a5a)"></div></div>
+            <div class="photo-cell" onclick="openPhotoLightbox(this)" data-spot="경복궁" data-date="2026.03.08" data-bg="linear-gradient(135deg,#3a0a2a,#9a3a6a)"><div class="photo-cell__inner" style="background:linear-gradient(135deg,#3a0a2a,#9a3a6a)"></div></div>
+            <div class="photo-cell" onclick="openPhotoLightbox(this)" data-spot="경복궁" data-date="2026.03.08" data-bg="linear-gradient(135deg,#2a1a40,#7a3a7a)"><div class="photo-cell__inner" style="background:linear-gradient(135deg,#2a1a40,#7a3a7a)"></div></div>
+            <div class="photo-cell" onclick="openPhotoLightbox(this)" data-spot="경복궁" data-date="2026.03.08" data-bg="linear-gradient(135deg,#1a0a20,#5a2a6a)"><div class="photo-cell__inner" style="background:linear-gradient(135deg,#1a0a20,#5a2a6a)"></div></div>
+          </div>
+        </div>
+
+        <div class="grid-section">
+          <div class="grid-section__title">2026년 2월</div>
+          <div class="photo-grid">
+            <div class="photo-cell" onclick="openPhotoLightbox(this)" data-spot="감천문화마을" data-date="2026.02.14" data-badge="낮" data-bg="linear-gradient(135deg,#3a2a1a,#c8804a)"><div class="photo-cell__inner" style="background:linear-gradient(135deg,#3a2a1a,#c8804a)"></div></div>
+            <div class="photo-cell" onclick="openPhotoLightbox(this)" data-spot="감천문화마을" data-date="2026.02.14" data-bg="linear-gradient(135deg,#4a3020,#d89060)"><div class="photo-cell__inner" style="background:linear-gradient(135deg,#4a3020,#d89060)"></div></div>
+            <div class="photo-cell" onclick="openPhotoLightbox(this)" data-spot="감천문화마을" data-date="2026.02.14" data-bg="linear-gradient(135deg,#5a4030,#e8a070)"><div class="photo-cell__inner" style="background:linear-gradient(135deg,#5a4030,#e8a070)"></div></div>
+            <div class="photo-cell" onclick="openPhotoLightbox(this)" data-spot="감천문화마을" data-date="2026.02.14" data-bg="linear-gradient(135deg,#6a5040,#f0b080)"><div class="photo-cell__inner" style="background:linear-gradient(135deg,#6a5040,#f0b080)"></div></div>
+            <div class="photo-cell" onclick="openPhotoLightbox(this)" data-spot="감천문화마을" data-date="2026.02.14" data-bg="linear-gradient(135deg,#7a6050,#f8c090)"><div class="photo-cell__inner" style="background:linear-gradient(135deg,#7a6050,#f8c090)"></div></div>
+          </div>
+        </div>
+
+        <div class="grid-section">
+          <div class="grid-section__title">2025년</div>
+          <div class="photo-grid">
+            <div class="photo-cell" onclick="openPhotoLightbox(this)" data-spot="영월 별마로천문대" data-date="2025.10.03" data-badge="야경" data-bg="linear-gradient(135deg,#020010,#1a1545)"><div class="photo-cell__inner" style="background:linear-gradient(135deg,#020010,#1a1545)"></div><div class="photo-cell__badge">야경</div></div>
+            <div class="photo-cell" onclick="openPhotoLightbox(this)" data-spot="영월 별마로천문대" data-date="2025.10.03" data-bg="linear-gradient(135deg,#0a0020,#2a2a6a)"><div class="photo-cell__inner" style="background:linear-gradient(135deg,#0a0020,#2a2a6a)"></div></div>
+            <div class="photo-cell" onclick="openPhotoLightbox(this)" data-spot="영월 별마로천문대" data-date="2025.10.03" data-bg="linear-gradient(135deg,#050015,#1a1a50)"><div class="photo-cell__inner" style="background:linear-gradient(135deg,#050015,#1a1a50)"></div></div>
+            <div class="photo-cell" onclick="openPhotoLightbox(this)" data-spot="영월 별마로천문대" data-date="2025.10.03" data-bg="linear-gradient(135deg,#0a0025,#252570)"><div class="photo-cell__inner" style="background:linear-gradient(135deg,#0a0025,#252570)"></div></div>
+            <div class="photo-cell" onclick="openPhotoLightbox(this)" data-spot="영월 별마로천문대" data-date="2025.10.03" data-bg="linear-gradient(135deg,#100025,#2a2060)"><div class="photo-cell__inner" style="background:linear-gradient(135deg,#100025,#2a2060)"></div></div>
+            <div class="photo-cell" onclick="openPhotoLightbox(this)" data-spot="경주 불국사" data-date="2025.11.05" data-badge="낮" data-bg="linear-gradient(135deg,#5a3010,#c87020)"><div class="photo-cell__inner" style="background:linear-gradient(135deg,#5a3010,#c87020)"></div></div>
+            <div class="photo-cell" onclick="openPhotoLightbox(this)" data-spot="경주 불국사" data-date="2025.11.05" data-bg="linear-gradient(135deg,#7a4020,#e09030)"><div class="photo-cell__inner" style="background:linear-gradient(135deg,#7a4020,#e09030)"></div></div>
+            <div class="photo-cell" onclick="openPhotoLightbox(this)" data-spot="경주 불국사" data-date="2025.11.05" data-bg="linear-gradient(135deg,#6a3818,#d08028)"><div class="photo-cell__inner" style="background:linear-gradient(135deg,#6a3818,#d08028)"></div></div>
+            <div class="photo-cell" onclick="openPhotoLightbox(this)" data-spot="경주 불국사" data-date="2025.11.05" data-bg="linear-gradient(135deg,#4a2808,#b07018)"><div class="photo-cell__inner" style="background:linear-gradient(135deg,#4a2808,#b07018)"></div></div>
+          </div>
+        </div>
+
+      </div>
+      <!-- /view-grid -->
+
+    </div>
+    <!-- /phone-frame -->
+
+    <!-- ===== 라이트박스 ===== -->
+    <div class="photo-lightbox" id="photoLightbox">
+      <!-- 헤더 -->
+      <div class="photo-lightbox__header">
+        <button class="photo-lightbox__close" onclick="closeLightbox()" aria-label="닫기">
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="1" y1="1" x2="13" y2="13"/>
+            <line x1="13" y1="1" x2="1" y2="13"/>
+          </svg>
+        </button>
+        <span class="photo-lightbox__counter" id="lbCounter"></span>
+      </div>
+      <!-- 사진 영역 (스와이프 제스처 지원) -->
+      <div class="photo-lightbox__img" id="lbImg"></div>
+      <!-- 이전/다음 버튼 -->
+      <button class="photo-lightbox__nav photo-lightbox__nav--prev" id="lbPrev" onclick="navigateLightbox(-1)" aria-label="이전">
+        <svg width="10" height="18" viewBox="0 0 10 18" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="8,2 2,9 8,16"/>
+        </svg>
+      </button>
+      <button class="photo-lightbox__nav photo-lightbox__nav--next" id="lbNext" onclick="navigateLightbox(1)" aria-label="다음">
+        <svg width="10" height="18" viewBox="0 0 10 18" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="2,2 8,9 2,16"/>
+        </svg>
+      </button>
+      <!-- 하단 정보 -->
+      <div class="photo-lightbox__footer">
+        <div class="photo-lightbox__spot" id="lbSpot"></div>
+        <div class="photo-lightbox__meta">
+          <span id="lbDate"></span>
+          <span class="photo-lightbox__badge" id="lbBadge"></span>
+        </div>
+      </div>
+    </div>
+    <!-- /라이트박스 -->
+
+    <script>
+      var currentView = 'album';
+      var currentFilter = 'all';
+
+      function switchView(view) {
+        currentView = view;
+        var albumEl = document.getElementById('view-album');
+        var gridEl  = document.getElementById('view-grid');
+        var btnAlbum = document.getElementById('btnAlbum');
+        var btnGrid  = document.getElementById('btnGrid');
+
+        if (view === 'album') {
+          albumEl.classList.add('is-active');
+          gridEl.classList.remove('is-active');
+          btnAlbum.classList.add('is-active');
+          btnGrid.classList.remove('is-active');
+        } else {
+          gridEl.classList.add('is-active');
+          albumEl.classList.remove('is-active');
+          btnGrid.classList.add('is-active');
+          btnAlbum.classList.remove('is-active');
+        }
+      }
+
+      function selectFilter(el, filter) {
+        currentFilter = filter;
+        document.querySelectorAll('.filter-chip').forEach(function(c) {
+          c.classList.remove('is-active');
+        });
+        el.classList.add('is-active');
+        filterAlbums(filter);
+        filterGrid(filter);
+      }
+
+      function filterGrid(filter) {
+        document.querySelectorAll('.photo-cell').forEach(function(cell) {
+          if (filter === 'all') {
+            cell.style.opacity = '1';
+            cell.style.pointerEvents = '';
+          } else {
+            var match = cell.dataset.badge === filter;
+            cell.style.opacity = match ? '1' : '0.35';
+            cell.style.pointerEvents = match ? '' : 'none';
+          }
+        });
+      }
+
+      function filterAlbums(filter) {
+        var items = document.querySelectorAll('.album-item');
+        items.forEach(function(item) {
+          if (filter === 'all') {
+            item.style.opacity = '1';
+            item.style.pointerEvents = '';
+          } else {
+            var badge = item.querySelector('.album-item__time-badge');
+            var match = badge && badge.textContent === filter;
+            item.style.opacity = match ? '1' : '0.35';
+            item.style.pointerEvents = match ? '' : 'none';
+          }
+        });
+      }
+
+      /* 초기: 앨범 뷰 활성 */
+      document.addEventListener('DOMContentLoaded', function() {
+        switchView('album');
+      });
+
+      /* ===== 라이트박스 ===== */
+      var photoData = [];
+      var currentPhotoIndex = 0;
+
+      function buildPhotoData() {
+        photoData = [];
+        var cells = document.querySelectorAll('#view-grid .photo-cell');
+        cells.forEach(function(cell) {
+          photoData.push({
+            bg:    cell.dataset.bg    || '',
+            spot:  cell.dataset.spot  || '',
+            date:  cell.dataset.date  || '',
+            badge: cell.dataset.badge || ''
+          });
+        });
+      }
+
+      function openPhotoLightbox(el) {
+        if (photoData.length === 0) buildPhotoData();
+        var cells = Array.from(document.querySelectorAll('#view-grid .photo-cell'));
+        currentPhotoIndex = cells.indexOf(el);
+        renderLightbox(currentPhotoIndex);
+        document.getElementById('photoLightbox').classList.add('is-open');
+        document.body.style.overflow = 'hidden';
+      }
+
+      function renderLightbox(index) {
+        var d = photoData[index];
+        document.getElementById('lbImg').style.background = d.bg;
+        document.getElementById('lbSpot').textContent = d.spot;
+        document.getElementById('lbDate').textContent = d.date;
+        var badgeEl = document.getElementById('lbBadge');
+        if (d.badge) {
+          badgeEl.textContent = d.badge;
+          badgeEl.style.display = 'flex';
+        } else {
+          badgeEl.textContent = '';
+          badgeEl.style.display = 'none';
+        }
+        document.getElementById('lbCounter').textContent = (index + 1) + ' / ' + photoData.length;
+        // 첫/마지막 사진에서 nav 숨기기
+        document.getElementById('lbPrev').classList.toggle('is-hidden', index === 0);
+        document.getElementById('lbNext').classList.toggle('is-hidden', index === photoData.length - 1);
+      }
+
+      function navigateLightbox(dir) {
+        var next = currentPhotoIndex + dir;
+        if (next < 0 || next >= photoData.length) return;
+        currentPhotoIndex = next;
+        renderLightbox(currentPhotoIndex);
+      }
+
+      function closeLightbox() {
+        document.getElementById('photoLightbox').classList.remove('is-open');
+        document.body.style.overflow = '';
+      }
+
+      /* 키보드 네비게이션 */
+      document.addEventListener('keydown', function(e) {
+        var lb = document.getElementById('photoLightbox');
+        if (!lb.classList.contains('is-open')) return;
+        if (e.key === 'ArrowLeft')  navigateLightbox(-1);
+        if (e.key === 'ArrowRight') navigateLightbox(1);
+        if (e.key === 'Escape')     closeLightbox();
+      });
+    </script>
+  </body>
+</html>

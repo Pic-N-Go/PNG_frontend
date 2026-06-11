@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>PNG - 이번 주 인기 스팟</title>
+  <link rel="stylesheet" href="../fonts.css">
+  <style>
+    :root {
+      --color-bg: #ffffff;
+      --color-surface: #f5f5f7;
+      --color-text-primary: #000000;
+      --color-text-secondary: rgba(0,0,0,0.48);
+      --color-text-tertiary: rgba(0,0,0,0.28);
+      --color-accent: #e31b59;
+      --color-accent-hover: #c91550;
+      --color-tab-active: #e31b59;
+      --color-border-light: rgba(0,0,0,0.06);
+      --color-success: #34c759;
+      --color-warning: #ff9f0a;
+      --radius-card: 16px;
+    }
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    html{font-size:16px;-webkit-font-smoothing:antialiased}
+    body{font-family:var(--font-family);background:#f0f0f0;display:flex;justify-content:center;min-height:100dvh}
+    .phone-frame{width:390px;background:var(--color-bg);position:relative;overflow-y:auto;overflow-x:hidden;padding-bottom:20px}
+
+    /* ── 네비 ── */
+    .nav{height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;position:sticky;top:0;background:var(--color-bg);z-index:20;border-bottom:0.5px solid var(--color-border-light)}
+    .nav__back{width:36px;height:36px;border-radius:50%;border:none;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:rgba(0,0,0,0.5);transition:background 0.15s}
+    .nav__back:hover{background:var(--color-surface)}
+    .nav__title{font-size:17px;font-weight:600;color:var(--color-text-primary);letter-spacing:-0.3px}
+    .nav__placeholder{width:36px}
+
+    /* ── 탭 + 정렬 컨트롤 ── */
+    .controls{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;gap:8px;position:sticky;top:54px;background:var(--color-bg);z-index:15;border-bottom:0.5px solid var(--color-border-light)}
+    .tab-toggle{display:flex;gap:8px;}
+    .tab-toggle__btn{display:flex;align-items:center;height:32px;padding:0 16px;border-radius:16px;border:none;font-family:var(--font-family);font-size:13px;font-weight:500;color:rgba(0,0,0,0.45);background:var(--color-surface);cursor:pointer;transition:all 0.18s;white-space:nowrap}
+    .tab-toggle__btn.is-active{background:var(--color-accent);color:#fff;}
+    .sort-btn{height:36px;padding:0 14px;border-radius:18px;border:none;background:var(--color-surface);font-family:var(--font-family);font-size:13px;color:rgba(0,0,0,0.55);cursor:pointer;display:flex;align-items:center;gap:4px;transition:background 0.15s;flex-shrink:0}
+    .sort-btn:hover{background:rgba(0,0,0,0.06)}
+    .sort-menu{position:absolute;top:58px;right:20px;width:140px;background:#fff;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.12);border:0.5px solid rgba(0,0,0,0.06);overflow:hidden;z-index:30;opacity:0;visibility:hidden;transform:translateY(-4px);transition:all 0.18s}
+    .sort-menu.is-open{opacity:1;visibility:visible;transform:translateY(0)}
+    .sort-menu__item{display:block;width:100%;padding:12px 16px;border:none;background:none;font-family:var(--font-family);font-size:14px;color:rgba(0,0,0,0.55);cursor:pointer;text-align:left;transition:background 0.15s}
+    .sort-menu__item:hover{background:var(--color-surface)}
+    .sort-menu__item.is-active{color:var(--color-accent);font-weight:500}
+    .sort-menu__item+.sort-menu__item{border-top:0.5px solid rgba(0,0,0,0.04)}
+
+    /* ── 카운트 바 ── */
+    .count-bar{padding:12px 20px 4px;font-size:13px;color:rgba(0,0,0,0.35)}
+    .count-bar strong{color:var(--color-text-primary);font-weight:600}
+
+    /* ── 스팟 리스트 카드 ── */
+    .spot-list{padding:4px 20px 0;display:flex;flex-direction:column;gap:10px}
+    .spot-item{border-radius:var(--radius-card);background:var(--color-bg);border:0.5px solid rgba(0,0,0,0.07);overflow:hidden;cursor:pointer;display:flex;transition:transform 0.15s}
+    .spot-item:active{transform:scale(0.98)}
+    .spot-item__thumb{width:100px;height:100px;flex-shrink:0;position:relative}
+    .spot-item__thumb-img{width:100%;height:100%;object-fit:cover}
+    .spot-item__rank{position:absolute;top:8px;left:8px;width:22px;height:22px;border-radius:11px;background:rgba(0,0,0,0.45);font-size:11px;font-weight:600;color:#fff;display:flex;align-items:center;justify-content:center}
+    .spot-item__rank--gold{background:linear-gradient(135deg,#f0c89a,#d4856a)}
+    .spot-item__rank--silver{background:linear-gradient(135deg,#c0c0c0,#8a8a8a)}
+    .spot-item__rank--bronze{background:linear-gradient(135deg,#cd8c52,#8a6030)}
+    .spot-item__body{flex:1;padding:12px 12px 12px 14px;min-width:0;display:flex;flex-direction:column;justify-content:space-between}
+    .spot-item__top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:3px}
+    .spot-item__name{font-size:16px;font-weight:600;color:var(--color-text-primary);letter-spacing:-0.2px}
+    .spot-item__bookmark{width:32px;height:32px;border-radius:50%;border:none;background:var(--color-surface);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background 0.15s}
+    .spot-item__bookmark:hover{background:rgba(0,0,0,0.07)}
+    .spot-item__bookmark.is-saved{background:rgba(227,27,89,0.08)}
+    .spot-item__loc{font-size:12px;color:rgba(0,0,0,0.38);margin-bottom:8px;display:flex;align-items:center;gap:3px}
+    .spot-item__tags{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px}
+    .spot-item__tag{height:20px;padding:0 8px;border-radius:10px;background:var(--color-surface);font-size:10px;color:rgba(0,0,0,0.45);display:flex;align-items:center}
+    .spot-item__bottom{display:flex;align-items:center;justify-content:space-between}
+    .spot-item__rating{font-size:12px;color:var(--color-warning)}
+    .spot-item__rating span{color:rgba(0,0,0,0.3);margin-left:3px;font-size:11px}
+    .spot-item__score{height:22px;padding:0 9px;border-radius:11px;background:#000;font-size:11px;font-weight:600;color:#fff;display:flex;align-items:center}
+
+    /* ── 빈 상태 (저장됨 탭) ── */
+    .empty{display:flex;flex-direction:column;align-items:center;padding:64px 40px;gap:10px;text-align:center}
+    .empty__icon{width:56px;height:56px;border-radius:16px;background:var(--color-surface);display:flex;align-items:center;justify-content:center;margin-bottom:4px}
+    .empty__title{font-size:16px;font-weight:500;color:var(--color-text-primary);letter-spacing:-0.2px}
+    .empty__desc{font-size:13px;color:rgba(0,0,0,0.38);line-height:1.55;letter-spacing:-0.1px}
+
+    @media(max-width:390px){.phone-frame{width:100%}}
+    @media(min-width:391px){body{padding:20px 0}.phone-frame{border-radius:40px;box-shadow:0 20px 60px rgba(0,0,0,0.15);min-height:unset;height:calc(100dvh - 40px);overflow-y:auto;overflow-x:hidden}}
+  
+      /* ── 스크롤바 숨김 ── */
+      * { scrollbar-width: none; -ms-overflow-style: none; }
+      *::-webkit-scrollbar { display: none; }
+</style>
+</head>
+<body>
+<div class="phone-frame">
+
+  <!-- 네비 -->
+  <div class="nav">
+    <button class="nav__back" onclick="location.href='../home/home.html'" aria-label="뒤로가기">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="11,3 5,9 11,15"/></svg>
+    </button>
+    <span class="nav__title">이번 주 인기 스팟</span>
+    <div class="nav__placeholder"></div>
+  </div>
+
+  <!-- 탭 + 정렬 -->
+  <div class="controls">
+    <div class="tab-toggle">
+      <button class="tab-toggle__btn is-active" onclick="switchTab('all', this)">전체</button>
+      <button class="tab-toggle__btn" onclick="switchTab('saved', this)">저장됨</button>
+    </div>
+    <button class="sort-btn" onclick="toggleSort(this)">
+      <span id="sortLabel">인기순</span>
+      <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><polyline points="2,3.5 5,6.5 8,3.5"/></svg>
+    </button>
+    <div class="sort-menu" id="sortMenu">
+      <button class="sort-menu__item is-active" onclick="selectSort('인기순', this)">인기순</button>
+      <button class="sort-menu__item" onclick="selectSort('최신순', this)">최신순</button>
+      <button class="sort-menu__item" onclick="selectSort('포토제닉순', this)">포토제닉순</button>
+      <button class="sort-menu__item" onclick="selectSort('평점순', this)">평점순</button>
+    </div>
+  </div>
+
+  <!-- 전체 탭 -->
+  <div id="view-all">
+    <div class="count-bar">총 <strong>24개</strong> 스팟</div>
+    <div class="spot-list">
+
+      <div class="spot-item" onclick="location.href='./spot-detail.html'">
+        <div class="spot-item__thumb">
+          <div class="spot-item__thumb-img" style="background:linear-gradient(to bottom,#232526,#414345,#8e7b5a)"></div>
+          <div class="spot-item__rank spot-item__rank--gold">1</div>
+        </div>
+        <div class="spot-item__body">
+          <div>
+            <div class="spot-item__top">
+              <span class="spot-item__name">경복궁 야간개장</span>
+              <button class="spot-item__bookmark is-saved" onclick="toggleBookmark(event, this)" aria-label="북마크">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="#E31B59" stroke="#E31B59" stroke-width="1.3" stroke-linejoin="round"><path d="M3 1V13L7 10.5L11 13V1Z"/></svg>
+              </button>
+            </div>
+            <div class="spot-item__loc">
+              <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="rgba(0,0,0,0.3)" stroke-width="1"><path d="M6 1C3.5 1 1.5 3 1.5 5.5C1.5 8.5 6 12 6 12S10.5 8.5 10.5 5.5C10.5 3 8.5 1 6 1Z"/><circle cx="6" cy="5" r="1.5"/></svg>
+              서울 종로구 · 야경/한옥
+            </div>
+            <div class="spot-item__tags">
+              <span class="spot-item__tag">#야경</span>
+              <span class="spot-item__tag">#한옥</span>
+              <span class="spot-item__tag">#야간</span>
+            </div>
+          </div>
+          <div class="spot-item__bottom">
+            <div class="spot-item__rating">★★★★★ <span>4.9 · 512건</span></div>
+            <div class="spot-item__score">91점</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="spot-item" onclick="location.href='./spot-detail.html'">
+        <div class="spot-item__thumb">
+          <div class="spot-item__thumb-img" style="background:linear-gradient(to bottom,#0f2027,#203a43,#2c5364)"></div>
+          <div class="spot-item__rank spot-item__rank--silver">2</div>
+        </div>
+        <div class="spot-item__body">
+          <div>
+            <div class="spot-item__top">
+              <span class="spot-item__name">광안리 해수욕장</span>
+              <button class="spot-item__bookmark is-saved" onclick="toggleBookmark(event, this)" aria-label="북마크">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="#E31B59" stroke="#E31B59" stroke-width="1.3" stroke-linejoin="round"><path d="M3 1V13L7 10.5L11 13V1Z"/></svg>
+              </button>
+            </div>
+            <div class="spot-item__loc">
+              <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="rgba(0,0,0,0.3)" stroke-width="1"><path d="M6 1C3.5 1 1.5 3 1.5 5.5C1.5 8.5 6 12 6 12S10.5 8.5 10.5 5.5C10.5 3 8.5 1 6 1Z"/><circle cx="6" cy="5" r="1.5"/></svg>
+              부산 수영구 · 야경/바다
+            </div>
+            <div class="spot-item__tags">
+              <span class="spot-item__tag">#야경</span>
+              <span class="spot-item__tag">#일출</span>
+              <span class="spot-item__tag">#바다</span>
+            </div>
+          </div>
+          <div class="spot-item__bottom">
+            <div class="spot-item__rating">★★★★★ <span>4.8 · 324건</span></div>
+            <div class="spot-item__score">87점</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="spot-item" onclick="location.href='./spot-detail.html'">
+        <div class="spot-item__thumb">
+          <div class="spot-item__thumb-img" style="background:linear-gradient(to bottom,#3a0a1a,#c05070,#f0a0b0)"></div>
+          <div class="spot-item__rank spot-item__rank--bronze">3</div>
+        </div>
+        <div class="spot-item__body">
+          <div>
+            <div class="spot-item__top">
+              <span class="spot-item__name">에버랜드 장미원</span>
+              <button class="spot-item__bookmark" onclick="toggleBookmark(event, this)" aria-label="북마크">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="rgba(0,0,0,0.3)" stroke-width="1.3" stroke-linejoin="round"><path d="M3 1V13L7 10.5L11 13V1Z"/></svg>
+              </button>
+            </div>
+            <div class="spot-item__loc">
+              <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="rgba(0,0,0,0.3)" stroke-width="1"><path d="M6 1C3.5 1 1.5 3 1.5 5.5C1.5 8.5 6 12 6 12S10.5 8.5 10.5 5.5C10.5 3 8.5 1 6 1Z"/><circle cx="6" cy="5" r="1.5"/></svg>
+              경기 용인시 · 꽃/정원
+            </div>
+            <div class="spot-item__tags">
+              <span class="spot-item__tag">#장미</span>
+              <span class="spot-item__tag">#봄</span>
+              <span class="spot-item__tag">#매크로</span>
+            </div>
+          </div>
+          <div class="spot-item__bottom">
+            <div class="spot-item__rating">★★★★★ <span>4.8 · 267건</span></div>
+            <div class="spot-item__score">92점</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="spot-item" onclick="location.href='./spot-detail.html'">
+        <div class="spot-item__thumb">
+          <div class="spot-item__thumb-img" style="background:linear-gradient(to bottom,#2a1a0a,#8a6a3a,#c8a870)"></div>
+          <div class="spot-item__rank">4</div>
+        </div>
+        <div class="spot-item__body">
+          <div>
+            <div class="spot-item__top">
+              <span class="spot-item__name">북촌 한옥마을</span>
+              <button class="spot-item__bookmark" onclick="toggleBookmark(event, this)" aria-label="북마크">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="rgba(0,0,0,0.3)" stroke-width="1.3" stroke-linejoin="round"><path d="M3 1V13L7 10.5L11 13V1Z"/></svg>
+              </button>
+            </div>
+            <div class="spot-item__loc">
+              <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="rgba(0,0,0,0.3)" stroke-width="1"><path d="M6 1C3.5 1 1.5 3 1.5 5.5C1.5 8.5 6 12 6 12S10.5 8.5 10.5 5.5C10.5 3 8.5 1 6 1Z"/><circle cx="6" cy="5" r="1.5"/></svg>
+              서울 종로구 · 한옥/골목
+            </div>
+            <div class="spot-item__tags">
+              <span class="spot-item__tag">#한옥</span>
+              <span class="spot-item__tag">#골목</span>
+              <span class="spot-item__tag">#새벽</span>
+            </div>
+          </div>
+          <div class="spot-item__bottom">
+            <div class="spot-item__rating">★★★★★ <span>4.8 · 398건</span></div>
+            <div class="spot-item__score">85점</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="spot-item" onclick="location.href='./spot-detail.html'">
+        <div class="spot-item__thumb">
+          <div class="spot-item__thumb-img" style="background:linear-gradient(to bottom,#1d4350,#4a8d7e,#a3d9c8)"></div>
+          <div class="spot-item__rank">5</div>
+        </div>
+        <div class="spot-item__body">
+          <div>
+            <div class="spot-item__top">
+              <span class="spot-item__name">제주 사려니숲길</span>
+              <button class="spot-item__bookmark" onclick="toggleBookmark(event, this)" aria-label="북마크">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="rgba(0,0,0,0.3)" stroke-width="1.3" stroke-linejoin="round"><path d="M3 1V13L7 10.5L11 13V1Z"/></svg>
+              </button>
+            </div>
+            <div class="spot-item__loc">
+              <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="rgba(0,0,0,0.3)" stroke-width="1"><path d="M6 1C3.5 1 1.5 3 1.5 5.5C1.5 8.5 6 12 6 12S10.5 8.5 10.5 5.5C10.5 3 8.5 1 6 1Z"/><circle cx="6" cy="5" r="1.5"/></svg>
+              제주 서귀포시 · 숲/안개
+            </div>
+            <div class="spot-item__tags">
+              <span class="spot-item__tag">#숲</span>
+              <span class="spot-item__tag">#안개</span>
+              <span class="spot-item__tag">#새벽</span>
+            </div>
+          </div>
+          <div class="spot-item__bottom">
+            <div class="spot-item__rating">★★★★☆ <span>4.7 · 189건</span></div>
+            <div class="spot-item__score">78점</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="spot-item" onclick="location.href='./spot-detail.html'">
+        <div class="spot-item__thumb">
+          <div class="spot-item__thumb-img" style="background:linear-gradient(to bottom,#020010,#1a1545,#3a2a7a)"></div>
+          <div class="spot-item__rank">6</div>
+        </div>
+        <div class="spot-item__body">
+          <div>
+            <div class="spot-item__top">
+              <span class="spot-item__name">영월 별마로천문대</span>
+              <button class="spot-item__bookmark" onclick="toggleBookmark(event, this)" aria-label="북마크">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="rgba(0,0,0,0.3)" stroke-width="1.3" stroke-linejoin="round"><path d="M3 1V13L7 10.5L11 13V1Z"/></svg>
+              </button>
+            </div>
+            <div class="spot-item__loc">
+              <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="rgba(0,0,0,0.3)" stroke-width="1"><path d="M6 1C3.5 1 1.5 3 1.5 5.5C1.5 8.5 6 12 6 12S10.5 8.5 10.5 5.5C10.5 3 8.5 1 6 1Z"/><circle cx="6" cy="5" r="1.5"/></svg>
+              강원 영월군 · 은하수/별
+            </div>
+            <div class="spot-item__tags">
+              <span class="spot-item__tag">#은하수</span>
+              <span class="spot-item__tag">#별</span>
+              <span class="spot-item__tag">#새벽</span>
+            </div>
+          </div>
+          <div class="spot-item__bottom">
+            <div class="spot-item__rating">★★★★★ <span>4.9 · 143건</span></div>
+            <div class="spot-item__score">89점</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- 저장됨 탭 -->
+  <div id="view-saved" style="display:none">
+    <div class="count-bar">저장된 스팟 <strong>2개</strong></div>
+    <div class="spot-list">
+
+      <div class="spot-item" onclick="location.href='./spot-detail.html'">
+        <div class="spot-item__thumb">
+          <div class="spot-item__thumb-img" style="background:linear-gradient(to bottom,#232526,#414345,#8e7b5a)"></div>
+          <div class="spot-item__rank spot-item__rank--gold">1</div>
+        </div>
+        <div class="spot-item__body">
+          <div>
+            <div class="spot-item__top">
+              <span class="spot-item__name">경복궁 야간개장</span>
+              <button class="spot-item__bookmark is-saved" onclick="toggleBookmark(event, this)" aria-label="북마크">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="#E31B59" stroke="#E31B59" stroke-width="1.3" stroke-linejoin="round"><path d="M3 1V13L7 10.5L11 13V1Z"/></svg>
+              </button>
+            </div>
+            <div class="spot-item__loc">
+              <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="rgba(0,0,0,0.3)" stroke-width="1"><path d="M6 1C3.5 1 1.5 3 1.5 5.5C1.5 8.5 6 12 6 12S10.5 8.5 10.5 5.5C10.5 3 8.5 1 6 1Z"/><circle cx="6" cy="5" r="1.5"/></svg>
+              서울 종로구 · 야경/한옥
+            </div>
+            <div class="spot-item__tags">
+              <span class="spot-item__tag">#야경</span>
+              <span class="spot-item__tag">#한옥</span>
+              <span class="spot-item__tag">#야간</span>
+            </div>
+          </div>
+          <div class="spot-item__bottom">
+            <div class="spot-item__rating">★★★★★ <span>4.9 · 512건</span></div>
+            <div class="spot-item__score">91점</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="spot-item" onclick="location.href='./spot-detail.html'">
+        <div class="spot-item__thumb">
+          <div class="spot-item__thumb-img" style="background:linear-gradient(to bottom,#0f2027,#203a43,#2c5364)"></div>
+          <div class="spot-item__rank spot-item__rank--silver">2</div>
+        </div>
+        <div class="spot-item__body">
+          <div>
+            <div class="spot-item__top">
+              <span class="spot-item__name">광안리 해수욕장</span>
+              <button class="spot-item__bookmark is-saved" onclick="toggleBookmark(event, this)" aria-label="북마크">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="#E31B59" stroke="#E31B59" stroke-width="1.3" stroke-linejoin="round"><path d="M3 1V13L7 10.5L11 13V1Z"/></svg>
+              </button>
+            </div>
+            <div class="spot-item__loc">
+              <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="rgba(0,0,0,0.3)" stroke-width="1"><path d="M6 1C3.5 1 1.5 3 1.5 5.5C1.5 8.5 6 12 6 12S10.5 8.5 10.5 5.5C10.5 3 8.5 1 6 1Z"/><circle cx="6" cy="5" r="1.5"/></svg>
+              부산 수영구 · 야경/바다
+            </div>
+            <div class="spot-item__tags">
+              <span class="spot-item__tag">#야경</span>
+              <span class="spot-item__tag">#일출</span>
+              <span class="spot-item__tag">#바다</span>
+            </div>
+          </div>
+          <div class="spot-item__bottom">
+            <div class="spot-item__rating">★★★★★ <span>4.8 · 324건</span></div>
+            <div class="spot-item__score">87점</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+</div>
+<script>
+  /* 탭 전환 */
+  function switchTab(tab, btn) {
+    document.querySelectorAll('.tab-toggle__btn').forEach(b => b.classList.remove('is-active'));
+    btn.classList.add('is-active');
+    document.getElementById('view-all').style.display = tab === 'all' ? 'block' : 'none';
+    document.getElementById('view-saved').style.display = tab === 'saved' ? 'block' : 'none';
+  }
+
+  /* 정렬 드롭다운 */
+  function toggleSort(btn) {
+    document.getElementById('sortMenu').classList.toggle('is-open');
+  }
+  function selectSort(label, item) {
+    document.getElementById('sortLabel').textContent = label;
+    document.querySelectorAll('.sort-menu__item').forEach(i => i.classList.remove('is-active'));
+    item.classList.add('is-active');
+    document.getElementById('sortMenu').classList.remove('is-open');
+  }
+  document.addEventListener('click', e => {
+    if (!e.target.closest('.sort-btn') && !e.target.closest('.sort-menu')) {
+      document.getElementById('sortMenu').classList.remove('is-open');
+    }
+  });
+
+  /* 북마크 토글 */
+  function toggleBookmark(e, btn) {
+    e.stopPropagation();
+    const isSaved = btn.classList.toggle('is-saved');
+    btn.innerHTML = isSaved
+      ? `<svg width="14" height="14" viewBox="0 0 14 14" fill="#E31B59" stroke="#E31B59" stroke-width="1.3" stroke-linejoin="round"><path d="M3 1V13L7 10.5L11 13V1Z"/></svg>`
+      : `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="rgba(0,0,0,0.3)" stroke-width="1.3" stroke-linejoin="round"><path d="M3 1V13L7 10.5L11 13V1Z"/></svg>`;
+  }
+</script>
+</body>
+</html>

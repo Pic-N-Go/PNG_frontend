@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>PNG - 위시리스트 설정</title>
+  <link rel="stylesheet" href="../fonts.css">
+  <style>
+    :root {
+      --color-bg: #ffffff;
+      --color-surface: #f5f5f7;
+      --color-text-primary: #000000;
+      --color-text-secondary: rgba(0,0,0,0.48);
+      --color-text-tertiary: rgba(0,0,0,0.28);
+      --color-accent: #e31b59;
+      --color-accent-hover: #c91550;
+      --color-border-light: rgba(0,0,0,0.06);
+      --color-success: #34c759;
+      --color-error: #ff453a;
+      --color-brand: #E31B59;
+      --radius-card: 16px;
+    }
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    html{font-size:16px;-webkit-font-smoothing:antialiased}
+    body{font-family:var(--font-family);background:#f0f0f0;display:flex;justify-content:center;min-height:100dvh}
+    .phone-frame{width:390px;height:844px;background:var(--color-bg);position:relative;overflow:hidden;display:flex;flex-direction:column}
+    .scroll-area{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding-bottom:24px;-webkit-overflow-scrolling:touch}
+
+    /* ── 상단 네비 ── */
+    .nav-bar{height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;border-bottom:0.5px solid var(--color-border-light);position:sticky;top:0;background:var(--color-bg);z-index:20}
+    .nav-bar__btn{width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,0.04);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.15s}
+    .nav-bar__btn:hover{background:rgba(0,0,0,0.08)}
+    .nav-bar__btn--delete{background:rgba(255,69,58,0.06)}
+    .nav-bar__btn--delete:hover{background:rgba(255,69,58,0.12)}
+    .nav-bar__title{font-size:17px;font-weight:600;letter-spacing:-0.4px}
+
+    .content{padding:0 20px 4px}
+
+    /* ── 섹션 ── */
+    .section{margin-bottom:32px}
+    .section:last-child{margin-bottom:0}
+    .section__title{font-size:18px;font-weight:600;letter-spacing:-0.3px;margin-bottom:2px}
+    .section__sub{font-size:13px;color:var(--color-text-secondary);margin-bottom:14px}
+
+    /* ── 스팟 카드 ── */
+    .spot-card{margin:16px 0 28px;border-radius:16px;background:linear-gradient(to bottom,#1a1530,#b44a3a);padding:18px 14px 14px;position:relative;overflow:hidden;transition:background 0.3s}
+    .spot-card.thumb--2{background:linear-gradient(to bottom,#0f2027,#2c5364)}
+    .spot-card.thumb--3{background:linear-gradient(to bottom,#0a1a0f,#4a8060)}
+    .spot-card.thumb--4{background:linear-gradient(to bottom,#1a0a2e,#7b4ea0)}
+    .spot-card::after{content:'';position:absolute;bottom:0;left:0;right:0;height:40px;background:rgba(0,0,0,0.08);border-radius:0 0 16px 16px}
+    .spot-card__name{font-size:18px;font-weight:600;color:#fff;letter-spacing:-0.3px;margin-bottom:4px}
+    .spot-card__sub{font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:10px}
+    .spot-card__tags{display:flex;gap:6px;position:relative;z-index:1}
+    .spot-card__tag{padding:2px 12px;background:rgba(255,255,255,0.12);border-radius:9px;font-size:10px;color:rgba(255,255,255,0.75)}
+    .spot-card__change{position:absolute;top:18px;right:14px;padding:6px 16px;background:rgba(255,255,255,0.15);border:none;border-radius:14px;font-family:var(--font-family);font-size:12px;font-weight:500;color:rgba(255,255,255,0.8);cursor:pointer;transition:background 0.15s}
+    .spot-card__change:hover{background:rgba(255,255,255,0.22)}
+
+    /* ── 날씨 칩 ── */
+    .chip-grid{display:flex;flex-wrap:wrap;gap:8px}
+    .weather-chip{width:66px;height:66px;border-radius:16px;background:#fff;border:0.5px solid rgba(0,0,0,0.08);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;position:relative;transition:all 0.15s}
+    .weather-chip__icon{display:flex;align-items:center;justify-content:center;width:20px;height:20px}
+    .weather-chip__label{font-size:12px;color:rgba(0,0,0,0.45)}
+    .weather-chip.selected{background:var(--color-accent)}
+    .weather-chip.selected .weather-chip__label{color:#fff;font-weight:600}
+    .weather-chip.selected::after{content:'✓';position:absolute;top:7px;right:7px;width:18px;height:18px;border-radius:50%;background:#fff;color:var(--color-accent);font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;line-height:18px;text-align:center}
+    .chip-pill{display:inline-flex;align-items:center;gap:8px;padding:0 16px 0 10px;height:40px;border-radius:20px;background:#fff;border:0.5px solid rgba(0,0,0,0.08);cursor:pointer;font-family:var(--font-family);font-size:13px;color:rgba(0,0,0,0.45);position:relative;transition:all 0.15s;margin-top:8px}
+    .chip-pill__icon{font-size:20px;line-height:1}
+    .chip-pill.selected{background:var(--color-accent);color:#fff;font-weight:600}
+    .chip-pill.selected::after{content:'✓';position:absolute;top:-4px;right:-4px;width:18px;height:18px;border-radius:50%;background:#fff;color:var(--color-accent);font-size:10px;font-weight:600;line-height:18px;text-align:center}
+
+    /* ── 시간대 칩 ── */
+    .time-chip-row{display:flex;flex-wrap:wrap;gap:8px}
+    .time-chip{padding:0 20px;height:34px;border-radius:17px;background:var(--color-surface);border:none;cursor:pointer;font-family:var(--font-family);font-size:13px;color:rgba(0,0,0,0.45);transition:all 0.15s}
+    .time-chip.selected{background:var(--color-accent);color:#fff;font-weight:600}
+
+    /* ── 알림 카드 ── */
+    .notif-card{background:var(--color-surface);border-radius:16px;overflow:hidden}
+    .notif-row{display:flex;align-items:center;justify-content:space-between;padding:14px 16px}
+    .notif-row+.notif-row{border-top:0.5px solid rgba(0,0,0,0.04)}
+    .notif-row__label{font-size:15px;font-weight:500}
+    .notif-row__sub{font-size:12px;color:var(--color-text-tertiary);margin-top:2px}
+    .toggle{position:relative;width:44px;height:26px;flex-shrink:0}
+    .toggle input{opacity:0;width:0;height:0;position:absolute}
+    .toggle__track{position:absolute;inset:0;background:rgba(0,0,0,0.15);border-radius:13px;cursor:pointer;transition:background 0.2s}
+    .toggle__track::after{content:'';position:absolute;width:22px;height:22px;border-radius:50%;background:#fff;top:2px;left:2px;transition:transform 0.2s;box-shadow:0 1px 3px rgba(0,0,0,0.2)}
+    .toggle input:checked+.toggle__track{background:var(--color-success)}
+    .toggle input:checked+.toggle__track::after{transform:translateX(18px)}
+    .segmented{display:flex;background:rgba(0,0,0,0.05);border-radius:10px;padding:2px;gap:2px}
+    .segmented__btn{flex:1;height:28px;border-radius:8px;border:none;font-family:var(--font-family);font-size:13px;cursor:pointer;background:transparent;color:rgba(0,0,0,0.35);transition:all 0.15s}
+    .segmented__btn.active{background:#fff;font-weight:600;color:#000;box-shadow:0 1px 2px rgba(0,0,0,0.08)}
+    .time-picker-trigger{display:flex;align-items:center;gap:4px;padding:0 10px;height:28px;background:rgba(0,0,0,0.04);border-radius:8px;border:none;cursor:pointer;font-family:var(--font-family);font-size:12px;color:rgba(0,0,0,0.45)}
+
+    /* ── 예보 ── */
+    .forecast-card{background:var(--color-surface);border-radius:16px;padding:14px 10px}
+    .forecast-days{display:flex;justify-content:space-between}
+    .forecast-day{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1}
+    .forecast-day__label{font-size:11px;color:rgba(0,0,0,0.3)}
+    .forecast-day__label.hit{color:var(--color-accent);font-weight:600}
+    .forecast-day__icon-wrap{width:38px;height:38px;border-radius:50%;background:#fff;border:0.5px solid rgba(0,0,0,0.08);display:flex;align-items:center;justify-content:center;font-size:18px}
+    .forecast-day__icon-wrap.hit{background:rgba(227,27,89,0.06);border-color:var(--color-accent);box-shadow:0 0 0 1px var(--color-accent)}
+    .forecast-day__status{font-size:10px;color:rgba(0,0,0,0.25)}
+    .forecast-day__status.hit{color:var(--color-accent);font-weight:500}
+    .forecast-day__date{font-size:10px;color:rgba(0,0,0,0.2)}
+    .forecast-day__date.hit{color:var(--color-accent)}
+    .match-banner{margin-top:12px;padding:12px 14px;background:rgba(227,27,89,0.06);border-radius:12px;display:flex;gap:10px;align-items:flex-start}
+    .match-banner__icon{width:20px;height:20px;border-radius:50%;background:rgba(227,27,89,0.12);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px;margin-top:1px}
+    .match-banner__main{font-size:13px;font-weight:500;color:var(--color-accent);margin-bottom:3px}
+    .match-banner__sub{font-size:11px;color:var(--color-text-tertiary)}
+
+    /* ── 메모 ── */
+    .memo-wrap{position:relative}
+    .memo-textarea{width:100%;height:96px;padding:14px;background:var(--color-surface);border:none;border-radius:12px;font-family:var(--font-family);font-size:14px;color:var(--color-text-primary);resize:none;outline:none;line-height:1.5}
+    .memo-textarea:focus{box-shadow:0 0 0 1.5px var(--color-accent)}
+    .memo-count{position:absolute;bottom:10px;right:12px;font-size:11px;color:var(--color-text-tertiary)}
+
+    /* ── 구분선 ── */
+    .divider{height:0.5px;background:var(--color-border-light);margin:0 0 28px}
+
+    /* ── 하단 저장 버튼 ── */
+    .cta-bar{flex-shrink:0;padding:12px 20px 28px;background:linear-gradient(to top,#fff 80%,transparent);z-index:100}
+    .cta-btn{width:100%;height:52px;border-radius:26px;background:var(--color-accent);border:none;cursor:pointer;font-family:var(--font-family);font-size:16px;font-weight:500;color:#fff;letter-spacing:-0.2px;transition:background 0.15s}
+    .cta-btn:hover{background:var(--color-accent-hover)}
+    .cta-btn:active{transform:scale(0.98)}
+
+    /* ── 삭제 확인 모달 ── */
+    .modal-backdrop{position:absolute;inset:0;background:rgba(0,0,0,0.4);z-index:200;display:none;align-items:flex-end;justify-content:center}
+    .modal-backdrop.is-open{display:flex}
+    .modal{width:100%;background:#fff;border-radius:24px 24px 0 0;padding:28px 24px 40px}
+    .modal__title{font-size:20px;font-weight:600;color:#000;letter-spacing:-0.3px;margin-bottom:8px}
+    .modal__desc{font-size:14px;color:rgba(0,0,0,0.45);line-height:1.55;margin-bottom:24px}
+    .modal__btn{display:block;width:100%;height:50px;border-radius:25px;border:none;font-family:var(--font-family);font-size:15px;font-weight:500;cursor:pointer;margin-bottom:10px;transition:all 0.15s}
+    .modal__btn--delete{background:rgba(255,69,58,0.1);color:var(--color-error)}
+    .modal__btn--delete:hover{background:rgba(255,69,58,0.16)}
+    .modal__btn--cancel{background:var(--color-surface);color:rgba(0,0,0,0.55)}
+    .modal__btn--cancel:hover{background:rgba(0,0,0,0.07)}
+
+    /* ── 저장하지 않고 나가기 모달 ── */
+    .unsaved-backdrop{position:absolute;inset:0;background:rgba(0,0,0,0.4);z-index:300;display:none;align-items:flex-end;justify-content:center}
+    .unsaved-backdrop.is-open{display:flex}
+    .unsaved-modal{width:100%;background:#fff;border-radius:24px 24px 0 0;padding:0 20px 40px}
+    .unsaved-handle{display:flex;justify-content:center;padding:12px 0 20px}
+    .unsaved-handle__bar{width:36px;height:5px;border-radius:2.5px;background:rgba(0,0,0,0.1)}
+    .unsaved-modal__icon{width:52px;height:52px;border-radius:16px;background:var(--color-surface);display:flex;align-items:center;justify-content:center;margin:0 auto 16px}
+    .unsaved-modal__title{font-size:18px;font-weight:600;color:#000;letter-spacing:-0.35px;text-align:center;margin-bottom:8px}
+    .unsaved-modal__desc{font-size:14px;color:rgba(0,0,0,0.45);line-height:1.55;text-align:center;margin-bottom:28px}
+    .unsaved-modal__actions{display:flex;flex-direction:column;gap:10px}
+    .unsaved-modal__btn{width:100%;height:52px;border-radius:26px;border:none;font-family:var(--font-family);font-size:16px;font-weight:500;letter-spacing:-0.2px;cursor:pointer;transition:all 0.15s}
+    .unsaved-modal__btn--leave{background:var(--color-surface);color:rgba(0,0,0,0.6)}
+    .unsaved-modal__btn--leave:hover{background:rgba(0,0,0,0.07)}
+    .unsaved-modal__btn--keep{background:var(--color-accent);color:#fff}
+    .unsaved-modal__btn--keep:hover{background:var(--color-accent-hover)}
+
+    /* ── 바텀시트 ── */
+    .sheet-dim{position:absolute;inset:0;background:rgba(0,0,0,0.4);z-index:200;opacity:0;pointer-events:none;transition:opacity 0.25s}
+    .sheet-dim.active{opacity:1;pointer-events:all}
+    .bottom-sheet{position:absolute;bottom:0;left:0;width:100%;background:#fff;border-radius:20px 20px 0 0;z-index:201;padding-bottom:28px;transform:translateY(100%);transition:transform 0.32s cubic-bezier(0.32,0.72,0,1);max-height:82%;display:flex;flex-direction:column}
+    .bottom-sheet.active{transform:translateY(0)}
+    .sheet-handle-wrap{padding:12px 0 4px;display:flex;justify-content:center;flex-shrink:0}
+    .sheet-handle{width:36px;height:5px;border-radius:2.5px;background:rgba(0,0,0,0.1)}
+    .sheet-header{display:flex;align-items:center;justify-content:space-between;padding:8px 20px 14px;flex-shrink:0}
+    .sheet-header__title{font-size:20px;font-weight:600;letter-spacing:-0.3px}
+    .sheet-close{width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,0.05);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.15s}
+    .sheet-close:hover{background:rgba(0,0,0,0.09)}
+    .sheet-search-wrap{padding:0 20px 12px;flex-shrink:0}
+    .sheet-search{display:flex;align-items:center;gap:10px;background:var(--color-surface);border-radius:12px;padding:0 14px;height:46px}
+    .sheet-search input{flex:1;border:none;background:transparent;outline:none;font-family:var(--font-family);font-size:15px;color:var(--color-text-primary)}
+    .sheet-search input::placeholder{color:rgba(0,0,0,0.25)}
+    .sheet-section-label{padding:0 20px 8px;font-size:13px;color:var(--color-text-tertiary);flex-shrink:0}
+    .sheet-spot-list{overflow-y:auto;padding:0 20px;display:flex;flex-direction:column;gap:8px}
+    .sheet-spot-item{display:flex;align-items:center;gap:12px;padding:10px 12px;background:var(--color-surface);border-radius:16px;border:1.5px solid transparent;cursor:pointer;transition:all 0.15s}
+    .sheet-spot-item:hover{background:#ebebed}
+    .sheet-spot-item.selected{border-color:var(--color-accent);background:var(--color-surface)}
+    .sheet-spot-thumb{width:48px;height:48px;border-radius:10px;flex-shrink:0}
+    .sheet-spot-thumb--1{background:linear-gradient(to bottom,#1a1530,#b44a3a)}
+    .sheet-spot-thumb--2{background:linear-gradient(to bottom,#0f2027,#2c5364)}
+    .sheet-spot-thumb--3{background:linear-gradient(to bottom,#0a1a0f,#4a8060)}
+    .sheet-spot-thumb--4{background:linear-gradient(to bottom,#1a0a2e,#7b4ea0)}
+    .sheet-spot-info{flex:1;min-width:0}
+    .sheet-spot-name{font-size:15px;font-weight:600;letter-spacing:-0.2px;margin-bottom:2px}
+    .sheet-spot-sub{font-size:12px;color:var(--color-text-secondary);margin-bottom:4px}
+    .sheet-spot-badge{display:inline-block;padding:1px 8px;background:rgba(0,0,0,0.04);border-radius:7px;font-size:10px;color:var(--color-text-tertiary)}
+    .sheet-spot-item.selected .sheet-spot-badge{background:rgba(227,27,89,0.08);color:var(--color-accent)}
+    .sheet-check{width:24px;height:24px;border-radius:50%;background:var(--color-accent);flex-shrink:0;display:none;align-items:center;justify-content:center}
+    .sheet-spot-item.selected .sheet-check{display:flex}
+    .sheet-all-search{display:block;text-align:center;padding:16px 20px 0;font-size:14px;color:var(--color-accent);background:none;border:none;cursor:pointer;font-family:var(--font-family);flex-shrink:0}
+    .sheet-all-search:hover{opacity:0.75}
+
+    /* ── 상태바 ── */
+    .status-bar{height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;background:var(--color-bg);flex-shrink:0;position:relative;z-index:30}
+    .status-bar__time{font-size:15px;font-weight:600;color:#000;letter-spacing:-0.3px}
+    .dynamic-island{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:106px;height:28px;background:#000;border-radius:14px}
+    .status-bar__icons{display:flex;align-items:center;gap:6px}
+    .status-bar__icons svg{height:12px;fill:#000}
+
+    @media(max-width:390px){.phone-frame{width:100%}}
+    @media(min-width:391px){body{padding:20px 0}.phone-frame{border-radius:40px;box-shadow:0 20px 60px rgba(0,0,0,0.15);min-height:unset;height:calc(100dvh - 40px);overflow-y:auto;overflow-x:hidden}.cta-bar{border-radius:0 0 40px 40px}}
+  
+      /* ── 스크롤바 숨김 ── */
+      * { scrollbar-width: none; -ms-overflow-style: none; }
+      *::-webkit-scrollbar { display: none; }
+</style>
+</head>
+<body>
+<div class="phone-frame">
+
+<!-- 상태바 -->
+<div class="status-bar">
+  <span class="status-bar__time" id="status-time">9:41</span>
+  <div class="dynamic-island"></div>
+  <div class="status-bar__icons">
+    <svg viewBox="0 0 18 12"><rect x="0" y="9" width="3" height="3" rx=".75"/><rect x="4.5" y="6" width="3" height="6" rx=".75"/><rect x="9" y="3" width="3" height="9" rx=".75"/><rect x="13.5" y="0" width="3" height="12" rx=".75"/></svg>
+    <svg viewBox="0 0 16 14" fill="none" stroke="#000" stroke-width="1.3" stroke-linecap="round"><path d="M5 10.5A4 4 0 0 1 11 10.5"/><path d="M2.5 7A8 8 0 0 1 13.5 7"/><circle cx="8" cy="13" r="1.2" fill="#000" stroke="none"/></svg>
+    <svg viewBox="0 0 28 14" fill="none"><rect x="0" y="0" width="25" height="12" rx="3.5" stroke="rgba(0,0,0,.35)" stroke-width="1"/><rect x="1.5" y="1.5" width="20" height="9" rx="2" fill="#000"/><rect x="25.5" y="4" width="2" height="4" rx="1" fill="rgba(0,0,0,.4)"/></svg>
+  </div>
+</div>
+
+<div class="scroll-area">
+
+  <!-- 네비 -->
+  <div class="nav-bar">
+    <button class="nav-bar__btn" onclick="handleBack()" aria-label="뒤로가기">
+      <svg width="10" height="16" viewBox="0 0 10 16" fill="none">
+        <polyline points="8,2 2,8 8,14" stroke="rgba(0,0,0,0.5)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </button>
+    <span class="nav-bar__title">위시리스트 설정</span>
+    <button class="nav-bar__btn nav-bar__btn--delete" id="btn-delete" aria-label="삭제">
+      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ff453a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M4 7l16 0"/>
+        <path d="M10 11l0 6"/>
+        <path d="M14 11l0 6"/>
+        <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"/>
+        <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="content">
+
+    <!-- 스팟 카드 -->
+    <div class="spot-card">
+      <p class="spot-card__name" id="spot-card-name">경복궁 야간개장</p>
+      <p class="spot-card__sub" id="spot-card-sub">서울 종로구 · 포토제닉 91점</p>
+      <div class="spot-card__tags">
+        <span class="spot-card__tag">야경</span>
+        <span class="spot-card__tag">한옥</span>
+      </div>
+      <button class="spot-card__change" id="btn-change-spot">스팟 변경</button>
+    </div>
+
+    <!-- 날씨 조건 -->
+    <div class="section">
+      <p class="section__title">날씨 조건</p>
+      <p class="section__sub">조건이 맞을 때 알림을 받아요 (복수 선택)</p>
+      <div class="chip-grid" id="weather-chips">
+        <button class="weather-chip selected" data-val="맑음"><span class="weather-chip__icon"><img src="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/clear-day.svg" width="20" height="20" draggable="false"></span><span class="weather-chip__label">맑음</span></button>
+        <button class="weather-chip" data-val="흐림"><span class="weather-chip__icon"><img src="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/overcast.svg" width="20" height="20" draggable="false"></span><span class="weather-chip__label">흐림</span></button>
+        <button class="weather-chip" data-val="비"><span class="weather-chip__icon"><img src="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/rain.svg" width="20" height="20" draggable="false"></span><span class="weather-chip__label">비</span></button>
+        <button class="weather-chip" data-val="눈"><span class="weather-chip__icon"><img src="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/snow.svg" width="20" height="20" draggable="false"></span><span class="weather-chip__label">눈</span></button>
+        <button class="weather-chip" data-val="안개"><span class="weather-chip__icon"><img src="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/fog.svg" width="20" height="20" draggable="false"></span><span class="weather-chip__label">안개</span></button>
+        <button class="weather-chip" data-val="뇌우" id="chip-no-cloud"><span class="weather-chip__icon"><img src="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/thunderstorms.svg" width="20" height="20" draggable="false"></span><span class="weather-chip__label">뇌우</span></button>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- 시간대 조건 -->
+    <div class="section">
+      <p class="section__title">시간대 조건</p>
+      <p class="section__sub">해당 시간대가 가까워지면 알려드려요</p>
+      <div class="time-chip-row" id="time-chips">
+        <button class="time-chip" data-val="새벽">새벽</button>
+        <button class="time-chip" data-val="일출">일출</button>
+        <button class="time-chip" data-val="오전">오전</button>
+        <button class="time-chip" data-val="오후">오후</button>
+        <button class="time-chip selected" data-val="일몰">일몰</button>
+        <button class="time-chip selected" data-val="야간">야간</button>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- 알림 설정 -->
+    <div class="section">
+      <p class="section__title">알림 설정</p>
+      <div class="notif-card" style="margin-top:14px">
+        <div class="notif-row">
+          <div><p class="notif-row__label">조건 충족 시 알림 받기</p><p class="notif-row__sub">조건이 맞는 날 지정한 시점에 알림을 드려요</p></div>
+          <label class="toggle"><input type="checkbox" id="toggle-notif" checked><span class="toggle__track"></span></label>
+        </div>
+        <div class="notif-row">
+          <p class="notif-row__label" style="font-size:14px">알림 시점</p>
+          <div class="segmented" style="width:210px">
+            <button class="segmented__btn" data-seg="당일">당일</button>
+            <button class="segmented__btn active" data-seg="1일 전">1일 전</button>
+            <button class="segmented__btn" data-seg="3일 전">3일 전</button>
+          </div>
+        </div>
+        <div class="notif-row">
+          <p class="notif-row__label" style="font-size:14px">방해 금지 시간</p>
+          <button class="time-picker-trigger">22:00 ~ 07:00 <svg width="6" height="10" viewBox="0 0 6 10" fill="none"><polyline points="1,1 5,5 1,9" stroke="rgba(0,0,0,0.2)" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- 예상 충족일 -->
+    <div class="section">
+      <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:14px">
+        <p class="section__title">예상 충족일</p>
+        <span style="font-size:12px;color:var(--color-text-tertiary)">기상청 7일 예보 기준</span>
+      </div>
+      <div class="forecast-card">
+        <div class="forecast-days">
+          <div class="forecast-day"><span class="forecast-day__label">오늘</span><div class="forecast-day__icon-wrap"><img src="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/overcast.svg" width="20" height="20" draggable="false"></div><span class="forecast-day__status">흐림</span><span class="forecast-day__date">5/18</span></div>
+          <div class="forecast-day"><span class="forecast-day__label hit">내일</span><div class="forecast-day__icon-wrap hit"><img src="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/clear-day.svg" width="20" height="20" draggable="false"></div><span class="forecast-day__status hit">맑음</span><span class="forecast-day__date hit">5/19</span></div>
+          <div class="forecast-day"><span class="forecast-day__label">+2</span><div class="forecast-day__icon-wrap"><img src="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/partly-cloudy-day.svg" width="20" height="20" draggable="false"></div><span class="forecast-day__status">구름</span><span class="forecast-day__date">5/20</span></div>
+          <div class="forecast-day"><span class="forecast-day__label hit">+3</span><div class="forecast-day__icon-wrap hit"><img src="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/clear-day.svg" width="20" height="20" draggable="false"></div><span class="forecast-day__status hit">맑음</span><span class="forecast-day__date hit">5/21</span></div>
+          <div class="forecast-day"><span class="forecast-day__label">+4</span><div class="forecast-day__icon-wrap"><img src="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/rain.svg" width="20" height="20" draggable="false"></div><span class="forecast-day__status">비</span><span class="forecast-day__date">5/22</span></div>
+          <div class="forecast-day"><span class="forecast-day__label">+5</span><div class="forecast-day__icon-wrap"><img src="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/partly-cloudy-day.svg" width="20" height="20" draggable="false"></div><span class="forecast-day__status">구름</span><span class="forecast-day__date">5/23</span></div>
+          <div class="forecast-day"><span class="forecast-day__label">+6</span><div class="forecast-day__icon-wrap"><img src="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/clear-day.svg" width="20" height="20" draggable="false"></div><span class="forecast-day__status">맑음</span><span class="forecast-day__date">5/24</span></div>
+        </div>
+        <div class="match-banner">
+          <div class="match-banner__icon">✓</div>
+          <div><p class="match-banner__main">조건 충족 예상: 5/19(내일), 5/21</p><p class="match-banner__sub">일몰 시간 18:47 · 맑음 예보</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- 메모 -->
+    <div class="section">
+      <p class="section__title">메모</p>
+      <p class="section__sub">이 스팟을 위시리스트에 추가한 이유</p>
+      <div class="memo-wrap">
+        <textarea class="memo-textarea" id="memo" maxlength="200" placeholder="메모를 입력하세요">야간 개장 때 한복 입고 찍어보고 싶다.
+맑은 날이어야 조명이 잘 나올 것 같음.</textarea>
+        <span class="memo-count" id="memo-count">38/200</span>
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- 저장 버튼 -->
+<div class="cta-bar">
+  <button class="cta-btn" id="btn-save">설정 저장</button>
+</div>
+
+<!-- 딤 -->
+<div class="sheet-dim" id="sheet-dim"></div>
+
+<!-- 스팟 변경 바텀시트 -->
+<div class="bottom-sheet" id="spot-change-sheet">
+  <div class="sheet-handle-wrap"><div class="sheet-handle"></div></div>
+  <div class="sheet-header">
+    <span class="sheet-header__title">스팟 변경</span>
+    <button class="sheet-close" id="sheet-close-btn" aria-label="닫기">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><line x1="1" y1="1" x2="13" y2="13" stroke="rgba(0,0,0,0.4)" stroke-width="1.8" stroke-linecap="round"/><line x1="13" y1="1" x2="1" y2="13" stroke="rgba(0,0,0,0.4)" stroke-width="1.8" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+  <div class="sheet-search-wrap">
+    <div class="sheet-search">
+      <svg width="20" height="20" viewBox="0 0 16 16" fill="none"><circle cx="6.5" cy="6.5" r="5.5" stroke="rgba(0,0,0,0.25)" stroke-width="1.5"/><line x1="11" y1="11" x2="15" y2="15" stroke="rgba(0,0,0,0.25)" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <input type="text" id="sheet-search-input" placeholder="스팟 이름으로 검색">
+    </div>
+  </div>
+  <p class="sheet-section-label" id="sheet-section-label">최근 본 스팟</p>
+  <div class="sheet-spot-list" id="sheet-spot-list">
+    <div class="sheet-spot-item selected" data-name="경복궁 야간개장" data-sub="서울 종로구 · 포토제닉 91점" data-thumb="1">
+      <div class="sheet-spot-thumb sheet-spot-thumb--1"></div>
+      <div class="sheet-spot-info"><p class="sheet-spot-name">경복궁 야간개장</p><p class="sheet-spot-sub">서울 종로구</p><span class="sheet-spot-badge">포토제닉 91</span></div>
+      <div class="sheet-check"><svg width="12" height="10" viewBox="0 0 12 10" fill="none"><polyline points="1,5 4.5,8.5 11,1" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    </div>
+    <div class="sheet-spot-item" data-name="광안리 해수욕장" data-sub="부산 수영구 · 포토제닉 87점" data-thumb="2">
+      <div class="sheet-spot-thumb sheet-spot-thumb--2"></div>
+      <div class="sheet-spot-info"><p class="sheet-spot-name">광안리 해수욕장</p><p class="sheet-spot-sub">부산 수영구</p><span class="sheet-spot-badge">포토제닉 87</span></div>
+      <div class="sheet-check"><svg width="12" height="10" viewBox="0 0 12 10" fill="none"><polyline points="1,5 4.5,8.5 11,1" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    </div>
+    <div class="sheet-spot-item" data-name="제주 사려니숲길" data-sub="제주 서귀포시 · 포토제닉 78점" data-thumb="3">
+      <div class="sheet-spot-thumb sheet-spot-thumb--3"></div>
+      <div class="sheet-spot-info"><p class="sheet-spot-name">제주 사려니숲길</p><p class="sheet-spot-sub">제주 서귀포시</p><span class="sheet-spot-badge">포토제닉 78</span></div>
+      <div class="sheet-check"><svg width="12" height="10" viewBox="0 0 12 10" fill="none"><polyline points="1,5 4.5,8.5 11,1" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    </div>
+    <div class="sheet-spot-item" data-name="에버랜드 장미원" data-sub="경기 용인시 · 포토제닉 92점" data-thumb="4">
+      <div class="sheet-spot-thumb sheet-spot-thumb--4"></div>
+      <div class="sheet-spot-info"><p class="sheet-spot-name">에버랜드 장미원</p><p class="sheet-spot-sub">경기 용인시</p><span class="sheet-spot-badge">포토제닉 92</span></div>
+      <div class="sheet-check"><svg width="12" height="10" viewBox="0 0 12 10" fill="none"><polyline points="1,5 4.5,8.5 11,1" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    </div>
+  </div>
+  <button class="sheet-all-search" id="btn-all-search">전체 스팟에서 검색 →</button>
+</div>
+
+<!-- 저장하지 않고 나가기 모달 -->
+<div class="unsaved-backdrop" id="unsavedModal">
+  <div class="unsaved-modal">
+    <div class="unsaved-handle"><div class="unsaved-handle__bar"></div></div>
+    <div class="unsaved-modal__icon">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,0.4)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+        <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 1.83 -1.19"/>
+        <path d="M7 11l5 5l2 -2m2 -2l1 -1"/>
+        <path d="M12 4v4m0 4v4"/>
+        <path d="M3 3l18 18"/>
+      </svg>
+    </div>
+    <div class="unsaved-modal__title">저장하지 않고 나갈까요?</div>
+    <div class="unsaved-modal__desc">변경 사항이 저장되지 않아요.</div>
+    <div class="unsaved-modal__actions">
+      <button class="unsaved-modal__btn unsaved-modal__btn--keep" onclick="closeUnsavedModal()">계속 편집</button>
+      <button class="unsaved-modal__btn unsaved-modal__btn--leave" onclick="leaveWithoutSaving()">나가기</button>
+    </div>
+  </div>
+</div>
+
+<!-- 삭제 확인 모달 -->
+<div class="modal-backdrop" id="deleteModal">
+  <div class="modal">
+    <div class="modal__title">위시리스트를 삭제할까요?</div>
+    <div class="modal__desc">경복궁 야간개장 위시리스트가 삭제돼요. 삭제 후에는 복구할 수 없어요.</div>
+    <button class="modal__btn modal__btn--delete" onclick="confirmDelete()">삭제하기</button>
+    <button class="modal__btn modal__btn--cancel" onclick="closeDeleteModal()">취소</button>
+  </div>
+</div>
+
+</div>
+
+<script>
+  /* ── 변경 사항 추적 ── */
+  let isDirty = false;
+  function markDirty() { isDirty = true; }
+
+  function handleBack() {
+    if (isDirty) {
+      document.getElementById('unsavedModal').classList.add('is-open');
+    } else {
+      location.href = './wishlist.html';
+    }
+  }
+  function closeUnsavedModal() {
+    document.getElementById('unsavedModal').classList.remove('is-open');
+  }
+  function leaveWithoutSaving() {
+    location.href = './wishlist.html';
+  }
+
+  /* ── 상태바 시간 ── */
+  (function() {
+    function updateTime() {
+      var now = new Date();
+      var h = now.getHours(), m = now.getMinutes();
+      var el = document.getElementById('status-time');
+      if (el) el.textContent = h + ':' + (m < 10 ? '0' + m : m);
+    }
+    updateTime();
+    setInterval(updateTime, 10000);
+  })();
+
+  /* 날씨 칩 토글 */
+  document.querySelectorAll('#weather-chips .weather-chip').forEach(btn => {
+    btn.addEventListener('click', () => { btn.classList.toggle('selected'); markDirty(); });
+  });
+
+  /* 시간대 칩 토글 */
+  document.querySelectorAll('#time-chips .time-chip').forEach(btn => {
+    btn.addEventListener('click', () => { btn.classList.toggle('selected'); markDirty(); });
+  });
+
+  /* 세그먼트 컨트롤 */
+  document.querySelectorAll('.segmented__btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      this.closest('.segmented').querySelectorAll('.segmented__btn').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      markDirty();
+    });
+  });
+
+  /* 토글 */
+  document.getElementById('toggle-notif').addEventListener('change', markDirty);
+
+  /* 메모 글자 수 */
+  const memo = document.getElementById('memo');
+  const memoCount = document.getElementById('memo-count');
+  memo.addEventListener('input', () => { memoCount.textContent = `${memo.value.length}/200`; markDirty(); });
+  memoCount.textContent = `${memo.value.length}/200`;
+
+  /* 바텀시트 */
+  const sheet = document.getElementById('spot-change-sheet');
+  const dim = document.getElementById('sheet-dim');
+  const openSheet = () => { sheet.classList.add('active'); dim.classList.add('active'); };
+  const closeSheet = () => {
+    sheet.classList.remove('active');
+    dim.classList.remove('active');
+    document.getElementById('sheet-search-input').value = '';
+    filterSpots('');
+  };
+  document.getElementById('btn-change-spot').addEventListener('click', openSheet);
+  document.getElementById('sheet-close-btn').addEventListener('click', closeSheet);
+  dim.addEventListener('click', () => {
+    closeSheet();
+    closeDeleteModal();
+  });
+
+  /* 스팟 선택 */
+  document.querySelectorAll('.sheet-spot-item').forEach(item => {
+    item.addEventListener('click', function() {
+      document.querySelectorAll('.sheet-spot-item').forEach(i => i.classList.remove('selected'));
+      this.classList.add('selected');
+      document.getElementById('spot-card-name').textContent = this.dataset.name;
+      document.getElementById('spot-card-sub').textContent = this.dataset.sub;
+      const t = this.dataset.thumb;
+      document.querySelector('.spot-card').className = `spot-card${t !== '1' ? ' thumb--' + t : ''}`;
+      markDirty();
+      setTimeout(closeSheet, 220);
+    });
+  });
+
+  /* 검색 필터 */
+  function filterSpots(query) {
+    const q = query.trim().toLowerCase();
+    const items = document.querySelectorAll('.sheet-spot-item');
+    let count = 0;
+    items.forEach(item => {
+      const match = item.dataset.name.toLowerCase().includes(q);
+      item.style.display = match ? '' : 'none';
+      if (match) count++;
+    });
+    document.getElementById('sheet-section-label').textContent = q ? `검색 결과 ${count}개` : '최근 본 스팟';
+  }
+  document.getElementById('sheet-search-input').addEventListener('input', function() { filterSpots(this.value); });
+
+  /* 전체 스팟 검색 → 스팟 변경 화면으로 이동 */
+  document.getElementById('btn-all-search').addEventListener('click', () => { location.href = '../spot/spot-change.html'; });
+
+  /* 저장 */
+  document.getElementById('btn-save').addEventListener('click', () => {
+    const btn = document.getElementById('btn-save');
+    btn.textContent = '저장되었습니다 ✓';
+    btn.style.background = '#34c759';
+    setTimeout(() => {
+      btn.textContent = '설정 저장';
+      btn.style.background = '';
+      location.href = './wishlist.html';
+    }, 1200);
+  });
+
+  /* 삭제 모달 */
+  document.getElementById('btn-delete').addEventListener('click', () => {
+    document.getElementById('deleteModal').classList.add('is-open');
+    dim.classList.add('active');
+  });
+  function closeDeleteModal() {
+    document.getElementById('deleteModal').classList.remove('is-open');
+    dim.classList.remove('active');
+  }
+  function confirmDelete() {
+    location.href = './wishlist.html';
+  }
+</script>
+</div>
+</body>
+</html>

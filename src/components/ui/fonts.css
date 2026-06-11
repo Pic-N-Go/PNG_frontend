@@ -1,0 +1,19 @@
+/* Pretendard Variable — dynamic subset (Korean + Latin, web-optimized) */
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css');
+
+:root {
+  /* Single source of truth for font stack across all HTML mockups.
+     SF Pro Display / SF Pro Text are system fonts on Apple devices;
+     Pretendard Variable is the Korean fallback on other platforms. */
+  --font-family: 'SF Pro Text', 'Pretendard Variable',
+    -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+
+  /* Alias used in community-feed.html and spot-register.html */
+  --font: var(--font-family);
+}
+
+/* Heading-size elements prefer SF Pro Display (applied at system level on Apple;
+   Pretendard Variable covers all weights 100–900 on other platforms). */
+h1, h2, h3, h4, h5, h6 {
+  font-family: 'SF Pro Display', 'Pretendard Variable', sans-serif;
+}

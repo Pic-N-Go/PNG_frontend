@@ -1,0 +1,3653 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>PNG - 커뮤니티</title>
+    <link rel="stylesheet" href="../fonts.css" />
+    <style>
+      :root {
+        --color-bg: #ffffff;
+        --color-surface: #f5f5f7;
+        --color-text-primary: #000000;
+        --color-text-secondary: rgba(0, 0, 0, 0.48);
+        --color-text-tertiary: rgba(0, 0, 0, 0.28);
+        --color-accent: #e31b59;
+        --color-accent-hover: #c91550;
+        --color-link: #e31b59;
+        --color-border: rgba(0, 0, 0, 0.06);
+        --color-error: #ff453a;
+        --color-success: #34c759;
+        --color-warning: #ff9f0a;
+        --radius-card: 16px;
+        --radius-pill: 17px;
+        --radius-btn: 26px;
+      }
+      *,
+      *::before,
+      *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html {
+        font-size: 16px;
+        -webkit-font-smoothing: antialiased;
+      }
+      body {
+        font-family: var(--font-family);
+        background: #f0f0f0;
+        display: flex;
+        justify-content: center;
+        min-height: 100dvh;
+      }
+      .phone-frame {
+        width: 390px;
+        min-height: 100dvh;
+        background: var(--color-bg);
+        position: relative;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding-bottom: 80px;
+      }
+
+      /* ── Status Bar ── */
+      .status-bar {
+        position: sticky;
+        top: 0;
+        z-index: 30;
+        height: 54px;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 34px;
+      }
+      .status-bar__time {
+        font-size: 15px;
+        font-weight: 600;
+        color: #000;
+        letter-spacing: -0.3px;
+      }
+      .dynamic-island {
+        position: absolute;
+        top: 8px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 106px;
+        height: 28px;
+        background: #000;
+        border-radius: 14px;
+      }
+      .status-bar__icons {
+        display: flex;
+        gap: 6px;
+      }
+      .status-bar__icons svg {
+        height: 12px;
+        fill: #000;
+      }
+
+      /* ── Page Nav (Large Title) ── */
+      .page-nav {
+        position: sticky;
+        top: 54px;
+        z-index: 25;
+        background: #fff;
+      }
+
+      /* 컴팩트 행 */
+      .page-nav__compact {
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 16px;
+      }
+      .page-nav__compact-title {
+        font-size: 17px;
+        font-weight: 600;
+        letter-spacing: -0.4px;
+        opacity: 0;
+        transition: opacity 0.2s;
+      }
+      .page-nav.is-scrolled .page-nav__compact-title { opacity: 1; }
+
+      /* 큰 타이틀 행 */
+      .page-nav__large {
+        padding: 2px 16px 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        overflow: hidden;
+        max-height: 60px;
+        opacity: 1;
+        transition: max-height 0.25s ease, padding 0.25s ease, opacity 0.2s;
+      }
+      .page-nav.is-scrolled .page-nav__large {
+        max-height: 0;
+        padding-top: 0;
+        padding-bottom: 0;
+        opacity: 0;
+      }
+      .page-nav__large-title {
+        font-size: 28px;
+        font-weight: 600;
+        letter-spacing: -0.6px;
+      }
+
+      /* 검색바 */
+      .page-nav__search {
+        padding: 0 16px 12px;
+        overflow: hidden;
+        max-height: 52px;
+        opacity: 1;
+        transition: max-height 0.25s ease, padding 0.25s ease, opacity 0.2s;
+      }
+      .page-nav.is-scrolled .page-nav__search {
+        max-height: 52px;
+        padding-bottom: 10px;
+        opacity: 1;
+      }
+      .search-input-wrap {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        height: 40px;
+        background: var(--color-surface);
+        border-radius: 12px;
+        padding: 0 14px;
+      }
+      .search-input-wrap input {
+        flex: 1;
+        border: none;
+        background: transparent;
+        font-family: var(--font);
+        font-size: 14px;
+        color: #000;
+        outline: none;
+      }
+      .search-input-wrap input::placeholder {
+        color: rgba(0,0,0,0.28);
+      }
+
+      /* ── 뷰 탭 + 정렬 ── */
+      .controls {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 0 16px 12px;
+      }
+      .view-toggle {
+        display: flex;
+        gap: 8px;
+        flex: 1;
+      }
+      .view-toggle__btn {
+        display: flex;
+        align-items: center;
+        height: 32px;
+        padding: 0 14px;
+        border-radius: 16px;
+        border: none;
+        background: var(--color-surface);
+        font-family: var(--font-family);
+        font-size: 13px;
+        font-weight: 500;
+        color: rgba(0, 0, 0, 0.45);
+        cursor: pointer;
+        transition: all 0.18s;
+      }
+      .view-toggle__btn.is-active {
+        background: var(--color-accent);
+        color: #fff;
+      }
+      .sort-dropdown {
+        position: relative;
+        flex-shrink: 0;
+      }
+      .sort-dropdown__btn {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-family: var(--font-family);
+        font-size: 12px;
+        color: rgba(0,0,0,0.4);
+        padding: 4px 0;
+        transition: color 0.15s;
+      }
+      .sort-dropdown__btn:hover,
+      .sort-dropdown__btn.is-open {
+        color: rgba(0,0,0,0.7);
+        background: none;
+      }
+      .sort-dropdown__arrow {
+        transition: transform 0.2s;
+      }
+      .sort-dropdown__btn.is-open .sort-dropdown__arrow {
+        transform: rotate(180deg);
+      }
+      .sort-dropdown__menu {
+        position: absolute;
+        top: 28px;
+        right: 0;
+        width: 140px;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+        border: 0.5px solid rgba(0, 0, 0, 0.06);
+        overflow: hidden;
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-4px);
+        transition: all 0.2s ease;
+        z-index: 30;
+      }
+      .sort-dropdown__menu.is-open {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(0);
+      }
+      .sort-dropdown__item {
+        display: block;
+        width: 100%;
+        padding: 12px 16px;
+        border: none;
+        background: none;
+        font-family: var(--font-family);
+        font-size: 14px;
+        color: rgba(0, 0, 0, 0.55);
+        cursor: pointer;
+        text-align: left;
+        transition: background 0.15s;
+      }
+      .sort-dropdown__item:hover {
+        background: var(--color-surface);
+      }
+      .sort-dropdown__item.is-selected {
+        color: var(--color-accent);
+        font-weight: 500;
+      }
+      .sort-dropdown__item + .sort-dropdown__item {
+        border-top: 0.5px solid rgba(0, 0, 0, 0.04);
+      }
+
+      /* ── Feed views ── */
+      .feed-view {
+        display: none;
+      }
+      .feed-view.is-visible {
+        display: block;
+      }
+
+      /* ══════════════════════════════════════
+       RECIPE VIEW
+    ══════════════════════════════════════ */
+      .recipe-card {
+        margin: 0 20px 16px;
+        border-radius: var(--radius-card);
+        background: var(--color-surface);
+        overflow: hidden;
+        cursor: pointer;
+        transition: transform 0.15s;
+      }
+      .recipe-card:active { transform: scale(0.98); }
+      .recipe-card__photo {
+        position: relative;
+        height: 200px;
+        overflow: hidden;
+      }
+      .recipe-card__photo-bg {
+        width: 100%;
+        height: 100%;
+      }
+      .recipe-card__location {
+        position: absolute;
+        bottom: 10px;
+        left: 10px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        height: 26px;
+        padding: 0 10px;
+        border-radius: 13px;
+        background: rgba(0, 0, 0, 0.35);
+        font-size: 10.5px;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.85);
+      }
+      .recipe-card__like {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        height: 26px;
+        padding: 0 10px;
+        border-radius: 13px;
+        background: rgba(0, 0, 0, 0.35);
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .recipe-card__like:hover {
+        background: rgba(0, 0, 0, 0.5);
+      }
+      .recipe-card__like svg {
+        width: 14px;
+        height: 14px;
+      }
+      .recipe-card__like span {
+        font-size: 11px;
+        font-weight: 500;
+        color: #fff;
+      }
+      .recipe-card__body {
+        padding: 12px 14px 14px;
+      }
+      .recipe-card__user {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 10px;
+      }
+      .recipe-card__avatar {
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 8px;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.7);
+        flex-shrink: 0;
+      }
+      .recipe-card__name {
+        font-size: 13px;
+        font-weight: 600;
+        color: #000;
+        letter-spacing: -0.15px;
+      }
+      .recipe-card__verified {
+        width: 14px;
+        height: 14px;
+        flex-shrink: 0;
+      }
+      .recipe-card__time {
+        font-size: 11px;
+        color: rgba(0, 0, 0, 0.35);
+      }
+      .recipe-card__caption {
+        font-size: 14px;
+        font-weight: 500;
+        color: #000;
+        letter-spacing: -0.15px;
+        margin-bottom: 10px;
+        line-height: 1.4;
+      }
+      .recipe-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 10px;
+      }
+      .recipe-tag {
+        height: 28px;
+        padding: 0 10px;
+        border-radius: 8px;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 11px;
+        color: rgba(0, 0, 0, 0.5);
+      }
+      .recipe-tag svg {
+        flex-shrink: 0;
+        color: rgba(0, 0, 0, 0.25);
+      }
+      .recipe-card__footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .recipe-card__score {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        height: 28px;
+        padding: 0 10px;
+        border-radius: 8px;
+        background: rgba(227, 27, 89, 0.08);
+        font-size: 11px;
+        color: rgba(0, 0, 0, 0.4);
+      }
+      .recipe-card__score strong {
+        font-size: 12px;
+        color: var(--color-accent);
+        margin-left: 4px;
+      }
+      .recipe-card__actions {
+        display: flex;
+        gap: 14px;
+      }
+      .recipe-card__action {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: rgba(0, 0, 0, 0.25);
+        transition: color 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 11px;
+        font-family: var(--font-family);
+      }
+      .recipe-card__action:hover {
+        color: rgba(0, 0, 0, 0.5);
+      }
+      .recipe-card__action span {
+        color: rgba(0, 0, 0, 0.35);
+      }
+      .recipe-card__comments-link {
+        font-size: 13px;
+        color: rgba(0, 0, 0, 0.35);
+        cursor: pointer;
+        padding: 0 14px 14px;
+        display: block;
+      }
+      .recipe-card__comments {
+        padding: 0 14px 14px;
+      }
+      .recipe-card__comments-divider {
+        height: 0.5px;
+        background: rgba(0, 0, 0, 0.04);
+        margin-bottom: 12px;
+      }
+      .comment {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+      .comment:last-of-type {
+        margin-bottom: 8px;
+      }
+      .comment__avatar {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.06);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 7px;
+        font-weight: 600;
+        color: rgba(0, 0, 0, 0.3);
+        flex-shrink: 0;
+        margin-top: 2px;
+      }
+      .comment__body {
+        flex: 1;
+        min-width: 0;
+      }
+      .comment__text {
+        font-size: 13px;
+        color: #000;
+        letter-spacing: -0.1px;
+        line-height: 1.45;
+      }
+      .comment__text strong {
+        font-weight: 600;
+      }
+      .comment__meta {
+        font-size: 11px;
+        color: rgba(0, 0, 0, 0.25);
+        margin-top: 3px;
+      }
+      .recipe-card__comments-more {
+        font-size: 13px;
+        color: rgba(0, 0, 0, 0.35);
+        cursor: pointer;
+      }
+
+      /* ── 댓글 확장 영역 ── */
+      .comment-expand {
+        display: none;
+        padding: 0 14px;
+        border-top: 0.5px solid rgba(0, 0, 0, 0.04);
+      }
+      .comment-expand.is-open {
+        display: block;
+      }
+      .recipe-card__comments-link {
+        transition: color 0.15s;
+      }
+      .recipe-card__comments-link.is-open {
+        color: rgba(0, 0, 0, 0.55);
+      }
+
+      /* ── 댓글 입력창 ── */
+      .comment-input-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 0 14px;
+        border-top: 0.5px solid rgba(0, 0, 0, 0.05);
+        margin-top: 4px;
+      }
+      .comment-input-avatar {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        background: var(--color-surface);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 8px;
+        font-weight: 600;
+        color: rgba(0, 0, 0, 0.3);
+        flex-shrink: 0;
+      }
+      .comment-input-field {
+        flex: 1;
+        height: 34px;
+        background: var(--color-surface);
+        border: 1.5px solid transparent;
+        border-radius: 17px;
+        padding: 0 14px;
+        font-family: var(--font-family);
+        font-size: 13px;
+        color: var(--color-text-primary);
+        letter-spacing: -0.1px;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+      .comment-input-field::placeholder {
+        color: rgba(0, 0, 0, 0.28);
+      }
+      .comment-input-field:focus {
+        border-color: rgba(227, 27, 89, 0.35);
+        background: #fff;
+      }
+      .comment-input-send {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: var(--color-accent);
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        opacity: 0.3;
+        transition: opacity 0.15s;
+        pointer-events: none;
+      }
+      .comment-input-send.is-ready {
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      /* ══════════════════════════════════════
+       GALLERY VIEW
+    ══════════════════════════════════════ */
+      .gallery {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        padding: 0 20px;
+      }
+      .gallery__item {
+        aspect-ratio: 1;
+        border-radius: 12px;
+        overflow: hidden;
+        position: relative;
+        cursor: pointer;
+        transition: transform 0.15s;
+      }
+      .gallery__item:hover {
+        transform: scale(0.98);
+      }
+      .gallery__overlay {
+        position: absolute;
+        bottom: 8px;
+        left: 8px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .gallery__avatar {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.25);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 7px;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.7);
+      }
+      .gallery__likes {
+        font-size: 10px;
+        color: rgba(255, 255, 255, 0.7);
+      }
+
+      /* ══════════════════════════════════════
+       CONTEST VIEW
+    ══════════════════════════════════════ */
+
+      /* 콘테스트 테마 배너 */
+      .contest-banner {
+        padding: 20px;
+        border-radius: 16px;
+        background: var(--color-surface);
+        border: 0.5px solid rgba(0, 0, 0, 0.06);
+        position: relative;
+        margin: 0 20px 20px;
+      }
+      .contest-banner__accent {
+        position: absolute;
+        left: 1px;
+        top: 16px;
+        bottom: 16px;
+        width: 3px;
+        border-radius: 1.5px;
+        background: var(--color-accent);
+      }
+      .contest-banner__label {
+        display: inline-flex;
+        align-items: center;
+        height: 24px;
+        padding: 0 10px;
+        border-radius: 6px;
+        background: rgba(227, 27, 89, 0.08);
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--color-accent);
+        letter-spacing: 0.3px;
+        margin-bottom: 12px;
+      }
+      .contest-banner__theme {
+        font-size: 26px;
+        font-weight: 600;
+        color: #000;
+        letter-spacing: -0.5px;
+        margin-bottom: 4px;
+      }
+      .contest-banner__desc {
+        font-size: 13px;
+        color: rgba(0, 0, 0, 0.45);
+        margin-bottom: 12px;
+      }
+      .contest-banner__meta {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding-bottom: 44px;
+      }
+      .contest-banner__pill {
+        height: 22px;
+        padding: 0 10px;
+        border-radius: 11px;
+        font-size: 11px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+      }
+      .contest-banner__pill--danger {
+        background: rgba(255, 69, 58, 0.08);
+        color: #ff453a;
+      }
+      .contest-banner__pill--muted {
+        background: rgba(0, 0, 0, 0.04);
+        color: rgba(0, 0, 0, 0.35);
+        font-weight: 400;
+      }
+      .contest-banner__cta {
+        position: absolute;
+        right: 20px;
+        bottom: 20px;
+        height: 34px;
+        padding: 0 20px;
+        border-radius: 17px;
+        border: none;
+        background: #e31b59;
+        font-family: var(--font-family);
+        font-size: 13px;
+        font-weight: 500;
+        color: #fff;
+        cursor: pointer;
+        transition: opacity 0.2s;
+      }
+      .contest-banner__cta:hover {
+        opacity: 0.88;
+      }
+
+      /* 섹션 공통 */
+      .contest-section {
+        padding: 0 20px;
+        margin-bottom: 24px;
+      }
+      .contest-section__header {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin-bottom: 12px;
+      }
+      .contest-section__title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #000;
+        letter-spacing: -0.3px;
+      }
+      .contest-section__sub {
+        font-size: 12px;
+        color: rgba(0, 0, 0, 0.35);
+        margin-top: 2px;
+        margin-bottom: 0;
+      }
+
+      /* 포디움 (1-2-3위) */
+      .podium {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: auto auto;
+        gap: 8px;
+        margin-top: 12px;
+      }
+      .podium__card {
+        border-radius: 14px;
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+        transition: transform 0.15s;
+      }
+      .podium__card:active {
+        transform: scale(0.98);
+      }
+      .podium__card--1st {
+        grid-column: 1 / -1;
+        height: 200px;
+      }
+      .podium__card--2nd,
+      .podium__card--3rd {
+        height: 140px;
+      }
+      .podium__rank {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 600;
+        color: #fff;
+      }
+      .podium__rank--gold {
+        background: linear-gradient(135deg, #f0c89a, #d4856a);
+      }
+      .podium__rank--silver {
+        background: linear-gradient(135deg, #c0c0c0, #8a8a8a);
+      }
+      .podium__rank--bronze {
+        background: linear-gradient(135deg, #cd8c52, #8a6030);
+      }
+      .podium__label {
+        position: absolute;
+        top: 8px;
+        left: 42px;
+        height: 20px;
+        padding: 0 8px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.15);
+        font-size: 10px;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.8);
+        display: flex;
+        align-items: center;
+      }
+      .podium__info {
+        position: absolute;
+        bottom: 8px;
+        left: 8px;
+        right: 8px;
+      }
+      .podium__info-pill {
+        height: 24px;
+        padding: 0 10px;
+        border-radius: 12px;
+        background: rgba(0, 0, 0, 0.35);
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 11px;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.85);
+      }
+
+      /* 투표 버튼 */
+      .vote-cta {
+        display: block;
+        width: 100%;
+        height: 44px;
+        border-radius: 22px;
+        border: none;
+        background: #e31b59;
+        font-family: var(--font-family);
+        font-size: 15px;
+        font-weight: 500;
+        color: #fff;
+        cursor: pointer;
+        transition: opacity 0.2s;
+        margin-bottom: 0;
+      }
+      .vote-cta:hover {
+        opacity: 0.88;
+      }
+      .vote-cta:active {
+        transform: scale(0.98);
+      }
+      .vote-cta--done {
+        background: var(--color-surface);
+        color: rgba(0,0,0,0.35);
+        cursor: default;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+      }
+      .vote-cta--done:hover {
+        opacity: 1;
+      }
+      .vote-cta-wrap {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .vote-cta-remain {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        font-size: 12px;
+        color: rgba(0,0,0,0.35);
+      }
+      .vote-cta-remain__dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--color-accent);
+        flex-shrink: 0;
+      }
+      .vote-cta-remain__dot--empty {
+        background: rgba(0,0,0,0.12);
+      }
+
+      /* 전체 출품작 그리드 */
+      .entry-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-top: 12px;
+      }
+      .entry-card {
+        border-radius: 12px;
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+        transition: transform 0.15s;
+        aspect-ratio: 1;
+      }
+      .entry-card:active {
+        transform: scale(0.98);
+      }
+      .entry-card.is-hidden {
+        display: none;
+      }
+      .entry-show-more {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        width: 100%;
+        height: 44px;
+        border-radius: 12px;
+        border: 1px solid rgba(0,0,0,0.08);
+        background: none;
+        font-family: var(--font-family);
+        font-size: 13px;
+        font-weight: 500;
+        color: rgba(0,0,0,0.45);
+        cursor: pointer;
+        margin-top: 8px;
+        transition: background 0.15s, color 0.15s;
+      }
+      .entry-show-more:hover {
+        background: var(--color-surface);
+        color: rgba(0,0,0,0.7);
+      }
+      .entry-card__rank {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        height: 22px;
+        padding: 0 8px;
+        border-radius: 11px;
+        background: rgba(0, 0, 0, 0.3);
+        font-size: 11px;
+        font-weight: 600;
+        color: #fff;
+        display: flex;
+        align-items: center;
+      }
+      .entry-card__info {
+        position: absolute;
+        bottom: 8px;
+        left: 8px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .entry-card__avatar {
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.25);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 7px;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.7);
+      }
+      .entry-card__votes {
+        height: 18px;
+        padding: 0 8px;
+        border-radius: 9px;
+        background: rgba(0, 0, 0, 0.3);
+        font-size: 10px;
+        color: rgba(255, 255, 255, 0.7);
+        display: flex;
+        align-items: center;
+        gap: 3px;
+      }
+
+      /* 지난 콘테스트 */
+      .past-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-top: 4px;
+      }
+      .past-card {
+        padding: 14px;
+        border-radius: 12px;
+        background: var(--color-surface);
+      }
+      .past-card__name {
+        font-size: 13px;
+        font-weight: 600;
+        color: #000;
+        margin-bottom: 2px;
+      }
+      .past-card__meta {
+        font-size: 11px;
+        color: rgba(0, 0, 0, 0.35);
+        margin-bottom: 10px;
+      }
+      .past-card__link {
+        display: inline-flex;
+        align-items: center;
+        height: 22px;
+        padding: 0 12px;
+        border-radius: 11px;
+        background: rgba(227, 27, 89, 0.07);
+        font-size: 11px;
+        font-weight: 500;
+        color: var(--color-accent);
+        text-decoration: none;
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      .past-card__link:hover {
+        background: rgba(227, 27, 89, 0.13);
+      }
+
+      /* 내 출품 현황 배너 */
+      .my-status {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 16px;
+        border-radius: 14px;
+        background: var(--color-surface);
+        border: 1px solid rgba(227, 27, 89, 0.1);
+        margin: 0 20px 20px;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .my-status:hover {
+        background: rgba(227, 27, 89, 0.03);
+      }
+      .my-status__icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: rgba(227, 27, 89, 0.08);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      .my-status__text {
+        flex: 1;
+      }
+      .my-status__title {
+        font-size: 14px;
+        font-weight: 500;
+        color: #000;
+      }
+      .my-status__desc {
+        font-size: 12px;
+        color: rgba(0, 0, 0, 0.4);
+        margin-top: 1px;
+      }
+      .my-status__arrow {
+        color: rgba(0, 0, 0, 0.18);
+      }
+
+      /* ══════════════════════════════════════
+       VOTE BOTTOM SHEET
+    ══════════════════════════════════════ */
+      .sheet-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0);
+        z-index: 60;
+        pointer-events: none;
+        transition: background 0.3s;
+      }
+      .sheet-backdrop.is-open {
+        background: rgba(0, 0, 0, 0.35);
+        pointer-events: auto;
+      }
+      .sheet {
+        position: fixed;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%) translateY(100%);
+        width: 390px;
+        max-height: 80vh;
+        background: #fff;
+        border-radius: 20px 20px 0 0;
+        z-index: 70;
+        transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+      .sheet.is-open {
+        transform: translateX(-50%) translateY(0);
+      }
+      .sheet__handle {
+        width: 36px;
+        height: 5px;
+        border-radius: 3px;
+        background: rgba(0, 0, 0, 0.1);
+        margin: 10px auto 0;
+      }
+      .sheet__header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 20px 12px;
+      }
+      .sheet__title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #000;
+        letter-spacing: -0.3px;
+      }
+      .sheet__remain {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 13px;
+        color: rgba(0, 0, 0, 0.4);
+      }
+      .sheet__remain strong {
+        color: var(--color-accent);
+        font-weight: 600;
+      }
+      .sheet__body {
+        flex: 1;
+        overflow-y: auto;
+        padding: 0 20px 20px;
+        -webkit-overflow-scrolling: touch;
+      }
+      .sheet__grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+      .vote-card {
+        border-radius: 14px;
+        position: relative;
+        overflow: hidden;
+        cursor: pointer;
+        transition: transform 0.15s;
+      }
+      .vote-card:active {
+        transform: scale(0.98);
+      }
+      .vote-card__bottom {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 10px;
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.5), transparent);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .vote-card__user {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .vote-card__avatar {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.15);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 8px;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.7);
+      }
+      .vote-card__name {
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.7);
+      }
+      .vote-card__btn {
+        height: 28px;
+        padding: 0 12px;
+        border-radius: 14px;
+        border: none;
+        font-family: var(--font-family);
+        font-size: 12px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .vote-card__btn--default {
+        background: rgba(255, 255, 255, 0.15);
+        color: #fff;
+      }
+      .vote-card__btn--default:hover {
+        background: rgba(255, 255, 255, 0.25);
+      }
+      .vote-card__btn--voted {
+        background: #fff;
+        color: var(--color-accent);
+      }
+      .vote-card__count {
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.5);
+        position: absolute;
+        top: 10px;
+        right: 10px;
+      }
+      .vote-card__rank {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        width: 22px;
+        height: 22px;
+        border-radius: 11px;
+        background: rgba(0, 0, 0, 0.3);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+        font-weight: 600;
+        color: #fff;
+      }
+      /* 내 출품작 강조 */
+      .vote-card.is-mine {
+        outline: 2px solid var(--color-accent);
+        outline-offset: -2px;
+      }
+      .vote-card__mine-badge {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        height: 20px;
+        padding: 0 8px;
+        border-radius: 10px;
+        background: var(--color-accent);
+        font-size: 10px;
+        font-weight: 600;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        letter-spacing: -0.1px;
+      }
+      /* 내 순위 요약 배너 */
+      .my-rank-banner {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 14px;
+        border-radius: 12px;
+        background: rgba(227, 27, 89, 0.06);
+        border: 1px solid rgba(227, 27, 89, 0.15);
+        margin-bottom: 14px;
+      }
+      .my-rank-banner__rank {
+        font-size: 22px;
+        font-weight: 600;
+        color: var(--color-accent);
+        letter-spacing: -0.5px;
+        line-height: 1;
+        flex-shrink: 0;
+      }
+      .my-rank-banner__rank sup {
+        font-size: 12px;
+        font-weight: 600;
+        vertical-align: super;
+      }
+      .my-rank-banner__text {
+        flex: 1;
+      }
+      .my-rank-banner__label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #000;
+        letter-spacing: -0.2px;
+      }
+      .my-rank-banner__sub {
+        font-size: 11px;
+        color: rgba(0, 0, 0, 0.4);
+        margin-top: 1px;
+      }
+      .my-rank-banner__votes {
+        font-size: 15px;
+        font-weight: 600;
+        color: var(--color-accent);
+        letter-spacing: -0.3px;
+        flex-shrink: 0;
+      }
+      .sheet__done {
+        display: block;
+        width: 100%;
+        height: 48px;
+        border-radius: 24px;
+        border: none;
+        background: #e31b59;
+        font-family: var(--font-family);
+        font-size: 15px;
+        font-weight: 500;
+        color: #fff;
+        cursor: pointer;
+        margin-top: 16px;
+        transition: opacity 0.2s;
+      }
+      .sheet__done:hover {
+        opacity: 0.88;
+      }
+      @media (max-width: 390px) {
+        .sheet {
+          width: 100%;
+        }
+      }
+
+      /* ── 결과 시트 전용 ── */
+      .result-sheet__meta {
+        font-size: 12px;
+        color: rgba(0, 0, 0, 0.35);
+        padding: 0 20px 14px;
+        border-bottom: 0.5px solid rgba(0, 0, 0, 0.06);
+        margin-bottom: 16px;
+      }
+      .result-podium {
+        display: flex;
+        gap: 8px;
+        align-items: flex-end;
+        margin-bottom: 20px;
+      }
+      .result-podium__card {
+        flex: 1;
+        border-radius: 14px;
+        position: relative;
+        overflow: hidden;
+      }
+      .result-podium__card--1st {
+        height: 180px;
+      }
+      .result-podium__card--2nd {
+        height: 150px;
+      }
+      .result-podium__card--3rd {
+        height: 138px;
+      }
+      .result-podium__rank {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: 600;
+        color: #fff;
+      }
+      .result-podium__rank--gold {
+        background: linear-gradient(135deg, #f0c89a, #d4856a);
+      }
+      .result-podium__rank--silver {
+        background: linear-gradient(135deg, #c0c0c0, #8a8a8a);
+      }
+      .result-podium__rank--bronze {
+        background: linear-gradient(135deg, #cd8c52, #8a6030);
+      }
+      .result-podium__info {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 10px 10px 10px;
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.55), transparent);
+      }
+      .result-podium__nick {
+        font-size: 11px;
+        font-weight: 600;
+        color: #fff;
+        letter-spacing: -0.1px;
+      }
+      .result-podium__votes {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        height: 18px;
+        padding: 0 7px;
+        border-radius: 9px;
+        background: rgba(0, 0, 0, 0.3);
+        font-size: 10px;
+        color: rgba(255, 255, 255, 0.8);
+        margin-top: 3px;
+      }
+      .result-winner-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        height: 20px;
+        padding: 0 8px;
+        border-radius: 10px;
+        background: rgba(255, 255, 255, 0.15);
+        font-size: 10px;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.85);
+        position: absolute;
+        top: 8px;
+        left: 42px;
+      }
+      .result-section-title {
+        font-size: 15px;
+        font-weight: 600;
+        color: #000;
+        letter-spacing: -0.2px;
+        margin-bottom: 10px;
+      }
+      .result-entry-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        margin-bottom: 20px;
+      }
+      .result-entry {
+        border-radius: 12px;
+        position: relative;
+        overflow: hidden;
+      }
+      .result-entry__rank {
+        position: absolute;
+        top: 8px;
+        left: 8px;
+        height: 20px;
+        padding: 0 7px;
+        border-radius: 10px;
+        background: rgba(0, 0, 0, 0.3);
+        font-size: 10px;
+        font-weight: 600;
+        color: #fff;
+        display: flex;
+        align-items: center;
+      }
+      .result-entry__info {
+        position: absolute;
+        bottom: 8px;
+        left: 8px;
+        right: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .result-entry__nick {
+        font-size: 10px;
+        color: rgba(255, 255, 255, 0.7);
+      }
+      .result-entry__votes {
+        font-size: 10px;
+        color: rgba(255, 255, 255, 0.55);
+      }
+
+      /* ── 출품 시트 전용 ── */
+      .entry-sheet__photo {
+        width: 100%;
+        height: 220px;
+        border-radius: 16px;
+        background: var(--color-surface);
+        border: 1.5px dashed rgba(227, 27, 89, 0.15);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        margin-bottom: 16px;
+        position: relative;
+        overflow: hidden;
+      }
+      .entry-sheet__photo:hover {
+        border-color: rgba(227, 27, 89, 0.3);
+        background: rgba(227, 27, 89, 0.02);
+      }
+      .entry-sheet__photo.has-image {
+        border-style: solid;
+        border-color: transparent;
+      }
+      .entry-sheet__photo-preview {
+        position: absolute;
+        inset: 0;
+        object-fit: cover;
+      }
+      .entry-sheet__photo-icon {
+        color: rgba(0, 0, 0, 0.2);
+      }
+      .entry-sheet__photo-label {
+        font-size: 15px;
+        font-weight: 500;
+        color: rgba(0, 0, 0, 0.28);
+      }
+      .entry-sheet__photo-hint {
+        font-size: 12px;
+        color: rgba(0, 0, 0, 0.18);
+      }
+      .entry-sheet__photo-change {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        height: 28px;
+        padding: 0 12px;
+        border-radius: 14px;
+        background: rgba(0, 0, 0, 0.4);
+        border: none;
+        font-family: var(--font-family);
+        font-size: 12px;
+        font-weight: 500;
+        color: #fff;
+        cursor: pointer;
+      }
+      .entry-sheet__exif {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 14px;
+        border-radius: 12px;
+        background: var(--color-surface);
+        margin-bottom: 16px;
+      }
+      .entry-sheet__exif-icon {
+        width: 20px;
+        height: 20px;
+        flex-shrink: 0;
+      }
+      .entry-sheet__exif-title {
+        font-size: 13px;
+        font-weight: 500;
+        color: #000;
+      }
+      .entry-sheet__exif-detail {
+        font-size: 11px;
+        color: rgba(0, 0, 0, 0.35);
+        margin-top: 1px;
+      }
+      .entry-sheet__field {
+        margin-bottom: 16px;
+      }
+      .entry-sheet__field-label {
+        font-size: 13px;
+        font-weight: 500;
+        color: rgba(0, 0, 0, 0.45);
+        margin-bottom: 8px;
+      }
+      .entry-sheet__input {
+        width: 100%;
+        height: 46px;
+        border-radius: 12px;
+        border: none;
+        background: var(--color-surface);
+        padding: 0 14px;
+        font-family: var(--font-family);
+        font-size: 14px;
+        color: #000;
+        outline: none;
+        transition: box-shadow 0.2s;
+      }
+      .entry-sheet__input:focus {
+        box-shadow: 0 0 0 1.5px var(--color-accent);
+        background: #fff;
+      }
+      .entry-sheet__textarea {
+        width: 100%;
+        height: 80px;
+        border-radius: 12px;
+        border: none;
+        background: var(--color-surface);
+        padding: 12px 14px;
+        font-family: var(--font-family);
+        font-size: 14px;
+        color: #000;
+        resize: none;
+        line-height: 1.5;
+        outline: none;
+        transition: box-shadow 0.2s;
+      }
+      .entry-sheet__textarea:focus {
+        box-shadow: 0 0 0 1.5px var(--color-accent);
+        background: #fff;
+      }
+      .entry-sheet__textarea::placeholder,
+      .entry-sheet__input::placeholder {
+        color: rgba(0, 0, 0, 0.25);
+      }
+      .entry-sheet__submit {
+        display: block;
+        width: 100%;
+        height: 50px;
+        border-radius: 25px;
+        border: none;
+        background: #e31b59;
+        font-family: var(--font-family);
+        font-size: 15px;
+        font-weight: 500;
+        color: #fff;
+        cursor: pointer;
+        margin-top: 8px;
+        transition: opacity 0.2s;
+      }
+      .entry-sheet__submit:hover {
+        opacity: 0.88;
+      }
+      .entry-sheet__submit:active {
+        transform: scale(0.98);
+      }
+      .entry-sheet__submit:disabled {
+        background: rgba(0, 0, 0, 0.1);
+        color: rgba(0, 0, 0, 0.25);
+        cursor: not-allowed;
+      }
+      /* 완료 토스트 */
+      .toast {
+        position: fixed;
+        bottom: 96px;
+        left: 50%;
+        transform: translateX(-50%) translateY(20px);
+        height: 44px;
+        padding: 0 20px;
+        border-radius: 22px;
+        background: rgba(0, 0, 0, 0.75);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        color: #fff;
+        z-index: 200;
+        opacity: 0;
+        transition: all 0.3s;
+        pointer-events: none;
+        white-space: nowrap;
+      }
+      .toast.is-visible {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+
+      /* ── FAB ── */
+      .fab {
+        position: fixed;
+        bottom: 96px;
+        right: calc(50% - 195px + 20px);
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: var(--color-accent);
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 16px rgba(227, 27, 89, 0.3);
+        transition: all 0.2s;
+        z-index: 40;
+      }
+      .fab:hover {
+        background: var(--color-accent-hover);
+        transform: scale(1.05);
+      }
+      .fab:active {
+        transform: scale(0.95);
+      }
+
+      /* ── Tab Bar ── */
+      .tab-bar {
+        position: fixed;
+        bottom: 0;
+        width: 390px;
+        height: 80px;
+        background: #fff;
+        border-top: 0.5px solid rgba(0, 0, 0, 0.08);
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-around;
+        padding-top: 8px;
+        z-index: 50;
+      }
+      .tab {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 4px 10px;
+      }
+      .tab__icon {
+        width: 22px;
+        height: 18px;
+        color: rgba(0, 0, 0, 0.35);
+      }
+      .tab__label {
+        font-size: 10px;
+        color: rgba(0, 0, 0, 0.35);
+        font-family: var(--font-family);
+      }
+      .tab.is-active .tab__icon {
+        color: var(--color-accent);
+      }
+      .tab.is-active .tab__label {
+        color: var(--color-accent);
+        font-weight: 500;
+      }
+      .tab-bar__indicator {
+        position: absolute;
+        bottom: 8px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 110px;
+        height: 5px;
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 2.5px;
+      }
+
+      @media (max-width: 390px) {
+        .phone-frame,
+        .tab-bar {
+          width: 100%;
+        }
+        .fab {
+          right: 20px;
+        }
+      }
+      @media (min-width: 391px) {
+        body {
+          padding: 20px 0;
+        }
+        .phone-frame {
+          border-radius: 40px;
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+          min-height: unset;
+          height: calc(100dvh - 40px);
+          overflow-y: auto;
+          overflow-x: hidden;
+        }
+        .tab-bar {
+          border-radius: 0 0 40px 40px;
+        }
+      }
+    
+      /* ── 스크롤바 숨김 ── */
+      * { scrollbar-width: none; -ms-overflow-style: none; }
+      *::-webkit-scrollbar { display: none; }
+
+      /* ── 사진 확대 ── */
+      .photo-expand-btn{position:absolute;top:10px;right:10px;width:28px;height:28px;border-radius:8px;background:rgba(0,0,0,0.38);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;transition:background 0.15s;z-index:2}
+      .photo-expand-btn:hover{background:rgba(0,0,0,0.55)}
+      .photo-lightbox{position:fixed;top:0;left:50%;transform:translateX(-50%);width:390px;height:100dvh;background:rgba(0,0,0,0.92);z-index:400;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.2s}
+      .photo-lightbox.is-open{opacity:1;pointer-events:all}
+      .photo-lightbox__inner{width:390px;aspect-ratio:4/3;position:relative;border-radius:12px;overflow:hidden}
+      .photo-lightbox__bg{width:100%;height:100%}
+      .photo-lightbox__close{position:absolute;top:14px;right:14px;width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,0.5);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;transition:background 0.15s}
+      .photo-lightbox__close:hover{background:rgba(0,0,0,0.75)}
+
+      /* ── 콘테스트 사진 라이트박스 ── */
+      .contest-lightbox{position:fixed;top:0;left:50%;transform:translateX(-50%);width:390px;height:100dvh;background:rgba(0,0,0,0.88);z-index:401;display:flex;align-items:center;justify-content:center;padding:0 20px;opacity:0;pointer-events:none;transition:opacity 0.2s}
+      .contest-lightbox.is-open{opacity:1;pointer-events:all}
+      .contest-lightbox__card{width:100%;border-radius:18px;overflow:hidden;background:#111;position:relative}
+      .contest-lightbox__photo{width:100%;aspect-ratio:3/2;position:relative}
+      .contest-lightbox__photo-bg{width:100%;height:100%}
+      .contest-lightbox__close{position:absolute;top:12px;right:12px;width:30px;height:30px;border-radius:50%;background:rgba(0,0,0,0.5);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;z-index:1;transition:background 0.15s}
+      .contest-lightbox__close:hover{background:rgba(0,0,0,0.75)}
+      .contest-lightbox__rank-badge{position:absolute;top:12px;left:12px;height:22px;padding:0 9px;border-radius:11px;background:rgba(0,0,0,0.45);font-size:11px;font-weight:600;color:#fff;display:flex;align-items:center}
+      .contest-lightbox__info{padding:14px 16px 18px}
+      .contest-lightbox__meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
+      .contest-lightbox__user{display:flex;align-items:center;gap:8px}
+      .contest-lightbox__avatar{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:rgba(255,255,255,0.65);flex-shrink:0}
+      .contest-lightbox__name{font-size:13px;font-weight:600;color:#fff;letter-spacing:-0.2px}
+      .contest-lightbox__votes{display:flex;align-items:center;gap:4px;font-size:12px;color:rgba(255,255,255,0.5)}
+      .contest-lightbox__comment{font-size:13px;color:rgba(255,255,255,0.6);line-height:1.55;letter-spacing:-0.1px;font-style:italic}
+      .contest-lightbox__no-comment{font-size:12px;color:rgba(255,255,255,0.22);font-style:italic}
+</style>
+  </head>
+  <body>
+    <div class="phone-frame">
+      <!-- Status Bar -->
+      <div class="status-bar">
+        <span class="status-bar__time">9:41</span>
+        <div class="dynamic-island"></div>
+        <div class="status-bar__icons">
+          <svg viewBox="0 0 18 12">
+            <rect x="0" y="9" width="3" height="3" rx=".75" />
+            <rect x="4.5" y="6" width="3" height="6" rx=".75" />
+            <rect x="9" y="3" width="3" height="9" rx=".75" />
+            <rect x="13.5" y="0" width="3" height="12" rx=".75" />
+          </svg>
+          <svg
+            viewBox="0 0 16 14"
+            fill="none"
+            stroke="#000"
+            stroke-width="1.3"
+            stroke-linecap="round"
+          >
+            <path d="M5 10.5A4 4 0 0 1 11 10.5" />
+            <path d="M2.5 7A8 8 0 0 1 13.5 7" />
+            <circle cx="8" cy="13" r="1.2" fill="#000" stroke="none" />
+          </svg>
+          <svg viewBox="0 0 28 14">
+            <rect
+              x="0"
+              y="0"
+              width="25"
+              height="12"
+              rx="3.5"
+              fill="none"
+              stroke="rgba(0,0,0,.3)"
+              stroke-width="1"
+            />
+            <rect x="1.5" y="1.5" width="20" height="9" rx="2" fill="#34c759" />
+          </svg>
+        </div>
+      </div>
+
+      <!-- Page Nav -->
+      <div class="page-nav" id="page-nav">
+        <!-- 컴팩트 행 -->
+        <div class="page-nav__compact">
+          <span class="page-nav__compact-title">커뮤니티</span>
+        </div>
+        <!-- 큰 타이틀 행 -->
+        <div class="page-nav__large">
+          <span class="page-nav__large-title">커뮤니티</span>
+        </div>
+        <!-- 검색바 -->
+        <div class="page-nav__search">
+          <div class="search-input-wrap">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="rgba(0,0,0,0.28)" stroke-width="1.4" stroke-linecap="round">
+              <circle cx="7" cy="7" r="5.5"/><line x1="11" y1="11" x2="14.5" y2="14.5"/>
+            </svg>
+            <input type="text" placeholder="게시글, 사진 스팟 검색" />
+          </div>
+        </div>
+        <!-- 뷰 탭 + 정렬 -->
+        <div class="controls">
+          <div class="view-toggle">
+            <button class="view-toggle__btn is-active" onclick="switchView('recipe', this)">게시글</button>
+            <button class="view-toggle__btn" onclick="switchView('gallery', this)">갤러리</button>
+            <button class="view-toggle__btn" onclick="switchView('contest', this)">콘테스트</button>
+          </div>
+        <div class="sort-dropdown">
+          <button class="sort-dropdown__btn" onclick="toggleDropdown(this)">
+            <span id="sortLabel">인기</span>
+            <svg
+              class="sort-dropdown__arrow"
+              width="10"
+              height="10"
+              viewBox="0 0 10 10"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.5"
+              stroke-linecap="round"
+            >
+              <polyline points="2,3.5 5,6.5 8,3.5" />
+            </svg>
+          </button>
+          <div class="sort-dropdown__menu" id="sortMenu">
+            <button
+              class="sort-dropdown__item is-selected"
+              onclick="selectSort('인기', this)"
+            >
+              인기
+            </button>
+            <button
+              class="sort-dropdown__item"
+              onclick="selectSort('최신', this)"
+            >
+              최신
+            </button>
+            <button
+              class="sort-dropdown__item"
+              onclick="selectSort('팔로잉', this)"
+            >
+              팔로잉
+            </button>
+            <button
+              class="sort-dropdown__item"
+              onclick="selectSort('이번 주', this)"
+            >
+              이번 주
+            </button>
+          </div>
+        </div>
+      </div>
+      </div><!-- /page-nav -->
+
+      <!-- ══ RECIPE VIEW ══ -->
+      <div class="feed-view is-visible" id="recipe-view">
+        <div class="recipe-card">
+          <div class="recipe-card__photo">
+            <div
+              class="recipe-card__photo-bg"
+              style="
+                background: linear-gradient(
+                  to bottom,
+                  #0f2027,
+                  #203a43,
+                  #4a7c8a
+                );
+              "
+            ></div>
+            <div class="recipe-card__location">
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 12 12"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="0.9"
+              >
+                <path
+                  d="M6 1C3.5 1 1.5 3 1.5 5.5C1.5 8.5 6 12 6 12S10.5 8.5 10.5 5.5C10.5 3 8.5 1 6 1Z"
+                />
+                <circle cx="6" cy="5" r="1.5" />
+              </svg>
+              광안리 해수욕장
+            </div>
+            <div class="recipe-card__like" onclick="toggleLike(this, true)">
+              <svg viewBox="0 0 16 14" fill="#ff453a" stroke="none">
+                <path
+                  d="M8 2.5C8 1 6.5 0 5.2 0C3.5 0 2 1.5 2 3.2C2 6.5 8 10.5 8 10.5C8 10.5 14 6.5 14 3.2C14 1.5 12.5 0 10.8 0C9.5 0 8 1 8 2.5Z"
+                />
+              </svg>
+              <span>248</span>
+            </div>
+            <button class="photo-expand-btn" onclick="openPhotoLightbox(this)" aria-label="사진 확대">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 8V5a2 2 0 0 1 2-2h3"/>
+                <path d="M16 3h3a2 2 0 0 1 2 2v3"/>
+                <path d="M21 16v3a2 2 0 0 1-2 2h-3"/>
+                <path d="M8 21H5a2 2 0 0 1-2-2v-3"/>
+              </svg>
+            </button>
+          </div>
+          <div class="recipe-card__body">
+            <div class="recipe-card__user">
+              <div
+                class="recipe-card__avatar"
+                style="background: linear-gradient(135deg, #2c5364, #4a7c8a)"
+              >
+                JK
+              </div>
+              <div>
+                <div class="recipe-card__name">sunset_jk</div>
+                <div class="recipe-card__time">2시간 전</div>
+              </div>
+            </div>
+            <div class="recipe-card__caption">
+              새벽 5시에 일어난 보람이 있는 일출 🌅
+            </div>
+            <div class="recipe-tags">
+              <div class="recipe-tag">
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 12 12"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1"
+                >
+                  <circle cx="6" cy="6" r="5" />
+                  <polyline
+                    points="6,3 6,6 8,7.5"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  /></svg
+                >05:30 촬영
+              </div>
+              <div class="recipe-tag">☀ 맑음</div>
+              <div class="recipe-tag">
+                <svg
+                  width="12"
+                  height="10"
+                  viewBox="0 0 12 10"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="0.8"
+                >
+                  <rect x="0" y="2" width="12" height="7" rx="1.5" />
+                  <circle cx="6" cy="6" r="2.5" /></svg
+                >Sony A7IV
+              </div>
+              <div class="recipe-tag">24mm f/2.8</div>
+            </div>
+            <div class="recipe-card__footer">
+              <div class="recipe-card__score">포토제닉 <strong>87</strong></div>
+              <div class="recipe-card__actions">
+                <button class="recipe-card__action">
+                  <svg
+                    width="16"
+                    height="14"
+                    viewBox="0 0 16 14"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.2"
+                  >
+                    <path
+                      d="M1.5 5.5C1.5 2.5 3.5.5 6.5.5H9.5C12.5.5 14.5 2.5 14.5 5.5C14.5 8.5 12.5 10.5 9.5 10.5H7L3 13.5V10C2 9 1.5 7.5 1.5 5.5Z"
+                    /></svg
+                  ><span>32</span>
+                </button>
+                <button class="recipe-card__action">
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 14 14"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M2 0V12L7 9L12 12V0Z" />
+                  </svg>
+                </button>
+                <button class="recipe-card__action">
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 14 14"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M7 1V9M3 5L7 1L11 5" />
+                    <rect x="2" y="9" width="10" height="4" rx="1.5" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="recipe-card__comments-link" onclick="toggleComments(this, 'comments-1')" data-label="댓글 32개 모두 보기">댓글 32개 모두 보기</div>
+          <div class="comment-expand" id="comments-1">
+            <div style="height:12px"></div>
+            <div class="comment">
+              <div class="comment__avatar">SR</div>
+              <div class="comment__body">
+                <div class="comment__text"><strong>sora.lens</strong> 골든아워 타이밍 딱 맞춘 거 대박이에요 😍</div>
+                <div class="comment__meta">2시간 전 · 좋아요 8개</div>
+              </div>
+            </div>
+            <div class="comment">
+              <div class="comment__avatar">JW</div>
+              <div class="comment__body">
+                <div class="comment__text"><strong>jwphoto</strong> 어떤 필터 쓰셨어요? 색감이 진짜 예쁘네요</div>
+                <div class="comment__meta">1시간 전 · 좋아요 4개</div>
+              </div>
+            </div>
+            <div class="comment">
+              <div class="comment__avatar">HN</div>
+              <div class="comment__body">
+                <div class="comment__text"><strong>hana__film</strong> 저도 지난주에 갔는데 이렇게 못 찍었어요 ㅠㅠ 렌즈 뭐 쓰세요?</div>
+                <div class="comment__meta">45분 전 · 좋아요 2개</div>
+              </div>
+            </div>
+            <div class="recipe-card__comments-more" onclick="loadMoreComments(this, 29)">댓글 29개 더보기</div>
+            <div class="comment-input-row">
+              <div class="comment-input-avatar">ME</div>
+              <input class="comment-input-field" placeholder="댓글 달기..." oninput="handleCommentInput(this)">
+              <button class="comment-input-send" onclick="submitComment(this)">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M2 7h10M7 2l5 5-5 5"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="recipe-card">
+          <div class="recipe-card__photo">
+            <div
+              class="recipe-card__photo-bg"
+              style="
+                background: linear-gradient(
+                  to bottom,
+                  #1a1530,
+                  #4a1942,
+                  #e8855a
+                );
+              "
+            ></div>
+            <div class="recipe-card__location">
+              <svg
+                width="12"
+                height="12"
+                viewBox="0 0 12 12"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="0.9"
+              >
+                <path
+                  d="M6 1C3.5 1 1.5 3 1.5 5.5C1.5 8.5 6 12 6 12S10.5 8.5 10.5 5.5C10.5 3 8.5 1 6 1Z"
+                />
+                <circle cx="6" cy="5" r="1.5" />
+              </svg>
+              경복궁 야간개장
+            </div>
+            <div class="recipe-card__like" onclick="toggleLike(this, false)">
+              <svg
+                viewBox="0 0 16 14"
+                fill="none"
+                stroke="#fff"
+                stroke-width="1.3"
+              >
+                <path
+                  d="M8 2.5C8 1 6.5 0 5.2 0C3.5 0 2 1.5 2 3.2C2 6.5 8 10.5 8 10.5C8 10.5 14 6.5 14 3.2C14 1.5 12.5 0 10.8 0C9.5 0 8 1 8 2.5Z"
+                />
+              </svg>
+              <span>512</span>
+            </div>
+            <button class="photo-expand-btn" onclick="openPhotoLightbox(this)" aria-label="사진 확대">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 8V5a2 2 0 0 1 2-2h3"/>
+                <path d="M16 3h3a2 2 0 0 1 2 2v3"/>
+                <path d="M21 16v3a2 2 0 0 1-2 2h-3"/>
+                <path d="M8 21H5a2 2 0 0 1-2-2v-3"/>
+              </svg>
+            </button>
+          </div>
+          <div class="recipe-card__body">
+            <div class="recipe-card__user">
+              <div
+                class="recipe-card__avatar"
+                style="background: linear-gradient(135deg, #8b4a6b, #d4856a)"
+              >
+                YJ
+              </div>
+              <div>
+                <div style="display: flex; align-items: center; gap: 4px">
+                  <span class="recipe-card__name">photo_yujin</span>
+                  <svg
+                    class="recipe-card__verified"
+                    viewBox="0 0 14 14"
+                    fill="none"
+                  >
+                    <circle cx="7" cy="7" r="6" fill="#e31b59" />
+                    <polyline
+                      points="4,7 6,9.5 10,4.5"
+                      fill="none"
+                      stroke="#fff"
+                      stroke-width="1.3"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </div>
+                <div class="recipe-card__time">5시간 전</div>
+              </div>
+            </div>
+            <div class="recipe-card__caption">
+              한복 입고 야간개장, 무료입장 꿀팁까지
+            </div>
+            <div class="recipe-tags">
+              <div class="recipe-tag">🌙 야간 20:30</div>
+              <div class="recipe-tag">맑음</div>
+              <div class="recipe-tag">
+                <svg
+                  width="12"
+                  height="10"
+                  viewBox="0 0 12 10"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="0.8"
+                >
+                  <rect x="0" y="2" width="12" height="7" rx="1.5" />
+                  <circle cx="6" cy="6" r="2.5" /></svg
+                >Canon R6II
+              </div>
+              <div class="recipe-tag">35mm f/1.4</div>
+            </div>
+            <div class="recipe-card__footer">
+              <div class="recipe-card__score">포토제닉 <strong>91</strong></div>
+              <div class="recipe-card__actions">
+                <button class="recipe-card__action">
+                  <svg
+                    width="16"
+                    height="14"
+                    viewBox="0 0 16 14"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.2"
+                  >
+                    <path
+                      d="M1.5 5.5C1.5 2.5 3.5.5 6.5.5H9.5C12.5.5 14.5 2.5 14.5 5.5C14.5 8.5 12.5 10.5 9.5 10.5H7L3 13.5V10C2 9 1.5 7.5 1.5 5.5Z"
+                    /></svg
+                  ><span>67</span>
+                </button>
+                <button class="recipe-card__action">
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 14 14"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M2 0V12L7 9L12 12V0Z" />
+                  </svg>
+                </button>
+                <button class="recipe-card__action">
+                  <svg
+                    width="14"
+                    height="14"
+                    viewBox="0 0 14 14"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="1.2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M7 1V9M3 5L7 1L11 5" />
+                    <rect x="2" y="9" width="10" height="4" rx="1.5" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div class="recipe-card__comments">
+            <div class="recipe-card__comments-divider"></div>
+            <div class="comment">
+              <div class="comment__avatar">DH</div>
+              <div class="comment__body">
+                <div class="comment__text">
+                  <strong>dongho_</strong> 장비 세팅 정보 감사해요! 저도 다음에
+                  R6 들고 가볼게요 📷
+                </div>
+                <div class="comment__meta">1시간 전 · 좋아요 3개</div>
+              </div>
+            </div>
+            <div class="comment">
+              <div class="comment__avatar">JN</div>
+              <div class="comment__body">
+                <div class="comment__text">
+                  <strong>jina.photo</strong> 야간개장 몇 시까지예요?
+                </div>
+                <div class="comment__meta">30분 전</div>
+              </div>
+            </div>
+            <div class="recipe-card__comments-more" onclick="loadMoreComments(this, 65)">댓글 65개 더보기</div>
+            <div class="comment-input-row">
+              <div class="comment-input-avatar">ME</div>
+              <input class="comment-input-field" placeholder="댓글 달기..." oninput="handleCommentInput(this)">
+              <button class="comment-input-send" onclick="submitComment(this)">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M2 7h10M7 2l5 5-5 5"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ GALLERY VIEW ══ -->
+      <div class="feed-view" id="gallery-view">
+        <div class="gallery">
+          <div class="gallery__item" style="background:linear-gradient(to bottom,#0a1a0f,#4a8060)">
+            <button class="photo-expand-btn" onclick="openGalleryLightbox(this)" aria-label="사진 확대">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V5a2 2 0 0 1 2-2h3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M21 16v3a2 2 0 0 1-2 2h-3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/></svg>
+            </button>
+            <div class="gallery__overlay">
+              <div class="gallery__avatar">MS</div>
+              <div class="gallery__likes">189</div>
+            </div>
+          </div>
+          <div class="gallery__item" style="background:linear-gradient(to bottom,#1a1530,#b44a3a)">
+            <button class="photo-expand-btn" onclick="openGalleryLightbox(this)" aria-label="사진 확대">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V5a2 2 0 0 1 2-2h3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M21 16v3a2 2 0 0 1-2 2h-3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/></svg>
+            </button>
+            <div class="gallery__overlay">
+              <div class="gallery__avatar">YJ</div>
+              <div class="gallery__likes">512</div>
+            </div>
+          </div>
+          <div class="gallery__item" style="background:linear-gradient(to bottom,#232526,#8e7b5a)">
+            <button class="photo-expand-btn" onclick="openGalleryLightbox(this)" aria-label="사진 확대">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V5a2 2 0 0 1 2-2h3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M21 16v3a2 2 0 0 1-2 2h-3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/></svg>
+            </button>
+            <div class="gallery__overlay">
+              <div class="gallery__avatar">SH</div>
+              <div class="gallery__likes">76</div>
+            </div>
+          </div>
+          <div class="gallery__item" style="background:linear-gradient(to bottom,#0f2027,#2c5364)">
+            <button class="photo-expand-btn" onclick="openGalleryLightbox(this)" aria-label="사진 확대">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V5a2 2 0 0 1 2-2h3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M21 16v3a2 2 0 0 1-2 2h-3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/></svg>
+            </button>
+            <div class="gallery__overlay">
+              <div class="gallery__avatar">JK</div>
+              <div class="gallery__likes">248</div>
+            </div>
+          </div>
+          <div class="gallery__item" style="background:linear-gradient(to bottom,#020010,#1a1545)">
+            <button class="photo-expand-btn" onclick="openGalleryLightbox(this)" aria-label="사진 확대">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V5a2 2 0 0 1 2-2h3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M21 16v3a2 2 0 0 1-2 2h-3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/></svg>
+            </button>
+            <div class="gallery__overlay">
+              <div class="gallery__avatar">JH</div>
+              <div class="gallery__likes">342</div>
+            </div>
+          </div>
+          <div class="gallery__item" style="background:linear-gradient(to bottom,#2a2e35,#6a7580)">
+            <button class="photo-expand-btn" onclick="openGalleryLightbox(this)" aria-label="사진 확대">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V5a2 2 0 0 1 2-2h3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M21 16v3a2 2 0 0 1-2 2h-3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/></svg>
+            </button>
+            <div class="gallery__overlay">
+              <div class="gallery__avatar">HJ</div>
+              <div class="gallery__likes">95</div>
+            </div>
+          </div>
+          <div class="gallery__item" style="background:linear-gradient(to bottom,#1a1510,#a08060)">
+            <button class="photo-expand-btn" onclick="openGalleryLightbox(this)" aria-label="사진 확대">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V5a2 2 0 0 1 2-2h3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M21 16v3a2 2 0 0 1-2 2h-3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/></svg>
+            </button>
+            <div class="gallery__overlay">
+              <div class="gallery__avatar">KM</div>
+              <div class="gallery__likes">167</div>
+            </div>
+          </div>
+          <div class="gallery__item" style="background:linear-gradient(to bottom,#1a0f1e,#c080a0)">
+            <button class="photo-expand-btn" onclick="openGalleryLightbox(this)" aria-label="사진 확대">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V5a2 2 0 0 1 2-2h3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M21 16v3a2 2 0 0 1-2 2h-3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/></svg>
+            </button>
+            <div class="gallery__overlay">
+              <div class="gallery__avatar">SY</div>
+              <div class="gallery__likes">203</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ══ CONTEST VIEW ══ -->
+      <div class="feed-view" id="contest-view">
+        <!-- 테마 배너 -->
+        <div class="contest-banner">
+          <div class="contest-banner__accent"></div>
+          <div class="contest-banner__label">주간 포토 콘테스트</div>
+          <div class="contest-banner__theme">골든아워</div>
+          <div class="contest-banner__desc">
+            해 뜨거나 지는 시간의 따뜻한 빛을 담아보세요
+          </div>
+          <div class="contest-banner__meta">
+            <span class="contest-banner__pill contest-banner__pill--danger"
+              >D-3</span
+            >
+            <span class="contest-banner__pill contest-banner__pill--muted"
+              >참여 128명</span
+            >
+          </div>
+          <button class="contest-banner__cta" onclick="openEntrySheet()">
+            출품하기
+          </button>
+        </div>
+
+        <!-- 현재 순위 (포디움) -->
+        <div class="contest-section">
+          <div class="contest-section__header">
+            <div>
+              <div class="contest-section__title">현재 순위</div>
+              <div class="contest-section__sub">
+                투표 수 기준 · 실시간 업데이트
+              </div>
+            </div>
+          </div>
+          <div class="podium">
+            <!-- 1위 (full width) -->
+            <div class="podium__card podium__card--1st"
+              style="background:linear-gradient(to bottom,#1a1530,#b44a3a,#f0c89a);"
+              data-rank="1" data-init="JK" data-user="sunset_jk" data-votes="67"
+              data-comment="새벽 5시, 광안대교 위로 떠오르는 태양 — 세상에서 제일 긴 하루의 시작">
+              <div class="podium__rank podium__rank--gold">1</div>
+              <button class="photo-expand-btn" onclick="openContestLightbox(this)" aria-label="사진 확대">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V5a2 2 0 0 1 2-2h3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M21 16v3a2 2 0 0 1-2 2h-3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/></svg>
+              </button>
+              <div class="podium__info">
+                <div class="podium__info-pill">
+                  <svg width="10" height="10" viewBox="0 0 10 10" fill="#ff453a"><path d="M5 1.5C5 0.8 4 0 3.2 0C2 0 1 1 1 2.2C1 4.5 5 7 5 7S9 4.5 9 2.2C9 1 8 0 6.8 0C6 0 5 0.8 5 1.5Z"/></svg>
+                  67표 · @sunset_jk
+                </div>
+              </div>
+            </div>
+            <!-- 2위 -->
+            <div class="podium__card podium__card--2nd"
+              style="background:linear-gradient(to bottom,#0f2027,#203a43,#e8a87c);"
+              data-rank="2" data-init="MS" data-user="minsoo" data-votes="42"
+              data-comment="겨울 새벽 바다, 아무도 없는 그 순간">
+              <div class="podium__rank podium__rank--silver">2</div>
+              <button class="photo-expand-btn" onclick="openContestLightbox(this)" aria-label="사진 확대">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V5a2 2 0 0 1 2-2h3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M21 16v3a2 2 0 0 1-2 2h-3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/></svg>
+              </button>
+              <div class="podium__info">
+                <div class="podium__info-pill">
+                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="0.8"><path d="M5 1.5C5 0.8 4 0 3.2 0C2 0 1 1 1 2.2C1 4.5 5 7 5 7S9 4.5 9 2.2C9 1 8 0 6.8 0C6 0 5 0.8 5 1.5Z"/></svg>
+                  42표 · @minsoo
+                </div>
+              </div>
+            </div>
+            <!-- 3위 -->
+            <div class="podium__card podium__card--3rd"
+              style="background:linear-gradient(to bottom,#1a1530,#8b4a6b);"
+              data-rank="3" data-init="YJ" data-user="yujin" data-votes="31"
+              data-comment="노을이 물드는 경복궁 야경, 한복 입고 찍은 날">
+              <div class="podium__rank podium__rank--bronze">3</div>
+              <button class="photo-expand-btn" onclick="openContestLightbox(this)" aria-label="사진 확대">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V5a2 2 0 0 1 2-2h3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M21 16v3a2 2 0 0 1-2 2h-3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/></svg>
+              </button>
+              <div class="podium__info">
+                <div class="podium__info-pill">
+                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="0.8"><path d="M5 1.5C5 0.8 4 0 3.2 0C2 0 1 1 1 2.2C1 4.5 5 7 5 7S9 4.5 9 2.2C9 1 8 0 6.8 0C6 0 5 0.8 5 1.5Z"/></svg>
+                  31표 · @yujin
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 투표 버튼 -->
+        <div style="padding: 0 20px; margin-bottom: 24px">
+          <!-- 투표 전 상태 -->
+          <div class="vote-cta-wrap" style="margin-bottom: 16px">
+            <button class="vote-cta" onclick="openSheet()">
+              투표하기
+            </button>
+            <div class="vote-cta-remain">
+              <div class="vote-cta-remain__dot"></div>
+              <div class="vote-cta-remain__dot"></div>
+              <div class="vote-cta-remain__dot"></div>
+              <span>오늘 3표 남음</span>
+            </div>
+          </div>
+          <!-- 투표 완료 상태 (디자인 시안) -->
+          <div class="vote-cta-wrap">
+            <button class="vote-cta vote-cta--done" disabled>
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="rgba(0,0,0,0.3)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="8" cy="8" r="6.5"/>
+                <polyline points="5,8 7,10.5 11,5.5"/>
+              </svg>
+              오늘 투표 완료
+            </button>
+            <div class="vote-cta-remain">
+              <div class="vote-cta-remain__dot vote-cta-remain__dot--empty"></div>
+              <div class="vote-cta-remain__dot vote-cta-remain__dot--empty"></div>
+              <div class="vote-cta-remain__dot vote-cta-remain__dot--empty"></div>
+              <span>내일 오전 0시에 초기화</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 전체 출품작 -->
+        <div class="contest-section">
+          <div class="contest-section__header">
+            <div>
+              <div class="contest-section__title">전체 출품작</div>
+              <div class="contest-section__sub">128개 작품</div>
+            </div>
+          </div>
+          <div class="entry-grid" id="entryGrid">
+            <div class="entry-card" style="background:linear-gradient(to bottom,#232526,#8e7b5a)"
+              data-rank="4" data-init="DH" data-user="dongho_" data-votes="28"
+              data-comment="도심 속 황금빛 노을, 빌딩 사이로 스며드는 빛">
+              <div class="entry-card__rank">4</div>
+              <button class="photo-expand-btn" onclick="openContestLightbox(this)" aria-label="사진 확대">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V5a2 2 0 0 1 2-2h3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M21 16v3a2 2 0 0 1-2 2h-3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/></svg>
+              </button>
+              <div class="entry-card__info">
+                <div class="entry-card__avatar">DH</div>
+                <div class="entry-card__votes"><svg width="8" height="8" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="0.8"><path d="M5 1.5C5 0.8 4 0 3.2 0C2 0 1 1 1 2.2C1 4.5 5 7 5 7S9 4.5 9 2.2C9 1 8 0 6.8 0C6 0 5 0.8 5 1.5Z"/></svg>28</div>
+              </div>
+            </div>
+            <div class="entry-card" style="background:linear-gradient(to bottom,#0a1a0f,#4a8060)"
+              data-rank="5" data-init="SH" data-user="seonho" data-votes="24"
+              data-comment="숲 사이로 쏟아지는 황금빛 — 혼자 걷던 아침 산책길">
+              <div class="entry-card__rank">5</div>
+              <button class="photo-expand-btn" onclick="openContestLightbox(this)" aria-label="사진 확대">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V5a2 2 0 0 1 2-2h3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M21 16v3a2 2 0 0 1-2 2h-3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/></svg>
+              </button>
+              <div class="entry-card__info">
+                <div class="entry-card__avatar">SH</div>
+                <div class="entry-card__votes"><svg width="8" height="8" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="0.8"><path d="M5 1.5C5 0.8 4 0 3.2 0C2 0 1 1 1 2.2C1 4.5 5 7 5 7S9 4.5 9 2.2C9 1 8 0 6.8 0C6 0 5 0.8 5 1.5Z"/></svg>24</div>
+              </div>
+            </div>
+            <div class="entry-card" style="background:linear-gradient(to bottom,#020010,#1a1545)"
+              data-rank="6" data-init="JH" data-user="jihoon" data-votes="19"
+              data-comment="">
+              <div class="entry-card__rank">6</div>
+              <button class="photo-expand-btn" onclick="openContestLightbox(this)" aria-label="사진 확대">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V5a2 2 0 0 1 2-2h3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M21 16v3a2 2 0 0 1-2 2h-3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/></svg>
+              </button>
+              <div class="entry-card__info">
+                <div class="entry-card__avatar">JH</div>
+                <div class="entry-card__votes"><svg width="8" height="8" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="0.8"><path d="M5 1.5C5 0.8 4 0 3.2 0C2 0 1 1 1 2.2C1 4.5 5 7 5 7S9 4.5 9 2.2C9 1 8 0 6.8 0C6 0 5 0.8 5 1.5Z"/></svg>19</div>
+              </div>
+            </div>
+            <div class="entry-card" style="background:linear-gradient(to bottom,#1a1530,#b44a3a,#f0c89a)"
+              data-rank="7" data-init="HJ" data-user="hanjin.film" data-votes="15"
+              data-comment="찰나의 빛, 그 짧은 순간이 가장 아름다웠다">
+              <div class="entry-card__rank">7</div>
+              <button class="photo-expand-btn" onclick="openContestLightbox(this)" aria-label="사진 확대">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V5a2 2 0 0 1 2-2h3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M21 16v3a2 2 0 0 1-2 2h-3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/></svg>
+              </button>
+              <div class="entry-card__info">
+                <div class="entry-card__avatar">HJ</div>
+                <div class="entry-card__votes"><svg width="8" height="8" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="0.8"><path d="M5 1.5C5 0.8 4 0 3.2 0C2 0 1 1 1 2.2C1 4.5 5 7 5 7S9 4.5 9 2.2C9 1 8 0 6.8 0C6 0 5 0.8 5 1.5Z"/></svg>15</div>
+              </div>
+            </div>
+            <!-- 숨김 카드 (전체보기 시 노출) -->
+            <div class="entry-card is-hidden" style="background:linear-gradient(to bottom,#0f1a2a,#2a5a8a)"
+              data-rank="8" data-init="MK" data-user="mk_photo" data-votes="11"
+              data-comment="">
+              <div class="entry-card__rank">8</div>
+              <button class="photo-expand-btn" onclick="openContestLightbox(this)" aria-label="사진 확대">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V5a2 2 0 0 1 2-2h3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M21 16v3a2 2 0 0 1-2 2h-3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/></svg>
+              </button>
+              <div class="entry-card__info">
+                <div class="entry-card__avatar">MK</div>
+                <div class="entry-card__votes"><svg width="8" height="8" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="0.8"><path d="M5 1.5C5 0.8 4 0 3.2 0C2 0 1 1 1 2.2C1 4.5 5 7 5 7S9 4.5 9 2.2C9 1 8 0 6.8 0C6 0 5 0.8 5 1.5Z"/></svg>11</div>
+              </div>
+            </div>
+            <div class="entry-card is-hidden" style="background:linear-gradient(to bottom,#1a0a0a,#8a3030)"
+              data-rank="9" data-init="YR" data-user="yerin.shot" data-votes="8"
+              data-comment="붉게 물든 하늘 아래, 기다리던 그 순간">
+              <div class="entry-card__rank">9</div>
+              <button class="photo-expand-btn" onclick="openContestLightbox(this)" aria-label="사진 확대">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V5a2 2 0 0 1 2-2h3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M21 16v3a2 2 0 0 1-2 2h-3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/></svg>
+              </button>
+              <div class="entry-card__info">
+                <div class="entry-card__avatar">YR</div>
+                <div class="entry-card__votes"><svg width="8" height="8" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="0.8"><path d="M5 1.5C5 0.8 4 0 3.2 0C2 0 1 1 1 2.2C1 4.5 5 7 5 7S9 4.5 9 2.2C9 1 8 0 6.8 0C6 0 5 0.8 5 1.5Z"/></svg>8</div>
+              </div>
+            </div>
+            <div class="entry-card is-hidden" style="background:linear-gradient(to bottom,#0a1510,#3a6040)"
+              data-rank="10" data-init="BJ" data-user="baejin_" data-votes="5"
+              data-comment="">
+              <div class="entry-card__rank">10</div>
+              <button class="photo-expand-btn" onclick="openContestLightbox(this)" aria-label="사진 확대">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V5a2 2 0 0 1 2-2h3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M21 16v3a2 2 0 0 1-2 2h-3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/></svg>
+              </button>
+              <div class="entry-card__info">
+                <div class="entry-card__avatar">BJ</div>
+                <div class="entry-card__votes"><svg width="8" height="8" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="0.8"><path d="M5 1.5C5 0.8 4 0 3.2 0C2 0 1 1 1 2.2C1 4.5 5 7 5 7S9 4.5 9 2.2C9 1 8 0 6.8 0C6 0 5 0.8 5 1.5Z"/></svg>5</div>
+              </div>
+            </div>
+          </div>
+          <button class="entry-show-more" id="entryShowMore" onclick="showAllEntries()">
+            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+              <polyline points="2,4.5 7,9.5 12,4.5"/>
+            </svg>
+            전체보기 <span style="color:rgba(0,0,0,0.28);font-weight:400">128</span>
+          </button>
+        </div>
+
+        <!-- 지난 콘테스트 -->
+        <div class="contest-section">
+          <div class="contest-section__title">지난 콘테스트</div>
+          <div class="past-grid">
+            <div class="past-card">
+              <div class="past-card__name">비 오는 날</div>
+              <div class="past-card__meta">5월 1주 · 참여 96명</div>
+              <span class="past-card__link" onclick="openResult('rain')"
+                >결과 보기</span
+              >
+            </div>
+            <div class="past-card">
+              <div class="past-card__name">벚꽃 시즌</div>
+              <div class="past-card__meta">4월 4주 · 참여 142명</div>
+              <span class="past-card__link" onclick="openResult('cherry')"
+                >결과 보기</span
+              >
+            </div>
+          </div>
+        </div>
+
+        <!-- 내 출품 현황 -->
+        <div class="my-status" onclick="openSheet()"  style="cursor:pointer">
+          <div class="my-status__icon">
+            <svg
+              width="18"
+              height="18"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#e31b59"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+              <path d="M15 8h.01"/>
+              <path d="M12 21h-6a3 3 0 0 1 -3 -3v-12a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v6"/>
+              <path d="M3 16l5 -5c.928 -.893 2.072 -.893 3 0l3.993 3.993"/>
+              <path d="M14 14l1 -1c.47 -.452 .995 -.675 1.52 -.67"/>
+              <path d="M19 22.5a4.75 4.75 0 0 1 3.5 -3.5a4.75 4.75 0 0 1 -3.5 -3.5a4.75 4.75 0 0 1 -3.5 3.5a4.75 4.75 0 0 1 3.5 3.5"/>
+            </svg>
+          </div>
+          <div class="my-status__text">
+            <div class="my-status__title">내 출품 현황</div>
+            <div class="my-status__desc">
+              이번 주 출품 완료 · 현재 1위 · 67표
+            </div>
+          </div>
+          <svg
+            class="my-status__arrow"
+            width="8"
+            height="14"
+            viewBox="0 0 8 14"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.3"
+            stroke-linecap="round"
+          >
+            <polyline points="2,2 6,7 2,12" />
+          </svg>
+        </div>
+
+        <div style="height: 20px"></div>
+      </div>
+
+      <!-- FAB -->
+      <button class="fab" aria-label="새 글 작성">
+        <svg
+          width="28"
+          height="28"
+          viewBox="0 0 28 28"
+          fill="none"
+          stroke="#fff"
+          stroke-width="1.5"
+          stroke-linecap="round"
+        >
+          <rect x="4" y="10" width="20" height="14" rx="3" />
+          <circle cx="14" cy="18" r="4" stroke-width="1.3" />
+          <rect x="10" y="7" width="8" height="4" rx="2" stroke-width="1.2" />
+          <line x1="24" y1="5" x2="24" y2="11" />
+          <line x1="21" y1="8" x2="27" y2="8" />
+        </svg>
+      </button>
+
+      <!-- Tab Bar -->
+      <div class="tab-bar">
+        <button class="tab" onclick="location.href = '../home/home.html'">
+          <svg
+            class="tab__icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <path d="M5 12l-2 0l9 -9l9 9l-2 0" />
+            <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
+            <path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6" />
+          </svg>
+          <span class="tab__label">홈</span>
+        </button>
+        <button class="tab" onclick="location.href = '../home/map.html'">
+          <svg
+            class="tab__icon"
+            viewBox="0 0 22 18"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.3"
+            stroke-linejoin="round"
+          >
+            <path d="M2 3L8 1L14 5L20 3V15L14 17L8 13L2 15Z" />
+          </svg>
+          <span class="tab__label">지도</span>
+        </button>
+        <button class="tab" onclick="location.href = '../travel/travel-list.html'">
+          <svg
+            class="tab__icon"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.5"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <circle cx="6" cy="19" r="2" />
+            <circle cx="18" cy="5" r="2" />
+            <path d="M12 19h4.5a3.5 3.5 0 0 0 0 -7h-8a3.5 3.5 0 0 1 0 -7h3.5" />
+          </svg>
+          <span class="tab__label">출사</span>
+        </button>
+        <button class="tab is-active">
+          <svg class="tab__icon" viewBox="2 3 20 19" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M18 4a3 3 0 0 1 3 3v8a3 3 0 0 1 -3 3h-5l-5 3v-3h-2a3 3 0 0 1 -3 -3v-8a3 3 0 0 1 3 -3h12"/>
+            <path d="M9.5 9h.01"/><path d="M14.5 9h.01"/>
+            <path d="M9.5 13a3.5 3.5 0 0 0 5 0"/>
+          </svg>
+          <span class="tab__label">커뮤니티</span>
+        </button>
+        <button class="tab" onclick="location.href = '../mypage/mypage.html'">
+          <svg
+            class="tab__icon"
+            viewBox="0 0 22 18"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="1.3"
+            stroke-linecap="round"
+          >
+            <circle cx="11" cy="5" r="5" />
+            <path d="M2 18Q5 12 11 12T20 18" />
+          </svg>
+          <span class="tab__label">MY</span>
+        </button>
+        <div class="tab-bar__indicator"></div>
+      </div>
+
+      <!-- Vote Bottom Sheet -->
+      <div
+        class="sheet-backdrop"
+        id="sheetBackdrop"
+        onclick="
+          closeSheet();
+          closeResult();
+          closeEntrySheet();
+        "
+      ></div>
+      <div class="sheet" id="voteSheet">
+        <div class="sheet__handle"></div>
+        <div class="sheet__header">
+          <span class="sheet__title">투표하기</span>
+          <span class="sheet__remain"
+            >남은 투표 <strong id="voteRemain">3</strong>/3</span
+          >
+        </div>
+        <div class="sheet__body">
+          <!-- 내 순위 요약 배너 -->
+          <div class="my-rank-banner">
+            <div class="my-rank-banner__rank">1<sup>위</sup></div>
+            <div class="my-rank-banner__text">
+              <div class="my-rank-banner__label">현재 내 순위</div>
+              <div class="my-rank-banner__sub">전체 6명 출품 · 실시간 업데이트</div>
+            </div>
+            <div class="my-rank-banner__votes">67표</div>
+          </div>
+          <div class="sheet__grid">
+            <div
+              class="vote-card is-mine"
+              style="
+                height: 200px;
+                background: linear-gradient(
+                  to bottom,
+                  #1a1530,
+                  #b44a3a,
+                  #f0c89a
+                );
+              "
+            >
+              <div class="vote-card__rank">1</div>
+              <div class="vote-card__mine-badge">내 출품작</div>
+              <div class="vote-card__count">67표</div>
+              <div class="vote-card__bottom">
+                <div class="vote-card__user">
+                  <div class="vote-card__avatar">JK</div>
+                  <span class="vote-card__name">sunset_jk</span>
+                </div>
+                <button
+                  class="vote-card__btn vote-card__btn--voted"
+                  onclick="event.stopPropagation()"
+                >
+                  <svg
+                    width="10"
+                    height="10"
+                    viewBox="0 0 10 10"
+                    fill="currentColor"
+                  >
+                    <path
+                      d="M5 1.5C5 0.8 4 0 3.2 0C2 0 1 1 1 2.2C1 4.5 5 7 5 7S9 4.5 9 2.2C9 1 8 0 6.8 0C6 0 5 0.8 5 1.5Z"
+                    /></svg
+                  >투표됨
+                </button>
+              </div>
+            </div>
+            <div
+              class="vote-card"
+              style="
+                height: 170px;
+                background: linear-gradient(
+                  to bottom,
+                  #0f2027,
+                  #203a43,
+                  #e8a87c
+                );
+              "
+            >
+              <div class="vote-card__rank">2</div>
+              <div class="vote-card__count">42표</div>
+              <div class="vote-card__bottom">
+                <div class="vote-card__user">
+                  <div class="vote-card__avatar">MS</div>
+                  <span class="vote-card__name">minsoo</span>
+                </div>
+                <button
+                  class="vote-card__btn vote-card__btn--default"
+                  onclick="castVote(this, event)"
+                >
+                  <svg
+                    width="10"
+                    height="10"
+                    viewBox="0 0 10 10"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="0.9"
+                  >
+                    <path
+                      d="M5 1.5C5 0.8 4 0 3.2 0C2 0 1 1 1 2.2C1 4.5 5 7 5 7S9 4.5 9 2.2C9 1 8 0 6.8 0C6 0 5 0.8 5 1.5Z"
+                    /></svg
+                  >투표
+                </button>
+              </div>
+            </div>
+            <div
+              class="vote-card"
+              style="
+                height: 170px;
+                background: linear-gradient(to bottom, #1a1530, #8b4a6b);
+              "
+            >
+              <div class="vote-card__rank">3</div>
+              <div class="vote-card__count">31표</div>
+              <div class="vote-card__bottom">
+                <div class="vote-card__user">
+                  <div class="vote-card__avatar">YJ</div>
+                  <span class="vote-card__name">yujin</span>
+                </div>
+                <button
+                  class="vote-card__btn vote-card__btn--default"
+                  onclick="castVote(this, event)"
+                >
+                  <svg
+                    width="10"
+                    height="10"
+                    viewBox="0 0 10 10"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="0.9"
+                  >
+                    <path
+                      d="M5 1.5C5 0.8 4 0 3.2 0C2 0 1 1 1 2.2C1 4.5 5 7 5 7S9 4.5 9 2.2C9 1 8 0 6.8 0C6 0 5 0.8 5 1.5Z"
+                    /></svg
+                  >투표
+                </button>
+              </div>
+            </div>
+            <div
+              class="vote-card"
+              style="
+                height: 200px;
+                background: linear-gradient(to bottom, #232526, #8e7b5a);
+              "
+            >
+              <div class="vote-card__rank">4</div>
+              <div class="vote-card__count">28표</div>
+              <div class="vote-card__bottom">
+                <div class="vote-card__user">
+                  <div class="vote-card__avatar">DH</div>
+                  <span class="vote-card__name">dongho</span>
+                </div>
+                <button
+                  class="vote-card__btn vote-card__btn--default"
+                  onclick="castVote(this, event)"
+                >
+                  <svg
+                    width="10"
+                    height="10"
+                    viewBox="0 0 10 10"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="0.9"
+                  >
+                    <path
+                      d="M5 1.5C5 0.8 4 0 3.2 0C2 0 1 1 1 2.2C1 4.5 5 7 5 7S9 4.5 9 2.2C9 1 8 0 6.8 0C6 0 5 0.8 5 1.5Z"
+                    /></svg
+                  >투표
+                </button>
+              </div>
+            </div>
+            <div
+              class="vote-card"
+              style="
+                height: 180px;
+                background: linear-gradient(to bottom, #0a1a0f, #4a8060);
+              "
+            >
+              <div class="vote-card__rank">5</div>
+              <div class="vote-card__count">24표</div>
+              <div class="vote-card__bottom">
+                <div class="vote-card__user">
+                  <div class="vote-card__avatar">SH</div>
+                  <span class="vote-card__name">seonho</span>
+                </div>
+                <button
+                  class="vote-card__btn vote-card__btn--default"
+                  onclick="castVote(this, event)"
+                >
+                  <svg
+                    width="10"
+                    height="10"
+                    viewBox="0 0 10 10"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="0.9"
+                  >
+                    <path
+                      d="M5 1.5C5 0.8 4 0 3.2 0C2 0 1 1 1 2.2C1 4.5 5 7 5 7S9 4.5 9 2.2C9 1 8 0 6.8 0C6 0 5 0.8 5 1.5Z"
+                    /></svg
+                  >투표
+                </button>
+              </div>
+            </div>
+            <div
+              class="vote-card"
+              style="
+                height: 190px;
+                background: linear-gradient(to bottom, #020010, #1a1545);
+              "
+            >
+              <div class="vote-card__rank">6</div>
+              <div class="vote-card__count">19표</div>
+              <div class="vote-card__bottom">
+                <div class="vote-card__user">
+                  <div class="vote-card__avatar">JH</div>
+                  <span class="vote-card__name">jihoon</span>
+                </div>
+                <button
+                  class="vote-card__btn vote-card__btn--default"
+                  onclick="castVote(this, event)"
+                >
+                  <svg
+                    width="10"
+                    height="10"
+                    viewBox="0 0 10 10"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="0.9"
+                  >
+                    <path
+                      d="M5 1.5C5 0.8 4 0 3.2 0C2 0 1 1 1 2.2C1 4.5 5 7 5 7S9 4.5 9 2.2C9 1 8 0 6.8 0C6 0 5 0.8 5 1.5Z"
+                    /></svg
+                  >투표
+                </button>
+              </div>
+            </div>
+          </div>
+          <button class="sheet__done" onclick="closeSheet()">완료</button>
+        </div>
+      </div>
+
+      <!-- Result Bottom Sheet -->
+      <div class="sheet" id="resultSheet">
+        <div class="sheet__handle"></div>
+        <div class="sheet__header">
+          <span class="sheet__title" id="resultSheetTitle"></span>
+          <button
+            onclick="closeResult()"
+            style="
+              width: 28px;
+              height: 28px;
+              border-radius: 50%;
+              background: var(--color-surface);
+              border: none;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              flex-shrink: 0;
+            "
+          >
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 12 12"
+              fill="none"
+              stroke="rgba(0,0,0,0.4)"
+              stroke-width="1.8"
+              stroke-linecap="round"
+            >
+              <line x1="1" y1="1" x2="11" y2="11" />
+              <line x1="11" y1="1" x2="1" y2="11" />
+            </svg>
+          </button>
+        </div>
+        <div class="result-sheet__meta" id="resultSheetMeta"></div>
+        <div class="sheet__body">
+          <div class="result-podium" id="resultPodium"></div>
+          <div class="result-section-title">전체 순위</div>
+          <div class="result-entry-grid" id="resultEntries"></div>
+          <button class="sheet__done" onclick="closeResult()">닫기</button>
+        </div>
+      </div>
+
+      <!-- 출품 바텀 시트 -->
+      <div class="sheet" id="entrySheet">
+        <div class="sheet__handle"></div>
+        <div class="sheet__header">
+          <span class="sheet__title">골든아워 출품하기</span>
+          <button
+            onclick="closeEntrySheet()"
+            style="
+              width: 28px;
+              height: 28px;
+              border-radius: 50%;
+              background: var(--color-surface);
+              border: none;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              flex-shrink: 0;
+            "
+          >
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 12 12"
+              fill="none"
+              stroke="rgba(0,0,0,0.4)"
+              stroke-width="1.8"
+              stroke-linecap="round"
+            >
+              <line x1="1" y1="1" x2="11" y2="11" />
+              <line x1="11" y1="1" x2="1" y2="11" />
+            </svg>
+          </button>
+        </div>
+        <div class="sheet__body">
+          <!-- 사진 선택 영역 -->
+          <div
+            class="entry-sheet__photo"
+            id="entryPhoto"
+            onclick="selectEntryPhoto()"
+          >
+            <div
+              id="entryPhotoPlaceholder"
+              style="
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                gap: 8px;
+              "
+            >
+              <svg
+                class="entry-sheet__photo-icon"
+                width="48"
+                height="36"
+                viewBox="0 0 48 36"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.3"
+              >
+                <rect x="4" y="8" width="40" height="26" rx="5" />
+                <circle cx="24" cy="22" r="8" />
+                <rect x="16" y="2" width="16" height="8" rx="4" />
+              </svg>
+              <span class="entry-sheet__photo-label">사진 1장 선택</span>
+              <span class="entry-sheet__photo-hint">탭하여 앨범에서 선택</span>
+            </div>
+            <!-- 사진 선택 후 미리보기 (더미) -->
+            <div
+              id="entryPhotoPreview"
+              style="
+                display: none;
+                position: absolute;
+                inset: 0;
+                background: linear-gradient(
+                  to bottom,
+                  #1a1530,
+                  #b44a3a,
+                  #f0c89a
+                );
+              "
+            >
+              <button
+                class="entry-sheet__photo-change"
+                onclick="
+                  event.stopPropagation();
+                  selectEntryPhoto();
+                "
+              >
+                사진 변경
+              </button>
+            </div>
+          </div>
+
+          <!-- EXIF 자동 감지 (사진 선택 후 노출) -->
+          <div class="entry-sheet__exif" id="entryExif" style="display: none">
+            <svg
+              class="entry-sheet__exif-icon"
+              width="20"
+              height="16"
+              viewBox="0 0 20 16"
+              fill="none"
+              stroke="rgba(0,0,0,0.25)"
+              stroke-width="1"
+            >
+              <rect x="0" y="3" width="20" height="12" rx="2.5" />
+              <circle cx="10" cy="9" r="4" />
+              <rect x="6" y="0" width="8" height="4" rx="2" />
+            </svg>
+            <div>
+              <div class="entry-sheet__exif-title">EXIF 자동 감지됨</div>
+              <div class="entry-sheet__exif-detail">
+                Sony A7IV · 24mm · f/2.8 · 2026.05.12 06:32
+              </div>
+            </div>
+          </div>
+
+          <!-- 한 줄 코멘트 -->
+          <div class="entry-sheet__field">
+            <div class="entry-sheet__field-label">
+              한 줄 코멘트
+              <span style="color: rgba(0, 0, 0, 0.3); font-weight: 400"
+                >(선택)</span
+              >
+            </div>
+            <textarea
+              class="entry-sheet__textarea"
+              placeholder="이 사진을 찍은 순간을 짧게 남겨보세요&#10;예) 새벽 5시, 광안대교 위로 떠오르는 태양"
+            ></textarea>
+          </div>
+
+          <!-- 촬영 스팟 -->
+          <div class="entry-sheet__field">
+            <div class="entry-sheet__field-label">촬영 스팟</div>
+            <input
+              class="entry-sheet__input"
+              type="text"
+              placeholder="스팟 이름 입력 또는 자동 감지"
+              id="entrySpot"
+              value=""
+            />
+          </div>
+
+          <!-- 출품 버튼 -->
+          <button
+            class="entry-sheet__submit"
+            id="entrySubmitBtn"
+            onclick="submitEntry()"
+          >
+            출품하기
+          </button>
+        </div>
+      </div>
+
+      <!-- 완료 토스트 -->
+      <div class="toast" id="entryToast">
+        <svg
+          width="16"
+          height="16"
+          viewBox="0 0 16 16"
+          fill="none"
+          stroke="#34c759"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <circle cx="8" cy="8" r="7" />
+          <polyline points="5,8 7,10 11,6" />
+        </svg>
+        출품이 완료됐어요 🎉
+      </div>
+
+      <!-- 사진 라이트박스 -->
+      <div class="photo-lightbox" id="photoLightbox" onclick="closePhotoLightbox()">
+        <div class="photo-lightbox__inner">
+          <div class="photo-lightbox__bg" id="lightboxBg"></div>
+          <button class="photo-lightbox__close" onclick="closePhotoLightbox()">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+              <line x1="1" y1="1" x2="11" y2="11"/><line x1="11" y1="1" x2="1" y2="11"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- 콘테스트 사진 라이트박스 -->
+      <div class="contest-lightbox" id="contestLightbox" onclick="closeContestLightbox()">
+        <div class="contest-lightbox__card" onclick="event.stopPropagation()">
+          <div class="contest-lightbox__photo" id="contestLightboxPhoto">
+            <div class="contest-lightbox__photo-bg" id="contestLightboxPhotoBg"></div>
+            <button class="contest-lightbox__close" onclick="closeContestLightbox()">
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+                <line x1="1" y1="1" x2="11" y2="11"/><line x1="11" y1="1" x2="1" y2="11"/>
+              </svg>
+            </button>
+            <div class="contest-lightbox__rank-badge" id="contestLightboxRankBadge"></div>
+          </div>
+          <div class="contest-lightbox__info">
+            <div class="contest-lightbox__meta">
+              <div class="contest-lightbox__user">
+                <div class="contest-lightbox__avatar" id="contestLightboxAvatar"></div>
+                <div class="contest-lightbox__name" id="contestLightboxName"></div>
+              </div>
+              <div class="contest-lightbox__votes">
+                <svg width="12" height="12" viewBox="0 0 10 10" fill="rgba(255,255,255,0.45)"><path d="M5 1.5C5 0.8 4 0 3.2 0C2 0 1 1 1 2.2C1 4.5 5 7 5 7S9 4.5 9 2.2C9 1 8 0 6.8 0C6 0 5 0.8 5 1.5Z"/></svg>
+                <span id="contestLightboxVotes"></span>
+              </div>
+            </div>
+            <div id="contestLightboxComment"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- /phone-frame -->
+
+    <script>
+      function switchView(view, btn) {
+        document
+          .querySelectorAll(".view-toggle__btn")
+          .forEach((b) => b.classList.remove("is-active"));
+        btn.classList.add("is-active");
+        document
+          .querySelectorAll(".feed-view")
+          .forEach((v) => v.classList.remove("is-visible"));
+        const t = document.getElementById(view + "-view");
+        if (t) t.classList.add("is-visible");
+      }
+
+      function toggleDropdown(btn) {
+        btn.classList.toggle("is-open");
+        document.getElementById("sortMenu").classList.toggle("is-open");
+      }
+
+      function selectSort(label, item) {
+        document.getElementById("sortLabel").textContent = label;
+        document
+          .querySelectorAll(".sort-dropdown__item")
+          .forEach((i) => i.classList.remove("is-selected"));
+        item.classList.add("is-selected");
+        document
+          .querySelector(".sort-dropdown__btn")
+          .classList.remove("is-open");
+        document.getElementById("sortMenu").classList.remove("is-open");
+      }
+
+      document.addEventListener("click", function (e) {
+        if (!e.target.closest(".sort-dropdown")) {
+          document
+            .querySelector(".sort-dropdown__btn")
+            ?.classList.remove("is-open");
+          document.getElementById("sortMenu")?.classList.remove("is-open");
+        }
+      });
+
+      let votesRemaining = 3;
+
+      function openSheet() {
+        document.getElementById("sheetBackdrop").classList.add("is-open");
+        document.getElementById("voteSheet").classList.add("is-open");
+        document.body.style.overflow = "hidden";
+      }
+
+      function closeSheet() {
+        document.getElementById("sheetBackdrop").classList.remove("is-open");
+        document.getElementById("voteSheet").classList.remove("is-open");
+        document.body.style.overflow = "";
+      }
+
+      function showAllEntries() {
+        document.querySelectorAll('.entry-card.is-hidden').forEach(function(c) {
+          c.classList.remove('is-hidden');
+        });
+        document.getElementById('entryShowMore').style.display = 'none';
+      }
+
+      function castVote(btn, e) {
+        e.stopPropagation();
+        if (votesRemaining <= 0) return;
+        votesRemaining--;
+        document.getElementById("voteRemain").textContent = votesRemaining;
+        btn.className = "vote-card__btn vote-card__btn--voted";
+        btn.innerHTML =
+          '<svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor"><path d="M5 1.5C5 0.8 4 0 3.2 0C2 0 1 1 1 2.2C1 4.5 5 7 5 7S9 4.5 9 2.2C9 1 8 0 6.8 0C6 0 5 0.8 5 1.5Z"/></svg> 투표됨';
+        btn.onclick = null;
+        const countEl = btn
+          .closest(".vote-card")
+          .querySelector(".vote-card__count");
+        countEl.textContent = parseInt(countEl.textContent) + 1 + "표";
+        if (votesRemaining === 0) {
+          document.querySelectorAll(".vote-card__btn--default").forEach((b) => {
+            b.style.opacity = "0.35";
+            b.style.pointerEvents = "none";
+          });
+        }
+      }
+
+      /* ── 결과 보기 시트 ── */
+      const resultData = {
+        rain: {
+          title: "비 오는 날",
+          meta: "5월 1주 · 2026.05.05 종료 · 참여 96명",
+          podium: [
+            {
+              rank: 2,
+              nick: "seonho",
+              votes: 38,
+              bg: "linear-gradient(to bottom,#2a2e35,#6a7580)",
+              rankClass: "silver",
+            },
+            {
+              rank: 1,
+              nick: "jina.photo",
+              votes: 61,
+              bg: "linear-gradient(to bottom,#0f1c2e,#1e3a5f,#5b8fa8)",
+              rankClass: "gold",
+              winner: true,
+            },
+            {
+              rank: 3,
+              nick: "minsoo",
+              votes: 29,
+              bg: "linear-gradient(to bottom,#1a1a2e,#4a4a6a)",
+              rankClass: "bronze",
+            },
+          ],
+          entries: [
+            {
+              rank: 4,
+              nick: "sunset_jk",
+              votes: 22,
+              bg: "linear-gradient(to bottom,#0a0a1a,#2a3a5a)",
+            },
+            {
+              rank: 5,
+              nick: "dongho_",
+              votes: 18,
+              bg: "linear-gradient(to bottom,#1a2a1a,#3a5a4a)",
+            },
+            {
+              rank: 6,
+              nick: "photo_yujin",
+              votes: 14,
+              bg: "linear-gradient(to bottom,#2a1a2a,#4a3a5a)",
+            },
+            {
+              rank: 7,
+              nick: "jihoon",
+              votes: 9,
+              bg: "linear-gradient(to bottom,#1a1a1a,#3a3a3a)",
+            },
+          ],
+        },
+        cherry: {
+          title: "벚꽃 시즌",
+          meta: "4월 4주 · 2026.04.28 종료 · 참여 142명",
+          podium: [
+            {
+              rank: 2,
+              nick: "photo_yujin",
+              votes: 54,
+              bg: "linear-gradient(to bottom,#3a1a2a,#d4856a)",
+              rankClass: "silver",
+            },
+            {
+              rank: 1,
+              nick: "sunset_jk",
+              votes: 89,
+              bg: "linear-gradient(to bottom,#2a0a1a,#f4a0b0,#fff0f5)",
+              rankClass: "gold",
+              winner: true,
+            },
+            {
+              rank: 3,
+              nick: "jina.photo",
+              votes: 41,
+              bg: "linear-gradient(to bottom,#1a0a1a,#c080a0)",
+              rankClass: "bronze",
+            },
+          ],
+          entries: [
+            {
+              rank: 4,
+              nick: "seonho",
+              votes: 33,
+              bg: "linear-gradient(to bottom,#2a1a1a,#c09090)",
+            },
+            {
+              rank: 5,
+              nick: "minsoo",
+              votes: 27,
+              bg: "linear-gradient(to bottom,#1a0a0a,#a07080)",
+            },
+            {
+              rank: 6,
+              nick: "dongho_",
+              votes: 19,
+              bg: "linear-gradient(to bottom,#0a0a1a,#8060a0)",
+            },
+            {
+              rank: 7,
+              nick: "jihoon",
+              votes: 12,
+              bg: "linear-gradient(to bottom,#1a1a0a,#906080)",
+            },
+          ],
+        },
+      };
+
+      function openResult(key) {
+        const data = resultData[key];
+        document.getElementById("resultSheetTitle").textContent =
+          data.title + " 결과";
+        document.getElementById("resultSheetMeta").textContent = data.meta;
+
+        const heights = { 1: 180, 2: 150, 3: 138 };
+        document.getElementById("resultPodium").innerHTML = data.podium
+          .map(
+            (p) => `
+      <div class="result-podium__card result-podium__card--${p.rank === 1 ? "1st" : p.rank === 2 ? "2nd" : "3rd"}"
+           style="height:${heights[p.rank]}px;background:${p.bg}">
+        <div class="result-podium__rank result-podium__rank--${p.rankClass}">${p.rank}</div>
+        ${p.winner ? '<div class="result-winner-badge">🏆 우승</div>' : ""}
+        <div class="result-podium__info">
+          <div class="result-podium__nick">@${p.nick}</div>
+          <div class="result-podium__votes">
+            <svg width="8" height="8" viewBox="0 0 10 10" fill="rgba(255,255,255,0.7)"><path d="M5 1.5C5 0.8 4 0 3.2 0C2 0 1 1 1 2.2C1 4.5 5 7 5 7S9 4.5 9 2.2C9 1 8 0 6.8 0C6 0 5 0.8 5 1.5Z"/></svg>
+            ${p.votes}표
+          </div>
+        </div>
+      </div>`,
+          )
+          .join("");
+
+        document.getElementById("resultEntries").innerHTML = data.entries
+          .map(
+            (e) => `
+      <div class="result-entry" style="height:${e.rank <= 5 ? 110 : 100}px;background:${e.bg}">
+        <div class="result-entry__rank">${e.rank}위</div>
+        <div class="result-entry__info">
+          <span class="result-entry__nick">@${e.nick}</span>
+          <span class="result-entry__votes">${e.votes}표</span>
+        </div>
+      </div>`,
+          )
+          .join("");
+
+        document.getElementById("sheetBackdrop").classList.add("is-open");
+        document.getElementById("resultSheet").classList.add("is-open");
+        document.body.style.overflow = "hidden";
+      }
+
+      function closeResult() {
+        document.getElementById("sheetBackdrop").classList.remove("is-open");
+        document.getElementById("resultSheet").classList.remove("is-open");
+        document.body.style.overflow = "";
+      }
+
+      /* ── 출품 시트 ── */
+      let entryPhotoSelected = false;
+
+      function openEntrySheet() {
+        document.getElementById("sheetBackdrop").classList.add("is-open");
+        document.getElementById("entrySheet").classList.add("is-open");
+        document.body.style.overflow = "hidden";
+      }
+
+      function closeEntrySheet() {
+        document.getElementById("sheetBackdrop").classList.remove("is-open");
+        document.getElementById("entrySheet").classList.remove("is-open");
+        document.body.style.overflow = "";
+      }
+
+      function selectEntryPhoto() {
+        /* 퍼블리싱용 더미 — 실제로는 file input 트리거 */
+        entryPhotoSelected = true;
+        document.getElementById("entryPhotoPlaceholder").style.display = "none";
+        document.getElementById("entryPhotoPreview").style.display = "block";
+        document.getElementById("entryExif").style.display = "flex";
+        document.getElementById("entrySpot").value = "광안리 해수욕장";
+      }
+
+      function submitEntry() {
+        if (!entryPhotoSelected) {
+          document.getElementById("entryPhoto").style.borderColor =
+            "var(--color-error)";
+          setTimeout(() => {
+            document.getElementById("entryPhoto").style.borderColor = "";
+          }, 1200);
+          return;
+        }
+        closeEntrySheet();
+
+        /* 토스트 노출 */
+        const toast = document.getElementById("entryToast");
+        toast.classList.add("is-visible");
+        setTimeout(() => toast.classList.remove("is-visible"), 2800);
+
+        /* 출품 상태 초기화 */
+        entryPhotoSelected = false;
+        document.getElementById("entryPhotoPlaceholder").style.display = "flex";
+        document.getElementById("entryPhotoPreview").style.display = "none";
+        document.getElementById("entryExif").style.display = "none";
+        document.getElementById("entrySpot").value = "";
+      }
+
+      function toggleLike(el, isLiked) {
+        const svg = el.querySelector("svg");
+        const num = el.querySelector("span");
+        let count = parseInt(num.textContent);
+        if (isLiked) {
+          svg.setAttribute("fill", "none");
+          svg.setAttribute("stroke", "#fff");
+          svg.setAttribute("stroke-width", "1.3");
+          num.textContent = count - 1;
+          el.onclick = () => toggleLike(el, false);
+        } else {
+          svg.setAttribute("fill", "#ff453a");
+          svg.removeAttribute("stroke");
+          svg.removeAttribute("stroke-width");
+          num.textContent = count + 1;
+          el.onclick = () => toggleLike(el, true);
+        }
+      }
+    </script>
+    <script>
+      const frame = document.querySelector('.phone-frame');
+      const nav = document.getElementById('page-nav');
+      frame.addEventListener('scroll', () => {
+        nav.classList.toggle('is-scrolled', frame.scrollTop > 44);
+      });
+    </script>
+
+    <script>
+      /* ── 댓글 펼치기/접기 ── */
+      function toggleComments(linkEl, targetId) {
+        const expand = document.getElementById(targetId);
+        const isOpen = expand.classList.toggle('is-open');
+        linkEl.classList.toggle('is-open', isOpen);
+        linkEl.textContent = isOpen ? '댓글 접기' : linkEl.dataset.label || '댓글 보기';
+        if (isOpen) {
+          // 열릴 때 입력창에 포커스
+          const input = expand.querySelector('.comment-input-field');
+          if (input) setTimeout(() => input.focus(), 200);
+        }
+      }
+
+      /* ── 더보기 클릭 시 추가 댓글 삽입 ── */
+      function loadMoreComments(moreEl, remaining) {
+        const container = moreEl.closest('.comment-expand, .recipe-card__comments');
+        const samples = [
+          { init: 'YJ', name: 'yujin.cam',   text: '다음 달 저도 꼭 가볼게요!',           meta: '3시간 전' },
+          { init: 'MK', name: 'mk_photo',    text: '색감 보정 프리셋 공유해주실 수 있나요?', meta: '2시간 전 · 좋아요 5개' },
+          { init: 'SH', name: 'sunhee__',    text: '진짜 너무 예쁘다 🌸',               meta: '1시간 전 · 좋아요 11개' },
+          { init: 'BR', name: 'brian.jpg',   text: '어떤 시간대에 가셨어요?',              meta: '50분 전' },
+          { init: 'EJ', name: 'eunjin_lens', text: '저 이 스팟 위시리스트에 추가했어요!',   meta: '20분 전 · 좋아요 2개' },
+        ];
+        const inserted = Math.min(remaining, samples.length);
+        samples.slice(0, inserted).forEach(c => {
+          const div = document.createElement('div');
+          div.className = 'comment';
+          div.innerHTML = `
+            <div class="comment__avatar">${c.init}</div>
+            <div class="comment__body">
+              <div class="comment__text"><strong>${c.name}</strong> ${c.text}</div>
+              <div class="comment__meta">${c.meta}</div>
+            </div>`;
+          container.insertBefore(div, moreEl);
+        });
+        const left = remaining - inserted;
+        if (left > 0) {
+          moreEl.textContent = `댓글 ${left}개 더보기`;
+        } else {
+          moreEl.remove();
+        }
+      }
+
+      /* ── 입력창 타이핑 시 전송 버튼 활성화 ── */
+      function handleCommentInput(input) {
+        const btn = input.nextElementSibling;
+        btn.classList.toggle('is-ready', input.value.trim().length > 0);
+      }
+
+      /* ── 댓글 전송 (모의) ── */
+      function submitComment(btn) {
+        const input = btn.previousElementSibling;
+        const text = input.value.trim();
+        if (!text) return;
+        const container = btn.closest('.comment-expand, .recipe-card__comments');
+        const inputRow = btn.closest('.comment-input-row');
+        const newComment = document.createElement('div');
+        newComment.className = 'comment';
+        newComment.innerHTML = `
+          <div class="comment__avatar">ME</div>
+          <div class="comment__body">
+            <div class="comment__text"><strong>me</strong> ${text}</div>
+            <div class="comment__meta">방금 전</div>
+          </div>`;
+        container.insertBefore(newComment, inputRow);
+        input.value = '';
+        btn.classList.remove('is-ready');
+        btn.classList.add('is-ready');
+        setTimeout(() => btn.classList.remove('is-ready'), 100);
+      }
+
+      /* ── 사진 확대 라이트박스 ── */
+      function openPhotoLightbox(btn) {
+        event.stopPropagation();
+        var photoBg = btn.closest('.recipe-card__photo').querySelector('.recipe-card__photo-bg').style.background;
+        document.getElementById('lightboxBg').style.cssText = 'width:100%;height:100%;background:' + photoBg;
+        document.getElementById('photoLightbox').classList.add('is-open');
+      }
+      function openGalleryLightbox(btn) {
+        event.stopPropagation();
+        var bg = btn.closest('.gallery__item').style.background;
+        document.getElementById('lightboxBg').style.cssText = 'width:100%;height:100%;background:' + bg;
+        document.getElementById('photoLightbox').classList.add('is-open');
+      }
+      function closePhotoLightbox() {
+        document.getElementById('photoLightbox').classList.remove('is-open');
+      }
+
+      /* ── 콘테스트 사진 라이트박스 ── */
+      function openContestLightbox(btn) {
+        event.stopPropagation();
+        var card = btn.closest('[data-rank]');
+        var bg = card.style.background;
+        document.getElementById('contestLightboxPhotoBg').style.cssText = 'width:100%;height:100%;background:' + bg;
+        document.getElementById('contestLightboxRankBadge').textContent = card.dataset.rank + '위';
+        document.getElementById('contestLightboxAvatar').textContent = card.dataset.init;
+        document.getElementById('contestLightboxName').textContent = '@' + card.dataset.user;
+        document.getElementById('contestLightboxVotes').textContent = card.dataset.votes + '표';
+        var comment = card.dataset.comment;
+        var commentEl = document.getElementById('contestLightboxComment');
+        if (comment) {
+          commentEl.className = 'contest-lightbox__comment';
+          commentEl.textContent = '“' + comment + '”';
+        } else {
+          commentEl.className = 'contest-lightbox__no-comment';
+          commentEl.textContent = '작성된 코멘트가 없어요';
+        }
+        document.getElementById('contestLightbox').classList.add('is-open');
+      }
+      function closeContestLightbox() {
+        document.getElementById('contestLightbox').classList.remove('is-open');
+      }
+    </script>
+  </body>
+</html>

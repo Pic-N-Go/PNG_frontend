@@ -1,0 +1,1769 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>PNG - 설정</title>
+    <link rel="stylesheet" href="../fonts.css" />
+    <style>
+      :root {
+        --color-bg: #ffffff;
+        --color-surface: #f5f5f7;
+        --color-text-primary: #000000;
+        --color-text-secondary: rgba(0, 0, 0, 0.48);
+        --color-text-tertiary: rgba(0, 0, 0, 0.28);
+        --color-accent: #e31b59;
+        --color-accent-hover: #c91550;
+        --color-border-light: rgba(0, 0, 0, 0.06);
+        --color-success: #34c759;
+        --color-error: #ff453a;
+        --radius-card: 16px;
+      }
+      *,
+      *::before,
+      *::after {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html {
+        font-size: 16px;
+        -webkit-font-smoothing: antialiased;
+      }
+      body {
+        font-family: var(--font-family);
+        background: #f0f0f0;
+        display: flex;
+        justify-content: center;
+        min-height: 100dvh;
+      }
+      .phone-frame {
+        width: 390px;
+        background: var(--color-bg);
+        position: relative;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding-bottom: 40px;
+      }
+
+      /* ── 네비 ── */
+      .nav {
+        height: 54px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 16px;
+        position: sticky;
+        top: 0;
+        background: var(--color-bg);
+        z-index: 20;
+        border-bottom: 0.5px solid var(--color-border-light);
+      }
+      .nav__back {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: none;
+        background: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: rgba(0, 0, 0, 0.5);
+        transition: background 0.15s;
+      }
+      .nav__back:hover {
+        background: var(--color-surface);
+      }
+      .nav__title {
+        font-size: 17px;
+        font-weight: 600;
+        color: var(--color-text-primary);
+        letter-spacing: -0.3px;
+      }
+      .nav__placeholder {
+        width: 36px;
+      }
+
+      /* ── 섹션 그룹 ── */
+      .section-group {
+        padding: 24px 20px 0;
+      }
+      .section-label {
+        font-size: 12px;
+        font-weight: 600;
+        color: rgba(0, 0, 0, 0.3);
+        letter-spacing: 0.4px;
+        margin-bottom: 8px;
+      }
+
+      /* ── 설정 카드 ── */
+      .setting-card {
+        border-radius: var(--radius-card);
+        background: var(--color-surface);
+        overflow: hidden;
+        margin-bottom: 8px;
+      }
+      .setting-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 16px;
+        cursor: pointer;
+        transition: background 0.15s;
+        position: relative;
+      }
+      .setting-row:hover {
+        background: rgba(0, 0, 0, 0.02);
+      }
+      .setting-row + .setting-row {
+        border-top: 0.5px solid rgba(0, 0, 0, 0.05);
+      }
+      .setting-row__icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 9px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      .setting-row__icon--gray {
+        background: rgba(0, 0, 0, 0.06);
+      }
+      .setting-row__icon--blue {
+        background: rgba(227, 27, 89, 0.1);
+      }
+      .setting-row__icon--green {
+        background: rgba(52, 199, 89, 0.1);
+      }
+      .setting-row__icon--orange {
+        background: rgba(255, 159, 10, 0.1);
+      }
+      .setting-row__icon--red {
+        background: rgba(255, 69, 58, 0.08);
+      }
+      .setting-row__icon--pink {
+        background: rgba(227, 27, 89, 0.08);
+      }
+      .setting-row__body {
+        flex: 1;
+        min-width: 0;
+      }
+      .setting-row__label {
+        font-size: 15px;
+        font-weight: 500;
+        color: var(--color-text-primary);
+        letter-spacing: -0.15px;
+      }
+      .setting-row__desc {
+        font-size: 12px;
+        color: rgba(0, 0, 0, 0.38);
+        margin-top: 1px;
+      }
+      .setting-row__right {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-shrink: 0;
+      }
+      .setting-row__value {
+        font-size: 13px;
+        color: rgba(0, 0, 0, 0.35);
+      }
+      .setting-row__arrow {
+        color: rgba(0, 0, 0, 0.2);
+      }
+      .setting-row__badge {
+        height: 20px;
+        padding: 0 8px;
+        border-radius: 10px;
+        background: var(--color-accent);
+        font-size: 11px;
+        font-weight: 600;
+        color: #fff;
+        display: flex;
+        align-items: center;
+      }
+
+      /* 토글 */
+      .toggle {
+        position: relative;
+        width: 44px;
+        height: 26px;
+        flex-shrink: 0;
+      }
+      .toggle input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+        position: absolute;
+      }
+      .toggle__track {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.15);
+        border-radius: 13px;
+        cursor: pointer;
+        transition: background 0.2s;
+      }
+      .toggle__track::after {
+        content: "";
+        position: absolute;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: #fff;
+        top: 2px;
+        left: 2px;
+        transition: transform 0.2s;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+      }
+      .toggle input:checked + .toggle__track {
+        background: var(--color-success);
+      }
+      .toggle input:checked + .toggle__track::after {
+        transform: translateX(18px);
+      }
+
+      /* ── FAQ 아코디언 ── */
+      .faq-item {
+        border-top: 0.5px solid rgba(0, 0, 0, 0.05);
+      }
+      .faq-item:first-child {
+        border-top: none;
+      }
+      .faq-q {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 16px;
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      .faq-q:hover {
+        background: rgba(0, 0, 0, 0.02);
+      }
+      .faq-q__text {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--color-text-primary);
+        letter-spacing: -0.15px;
+        flex: 1;
+      }
+      .faq-q__arrow {
+        transition: transform 0.2s;
+        color: rgba(0, 0, 0, 0.25);
+        flex-shrink: 0;
+      }
+      .faq-item.is-open .faq-q__arrow {
+        transform: rotate(90deg);
+      }
+      .faq-a {
+        display: none;
+        padding: 0 16px 14px;
+        font-size: 13px;
+        color: rgba(0, 0, 0, 0.5);
+        line-height: 1.6;
+        letter-spacing: -0.1px;
+      }
+      .faq-item.is-open .faq-a {
+        display: block;
+      }
+
+      /* ── 1:1 문의 폼 ── */
+      .inquiry-form {
+        padding: 0 20px 24px;
+      }
+      .inquiry-form__field {
+        margin-bottom: 12px;
+      }
+      .inquiry-form__label {
+        font-size: 12px;
+        font-weight: 500;
+        color: rgba(0, 0, 0, 0.4);
+        margin-bottom: 6px;
+      }
+      .inquiry-form__select {
+        width: 100%;
+        height: 46px;
+        border-radius: 12px;
+        border: none;
+        background: var(--color-surface);
+        padding: 0 14px;
+        font-family: var(--font-family);
+        font-size: 14px;
+        color: var(--color-text-primary);
+        outline: none;
+        appearance: none;
+        cursor: pointer;
+      }
+      .inquiry-form__textarea {
+        width: 100%;
+        height: 120px;
+        border-radius: 12px;
+        border: none;
+        background: var(--color-surface);
+        padding: 12px 14px;
+        font-family: var(--font-family);
+        font-size: 14px;
+        color: var(--color-text-primary);
+        resize: none;
+        line-height: 1.5;
+        outline: none;
+        transition: box-shadow 0.2s;
+      }
+      .inquiry-form__textarea:focus {
+        box-shadow: 0 0 0 1.5px var(--color-accent);
+        background: #fff;
+      }
+      .inquiry-form__textarea::placeholder {
+        color: rgba(0, 0, 0, 0.25);
+      }
+      .inquiry-form__count {
+        text-align: right;
+        font-size: 11px;
+        color: rgba(0, 0, 0, 0.25);
+        margin-top: 4px;
+      }
+      .inquiry-submit {
+        width: 100%;
+        height: 52px;
+        border-radius: 26px;
+        border: none;
+        background: var(--color-accent);
+        font-family: var(--font-family);
+        font-size: 15px;
+        font-weight: 500;
+        color: #fff;
+        cursor: pointer;
+        transition: opacity 0.15s;
+        margin-top: 4px;
+      }
+      .inquiry-submit:hover {
+        opacity: 0.88;
+      }
+      .inquiry-submit:active {
+        transform: scale(0.98);
+      }
+
+      /* ── 버전 정보 ── */
+      .version-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 16px;
+      }
+      .version-row__label {
+        font-size: 15px;
+        font-weight: 500;
+        color: var(--color-text-primary);
+      }
+      .version-row__val {
+        font-size: 13px;
+        color: rgba(0, 0, 0, 0.35);
+      }
+
+      /* ── 회원 탈퇴 row ── */
+      .setting-row--danger .setting-row__label {
+        color: var(--color-error);
+      }
+      .setting-row--danger .setting-row__icon {
+        background: rgba(255, 69, 58, 0.08);
+      }
+
+      /* ── 바텀 시트 공통 ── */
+      .sheet-dim {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: 100;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.25s;
+      }
+      .sheet-dim.is-open {
+        opacity: 1;
+        pointer-events: all;
+      }
+      .bottom-sheet {
+        position: fixed;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%) translateY(100%);
+        width: 390px;
+        background: #fff;
+        border-radius: 20px 20px 0 0;
+        z-index: 101;
+        transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1);
+        padding-bottom: 32px;
+      }
+      .bottom-sheet.is-open {
+        transform: translateX(-50%) translateY(0);
+      }
+      .sheet-handle-wrap {
+        padding: 12px 0 4px;
+        display: flex;
+        justify-content: center;
+      }
+      .sheet-handle {
+        width: 36px;
+        height: 5px;
+        border-radius: 2.5px;
+        background: rgba(0, 0, 0, 0.1);
+      }
+      .sheet-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 20px 16px;
+      }
+      .sheet-header__title {
+        font-size: 20px;
+        font-weight: 600;
+        letter-spacing: -0.3px;
+      }
+      .sheet-close {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: var(--color-surface);
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .sheet-body {
+        padding: 0 20px;
+      }
+      .sheet-field {
+        margin-bottom: 14px;
+      }
+      .sheet-field__label {
+        font-size: 12px;
+        font-weight: 500;
+        color: rgba(0, 0, 0, 0.4);
+        margin-bottom: 6px;
+      }
+      .sheet-input {
+        width: 100%;
+        height: 52px;
+        border-radius: 12px;
+        border: none;
+        background: var(--color-surface);
+        padding: 0 14px;
+        font-family: var(--font-family);
+        font-size: 15px;
+        color: #000;
+        outline: none;
+        transition: box-shadow 0.2s;
+      }
+      .sheet-input:focus {
+        box-shadow: 0 0 0 1.5px var(--color-accent);
+        background: #fff;
+      }
+      .sheet-input::placeholder {
+        color: rgba(0, 0, 0, 0.25);
+        font-size: 14px;
+      }
+      .sheet-hint {
+        font-size: 12px;
+        color: rgba(0, 0, 0, 0.35);
+        margin-top: 6px;
+        line-height: 1.5;
+      }
+      .sheet-submit {
+        width: 100%;
+        height: 52px;
+        border-radius: 26px;
+        border: none;
+        background: var(--color-accent);
+        font-family: var(--font-family);
+        font-size: 15px;
+        font-weight: 500;
+        color: #fff;
+        cursor: pointer;
+        margin-top: 8px;
+        transition: opacity 0.15s;
+      }
+      .sheet-submit:hover {
+        opacity: 0.88;
+      }
+      .sheet-submit:active {
+        transform: scale(0.98);
+      }
+      /* 소셜 계정 */
+      .social-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 0;
+        border-bottom: 0.5px solid rgba(0, 0, 0, 0.05);
+      }
+      .social-row:last-child {
+        border-bottom: none;
+      }
+      .social-row__left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .social-row__icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: var(--color-surface);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+      }
+      .social-row__name {
+        font-size: 14px;
+        font-weight: 500;
+        color: #000;
+      }
+      .social-row__status {
+        font-size: 12px;
+        color: rgba(0, 0, 0, 0.35);
+        margin-top: 1px;
+      }
+      .social-toggle {
+        height: 30px;
+        padding: 0 14px;
+        border-radius: 15px;
+        border: none;
+        font-family: var(--font-family);
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .social-toggle--connected {
+        background: rgba(255, 69, 58, 0.08);
+        color: var(--color-error);
+      }
+      .social-toggle--connect {
+        background: rgba(227, 27, 89, 0.08);
+        color: #e31b59;
+      }
+      /* 버전 상세 */
+      .version-info-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 0.5px solid rgba(0, 0, 0, 0.05);
+        font-size: 14px;
+      }
+      .version-info-row:last-child {
+        border-bottom: none;
+      }
+      .version-info-row__label {
+        color: rgba(0, 0, 0, 0.45);
+      }
+      .version-info-row__val {
+        font-weight: 500;
+        color: #000;
+      }
+
+      /* ── 탈퇴 확인 모달 ── */
+      .modal-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: 100;
+        display: none;
+        align-items: flex-end;
+        justify-content: center;
+      }
+      .modal-backdrop.is-open {
+        display: flex;
+      }
+      .modal {
+        width: 390px;
+        background: #fff;
+        border-radius: 24px 24px 0 0;
+        padding: 28px 24px 40px;
+      }
+      .modal__title {
+        font-size: 20px;
+        font-weight: 600;
+        color: #000;
+        letter-spacing: -0.3px;
+        margin-bottom: 8px;
+      }
+      .modal__desc {
+        font-size: 14px;
+        color: rgba(0, 0, 0, 0.45);
+        line-height: 1.55;
+        margin-bottom: 24px;
+      }
+      .modal__btn {
+        display: block;
+        width: 100%;
+        height: 50px;
+        border-radius: 25px;
+        border: none;
+        font-family: var(--font-family);
+        font-size: 15px;
+        font-weight: 500;
+        cursor: pointer;
+        margin-bottom: 10px;
+        transition: all 0.15s;
+      }
+      .modal__btn--delete {
+        background: rgba(255, 69, 58, 0.1);
+        color: var(--color-error);
+      }
+      .modal__btn--delete:hover {
+        background: rgba(255, 69, 58, 0.16);
+      }
+      .modal__btn--cancel {
+        background: var(--color-surface);
+        color: rgba(0, 0, 0, 0.55);
+      }
+      .modal__btn--cancel:hover {
+        background: rgba(0, 0, 0, 0.07);
+      }
+
+      /* 토스트 */
+      .toast {
+        position: fixed;
+        bottom: 40px;
+        left: 50%;
+        transform: translateX(-50%) translateY(20px);
+        height: 44px;
+        padding: 0 20px;
+        border-radius: 22px;
+        background: rgba(0, 0, 0, 0.75);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        color: #fff;
+        z-index: 200;
+        opacity: 0;
+        transition: all 0.3s;
+        pointer-events: none;
+        white-space: nowrap;
+      }
+      .toast.is-visible {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+
+      @media (max-width: 390px) {
+        .phone-frame,
+        .modal {
+          width: 100%;
+        }
+      }
+      @media (min-width: 391px) {
+        body {
+          padding: 20px 0;
+        }
+        .phone-frame {
+          border-radius: 40px;
+          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+          min-height: unset;
+          height: calc(100dvh - 40px);
+          overflow-y: auto;
+          overflow-x: hidden;
+        }
+        .modal {
+          border-radius: 24px 24px 0 0;
+        }
+      }
+    
+      /* ── 스크롤바 숨김 ── */
+      * { scrollbar-width: none; -ms-overflow-style: none; }
+      *::-webkit-scrollbar { display: none; }
+</style>
+  </head>
+  <body>
+    <div class="phone-frame">
+      <!-- 네비 -->
+      <div class="nav">
+        <button
+          class="nav__back"
+          onclick="location.href = './mypage.html'"
+          aria-label="뒤로가기"
+        >
+          <svg
+            width="18"
+            height="18"
+            viewBox="0 0 18 18"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
+            <polyline points="11,3 5,9 11,15" />
+          </svg>
+        </button>
+        <span class="nav__title">설정</span>
+        <div class="nav__placeholder"></div>
+      </div>
+
+      <!-- ── 계정 설정 ── -->
+      <div class="section-group">
+        <div class="section-label">계정</div>
+        <div class="setting-card">
+          <div
+            class="setting-row"
+            onclick="location.href = './profile-edit.html'"
+          >
+            <div class="setting-row__icon setting-row__icon--gray">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="rgba(0,0,0,0.4)"
+                stroke-width="1.2"
+                stroke-linecap="round"
+              >
+                <circle cx="8" cy="5.5" r="3" />
+                <path d="M2 14Q4 9 8 9T14 14" />
+              </svg>
+            </div>
+            <div class="setting-row__body">
+              <div class="setting-row__label">프로필 편집</div>
+              <div class="setting-row__desc">이미지, 닉네임, 바이오 수정</div>
+            </div>
+            <div class="setting-row__right">
+              <svg
+                class="setting-row__arrow"
+                width="8"
+                height="14"
+                viewBox="0 0 8 14"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.3"
+                stroke-linecap="round"
+              >
+                <polyline points="1,1 7,7 1,13" />
+              </svg>
+            </div>
+          </div>
+          <div class="setting-row" onclick="openSheet('emailSheet')">
+            <div class="setting-row__icon setting-row__icon--gray">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="rgba(0,0,0,0.4)"
+                stroke-width="1.2"
+                stroke-linecap="round"
+              >
+                <rect x="1" y="4" width="14" height="9" rx="2" />
+                <polyline points="1,4 8,9.5 15,4" />
+              </svg>
+            </div>
+            <div class="setting-row__body">
+              <div class="setting-row__label">이메일 변경</div>
+              <div class="setting-row__desc">sunset_jk@gmail.com</div>
+            </div>
+            <div class="setting-row__right">
+              <svg
+                class="setting-row__arrow"
+                width="8"
+                height="14"
+                viewBox="0 0 8 14"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.3"
+                stroke-linecap="round"
+              >
+                <polyline points="1,1 7,7 1,13" />
+              </svg>
+            </div>
+          </div>
+          <div class="setting-row" onclick="openSheet('pwSheet')">
+            <div class="setting-row__icon setting-row__icon--gray">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="rgba(0,0,0,0.4)"
+                stroke-width="1.2"
+                stroke-linecap="round"
+              >
+                <rect x="4" y="7" width="8" height="7" rx="1.5" />
+                <path d="M5 7V5a3 3 0 0 1 6 0v2" />
+              </svg>
+            </div>
+            <div class="setting-row__body">
+              <div class="setting-row__label">비밀번호 변경</div>
+            </div>
+            <div class="setting-row__right">
+              <svg
+                class="setting-row__arrow"
+                width="8"
+                height="14"
+                viewBox="0 0 8 14"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.3"
+                stroke-linecap="round"
+              >
+                <polyline points="1,1 7,7 1,13" />
+              </svg>
+            </div>
+          </div>
+          <div class="setting-row" onclick="openSheet('socialSheet')">
+            <div class="setting-row__icon setting-row__icon--gray">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="rgba(0,0,0,0.4)"
+                stroke-width="1.2"
+                stroke-linecap="round"
+              >
+                <circle cx="4" cy="8" r="2.5" />
+                <circle cx="12" cy="4" r="2.5" />
+                <circle cx="12" cy="12" r="2.5" />
+                <line x1="6.4" y1="6.9" x2="9.6" y2="5.1" />
+                <line x1="6.4" y1="9.1" x2="9.6" y2="10.9" />
+              </svg>
+            </div>
+            <div class="setting-row__body">
+              <div class="setting-row__label">연결된 소셜 계정</div>
+              <div class="setting-row__desc">카카오 연결됨</div>
+            </div>
+            <div class="setting-row__right">
+              <svg
+                class="setting-row__arrow"
+                width="8"
+                height="14"
+                viewBox="0 0 8 14"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.3"
+                stroke-linecap="round"
+              >
+                <polyline points="1,1 7,7 1,13" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 알림 설정 ── -->
+      <div class="section-group">
+        <div class="section-label">알림</div>
+        <div class="setting-card">
+          <div class="setting-row">
+            <div class="setting-row__icon setting-row__icon--pink">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="#e31b59"
+                stroke-width="1.2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path
+                  d="M8 1C5.5 1 4 3 4 5V8.5L2.5 11H13.5L12 8.5V5C12 3 10.5 1 8 1Z"
+                />
+                <path d="M6 11Q6 13.5 8 13.5T10 11" stroke-width="1.1" />
+              </svg>
+            </div>
+            <div class="setting-row__body">
+              <div class="setting-row__label">위시리스트 알림</div>
+              <div class="setting-row__desc">조건 충족 시 알림</div>
+            </div>
+            <label class="toggle"
+              ><input type="checkbox" checked /><span
+                class="toggle__track"
+              ></span
+            ></label>
+          </div>
+          <div class="setting-row">
+            <div class="setting-row__icon setting-row__icon--orange">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="#ff9f0a"
+                stroke-width="1.2"
+                stroke-linecap="round"
+              >
+                <circle cx="8" cy="8" r="3.5" />
+                <line x1="8" y1="1.5" x2="8" y2="3.5" />
+                <line x1="8" y1="12.5" x2="8" y2="14.5" />
+                <line x1="1.5" y1="8" x2="3.5" y2="8" />
+                <line x1="12.5" y1="8" x2="14.5" y2="8" />
+              </svg>
+            </div>
+            <div class="setting-row__body">
+              <div class="setting-row__label">골든아워 알림</div>
+              <div class="setting-row__desc">일출·일몰 30분 전</div>
+            </div>
+            <label class="toggle"
+              ><input type="checkbox" checked /><span
+                class="toggle__track"
+              ></span
+            ></label>
+          </div>
+          <div class="setting-row">
+            <div class="setting-row__icon setting-row__icon--blue">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="#e31b59"
+                stroke-width="1.2"
+                stroke-linecap="round"
+              >
+                <path d="M2 5L8 2L14 5V11L8 14L2 11Z" />
+              </svg>
+            </div>
+            <div class="setting-row__body">
+              <div class="setting-row__label">커뮤니티 알림</div>
+              <div class="setting-row__desc">좋아요, 댓글, 팔로우</div>
+            </div>
+            <label class="toggle"
+              ><input type="checkbox" /><span class="toggle__track"></span
+            ></label>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 개인정보 ── -->
+      <div class="section-group">
+        <div class="section-label">개인정보 및 보안</div>
+        <div class="setting-card">
+          <div class="setting-row">
+            <div class="setting-row__icon setting-row__icon--green">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="#34c759"
+                stroke-width="1.2"
+                stroke-linecap="round"
+              >
+                <circle cx="8" cy="8" r="3.5" />
+                <line x1="8" y1="1.5" x2="8" y2="3" />
+                <line x1="8" y1="13" x2="8" y2="14.5" />
+                <line x1="1.5" y1="8" x2="3" y2="8" />
+                <line x1="13" y1="8" x2="14.5" y2="8" />
+              </svg>
+            </div>
+            <div class="setting-row__body">
+              <div class="setting-row__label">위치 권한</div>
+              <div class="setting-row__desc">앱 사용 중 허용</div>
+            </div>
+            <div class="setting-row__right">
+              <span class="setting-row__value">허용됨</span>
+              <svg
+                class="setting-row__arrow"
+                width="8"
+                height="14"
+                viewBox="0 0 8 14"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.3"
+                stroke-linecap="round"
+              >
+                <polyline points="1,1 7,7 1,13" />
+              </svg>
+            </div>
+          </div>
+          <div class="setting-row">
+            <div class="setting-row__icon setting-row__icon--gray">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="rgba(0,0,0,0.4)"
+                stroke-width="1.2"
+                stroke-linecap="round"
+              >
+                <circle cx="5.5" cy="5.5" r="3" />
+                <circle cx="10.5" cy="10.5" r="3" />
+                <line x1="8" y1="8" x2="8" y2="8" />
+              </svg>
+            </div>
+            <div class="setting-row__body">
+              <div class="setting-row__label">차단 목록</div>
+              <div class="setting-row__desc">차단한 사용자 관리</div>
+            </div>
+            <div class="setting-row__right">
+              <svg
+                class="setting-row__arrow"
+                width="8"
+                height="14"
+                viewBox="0 0 8 14"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.3"
+                stroke-linecap="round"
+              >
+                <polyline points="1,1 7,7 1,13" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 고객센터 ── -->
+      <div class="section-group">
+        <div class="section-label">고객센터</div>
+
+        <!-- FAQ -->
+        <div class="setting-card" style="margin-bottom: 8px">
+          <div class="setting-row" style="cursor: default">
+            <div class="setting-row__icon setting-row__icon--blue">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="#e31b59"
+                stroke-width="1.2"
+                stroke-linecap="round"
+              >
+                <circle cx="8" cy="8" r="6.5" />
+                <path
+                  d="M6 6.5C6 5.4 6.9 4.5 8 4.5S10 5.4 10 6.5C10 7.3 9.5 8 8.8 8.4C8.3 8.7 8 9.1 8 9.5"
+                />
+                <circle cx="8" cy="11.5" r="0.6" fill="#e31b59" />
+              </svg>
+            </div>
+            <div class="setting-row__body">
+              <div class="setting-row__label">자주 묻는 질문</div>
+            </div>
+          </div>
+          <!-- FAQ 아코디언 -->
+          <div class="faq-item" id="faq1">
+            <div class="faq-q" onclick="toggleFaq('faq1')">
+              <span class="faq-q__text"
+                >포토제닉 점수는 어떻게 계산되나요?</span
+              >
+              <svg
+                class="faq-q__arrow"
+                width="8"
+                height="14"
+                viewBox="0 0 8 14"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.3"
+                stroke-linecap="round"
+              >
+                <polyline points="1,1 7,7 1,13" />
+              </svg>
+            </div>
+            <div class="faq-a">
+              포토제닉 점수는 촬영 시간대, 날씨 조건, 스팟 방문 빈도, 커뮤니티
+              반응(좋아요·저장 수) 등을 종합해 산출돼요. 골든아워에 맑은 날 찍은
+              사진일수록 높은 점수를 받을 수 있어요.
+            </div>
+          </div>
+          <div class="faq-item" id="faq2">
+            <div class="faq-q" onclick="toggleFaq('faq2')">
+              <span class="faq-q__text">위시리스트 알림이 오지 않아요.</span>
+              <svg
+                class="faq-q__arrow"
+                width="8"
+                height="14"
+                viewBox="0 0 8 14"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.3"
+                stroke-linecap="round"
+              >
+                <polyline points="1,1 7,7 1,13" />
+              </svg>
+            </div>
+            <div class="faq-a">
+              설정 → 알림에서 위시리스트 알림이 켜져 있는지 확인해주세요. 기기
+              설정에서 PNG 앱의 알림 권한도 허용되어 있어야 해요. 그래도 오지
+              않는다면 1:1 문의로 연락해주세요.
+            </div>
+          </div>
+          <div class="faq-item" id="faq3">
+            <div class="faq-q" onclick="toggleFaq('faq3')">
+              <span class="faq-q__text"
+                >스팟 등록 후 반영까지 얼마나 걸리나요?</span
+              >
+              <svg
+                class="faq-q__arrow"
+                width="8"
+                height="14"
+                viewBox="0 0 8 14"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.3"
+                stroke-linecap="round"
+              >
+                <polyline points="1,1 7,7 1,13" />
+              </svg>
+            </div>
+            <div class="faq-a">
+              등록된 스팟은 검토 후 보통 1~3 영업일 이내에 지도에 반영돼요. 검토
+              중 반려될 경우 사유와 함께 알림이 발송돼요.
+            </div>
+          </div>
+          <div class="faq-item" id="faq4">
+            <div class="faq-q" onclick="toggleFaq('faq4')">
+              <span class="faq-q__text">게시물이나 댓글을 신고하려면?</span>
+              <svg
+                class="faq-q__arrow"
+                width="8"
+                height="14"
+                viewBox="0 0 8 14"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.3"
+                stroke-linecap="round"
+              >
+                <polyline points="1,1 7,7 1,13" />
+              </svg>
+            </div>
+            <div class="faq-a">
+              게시물 또는 댓글 우측 상단의 ··· 버튼을 탭하면 신고 옵션이
+              나타나요. 신고 접수 후 24시간 이내 검토해드려요.
+            </div>
+          </div>
+        </div>
+
+        <!-- 1:1 문의 -->
+        <div class="setting-card" style="margin-bottom: 8px">
+          <div class="setting-row" style="cursor: default">
+            <div class="setting-row__icon setting-row__icon--pink">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="#e31b59"
+                stroke-width="1.2"
+                stroke-linecap="round"
+              >
+                <path
+                  d="M2 3H14C14.6 3 15 3.4 15 4V10C15 10.6 14.6 11 14 11H6L2 14V4C2 3.4 2.4 3 3 3H14"
+                />
+              </svg>
+            </div>
+            <div class="setting-row__body">
+              <div class="setting-row__label">1:1 문의</div>
+              <div class="setting-row__desc">평균 응답 시간 24시간 이내</div>
+            </div>
+          </div>
+          <!-- 문의 폼 -->
+          <div class="inquiry-form">
+            <div class="inquiry-form__field">
+              <div class="inquiry-form__label">문의 유형</div>
+              <select class="inquiry-form__select">
+                <option>유형을 선택해주세요</option>
+                <option>스팟/지도 문의</option>
+                <option>계정/로그인 문의</option>
+                <option>알림 문의</option>
+                <option>커뮤니티 문의</option>
+                <option>결제/구독 문의</option>
+                <option>버그 신고</option>
+                <option>기타</option>
+              </select>
+            </div>
+            <div class="inquiry-form__field">
+              <div class="inquiry-form__label">문의 내용</div>
+              <textarea
+                class="inquiry-form__textarea"
+                id="inquiryText"
+                maxlength="500"
+                placeholder="문의 내용을 자세히 적어주세요"
+                oninput="updateCount()"
+              ></textarea>
+              <div class="inquiry-form__count">
+                <span id="inquiryCount">0</span>/500
+              </div>
+            </div>
+            <button class="inquiry-submit" onclick="submitInquiry()">
+              문의 보내기
+            </button>
+          </div>
+        </div>
+
+        <!-- 버전 정보 -->
+        <div class="setting-card">
+          <div class="setting-row" onclick="openSheet('versionSheet')">
+            <div class="setting-row__icon setting-row__icon--gray">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="rgba(0,0,0,0.4)"
+                stroke-width="1.2"
+                stroke-linecap="round"
+              >
+                <circle cx="8" cy="8" r="6.5" />
+                <line x1="8" y1="6" x2="8" y2="8.5" />
+                <circle cx="8" cy="11" r="0.6" fill="rgba(0,0,0,0.4)" />
+              </svg>
+            </div>
+            <div class="setting-row__body">
+              <div class="setting-row__label">버전 정보</div>
+              <div class="setting-row__desc">v1.0.0 (최신)</div>
+            </div>
+            <div class="setting-row__right">
+              <svg
+                class="setting-row__arrow"
+                width="8"
+                height="14"
+                viewBox="0 0 8 14"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.3"
+                stroke-linecap="round"
+              >
+                <polyline points="1,1 7,7 1,13" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── 기타 ── -->
+      <div class="section-group" style="padding-bottom: 32px">
+        <div class="section-label">기타</div>
+        <div class="setting-card">
+          <div class="setting-row" onclick="openLogoutModal()">
+            <div class="setting-row__icon setting-row__icon--gray">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="rgba(0,0,0,0.4)"
+                stroke-width="1.2"
+                stroke-linecap="round"
+              >
+                <path d="M6 14H3C2.4 14 2 13.6 2 13V3C2 2.4 2.4 2 3 2H6" />
+                <polyline points="11,11 14,8 11,5" />
+                <line x1="14" y1="8" x2="6" y2="8" />
+              </svg>
+            </div>
+            <div class="setting-row__body">
+              <div class="setting-row__label">로그아웃</div>
+            </div>
+            <div class="setting-row__right">
+              <svg
+                class="setting-row__arrow"
+                width="8"
+                height="14"
+                viewBox="0 0 8 14"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="1.3"
+                stroke-linecap="round"
+              >
+                <polyline points="1,1 7,7 1,13" />
+              </svg>
+            </div>
+          </div>
+          <div
+            class="setting-row setting-row--danger"
+            onclick="openWithdrawModal()"
+          >
+            <div class="setting-row__icon setting-row__icon--red">
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                stroke="#ff453a"
+                stroke-width="1.2"
+                stroke-linecap="round"
+              >
+                <polyline points="2,4 14,4" />
+                <path d="M5 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1" />
+                <rect x="3" y="4" width="10" height="10" rx="1.5" />
+                <line x1="6.5" y1="7" x2="6.5" y2="11" />
+                <line x1="9.5" y1="7" x2="9.5" y2="11" />
+              </svg>
+            </div>
+            <div class="setting-row__body">
+              <div class="setting-row__label">회원 탈퇴</div>
+            </div>
+            <div class="setting-row__right">
+              <svg
+                class="setting-row__arrow"
+                width="8"
+                height="14"
+                viewBox="0 0 8 14"
+                fill="none"
+                stroke="#ff453a"
+                stroke-width="1.3"
+                stroke-linecap="round"
+              >
+                <polyline points="1,1 7,7 1,13" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 딤 -->
+    <div class="sheet-dim" id="sheetDim" onclick="closeAllSheets()"></div>
+
+    <!-- 이메일 변경 시트 -->
+    <div class="bottom-sheet" id="emailSheet">
+      <div class="sheet-handle-wrap"><div class="sheet-handle"></div></div>
+      <div class="sheet-header">
+        <span class="sheet-header__title">이메일 변경</span>
+        <button class="sheet-close" onclick="closeAllSheets()">
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 12 12"
+            fill="none"
+            stroke="rgba(0,0,0,0.4)"
+            stroke-width="1.8"
+            stroke-linecap="round"
+          >
+            <line x1="1" y1="1" x2="11" y2="11" />
+            <line x1="11" y1="1" x2="1" y2="11" />
+          </svg>
+        </button>
+      </div>
+      <div class="sheet-body">
+        <div class="sheet-field">
+          <div class="sheet-field__label">새 이메일</div>
+          <input
+            class="sheet-input"
+            type="email"
+            placeholder="새 이메일 주소 입력"
+          />
+        </div>
+        <div class="sheet-field">
+          <div class="sheet-field__label">비밀번호 확인</div>
+          <input
+            class="sheet-input"
+            type="password"
+            placeholder="현재 비밀번호 입력"
+          />
+        </div>
+        <p class="sheet-hint">변경 후 새 이메일로 인증 메일이 발송돼요.</p>
+        <button
+          class="sheet-submit"
+          onclick="
+            closeAllSheets();
+            showToast('인증 메일을 발송했어요 ✓');
+          "
+        >
+          인증 메일 발송
+        </button>
+      </div>
+    </div>
+
+    <!-- 비밀번호 변경 시트 -->
+    <div class="bottom-sheet" id="pwSheet">
+      <div class="sheet-handle-wrap"><div class="sheet-handle"></div></div>
+      <div class="sheet-header">
+        <span class="sheet-header__title">비밀번호 변경</span>
+        <button class="sheet-close" onclick="closeAllSheets()">
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 12 12"
+            fill="none"
+            stroke="rgba(0,0,0,0.4)"
+            stroke-width="1.8"
+            stroke-linecap="round"
+          >
+            <line x1="1" y1="1" x2="11" y2="11" />
+            <line x1="11" y1="1" x2="1" y2="11" />
+          </svg>
+        </button>
+      </div>
+      <div class="sheet-body">
+        <div class="sheet-field">
+          <div class="sheet-field__label">현재 비밀번호</div>
+          <input
+            class="sheet-input"
+            type="password"
+            placeholder="현재 비밀번호"
+          />
+        </div>
+        <div class="sheet-field">
+          <div class="sheet-field__label">새 비밀번호</div>
+          <input
+            class="sheet-input"
+            type="password"
+            placeholder="8자 이상, 영문+숫자 조합"
+          />
+        </div>
+        <div class="sheet-field">
+          <div class="sheet-field__label">새 비밀번호 확인</div>
+          <input
+            class="sheet-input"
+            type="password"
+            placeholder="새 비밀번호 재입력"
+          />
+        </div>
+        <button
+          class="sheet-submit"
+          onclick="
+            closeAllSheets();
+            showToast('비밀번호가 변경됐어요 ✓');
+          "
+        >
+          변경하기
+        </button>
+      </div>
+    </div>
+
+    <!-- 소셜 계정 시트 -->
+    <div class="bottom-sheet" id="socialSheet">
+      <div class="sheet-handle-wrap"><div class="sheet-handle"></div></div>
+      <div class="sheet-header">
+        <span class="sheet-header__title">소셜 계정</span>
+        <button class="sheet-close" onclick="closeAllSheets()">
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 12 12"
+            fill="none"
+            stroke="rgba(0,0,0,0.4)"
+            stroke-width="1.8"
+            stroke-linecap="round"
+          >
+            <line x1="1" y1="1" x2="11" y2="11" />
+            <line x1="11" y1="1" x2="1" y2="11" />
+          </svg>
+        </button>
+      </div>
+      <div class="sheet-body">
+        <!-- 카카오: 연결됨 상태 표시 (연결 해제는 별도 고객센터 문의 또는 계정 설정에서 처리) -->
+        <div class="social-row">
+          <div class="social-row__left">
+            <div class="social-row__icon" style="background: #fee500">
+              <!-- 카카오 로고 -->
+              <svg
+                width="18"
+                height="17"
+                viewBox="0 0 18 17"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  fill-rule="evenodd"
+                  clip-rule="evenodd"
+                  d="M9 0C4.029 0 0 3.134 0 7c0 2.506 1.647 4.718 4.133 5.994L3.1 17l5.02-3.332C8.405 13.72 8.7 13.74 9 13.74c4.971 0 9-3.134 9-7S13.971 0 9 0z"
+                  fill="#3A1D1D"
+                />
+              </svg>
+            </div>
+            <div>
+              <div class="social-row__name">카카오</div>
+              <div class="social-row__status">sunset_jk@kakao.com</div>
+            </div>
+          </div>
+          <span
+            style="
+              height: 24px;
+              padding: 0 10px;
+              border-radius: 12px;
+              background: rgba(52, 199, 89, 0.1);
+              font-size: 12px;
+              font-weight: 500;
+              color: #34c759;
+              display: inline-flex;
+              align-items: center;
+              gap: 4px;
+            "
+          >
+            <svg width="8" height="8" viewBox="0 0 8 8" fill="#34c759">
+              <circle cx="4" cy="4" r="3.5" />
+            </svg>
+            연결됨
+          </span>
+        </div>
+        <div class="social-row">
+          <div class="social-row__left">
+            <div class="social-row__icon" style="background: #000">
+              <!-- Apple 로고 -->
+              <svg
+                width="14"
+                height="17"
+                viewBox="0 0 14 17"
+                fill="white"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M13.3 13.1c-.3.6-.6 1.2-1 1.7-.5.7-1 1.2-1.4 1.4-.6.2-1.2.3-1.8.1-.4-.1-.9-.3-1.4-.3s-1 .2-1.4.3c-.6.2-1.2.1-1.8-.1-.5-.2-1-.7-1.5-1.5-.5-.7-.9-1.5-1.2-2.5C.6 11.1.5 10 .5 8.9c0-1.2.3-2.3.8-3.2.4-.7 1-1.3 1.7-1.7.7-.4 1.4-.6 2.1-.6.5 0 1.1.2 1.7.4.5.2.9.4 1.1.4.2 0 .6-.2 1.2-.4.6-.2 1.2-.4 1.8-.3 1.3.1 2.2.5 2.8 1.4-.6.4-1.1.9-1.4 1.5-.3.6-.5 1.3-.5 2.1 0 .9.2 1.7.7 2.3.5.7 1 1.1 1.7 1.3 0 .1-.1.2-.1.3zm-3.5-13c0 .6-.2 1.2-.6 1.8-.5.6-1 1-1.7 1.1H7.4c0-.7.3-1.3.7-1.8.2-.3.5-.5.9-.7.3-.2.7-.3 1-.3.1.6.3-.2-.3 0z"
+                />
+              </svg>
+            </div>
+            <div>
+              <div class="social-row__name">Apple</div>
+              <div class="social-row__status">연결 안 됨</div>
+            </div>
+          </div>
+          <!-- TODO: 탭 시 Apple OAuth (Sign in with Apple) 진입점 -->
+          <button class="social-toggle social-toggle--connect">연결하기</button>
+        </div>
+        <div class="social-row">
+          <div class="social-row__left">
+            <div
+              class="social-row__icon"
+              style="background: #fff; border: 0.5px solid rgba(0, 0, 0, 0.08)"
+            >
+              <!-- Google 로고 -->
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 48 48"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  fill="#EA4335"
+                  d="M24 9.5c3.5 0 6.6 1.2 9 3.2l6.7-6.7C35.8 2.5 30.3 0 24 0 14.6 0 6.6 5.4 2.7 13.3l7.8 6.1C12.4 13.1 17.7 9.5 24 9.5z"
+                />
+                <path
+                  fill="#4285F4"
+                  d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v8.5h12.7c-.6 3-2.3 5.5-4.8 7.2l7.5 5.8c4.4-4 6.9-10 6.9-17z"
+                />
+                <path
+                  fill="#FBBC05"
+                  d="M10.5 28.6A14.9 14.9 0 0 1 9.5 24c0-1.6.3-3.2.9-4.6L2.7 13.3A23.9 23.9 0 0 0 0 24c0 3.8.9 7.4 2.7 10.6l7.8-6z"
+                />
+                <path
+                  fill="#34A853"
+                  d="M24 48c6.3 0 11.6-2.1 15.5-5.7l-7.5-5.8c-2.1 1.4-4.8 2.3-8 2.3-6.3 0-11.6-3.6-13.5-8.8l-7.8 6C6.6 42.6 14.6 48 24 48z"
+                />
+              </svg>
+            </div>
+            <div>
+              <div class="social-row__name">Google</div>
+              <div class="social-row__status">연결 안 됨</div>
+            </div>
+          </div>
+          <!-- TODO: 탭 시 Google OAuth (Google Sign-In) 진입점 -->
+          <button class="social-toggle social-toggle--connect">연결하기</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 버전 정보 시트 -->
+    <div class="bottom-sheet" id="versionSheet">
+      <div class="sheet-handle-wrap"><div class="sheet-handle"></div></div>
+      <div class="sheet-header">
+        <span class="sheet-header__title">버전 정보</span>
+        <button class="sheet-close" onclick="closeAllSheets()">
+          <svg
+            width="12"
+            height="12"
+            viewBox="0 0 12 12"
+            fill="none"
+            stroke="rgba(0,0,0,0.4)"
+            stroke-width="1.8"
+            stroke-linecap="round"
+          >
+            <line x1="1" y1="1" x2="11" y2="11" />
+            <line x1="11" y1="1" x2="1" y2="11" />
+          </svg>
+        </button>
+      </div>
+      <div class="sheet-body">
+        <div class="version-info-row">
+          <span class="version-info-row__label">앱 버전</span
+          ><span class="version-info-row__val">v1.0.0</span>
+        </div>
+        <div class="version-info-row">
+          <span class="version-info-row__label">업데이트 상태</span
+          ><span
+            class="version-info-row__val"
+            style="color: var(--color-success)"
+            >최신 버전</span
+          >
+        </div>
+        <div class="version-info-row">
+          <span class="version-info-row__label">출시일</span
+          ><span class="version-info-row__val">2026.05.01</span>
+        </div>
+        <div class="version-info-row">
+          <span class="version-info-row__label">개발사</span
+          ><span class="version-info-row__val">多多益Shot</span>
+        </div>
+        <div class="version-info-row">
+          <span class="version-info-row__label">이용약관</span
+          ><span
+            class="version-info-row__val"
+            style="color: #e31b59; cursor: pointer"
+            >보기 →</span
+          >
+        </div>
+        <div class="version-info-row">
+          <span class="version-info-row__label">개인정보처리방침</span
+          ><span
+            class="version-info-row__val"
+            style="color: #e31b59; cursor: pointer"
+            >보기 →</span
+          >
+        </div>
+        <div class="version-info-row">
+          <span class="version-info-row__label">오픈소스 라이선스</span
+          ><span
+            class="version-info-row__val"
+            style="color: #e31b59; cursor: pointer"
+            >보기 →</span
+          >
+        </div>
+      </div>
+    </div>
+
+    <!-- 로그아웃 확인 모달 -->
+    <div class="modal-backdrop" id="logoutModal">
+      <div class="modal">
+        <div class="modal__title">로그아웃할까요?</div>
+        <div class="modal__desc">
+          다음에 다시 로그인하면 모든 기능을 이용할 수 있어요.
+        </div>
+        <button
+          class="modal__btn modal__btn--cancel"
+          onclick="confirmLogout()"
+          style="
+            background: var(--color-text-primary);
+            color: #fff;
+            margin-bottom: 10px;
+          "
+        >
+          로그아웃
+        </button>
+        <button
+          class="modal__btn modal__btn--cancel"
+          onclick="closeLogoutModal()"
+        >
+          취소
+        </button>
+      </div>
+    </div>
+
+    <!-- 탈퇴 확인 모달 -->
+    <div class="modal-backdrop" id="withdrawModal">
+      <div class="modal">
+        <div class="modal__title">정말 탈퇴하시겠어요?</div>
+        <div class="modal__desc">
+          탈퇴 시 모든 데이터(스팟, 사진, 여행 계획, 위시리스트)가 삭제되며
+          복구할 수 없어요.
+        </div>
+        <button
+          class="modal__btn modal__btn--delete"
+          onclick="confirmWithdraw()"
+        >
+          탈퇴하기
+        </button>
+        <button
+          class="modal__btn modal__btn--cancel"
+          onclick="closeWithdrawModal()"
+        >
+          취소
+        </button>
+      </div>
+    </div>
+
+    <!-- 토스트 -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+      /* FAQ 아코디언 */
+      function toggleFaq(id) {
+        const item = document.getElementById(id);
+        const isOpen = item.classList.contains("is-open");
+        document
+          .querySelectorAll(".faq-item")
+          .forEach((i) => i.classList.remove("is-open"));
+        if (!isOpen) item.classList.add("is-open");
+      }
+
+      /* 문의 글자 수 */
+      function updateCount() {
+        const len = document.getElementById("inquiryText").value.length;
+        document.getElementById("inquiryCount").textContent = len;
+      }
+
+      /* 문의 전송 */
+      function submitInquiry() {
+        const select = document.querySelector(".inquiry-form__select");
+        if (select.selectedIndex === 0) {
+          showToast("문의 유형을 선택해주세요");
+          return;
+        }
+        const text = document.getElementById("inquiryText").value.trim();
+        if (!text) {
+          showToast("문의 내용을 입력해주세요");
+          return;
+        }
+        document.getElementById("inquiryText").value = "";
+        document.getElementById("inquiryCount").textContent = "0";
+        select.selectedIndex = 0;
+        showToast("문의가 접수됐어요 ✓");
+      }
+
+      /* 바텀 시트 */
+      function openSheet(id) {
+        document.getElementById("sheetDim").classList.add("is-open");
+        document.getElementById(id).classList.add("is-open");
+      }
+      function closeAllSheets() {
+        document.getElementById("sheetDim").classList.remove("is-open");
+        document
+          .querySelectorAll(".bottom-sheet")
+          .forEach((s) => s.classList.remove("is-open"));
+      }
+
+      /* 로그아웃 모달 */
+      function openLogoutModal() {
+        document.getElementById("logoutModal").classList.add("is-open");
+      }
+      function closeLogoutModal() {
+        document.getElementById("logoutModal").classList.remove("is-open");
+      }
+      function confirmLogout() {
+        closeLogoutModal();
+        location.href = "../auth/login.html";
+      }
+
+      /* 탈퇴 모달 */
+      function openWithdrawModal() {
+        document.getElementById("withdrawModal").classList.add("is-open");
+      }
+      function closeWithdrawModal() {
+        document.getElementById("withdrawModal").classList.remove("is-open");
+      }
+      function confirmWithdraw() {
+        closeWithdrawModal();
+        location.href = "../auth/login.html";
+      }
+
+      /* 토스트 */
+      function showToast(msg) {
+        const t = document.getElementById("toast");
+        t.textContent = msg;
+        t.classList.add("is-visible");
+        setTimeout(() => t.classList.remove("is-visible"), 2800);
+      }
+    </script>
+  </body>
+</html>

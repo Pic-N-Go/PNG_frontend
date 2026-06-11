@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>PNG - 프로필 설정</title>
+  <link rel="stylesheet" href="../fonts.css">
+  <style>
+    /* ======================== */
+    /* Design Tokens (Apple DS) */
+    /* ======================== */
+    :root {
+      --color-bg: #ffffff;
+      --color-surface: #f5f5f7;
+      --color-text-primary: #000000;
+      --color-text-secondary: rgba(0, 0, 0, 0.48);
+      --color-text-tertiary: rgba(0, 0, 0, 0.28);
+      --color-text-placeholder: rgba(0, 0, 0, 0.3);
+      --color-text-hint: rgba(0, 0, 0, 0.25);
+      --color-accent: #e31b59;
+      --color-accent-hover: #c91550;
+      --color-accent-disabled: rgba(227, 27, 89, 0.25);
+      --color-link: #e31b59;
+      --color-border: rgba(0, 0, 0, 0.08);
+      --color-border-light: rgba(0, 0, 0, 0.06);
+      --color-input-bg: #f5f5f7;
+      --color-input-border-focus: #e31b59;
+      --color-error: #ff453a;
+      --color-kakao: #FEE500;
+      --color-kakao-text: #391B1B;
+
+      --space-xs: 4px;
+      --space-sm: 8px;
+      --space-md: 16px;
+      --space-lg: 24px;
+      --space-xl: 32px;
+
+      --radius-input: 12px;
+      --radius-btn: 26px;
+    }
+
+    /* ======================== */
+    /* Reset & Base             */
+    /* ======================== */
+    *, *::before, *::after {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    html {
+      font-size: 16px;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    body {
+      font-family: var(--font-family);
+      background: #f0f0f0;
+      display: flex;
+      justify-content: center;
+      min-height: 100dvh;
+    }
+
+    /* ======================== */
+    /* Phone Frame              */
+    /* ======================== */
+    .phone-frame {
+      width: 390px;
+      background: var(--color-bg);
+      position: relative;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    /* ======================== */
+    /* Hero Header (compact)    */
+    /* ======================== */
+    .hero-header {
+      height: 200px;
+      background: linear-gradient(
+        to bottom,
+        #1a1530 0%,
+        #2d1b4e 30%,
+        #8b4a6b 70%,
+        #d4856a 100%
+      );
+      position: relative;
+    }
+
+    .hero-header::after {
+      content: '';
+      position: absolute;
+      bottom: -44px;
+      left: 0;
+      right: 0;
+      height: 56px;
+      background: linear-gradient(to bottom, #d4856a, #ffffff 65%);
+    }
+
+    .hero-header__landscape {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 50px;
+      background: rgba(0, 0, 0, 0.1);
+      clip-path: polygon(
+        0% 55%, 12% 35%, 28% 50%, 42% 20%, 58% 38%, 72% 12%, 88% 30%, 100% 18%, 100% 100%, 0% 100%
+      );
+    }
+
+    .hero-header__stars span {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background: rgba(255, 255, 255, 0.4);
+      border-radius: 50%;
+    }
+    .hero-header__stars span:nth-child(1) { top: 68px; left: 60px; }
+    .hero-header__stars span:nth-child(2) { top: 50px; left: 140px; opacity: 0.3; }
+    .hero-header__stars span:nth-child(3) { top: 80px; left: 230px; opacity: 0.25; }
+    .hero-header__stars span:nth-child(4) { top: 62px; left: 320px; opacity: 0.3; }
+
+    /* ======================== */
+    /* Status Bar               */
+    /* ======================== */
+    .status-bar {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 54px;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 34px;
+    }
+
+    .status-bar__time {
+      font-size: 15px;
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: -0.3px;
+    }
+
+    .dynamic-island {
+      position: absolute;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 106px;
+      height: 28px;
+      background: #000;
+      border-radius: 14px;
+    }
+
+    .status-bar__icons {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .status-bar__icons svg {
+      height: 12px;
+      fill: #fff;
+    }
+
+    /* ======================== */
+    /* Nav Bar                  */
+    /* ======================== */
+    .nav-bar {
+      position: absolute;
+      top: 60px;
+      left: 0;
+      right: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 20px;
+    }
+
+    /* Provider badge — which OAuth was used */
+    .provider-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.15);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 20px;
+      padding: 6px 14px 6px 10px;
+    }
+
+    .provider-badge__icon {
+      width: 22px;
+      height: 22px;
+      border-radius: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .provider-badge__icon--kakao {
+      background: #FEE500;
+    }
+
+    .provider-badge__icon--apple {
+      background: #000;
+    }
+
+    .provider-badge__text {
+      font-size: 13px;
+      font-weight: 500;
+      color: rgba(255, 255, 255, 0.9);
+      letter-spacing: -0.2px;
+    }
+
+    /* ======================== */
+    /* Step indicator           */
+    /* ======================== */
+    .step-indicator {
+      display: flex;
+      gap: 5px;
+      position: absolute;
+      bottom: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+    }
+
+    .step-dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.35);
+    }
+
+    .step-dot.is-active {
+      width: 16px;
+      border-radius: 2.5px;
+      background: rgba(255, 255, 255, 0.9);
+    }
+
+    /* ======================== */
+    /* Content                  */
+    /* ======================== */
+    .content {
+      position: relative;
+      z-index: 1;
+      padding: 44px 28px 48px;
+    }
+
+    .content__eyebrow {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--color-accent);
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
+    .content__title {
+      font-size: 28px;
+      font-weight: 600;
+      color: var(--color-text-primary);
+      letter-spacing: -0.7px;
+      line-height: 1.25;
+      margin-bottom: 6px;
+    }
+
+    .content__subtitle {
+      font-size: 15px;
+      color: var(--color-text-secondary);
+      letter-spacing: -0.2px;
+      line-height: 1.5;
+      margin-bottom: 32px;
+    }
+
+    /* ======================== */
+    /* Section Label            */
+    /* ======================== */
+    .section-label {
+      font-size: 13px;
+      font-weight: 500;
+      color: rgba(0, 0, 0, 0.5);
+      letter-spacing: -0.08px;
+      margin-bottom: 6px;
+      padding-left: 2px;
+      display: block;
+    }
+
+    .section-label__required {
+      color: var(--color-accent);
+      margin-left: 2px;
+    }
+
+    .section-label__optional {
+      color: var(--color-text-hint);
+      font-weight: 400;
+    }
+
+    /* ======================== */
+    /* Input Group              */
+    /* ======================== */
+    .input-group {
+      position: relative;
+      margin-bottom: 6px;
+    }
+
+    .input-group__field {
+      width: 100%;
+      height: 52px;
+      background: var(--color-input-bg);
+      border: 1.5px solid transparent;
+      border-radius: var(--radius-input);
+      padding: 0 54px 0 46px;
+      font-family: var(--font-family);
+      font-size: 16px;
+      color: var(--color-text-primary);
+      letter-spacing: -0.3px;
+      outline: none;
+      transition: border-color 0.2s ease, background 0.2s ease;
+    }
+
+    .input-group__field::placeholder {
+      color: var(--color-text-placeholder);
+    }
+
+    .input-group__field:focus {
+      border-color: var(--color-input-border-focus);
+      background: #fff;
+    }
+
+    .input-group__field.is-invalid {
+      border-color: var(--color-error);
+      background: #fff;
+    }
+
+    .input-group__icon {
+      position: absolute;
+      left: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 20px;
+      height: 20px;
+      color: rgba(0, 0, 0, 0.25);
+      pointer-events: none;
+      transition: color 0.2s;
+    }
+
+    .input-group__field:focus ~ .input-group__icon {
+      color: var(--color-accent);
+    }
+
+    .input-group__counter {
+      position: absolute;
+      right: 16px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 12px;
+      color: rgba(0, 0, 0, 0.15);
+      pointer-events: none;
+    }
+
+    .form-feedback {
+      display: none;
+      margin-top: 6px;
+      margin-bottom: 4px;
+      padding-left: 4px;
+      font-size: 12px;
+      color: var(--color-error);
+      letter-spacing: -0.1px;
+      line-height: 1.4;
+    }
+
+    .form-feedback.is-visible {
+      display: block;
+    }
+
+    /* ======================== */
+    /* Divider                  */
+    /* ======================== */
+    .divider {
+      height: 0.5px;
+      background: var(--color-border-light);
+      margin: var(--space-lg) 0;
+    }
+
+    /* ======================== */
+    /* Theme Pills              */
+    /* ======================== */
+    .theme-section {
+      margin-bottom: var(--space-lg);
+    }
+
+    .theme-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .theme-pill {
+      height: 36px;
+      padding: 0 16px;
+      border-radius: 18px;
+      background: var(--color-surface);
+      border: 1px solid transparent;
+      font-family: var(--font-family);
+      font-size: 13px;
+      color: rgba(0, 0, 0, 0.5);
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+    }
+
+    .theme-pill:hover {
+      background: rgba(0, 0, 0, 0.06);
+    }
+
+    .theme-pill.is-selected {
+      background: rgba(227, 27, 89, 0.08);
+      border-color: var(--color-accent);
+      color: var(--color-accent);
+      font-weight: 500;
+    }
+
+    /* ======================== */
+    /* Buttons                  */
+    /* ======================== */
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      height: 52px;
+      border-radius: var(--radius-btn);
+      border: none;
+      font-family: var(--font-family);
+      font-size: 17px;
+      font-weight: 500;
+      letter-spacing: -0.3px;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.1s ease;
+    }
+
+    .btn:active {
+      transform: scale(0.98);
+    }
+
+    .btn--primary {
+      background: var(--color-accent);
+      color: #fff;
+    }
+
+    .btn--primary:hover {
+      background: var(--color-accent-hover);
+    }
+
+    .btn--disabled {
+      background: var(--color-accent-disabled);
+      color: rgba(0, 0, 0, 0.3);
+      pointer-events: none;
+    }
+
+    /* ======================== */
+    /* Home Indicator           */
+    /* ======================== */
+    .home-indicator {
+      width: 110px;
+      height: 5px;
+      background: rgba(0, 0, 0, 0.1);
+      border-radius: 2.5px;
+      margin: 12px auto 24px;
+    }
+
+    /* ======================== */
+    /* Responsive               */
+    /* ======================== */
+    @media (max-width: 390px) {
+      .phone-frame { width: 100%; }
+    }
+
+    @media (min-width: 391px) {
+      body { padding: 20px 0; }
+      .phone-frame {
+        border-radius: 40px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        min-height: unset;
+        height: calc(100dvh - 40px);
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
+    }
+  
+      /* ── 스크롤바 숨김 ── */
+      * { scrollbar-width: none; -ms-overflow-style: none; }
+      *::-webkit-scrollbar { display: none; }
+</style>
+</head>
+<body>
+
+<div class="phone-frame">
+
+  <!-- Status Bar -->
+  <div class="status-bar">
+    <span class="status-bar__time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="status-bar__icons">
+      <svg viewBox="0 0 18 12"><rect x="0" y="9" width="3" height="3" rx="0.75"/><rect x="4.5" y="6" width="3" height="6" rx="0.75"/><rect x="9" y="3" width="3" height="9" rx="0.75"/><rect x="13.5" y="0" width="3" height="12" rx="0.75"/></svg>
+      <svg viewBox="0 0 16 14" fill="none" stroke="#fff" stroke-width="1.3" stroke-linecap="round"><path d="M5 10.5A4 4 0 0 1 11 10.5"/><path d="M2.5 7A8 8 0 0 1 13.5 7"/><circle cx="8" cy="13" r="1.2" fill="#fff" stroke="none"/></svg>
+      <svg viewBox="0 0 28 14"><rect x="0" y="0" width="25" height="12" rx="3.5" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="1"/><rect x="1.5" y="1.5" width="20" height="9" rx="2" fill="#fff"/><rect x="25.5" y="3.5" width="1.5" height="5" rx="0.75" fill="rgba(255,255,255,0.5)"/></svg>
+    </div>
+  </div>
+
+  <!-- Hero Header -->
+  <div class="hero-header">
+    <div class="hero-header__stars">
+      <span></span><span></span><span></span><span></span>
+    </div>
+    <div class="hero-header__landscape"></div>
+
+    <!-- Nav: provider badge -->
+    <div class="nav-bar">
+      <!-- Kakao provider badge (기본 표시; JS로 Apple로 전환 가능) -->
+      <div class="provider-badge" id="providerBadge">
+        <div class="provider-badge__icon provider-badge__icon--kakao" id="providerIcon">
+          <!-- Kakao icon -->
+          <svg width="14" height="14" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10 2C4.5 2 0 5.8 0 10.4c0 2.9 1.9 5.5 4.8 7l-.9 3.3c-.05.2.12.35.3.22l4.2-2.8c.5.08 1.1.12 1.6.12 5.5 0 10-3.8 10-8.4C20 5.8 15.5 2 10 2z" fill="#391B1B"/>
+          </svg>
+        </div>
+        <span class="provider-badge__text" id="providerText">카카오로 계속하기</span>
+      </div>
+    </div>
+
+    <!-- Step dots -->
+    <div class="step-indicator">
+      <div class="step-dot"></div>
+      <div class="step-dot is-active"></div>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="content">
+    <p class="content__eyebrow">마지막 단계</p>
+    <h1 class="content__title">거의 다 왔어요!</h1>
+    <p class="content__subtitle">PNG에서 사용할 닉네임을 설정해주세요.<br>나중에 프로필에서 변경할 수 있어요.</p>
+
+    <!-- Nickname -->
+    <label class="section-label" for="nicknameInput">
+      닉네임 <span class="section-label__required">*</span>
+    </label>
+    <div class="input-group">
+      <input
+        type="text"
+        id="nicknameInput"
+        class="input-group__field"
+        placeholder="2~12자 한글, 영문, 숫자"
+        maxlength="12"
+        autocomplete="nickname"
+        oninput="updateCounter(this); checkForm()"
+      >
+      <svg class="input-group__icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round">
+        <circle cx="10" cy="7" r="5"/>
+        <path d="M1 19C3 13 6.5 11 10 11C13.5 11 17 13 19 19"/>
+      </svg>
+      <span class="input-group__counter" id="nickCounter">0/12</span>
+    </div>
+    <p class="form-feedback" id="nicknameError">닉네임은 2~12자 한글, 영문, 숫자만 사용할 수 있어요.</p>
+
+    <!-- Divider -->
+    <div class="divider"></div>
+
+    <!-- Interest Themes -->
+    <div class="theme-section">
+      <label class="section-label">
+        관심 테마 <span class="section-label__optional">(선택, 복수가능)</span>
+      </label>
+      <div class="theme-pills">
+        <button class="theme-pill" onclick="toggleTheme(this)">야경</button>
+        <button class="theme-pill" onclick="toggleTheme(this)">바다</button>
+        <button class="theme-pill" onclick="toggleTheme(this)">한옥</button>
+        <button class="theme-pill" onclick="toggleTheme(this)">꽃</button>
+        <button class="theme-pill" onclick="toggleTheme(this)">카페</button>
+        <button class="theme-pill" onclick="toggleTheme(this)">인물</button>
+        <button class="theme-pill" onclick="toggleTheme(this)">축제</button>
+        <button class="theme-pill" onclick="toggleTheme(this)">커플</button>
+        <button class="theme-pill" onclick="toggleTheme(this)">반려동물</button>
+        <button class="theme-pill" onclick="toggleTheme(this)">드론</button>
+        <button class="theme-pill" onclick="toggleTheme(this)">일출/일몰</button>
+        <button class="theme-pill" onclick="toggleTheme(this)">비오는날</button>
+        <button class="theme-pill" onclick="toggleTheme(this)">은하수</button>
+        <button class="theme-pill" onclick="toggleTheme(this)">필름</button>
+      </div>
+    </div>
+
+    <!-- Start Button -->
+    <button type="button" class="btn btn--disabled" id="startBtn" onclick="handleStart()">
+      시작하기
+    </button>
+  </div>
+
+  <div class="home-indicator"></div>
+</div>
+
+<script>
+  /* ── provider detection (URL param ?provider=kakao|apple) ── */
+  (function () {
+    var params = new URLSearchParams(location.search);
+    var provider = params.get('provider') || 'kakao';
+
+    if (provider === 'apple') {
+      var icon = document.getElementById('providerIcon');
+      var text = document.getElementById('providerText');
+
+      icon.className = 'provider-badge__icon provider-badge__icon--apple';
+      icon.innerHTML = '<svg width="12" height="14" viewBox="0 0 18 20" xmlns="http://www.w3.org/2000/svg" fill="#fff"><path d="M14.94 10.56c-.03-2.96 2.42-4.38 2.53-4.45-1.38-2.01-3.52-2.29-4.28-2.32-1.82-.18-3.56 1.07-4.48 1.07-.93 0-2.36-1.05-3.88-1.02-2 .03-3.84 1.16-4.87 2.95-2.08 3.6-.53 8.94 1.49 11.87.99 1.43 2.17 3.04 3.73 2.98 1.49-.06 2.06-.97 3.87-.97s2.32.97 3.9.94c1.61-.03 2.63-1.46 3.61-2.9.78-1.13 1.1-2.23 1.12-2.29-.02-.01-2.15-.82-2.17-3.27zM12.87 2.54C13.73 1.5 14.3.12 14.15-.14c-1.17.05-2.59.78-3.43 1.76-.75.87-1.41 2.26-1.23 3.59 1.3.1 2.63-.66 3.38-1.67z"/></svg>';
+      text.textContent = 'Apple로 계속하기';
+    }
+  })();
+
+  /* ── nickname counter ── */
+  function updateCounter(input) {
+    document.getElementById('nickCounter').textContent = input.value.length + '/12';
+  }
+
+  /* ── theme pill toggle ── */
+  function toggleTheme(el) {
+    el.classList.toggle('is-selected');
+  }
+
+  /* ── form validation ── */
+  function checkForm() {
+    var nickname = document.getElementById('nicknameInput').value.trim();
+    var nicknameOk = /^[가-힣a-zA-Z0-9]{2,12}$/.test(nickname);
+
+    var error = document.getElementById('nicknameError');
+    var input = document.getElementById('nicknameInput');
+    var showError = nickname.length > 0 && !nicknameOk;
+
+    input.classList.toggle('is-invalid', showError);
+    error.classList.toggle('is-visible', showError);
+
+    var btn = document.getElementById('startBtn');
+    btn.classList.toggle('btn--primary', nicknameOk);
+    btn.classList.toggle('btn--disabled', !nicknameOk);
+  }
+
+  /* ── submit ── */
+  function handleStart() {
+    var btn = document.getElementById('startBtn');
+    if (btn.classList.contains('btn--disabled')) return;
+    location.href = '../home/home.html';
+  }
+
+  checkForm();
+</script>
+
+</body>
+</html>
