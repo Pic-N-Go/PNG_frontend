@@ -85,7 +85,7 @@ Intake 완료 후 아래 문구로 구현을 시작합니다.
 ## 4) PR 전 체크
 
 - `docs/ai/03-pr-review-checklist.md` 통과
-- 필요 시 `docs/ai/07-harness-self-audit-checklist.md`로 하네스 문서 자체 점검
+- 필요 시 `docs/ai/08-harness-self-audit-checklist.md`로 하네스 문서 자체 점검
 
 ---
 

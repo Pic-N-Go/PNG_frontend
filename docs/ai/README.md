@@ -31,7 +31,7 @@
   - Claude용 Intake 수동 시작 프롬프트 (기본 경로는 `/png-intake`)
 - `docs/ai/07-non-claude-quickstart.md`
   - 비Claude AI 도구 사용자용 빠른 시작 가이드
-- `docs/ai/07-harness-self-audit-checklist.md`
+- `docs/ai/08-harness-self-audit-checklist.md`
   - 하네스 변경 후 팀 배포 전 셀프 점검 체크리스트
 
 ---
@@ -143,4 +143,4 @@ UI 기능이면 추가로: `docs/ui-publishing.md`
 - 비클로드 시작 가이드: `docs/ai/07-non-claude-quickstart.md`
 - 브랜치/PR 규칙: `.github/CONVENTIONS.md`
 - GitHub 자동화 동작: `docs/github-actions-guide.md`
-- 하네스 셀프 점검: `docs/ai/07-harness-self-audit-checklist.md`
+- 하네스 셀프 점검: `docs/ai/08-harness-self-audit-checklist.md`

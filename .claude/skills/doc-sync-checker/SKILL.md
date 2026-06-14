@@ -12,16 +12,16 @@
 
 - `git diff --name-only HEAD` (변경 파일 목록)
 - `git ls-files --others --exclude-standard` (untracked 파일)
-- 고정 점검 문서: `docs/ai/README.md`, `docs/ai/07-harness-self-audit-checklist.md`, `docs/ai-prompt-guide.md`, `CLAUDE.md`, `.github/CONVENTIONS.md`
+- 고정 점검 문서: `docs/ai/README.md`, `docs/ai/08-harness-self-audit-checklist.md`, `docs/ai-prompt-guide.md`, `CLAUDE.md`, `.github/CONVENTIONS.md`
 - 변경 feature 관련 `docs/ai/specs/`, `docs/ai/plans/` 파일 (해당 시)
 
 ## 고정 매핑 규칙
 
 | 변경 종류 | Required | Recommended |
 |---|---|---|
-| 신규 `.claude/commands/*.md` | `docs/ai/README.md` 추가 커맨드 목록 등재 여부 | `docs/ai/07-harness-self-audit-checklist.md` 항목 추가 여부 |
+| 신규 `.claude/commands/*.md` | `docs/ai/README.md` 추가 커맨드 목록 등재 여부 | `docs/ai/08-harness-self-audit-checklist.md` 항목 추가 여부 |
 | 신규 `.claude/skills/*/SKILL.md` | `docs/ai/README.md` 관련 커맨드 스킬 경로 등재 여부 | — |
-| `.claude/commands/*.md` 수정 | `docs/ai/README.md` 해당 커맨드 설명 일치 여부 | `docs/ai/07-harness-self-audit-checklist.md` |
+| `.claude/commands/*.md` 수정 | `docs/ai/README.md` 해당 커맨드 설명 일치 여부 | `docs/ai/08-harness-self-audit-checklist.md` |
 | `CLAUDE.md` 수정 | `docs/ai/00-context.md` 동기화 여부 | `docs/ai-prompt-guide.md` 제약 조건 업데이트 여부 |
 | `.github/CONVENTIONS.md` 수정 | `docs/ai/README.md` PR 규칙 참조 확인 | — |
 | `src/` 파일 수정 | 해당 feature spec/plan 업데이트 여부 | `docs/ai/03-pr-review-checklist.md` 통과 여부 |

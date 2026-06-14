@@ -24,9 +24,9 @@
 
     | 변경 종류 | Required | Recommended |
     |---|---|---|
-    | 신규 `.claude/commands/*.md` | `docs/ai/README.md` 추가 커맨드 목록 등재 | `docs/ai/07-harness-self-audit-checklist.md` 항목 추가 여부 |
+    | 신규 `.claude/commands/*.md` | `docs/ai/README.md` 추가 커맨드 목록 등재 | `docs/ai/08-harness-self-audit-checklist.md` 항목 추가 여부 |
     | 신규 `.claude/skills/*/SKILL.md` | `docs/ai/README.md` 관련 커맨드 스킬 경로 등재 | — |
-    | `.claude/commands/*.md` 수정 | `docs/ai/README.md` 해당 커맨드 설명 일치 여부 | `docs/ai/07-harness-self-audit-checklist.md` |
+    | `.claude/commands/*.md` 수정 | `docs/ai/README.md` 해당 커맨드 설명 일치 여부 | `docs/ai/08-harness-self-audit-checklist.md` |
     | `CLAUDE.md` 수정 | `docs/ai/00-context.md` 동기화 여부 | `docs/ai-prompt-guide.md` |
     | `.github/CONVENTIONS.md` 수정 | `docs/ai/README.md` PR 규칙 참조 확인 | — |
     | `src/` 파일 수정 | 해당 feature spec/plan 업데이트 여부 | `docs/ai/03-pr-review-checklist.md` |
