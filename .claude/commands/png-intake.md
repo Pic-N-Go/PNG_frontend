@@ -11,6 +11,7 @@ description: PNG 프로젝트 요구사항을 질문 기반으로 정제해 spec
 
 아래 순서대로 Intake만 수행합니다.
 
+0. `.claude/skills/requirements-refiner/SKILL.md`를 Read해 동작 규칙과 산출물 기준을 확인합니다.
 1. 먼저 다음 문서를 읽고 제약을 반영합니다.
    - `docs/ai/00-context.md`
    - `docs/ai/05-intake-workflow.md`

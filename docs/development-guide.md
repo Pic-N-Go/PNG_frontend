@@ -10,7 +10,7 @@
 ```
 src/
 ├── api/                        # REST API 호출 함수
-│   ├── client.ts               # axios 인스턴스 (baseURL, 토큰, 인터셉터)
+│   ├── client.ts               # axios 인스턴스 (baseURL, 토큰, 인터셉터) — TODO: 미생성
 │   ├── auth/
 │   │   ├── auth.api.ts         # login, signup, logout, tokenRefresh
 │   │   └── auth.types.ts       # LoginRequest, LoginResponse...
