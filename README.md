@@ -195,3 +195,13 @@ const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 - 매주 월요일 오전 9시(KST)에 의존성 버전을 확인하고 업데이트 PR을 자동으로 생성합니다.
 - 생성된 PR에는 `chore` 라벨이 자동으로 붙습니다.
 - 설정 파일: `.github/dependabot.yml`
+
+---
+
+## 문서 참조 가이드
+
+- 팀 AI 협업 표준: `docs/ai/README.md`
+- 개인 프롬프트 보조: `docs/ai-prompt-guide.md`
+- 화면 목업 구조/흐름: `docs/ui-publishing.md`
+- 브랜치/PR 규칙: `.github/CONVENTIONS.md`
+- GitHub 자동화 운영: `docs/github-actions-guide.md`
