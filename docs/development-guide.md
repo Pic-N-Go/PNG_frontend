@@ -208,7 +208,7 @@ EXPO_PUBLIC_API_URL=https://api.example.com
 | `docs/ui-publishing.md` | HTML 목업 구조 및 화면 간 네비게이션 흐름 |
 | `docs/ai-prompt-guide.md` | AI 활용 화면 구현 프롬프트 템플릿 |
 | `docs/device-support.md` | 지원 기기 범위, 레이아웃 상수 사용법 |
-| `docs/photo-upload-spec.md` | 사진 업로드 스펙 |
+| `docs/photo-upload-spec.md` | 사진 업로드 스펙 (TODO: 미작성) |
 | `CLAUDE.md` | 프로젝트 전체 규칙 및 디자인 시스템 |
 | `.github/CONVENTIONS.md` | 브랜치/PR/라벨 컨벤션 |
 | `docs/github-actions-guide.md` | GitHub Actions 자동화 동작 및 대응 |

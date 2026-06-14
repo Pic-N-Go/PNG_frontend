@@ -115,7 +115,7 @@ src/components/ui/
 
 팀 작업 순서는 `docs/ai/README.md`를 단일 기준으로 따릅니다.
 
-- 표준 흐름: Intake → spec → plan → [구현] → commit → handoff(선택) → doc-sync(선택) → review → pr
+- 표준 흐름: Intake → spec → plan → [구현] → commit → test-case(선택) → qa(선택) → review(선택) → handoff(선택) → pr
 - 이 문서는 개인 단위 프롬프트 작성 보조 용도로만 사용합니다.
 
 ---
