@@ -55,9 +55,20 @@
 
 ### 비Claude 사용자
 
-3. 각자 사용하는 AI에 `04-agent-handoff-prompt-template.md` 템플릿으로 전달 (구현 시작용 핸드오프)
+**필수 참조 문서 (AI 프롬프트에 포함하거나 직접 읽을 것)**
 
-단계별 상세 안내 → `docs/ai/07-non-claude-quickstart.md`
+| 문서 | 용도 |
+|---|---|
+| `docs/ai/00-context.md` | 프로젝트 공통 제약 (아키텍처·스타일·금지 사항) |
+| `docs/ai/05-intake-workflow.md` | Intake 절차 상세 |
+| `docs/ai/01-feature-spec-template.md` | 기능 스펙 템플릿 |
+| `docs/ai/02-implementation-plan-template.md` | 구현 계획 템플릿 |
+| `docs/ai/04-agent-handoff-prompt-template.md` | 구현 시작용 핸드오프 프롬프트 |
+| `docs/ai/03-pr-review-checklist.md` | PR 전 품질 체크리스트 |
+
+UI 기능이면 추가로: `docs/ui-publishing.md`
+
+단계별 실행 가이드 → `docs/ai/07-non-claude-quickstart.md`
 
 ---
 
