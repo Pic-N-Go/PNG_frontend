@@ -27,8 +27,11 @@ description: PNG 프로젝트 PR 제목/본문 초안을 템플릿 형식으로 
 1. `.claude/skills/pr-draft-writer/SKILL.md`를 Read해 기준을 확인합니다.
 2. `.github/pull_request_template.md`를 읽고 동일한 섹션 구조로 PR 초안을 작성합니다.
 3. 파일 경로를 결정합니다.
-   - `$ARGUMENTS`가 있으면: `docs/ai/pr-drafts/$ARGUMENTS.md`
-     (`/`는 `-`로 치환, `.md` 확장자가 포함된 경우 제거 후 적용)
+   - `$ARGUMENTS`가 있으면 아래 정규화 규칙을 적용합니다.
+     - `../`가 포함된 경우: 즉시 거부하고 사용자에게 알립니다.
+     - `/`는 `-`로 치환합니다.
+     - `.md` 확장자가 포함된 경우 제거합니다.
+     - 최종 경로: `docs/ai/pr-drafts/<정규화된-이름>.md`
    - 없으면: `docs/ai/pr-drafts/<current-branch>-pr.md` (`/`는 `-`로 치환)
 4. 불확실한 정보는 `TODO:`로 명시합니다.
 5. 실제 PR 생성(`gh pr create`)은 하지 않고, 파일 생성으로 종료합니다.

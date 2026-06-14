@@ -18,9 +18,12 @@ description: PNG 프로젝트 스펙을 기반으로 구현 계획(plan) 생성 
    - `docs/ai/02-implementation-plan-template.md`
    - `docs/ai/03-pr-review-checklist.md`
 2. feature-name을 확정합니다.
-   - `$ARGUMENTS`가 있으면 그 값을 feature-name으로 사용합니다.
+   - `$ARGUMENTS`가 있으면 아래 정규화 규칙을 적용합니다.
+     - `../`가 포함된 경우: 즉시 거부하고 사용자에게 알립니다.
+     - `/`는 `-`로 치환합니다.
+     - `.md` 확장자가 포함된 경우 제거합니다.
    - 없으면 사용자에게 feature-name을 요청한 뒤 확정합니다.
-   - 스펙 경로: `docs/ai/specs/<feature-name>.md` 를 Read합니다.
+   - 정규화된 feature-name으로 스펙을 Read합니다: `docs/ai/specs/<feature-name>.md`
 3. 스펙 기준으로 plan 초안을 생성/보정합니다.
 4. 확정된 feature-name으로 산출물을 작성합니다.
    - 저장 경로: `docs/ai/plans/<feature-name>-plan.md`

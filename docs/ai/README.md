@@ -47,11 +47,13 @@
 ### Claude Code 사용자 전용
 
 3. (선택) `/png-implement`로 plan Task 기준 step-by-step 구현
-4. (선택) `/png-test-case`로 변경사항 기반 테스트 케이스 생성
-5. (선택) `/png-qa`로 QA 세션 운영 (create → update → finalize)
-6. (선택) `/png-handoff`로 팀원 인수인계 문서 생성 (사람 대상 인수인계, AI 핸드오프와 별개)
-7. `/png-pr` 실행 (doc-sync 자동 포함). 커맨드·스킬 변경 후 PR 없이 문서만 정리할 때는 `/png-doc-sync` 사용
-8. PR 생성 전 `03-pr-review-checklist.md`를 모두 통과
+4. (선택) `/png-commit`으로 커밋 메시지 제안 후 커밋
+5. (선택) `/png-test-case`로 변경사항 기반 테스트 케이스 생성
+6. (선택) `/png-qa`로 QA 세션 운영 (create → update → finalize)
+7. (선택) `/png-review`로 변경사항을 팀 기준으로 점검
+8. (선택) `/png-handoff`로 팀원 인수인계 문서 생성 (사람 대상 인수인계, AI 핸드오프와 별개)
+9. `/png-pr` 실행 (doc-sync 자동 포함). 커맨드·스킬 변경 후 PR 없이 문서만 정리할 때는 `/png-doc-sync` 사용
+10. PR 생성 전 `03-pr-review-checklist.md`를 모두 통과
 
 ### 비Claude 사용자
 
