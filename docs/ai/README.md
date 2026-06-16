@@ -46,14 +46,15 @@
 
 ### Claude Code 사용자 전용
 
-3. (선택) `/png-implement`로 plan Task 기준 step-by-step 구현
-4. (선택) `/png-commit`으로 커밋 메시지 제안 후 커밋
-5. (선택) `/png-test-case`로 변경사항 기반 테스트 케이스 생성
-6. (선택) `/png-qa`로 QA 세션 운영 (create → update → finalize)
-7. (선택) `/png-review`로 변경사항을 팀 기준으로 점검
-8. (선택) `/png-handoff`로 팀원 인수인계 문서 생성 (사람 대상 인수인계, AI 핸드오프와 별개)
-9. `/png-pr` 실행 (doc-sync 자동 포함). 커맨드·스킬 변경 후 PR 없이 문서만 정리할 때는 `/png-doc-sync` 사용
-10. PR 생성 전 `03-pr-review-checklist.md`를 모두 통과
+3. `/png-intake` 하나로 **구현 → 커밋 → PR 초안**까지 자동 체인 실행
+   - spec/plan 승인 후 별도 명령 없이 끝까지 이어집니다
+   - 중간 이탈 후 재시작: `/png-implement <feature-name>` → `/png-commit` → `/png-pr` 순으로 개별 실행
+4. (선택) `/png-test-case`로 변경사항 기반 테스트 케이스 생성
+5. (선택) `/png-qa`로 QA 세션 운영 (create → update → finalize)
+6. (선택) `/png-review`로 변경사항을 팀 기준으로 점검
+7. (선택) `/png-handoff`로 팀원 인수인계 문서 생성
+8. PR 생성 전 `03-pr-review-checklist.md`를 모두 통과
+9. 커맨드·스킬 변경 후 PR 없이 문서만 정리할 때는 `/png-doc-sync` 사용
 
 ### 비Claude 사용자
 
@@ -87,9 +88,15 @@ UI 기능이면 추가로: `docs/ui-publishing.md`
 
 권장 흐름:
 
-1. 프롬프트 복붙 후 기능 자연어 설명 입력
+1. `/png-intake` 입력 후 기능을 자연어로 설명
 2. Clarifying Questions에 답변
-3. 생성된 `spec`/`plan` 검토 후 구현 단계로 진행
+3. 생성된 `spec`/`plan` 확인 → 승인하면 **구현 → 커밋 → PR 초안까지 자동으로 이어집니다**
+
+사용자 확인 게이트는 4곳뿐입니다.
+- spec/plan 검토 후 구현 시작 여부
+- plan 외 파일 변경 발생 시
+- 커밋 메시지 확인
+- doc-sync Required 항목 발견 시
 
 추가 커맨드:
 
