@@ -1,0 +1,465 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>PNG - 새 글 작성</title>
+    <link rel="stylesheet" href="../common/fonts.css" />
+    <link rel="stylesheet" href="../common/common.css" />
+    <style>
+      .phone-frame {
+        width: 100%;
+        min-height: 100dvh;
+        background: var(--color-bg);
+        position: relative;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding-bottom: 40px;
+      }
+
+      /* ── Status Bar ── */
+      .status-bar {
+        position: sticky;
+        top: 0;
+        z-index: 30;
+        height: 54px;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 34px;
+      }
+      .status-bar__time { font-size: var(--font-md); font-weight: 600; color: #000; letter-spacing: -0.3px; }
+      .dynamic-island { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); width: 106px; height: 28px; background: #000; border-radius: 14px; }
+      .status-bar__icons { display: flex; gap: 6px; }
+      .status-bar__icons svg { height: 12px; fill: #000; }
+
+      /* ── Nav Bar ── */
+      .nav-bar {
+        position: sticky;
+        top: 54px;
+        z-index: 25;
+        height: 48px;
+        background: rgba(255, 255, 255, 0.92);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 12px;
+        border-bottom: 0.5px solid var(--color-border-light);
+      }
+      .nav-bar__cancel {
+        height: 36px;
+        padding: 0 8px;
+        border: none;
+        background: none;
+        font-family: var(--font-family);
+        font-size: var(--font-base);
+        color: rgba(0, 0, 0, 0.5);
+        cursor: pointer;
+        letter-spacing: -0.2px;
+      }
+      .nav-bar__title { font-size: var(--font-md); font-weight: 600; letter-spacing: -0.3px; }
+      .nav-bar__submit {
+        height: 34px;
+        padding: 0 18px;
+        border-radius: 17px;
+        border: none;
+        background: var(--color-accent);
+        font-family: var(--font-family);
+        font-size: var(--font-sm);
+        font-weight: 600;
+        color: #fff;
+        cursor: pointer;
+        letter-spacing: -0.1px;
+        transition: background 0.15s, opacity 0.15s;
+      }
+      .nav-bar__submit:disabled { opacity: 0.35; cursor: default; }
+      .nav-bar__submit:not(:disabled):hover { background: var(--color-accent-hover); }
+
+      /* ── Photo Upload ── */
+      .photo-section { background: #000; }
+      .photo-main-preview {
+        width: 100%;
+        aspect-ratio: 4 / 3;
+        background: #111;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        cursor: pointer;
+        overflow: hidden;
+      }
+      .photo-main-preview__placeholder {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 10px;
+        color: rgba(255, 255, 255, 0.35);
+      }
+      .photo-main-preview__label { font-size: var(--font-base); font-weight: 500; letter-spacing: -0.2px; }
+      .photo-main-preview__sub { font-size: var(--font-xs); color: rgba(255, 255, 255, 0.2); }
+      .photo-main-preview__bg {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, #0f2027, #2c5364, #4a7c8a);
+        display: none;
+      }
+      .photo-main-preview__bg.is-visible { display: block; }
+      .photo-main-preview__ratio-badge {
+        position: absolute;
+        bottom: 12px;
+        right: 12px;
+        height: 24px;
+        padding: 0 10px;
+        border-radius: 12px;
+        background: rgba(0, 0, 0, 0.5);
+        font-size: var(--font-xs);
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.8);
+        display: flex;
+        align-items: center;
+      }
+
+      .photo-strip {
+        display: flex;
+        gap: 2px;
+        padding: 2px 0;
+        overflow-x: auto;
+        background: #111;
+      }
+      .photo-thumb {
+        width: 80px;
+        height: 80px;
+        flex-shrink: 0;
+        position: relative;
+        cursor: pointer;
+        overflow: hidden;
+      }
+      .photo-thumb__bg { width: 100%; height: 100%; object-fit: cover; }
+      .photo-thumb.is-selected::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border: 2.5px solid #fff;
+      }
+      .photo-thumb--add {
+        background: rgba(255, 255, 255, 0.08);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 4px;
+      }
+      .photo-thumb--add span { font-size: 10px; color: rgba(255, 255, 255, 0.35); letter-spacing: -0.1px; }
+
+      /* ── Form Sections ── */
+      .form-body { padding: 0 20px; }
+
+      .form-section {
+        padding: 20px 0;
+        border-bottom: 0.5px solid var(--color-border-light);
+      }
+      .form-section:last-child { border-bottom: none; }
+      .form-section__label {
+        font-size: var(--font-sm);
+        font-weight: 600;
+        color: rgba(0, 0, 0, 0.4);
+        letter-spacing: -0.1px;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .form-section__label span { font-size: var(--font-xs); font-weight: 400; color: rgba(0,0,0,0.28); }
+
+      /* ── Caption ── */
+      .caption-area {
+        width: 100%;
+        min-height: 96px;
+        border: none;
+        outline: none;
+        background: none;
+        resize: none;
+        font-family: var(--font-family);
+        font-size: var(--font-md);
+        color: #000;
+        letter-spacing: -0.2px;
+        line-height: 1.6;
+        padding: 0;
+      }
+      .caption-area::placeholder { color: rgba(0, 0, 0, 0.25); }
+      .caption-footer {
+        display: flex;
+        justify-content: flex-end;
+        margin-top: 6px;
+      }
+      .caption-count { font-size: var(--font-xs); color: rgba(0, 0, 0, 0.2); }
+
+      /* ── Recipe Row ── */
+      .recipe-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 11px 0;
+        border-bottom: 0.5px solid var(--color-border-light);
+        cursor: pointer;
+      }
+      .recipe-row:last-child { border-bottom: none; }
+      .recipe-row__icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: var(--color-surface);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        color: rgba(0, 0, 0, 0.3);
+      }
+      .recipe-row__label { font-size: var(--font-base); color: rgba(0, 0, 0, 0.35); flex: 1; letter-spacing: -0.15px; }
+      .recipe-row__value { font-size: var(--font-base); color: #000; letter-spacing: -0.15px; }
+      .recipe-row__chevron { color: rgba(0, 0, 0, 0.2); }
+
+      /* ── Location ── */
+      .location-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+      }
+      .location-row__icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: rgba(227, 27, 89, 0.07);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      .location-row__text { flex: 1; }
+      .location-row__name { font-size: var(--font-base); color: #000; letter-spacing: -0.15px; font-weight: 500; }
+      .location-row__addr { font-size: var(--font-xs); color: rgba(0, 0, 0, 0.35); margin-top: 2px; }
+      .location-row__placeholder { font-size: var(--font-base); color: rgba(0, 0, 0, 0.3); letter-spacing: -0.15px; }
+      .location-row__chevron { color: rgba(0, 0, 0, 0.2); }
+
+      /* ── Tags ── */
+      .tag-wrap { display: flex; flex-wrap: wrap; gap: 8px; }
+
+    </style>
+  </head>
+  <body>
+    <script src="../common/icons.js"></script>
+    <div class="phone-frame">
+
+      <!-- Status Bar -->
+      <div class="status-bar">
+        <div class="status-bar__time">9:41</div>
+        <div class="dynamic-island"></div>
+        <div class="status-bar__icons">
+          <svg viewBox="0 0 17 12"><rect x="0" y="3" width="3" height="9" rx="1"/><rect x="4.5" y="2" width="3" height="10" rx="1"/><rect x="9" y="0" width="3" height="12" rx="1"/><rect x="14" y="0" width="3" height="12" rx="1" opacity=".3"/></svg>
+          <svg viewBox="0 0 16 12"><path d="M8 2.4C5.6 2.4 3.4 3.4 1.8 5L0 3.2C2.1 1.2 4.9 0 8 0s5.9 1.2 8 3.2L14.2 5C12.6 3.4 10.4 2.4 8 2.4z"/><path d="M8 6.8c-1.5 0-2.8.6-3.8 1.5L2.4 6.5C3.8 5.2 5.8 4.4 8 4.4s4.2.8 5.6 2.1L11.8 8.3C10.8 7.4 9.5 6.8 8 6.8z"/><circle cx="8" cy="12" r="2"/></svg>
+          <svg viewBox="0 0 25 12"><rect x="0" y="1" width="22" height="10" rx="3" stroke="#000" stroke-width="1" fill="none"/><rect x="1.5" y="2.5" width="17" height="7" rx="2" fill="#000"/><path d="M23 4.5v3a1.5 1.5 0 0 0 0-3z" fill="#000" opacity=".4"/></svg>
+        </div>
+      </div>
+
+      <!-- Nav Bar -->
+      <div class="nav-bar">
+        <button class="nav-bar__cancel" onclick="goBack()">취소</button>
+        <span class="nav-bar__title">새 글 작성</span>
+        <button class="nav-bar__submit" id="submitBtn" disabled onclick="submitPost()">게시하기</button>
+      </div>
+
+      <!-- Photo Upload -->
+      <div class="photo-section">
+        <!-- Main preview -->
+        <div class="photo-main-preview" onclick="selectPhoto()" id="mainPreview">
+          <div class="photo-main-preview__bg is-visible" id="mainBg"></div>
+          <div class="photo-main-preview__placeholder" id="mainPlaceholder" style="display:none">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="rgba(255,255,255,0.3)">
+              <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+              <path d="M8.813 11.612c.457-.38.918-.38 1.386.011l.108.098 4.986 4.986.094.083a1 1 0 0 0 1.403-1.403l-.083-.094-1.292-1.293.292-.293.106-.095c.457-.38.918-.38 1.386.011l.108.098 4.674 4.675a4 4 0 0 1-3.775 3.599l-.206.005h-12a4 4 0 0 1-3.98-3.603l6.687-6.69.106-.095zm9.187-9.612a4 4 0 0 1 3.995 3.8l.005.2v9.585l-3.293-3.292-.15-.137c-1.256-1.095-2.85-1.097-4.096-.017l-.154.14-.307.306-2.293-2.292-.15-.137c-1.256-1.095-2.85-1.097-4.096-.017l-.154.14-5.307 5.306v-9.585a4 4 0 0 1 3.8-3.995l.2-.005h12zm-2.99 5-.127.007a1 1 0 0 0 0 1.986l.117.007.127-.007a1 1 0 0 0 0-1.986l-.117-.007z"/>
+            </svg>
+            <div class="photo-main-preview__label">사진을 선택하세요</div>
+            <div class="photo-main-preview__sub">최대 10장까지 업로드 가능</div>
+          </div>
+          <div class="photo-main-preview__ratio-badge">4:3</div>
+        </div>
+
+        <!-- Photo strip -->
+        <div class="photo-strip" id="photoStrip">
+          <!-- 추가 버튼 -->
+          <div class="photo-thumb photo-thumb--add" onclick="selectPhoto()">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" stroke-linecap="round">
+              <line x1="12" y1="5" x2="12" y2="19"/>
+              <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            <span>사진 추가</span>
+          </div>
+          <!-- 목업 썸네일 -->
+          <div class="photo-thumb is-selected" onclick="selectThumb(this)">
+            <div class="photo-thumb__bg" style="background:linear-gradient(135deg,#0f2027,#2c5364,#4a7c8a);width:100%;height:100%"></div>
+          </div>
+          <div class="photo-thumb" onclick="selectThumb(this)">
+            <div class="photo-thumb__bg" style="background:linear-gradient(135deg,#1a1a2e,#16213e,#0f3460);width:100%;height:100%"></div>
+          </div>
+          <div class="photo-thumb" onclick="selectThumb(this)">
+            <div class="photo-thumb__bg" style="background:linear-gradient(135deg,#2d1b4e,#8b4a6b,#d4856a);width:100%;height:100%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Form Body -->
+      <div class="form-body">
+
+        <!-- 문구 -->
+        <div class="form-section">
+          <textarea
+            class="caption-area"
+            id="captionInput"
+            maxlength="500"
+            placeholder="사진에 대한 이야기를 적어보세요..."
+            oninput="onCaptionInput(this)"
+          ></textarea>
+          <div class="caption-footer">
+            <span class="caption-count"><span id="captionLen">0</span>/500</span>
+          </div>
+        </div>
+
+        <!-- 촬영 정보 -->
+        <div class="form-section">
+          <div class="form-section__label">촬영 정보 <span>선택</span></div>
+
+          <!-- 촬영 시간 -->
+          <div class="recipe-row">
+            <div class="recipe-row__icon">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round">
+                <circle cx="8" cy="8" r="7"/>
+                <polyline points="8,4 8,8 10.5,10"/>
+              </svg>
+            </div>
+            <span class="recipe-row__label">촬영 시간</span>
+            <span class="recipe-row__value">05:30</span>
+            <svg class="recipe-row__chevron" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><polyline points="5,3 9,7 5,11"/></svg>
+          </div>
+
+          <!-- 날씨 -->
+          <div class="recipe-row">
+            <div class="recipe-row__icon">
+              <img src="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/clear-day.svg" width="20" height="20" draggable="false" style="opacity:0.45">
+            </div>
+            <span class="recipe-row__label">날씨</span>
+            <span class="recipe-row__value">맑음</span>
+            <svg class="recipe-row__chevron" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><polyline points="5,3 9,7 5,11"/></svg>
+          </div>
+
+          <!-- 카메라 -->
+          <div class="recipe-row">
+            <div class="recipe-row__icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" style="color:rgba(0,0,0,0.3)"><use href="#icon-camera"/></svg>
+            </div>
+            <span class="recipe-row__label">카메라</span>
+            <span class="recipe-row__value">Sony A7IV</span>
+            <svg class="recipe-row__chevron" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><polyline points="5,3 9,7 5,11"/></svg>
+          </div>
+
+          <!-- 렌즈 -->
+          <div class="recipe-row">
+            <div class="recipe-row__icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" style="color:rgba(0,0,0,0.3)"><use href="#icon-lens"/></svg>
+            </div>
+            <span class="recipe-row__label">렌즈</span>
+            <span class="recipe-row__value">24mm f/2.8</span>
+            <svg class="recipe-row__chevron" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><polyline points="5,3 9,7 5,11"/></svg>
+          </div>
+        </div>
+
+        <!-- 위치 -->
+        <div class="form-section">
+          <div class="form-section__label">위치 <span>선택</span></div>
+          <div class="location-row">
+            <div class="location-row__icon">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--color-accent)" stroke-width="1.2">
+                <path d="M8 1C5.2 1 3 3.2 3 6C3 9.5 8 15 8 15S13 9.5 13 6C13 3.2 10.8 1 8 1Z"/>
+                <circle cx="8" cy="6" r="2"/>
+              </svg>
+            </div>
+            <div class="location-row__text">
+              <div class="location-row__name">광안리 해수욕장</div>
+              <div class="location-row__addr">부산 수영구 광안해변로 219</div>
+            </div>
+            <svg class="location-row__chevron" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><polyline points="5,3 9,7 5,11"/></svg>
+          </div>
+        </div>
+
+        <!-- 태그 -->
+        <div class="form-section">
+          <div class="form-section__label">태그 <span>선택 · 최대 5개</span></div>
+          <div class="tag-wrap" id="tagWrap">
+            <button class="spot-tag" onclick="toggleTag(this)" type="button">#채광맛집</button>
+            <button class="spot-tag" onclick="toggleTag(this)" type="button">#인생샷</button>
+            <button class="spot-tag" onclick="toggleTag(this)" type="button">#감성사진</button>
+            <button class="spot-tag is-selected" onclick="toggleTag(this)" type="button">#야경명소</button>
+            <button class="spot-tag" onclick="toggleTag(this)" type="button">#주차편함</button>
+            <button class="spot-tag" onclick="toggleTag(this)" type="button">#삼각대필수</button>
+            <button class="spot-tag" onclick="toggleTag(this)" type="button">#접근성좋음</button>
+            <button class="spot-tag is-selected" onclick="toggleTag(this)" type="button">#일출명소</button>
+            <button class="spot-tag" onclick="toggleTag(this)" type="button">#혼자가기좋음</button>
+          </div>
+          <div style="font-size:var(--font-xs);color:rgba(0,0,0,0.28);margin-top:10px">자주 쓴 태그는 스팟 상세 페이지에 노출됩니다</div>
+        </div>
+
+      </div>
+    </div>
+
+    <script>
+      const MAX_TAGS = 5;
+
+      function goBack() {
+        if (history.length > 1) history.back();
+        else location.href = './community-feed.html';
+      }
+
+      function onCaptionInput(el) {
+        document.getElementById('captionLen').textContent = el.value.length;
+        checkSubmit();
+      }
+
+      function checkSubmit() {
+        const hasPhoto = document.querySelector('.photo-thumb:not(.photo-thumb--add)');
+        const hasCaption = document.getElementById('captionInput').value.trim().length > 0;
+        document.getElementById('submitBtn').disabled = !(hasPhoto && hasCaption);
+      }
+
+      function selectPhoto() {
+        /* 목업: 이미 사진이 있는 상태로 표시 */
+        document.getElementById('mainPlaceholder').style.display = 'none';
+        document.getElementById('mainBg').classList.add('is-visible');
+        checkSubmit();
+      }
+
+      function selectThumb(el) {
+        document.querySelectorAll('.photo-thumb').forEach(t => t.classList.remove('is-selected'));
+        el.classList.add('is-selected');
+      }
+
+      function toggleTag(btn) {
+        const selected = document.querySelectorAll('#tagWrap .spot-tag.is-selected');
+        if (btn.classList.contains('is-selected')) {
+          btn.classList.remove('is-selected');
+        } else {
+          if (selected.length >= MAX_TAGS) return;
+          btn.classList.add('is-selected');
+        }
+      }
+
+      function submitPost() {
+        location.href = './community-feed.html';
+      }
+
+      checkSubmit();
+    </script>
+  </body>
+</html>

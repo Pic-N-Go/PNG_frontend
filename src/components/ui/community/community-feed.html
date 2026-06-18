@@ -7,48 +7,18 @@
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
     <title>PNG - 커뮤니티</title>
-    <link rel="stylesheet" href="../fonts.css" />
+  <link rel="stylesheet" href="../common/fonts.css">
+  <link rel="stylesheet" href="../common/common.css">
     <style>
-      :root {
-        --color-bg: #ffffff;
-        --color-surface: #f5f5f7;
-        --color-text-primary: #000000;
-        --color-text-secondary: rgba(0, 0, 0, 0.48);
-        --color-text-tertiary: rgba(0, 0, 0, 0.28);
-        --color-accent: #e31b59;
-        --color-accent-hover: #c91550;
-        --color-link: #e31b59;
-        --color-border: rgba(0, 0, 0, 0.06);
-        --color-error: #ff453a;
-        --color-success: #34c759;
-        --color-warning: #ff9f0a;
-        --radius-card: 16px;
-        --radius-pill: 17px;
-        --radius-btn: 26px;
-      }
-      *,
-      *::before,
-      *::after {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-      html {
-        font-size: 16px;
-        -webkit-font-smoothing: antialiased;
-      }
-      body {
-        font-family: var(--font-family);
-        background: #f0f0f0;
-        display: flex;
-        justify-content: center;
-        min-height: 100dvh;
-      }
-      .phone-frame {
-        width: 390px;
-        min-height: 100dvh;
+.phone-frame {
+        width: 100%;
+        height: 100dvh;
         background: var(--color-bg);
         position: relative;
+        overflow: hidden;
+      }
+      .phone-scroll {
+        height: 100%;
         overflow-y: auto;
         overflow-x: hidden;
         padding-bottom: 80px;
@@ -67,7 +37,7 @@
         padding: 0 34px;
       }
       .status-bar__time {
-        font-size: 15px;
+        font-size: var(--font-md);
         font-weight: 600;
         color: #000;
         letter-spacing: -0.3px;
@@ -108,13 +78,28 @@
         padding: 0 16px;
       }
       .page-nav__compact-title {
-        font-size: 17px;
+        font-size: var(--font-lg);
         font-weight: 600;
         letter-spacing: -0.4px;
         opacity: 0;
         transition: opacity 0.2s;
       }
       .page-nav.is-scrolled .page-nav__compact-title { opacity: 1; }
+      .page-nav__compose {
+        width: 32px;
+        height: 32px;
+        border: none;
+        background: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--color-accent);
+        cursor: pointer;
+        flex-shrink: 0;
+        margin-left: auto;
+        transition: opacity 0.15s;
+      }
+      .page-nav__compose:hover { opacity: 0.7; }
 
       /* 큰 타이틀 행 */
       .page-nav__large {
@@ -134,44 +119,23 @@
         opacity: 0;
       }
       .page-nav__large-title {
-        font-size: 28px;
+        font-size: var(--font-2xl);
         font-weight: 600;
         letter-spacing: -0.6px;
       }
 
       /* 검색바 */
       .page-nav__search {
-        padding: 0 16px 12px;
+        padding: 0 16px 16px;
         overflow: hidden;
-        max-height: 52px;
+        max-height: 72px;
         opacity: 1;
         transition: max-height 0.25s ease, padding 0.25s ease, opacity 0.2s;
       }
       .page-nav.is-scrolled .page-nav__search {
-        max-height: 52px;
-        padding-bottom: 10px;
+        max-height: 72px;
+        padding-bottom: 16px;
         opacity: 1;
-      }
-      .search-input-wrap {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        height: 40px;
-        background: var(--color-surface);
-        border-radius: 12px;
-        padding: 0 14px;
-      }
-      .search-input-wrap input {
-        flex: 1;
-        border: none;
-        background: transparent;
-        font-family: var(--font);
-        font-size: 14px;
-        color: #000;
-        outline: none;
-      }
-      .search-input-wrap input::placeholder {
-        color: rgba(0,0,0,0.28);
       }
 
       /* ── 뷰 탭 + 정렬 ── */
@@ -195,7 +159,7 @@
         border: none;
         background: var(--color-surface);
         font-family: var(--font-family);
-        font-size: 13px;
+        font-size: var(--font-sm);
         font-weight: 500;
         color: rgba(0, 0, 0, 0.45);
         cursor: pointer;
@@ -261,7 +225,7 @@
         border: none;
         background: none;
         font-family: var(--font-family);
-        font-size: 14px;
+        font-size: var(--font-base);
         color: rgba(0, 0, 0, 0.55);
         cursor: pointer;
         text-align: left;
@@ -344,7 +308,7 @@
         height: 14px;
       }
       .recipe-card__like span {
-        font-size: 11px;
+        font-size: var(--font-xs);
         font-weight: 500;
         color: #fff;
       }
@@ -370,7 +334,7 @@
         flex-shrink: 0;
       }
       .recipe-card__name {
-        font-size: 13px;
+        font-size: var(--font-sm);
         font-weight: 600;
         color: #000;
         letter-spacing: -0.15px;
@@ -381,11 +345,11 @@
         flex-shrink: 0;
       }
       .recipe-card__time {
-        font-size: 11px;
+        font-size: var(--font-xs);
         color: rgba(0, 0, 0, 0.35);
       }
       .recipe-card__caption {
-        font-size: 14px;
+        font-size: var(--font-base);
         font-weight: 500;
         color: #000;
         letter-spacing: -0.15px;
@@ -406,7 +370,7 @@
         display: flex;
         align-items: center;
         gap: 5px;
-        font-size: 11px;
+        font-size: var(--font-xs);
         color: rgba(0, 0, 0, 0.5);
       }
       .recipe-tag svg {
@@ -426,8 +390,10 @@
         padding: 0 10px;
         border-radius: 8px;
         background: rgba(227, 27, 89, 0.08);
-        font-size: 11px;
+        font-size: var(--font-xs);
         color: rgba(0, 0, 0, 0.4);
+        margin-left: auto;
+        flex-shrink: 0;
       }
       .recipe-card__score strong {
         font-size: 12px;
@@ -447,7 +413,7 @@
         display: flex;
         align-items: center;
         gap: 4px;
-        font-size: 11px;
+        font-size: var(--font-xs);
         font-family: var(--font-family);
       }
       .recipe-card__action:hover {
@@ -457,11 +423,12 @@
         color: rgba(0, 0, 0, 0.35);
       }
       .recipe-card__comments-link {
-        font-size: 13px;
+        font-size: var(--font-sm);
         color: rgba(0, 0, 0, 0.35);
         cursor: pointer;
         padding: 0 14px 14px;
         display: block;
+        transition: color 0.15s;
       }
       .recipe-card__comments {
         padding: 0 14px 14px;
@@ -498,7 +465,7 @@
         min-width: 0;
       }
       .comment__text {
-        font-size: 13px;
+        font-size: var(--font-sm);
         color: #000;
         letter-spacing: -0.1px;
         line-height: 1.45;
@@ -507,93 +474,14 @@
         font-weight: 600;
       }
       .comment__meta {
-        font-size: 11px;
+        font-size: var(--font-xs);
         color: rgba(0, 0, 0, 0.25);
         margin-top: 3px;
       }
       .recipe-card__comments-more {
-        font-size: 13px;
+        font-size: var(--font-sm);
         color: rgba(0, 0, 0, 0.35);
         cursor: pointer;
-      }
-
-      /* ── 댓글 확장 영역 ── */
-      .comment-expand {
-        display: none;
-        padding: 0 14px;
-        border-top: 0.5px solid rgba(0, 0, 0, 0.04);
-      }
-      .comment-expand.is-open {
-        display: block;
-      }
-      .recipe-card__comments-link {
-        transition: color 0.15s;
-      }
-      .recipe-card__comments-link.is-open {
-        color: rgba(0, 0, 0, 0.55);
-      }
-
-      /* ── 댓글 입력창 ── */
-      .comment-input-row {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 10px 0 14px;
-        border-top: 0.5px solid rgba(0, 0, 0, 0.05);
-        margin-top: 4px;
-      }
-      .comment-input-avatar {
-        width: 26px;
-        height: 26px;
-        border-radius: 50%;
-        background: var(--color-surface);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 8px;
-        font-weight: 600;
-        color: rgba(0, 0, 0, 0.3);
-        flex-shrink: 0;
-      }
-      .comment-input-field {
-        flex: 1;
-        height: 34px;
-        background: var(--color-surface);
-        border: 1.5px solid transparent;
-        border-radius: 17px;
-        padding: 0 14px;
-        font-family: var(--font-family);
-        font-size: 13px;
-        color: var(--color-text-primary);
-        letter-spacing: -0.1px;
-        outline: none;
-        transition: border-color 0.2s;
-      }
-      .comment-input-field::placeholder {
-        color: rgba(0, 0, 0, 0.28);
-      }
-      .comment-input-field:focus {
-        border-color: rgba(227, 27, 89, 0.35);
-        background: #fff;
-      }
-      .comment-input-send {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        background: var(--color-accent);
-        border: none;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-        opacity: 0.3;
-        transition: opacity 0.15s;
-        pointer-events: none;
-      }
-      .comment-input-send.is-ready {
-        opacity: 1;
-        pointer-events: auto;
       }
 
       /* ══════════════════════════════════════
@@ -637,7 +525,7 @@
         color: rgba(255, 255, 255, 0.7);
       }
       .gallery__likes {
-        font-size: 10px;
+        font-size: var(--font-2xs);
         color: rgba(255, 255, 255, 0.7);
       }
 
@@ -670,7 +558,7 @@
         padding: 0 10px;
         border-radius: 6px;
         background: rgba(227, 27, 89, 0.08);
-        font-size: 11px;
+        font-size: var(--font-xs);
         font-weight: 600;
         color: var(--color-accent);
         letter-spacing: 0.3px;
@@ -684,7 +572,7 @@
         margin-bottom: 4px;
       }
       .contest-banner__desc {
-        font-size: 13px;
+        font-size: var(--font-sm);
         color: rgba(0, 0, 0, 0.45);
         margin-bottom: 12px;
       }
@@ -698,7 +586,7 @@
         height: 22px;
         padding: 0 10px;
         border-radius: 11px;
-        font-size: 11px;
+        font-size: var(--font-xs);
         font-weight: 600;
         display: inline-flex;
         align-items: center;
@@ -722,7 +610,7 @@
         border: none;
         background: #e31b59;
         font-family: var(--font-family);
-        font-size: 13px;
+        font-size: var(--font-sm);
         font-weight: 500;
         color: #fff;
         cursor: pointer;
@@ -813,7 +701,7 @@
         padding: 0 8px;
         border-radius: 10px;
         background: rgba(255, 255, 255, 0.15);
-        font-size: 10px;
+        font-size: var(--font-2xs);
         font-weight: 600;
         color: rgba(255, 255, 255, 0.8);
         display: flex;
@@ -833,7 +721,7 @@
         display: inline-flex;
         align-items: center;
         gap: 4px;
-        font-size: 11px;
+        font-size: var(--font-xs);
         font-weight: 500;
         color: rgba(255, 255, 255, 0.85);
       }
@@ -847,7 +735,7 @@
         border: none;
         background: #e31b59;
         font-family: var(--font-family);
-        font-size: 15px;
+        font-size: var(--font-md);
         font-weight: 500;
         color: #fff;
         cursor: pointer;
@@ -925,10 +813,10 @@
         width: 100%;
         height: 44px;
         border-radius: 12px;
-        border: 1px solid rgba(0,0,0,0.08);
-        background: none;
+        border: none;
+        background: var(--color-surface);
         font-family: var(--font-family);
-        font-size: 13px;
+        font-size: var(--font-sm);
         font-weight: 500;
         color: rgba(0,0,0,0.45);
         cursor: pointer;
@@ -947,7 +835,7 @@
         padding: 0 8px;
         border-radius: 11px;
         background: rgba(0, 0, 0, 0.3);
-        font-size: 11px;
+        font-size: var(--font-xs);
         font-weight: 600;
         color: #fff;
         display: flex;
@@ -978,7 +866,7 @@
         padding: 0 8px;
         border-radius: 9px;
         background: rgba(0, 0, 0, 0.3);
-        font-size: 10px;
+        font-size: var(--font-2xs);
         color: rgba(255, 255, 255, 0.7);
         display: flex;
         align-items: center;
@@ -998,13 +886,13 @@
         background: var(--color-surface);
       }
       .past-card__name {
-        font-size: 13px;
+        font-size: var(--font-sm);
         font-weight: 600;
         color: #000;
         margin-bottom: 2px;
       }
       .past-card__meta {
-        font-size: 11px;
+        font-size: var(--font-xs);
         color: rgba(0, 0, 0, 0.35);
         margin-bottom: 10px;
       }
@@ -1015,7 +903,7 @@
         padding: 0 12px;
         border-radius: 11px;
         background: rgba(227, 27, 89, 0.07);
-        font-size: 11px;
+        font-size: var(--font-xs);
         font-weight: 500;
         color: var(--color-accent);
         text-decoration: none;
@@ -1034,7 +922,6 @@
         padding: 14px 16px;
         border-radius: 14px;
         background: var(--color-surface);
-        border: 1px solid rgba(227, 27, 89, 0.1);
         margin: 0 20px 20px;
         cursor: pointer;
         transition: background 0.2s;
@@ -1056,7 +943,7 @@
         flex: 1;
       }
       .my-status__title {
-        font-size: 14px;
+        font-size: var(--font-base);
         font-weight: 500;
         color: #000;
       }
@@ -1089,7 +976,7 @@
         bottom: 0;
         left: 50%;
         transform: translateX(-50%) translateY(100%);
-        width: 390px;
+        width: 100%;
         max-height: 80vh;
         background: #fff;
         border-radius: 20px 20px 0 0;
@@ -1125,7 +1012,7 @@
         display: flex;
         align-items: center;
         gap: 4px;
-        font-size: 13px;
+        font-size: var(--font-sm);
         color: rgba(0, 0, 0, 0.4);
       }
       .sheet__remain strong {
@@ -1142,6 +1029,9 @@
         display: grid;
         grid-template-columns: 1fr 1fr;
         gap: 10px;
+      }
+      .sheet__grid .vote-card {
+        aspect-ratio: 1;
       }
       .vote-card {
         border-radius: 14px;
@@ -1182,7 +1072,7 @@
         color: rgba(255, 255, 255, 0.7);
       }
       .vote-card__name {
-        font-size: 11px;
+        font-size: var(--font-xs);
         color: rgba(255, 255, 255, 0.7);
       }
       .vote-card__btn {
@@ -1211,7 +1101,7 @@
         color: var(--color-accent);
       }
       .vote-card__count {
-        font-size: 11px;
+        font-size: var(--font-xs);
         color: rgba(255, 255, 255, 0.5);
         position: absolute;
         top: 10px;
@@ -1228,30 +1118,27 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 10px;
+        font-size: var(--font-2xs);
         font-weight: 600;
         color: #fff;
       }
-      /* 내 출품작 강조 */
-      .vote-card.is-mine {
-        outline: 2px solid var(--color-accent);
-        outline-offset: -2px;
-      }
       .vote-card__mine-badge {
         position: absolute;
-        top: 8px;
-        right: 8px;
-        height: 20px;
-        padding: 0 8px;
-        border-radius: 10px;
+        top: 10px;
+        left: 38px;
+        height: 18px;
+        padding: 0 7px;
+        border-radius: 9px;
         background: var(--color-accent);
-        font-size: 10px;
+        font-size: var(--font-2xs);
         font-weight: 600;
         color: #fff;
         display: flex;
         align-items: center;
         letter-spacing: -0.1px;
+        white-space: nowrap;
       }
+      .vote-card.is-mine .vote-card__count { display: none; }
       /* 내 순위 요약 배너 */
       .my-rank-banner {
         display: flex;
@@ -1264,7 +1151,7 @@
         margin-bottom: 14px;
       }
       .my-rank-banner__rank {
-        font-size: 22px;
+        font-size: var(--font-xl);
         font-weight: 600;
         color: var(--color-accent);
         letter-spacing: -0.5px;
@@ -1280,22 +1167,52 @@
         flex: 1;
       }
       .my-rank-banner__label {
-        font-size: 13px;
+        font-size: var(--font-sm);
         font-weight: 600;
         color: #000;
         letter-spacing: -0.2px;
       }
       .my-rank-banner__sub {
-        font-size: 11px;
+        font-size: var(--font-xs);
         color: rgba(0, 0, 0, 0.4);
         margin-top: 1px;
       }
       .my-rank-banner__votes {
-        font-size: 15px;
+        font-size: var(--font-md);
         font-weight: 600;
         color: var(--color-accent);
         letter-spacing: -0.3px;
         flex-shrink: 0;
+      }
+      /* 내 출품 현황 시트 */
+      .my-entry-card {
+        position: relative;
+        border-radius: 16px;
+        overflow: hidden;
+        aspect-ratio: 4 / 3;
+        margin-bottom: 16px;
+      }
+      .my-entry-card__caption {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        padding: 28px 14px 14px;
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.6), transparent);
+        color: rgba(255, 255, 255, 0.88);
+        font-size: var(--font-sm);
+        line-height: 1.5;
+        letter-spacing: -0.15px;
+      }
+      .my-entry-deadline {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        font-size: var(--font-sm);
+        color: rgba(0, 0, 0, 0.45);
+        margin-bottom: 16px;
+        letter-spacing: -0.15px;
       }
       .sheet__done {
         display: block;
@@ -1305,7 +1222,7 @@
         border: none;
         background: #e31b59;
         font-family: var(--font-family);
-        font-size: 15px;
+        font-size: var(--font-md);
         font-weight: 500;
         color: #fff;
         cursor: pointer;
@@ -1315,12 +1232,70 @@
       .sheet__done:hover {
         opacity: 0.88;
       }
-      @media (max-width: 390px) {
-        .sheet {
-          width: 100%;
-        }
+      .sheet__warning {
+        text-align: center;
+        font-size: var(--font-xs);
+        color: rgba(0,0,0,0.35);
+        letter-spacing: -0.1px;
+        margin-top: 12px;
       }
-
+      /* 투표 확인 모달 */
+      .vote-confirm-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.45);
+        z-index: 200;
+        align-items: center;
+        justify-content: center;
+      }
+      .vote-confirm-overlay.is-open {
+        display: flex;
+      }
+      .vote-confirm-modal {
+        background: #fff;
+        border-radius: 20px;
+        padding: 28px 24px 20px;
+        width: 300px;
+        text-align: center;
+      }
+      .vote-confirm-modal__title {
+        font-size: var(--font-lg);
+        font-weight: 600;
+        color: var(--color-text-primary);
+        letter-spacing: -0.3px;
+        margin-bottom: 8px;
+      }
+      .vote-confirm-modal__desc {
+        font-size: var(--font-sm);
+        color: rgba(0,0,0,0.45);
+        letter-spacing: -0.1px;
+        line-height: 1.55;
+        margin-bottom: 24px;
+      }
+      .vote-confirm-modal__btns {
+        display: flex;
+        gap: 8px;
+      }
+      .vote-confirm-modal__btn {
+        flex: 1;
+        height: 46px;
+        border-radius: 23px;
+        border: none;
+        font-family: var(--font-family);
+        font-size: var(--font-base);
+        font-weight: 500;
+        cursor: pointer;
+        letter-spacing: -0.1px;
+      }
+      .vote-confirm-modal__btn--cancel {
+        background: var(--color-surface);
+        color: rgba(0,0,0,0.55);
+      }
+      .vote-confirm-modal__btn--confirm {
+        background: var(--color-accent);
+        color: #fff;
+      }
       /* ── 결과 시트 전용 ── */
       .result-sheet__meta {
         font-size: 12px;
@@ -1382,7 +1357,7 @@
         background: linear-gradient(to top, rgba(0, 0, 0, 0.55), transparent);
       }
       .result-podium__nick {
-        font-size: 11px;
+        font-size: var(--font-xs);
         font-weight: 600;
         color: #fff;
         letter-spacing: -0.1px;
@@ -1395,7 +1370,7 @@
         padding: 0 7px;
         border-radius: 9px;
         background: rgba(0, 0, 0, 0.3);
-        font-size: 10px;
+        font-size: var(--font-2xs);
         color: rgba(255, 255, 255, 0.8);
         margin-top: 3px;
       }
@@ -1407,7 +1382,7 @@
         padding: 0 8px;
         border-radius: 10px;
         background: rgba(255, 255, 255, 0.15);
-        font-size: 10px;
+        font-size: var(--font-2xs);
         font-weight: 600;
         color: rgba(255, 255, 255, 0.85);
         position: absolute;
@@ -1415,7 +1390,7 @@
         left: 42px;
       }
       .result-section-title {
-        font-size: 15px;
+        font-size: var(--font-md);
         font-weight: 600;
         color: #000;
         letter-spacing: -0.2px;
@@ -1440,7 +1415,7 @@
         padding: 0 7px;
         border-radius: 10px;
         background: rgba(0, 0, 0, 0.3);
-        font-size: 10px;
+        font-size: var(--font-2xs);
         font-weight: 600;
         color: #fff;
         display: flex;
@@ -1456,11 +1431,11 @@
         justify-content: space-between;
       }
       .result-entry__nick {
-        font-size: 10px;
+        font-size: var(--font-2xs);
         color: rgba(255, 255, 255, 0.7);
       }
       .result-entry__votes {
-        font-size: 10px;
+        font-size: var(--font-2xs);
         color: rgba(255, 255, 255, 0.55);
       }
 
@@ -1499,7 +1474,7 @@
         color: rgba(0, 0, 0, 0.2);
       }
       .entry-sheet__photo-label {
-        font-size: 15px;
+        font-size: var(--font-md);
         font-weight: 500;
         color: rgba(0, 0, 0, 0.28);
       }
@@ -1537,12 +1512,12 @@
         flex-shrink: 0;
       }
       .entry-sheet__exif-title {
-        font-size: 13px;
+        font-size: var(--font-sm);
         font-weight: 500;
         color: #000;
       }
       .entry-sheet__exif-detail {
-        font-size: 11px;
+        font-size: var(--font-xs);
         color: rgba(0, 0, 0, 0.35);
         margin-top: 1px;
       }
@@ -1550,7 +1525,7 @@
         margin-bottom: 16px;
       }
       .entry-sheet__field-label {
-        font-size: 13px;
+        font-size: var(--font-sm);
         font-weight: 500;
         color: rgba(0, 0, 0, 0.45);
         margin-bottom: 8px;
@@ -1563,7 +1538,7 @@
         background: var(--color-surface);
         padding: 0 14px;
         font-family: var(--font-family);
-        font-size: 14px;
+        font-size: var(--font-base);
         color: #000;
         outline: none;
         transition: box-shadow 0.2s;
@@ -1580,7 +1555,7 @@
         background: var(--color-surface);
         padding: 12px 14px;
         font-family: var(--font-family);
-        font-size: 14px;
+        font-size: var(--font-base);
         color: #000;
         resize: none;
         line-height: 1.5;
@@ -1603,7 +1578,7 @@
         border: none;
         background: #e31b59;
         font-family: var(--font-family);
-        font-size: 15px;
+        font-size: var(--font-md);
         font-weight: 500;
         color: #fff;
         cursor: pointer;
@@ -1634,7 +1609,7 @@
         display: flex;
         align-items: center;
         gap: 8px;
-        font-size: 14px;
+        font-size: var(--font-base);
         font-weight: 500;
         color: #fff;
         z-index: 200;
@@ -1648,37 +1623,12 @@
         transform: translateX(-50%) translateY(0);
       }
 
-      /* ── FAB ── */
-      .fab {
-        position: fixed;
-        bottom: 96px;
-        right: calc(50% - 195px + 20px);
-        width: 56px;
-        height: 56px;
-        border-radius: 50%;
-        background: var(--color-accent);
-        border: none;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        box-shadow: 0 4px 16px rgba(227, 27, 89, 0.3);
-        transition: all 0.2s;
-        z-index: 40;
-      }
-      .fab:hover {
-        background: var(--color-accent-hover);
-        transform: scale(1.05);
-      }
-      .fab:active {
-        transform: scale(0.95);
-      }
-
       /* ── Tab Bar ── */
       .tab-bar {
-        position: fixed;
+        position: absolute;
         bottom: 0;
-        width: 390px;
+        left: 0;
+        right: 0;
         height: 80px;
         background: #fff;
         border-top: 0.5px solid rgba(0, 0, 0, 0.08);
@@ -1688,105 +1638,41 @@
         padding-top: 8px;
         z-index: 50;
       }
-      .tab {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 4px;
-        background: none;
-        border: none;
-        cursor: pointer;
-        padding: 4px 10px;
-      }
-      .tab__icon {
-        width: 22px;
-        height: 18px;
-        color: rgba(0, 0, 0, 0.35);
-      }
-      .tab__label {
-        font-size: 10px;
-        color: rgba(0, 0, 0, 0.35);
-        font-family: var(--font-family);
-      }
-      .tab.is-active .tab__icon {
-        color: var(--color-accent);
-      }
-      .tab.is-active .tab__label {
-        color: var(--color-accent);
-        font-weight: 500;
-      }
-      .tab-bar__indicator {
-        position: absolute;
-        bottom: 8px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 110px;
-        height: 5px;
-        background: rgba(0, 0, 0, 0.1);
-        border-radius: 2.5px;
-      }
-
-      @media (max-width: 390px) {
-        .phone-frame,
-        .tab-bar {
-          width: 100%;
-        }
-        .fab {
-          right: 20px;
-        }
-      }
-      @media (min-width: 391px) {
-        body {
-          padding: 20px 0;
-        }
-        .phone-frame {
-          border-radius: 40px;
-          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-          min-height: unset;
-          height: calc(100dvh - 40px);
-          overflow-y: auto;
-          overflow-x: hidden;
-        }
-        .tab-bar {
-          border-radius: 0 0 40px 40px;
-        }
-      }
-    
-      /* ── 스크롤바 숨김 ── */
-      * { scrollbar-width: none; -ms-overflow-style: none; }
-      *::-webkit-scrollbar { display: none; }
+      /* .tab / .tab__icon / .tab__label / .tab-bar__indicator → common.css */
 
       /* ── 사진 확대 ── */
       .photo-expand-btn{position:absolute;top:10px;right:10px;width:28px;height:28px;border-radius:8px;background:rgba(0,0,0,0.38);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;transition:background 0.15s;z-index:2}
       .photo-expand-btn:hover{background:rgba(0,0,0,0.55)}
-      .photo-lightbox{position:fixed;top:0;left:50%;transform:translateX(-50%);width:390px;height:100dvh;background:rgba(0,0,0,0.92);z-index:400;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.2s}
+      .photo-lightbox{position:fixed;top:0;left:50%;transform:translateX(-50%);width: 100%;height:100dvh;background:rgba(0,0,0,0.92);z-index:400;display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 0.2s}
       .photo-lightbox.is-open{opacity:1;pointer-events:all}
-      .photo-lightbox__inner{width:390px;aspect-ratio:4/3;position:relative;border-radius:12px;overflow:hidden}
+      .photo-lightbox__inner{width:100%;aspect-ratio:4/3;position:relative;border-radius:12px;overflow:hidden}
       .photo-lightbox__bg{width:100%;height:100%}
       .photo-lightbox__close{position:absolute;top:14px;right:14px;width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,0.5);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;transition:background 0.15s}
       .photo-lightbox__close:hover{background:rgba(0,0,0,0.75)}
 
       /* ── 콘테스트 사진 라이트박스 ── */
-      .contest-lightbox{position:fixed;top:0;left:50%;transform:translateX(-50%);width:390px;height:100dvh;background:rgba(0,0,0,0.88);z-index:401;display:flex;align-items:center;justify-content:center;padding:0 20px;opacity:0;pointer-events:none;transition:opacity 0.2s}
+      .contest-lightbox{position:fixed;top:0;left:50%;transform:translateX(-50%);width: 100%;height:100dvh;background:rgba(0,0,0,0.88);z-index:401;display:flex;align-items:center;justify-content:center;padding:0 20px;opacity:0;pointer-events:none;transition:opacity 0.2s}
       .contest-lightbox.is-open{opacity:1;pointer-events:all}
       .contest-lightbox__card{width:100%;border-radius:18px;overflow:hidden;background:#111;position:relative}
       .contest-lightbox__photo{width:100%;aspect-ratio:3/2;position:relative}
       .contest-lightbox__photo-bg{width:100%;height:100%}
       .contest-lightbox__close{position:absolute;top:12px;right:12px;width:30px;height:30px;border-radius:50%;background:rgba(0,0,0,0.5);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;z-index:1;transition:background 0.15s}
       .contest-lightbox__close:hover{background:rgba(0,0,0,0.75)}
-      .contest-lightbox__rank-badge{position:absolute;top:12px;left:12px;height:22px;padding:0 9px;border-radius:11px;background:rgba(0,0,0,0.45);font-size:11px;font-weight:600;color:#fff;display:flex;align-items:center}
+      .contest-lightbox__rank-badge{position:absolute;top:12px;left:12px;height:22px;padding:0 9px;border-radius:11px;background:rgba(0,0,0,0.45);font-size: var(--font-xs);font-weight:600;color:#fff;display:flex;align-items:center}
       .contest-lightbox__info{padding:14px 16px 18px}
       .contest-lightbox__meta{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
       .contest-lightbox__user{display:flex;align-items:center;gap:8px}
       .contest-lightbox__avatar{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.12);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:600;color:rgba(255,255,255,0.65);flex-shrink:0}
-      .contest-lightbox__name{font-size:13px;font-weight:600;color:#fff;letter-spacing:-0.2px}
+      .contest-lightbox__name{font-size: var(--font-sm);font-weight:600;color:#fff;letter-spacing:-0.2px}
       .contest-lightbox__votes{display:flex;align-items:center;gap:4px;font-size:12px;color:rgba(255,255,255,0.5)}
-      .contest-lightbox__comment{font-size:13px;color:rgba(255,255,255,0.6);line-height:1.55;letter-spacing:-0.1px;font-style:italic}
+      .contest-lightbox__comment{font-size: var(--font-sm);color:rgba(255,255,255,0.6);line-height:1.55;letter-spacing:-0.1px;font-style:italic}
       .contest-lightbox__no-comment{font-size:12px;color:rgba(255,255,255,0.22);font-style:italic}
-</style>
+    </style>
   </head>
   <body>
+    <script src="../common/icons.js"></script>
     <div class="phone-frame">
+      <div class="phone-scroll">
       <!-- Status Bar -->
       <div class="status-bar">
         <span class="status-bar__time">9:41</span>
@@ -1834,14 +1720,17 @@
         <!-- 큰 타이틀 행 -->
         <div class="page-nav__large">
           <span class="page-nav__large-title">커뮤니티</span>
+          <button class="page-nav__compose" aria-label="새 글 작성" onclick="location.href='./community-write.html'">
+            <svg width="24" height="24" viewBox="0 0 24 24"><use href="#icon-writing-sign"/></svg>
+          </button>
         </div>
         <!-- 검색바 -->
         <div class="page-nav__search">
-          <div class="search-input-wrap">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="rgba(0,0,0,0.28)" stroke-width="1.4" stroke-linecap="round">
+          <div class="search-bar__inner">
+            <svg class="search-bar__icon" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round">
               <circle cx="7" cy="7" r="5.5"/><line x1="11" y1="11" x2="14.5" y2="14.5"/>
             </svg>
-            <input type="text" placeholder="게시글, 사진 스팟 검색" />
+            <input class="search-bar__input" type="text" placeholder="게시글, 사진 스팟 검색" />
           </div>
         </div>
         <!-- 뷰 탭 + 정렬 -->
@@ -1899,7 +1788,7 @@
 
       <!-- ══ RECIPE VIEW ══ -->
       <div class="feed-view is-visible" id="recipe-view">
-        <div class="recipe-card">
+        <div class="recipe-card" onclick="goToPost(event)">
           <div class="recipe-card__photo">
             <div
               class="recipe-card__photo-bg"
@@ -1957,6 +1846,7 @@
                 <div class="recipe-card__name">sunset_jk</div>
                 <div class="recipe-card__time">2시간 전</div>
               </div>
+              <div class="recipe-card__score">포토제닉 <strong>87</strong></div>
             </div>
             <div class="recipe-card__caption">
               새벽 5시에 일어난 보람이 있는 일출 🌅
@@ -1981,22 +1871,11 @@
               </div>
               <div class="recipe-tag">☀ 맑음</div>
               <div class="recipe-tag">
-                <svg
-                  width="12"
-                  height="10"
-                  viewBox="0 0 12 10"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="0.8"
-                >
-                  <rect x="0" y="2" width="12" height="7" rx="1.5" />
-                  <circle cx="6" cy="6" r="2.5" /></svg
-                >Sony A7IV
+                <svg width="14" height="14" viewBox="0 0 24 24"><use href="#icon-lens"/></svg>Sony A7IV
               </div>
               <div class="recipe-tag">24mm f/2.8</div>
             </div>
             <div class="recipe-card__footer">
-              <div class="recipe-card__score">포토제닉 <strong>87</strong></div>
               <div class="recipe-card__actions">
                 <button class="recipe-card__action">
                   <svg
@@ -2044,44 +1923,10 @@
               </div>
             </div>
           </div>
-          <div class="recipe-card__comments-link" onclick="toggleComments(this, 'comments-1')" data-label="댓글 32개 모두 보기">댓글 32개 모두 보기</div>
-          <div class="comment-expand" id="comments-1">
-            <div style="height:12px"></div>
-            <div class="comment">
-              <div class="comment__avatar">SR</div>
-              <div class="comment__body">
-                <div class="comment__text"><strong>sora.lens</strong> 골든아워 타이밍 딱 맞춘 거 대박이에요 😍</div>
-                <div class="comment__meta">2시간 전 · 좋아요 8개</div>
-              </div>
-            </div>
-            <div class="comment">
-              <div class="comment__avatar">JW</div>
-              <div class="comment__body">
-                <div class="comment__text"><strong>jwphoto</strong> 어떤 필터 쓰셨어요? 색감이 진짜 예쁘네요</div>
-                <div class="comment__meta">1시간 전 · 좋아요 4개</div>
-              </div>
-            </div>
-            <div class="comment">
-              <div class="comment__avatar">HN</div>
-              <div class="comment__body">
-                <div class="comment__text"><strong>hana__film</strong> 저도 지난주에 갔는데 이렇게 못 찍었어요 ㅠㅠ 렌즈 뭐 쓰세요?</div>
-                <div class="comment__meta">45분 전 · 좋아요 2개</div>
-              </div>
-            </div>
-            <div class="recipe-card__comments-more" onclick="loadMoreComments(this, 29)">댓글 29개 더보기</div>
-            <div class="comment-input-row">
-              <div class="comment-input-avatar">ME</div>
-              <input class="comment-input-field" placeholder="댓글 달기..." oninput="handleCommentInput(this)">
-              <button class="comment-input-send" onclick="submitComment(this)">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M2 7h10M7 2l5 5-5 5"/>
-                </svg>
-              </button>
-            </div>
-          </div>
+          <div class="recipe-card__comments-link" onclick="location.href='./community-post.html'">댓글 32개 모두 보기</div>
         </div>
 
-        <div class="recipe-card">
+        <div class="recipe-card" onclick="goToPost(event)">
           <div class="recipe-card__photo">
             <div
               class="recipe-card__photo-bg"
@@ -2161,6 +2006,7 @@
                 </div>
                 <div class="recipe-card__time">5시간 전</div>
               </div>
+              <div class="recipe-card__score">포토제닉 <strong>91</strong></div>
             </div>
             <div class="recipe-card__caption">
               한복 입고 야간개장, 무료입장 꿀팁까지
@@ -2169,22 +2015,11 @@
               <div class="recipe-tag">🌙 야간 20:30</div>
               <div class="recipe-tag">맑음</div>
               <div class="recipe-tag">
-                <svg
-                  width="12"
-                  height="10"
-                  viewBox="0 0 12 10"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="0.8"
-                >
-                  <rect x="0" y="2" width="12" height="7" rx="1.5" />
-                  <circle cx="6" cy="6" r="2.5" /></svg
-                >Canon R6II
+                <svg width="14" height="14" viewBox="0 0 24 24"><use href="#icon-lens"/></svg>Canon R6II
               </div>
               <div class="recipe-tag">35mm f/1.4</div>
             </div>
             <div class="recipe-card__footer">
-              <div class="recipe-card__score">포토제닉 <strong>91</strong></div>
               <div class="recipe-card__actions">
                 <button class="recipe-card__action">
                   <svg
@@ -2254,15 +2089,6 @@
               </div>
             </div>
             <div class="recipe-card__comments-more" onclick="loadMoreComments(this, 65)">댓글 65개 더보기</div>
-            <div class="comment-input-row">
-              <div class="comment-input-avatar">ME</div>
-              <input class="comment-input-field" placeholder="댓글 달기..." oninput="handleCommentInput(this)">
-              <button class="comment-input-send" onclick="submitComment(this)">
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M2 7h10M7 2l5 5-5 5"/>
-                </svg>
-              </button>
-            </div>
           </div>
         </div>
       </div>
@@ -2433,7 +2259,7 @@
         <!-- 투표 버튼 -->
         <div style="padding: 0 20px; margin-bottom: 24px">
           <!-- 투표 전 상태 -->
-          <div class="vote-cta-wrap" style="margin-bottom: 16px">
+          <div class="vote-cta-wrap" id="voteBefore">
             <button class="vote-cta" onclick="openSheet()">
               투표하기
             </button>
@@ -2444,8 +2270,8 @@
               <span>오늘 3표 남음</span>
             </div>
           </div>
-          <!-- 투표 완료 상태 (디자인 시안) -->
-          <div class="vote-cta-wrap">
+          <!-- 투표 완료 상태 -->
+          <div class="vote-cta-wrap" id="voteDone" style="display:none">
             <button class="vote-cta vote-cta--done" disabled>
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="rgba(0,0,0,0.3)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                 <circle cx="8" cy="8" r="6.5"/>
@@ -2557,7 +2383,7 @@
               </div>
             </div>
           </div>
-          <button class="entry-show-more" id="entryShowMore" onclick="showAllEntries()">
+          <button class="entry-show-more" id="entryShowMore" onclick="toggleEntries(this)">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
               <polyline points="2,4.5 7,9.5 12,4.5"/>
             </svg>
@@ -2587,7 +2413,7 @@
         </div>
 
         <!-- 내 출품 현황 -->
-        <div class="my-status" onclick="openSheet()"  style="cursor:pointer">
+        <div class="my-status" onclick="openMyEntry()"  style="cursor:pointer">
           <div class="my-status__icon">
             <svg
               width="18"
@@ -2630,24 +2456,7 @@
         <div style="height: 20px"></div>
       </div>
 
-      <!-- FAB -->
-      <button class="fab" aria-label="새 글 작성">
-        <svg
-          width="28"
-          height="28"
-          viewBox="0 0 28 28"
-          fill="none"
-          stroke="#fff"
-          stroke-width="1.5"
-          stroke-linecap="round"
-        >
-          <rect x="4" y="10" width="20" height="14" rx="3" />
-          <circle cx="14" cy="18" r="4" stroke-width="1.3" />
-          <rect x="10" y="7" width="8" height="4" rx="2" stroke-width="1.2" />
-          <line x1="24" y1="5" x2="24" y2="11" />
-          <line x1="21" y1="8" x2="27" y2="8" />
-        </svg>
-      </button>
+      </div><!-- /phone-scroll -->
 
       <!-- Tab Bar -->
       <div class="tab-bar">
@@ -2707,14 +2516,14 @@
         <button class="tab" onclick="location.href = '../mypage/mypage.html'">
           <svg
             class="tab__icon"
-            viewBox="0 0 22 18"
+            viewBox="0 0 22 22"
             fill="none"
             stroke="currentColor"
             stroke-width="1.3"
             stroke-linecap="round"
           >
-            <circle cx="11" cy="5" r="5" />
-            <path d="M2 18Q5 12 11 12T20 18" />
+            <circle cx="11" cy="7" r="5" />
+            <path d="M2 20Q5 13 11 13T20 20" />
           </svg>
           <span class="tab__label">MY</span>
         </button>
@@ -2729,6 +2538,7 @@
           closeSheet();
           closeResult();
           closeEntrySheet();
+          closeMyEntry();
         "
       ></div>
       <div class="sheet" id="voteSheet">
@@ -2752,18 +2562,10 @@
           <div class="sheet__grid">
             <div
               class="vote-card is-mine"
-              style="
-                height: 200px;
-                background: linear-gradient(
-                  to bottom,
-                  #1a1530,
-                  #b44a3a,
-                  #f0c89a
-                );
-              "
+              style="background: linear-gradient(to bottom, #1a1530, #b44a3a, #f0c89a);"
             >
               <div class="vote-card__rank">1</div>
-              <div class="vote-card__mine-badge">내 출품작</div>
+              <div class="vote-card__mine-badge">MY</div>
               <div class="vote-card__count">67표</div>
               <div class="vote-card__bottom">
                 <div class="vote-card__user">
@@ -2789,15 +2591,7 @@
             </div>
             <div
               class="vote-card"
-              style="
-                height: 170px;
-                background: linear-gradient(
-                  to bottom,
-                  #0f2027,
-                  #203a43,
-                  #e8a87c
-                );
-              "
+              style="background: linear-gradient(to bottom, #0f2027, #203a43, #e8a87c);"
             >
               <div class="vote-card__rank">2</div>
               <div class="vote-card__count">42표</div>
@@ -2827,10 +2621,7 @@
             </div>
             <div
               class="vote-card"
-              style="
-                height: 170px;
-                background: linear-gradient(to bottom, #1a1530, #8b4a6b);
-              "
+              style="background: linear-gradient(to bottom, #1a1530, #8b4a6b);"
             >
               <div class="vote-card__rank">3</div>
               <div class="vote-card__count">31표</div>
@@ -2860,10 +2651,7 @@
             </div>
             <div
               class="vote-card"
-              style="
-                height: 200px;
-                background: linear-gradient(to bottom, #232526, #8e7b5a);
-              "
+              style="background: linear-gradient(to bottom, #232526, #8e7b5a);"
             >
               <div class="vote-card__rank">4</div>
               <div class="vote-card__count">28표</div>
@@ -2893,10 +2681,7 @@
             </div>
             <div
               class="vote-card"
-              style="
-                height: 180px;
-                background: linear-gradient(to bottom, #0a1a0f, #4a8060);
-              "
+              style="background: linear-gradient(to bottom, #0a1a0f, #4a8060);"
             >
               <div class="vote-card__rank">5</div>
               <div class="vote-card__count">24표</div>
@@ -2926,10 +2711,7 @@
             </div>
             <div
               class="vote-card"
-              style="
-                height: 190px;
-                background: linear-gradient(to bottom, #020010, #1a1545);
-              "
+              style="background: linear-gradient(to bottom, #020010, #1a1545);"
             >
               <div class="vote-card__rank">6</div>
               <div class="vote-card__count">19표</div>
@@ -2958,7 +2740,91 @@
               </div>
             </div>
           </div>
-          <button class="sheet__done" onclick="closeSheet()">완료</button>
+          <button class="sheet__done" onclick="openVoteConfirm()">완료</button>
+          <p class="sheet__warning">투표 후에는 변경이 불가해요</p>
+        </div>
+      </div>
+
+      <!-- 내 출품 현황 시트 -->
+      <div class="sheet" id="myEntrySheet">
+        <div class="sheet__handle"></div>
+        <div class="sheet__header">
+          <span class="sheet__title">내 출품 현황</span>
+          <button
+            onclick="closeMyEntry()"
+            style="
+              width: 28px;
+              height: 28px;
+              border-radius: 50%;
+              background: var(--color-surface);
+              border: none;
+              cursor: pointer;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              flex-shrink: 0;
+            "
+          >
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 12 12"
+              fill="none"
+              stroke="rgba(0,0,0,0.4)"
+              stroke-width="1.8"
+              stroke-linecap="round"
+            >
+              <line x1="1" y1="1" x2="11" y2="11" />
+              <line x1="11" y1="1" x2="1" y2="11" />
+            </svg>
+          </button>
+        </div>
+        <div class="sheet__body">
+          <div class="my-rank-banner">
+            <div class="my-rank-banner__rank">1<sup>위</sup></div>
+            <div class="my-rank-banner__text">
+              <div class="my-rank-banner__label">현재 내 순위</div>
+              <div class="my-rank-banner__sub">전체 6명 출품 · 실시간 업데이트</div>
+            </div>
+            <div class="my-rank-banner__votes">67표</div>
+          </div>
+          <div
+            class="my-entry-card"
+            style="background: linear-gradient(to bottom, #1a1530, #b44a3a, #f0c89a)"
+          >
+            <div class="my-entry-card__caption">
+              새벽 5시, 광안대교 위로 떠오르는 태양 — 세상에서 제일 긴 하루의 시작
+            </div>
+          </div>
+          <div class="my-entry-deadline">
+            <svg
+              width="14"
+              height="14"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.8"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <circle cx="12" cy="12" r="9" />
+              <polyline points="12,7 12,12 15,14" />
+            </svg>
+            이번 주 콘테스트 · 일요일 자정 마감
+          </div>
+          <button class="sheet__done" onclick="closeMyEntry()">닫기</button>
+        </div>
+      </div>
+
+      <!-- 투표 확인 모달 -->
+      <div class="vote-confirm-overlay" id="voteConfirmOverlay" onclick="closeVoteConfirm()">
+        <div class="vote-confirm-modal" onclick="event.stopPropagation()">
+          <div class="vote-confirm-modal__title">투표를 완료할까요?</div>
+          <div class="vote-confirm-modal__desc">한 번 투표하면 변경할 수 없어요.<br>선택한 작품에 투표하시겠어요?</div>
+          <div class="vote-confirm-modal__btns">
+            <button class="vote-confirm-modal__btn vote-confirm-modal__btn--cancel" onclick="closeVoteConfirm()">취소</button>
+            <button class="vote-confirm-modal__btn vote-confirm-modal__btn--confirm" onclick="confirmVote()">투표 완료</button>
+          </div>
         </div>
       </div>
 
@@ -3057,16 +2923,13 @@
             >
               <svg
                 class="entry-sheet__photo-icon"
-                width="48"
-                height="36"
-                viewBox="0 0 48 36"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.3"
+                width="44"
+                height="44"
+                viewBox="0 0 24 24"
+                fill="currentColor"
               >
-                <rect x="4" y="8" width="40" height="26" rx="5" />
-                <circle cx="24" cy="22" r="8" />
-                <rect x="16" y="2" width="16" height="8" rx="4" />
+                <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+                <path d="M8.813 11.612c.457 -.38 .918 -.38 1.386 .011l.108 .098l4.986 4.986l.094 .083a1 1 0 0 0 1.403 -1.403l-.083 -.094l-1.292 -1.293l.292 -.293l.106 -.095c.457 -.38 .918 -.38 1.386 .011l.108 .098l4.674 4.675a4 4 0 0 1 -3.775 3.599l-.206 .005h-12a4 4 0 0 1 -3.98 -3.603l6.687 -6.69l.106 -.095zm9.187 -9.612a4 4 0 0 1 3.995 3.8l.005 .2v9.585l-3.293 -3.292l-.15 -.137c-1.256 -1.095 -2.85 -1.097 -4.096 -.017l-.154 .14l-.307 .306l-2.293 -2.292l-.15 -.137c-1.256 -1.095 -2.85 -1.097 -4.096 -.017l-.154 .14l-5.307 5.306v-9.585a4 4 0 0 1 3.8 -3.995l.2 -.005h12zm-2.99 5l-.127 .007a1 1 0 0 0 0 1.986l.117 .007l.127 -.007a1 1 0 0 0 0 -1.986l-.117 -.007z"/>
               </svg>
               <span class="entry-sheet__photo-label">사진 1장 선택</span>
               <span class="entry-sheet__photo-hint">탭하여 앨범에서 선택</span>
@@ -3137,13 +3000,17 @@
 
           <!-- 촬영 스팟 -->
           <div class="entry-sheet__field">
-            <div class="entry-sheet__field-label">촬영 스팟</div>
+            <div class="entry-sheet__field-label">
+              촬영 스팟
+              <span style="color: var(--color-accent); font-weight: 600">*</span>
+            </div>
             <input
               class="entry-sheet__input"
               type="text"
-              placeholder="스팟 이름 입력 또는 자동 감지"
+              placeholder="스팟 이름 입력"
               id="entrySpot"
               value=""
+              oninput="updateEntrySubmit()"
             />
           </div>
 
@@ -3152,6 +3019,7 @@
             class="entry-sheet__submit"
             id="entrySubmitBtn"
             onclick="submitEntry()"
+            disabled
           >
             출품하기
           </button>
@@ -3271,11 +3139,49 @@
         document.body.style.overflow = "";
       }
 
-      function showAllEntries() {
-        document.querySelectorAll('.entry-card.is-hidden').forEach(function(c) {
-          c.classList.remove('is-hidden');
-        });
-        document.getElementById('entryShowMore').style.display = 'none';
+      function openMyEntry() {
+        document.getElementById("sheetBackdrop").classList.add("is-open");
+        document.getElementById("myEntrySheet").classList.add("is-open");
+        document.body.style.overflow = "hidden";
+      }
+
+      function closeMyEntry() {
+        document.getElementById("sheetBackdrop").classList.remove("is-open");
+        document.getElementById("myEntrySheet").classList.remove("is-open");
+        document.body.style.overflow = "";
+      }
+
+      function openVoteConfirm() {
+        document.getElementById("voteConfirmOverlay").classList.add("is-open");
+      }
+      function closeVoteConfirm() {
+        document.getElementById("voteConfirmOverlay").classList.remove("is-open");
+      }
+      function confirmVote() {
+        closeVoteConfirm();
+        closeSheet();
+        document.getElementById('voteBefore').style.display = 'none';
+        document.getElementById('voteDone').style.display = '';
+      }
+
+      function toggleEntries(btn) {
+        const isExpanded = btn.dataset.expanded === 'true';
+        if (!isExpanded) {
+          document.querySelectorAll('.entry-card.is-hidden').forEach(function(c) {
+            c.dataset.collapsible = 'true';
+            c.classList.remove('is-hidden');
+          });
+          btn.dataset.expanded = 'true';
+          btn.innerHTML =
+            '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><polyline points="2,9.5 7,4.5 12,9.5"/></svg> 접기';
+        } else {
+          document.querySelectorAll('.entry-card[data-collapsible]').forEach(function(c) {
+            c.classList.add('is-hidden');
+          });
+          btn.dataset.expanded = 'false';
+          btn.innerHTML =
+            '<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><polyline points="2,4.5 7,9.5 12,4.5"/></svg> 전체보기 <span style="color:rgba(0,0,0,0.28);font-weight:400">128</span>';
+        }
       }
 
       function castVote(btn, e) {
@@ -3481,18 +3387,16 @@
         document.getElementById("entryPhotoPlaceholder").style.display = "none";
         document.getElementById("entryPhotoPreview").style.display = "block";
         document.getElementById("entryExif").style.display = "flex";
-        document.getElementById("entrySpot").value = "광안리 해수욕장";
+        updateEntrySubmit();
+      }
+
+      function updateEntrySubmit() {
+        const spot = document.getElementById("entrySpot").value.trim();
+        document.getElementById("entrySubmitBtn").disabled =
+          !entryPhotoSelected || !spot;
       }
 
       function submitEntry() {
-        if (!entryPhotoSelected) {
-          document.getElementById("entryPhoto").style.borderColor =
-            "var(--color-error)";
-          setTimeout(() => {
-            document.getElementById("entryPhoto").style.borderColor = "";
-          }, 1200);
-          return;
-        }
         closeEntrySheet();
 
         /* 토스트 노출 */
@@ -3506,6 +3410,7 @@
         document.getElementById("entryPhotoPreview").style.display = "none";
         document.getElementById("entryExif").style.display = "none";
         document.getElementById("entrySpot").value = "";
+        document.getElementById("entrySubmitBtn").disabled = true;
       }
 
       function toggleLike(el, isLiked) {
@@ -3528,7 +3433,7 @@
       }
     </script>
     <script>
-      const frame = document.querySelector('.phone-frame');
+      const frame = document.querySelector('.phone-scroll');
       const nav = document.getElementById('page-nav');
       frame.addEventListener('scroll', () => {
         nav.classList.toggle('is-scrolled', frame.scrollTop > 44);
@@ -3536,22 +3441,15 @@
     </script>
 
     <script>
-      /* ── 댓글 펼치기/접기 ── */
-      function toggleComments(linkEl, targetId) {
-        const expand = document.getElementById(targetId);
-        const isOpen = expand.classList.toggle('is-open');
-        linkEl.classList.toggle('is-open', isOpen);
-        linkEl.textContent = isOpen ? '댓글 접기' : linkEl.dataset.label || '댓글 보기';
-        if (isOpen) {
-          // 열릴 때 입력창에 포커스
-          const input = expand.querySelector('.comment-input-field');
-          if (input) setTimeout(() => input.focus(), 200);
-        }
+      /* ── 게시글 카드 → 상세 페이지 이동 (내부 인터랙티브 요소 클릭은 제외) ── */
+      function goToPost(e) {
+        if (e.target.closest('button, .recipe-card__like, .recipe-card__comments-link, input')) return;
+        location.href = './community-post.html';
       }
 
       /* ── 더보기 클릭 시 추가 댓글 삽입 ── */
       function loadMoreComments(moreEl, remaining) {
-        const container = moreEl.closest('.comment-expand, .recipe-card__comments');
+        const container = moreEl.closest('.recipe-card__comments');
         const samples = [
           { init: 'YJ', name: 'yujin.cam',   text: '다음 달 저도 꼭 가볼게요!',           meta: '3시간 전' },
           { init: 'MK', name: 'mk_photo',    text: '색감 보정 프리셋 공유해주실 수 있나요?', meta: '2시간 전 · 좋아요 5개' },
@@ -3577,34 +3475,6 @@
         } else {
           moreEl.remove();
         }
-      }
-
-      /* ── 입력창 타이핑 시 전송 버튼 활성화 ── */
-      function handleCommentInput(input) {
-        const btn = input.nextElementSibling;
-        btn.classList.toggle('is-ready', input.value.trim().length > 0);
-      }
-
-      /* ── 댓글 전송 (모의) ── */
-      function submitComment(btn) {
-        const input = btn.previousElementSibling;
-        const text = input.value.trim();
-        if (!text) return;
-        const container = btn.closest('.comment-expand, .recipe-card__comments');
-        const inputRow = btn.closest('.comment-input-row');
-        const newComment = document.createElement('div');
-        newComment.className = 'comment';
-        newComment.innerHTML = `
-          <div class="comment__avatar">ME</div>
-          <div class="comment__body">
-            <div class="comment__text"><strong>me</strong> ${text}</div>
-            <div class="comment__meta">방금 전</div>
-          </div>`;
-        container.insertBefore(newComment, inputRow);
-        input.value = '';
-        btn.classList.remove('is-ready');
-        btn.classList.add('is-ready');
-        setTimeout(() => btn.classList.remove('is-ready'), 100);
       }
 
       /* ── 사진 확대 라이트박스 ── */
