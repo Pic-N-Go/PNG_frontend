@@ -211,12 +211,12 @@
       .content {
         position: relative;
         z-index: 1;
-        padding: 24px 20px 0;
+        padding: var(--space-lg) 20px 0;
       }
 
       /* ── 출사 요약 ── */
       .trip-summary {
-        padding: 16px;
+        padding: var(--space-md);
         border-radius: 16px;
         background: var(--color-surface);
         margin-bottom: 20px;
@@ -232,7 +232,7 @@
         font-size: var(--font-sm);
         color: rgba(0, 0, 0, 0.4);
         letter-spacing: -0.1px;
-        margin-bottom: 16px;
+        margin-bottom: var(--space-md);
       }
       .trip-summary__stats {
         display: flex;
@@ -273,7 +273,7 @@
       }
       .day-tab {
         height: 40px;
-        padding: 0 24px;
+        padding: 0 var(--space-lg);
         border-radius: 20px;
         border: none;
         font-family: var(--font-family);
@@ -313,7 +313,7 @@
         font-size: var(--font-sm);
         color: rgba(0, 0, 0, 0.4);
         letter-spacing: -0.1px;
-        margin-bottom: 16px;
+        margin-bottom: var(--space-md);
       }
 
       /* ── 타임라인 ── */
@@ -492,10 +492,10 @@
       .tip-banner {
         display: flex;
         gap: 12px;
-        padding: 16px;
+        padding: var(--space-md);
         border-radius: var(--radius-card);
         background: var(--color-surface);
-        margin-top: 24px;
+        margin-top: var(--space-lg);
       }
       .tip-banner__icon {
         width: 28px;
@@ -695,7 +695,7 @@
         margin: 10px auto 0;
         flex-shrink: 0;
       }
-      .sheet-header { padding: 16px 20px 12px; flex-shrink: 0; }
+      .sheet-header { padding: var(--space-md) 20px 12px; flex-shrink: 0; }
       .sheet-title { font-size: 18px; font-weight: 600; color: #000; letter-spacing: -0.35px; }
       .sheet-body { overflow-y: auto; flex: 1; padding: 0 20px;
         background: #fff;
@@ -716,7 +716,7 @@
 
       /* 바로 출발 시트 내부 */
       .navi-route-card {
-        padding: 16px;
+        padding: var(--space-md);
         border-radius: 14px;
         background: var(--color-surface);
         margin-bottom: 10px;

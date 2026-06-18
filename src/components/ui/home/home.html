@@ -200,7 +200,7 @@
       .hero__content {
         position: relative;
         z-index: 10;
-        margin-top: 32px;
+        margin-top: var(--space-xl);
       }
       .hero__title {
         font-size: 30px;
@@ -259,7 +259,7 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 16px 20px 12px;
+        padding: var(--space-md) 20px 12px;
       }
       .filter-sheet__title {
         font-size: var(--font-lg); font-weight: 600;
@@ -287,7 +287,7 @@
         display: flex; flex-wrap: wrap; gap: 8px;
       }
       .filter-chip {
-        height: 36px; padding: 0 16px;
+        height: 36px; padding: 0 var(--space-md);
         border-radius: 18px;
         border: 1.5px solid rgba(0,0,0,0.1);
         background: #fff;
@@ -335,7 +335,7 @@
       .category-pill {
         flex-shrink: 0;
         height: 34px;
-        padding: 0 16px;
+        padding: 0 var(--space-md);
         border-radius: var(--radius-pill);
         background: var(--color-surface);
         border: none;
@@ -1799,7 +1799,7 @@
 
       function clearAllRecent() {
         document.getElementById('recentList').innerHTML =
-          '<div style="padding:16px 0;font-size: var(--font-base);color:rgba(0,0,0,0.3)">최근 검색어가 없어요</div>';
+          '<div style="padding:var(--space-md) 0;font-size: var(--font-base);color:rgba(0,0,0,0.3)">최근 검색어가 없어요</div>';
       }
 
       function emptyState() {

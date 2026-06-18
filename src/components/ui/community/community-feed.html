@@ -75,7 +75,7 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 0 16px;
+        padding: 0 var(--space-md);
       }
       .page-nav__compact-title {
         font-size: var(--font-lg);
@@ -126,7 +126,7 @@
 
       /* 검색바 */
       .page-nav__search {
-        padding: 0 16px 16px;
+        padding: 0 var(--space-md) 16px;
         overflow: hidden;
         max-height: 72px;
         opacity: 1;
@@ -134,7 +134,7 @@
       }
       .page-nav.is-scrolled .page-nav__search {
         max-height: 72px;
-        padding-bottom: 16px;
+        padding-bottom: var(--space-md);
         opacity: 1;
       }
 
@@ -143,7 +143,7 @@
         display: flex;
         align-items: center;
         gap: 8px;
-        padding: 0 16px 12px;
+        padding: 0 var(--space-md) 12px;
       }
       .view-toggle {
         display: flex;
@@ -623,7 +623,7 @@
       /* 섹션 공통 */
       .contest-section {
         padding: 0 20px;
-        margin-bottom: 24px;
+        margin-bottom: var(--space-lg);
       }
       .contest-section__header {
         display: flex;
@@ -1000,7 +1000,7 @@
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 16px 20px 12px;
+        padding: var(--space-md) 20px 12px;
       }
       .sheet__title {
         font-size: 18px;
@@ -1190,7 +1190,7 @@
         border-radius: 16px;
         overflow: hidden;
         aspect-ratio: 4 / 3;
-        margin-bottom: 16px;
+        margin-bottom: var(--space-md);
       }
       .my-entry-card__caption {
         position: absolute;
@@ -1211,7 +1211,7 @@
         gap: 6px;
         font-size: var(--font-sm);
         color: rgba(0, 0, 0, 0.45);
-        margin-bottom: 16px;
+        margin-bottom: var(--space-md);
         letter-spacing: -0.15px;
       }
       .sheet__done {
@@ -1226,7 +1226,7 @@
         font-weight: 500;
         color: #fff;
         cursor: pointer;
-        margin-top: 16px;
+        margin-top: var(--space-md);
         transition: opacity 0.2s;
       }
       .sheet__done:hover {
@@ -1271,7 +1271,7 @@
         color: rgba(0,0,0,0.45);
         letter-spacing: -0.1px;
         line-height: 1.55;
-        margin-bottom: 24px;
+        margin-bottom: var(--space-lg);
       }
       .vote-confirm-modal__btns {
         display: flex;
@@ -1302,7 +1302,7 @@
         color: rgba(0, 0, 0, 0.35);
         padding: 0 20px 14px;
         border-bottom: 0.5px solid rgba(0, 0, 0, 0.06);
-        margin-bottom: 16px;
+        margin-bottom: var(--space-md);
       }
       .result-podium {
         display: flex;
@@ -1453,7 +1453,7 @@
         gap: 8px;
         cursor: pointer;
         transition: all 0.2s;
-        margin-bottom: 16px;
+        margin-bottom: var(--space-md);
         position: relative;
         overflow: hidden;
       }
@@ -1504,7 +1504,7 @@
         padding: 12px 14px;
         border-radius: 12px;
         background: var(--color-surface);
-        margin-bottom: 16px;
+        margin-bottom: var(--space-md);
       }
       .entry-sheet__exif-icon {
         width: 20px;
@@ -1522,7 +1522,7 @@
         margin-top: 1px;
       }
       .entry-sheet__field {
-        margin-bottom: 16px;
+        margin-bottom: var(--space-md);
       }
       .entry-sheet__field-label {
         font-size: var(--font-sm);
@@ -2257,7 +2257,7 @@
         </div>
 
         <!-- 투표 버튼 -->
-        <div style="padding: 0 20px; margin-bottom: 24px">
+        <div style="padding: 0 20px; margin-bottom: var(--space-lg)">
           <!-- 투표 전 상태 -->
           <div class="vote-cta-wrap" id="voteBefore">
             <button class="vote-cta" onclick="openSheet()">

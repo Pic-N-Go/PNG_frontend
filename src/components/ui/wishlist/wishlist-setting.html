@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="../common/common.css">
   <style>
 .phone-frame{width: 100%;height: 100dvh;background:var(--color-bg);position:relative;overflow:hidden;display:flex;flex-direction:column}
-    .scroll-area{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding-bottom:24px;-webkit-overflow-scrolling:touch}
+    .scroll-area{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding-bottom:var(--space-lg);-webkit-overflow-scrolling:touch}
 
     /* ── 상단 네비 ── */
     .nav-bar{height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;border-bottom:0.5px solid var(--color-border-light);position:sticky;top:0;background:var(--color-bg);z-index:20}
@@ -21,13 +21,13 @@
     .content{padding:0 20px 4px}
 
     /* ── 섹션 ── */
-    .section{margin-bottom:32px}
+    .section{margin-bottom:var(--space-xl)}
     .section:last-child{margin-bottom:0}
     .section__title{font-size:18px;font-weight:600;letter-spacing:-0.3px;margin-bottom:2px}
     .section__sub{font-size: var(--font-sm);color:var(--color-text-secondary);margin-bottom:14px}
 
     /* ── 스팟 카드 ── */
-    .spot-card{margin:16px 0 28px;border-radius:16px;background:linear-gradient(to bottom,#1a1530,#b44a3a);padding:18px 14px 14px;position:relative;overflow:hidden;transition:background 0.3s}
+    .spot-card{margin:var(--space-md) 0 28px;border-radius:16px;background:linear-gradient(to bottom,#1a1530,#b44a3a);padding:18px 14px 14px;position:relative;overflow:hidden;transition:background 0.3s}
     .spot-card.thumb--2{background:linear-gradient(to bottom,#0f2027,#2c5364)}
     .spot-card.thumb--3{background:linear-gradient(to bottom,#0a1a0f,#4a8060)}
     .spot-card.thumb--4{background:linear-gradient(to bottom,#1a0a2e,#7b4ea0)}
@@ -47,7 +47,7 @@
     .weather-chip.selected{background:var(--color-accent)}
     .weather-chip.selected .weather-chip__label{color:#fff;font-weight:600}
     .weather-chip.selected::after{content:'✓';position:absolute;top:7px;right:7px;width:18px;height:18px;border-radius:50%;background:#fff;color:var(--color-accent);font-size: var(--font-2xs);font-weight:600;display:flex;align-items:center;justify-content:center;line-height:18px;text-align:center}
-    .chip-pill{display:inline-flex;align-items:center;gap:8px;padding:0 16px 0 10px;height:40px;border-radius:20px;background:#fff;border:0.5px solid rgba(0,0,0,0.08);cursor:pointer;font-family:var(--font-family);font-size: var(--font-sm);color:rgba(0,0,0,0.45);position:relative;transition:all 0.15s;margin-top:8px}
+    .chip-pill{display:inline-flex;align-items:center;gap:8px;padding:0 var(--space-md) 0 10px;height:40px;border-radius:20px;background:#fff;border:0.5px solid rgba(0,0,0,0.08);cursor:pointer;font-family:var(--font-family);font-size: var(--font-sm);color:rgba(0,0,0,0.45);position:relative;transition:all 0.15s;margin-top:8px}
     .chip-pill__icon{font-size:20px;line-height:1}
     .chip-pill.selected{background:var(--color-accent);color:#fff;font-weight:600}
     .chip-pill.selected::after{content:'✓';position:absolute;top:-4px;right:-4px;width:18px;height:18px;border-radius:50%;background:#fff;color:var(--color-accent);font-size: var(--font-2xs);font-weight:600;line-height:18px;text-align:center}
@@ -111,7 +111,7 @@
     .modal-backdrop.is-open{display:flex}
     .modal{width:100%;background:#fff;border-radius:24px 24px 0 0;padding:28px 24px 40px}
     .modal__title{font-size:20px;font-weight:600;color:#000;letter-spacing:-0.3px;margin-bottom:8px}
-    .modal__desc{font-size: var(--font-base);color:rgba(0,0,0,0.45);line-height:1.55;margin-bottom:24px}
+    .modal__desc{font-size: var(--font-base);color:rgba(0,0,0,0.45);line-height:1.55;margin-bottom:var(--space-lg)}
     .modal__btn{display:block;width:100%;height:50px;border-radius:25px;border:none;font-family:var(--font-family);font-size: var(--font-md);font-weight:500;cursor:pointer;margin-bottom:10px;transition:all 0.15s}
     .modal__btn--delete{background:rgba(255,69,58,0.1);color:var(--color-error)}
     .modal__btn--delete:hover{background:rgba(255,69,58,0.16)}
@@ -166,7 +166,7 @@
     .sheet-spot-item.selected .sheet-spot-badge{background:rgba(227,27,89,0.08);color:var(--color-accent)}
     .sheet-check{width:24px;height:24px;border-radius:50%;background:var(--color-accent);flex-shrink:0;display:none;align-items:center;justify-content:center}
     .sheet-spot-item.selected .sheet-check{display:flex}
-    .sheet-all-search{display:block;text-align:center;padding:16px 20px 0;font-size: var(--font-base);color:var(--color-accent);background:none;border:none;cursor:pointer;font-family:var(--font-family);flex-shrink:0}
+    .sheet-all-search{display:block;text-align:center;padding:var(--space-md) 20px 0;font-size: var(--font-base);color:var(--color-accent);background:none;border:none;cursor:pointer;font-family:var(--font-family);flex-shrink:0}
     .sheet-all-search:hover{opacity:0.75}
 
     /* ── 상태바 ── */

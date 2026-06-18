@@ -25,7 +25,7 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 0 16px;
+        padding: 0 var(--space-md);
         position: sticky;
         top: 0;
         background: var(--color-bg);
@@ -60,7 +60,7 @@
 
       /* ── 섹션 그룹 ── */
       .section-group {
-        padding: 24px 20px 0;
+        padding: var(--space-lg) 20px 0;
       }
       .section-label {
         font-size: 12px;
@@ -234,7 +234,7 @@
       }
       .faq-a {
         display: none;
-        padding: 0 16px 14px;
+        padding: 0 var(--space-md) 14px;
         font-size: var(--font-sm);
         color: rgba(0, 0, 0, 0.5);
         line-height: 1.6;
@@ -369,7 +369,7 @@
         border-radius: 20px 20px 0 0;
         z-index: 101;
         transition: transform 0.32s cubic-bezier(0.32, 0.72, 0, 1);
-        padding-bottom: 32px;
+        padding-bottom: var(--space-xl);
       }
       .bottom-sheet.is-open {
         transform: translateX(-50%) translateY(0);
@@ -571,7 +571,7 @@
         font-size: var(--font-base);
         color: rgba(0, 0, 0, 0.45);
         line-height: 1.55;
-        margin-bottom: 24px;
+        margin-bottom: var(--space-lg);
       }
       .modal__btn {
         display: block;
@@ -1192,7 +1192,7 @@
       </div>
 
       <!-- ── 기타 ── -->
-      <div class="section-group" style="padding-bottom: 32px">
+      <div class="section-group" style="padding-bottom: var(--space-xl)">
         <div class="section-label">기타</div>
         <div class="setting-card">
           <div class="setting-row" onclick="openLogoutModal()">

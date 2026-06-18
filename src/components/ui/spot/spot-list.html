@@ -10,7 +10,7 @@
 .phone-frame{width: 100%;background:var(--color-bg);position:relative;overflow-y:auto;overflow-x:hidden;padding-bottom:20px;height:100dvh;}
 
     /* ── 네비 ── */
-    .nav{height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;position:sticky;top:0;background:var(--color-bg);z-index:20;border-bottom:0.5px solid var(--color-border-light)}
+    .nav{height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 var(--space-md);position:sticky;top:0;background:var(--color-bg);z-index:20;border-bottom:0.5px solid var(--color-border-light)}
     .nav__back{width:36px;height:36px;border-radius:50%;border:none;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:rgba(0,0,0,0.5);transition:background 0.15s}
     .nav__back:hover{background:var(--color-surface)}
     .nav__title{font-size: var(--font-lg);font-weight:600;color:var(--color-text-primary);letter-spacing:-0.3px}
@@ -19,7 +19,7 @@
     /* ── 탭 + 정렬 컨트롤 ── */
     .controls{display:flex;align-items:center;justify-content:space-between;padding:12px 20px;gap:8px;position:sticky;top:54px;background:var(--color-bg);z-index:15;border-bottom:0.5px solid var(--color-border-light)}
     .tab-toggle{display:flex;gap:8px;}
-    .tab-toggle__btn{display:flex;align-items:center;height:32px;padding:0 16px;border-radius:16px;border:none;font-family:var(--font-family);font-size: var(--font-sm);font-weight:500;color:rgba(0,0,0,0.45);background:var(--color-surface);cursor:pointer;transition:all 0.18s;white-space:nowrap}
+    .tab-toggle__btn{display:flex;align-items:center;height:32px;padding:0 var(--space-md);border-radius:16px;border:none;font-family:var(--font-family);font-size: var(--font-sm);font-weight:500;color:rgba(0,0,0,0.45);background:var(--color-surface);cursor:pointer;transition:all 0.18s;white-space:nowrap}
     .tab-toggle__btn.is-active{background:var(--color-accent);color:#fff;}
     .sort-btn{height:36px;padding:0 14px;border-radius:18px;border:none;background:var(--color-surface);font-family:var(--font-family);font-size: var(--font-sm);color:rgba(0,0,0,0.55);cursor:pointer;display:flex;align-items:center;gap:4px;transition:background 0.15s;flex-shrink:0}
     .sort-btn:hover{background:rgba(0,0,0,0.06)}
