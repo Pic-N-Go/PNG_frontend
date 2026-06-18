@@ -815,6 +815,7 @@
   function togglePw() {
     const pw = document.getElementById('pw');
     pw.type = pw.type === 'password' ? 'text' : 'password';
+  }
 
   /* ── 비밀번호 찾기 바텀시트 ── */
   let resendInterval = null;
@@ -906,6 +907,7 @@
     document.getElementById('resendTimer').style.cursor = 'default';
     startTimer();
     showToast('인증코드를 다시 발송했어요');
+  }
 
   /* ── 토스트 ── */
   function showToast(msg) {

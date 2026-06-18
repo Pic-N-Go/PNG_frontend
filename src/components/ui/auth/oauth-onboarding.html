@@ -518,10 +518,12 @@
   /* ── nickname counter ── */
   function updateCounter(input) {
     document.getElementById('nickCounter').textContent = input.value.length + '/12';
+  }
 
   /* ── theme pill toggle ── */
   function toggleTheme(el) {
     el.classList.toggle('is-selected');
+  }
 
   /* ── form validation ── */
   function checkForm() {
@@ -538,6 +540,7 @@
     var btn = document.getElementById('startBtn');
     btn.classList.toggle('btn--primary', nicknameOk);
     btn.classList.toggle('btn--disabled', !nicknameOk);
+  }
 
   /* ── submit ── */
   function handleStart() {
