@@ -9,8 +9,10 @@
 
 ```
 src/components/ui/
-  fonts.css                   # Pretendard Variable 폰트 정의 (공통)
-  common.css                  # 공통 디자인 토큰·리셋·phone-frame 기본 (공통)
+  common/
+    fonts.css                 # Pretendard Variable 폰트 정의 (공통)
+    common.css                # 공통 디자인 토큰·리셋·phone-frame 기본 (공통)
+    icons.js                  # Tabler Icons SVG 스프라이트 (file:// 호환)
   auth/
     login.html                # 로그인 (스플래시 내장 → 이메일/소셜 로그인)
     signup.html               # 회원가입 (이메일 인증·비밀번호 강도·관심 테마·약관)
@@ -23,9 +25,11 @@ src/components/ui/
     travel-plan.html          # 여행 계획 상세 (지도 헤더·일자별 스팟 타임라인)
     travel-new.html           # 새 여행 계획 만들기
   community/
-    community-feed.html       # 커뮤니티 피드 (레시피·갤러리·콘테스트 탭·타이틀 하단 검색바)
+    community-feed.html       # 커뮤니티 피드 (레시피·갤러리 탭·타이틀 하단 검색바)
+    community-write.html      # 게시물 작성 — 미퍼블리싱
+    contest.html              # 주간 콘테스트 — 미퍼블리싱
   spot/
-    spot-detail.html          # 스팟 상세 (포토제닉 스코어·날씨·사진·리뷰 탭·채팅)
+    spot-detail.html          # 스팟 상세 (포토제닉 스코어·날씨·정보/사진/채팅 탭)
     spot-register.html        # 새 스팟 등록 (3단계 폼·장소명 필수 검증)
     spot-change.html          # 위시리스트 스팟 변경
     spot-list.html            # 스팟 목록 (방문 스팟 등 쿼리 파라미터 기반 뷰)
@@ -37,6 +41,8 @@ src/components/ui/
     profile-edit.html         # 프로필 편집
     setting.html              # 설정 (알림·계정·로그아웃)
     notification.html         # 알림 목록
+    follow.html               # 팔로워/팔로잉 목록 — 미퍼블리싱
+    user-profile.html         # 타 유저 프로필 — 미퍼블리싱
   wishlist/
     wishlist.html             # 위시리스트 목록
     wishlist-setting.html     # 위시리스트 상세 설정
@@ -59,8 +65,8 @@ src/components/ui/
 모든 파일이 `fonts.css` 다음에 `common.css`를 링크합니다.
 
 ```html
-<link rel="stylesheet" href="../fonts.css">
-<link rel="stylesheet" href="../common.css">
+<link rel="stylesheet" href="../common/fonts.css">
+<link rel="stylesheet" href="../common/common.css">
 ```
 
 `common.css`에 포함된 내용:
@@ -205,14 +211,14 @@ src/components/ui/
 ### community/community-feed.html
 - 스크롤 콜랩스 헤더 (travel과 동일 패턴)
 - 타이틀 하단 검색바 (항상 노출, 스크롤 시 큰 타이틀만 접힘)
-- 레시피·갤러리·콘테스트 탭 전환
+- 레시피·갤러리 탭 전환
 - 인기순 정렬 드롭다운
+- 게시물 작성 버튼 → `community-write.html` (미퍼블리싱)
 
 ### spot/spot-detail.html
-- 탭: 정보 / 사진 / **리뷰** / AI분석
-- 리뷰 탭: 평점 분포 + 정렬 칩 + 리뷰 카드 + 하단 고정 "리뷰 작성하기" 버튼 → `review-write.html`
-- 포토제닉 스코어 (날씨·골든아워·미세먼지·혼잡도·계절 항목)
-- 실시간 채팅 패널
+- 탭: 정보 / 사진 / **채팅**
+- 정보 탭: 포토제닉 스코어 (날씨·골든아워·미세먼지·혼잡도·계절), 편의 정보, 리뷰 작성하기 → `review-write.html`
+- 채팅 탭: 실시간 채팅 패널, LIVE 뱃지, 사진 공유
 
 ### spot/spot-register.html
 - 3단계 스텝 폼 (사진 등록 → 위치 선택 → 상세 정보)
@@ -257,7 +263,8 @@ auth/login
        ├─ [검색 결과] → spot/spot-detail                  │
        ├─ home/map ──────── spot/spot-detail              │
        ├─ spot/spot-detail                                │
-       │    └─ spot/review-write                          │
+       │    ├─ spot/review-write                          │
+       │    └─ [사진 탭] → spot/photo-detail (미퍼블리싱)  │
        ├─ wishlist/wishlist                               │
        │    └─ wishlist/wishlist-setting                  │
        │         └─ spot/spot-change                      │
@@ -268,11 +275,14 @@ auth/login
             │    │    └─ spot/spot-detail
             │    └─ travel/travel-new
             ├─ community/community-feed
+            │    ├─ community/community-write (미퍼블리싱)
+            │    └─ community/contest (미퍼블리싱)
             └─ mypage/mypage
                  ├─ mypage/my-photos
                  ├─ mypage/setting
                  │    └─ mypage/profile-edit
                  ├─ mypage/notification
+                 ├─ mypage/user-profile (미퍼블리싱)
                  ├─ spot/spot-register
                  ├─ spot/spot-list?view=visited
                  └─ wishlist/wishlist
@@ -285,7 +295,7 @@ auth/login
 ### 스크롤 콜랩스 헤더 (travel-list, community-feed)
 
 ```js
-const frame = document.querySelector('.phone-frame');
+const frame = document.querySelector('.phone-scroll');
 const nav = document.getElementById('page-nav');
 if (frame && nav) {
   frame.addEventListener('scroll', () => {
@@ -294,8 +304,9 @@ if (frame && nav) {
 }
 ```
 
+- `.phone-scroll`: `.phone-frame` 내부의 실제 스크롤 컨테이너 (`height:100%; overflow-y:auto`)
 - `is-scrolled` 시 `.page-nav__large` (큰 타이틀) 접힘, `.page-nav__compact-title` 노출
-- **`min-height: unset`** 필수 — 없으면 frame이 스크롤 컨테이너가 되지 않아 `scrollTop` 항상 0
+- `.phone-frame`에 `overflow:hidden`을 주고 `.phone-scroll`을 별도 자식으로 분리해야 `position:fixed` 요소(탭바 등)가 클리핑되지 않음
 
 ### 바텀시트 패턴
 
@@ -373,4 +384,5 @@ open src/components/ui/home/home.html
 
 ---
 
-RN 구현 시 → [`docs/development-guide.md`](development-guide.md) 참고
+RN 구현 시 → [`docs/development-guide.md`](development-guide.md) 참고  
+담당자 확인 → [`docs/team-assignments.md`](team-assignments.md) 참고

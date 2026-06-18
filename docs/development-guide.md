@@ -11,74 +11,77 @@
 src/
 ├── api/                        # REST API 호출 함수
 │   ├── client.ts               # axios 인스턴스 (baseURL, 토큰, 인터셉터) — TODO: 미생성
-│   ├── auth/
-│   │   ├── auth.api.ts         # login, signup, logout, tokenRefresh
-│   │   └── auth.types.ts       # LoginRequest, LoginResponse...
-│   ├── spot/
-│   │   ├── spot.api.ts         # getSpots, getSpotDetail, registerSpot
-│   │   └── spot.types.ts       # Spot, SpotDetail, SpotFilter...
-│   ├── review/
-│   │   ├── review.api.ts       # getReviews, createReview, deleteReview
-│   │   └── review.types.ts     # Review, CreateReviewRequest...
-│   ├── user/
-│   │   ├── user.api.ts         # getProfile, updateProfile, follow, unfollow
-│   │   └── user.types.ts       # User, ProfileUpdateRequest...
-│   ├── travel/
-│   │   ├── travel.api.ts       # getTravels, createTravel, addSpotToTravel
-│   │   └── travel.types.ts     # Travel, TravelSpot...
-│   ├── community/
-│   │   ├── community.api.ts    # getPosts, createPost, likePost
-│   │   └── community.types.ts  # Post, Comment...
-│   └── wishlist/
-│       ├── wishlist.api.ts     # getWishlists, createWishlist, addSpot
-│       └── wishlist.types.ts   # Wishlist, WishlistSpot...
+│   ├── auth.ts                 # login, signup, logout, tokenRefresh
+│   ├── spot.ts                 # getSpots, getSpotDetail, registerSpot
+│   ├── community.ts            # getPosts, createPost, likePost
+│   ├── travel.ts               # getTravels, createTravel, addSpotToTravel
+│   ├── mypage.ts               # getProfile, updateProfile
+│   ├── search.ts               # search, getSearchHistory
+│   ├── notification.ts         # getNotifications, markRead
+│   └── wishlist.ts             # getWishlists, createWishlist, addSpot
 │
 ├── components/                 # 재사용 가능한 React Native 컴포넌트
 │   ├── ScreenContainer.tsx     # 모든 화면 루트 래퍼 — Safe Area 처리
 │   ├── common/                 # 전역 공통 (Button, Input, Card, Toast...)
 │   ├── spot/                   # 스팟 관련 컴포넌트
-│   ├── home/                   # 홈 관련 컴포넌트
+│   ├── community/              # 커뮤니티 관련 컴포넌트
+│   ├── travel/                 # 여행 관련 컴포넌트
 │   └── ui/                     # HTML 목업 (퍼블리싱 전용 — RN 구현 시 읽기 전용 참조)
-│       ├── fonts.css           # Pretendard Variable 폰트 (공통)
-│       ├── common.css          # 디자인 토큰·리셋·phone-frame 기본 (공통)
+│       └── common/
+│           ├── fonts.css       # Pretendard Variable 폰트 (공통)
+│           ├── common.css      # 디자인 토큰·리셋·phone-frame 기본 (공통)
+│           └── icons.js        # Tabler Icons SVG 스프라이트
 │
 ├── constants/
 │   └── layout.ts               # 기기 스케일링 레이아웃 상수
 │
 ├── hooks/                      # TanStack Query 커스텀 훅
-│   ├── useSpots.ts
 │   ├── useAuth.ts
-│   └── ...
+│   ├── useSpot.ts
+│   ├── useCommunity.ts
+│   ├── useTravel.ts
+│   ├── useMypage.ts
+│   ├── useSearch.ts
+│   └── useNotification.ts
 │
 ├── navigation/                 # 네비게이션 설정
-│   ├── RootNavigator.tsx
-│   ├── AuthNavigator.tsx
-│   └── TabNavigator.tsx
+│   ├── index.tsx               # RootNavigator — 로그인 여부로 AuthStack / MainTab 분기
+│   ├── AuthStack.tsx           # 인증 스택 (Splash, Login, Signup, Onboarding)
+│   ├── MainTab.tsx             # 메인 탭 (홈·여행·커뮤니티·마이)
+│   └── stacks/
+│       ├── HomeStack.tsx       # Home, Map
+│       ├── SpotStack.tsx       # SpotDetail, SpotRegister, ReviewWrite, PhotoDetail
+│       ├── TravelStack.tsx     # TravelList, TravelPlan, TravelNew, Wishlist, WishlistSetting
+│       ├── CommunityStack.tsx  # CommunityFeed, CommunityWrite, Contest
+│       └── MyPageStack.tsx     # MyPage, UserProfile, Setting, Notification
 │
-├── screens/                    # 화면 단위 컴포넌트 (목업 구조와 동일)
+├── screens/                    # 화면 단위 컴포넌트
 │   ├── auth/
+│   │   ├── SplashScreen.tsx
 │   │   ├── LoginScreen.tsx
 │   │   ├── SignupScreen.tsx
-│   │   └── OAuthOnboardingScreen.tsx
+│   │   └── OnboardingScreen.tsx
 │   ├── home/
 │   │   ├── HomeScreen.tsx
 │   │   └── MapScreen.tsx
+│   ├── search/
+│   │   └── SearchResultScreen.tsx
 │   ├── travel/
 │   │   ├── TravelListScreen.tsx
 │   │   ├── TravelPlanScreen.tsx
 │   │   └── TravelNewScreen.tsx
 │   ├── community/
-│   │   └── CommunityFeedScreen.tsx
+│   │   ├── CommunityFeedScreen.tsx
+│   │   ├── CommunityWriteScreen.tsx
+│   │   └── ContestScreen.tsx
 │   ├── spot/
 │   │   ├── SpotDetailScreen.tsx
 │   │   ├── SpotRegisterScreen.tsx
-│   │   ├── SpotListScreen.tsx
-│   │   └── ReviewWriteScreen.tsx
+│   │   ├── ReviewWriteScreen.tsx
+│   │   └── PhotoDetailScreen.tsx
 │   ├── mypage/
-│   │   ├── MypageScreen.tsx
-│   │   ├── MyPhotosScreen.tsx
-│   │   ├── PhotoMapScreen.tsx
-│   │   ├── ProfileEditScreen.tsx
+│   │   ├── MyPageScreen.tsx
+│   │   ├── UserProfileScreen.tsx
 │   │   ├── SettingScreen.tsx
 │   │   └── NotificationScreen.tsx
 │   └── wishlist/
@@ -87,12 +90,17 @@ src/
 │
 ├── store/                      # Zustand 클라이언트 상태
 │   ├── useAuthStore.ts         # JWT 토큰, 유저 정보
-│   └── ...
+│   ├── useMapStore.ts          # 지도 상태 (마커, 뷰포트)
+│   ├── useTravelStore.ts       # 여행 계획 편집 임시 상태
+│   └── useUIStore.ts           # 토스트·모달 등 전역 UI 상태
 │
 ├── types/                      # 공통 TypeScript 타입
+│   ├── auth.ts
 │   ├── spot.ts
+│   ├── community.ts
+│   ├── travel.ts
 │   ├── user.ts
-│   └── ...
+│   └── common.ts
 │
 └── utils/
     └── normalize.ts            # 기기 너비 스케일링 유틸
@@ -137,25 +145,25 @@ import { useAuthStore } from "../../store/useAuthStore";
 
 ### API 레이어
 
-- `*.api.ts` — 순수 fetch 함수만 작성 (훅, 상태 포함 금지)
-- `*.types.ts` — 해당 도메인의 Request / Response 타입 정의
+- `src/api/[domain].ts` — 순수 fetch 함수만 작성 (훅, 상태 포함 금지)
+- `src/types/[domain].ts` — 도메인별 Request / Response 타입 정의
 - `src/hooks/` — TanStack Query로 api 함수를 감싼 커스텀 훅
 
 ```ts
-// src/api/spot/spot.api.ts
+// src/api/spot.ts
 import { client } from "@/api/client";
-import { Spot, SpotFilter } from "./spot.types";
+import type { Spot, SpotFilter } from "@/types/spot";
 
 export const getSpots = async (filter: SpotFilter): Promise<Spot[]> => {
   const { data } = await client.get("/spots", { params: filter });
   return data;
 };
 
-// src/hooks/useSpots.ts
+// src/hooks/useSpot.ts
 import { useQuery } from "@tanstack/react-query";
-import { getSpots } from "@/api/spot/spot.api";
+import { getSpots } from "@/api/spot";
 
-export const useSpots = (filter: SpotFilter) =>
+export const useSpot = (filter: SpotFilter) =>
   useQuery({
     queryKey: ["spots", filter],
     queryFn: () => getSpots(filter),
@@ -214,12 +222,12 @@ export function HomeScreen() {
 
 HTML 목업 파일을 보면서 아래 순서로 구현합니다.
 
-1. `src/components/ui/[화면명].html` 열기
+1. `src/components/ui/[도메인]/[화면명].html` 열기
 2. 레이아웃 구조 파악 → `src/screens/[도메인]/[화면명]Screen.tsx` 생성
 3. `ScreenContainer`를 루트 래퍼로 적용 (히어로 화면은 `edges` 조정)
 4. NativeWind className으로 스타일 적용
 5. 고정 수치는 `src/constants/layout.ts` 상수 사용
-6. API 연동 필요 시 `src/api/[도메인]/` 함수 작성 후 `src/hooks/` 훅으로 감싸기
+6. API 연동 필요 시 `src/api/[도메인].ts` 함수 작성 후 `src/hooks/` 훅으로 감싸기
 
 ---
 
@@ -266,12 +274,11 @@ const secret = process.env.SECRET_KEY;
 
 | 문서 | 내용 |
 |---|---|
-| `docs/ai-prompt-guide.md` | 팀 공용 AI 하네스(스펙/계획/리뷰 체크리스트) |
-| `docs/style-consistency-fixes.md` | 퍼블리싱 스타일 통일성 수정 목록 |
+| `docs/team-assignments.md` | 화면·API·훅·스토어 담당자 현황 |
 | `docs/ui-publishing.md` | HTML 목업 구조 및 화면 간 네비게이션 흐름 |
 | `docs/ai-prompt-guide.md` | AI 활용 화면 구현 프롬프트 템플릿 |
 | `docs/device-support.md` | 지원 기기 범위, 레이아웃 상수 사용법 |
-| `docs/photo-upload-spec.md` | 사진 업로드 스펙 (TODO: 미작성) |
-| `CLAUDE.md` | 프로젝트 전체 규칙 및 디자인 시스템 |
-| `.github/CONVENTIONS.md` | 브랜치/PR/라벨 컨벤션 |
+| `docs/style-consistency-fixes.md` | 퍼블리싱 스타일 통일성 수정 목록 |
+| `docs/photo-upload-spec.md` | 사진 업로드 스펙 (형식·크기·EXIF 처리) |
 | `docs/github-actions-guide.md` | GitHub Actions 자동화 동작 및 대응 |
+| `CLAUDE.md` | 프로젝트 전체 규칙 및 디자인 시스템 |

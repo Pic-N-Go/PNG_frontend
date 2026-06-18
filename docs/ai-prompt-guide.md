@@ -70,9 +70,9 @@ src/screens/spot/SpotDetailScreen.tsx 를 구현해줘.
 
 제약 조건:
 - 스타일: NativeWind className만 사용 (StyleSheet 사용 금지)
-- 디자인: HTML과 동일한 탭(정보·사진·리뷰·AI분석) 구조 유지
+- 디자인: HTML과 동일한 탭(정보·사진·채팅) 구조 유지
 - import: @/ alias 사용
-- API: src/api/spots.ts 의 getSpotDetail(id) 연결
+- API: src/api/spot.ts 의 getSpotDetail(id) 연결
 - route params: spotId 받아서 API 호출
 ```
 
@@ -82,16 +82,18 @@ src/screens/spot/SpotDetailScreen.tsx 를 구현해줘.
 
 ```
 src/components/ui/
+  common/       fonts.css, common.css, icons.js
   auth/         login, signup, oauth-onboarding
   home/         home, map
   travel/       travel-list, travel-plan, travel-new
-  community/    community-feed
+  community/    community-feed  ※ community-write, contest 미퍼블리싱
   spot/         spot-detail, spot-register, spot-change, spot-list, review-write
-  mypage/       mypage, my-photos, profile-edit, setting, notification, photo-map
+  mypage/       mypage, my-photos, profile-edit, setting, notification, photo-map  ※ user-profile 미퍼블리싱
   wishlist/     wishlist, wishlist-setting
 ```
 
-전체 구조 및 화면 간 네비게이션 흐름 → `docs/ui-publishing.md`
+전체 구조 및 화면 간 네비게이션 흐름 → `docs/ui-publishing.md`  
+담당자 확인 → `docs/team-assignments.md`
 
 ---
 
