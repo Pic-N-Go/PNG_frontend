@@ -3,6 +3,11 @@
 > 이 레포에 설정된 GitHub Actions 및 자동화 규칙을 정리합니다.  
 > 팀원 모두가 참고할 수 있도록 작성되었습니다.
 
+> 문서 역할 분리:
+> - 브랜치/PR 네이밍 규칙: `.github/CONVENTIONS.md` (단일 기준)
+> - 프로젝트 온보딩/실행: `README.md`
+> - 이 문서: **GitHub Actions 자동화 동작과 운영 대응**
+
 ---
 
 ## 워크플로우 목록
@@ -16,43 +21,35 @@
 
 ---
 
-## PR 작성 규칙
+## 규칙 기준 문서
 
-### 제목 prefix
+- PR/브랜치/라벨 규칙은 `.github/CONVENTIONS.md`를 따릅니다.
+- 이 문서에는 규칙 자체를 중복 기재하지 않고, 자동화 동작만 설명합니다.
 
-PR 제목은 아래 prefix 중 하나로 시작합니다. prefix에 따라 라벨이 자동으로 붙습니다.
+## 자동화별 동작 요약
 
-| prefix | 라벨 | 사용 시점 |
-|---|---|---|
-| `feat:` | feature | 새 기능 추가 |
-| `fix:` | bug | 버그 수정 |
-| `refactor:` | refactor | 기능 변화 없는 코드 개선 |
-| `style:` | style | UI/스타일 변경 |
-| `chore:` | chore | 설정, 의존성, 기타 잡무 |
-| `docs:` | docs | 문서 수정 |
-| `test:` | test | 테스트 추가·수정 |
+### Labeler (`.github/workflows/labeler.yml`)
 
-scope가 필요한 경우 `feat(auth): 소셜 로그인 추가` 형식으로 작성합니다.
+- PR 제목/브랜치명을 기준으로 라벨을 자동 적용합니다.
+- 실제 매핑 규칙은 `.github/labeler.yml`에 정의됩니다.
 
-> 라벨은 PR 생성 후 labeler 워크플로우가 자동으로 적용합니다. 직접 선택하지 않아도 됩니다.
+### Issue Labeler (`.github/workflows/issue-labeler.yml`)
 
----
+- 이슈 제목 prefix(`feat:`, `fix:` 등)와 매칭되는 라벨을 자동 적용합니다.
+- 템플릿 기반 라벨(`bug`/`feature`)과 함께 동작할 수 있습니다.
 
-## 이슈 작성 규칙
+### CI (`.github/workflows/ci.yml`)
 
-이슈 작성 시 **버그 리포트** / **기능 요청** 템플릿 중 하나를 선택합니다.  
-빈 이슈는 비활성화되어 있습니다.
+- `main`/`develop` 대상 `push`, `pull_request`에서 실행됩니다.
+- 수행 항목:
+  - Type check: `pnpm exec tsc --noEmit`
+  - Lint: `pnpm lint`
 
-- 템플릿 선택 시 라벨(`bug` / `feature`)이 자동 적용됩니다.
-- 이슈 제목을 PR과 동일한 prefix로 작성하면 라벨이 자동 적용됩니다.
+### Reviewdog (`.github/workflows/reviewdog.yml`)
 
-PR에 이슈를 연결하려면 PR 본문에 아래처럼 작성합니다.
-
-```
-Closes #이슈번호
-```
-
-PR 머지 시 연결된 이슈가 자동으로 닫힙니다.
+- `src/**/*.ts`, `src/**/*.tsx` 변경이 있는 PR에서 실행됩니다.
+- ESLint 결과를 PR 인라인 리뷰 코멘트로 남깁니다.
+- `fail_level: none`이므로 코멘트는 남기되 머지를 직접 차단하지는 않습니다.
 
 ---
 
@@ -72,8 +69,8 @@ PR 머지 시 연결된 이슈가 자동으로 닫힙니다.
 
 | 업데이트 종류 | 예시 | 처리 방법 |
 |---|---|---|
-| 패치 (`x.x.0 → x.x.1`) | zustand 5.0.13 → 5.0.14 | 바로 머지 |
-| 마이너 (`x.0.x → x.1.x`) | react-query 5.100 → 5.101 | 릴리즈 노트 확인 후 머지 |
+| 패치 (`x.x.0 → x.x.1`) | zustand 5.0.13 → 5.0.14 | CI 통과 후 우선 머지 |
+| 마이너 (`x.0.x → x.1.x`) | react-query 5.100 → 5.101 | 변경사항 확인 후 머지 |
 | 메이저 (`1.x.x → 2.x.x`) | expo 54 → 56 | 테스트 브랜치에서 검증 후 머지 |
 
 ### Dependabot 명령어
@@ -102,7 +99,7 @@ pnpm lint                # 린트 에러 확인
 
 에러 수정 후 커밋하면 CI가 자동으로 재실행됩니다.
 
-### pnpm-lock.yaml 불일치
+### lockfile 불일치
 
 ```bash
 pnpm install --no-frozen-lockfile
@@ -118,12 +115,8 @@ Reviewdog가 실패해도 머지를 막지는 않습니다 (`fail_level: none`).
 
 ---
 
-## 브랜치 upstream 설정
+## 관련 참고 문서
 
-로컬에서 새 브랜치를 만들고 push한 경우 아래 명령어로 upstream을 설정합니다.
-
-```bash
-git branch --set-upstream-to=origin/<브랜치명> <브랜치명>
-```
-
-설정 후에는 `git pull`만으로 최신 변경사항을 받을 수 있습니다.
+- 브랜치/PR/라벨 규칙: `.github/CONVENTIONS.md`
+- 프로젝트 온보딩/실행: `README.md`
+- 팀 AI 협업 표준: `docs/ai/README.md`
