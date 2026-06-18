@@ -1,0 +1,293 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>PNG - 내가 쓴 리뷰</title>
+  <link rel="stylesheet" href="../common/fonts.css">
+  <link rel="stylesheet" href="../common/common.css">
+    <style>
+      .phone-frame {
+        width: 100%;
+        background: var(--color-bg);
+        position: relative;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding-bottom: 40px;
+      }
+
+      /* ── 네비 ── */
+      .nav {
+        height: 54px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 16px;
+        position: sticky;
+        top: 0;
+        background: var(--color-bg);
+        z-index: 20;
+        border-bottom: 0.5px solid var(--color-border-light);
+      }
+      .nav__back {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: none;
+        background: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: rgba(0, 0, 0, 0.5);
+        transition: background 0.15s;
+      }
+      .nav__back:hover { background: var(--color-surface); }
+      .nav__title {
+        font-size: var(--font-lg);
+        font-weight: 600;
+        color: var(--color-text-primary);
+        letter-spacing: -0.3px;
+      }
+      .nav__placeholder { width: 36px; }
+
+      /* ── 리뷰 목록 ── */
+      .my-review-list { padding: 4px 20px 20px; }
+      .my-review-item {
+        padding: 14px 0;
+        border-bottom: 0.5px solid rgba(0,0,0,0.05);
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+      }
+      .my-review-item:last-child { border-bottom: none; }
+      .my-review-item__top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 10px;
+      }
+      .my-review-item__left { flex: 1; min-width: 0; }
+      .my-review-item__spot {
+        font-size: var(--font-md);
+        font-weight: 600;
+        color: #000;
+        letter-spacing: -0.2px;
+        margin-bottom: 4px;
+      }
+      .my-review-item__meta {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: var(--font-xs);
+        color: rgba(0,0,0,0.35);
+      }
+      .my-review-item__stars {
+        font-size: var(--font-xs);
+        color: var(--color-warning);
+        letter-spacing: 1px;
+      }
+      .my-review-item__badge {
+        display: inline-flex;
+        align-items: center;
+        height: 16px;
+        padding: 0 6px;
+        border-radius: 8px;
+        background: rgba(0,0,0,0.06);
+        font-size: var(--font-2xs);
+        font-weight: 500;
+        color: rgba(0,0,0,0.4);
+      }
+      .my-review-item__text {
+        font-size: var(--font-sm);
+        color: rgba(0,0,0,0.6);
+        line-height: 1.55;
+        letter-spacing: -0.1px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      .my-review-item__photos {
+        display: flex;
+        gap: 5px;
+      }
+      .my-review-item__photo {
+        width: 52px;
+        height: 52px;
+        border-radius: 8px;
+        flex-shrink: 0;
+      }
+      .my-review-item__del {
+        flex-shrink: 0;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(255,69,58,0.07);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.15s;
+        margin-top: 2px;
+      }
+      .my-review-item__del:hover { background: rgba(255,69,58,0.14); }
+      .my-review-empty {
+        padding: 40px 0;
+        text-align: center;
+        font-size: var(--font-base);
+        color: rgba(0,0,0,0.3);
+      }
+
+      /* ── 토스트 ── */
+      .toast {
+        position: fixed;
+        bottom: 96px;
+        left: 50%;
+        transform: translateX(-50%) translateY(16px);
+        height: 44px;
+        padding: 0 20px;
+        border-radius: 22px;
+        background: rgba(0,0,0,0.75);
+        display: flex;
+        align-items: center;
+        font-size: var(--font-base);
+        font-weight: 500;
+        color: #fff;
+        letter-spacing: -0.2px;
+        z-index: 300;
+        opacity: 0;
+        pointer-events: none;
+        white-space: nowrap;
+        transition: opacity 0.3s, transform 0.3s;
+      }
+      .toast.is-visible {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="phone-frame">
+      <!-- 네비 -->
+      <div class="nav">
+        <button class="nav__back" onclick="location.href = './mypage.html'" aria-label="뒤로가기">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="11,3 5,9 11,15" />
+          </svg>
+        </button>
+        <span class="nav__title">내가 쓴 리뷰</span>
+        <div class="nav__placeholder"></div>
+      </div>
+
+      <!-- 리뷰 목록 -->
+      <div class="my-review-list" id="myReviewList"></div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+      var toastTimeout;
+
+      function showToast(msg) {
+        var t = document.getElementById('toast');
+        t.textContent = msg;
+        t.classList.add('is-visible');
+        clearTimeout(toastTimeout);
+        toastTimeout = setTimeout(function () { t.classList.remove('is-visible'); }, 2800);
+      }
+
+      var myReviews = [
+        {
+          id: 1,
+          spot: '광안리 해수욕장',
+          stars: 5,
+          period: '야경',
+          date: '2026.04.12',
+          text: '광안대교 야경이 정말 환상적이에요. 삼각대 없으면 흔들려서 꼭 챙겨가세요. 일몰 30분 후가 골든타임입니다.',
+          photos: ['linear-gradient(135deg,#0f2027,#2c5364)', 'linear-gradient(135deg,#203a43,#4a7c8a)']
+        },
+        {
+          id: 2,
+          spot: '진해 경화역',
+          stars: 5,
+          period: '낮',
+          date: '2026.04.02',
+          text: '벚꽃 시즌에 다녀왔는데 정말 예뻤어요. 기차와 벚꽃 조합이 환상적입니다. 주말엔 사람이 많으니 평일 오전 추천해요.',
+          photos: ['linear-gradient(135deg,#8b4a6b,#f0c89a)']
+        },
+        {
+          id: 3,
+          spot: '제주 사려니숲',
+          stars: 4,
+          period: '낮',
+          date: '2026.04.15',
+          text: '피톤치드 가득한 숲길에서 촬영했어요. 빛이 나무 사이로 들어오는 장면이 정말 좋았습니다.',
+          photos: []
+        },
+        {
+          id: 4,
+          spot: '경복궁',
+          stars: 5,
+          period: '야간',
+          date: '2026.03.08',
+          text: '야간 개장 때 촬영했어요. 조명이 정말 멋지고 인파가 있어도 구도 잘 잡으면 훌륭한 사진을 얻을 수 있어요.',
+          photos: ['linear-gradient(135deg,#1a1530,#b44a3a)']
+        },
+      ];
+
+      function renderMyReviews() {
+        var list = document.getElementById('myReviewList');
+        if (!myReviews.length) {
+          list.innerHTML = '<div class="my-review-empty">아직 작성한 리뷰가 없어요</div>';
+          return;
+        }
+        list.innerHTML = myReviews.map(function (r) {
+          var stars = '★'.repeat(r.stars) + '☆'.repeat(5 - r.stars);
+          var photosHtml = r.photos.length
+            ? '<div class="my-review-item__photos">' +
+                r.photos.map(function (bg) {
+                  return '<div class="my-review-item__photo" style="background:' + bg + '"></div>';
+                }).join('') +
+              '</div>'
+            : '';
+          return '<div class="my-review-item" id="my-review-' + r.id + '">' +
+            '<div class="my-review-item__top">' +
+              '<div class="my-review-item__left">' +
+                '<div class="my-review-item__spot">' + r.spot + '</div>' +
+                '<div class="my-review-item__meta">' +
+                  '<span class="my-review-item__stars">' + stars + '</span>' +
+                  '<span class="my-review-item__badge">' + r.period + '</span>' +
+                  '<span>' + r.date + '</span>' +
+                '</div>' +
+              '</div>' +
+              '<button class="my-review-item__del" onclick="deleteMyReview(' + r.id + ')" aria-label="삭제">' +
+                '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff453a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+                  '<path d="M4 7l16 0"/><path d="M10 11l0 6"/><path d="M14 11l0 6"/>' +
+                  '<path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"/>' +
+                  '<path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"/>' +
+                '</svg>' +
+              '</button>' +
+            '</div>' +
+            '<p class="my-review-item__text">' + r.text + '</p>' +
+            photosHtml +
+          '</div>';
+        }).join('');
+      }
+
+      function deleteMyReview(id) {
+        var idx = myReviews.findIndex(function (r) { return r.id === id; });
+        if (idx === -1) return;
+        myReviews.splice(idx, 1);
+        renderMyReviews();
+        showToast('리뷰가 삭제됐어요');
+      }
+
+      renderMyReviews();
+    </script>
+  </body>
+</html>

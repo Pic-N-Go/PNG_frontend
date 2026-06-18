@@ -7,41 +7,11 @@
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
     <title>PNG - 설정</title>
-    <link rel="stylesheet" href="../fonts.css" />
+  <link rel="stylesheet" href="../common/fonts.css">
+  <link rel="stylesheet" href="../common/common.css">
     <style>
-      :root {
-        --color-bg: #ffffff;
-        --color-surface: #f5f5f7;
-        --color-text-primary: #000000;
-        --color-text-secondary: rgba(0, 0, 0, 0.48);
-        --color-text-tertiary: rgba(0, 0, 0, 0.28);
-        --color-accent: #e31b59;
-        --color-accent-hover: #c91550;
-        --color-border-light: rgba(0, 0, 0, 0.06);
-        --color-success: #34c759;
-        --color-error: #ff453a;
-        --radius-card: 16px;
-      }
-      *,
-      *::before,
-      *::after {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-      html {
-        font-size: 16px;
-        -webkit-font-smoothing: antialiased;
-      }
-      body {
-        font-family: var(--font-family);
-        background: #f0f0f0;
-        display: flex;
-        justify-content: center;
-        min-height: 100dvh;
-      }
-      .phone-frame {
-        width: 390px;
+.phone-frame {
+        width: 100%;
         background: var(--color-bg);
         position: relative;
         overflow-y: auto;
@@ -79,7 +49,7 @@
         background: var(--color-surface);
       }
       .nav__title {
-        font-size: 17px;
+        font-size: var(--font-lg);
         font-weight: 600;
         color: var(--color-text-primary);
         letter-spacing: -0.3px;
@@ -154,7 +124,7 @@
         min-width: 0;
       }
       .setting-row__label {
-        font-size: 15px;
+        font-size: var(--font-md);
         font-weight: 500;
         color: var(--color-text-primary);
         letter-spacing: -0.15px;
@@ -171,7 +141,7 @@
         flex-shrink: 0;
       }
       .setting-row__value {
-        font-size: 13px;
+        font-size: var(--font-sm);
         color: rgba(0, 0, 0, 0.35);
       }
       .setting-row__arrow {
@@ -182,7 +152,7 @@
         padding: 0 8px;
         border-radius: 10px;
         background: var(--color-accent);
-        font-size: 11px;
+        font-size: var(--font-xs);
         font-weight: 600;
         color: #fff;
         display: flex;
@@ -248,7 +218,7 @@
         background: rgba(0, 0, 0, 0.02);
       }
       .faq-q__text {
-        font-size: 14px;
+        font-size: var(--font-base);
         font-weight: 500;
         color: var(--color-text-primary);
         letter-spacing: -0.15px;
@@ -265,7 +235,7 @@
       .faq-a {
         display: none;
         padding: 0 16px 14px;
-        font-size: 13px;
+        font-size: var(--font-sm);
         color: rgba(0, 0, 0, 0.5);
         line-height: 1.6;
         letter-spacing: -0.1px;
@@ -295,7 +265,7 @@
         background: var(--color-surface);
         padding: 0 14px;
         font-family: var(--font-family);
-        font-size: 14px;
+        font-size: var(--font-base);
         color: var(--color-text-primary);
         outline: none;
         appearance: none;
@@ -309,7 +279,7 @@
         background: var(--color-surface);
         padding: 12px 14px;
         font-family: var(--font-family);
-        font-size: 14px;
+        font-size: var(--font-base);
         color: var(--color-text-primary);
         resize: none;
         line-height: 1.5;
@@ -325,7 +295,7 @@
       }
       .inquiry-form__count {
         text-align: right;
-        font-size: 11px;
+        font-size: var(--font-xs);
         color: rgba(0, 0, 0, 0.25);
         margin-top: 4px;
       }
@@ -336,7 +306,7 @@
         border: none;
         background: var(--color-accent);
         font-family: var(--font-family);
-        font-size: 15px;
+        font-size: var(--font-md);
         font-weight: 500;
         color: #fff;
         cursor: pointer;
@@ -358,12 +328,12 @@
         padding: 14px 16px;
       }
       .version-row__label {
-        font-size: 15px;
+        font-size: var(--font-md);
         font-weight: 500;
         color: var(--color-text-primary);
       }
       .version-row__val {
-        font-size: 13px;
+        font-size: var(--font-sm);
         color: rgba(0, 0, 0, 0.35);
       }
 
@@ -394,7 +364,7 @@
         bottom: 0;
         left: 50%;
         transform: translateX(-50%) translateY(100%);
-        width: 390px;
+        width: 100%;
         background: #fff;
         border-radius: 20px 20px 0 0;
         z-index: 101;
@@ -439,6 +409,7 @@
       }
       .sheet-body {
         padding: 0 20px;
+        background: #fff;
       }
       .sheet-field {
         margin-bottom: 14px;
@@ -457,7 +428,7 @@
         background: var(--color-surface);
         padding: 0 14px;
         font-family: var(--font-family);
-        font-size: 15px;
+        font-size: var(--font-md);
         color: #000;
         outline: none;
         transition: box-shadow 0.2s;
@@ -468,7 +439,7 @@
       }
       .sheet-input::placeholder {
         color: rgba(0, 0, 0, 0.25);
-        font-size: 14px;
+        font-size: var(--font-base);
       }
       .sheet-hint {
         font-size: 12px;
@@ -483,7 +454,7 @@
         border: none;
         background: var(--color-accent);
         font-family: var(--font-family);
-        font-size: 15px;
+        font-size: var(--font-md);
         font-weight: 500;
         color: #fff;
         cursor: pointer;
@@ -523,7 +494,7 @@
         font-size: 16px;
       }
       .social-row__name {
-        font-size: 14px;
+        font-size: var(--font-base);
         font-weight: 500;
         color: #000;
       }
@@ -538,7 +509,7 @@
         border-radius: 15px;
         border: none;
         font-family: var(--font-family);
-        font-size: 13px;
+        font-size: var(--font-sm);
         font-weight: 500;
         cursor: pointer;
         transition: all 0.15s;
@@ -557,7 +528,7 @@
         justify-content: space-between;
         padding: 10px 0;
         border-bottom: 0.5px solid rgba(0, 0, 0, 0.05);
-        font-size: 14px;
+        font-size: var(--font-base);
       }
       .version-info-row:last-child {
         border-bottom: none;
@@ -584,7 +555,7 @@
         display: flex;
       }
       .modal {
-        width: 390px;
+        width: 100%;
         background: #fff;
         border-radius: 24px 24px 0 0;
         padding: 28px 24px 40px;
@@ -597,7 +568,7 @@
         margin-bottom: 8px;
       }
       .modal__desc {
-        font-size: 14px;
+        font-size: var(--font-base);
         color: rgba(0, 0, 0, 0.45);
         line-height: 1.55;
         margin-bottom: 24px;
@@ -609,7 +580,7 @@
         border-radius: 25px;
         border: none;
         font-family: var(--font-family);
-        font-size: 15px;
+        font-size: var(--font-md);
         font-weight: 500;
         cursor: pointer;
         margin-bottom: 10px;
@@ -643,7 +614,7 @@
         display: flex;
         align-items: center;
         gap: 8px;
-        font-size: 14px;
+        font-size: var(--font-base);
         font-weight: 500;
         color: #fff;
         z-index: 200;
@@ -656,34 +627,12 @@
         opacity: 1;
         transform: translateX(-50%) translateY(0);
       }
-
-      @media (max-width: 390px) {
-        .phone-frame,
-        .modal {
-          width: 100%;
-        }
-      }
-      @media (min-width: 391px) {
-        body {
-          padding: 20px 0;
-        }
-        .phone-frame {
-          border-radius: 40px;
-          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-          min-height: unset;
-          height: calc(100dvh - 40px);
-          overflow-y: auto;
-          overflow-x: hidden;
-        }
         .modal {
           border-radius: 24px 24px 0 0;
-        }
       }
     
       /* ── 스크롤바 숨김 ── */
-      * { scrollbar-width: none; -ms-overflow-style: none; }
-      *::-webkit-scrollbar { display: none; }
-</style>
+    </style>
   </head>
   <body>
     <div class="phone-frame">
@@ -735,7 +684,7 @@
             </div>
             <div class="setting-row__body">
               <div class="setting-row__label">프로필 편집</div>
-              <div class="setting-row__desc">이미지, 닉네임, 바이오 수정</div>
+              <div class="setting-row__desc">이미지, 닉네임, 소개 수정</div>
             </div>
             <div class="setting-row__right">
               <svg

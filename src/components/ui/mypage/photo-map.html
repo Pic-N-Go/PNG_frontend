@@ -7,31 +7,13 @@
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
     <title>PNG - PIC MAP</title>
-    <link rel="stylesheet" href="../fonts.css" />
+  <link rel="stylesheet" href="../common/fonts.css">
+  <link rel="stylesheet" href="../common/common.css">
     <style>
-      :root {
-        --color-bg: #ffffff;
-        --color-surface: #f5f5f7;
-        --color-text-primary: #000000;
-        --color-text-secondary: rgba(0, 0, 0, 0.48);
-        --color-accent: #e31b59;
-        --color-accent-hover: #c91550;
-        --color-border-light: rgba(0, 0, 0, 0.06);
-        --radius-card: 16px;
-      }
-      *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-      html { font-size: 16px; -webkit-font-smoothing: antialiased; }
-      body {
-        font-family: var(--font-family);
-        background: #f0f0f0;
-        display: flex;
-        justify-content: center;
-        min-height: 100dvh;
-      }
-      .phone-frame {
-        width: 390px;
+.phone-frame {
+        width: 100%;
         height: 100dvh;
-        background: #e8e8ed;
+        background: var(--color-bg);
         position: relative;
         overflow: hidden;
         display: flex;
@@ -64,7 +46,7 @@
       }
       .nav-bar__back:hover { background: rgba(0,0,0,0.05); }
       .nav-bar__title {
-        font-size: 17px; font-weight: 600;
+        font-size: var(--font-lg); font-weight: 600;
         color: var(--color-text-primary);
         letter-spacing: -0.3px;
       }
@@ -88,7 +70,7 @@
         border-radius: 15px;
         border: none;
         font-family: var(--font-family);
-        font-size: 13px;
+        font-size: var(--font-sm);
         font-weight: 500;
         white-space: nowrap;
         cursor: pointer;
@@ -114,24 +96,24 @@
       /* 배경 블록들 */
       .map-block {
         position: absolute;
-        background: #d1d1d6;
-        border-radius: 3px;
+        background: rgba(0,0,0,0.06);
+        border-radius: 4px;
       }
       /* 도로 */
       .map-road {
         position: absolute;
         background: #fff;
       }
-      /* 공원 */
+      /* 공원 — home/map 과 동일 톤 */
       .map-park {
         position: absolute;
-        background: #c8e6c9;
+        background: rgba(0,0,0,0.06);
         border-radius: 4px;
       }
-      /* 강 */
+      /* 강 — 동일 톤 */
       .map-water {
         position: absolute;
-        background: #b3d4f0;
+        background: rgba(0,0,0,0.04);
         border-radius: 2px;
       }
       /* 그리드 */
@@ -180,12 +162,15 @@
         transform: translate(-50%, -100%);
         line-height: 0;
         cursor: pointer;
+        z-index: 5;
         transition: filter 0.15s, transform 0.15s;
       }
       .map-pin:hover { transform: translate(-50%, -110%); }
+      .map-pin--visit svg path { fill: #1c1c1e; }
+      .map-pin--fav   svg path { fill: #E31B59; }
       .map-pin--visit { filter: drop-shadow(0 2px 4px rgba(0,0,0,0.25)); }
       .map-pin--fav   { filter: drop-shadow(0 2px 6px rgba(227,27,89,0.45)); }
-      .map-pin.is-active.map-pin--visit { filter: drop-shadow(0 3px 8px rgba(0,0,0,0.35)); }
+      .map-pin.is-active.map-pin--visit { filter: drop-shadow(0 3px 6px rgba(0,0,0,0.35)); }
       .map-pin.is-active.map-pin--fav   { filter: drop-shadow(0 3px 10px rgba(227,27,89,0.6)); }
 
       /* ======= 지도 컨트롤 ======= */
@@ -202,7 +187,7 @@
         display: flex;
         flex-direction: column;
         background: #fff;
-        border-radius: 10px;
+        border-radius: 12px;
         box-shadow: 0 2px 8px rgba(0,0,0,0.12);
         overflow: hidden;
       }
@@ -221,7 +206,7 @@
       .map-ctrl-loc {
         width: 40px; height: 40px;
         background: #fff;
-        border-radius: 10px;
+        border-radius: 12px;
         box-shadow: 0 2px 8px rgba(0,0,0,0.12);
         border: none; cursor: pointer;
         display: flex; align-items: center; justify-content: center;
@@ -249,7 +234,7 @@
         display: flex;
         align-items: center;
         gap: 6px;
-        font-size: 11px;
+        font-size: var(--font-xs);
         color: rgba(0,0,0,0.55);
         letter-spacing: -0.1px;
       }
@@ -314,11 +299,11 @@
         border-bottom: 0.5px solid rgba(0,0,0,0.06);
       }
       .sheet-summary__title {
-        font-size: 17px; font-weight: 600;
+        font-size: var(--font-lg); font-weight: 600;
         color: #000; letter-spacing: -0.3px;
       }
       .sheet-summary__count {
-        font-size: 13px; color: rgba(0,0,0,0.35);
+        font-size: var(--font-sm); color: rgba(0,0,0,0.35);
         letter-spacing: -0.1px;
       }
       .sheet-list {
@@ -326,8 +311,6 @@
         flex: 1;
         padding: 8px 20px 16px;
       }
-      .sheet-list::-webkit-scrollbar { display: none; }
-
       /* 스팟 행 */
       .spot-row {
         display: flex;
@@ -354,7 +337,7 @@
       }
       .spot-row__info { flex: 1; min-width: 0; }
       .spot-row__name {
-        font-size: 15px; font-weight: 600;
+        font-size: var(--font-md); font-weight: 600;
         color: #000; letter-spacing: -0.2px;
         margin-bottom: 2px;
         white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
@@ -368,7 +351,7 @@
       .spot-row__tag {
         height: 18px; padding: 0 7px;
         border-radius: 9px;
-        font-size: 10px; font-weight: 500;
+        font-size: var(--font-2xs); font-weight: 500;
         display: inline-flex; align-items: center;
       }
       .spot-row__tag--date  { background: rgba(0,0,0,0.06); color: rgba(0,0,0,0.4); }
@@ -403,7 +386,7 @@
         border-radius: 10px;
         background: rgba(255,255,255,0.18);
         backdrop-filter: blur(4px);
-        font-size: 11px; font-weight: 500;
+        font-size: var(--font-xs); font-weight: 500;
         color: rgba(255,255,255,0.9);
         display: inline-flex; align-items: center;
       }
@@ -413,7 +396,7 @@
         margin-bottom: 3px;
       }
       .spot-preview__loc {
-        font-size: 13px; color: rgba(0,0,0,0.4);
+        font-size: var(--font-sm); color: rgba(0,0,0,0.4);
         margin-bottom: 14px; letter-spacing: -0.1px;
       }
       .spot-preview__row {
@@ -427,11 +410,11 @@
         padding: 10px 12px;
       }
       .spot-preview__stat-label {
-        font-size: 10px; color: rgba(0,0,0,0.35);
+        font-size: var(--font-2xs); color: rgba(0,0,0,0.35);
         margin-bottom: 3px; letter-spacing: -0.05px;
       }
       .spot-preview__stat-val {
-        font-size: 15px; font-weight: 600;
+        font-size: var(--font-md); font-weight: 600;
         color: #000; letter-spacing: -0.2px;
       }
       .spot-preview__stat-val--accent { color: var(--color-accent); }
@@ -441,7 +424,7 @@
         border: none;
         background: #000;
         font-family: var(--font-family);
-        font-size: 15px; font-weight: 500;
+        font-size: var(--font-md); font-weight: 500;
         color: #fff; letter-spacing: -0.2px;
         cursor: pointer;
         transition: opacity 0.15s;
@@ -457,17 +440,6 @@
         transition: opacity 0.25s;
       }
       .dim.is-visible { opacity: 1; pointer-events: all; }
-
-      @media (max-width: 390px) { .phone-frame { width: 100%; } }
-      @media (min-width: 391px) {
-        body { padding: 20px 0; }
-        .phone-frame {
-          border-radius: 40px;
-          box-shadow: 0 20px 60px rgba(0,0,0,0.15);
-          min-height: unset;
-          height: calc(100dvh - 40px);
-          overflow: hidden;
-        }
       }
     </style>
   </head>
@@ -521,38 +493,38 @@
 
         <!-- 방문 핀 (검정) -->
         <div class="map-pin map-pin--visit" style="left:18%;top:32%" onclick="showSpot('gwanganri')">
-          <svg width="22" height="28" viewBox="0 0 24 30" fill="none">
-            <path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill="#1c1c1e"/>
+          <svg width="24" height="30" viewBox="0 0 24 30" fill="none">
+            <path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill="#E31B59"/>
             <circle cx="12" cy="10.5" r="4.5" fill="#fff"/>
           </svg>
         </div>
         <div class="map-pin map-pin--visit" style="left:65%;top:26%" onclick="showSpot('gyeongbokgung')">
-          <svg width="22" height="28" viewBox="0 0 24 30" fill="none">
-            <path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill="#1c1c1e"/>
+          <svg width="24" height="30" viewBox="0 0 24 30" fill="none">
+            <path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill="#E31B59"/>
             <circle cx="12" cy="10.5" r="4.5" fill="#fff"/>
           </svg>
         </div>
         <div class="map-pin map-pin--visit" style="left:42%;top:57%" onclick="showSpot('jeju')">
-          <svg width="22" height="28" viewBox="0 0 24 30" fill="none">
-            <path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill="#1c1c1e"/>
+          <svg width="24" height="30" viewBox="0 0 24 30" fill="none">
+            <path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill="#E31B59"/>
             <circle cx="12" cy="10.5" r="4.5" fill="#fff"/>
           </svg>
         </div>
         <div class="map-pin map-pin--visit" style="left:78%;top:56%" onclick="showSpot('gamcheon')">
-          <svg width="22" height="28" viewBox="0 0 24 30" fill="none">
-            <path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill="#1c1c1e"/>
+          <svg width="24" height="30" viewBox="0 0 24 30" fill="none">
+            <path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill="#E31B59"/>
             <circle cx="12" cy="10.5" r="4.5" fill="#fff"/>
           </svg>
         </div>
         <div class="map-pin map-pin--visit" style="left:25%;top:63%" onclick="showSpot('yeongwol')">
-          <svg width="22" height="28" viewBox="0 0 24 30" fill="none">
-            <path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill="#1c1c1e"/>
+          <svg width="24" height="30" viewBox="0 0 24 30" fill="none">
+            <path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill="#E31B59"/>
             <circle cx="12" cy="10.5" r="4.5" fill="#fff"/>
           </svg>
         </div>
         <div class="map-pin map-pin--visit" style="left:55%;top:71%" onclick="showSpot('gyeongju')">
-          <svg width="22" height="28" viewBox="0 0 24 30" fill="none">
-            <path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill="#1c1c1e"/>
+          <svg width="24" height="30" viewBox="0 0 24 30" fill="none">
+            <path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill="#E31B59"/>
             <circle cx="12" cy="10.5" r="4.5" fill="#fff"/>
           </svg>
         </div>
@@ -571,6 +543,25 @@
           </svg>
         </div>
         <div class="map-pin map-pin--fav" style="left:8%;top:54%" onclick="showSpot('gwanganri')">
+          <svg width="26" height="33" viewBox="0 0 24 30" fill="none">
+            <path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill="#E31B59"/>
+            <circle cx="12" cy="10.5" r="4.5" fill="#fff"/>
+          </svg>
+        </div>
+        <!-- 현재 위치 주변 핀 -->
+        <div class="map-pin map-pin--visit" style="left:38%;top:47%" onclick="showSpot('bukchon')">
+          <svg width="24" height="30" viewBox="0 0 24 30" fill="none">
+            <path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill="#E31B59"/>
+            <circle cx="12" cy="10.5" r="4.5" fill="#fff"/>
+          </svg>
+        </div>
+        <div class="map-pin map-pin--visit" style="left:67%;top:48%" onclick="showSpot('namsangol')">
+          <svg width="24" height="30" viewBox="0 0 24 30" fill="none">
+            <path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill="#E31B59"/>
+            <circle cx="12" cy="10.5" r="4.5" fill="#fff"/>
+          </svg>
+        </div>
+        <div class="map-pin map-pin--fav" style="left:56%;top:54%" onclick="showSpot('cheonggyecheon')">
           <svg width="26" height="33" viewBox="0 0 24 30" fill="none">
             <path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill="#E31B59"/>
             <circle cx="12" cy="10.5" r="4.5" fill="#fff"/>
@@ -604,9 +595,8 @@
           <button class="map-ctrl-btn" aria-label="축소">−</button>
         </div>
         <button class="map-ctrl-loc" aria-label="내 위치">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="rgba(0,113,227,0.8)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="12" r="3"/>
-            <path d="M12 2v3M12 19v3M2 12h3M19 12h3"/>
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="rgba(0,0,0,.45)" stroke-width="1.3" stroke-linecap="round">
+            <circle cx="8" cy="8" r="4"/><line x1="8" y1="1" x2="8" y2="4"/><line x1="8" y1="12" x2="8" y2="15"/><line x1="1" y1="8" x2="4" y2="8"/><line x1="12" y1="8" x2="15" y2="8"/>
           </svg>
         </button>
       </div>
@@ -676,7 +666,7 @@
             <div class="spot-row__thumb" style="background:linear-gradient(135deg,#1a1530,#b44a3a)">
               <div class="spot-row__pin">
                 <svg width="12" height="15" viewBox="0 0 24 30" fill="none">
-                  <path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill="#1c1c1e"/>
+                  <path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill="#E31B59"/>
                   <circle cx="12" cy="10.5" r="4" fill="#fff"/>
                 </svg>
               </div>
@@ -698,7 +688,7 @@
             <div class="spot-row__thumb" style="background:linear-gradient(135deg,#0a1a0f,#4a8060)">
               <div class="spot-row__pin">
                 <svg width="12" height="15" viewBox="0 0 24 30" fill="none">
-                  <path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill="#1c1c1e"/>
+                  <path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill="#E31B59"/>
                   <circle cx="12" cy="10.5" r="4" fill="#fff"/>
                 </svg>
               </div>
@@ -743,7 +733,7 @@
             <div class="spot-row__thumb" style="background:linear-gradient(135deg,#3a2a1a,#c8804a)">
               <div class="spot-row__pin">
                 <svg width="12" height="15" viewBox="0 0 24 30" fill="none">
-                  <path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill="#1c1c1e"/>
+                  <path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill="#E31B59"/>
                   <circle cx="12" cy="10.5" r="4" fill="#fff"/>
                 </svg>
               </div>
@@ -765,7 +755,7 @@
             <div class="spot-row__thumb" style="background:linear-gradient(135deg,#020010,#1a1545)">
               <div class="spot-row__pin">
                 <svg width="12" height="15" viewBox="0 0 24 30" fill="none">
-                  <path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill="#1c1c1e"/>
+                  <path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill="#E31B59"/>
                   <circle cx="12" cy="10.5" r="4" fill="#fff"/>
                 </svg>
               </div>
@@ -787,7 +777,7 @@
             <div class="spot-row__thumb" style="background:linear-gradient(135deg,#5a3010,#c87020)">
               <div class="spot-row__pin">
                 <svg width="12" height="15" viewBox="0 0 24 30" fill="none">
-                  <path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill="#1c1c1e"/>
+                  <path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill="#E31B59"/>
                   <circle cx="12" cy="10.5" r="4" fill="#fff"/>
                 </svg>
               </div>
@@ -861,6 +851,7 @@
       var currentSpot = null;
 
       function showSpot(id) {
+        if (currentSpot === id) { closeSpot(); return; }
         var s = spots[id];
         if (!s) return;
         currentSpot = id;

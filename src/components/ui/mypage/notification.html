@@ -4,39 +4,14 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>PNG - 알림</title>
-  <link rel="stylesheet" href="../fonts.css">
+  <link rel="stylesheet" href="../common/fonts.css">
+  <link rel="stylesheet" href="../common/common.css">
   <style>
-    :root {
-      --color-bg: #ffffff;
-      --color-surface: #f5f5f7;
-      --color-text-primary: #000000;
-      --color-text-secondary: rgba(0, 0, 0, 0.48);
-      --color-text-tertiary: rgba(0, 0, 0, 0.28);
-      --color-accent: #e31b59;
-      --color-accent-hover: #c91550;
-      --color-border: rgba(0, 0, 0, 0.08);
-      --color-border-light: rgba(0, 0, 0, 0.06);
-      --color-error: #ff453a;
-      --color-success: #34c759;
-      --color-warning: #ff9f0a;
-      --radius-card: 16px;
-      --radius-pill: 17px;
-      --radius-btn: 26px;
-    }
-
-    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-    html { font-size: 16px; -webkit-font-smoothing: antialiased; }
-    body {
-      font-family: var(--font-family);
-      background: #f0f0f0;
-      display: flex; justify-content: center; min-height: 100dvh;
-    }
-
-    .phone-frame {
-      width: 390px; background: var(--color-bg);
+.phone-frame {
+      width: 100%; background: var(--color-bg);
       position: relative; overflow: hidden;
       display: flex; flex-direction: column; height: 100dvh;
-    }
+      }
 
     /* ── 홈 배경 (딤 처리 전 상태 보여주기용) ── */
     .home-bg {
@@ -47,13 +22,13 @@
     .home-bg-white {
       position: absolute; top: 340px; inset-inline: 0; bottom: 0;
       background: var(--color-bg); z-index: 0;
-    }
+      }
 
     /* ── 딤 오버레이 ── */
     .dim {
       position: absolute; inset: 0; z-index: 10;
       background: rgba(0, 0, 0, 0.45);
-    }
+      }
 
     /* ── 알림 패널 ── */
     .notif-panel {
@@ -63,7 +38,7 @@
       display: flex; flex-direction: column;
       max-height: 88dvh;
       overflow: hidden;
-    }
+      }
 
     /* 상단 핸들 + 헤더 */
     .notif-handle {
@@ -77,30 +52,29 @@
       padding: 14px 20px 0; flex-shrink: 0;
     }
     .notif-header__title {
-      font-size: 22px; font-weight: 600;
+      font-size: var(--font-xl); font-weight: 600;
       color: var(--color-text-primary); letter-spacing: -0.4px;
     }
     .notif-header__actions { display: flex; align-items: center; gap: 14px; }
     .notif-header__btn {
-      font-size: 14px; color: var(--color-accent);
+      font-size: var(--font-base); color: var(--color-accent);
       background: none; border: none; cursor: pointer; letter-spacing: -0.1px;
     }
     .notif-header__close {
       width: 28px; height: 28px; border-radius: 50%;
       background: var(--color-surface); border: none; cursor: pointer;
       display: flex; align-items: center; justify-content: center;
-    }
+      }
 
     /* 탭 필터 */
     .notif-tabs {
       display: flex; gap: 6px; padding: 14px 20px 0; flex-shrink: 0;
-      overflow-x: auto; scrollbar-width: none;
+      overflow-x: auto;
     }
-    .notif-tabs::-webkit-scrollbar { display: none; }
     .notif-tab {
       flex-shrink: 0; height: 30px; padding: 0 14px;
       border-radius: var(--radius-pill); border: none; cursor: pointer;
-      font-family: var(--font-family); font-size: 13px; font-weight: 500;
+      font-family: var(--font-family); font-size: var(--font-sm); font-weight: 500;
       transition: all 0.18s;
     }
     .notif-tab.active {
@@ -108,21 +82,19 @@
     }
     .notif-tab:not(.active) {
       background: var(--color-surface); color: rgba(0,0,0,0.5);
-    }
+      }
 
     /* 알림 목록 스크롤 영역 */
     .notif-list {
       flex: 1; overflow-y: auto; overflow-x: hidden;
       padding: 10px 0 28px;
     }
-    .notif-list::-webkit-scrollbar { display: none; }
-
     /* 날짜 그룹 헤더 */
     .notif-group-label {
       font-size: 12px; font-weight: 600;
       color: rgba(0,0,0,0.3); letter-spacing: 0.2px;
       padding: 14px 20px 6px;
-    }
+      }
 
     /* 알림 아이템 */
     .notif-item {
@@ -139,7 +111,7 @@
       position: absolute; left: 10px; top: 18px;
       width: 6px; height: 6px; border-radius: 50%;
       background: var(--color-accent); flex-shrink: 0;
-    }
+      }
 
     /* 아이콘 영역 */
     .notif-item__icon {
@@ -170,18 +142,18 @@
     .notif-item__label--gray   { color: rgba(0,0,0,0.4); }
 
     .notif-item__time {
-      font-size: 11px; color: rgba(0,0,0,0.28);
+      font-size: var(--font-xs); color: rgba(0,0,0,0.28);
       flex-shrink: 0; letter-spacing: -0.1px;
     }
     .notif-item__title {
-      font-size: 15px; font-weight: 500;
+      font-size: var(--font-md); font-weight: 500;
       color: var(--color-text-primary); letter-spacing: -0.2px;
       line-height: 1.35; margin-bottom: 3px;
     }
     .notif-item__desc {
-      font-size: 13px; color: rgba(0,0,0,0.45);
+      font-size: var(--font-sm); color: rgba(0,0,0,0.45);
       line-height: 1.4; letter-spacing: -0.1px;
-    }
+      }
 
     /* 인라인 CTA 버튼 */
     .notif-item__ctas {
@@ -190,7 +162,7 @@
     .notif-item__cta {
       height: 32px; padding: 0 14px; border-radius: 16px;
       border: none; cursor: pointer; font-family: var(--font-family);
-      font-size: 13px; font-weight: 500; transition: all 0.18s;
+      font-size: var(--font-sm); font-weight: 500; transition: all 0.18s;
     }
     .notif-item__cta--primary {
       background: var(--color-accent); color: #fff;
@@ -208,17 +180,17 @@
       background: rgba(227,27,89,0.08); margin-top: 6px;
     }
     .notif-score-badge__val {
-      font-size: 13px; font-weight: 600; color: var(--color-accent);
+      font-size: var(--font-sm); font-weight: 600; color: var(--color-accent);
     }
     .notif-score-badge__label {
-      font-size: 11px; color: rgba(0,0,0,0.35);
-    }
+      font-size: var(--font-xs); color: rgba(0,0,0,0.35);
+      }
 
     /* 구분선 */
     .notif-divider {
       height: 0.5px; background: var(--color-border-light);
       margin: 0 20px;
-    }
+      }
 
     /* 빈 상태 */
     .notif-empty {
@@ -236,23 +208,10 @@
       color: var(--color-text-primary); letter-spacing: -0.2px;
     }
     .notif-empty__desc {
-      font-size: 13px; color: rgba(0,0,0,0.38);
+      font-size: var(--font-sm); color: rgba(0,0,0,0.38);
       text-align: center; line-height: 1.5; letter-spacing: -0.1px;
     }
-
-    @media (max-width: 390px) { .phone-frame { width: 100%; } }
-    @media (min-width: 391px) {
-      body { padding: 20px 0; }
-      .phone-frame {
-        border-radius: 40px;
-        box-shadow: 0 20px 60px rgba(0,0,0,0.15);
-        min-height: unset;
-        height: calc(100dvh - 40px);
-        overflow-y: auto;
-        overflow-x: hidden;
-      }
-    }
-  </style>
+    </style>
 </head>
 <body>
 <div class="phone-frame">
@@ -515,7 +474,6 @@
       const prev = divider.previousElementSibling;
       divider.style.display = (prev && prev.style.display !== 'none' && prev.classList.contains('notif-item')) ? '' : 'none';
     });
-  }
 
   /* ── 모두 읽음 ── */
   function markAllRead() {
