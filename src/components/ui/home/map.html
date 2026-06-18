@@ -549,6 +549,7 @@
       document.getElementById('pin-' + activePin)?.classList.remove('is-active');
       activePin = null;
     }
+  }
 
   /* 지도 빈 곳 탭 시 팝업 닫기 */
   document.querySelector('.map-canvas').addEventListener('click', function(e) {
@@ -558,6 +559,7 @@
   function filterMap(el) {
     document.querySelectorAll('.map-filter').forEach(f => f.classList.remove('is-active'));
     el.classList.add('is-active');
+  }
 
   /* ── 위치 선택 모드 ── */
   function enterSelectMode() {

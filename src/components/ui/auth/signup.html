@@ -698,11 +698,13 @@
     const error = document.getElementById(errorId);
     input.classList.toggle('is-invalid', isVisible);
     error.classList.toggle('is-visible', isVisible);
+  }
 
   /* Password visibility toggle */
   function togglePw(id) {
     const el = document.getElementById(id);
     el.type = el.type === 'password' ? 'text' : 'password';
+  }
 
   /* Password strength indicator */
   function updateStrength(val) {
@@ -727,14 +729,17 @@
     });
 
     checkForm();
+  }
 
   /* Nickname character counter */
   function updateCounter(input) {
     document.getElementById('nickCounter').textContent = input.value.length + '/12';
+  }
 
   /* Theme pill toggle */
   function toggleTheme(el) {
     el.classList.toggle('is-selected');
+  }
 
   /* Terms checkbox toggle */
   function toggleTerm(item) {
@@ -758,6 +763,7 @@
     const items = document.querySelectorAll('.terms__item .checkbox');
     const allChecked = [...items].every(cb => cb.classList.contains('is-checked'));
     document.getElementById('checkAll').classList.toggle('is-checked', allChecked);
+  }
 
   /* 가입하기 버튼 활성화 조건 체크 */
   function checkForm() {
@@ -789,6 +795,7 @@
     const btn = document.getElementById('signupBtn');
     btn.classList.toggle('btn--primary', allOk);
     btn.classList.toggle('btn--disabled', !allOk);
+  }
 
   /* 가입하기 버튼 클릭 핸들러 */
   function handleSignup() {
