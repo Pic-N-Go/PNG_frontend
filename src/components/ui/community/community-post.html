@@ -700,7 +700,11 @@
           '<div class="comment__body">' +
           '<div class="comment__text"><strong>me</strong> ' + text + "</div>" +
           '<div class="comment__meta">방금 전</div></div>';
-        more.parentNode.insertBefore(div, more);
+        if (more) {
+          more.parentNode.insertBefore(div, more);
+        } else {
+          document.getElementById("comments").appendChild(div);
+        }
         input.value = "";
         btn.classList.remove("is-ready");
       }
