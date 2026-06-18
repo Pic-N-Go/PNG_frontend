@@ -218,6 +218,51 @@ export function HomeScreen() {
 }
 ```
 
+### 화면별 구현 주의사항
+
+#### SpotDetailScreen — Collapsing Header 애니메이션
+
+HTML 목업(`spot-detail.html`)은 스크롤 이벤트마다 hero 요소의 `height`를 직접 조작합니다.  
+**RN 구현 시 이 방식을 그대로 쓰면 안 됩니다.** JS 스레드 → Native 스레드 브릿지 병목으로 심각한 jitter가 발생합니다.
+
+```tsx
+// ❌ 금지 — height 직접 조작 (reflow + jitter)
+scrollY.addListener(({ value }) => {
+  heroRef.current?.setNativeProps({ style: { height: 300 - value } });
+});
+
+// ✅ 권장 — Reanimated + translateY transform
+import Animated, {
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  useSharedValue,
+  interpolate,
+  Extrapolation,
+} from 'react-native-reanimated';
+
+const scrollY = useSharedValue(0);
+const onScroll = useAnimatedScrollHandler(e => {
+  scrollY.value = e.contentOffset.y;
+});
+
+const heroStyle = useAnimatedStyle(() => ({
+  transform: [{
+    translateY: interpolate(scrollY.value, [0, 200], [0, -100], Extrapolation.CLAMP),
+  }],
+}));
+
+return (
+  <Animated.ScrollView onScroll={onScroll} scrollEventThrottle={16}>
+    <Animated.View style={[styles.hero, heroStyle]} />
+    {/* 콘텐츠 */}
+  </Animated.ScrollView>
+);
+```
+
+핵심: `translateY` transform은 native 스레드에서 처리되어 JS 부하 없이 60fps를 유지합니다.
+
+---
+
 ### 화면 구현 순서
 
 HTML 목업 파일을 보면서 아래 순서로 구현합니다.
