@@ -306,9 +306,6 @@ if (frame && nav) {
 | `spot/` | `src/screens/spot/` |
 | `mypage/` | `src/screens/mypage/` |
 | `wishlist/` | `src/screens/wishlist/` |
-| 하단 탭바 | `src/components/TabBar.tsx` |
-| 상태바 | `src/components/StatusBar.tsx` |
-| 스플래시 | `src/components/SplashScreenView.tsx` ← 삭제됨, login.html 참고 |
 
 ---
 

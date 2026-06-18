@@ -16,7 +16,7 @@ pnpm start            # start Expo dev server (scan with Expo Go)
 pnpm web              # run in browser
 ```
 
-No lint or test scripts are configured yet.
+`pnpm lint` is configured. Test scripts are not configured yet.
 
 ## Architecture
 
@@ -74,7 +74,7 @@ const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 
 ## Design System
 
-Full spec is in `.claude/design.md`. Key rules:
+Key design rules:
 
 - **Brand / Accent color**: `#E31B59` (Pink) — used for all interactive elements (CTA buttons, active states, active tabs, focus borders). Primary palette: Black · White · Pink.
   - 예외: 알림 화면(`notification.html`)의 필터 탭 활성 상태는 Black(`#000`) 사용 (의도된 디자인)
@@ -95,3 +95,5 @@ Full spec is in `.claude/design.md`. Key rules:
 - `/spot/:id` — spot detail with Photogenic Score (weather/golden hour/dust/congestion/season)
 
 HTML mockups are in `src/components/ui/` (grouped by feature). Full structure and navigation flow in `docs/ui-publishing.md`.
+
+Team AI collaboration standards (spec/plan/review/handoff workflow): `docs/ai/README.md`

@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "spot-detail",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "-p", "5501", "src/components/ui/spot"],
+      "port": 5501
+    },
+    {
+      "name": "travel",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "-p", "5502", "src/components/ui"],
+      "port": 5502
+    }
+  ]
+}
