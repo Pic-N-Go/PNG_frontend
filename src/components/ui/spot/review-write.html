@@ -7,37 +7,11 @@
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
     <title>PNG - 리뷰 작성</title>
-    <link rel="stylesheet" href="../fonts.css" />
+  <link rel="stylesheet" href="../common/fonts.css">
+  <link rel="stylesheet" href="../common/common.css">
     <style>
-      :root {
-        --color-bg: #ffffff;
-        --color-surface: #f5f5f7;
-        --color-text-primary: #000000;
-        --color-text-secondary: rgba(0, 0, 0, 0.48);
-        --color-accent: #e31b59;
-        --color-accent-hover: #c91550;
-        --color-border-light: rgba(0, 0, 0, 0.06);
-        --color-success: #34c759;
-        --color-warning: #ff9f0a;
-        --radius-card: 16px;
-        --radius-btn: 26px;
-      }
-      *, *::before, *::after {
-        margin: 0; padding: 0; box-sizing: border-box;
-      }
-      html {
-        font-size: 16px;
-        -webkit-font-smoothing: antialiased;
-      }
-      body {
-        font-family: var(--font-family);
-        background: #f0f0f0;
-        display: flex;
-        justify-content: center;
-        min-height: 100dvh;
-      }
-      .phone-frame {
-        width: 390px;
+.phone-frame {
+        width: 100%;
         min-height: 100dvh;
         background: var(--color-bg);
         position: relative;
@@ -74,7 +48,7 @@
       }
       .nav-bar__back:hover { background: rgba(0,0,0,0.05); }
       .nav-bar__title {
-        font-size: 17px;
+        font-size: var(--font-lg);
         font-weight: 600;
         color: var(--color-text-primary);
         letter-spacing: -0.3px;
@@ -86,7 +60,7 @@
         border: none;
         background: var(--color-accent);
         font-family: var(--font-family);
-        font-size: 14px;
+        font-size: var(--font-base);
         font-weight: 500;
         color: #fff;
         cursor: pointer;
@@ -131,7 +105,7 @@
         padding: 24px 20px 0;
       }
       .section__label {
-        font-size: 13px;
+        font-size: var(--font-sm);
         font-weight: 600;
         color: rgba(0, 0, 0, 0.45);
         letter-spacing: -0.1px;
@@ -142,7 +116,7 @@
       }
       .section__label .required {
         color: var(--color-accent);
-        font-size: 14px;
+        font-size: var(--font-base);
         line-height: 1;
       }
 
@@ -165,7 +139,7 @@
       .star-btn.is-active { color: var(--color-warning); }
       .star-btn:hover { transform: scale(1.12); }
       .star-label {
-        font-size: 14px;
+        font-size: var(--font-base);
         font-weight: 500;
         color: rgba(0, 0, 0, 0.4);
         margin-left: 8px;
@@ -225,7 +199,7 @@
         border: 1.5px solid transparent;
         background: var(--color-surface);
         font-family: var(--font-family);
-        font-size: 13px;
+        font-size: var(--font-sm);
         font-weight: 500;
         color: rgba(0, 0, 0, 0.45);
         cursor: pointer;
@@ -263,7 +237,7 @@
         background: var(--color-surface);
         padding: 14px 16px;
         font-family: var(--font-family);
-        font-size: 15px;
+        font-size: var(--font-md);
         color: var(--color-text-primary);
         letter-spacing: -0.2px;
         outline: none;
@@ -283,110 +257,28 @@
         margin-top: 6px;
       }
       .textarea-hint {
-        font-size: 11px;
+        font-size: var(--font-xs);
         color: rgba(0, 0, 0, 0.3);
         letter-spacing: -0.1px;
       }
       .textarea-hint.is-error { color: #ff453a; }
       .textarea-counter {
-        font-size: 11px;
+        font-size: var(--font-xs);
         color: rgba(0, 0, 0, 0.25);
       }
 
-      /* ======= 태그 입력 ======= */
-      .tag-input-wrap {
+      /* ======= 태그 선택 ======= */
+      .tag-list {
         display: flex;
         flex-wrap: wrap;
-        gap: 7px;
-        align-items: center;
-        min-height: 46px;
-        background: var(--color-surface);
-        border-radius: 12px;
-        border: 1.5px solid transparent;
-        padding: 10px 14px;
-        cursor: text;
-        transition: border-color 0.18s;
+        gap: 8px;
       }
-      .tag-input-wrap:focus-within {
-        border-color: var(--color-accent);
-        background: #fff;
-      }
-      .tag-chip {
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        background: rgba(227, 27, 89, 0.08);
-        color: var(--color-accent);
-        font-size: 13px;
-        font-weight: 500;
-        letter-spacing: -0.15px;
-        padding: 4px 10px 4px 10px;
-        border-radius: 20px;
-        white-space: nowrap;
-      }
-      .tag-chip__del {
-        width: 14px;
-        height: 14px;
-        border-radius: 50%;
-        background: rgba(227, 27, 89, 0.18);
-        border: none;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 0;
-        flex-shrink: 0;
-      }
-      .tag-chip__del:hover { background: rgba(227, 27, 89, 0.3); }
-      .tag-input-field {
-        border: none;
-        outline: none;
-        background: transparent;
-        font-family: var(--font-family);
-        font-size: 14px;
-        color: var(--color-text-primary);
-        letter-spacing: -0.15px;
-        min-width: 100px;
-        flex: 1;
-      }
-      .tag-input-field::placeholder { color: rgba(0,0,0,0.28); }
-      .tag-suggestions {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-        margin-top: 10px;
-      }
-      .tag-suggest-chip {
-        display: inline-flex;
-        align-items: center;
-        gap: 3px;
-        background: var(--color-surface);
-        border: 1px solid rgba(0,0,0,0.07);
-        border-radius: 20px;
-        padding: 5px 11px;
-        font-size: 12px;
-        font-weight: 500;
-        color: rgba(0,0,0,0.55);
-        letter-spacing: -0.1px;
-        cursor: pointer;
-        font-family: var(--font-family);
-        transition: all 0.15s;
-      }
-      .tag-suggest-chip:hover {
-        background: rgba(227, 27, 89, 0.06);
-        border-color: rgba(227, 27, 89, 0.2);
-        color: var(--color-accent);
-      }
-      .tag-suggest-chip__plus {
-        font-size: 14px;
-        line-height: 1;
-        color: rgba(0,0,0,0.3);
-      }
+      /* .tag-chip → common.css .spot-tag */
       .tag-hint {
-        font-size: 11px;
+        font-size: var(--font-xs);
         color: rgba(0,0,0,0.28);
         letter-spacing: -0.1px;
-        margin-top: 7px;
+        margin-top: 8px;
       }
 
       /* ======= 사진 첨부 ======= */
@@ -397,7 +289,6 @@
         overflow-x: auto;
         padding-bottom: 2px;
       }
-      .photo-attach::-webkit-scrollbar { display: none; }
       .photo-slot {
         width: 72px;
         height: 72px;
@@ -419,7 +310,7 @@
         gap: 4px;
       }
       .photo-slot--add span {
-        font-size: 10px;
+        font-size: var(--font-2xs);
         color: rgba(0, 0, 0, 0.3);
         letter-spacing: -0.1px;
       }
@@ -449,7 +340,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 11px;
+        font-size: var(--font-xs);
         color: rgba(255,255,255,0.7);
       }
 
@@ -499,18 +390,18 @@
         flex-shrink: 0;
       }
       .equip-select-item__name {
-        font-size: 14px;
+        font-size: var(--font-base);
         font-weight: 500;
         color: var(--color-text-primary);
         letter-spacing: -0.15px;
       }
       .equip-select-item__type {
-        font-size: 11px;
+        font-size: var(--font-xs);
         color: rgba(0, 0, 0, 0.35);
         margin-top: 1px;
       }
       .equip-optional-label {
-        font-size: 11px;
+        font-size: var(--font-xs);
         color: rgba(0,0,0,0.28);
         font-weight: 400;
         margin-left: 4px;
@@ -553,7 +444,7 @@
         background: rgba(0,0,0,0.75);
         display: flex;
         align-items: center;
-        font-size: 14px;
+        font-size: var(--font-base);
         font-weight: 500;
         color: #fff;
         letter-spacing: -0.2px;
@@ -567,28 +458,12 @@
         opacity: 1;
         transform: translateX(-50%) translateY(0);
       }
-
-      @media (max-width: 390px) {
-        .phone-frame { width: 100%; }
-      }
-      @media (min-width: 391px) {
-        body { padding: 20px 0; }
-        .phone-frame {
-          border-radius: 40px;
-          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-          min-height: unset;
-          height: calc(100dvh - 40px);
-          overflow-y: auto;
-          overflow-x: hidden;
-        }
-      }
     
       /* ── 스크롤바 숨김 ── */
-      * { scrollbar-width: none; -ms-overflow-style: none; }
-      *::-webkit-scrollbar { display: none; }
-</style>
+    </style>
   </head>
   <body>
+    <script src="../common/icons.js"></script>
     <div class="phone-frame">
 
       <!-- 상단 네비 -->
@@ -692,44 +567,22 @@
         </div>
       </div>
 
-      <!-- 태그 입력 -->
+      <!-- 태그 선택 -->
       <div class="section">
         <div class="section__label">
           태그
-          <span style="font-size:11px;color:rgba(0,0,0,0.28);font-weight:400;margin-left:2px">선택 · 최대 5개</span>
+          <span style="font-size: var(--font-xs);color:rgba(0,0,0,0.28);font-weight:400;margin-left:2px">선택 · 최대 5개</span>
         </div>
-        <div class="tag-input-wrap" id="tagInputWrap" onclick="document.getElementById('tagField').focus()">
-          <!-- 입력된 태그 칩들이 여기 쌓임 -->
-          <input
-            type="text"
-            id="tagField"
-            class="tag-input-field"
-            placeholder="#태그 입력 후 스페이스 또는 엔터"
-            maxlength="20"
-            oninput="onTagInput()"
-            onkeydown="onTagKeydown(event)"
-          />
-        </div>
-        <!-- 추천 태그 -->
-        <div class="tag-suggestions" id="tagSuggestions">
-          <button class="tag-suggest-chip" onclick="addSuggestTag(this)" type="button">
-            <span class="tag-suggest-chip__plus">+</span>#채광맛집
-          </button>
-          <button class="tag-suggest-chip" onclick="addSuggestTag(this)" type="button">
-            <span class="tag-suggest-chip__plus">+</span>#인생샷
-          </button>
-          <button class="tag-suggest-chip" onclick="addSuggestTag(this)" type="button">
-            <span class="tag-suggest-chip__plus">+</span>#감성사진
-          </button>
-          <button class="tag-suggest-chip" onclick="addSuggestTag(this)" type="button">
-            <span class="tag-suggest-chip__plus">+</span>#야경명소
-          </button>
-          <button class="tag-suggest-chip" onclick="addSuggestTag(this)" type="button">
-            <span class="tag-suggest-chip__plus">+</span>#주차편함
-          </button>
-          <button class="tag-suggest-chip" onclick="addSuggestTag(this)" type="button">
-            <span class="tag-suggest-chip__plus">+</span>#삼각대필수
-          </button>
+        <div class="tag-list">
+          <button class="spot-tag" onclick="toggleTag(this)" type="button">#채광맛집</button>
+          <button class="spot-tag" onclick="toggleTag(this)" type="button">#인생샷</button>
+          <button class="spot-tag" onclick="toggleTag(this)" type="button">#감성사진</button>
+          <button class="spot-tag" onclick="toggleTag(this)" type="button">#야경명소</button>
+          <button class="spot-tag" onclick="toggleTag(this)" type="button">#주차편함</button>
+          <button class="spot-tag" onclick="toggleTag(this)" type="button">#삼각대필수</button>
+          <button class="spot-tag" onclick="toggleTag(this)" type="button">#접근성좋음</button>
+          <button class="spot-tag" onclick="toggleTag(this)" type="button">#일출명소</button>
+          <button class="spot-tag" onclick="toggleTag(this)" type="button">#혼자가기좋음</button>
         </div>
         <p class="tag-hint">자주 쓰인 태그는 스팟 상세 페이지에 노출됩니다</p>
       </div>
@@ -738,14 +591,13 @@
       <div class="section">
         <div class="section__label">
           사진 첨부
-          <span style="font-size:11px;color:rgba(0,0,0,0.28);font-weight:400;margin-left:2px">최대 5장</span>
+          <span style="font-size: var(--font-xs);color:rgba(0,0,0,0.28);font-weight:400;margin-left:2px">최대 5장</span>
         </div>
         <div class="photo-attach" id="photoAttach">
           <div class="photo-slot photo-slot--add" onclick="addPhoto()" id="addPhotoSlot">
-            <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="rgba(0,0,0,0.25)" stroke-width="1.6" stroke-linecap="round">
-              <rect x="1" y="4" width="20" height="14" rx="3"/>
-              <circle cx="11" cy="11" r="3.5"/>
-              <path d="M7 4L8.5 1.5H13.5L15 4"/>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="rgba(0,0,0,0.25)">
+              <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
+              <path d="M8.813 11.612c.457 -.38 .918 -.38 1.386 .011l.108 .098l4.986 4.986l.094 .083a1 1 0 0 0 1.403 -1.403l-.083 -.094l-1.292 -1.293l.292 -.293l.106 -.095c.457 -.38 .918 -.38 1.386 .011l.108 .098l4.674 4.675a4 4 0 0 1 -3.775 3.599l-.206 .005h-12a4 4 0 0 1 -3.98 -3.603l6.687 -6.69l.106 -.095zm9.187 -9.612a4 4 0 0 1 3.995 3.8l.005 .2v9.585l-3.293 -3.292l-.15 -.137c-1.256 -1.095 -2.85 -1.097 -4.096 -.017l-.154 .14l-.307 .306l-2.293 -2.292l-.15 -.137c-1.256 -1.095 -2.85 -1.097 -4.096 -.017l-.154 .14l-5.307 5.306v-9.585a4 4 0 0 1 3.8 -3.995l.2 -.005h12zm-2.99 5l-.127 .007a1 1 0 0 0 0 1.986l.117 .007l.127 -.007a1 1 0 0 0 0 -1.986l-.117 -.007z"/>
             </svg>
             <span id="photoCount">0/5</span>
           </div>
@@ -766,9 +618,7 @@
               </svg>
             </div>
             <div class="equip-select-item__icon">
-              <svg width="14" height="12" viewBox="0 0 14 12" fill="none" stroke="rgba(0,0,0,0.3)" stroke-width="0.9">
-                <rect x="0" y="3" width="14" height="8" rx="2"/><circle cx="7" cy="7.5" r="2.8"/><rect x="4" y="0" width="6" height="4" rx="1.5"/>
-              </svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" style="color: rgba(0,0,0,0.3)"><use href="#icon-camera"/></svg>
             </div>
             <div>
               <div class="equip-select-item__name">Sony A7IV</div>
@@ -848,72 +698,17 @@
       var starLabels = ['', '별로예요', '아쉬워요', '괜찮아요', '좋아요', '최고예요'];
 
       /* ── 태그 ── */
-      function addTag(raw) {
-        var tag = raw.replace(/^#+/, '').trim();
-        if (!tag || tags.length >= MAX_TAGS) return;
-        if (tags.indexOf(tag) !== -1) return; // 중복 방지
-        tags.push(tag);
-        renderTags();
+      function toggleTag(btn) {
+        var tag = btn.textContent.trim().replace(/^#/, '');
+        if (btn.classList.contains('is-selected')) {
+          tags = tags.filter(function(t) { return t !== tag; });
+          btn.classList.remove('is-selected');
+        } else {
+          if (tags.length >= MAX_TAGS) return;
+          tags.push(tag);
+          btn.classList.add('is-selected');
+        }
         validateForm();
-      }
-
-      function removeTag(tag) {
-        tags = tags.filter(function(t) { return t !== tag; });
-        renderTags();
-        validateForm();
-      }
-
-      function renderTags() {
-        var wrap = document.getElementById('tagInputWrap');
-        var field = document.getElementById('tagField');
-        // 기존 칩 제거
-        wrap.querySelectorAll('.tag-chip').forEach(function(c) { c.remove(); });
-        tags.forEach(function(tag) {
-          var chip = document.createElement('span');
-          chip.className = 'tag-chip';
-          chip.textContent = '#' + tag;
-          var delBtn = document.createElement('button');
-          delBtn.className = 'tag-chip__del';
-          delBtn.type = 'button';
-          delBtn.innerHTML =
-            '<svg width="8" height="8" viewBox="0 0 8 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">' +
-            '<line x1="1.5" y1="1.5" x2="6.5" y2="6.5"/><line x1="6.5" y1="1.5" x2="1.5" y2="6.5"/>' +
-            '</svg>';
-          delBtn.addEventListener('click', function() { removeTag(tag); });
-          chip.appendChild(delBtn);
-          wrap.insertBefore(chip, field);
-        });
-        field.placeholder = tags.length >= MAX_TAGS ? '' : '#태그 입력 후 스페이스 또는 엔터';
-        field.disabled = tags.length >= MAX_TAGS;
-      }
-
-      function onTagInput() {
-        var field = document.getElementById('tagField');
-        var val = field.value;
-        // 스페이스 입력 시 태그 확정
-        if (val.slice(-1) === ' ') {
-          var word = val.trim();
-          if (word) addTag(word);
-          field.value = '';
-        }
-      }
-
-      function onTagKeydown(e) {
-        var field = document.getElementById('tagField');
-        if (e.key === 'Enter') {
-          e.preventDefault();
-          var word = field.value.trim();
-          if (word) addTag(word);
-          field.value = '';
-        }
-        if (e.key === 'Backspace' && field.value === '' && tags.length > 0) {
-          removeTag(tags[tags.length - 1]);
-        }
-      }
-
-      function addSuggestTag(btn) {
-        var text = btn.textContent.trim().replace(/^\+/, '').trim();
-        addTag(text);
       }
 
       /* ── 별점 ── */

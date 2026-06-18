@@ -7,59 +7,16 @@
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
     <title>PNG - 광안리 해수욕장</title>
-    <link rel="stylesheet" href="../fonts.css" />
+    <link rel="stylesheet" href="../common/fonts.css" />
+    <link rel="stylesheet" href="../common/common.css" />
     <style>
-      /* ======================== */
-      /* Design Tokens (Apple DS) */
-      /* ======================== */
-      :root {
-        --color-bg: #ffffff;
-        --color-surface: #f5f5f7;
-        --color-text-primary: #000000;
-        --color-text-secondary: rgba(0, 0, 0, 0.48);
-        --color-text-tertiary: rgba(0, 0, 0, 0.28);
-        --color-text-placeholder: rgba(0, 0, 0, 0.3);
-        --color-accent: #e31b59;
-        --color-accent-hover: #c91550;
-        --color-link: #e31b59;
-        --color-border: rgba(0, 0, 0, 0.08);
-        --color-border-light: rgba(0, 0, 0, 0.06);
-        --color-error: #ff453a;
-        --color-success: #34c759;
-        --color-warning: #ff9f0a;
-
-        --radius-card: 16px;
-        --radius-pill: 15px;
-        --radius-btn: 26px;
-      }
-
-      *,
-      *::before,
-      *::after {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-      html {
-        font-size: 16px;
-        -webkit-font-smoothing: antialiased;
-      }
-      body {
-        font-family: var(--font-family);
-        background: #f0f0f0;
-        display: flex;
-        justify-content: center;
-        min-height: 100dvh;
-      }
-
       .phone-frame {
-        width: 390px;
+        width: 100%;
         background: var(--color-bg);
         position: relative;
-        display: flex;
-        flex-direction: column;
         height: 100dvh;
-        overflow: hidden;
+        overflow-y: auto;
+        overflow-x: hidden;
       }
 
       /* ======================== */
@@ -68,7 +25,7 @@
       .hero {
         height: 360px;
         position: relative;
-        flex-shrink: 0;
+        overflow: hidden;
         background: linear-gradient(
           to bottom,
           #0f2027 0%,
@@ -143,7 +100,7 @@
         padding: 0 34px;
       }
       .status-bar__time {
-        font-size: 15px;
+        font-size: var(--font-md);
         font-weight: 600;
         color: #fff;
         letter-spacing: -0.3px;
@@ -219,8 +176,7 @@
       /* Spot Info (Hero 하단 고정) */
       /* ======================== */
       .spot-info {
-        padding: 20px 20px 0;
-        flex-shrink: 0;
+        padding: 20px 20px 20px;
       }
 
       .spot-info__badge {
@@ -230,14 +186,14 @@
         padding: 0 10px;
         border-radius: 6px;
         background: rgba(227, 27, 89, 0.08);
-        font-size: 11px;
+        font-size: var(--font-xs);
         font-weight: 600;
         color: var(--color-accent);
         letter-spacing: 0.3px;
         margin-bottom: 12px;
       }
       .spot-info__name {
-        font-size: 28px;
+        font-size: var(--font-2xl);
         font-weight: 600;
         color: var(--color-text-primary);
         letter-spacing: -0.6px;
@@ -248,7 +204,7 @@
         display: flex;
         align-items: center;
         gap: 6px;
-        font-size: 14px;
+        font-size: var(--font-base);
         color: rgba(0, 0, 0, 0.45);
         letter-spacing: -0.15px;
         margin-bottom: 12px;
@@ -257,7 +213,7 @@
         flex-shrink: 0;
       }
       .spot-info__rating {
-        font-size: 14px;
+        font-size: var(--font-base);
         color: var(--color-warning);
         margin-bottom: 14px;
       }
@@ -275,26 +231,18 @@
         flex-wrap: wrap;
         gap: 6px;
       }
-      .spot-info__tag {
-        height: 30px;
-        padding: 0 14px;
-        border-radius: var(--radius-pill);
-        background: var(--color-surface);
-        display: flex;
-        align-items: center;
-        font-size: 12px;
-        color: rgba(0, 0, 0, 0.45);
-      }
+      /* .spot-info__tag → common.css .spot-tag */
 
       /* ======================== */
       /* Tab Bar                  */
       /* ======================== */
       .tab-bar {
-        flex-shrink: 0;
+        position: sticky;
+        top: 0;
+        z-index: 50;
         display: flex;
         border-bottom: 0.5px solid var(--color-border-light);
         padding: 0 20px;
-        margin-top: 20px;
         background: var(--color-bg);
       }
       .tab-bar__item {
@@ -303,7 +251,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 14px;
+        font-size: var(--font-base);
         font-weight: 500;
         color: rgba(0, 0, 0, 0.4);
         border: none;
@@ -336,10 +284,7 @@
       /* Tab Content              */
       /* ======================== */
       .tab-content {
-        flex: 1;
-        min-height: 0;
-        overflow-y: auto;
-        overflow-x: hidden;
+        min-height: calc(100dvh - 44px);
       }
 
       .tab-pane {
@@ -365,7 +310,7 @@
         padding: 24px 20px 0;
       }
       .photogenic__title {
-        font-size: 22px;
+        font-size: var(--font-xl);
         font-weight: 600;
         color: var(--color-text-primary);
         letter-spacing: -0.4px;
@@ -387,7 +332,7 @@
         gap: 8px;
         padding: 0 12px;
         font-family: var(--font-family);
-        font-size: 14px;
+        font-size: var(--font-base);
         color: rgba(0, 0, 0, 0.6);
         letter-spacing: -0.15px;
         cursor: pointer;
@@ -425,7 +370,7 @@
         align-items: center;
         background: rgba(227, 27, 89, 0.1);
         color: var(--color-accent);
-        font-size: 11px;
+        font-size: var(--font-xs);
         font-weight: 600;
         letter-spacing: -0.1px;
         padding: 4px 10px;
@@ -460,7 +405,7 @@
         gap: 0;
       }
       .pg-score-label-top {
-        font-size: 11px;
+        font-size: var(--font-xs);
         font-weight: 600;
         color: rgba(0, 0, 0, 0.3);
         letter-spacing: 0.4px;
@@ -487,7 +432,7 @@
 
       /* 추천 문구 */
       .pg-recommend {
-        font-size: 14px;
+        font-size: var(--font-base);
         color: rgba(0, 0, 0, 0.5);
         letter-spacing: -0.2px;
         text-align: center;
@@ -509,7 +454,7 @@
         padding: 10px 14px;
         width: 100%;
         margin-bottom: 18px;
-        font-size: 13px;
+        font-size: var(--font-sm);
         color: rgba(0, 0, 0, 0.6);
         letter-spacing: -0.15px;
       }
@@ -564,13 +509,13 @@
         border-radius: 20px;
       }
       .pg-factor__label {
-        font-size: 11px;
+        font-size: var(--font-xs);
         color: rgba(0, 0, 0, 0.38);
         letter-spacing: -0.1px;
         font-weight: 500;
       }
       .pg-factor__value {
-        font-size: 15px;
+        font-size: var(--font-md);
         font-weight: 600;
         letter-spacing: -0.3px;
         color: #000;
@@ -634,7 +579,7 @@
         background: rgba(227, 27, 89, 0.08);
       }
       .transport-card__text-main {
-        font-size: 14px;
+        font-size: var(--font-base);
         font-weight: 500;
         color: var(--color-text-primary);
         letter-spacing: -0.15px;
@@ -662,7 +607,7 @@
         margin-bottom: 6px;
       }
       .info-cell__value {
-        font-size: 14px;
+        font-size: var(--font-base);
         font-weight: 500;
       }
       .info-cell__value--green {
@@ -723,7 +668,7 @@
         background: transparent;
       }
       .checklist__label {
-        font-size: 15px;
+        font-size: var(--font-md);
         letter-spacing: -0.2px;
       }
       .checklist__label--on {
@@ -741,7 +686,6 @@
         padding: 14px 16px;
         border-radius: 14px;
         background: var(--color-surface);
-        border: 1px solid rgba(227, 27, 89, 0.1);
         display: flex;
         align-items: center;
         gap: 12px;
@@ -765,7 +709,7 @@
         flex: 1;
       }
       .wishlist-banner__title {
-        font-size: 14px;
+        font-size: var(--font-base);
         font-weight: 500;
         color: var(--color-text-primary);
         letter-spacing: -0.15px;
@@ -880,7 +824,7 @@
         padding: 0 14px;
         border-radius: var(--radius-pill);
         white-space: nowrap;
-        font-size: 13px;
+        font-size: var(--font-sm);
         font-weight: 500;
         border: none;
         cursor: pointer;
@@ -902,7 +846,7 @@
       .chat-wrap {
         display: flex;
         flex-direction: column;
-        height: 100%;
+        height: calc(100dvh - 44px);
       }
 
       /* 채팅 헤더 */
@@ -912,7 +856,7 @@
         flex-shrink: 0;
       }
       .chat-header__title {
-        font-size: 15px;
+        font-size: var(--font-md);
         font-weight: 600;
         color: var(--color-text-primary);
         letter-spacing: -0.2px;
@@ -957,7 +901,7 @@
         background: rgba(0, 0, 0, 0.08);
       }
       .chat-date__text {
-        font-size: 11px;
+        font-size: var(--font-xs);
         color: rgba(0, 0, 0, 0.3);
         white-space: nowrap;
         letter-spacing: -0.1px;
@@ -981,7 +925,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 11px;
+        font-size: var(--font-xs);
         font-weight: 600;
         color: #fff;
         overflow: hidden;
@@ -1007,7 +951,7 @@
       }
 
       .chat-msg__name {
-        font-size: 11px;
+        font-size: var(--font-xs);
         color: rgba(0, 0, 0, 0.35);
         letter-spacing: -0.1px;
         padding: 0 4px;
@@ -1016,7 +960,7 @@
       .chat-msg__bubble {
         padding: 10px 14px;
         border-radius: 18px;
-        font-size: 14px;
+        font-size: var(--font-base);
         line-height: 1.45;
         letter-spacing: -0.15px;
         word-break: break-all;
@@ -1033,7 +977,7 @@
       }
 
       .chat-msg__time {
-        font-size: 10px;
+        font-size: var(--font-2xs);
         color: rgba(0, 0, 0, 0.25);
         padding: 0 4px;
       }
@@ -1094,7 +1038,7 @@
         border: none;
         background: transparent;
         font-family: var(--font-family);
-        font-size: 14px;
+        font-size: var(--font-base);
         color: var(--color-text-primary);
         letter-spacing: -0.15px;
         outline: none;
@@ -1159,13 +1103,13 @@
         letter-spacing: -1px;
       }
       .review-summary__stars {
-        font-size: 14px;
+        font-size: var(--font-base);
         color: var(--color-warning);
         margin: 6px 0 4px;
         letter-spacing: 1px;
       }
       .review-summary__count {
-        font-size: 11px;
+        font-size: var(--font-xs);
         color: rgba(0, 0, 0, 0.35);
       }
       .review-summary__bars {
@@ -1181,7 +1125,7 @@
         gap: 6px;
       }
       .review-bar-row__label {
-        font-size: 11px;
+        font-size: var(--font-xs);
         color: rgba(0, 0, 0, 0.4);
         width: 14px;
         text-align: right;
@@ -1200,7 +1144,7 @@
         background: var(--color-warning);
       }
       .review-bar-row__pct {
-        font-size: 10px;
+        font-size: var(--font-2xs);
         color: rgba(0, 0, 0, 0.3);
         width: 26px;
         text-align: right;
@@ -1257,7 +1201,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 13px;
+        font-size: var(--font-sm);
         font-weight: 600;
         color: #fff;
         flex-shrink: 0;
@@ -1273,7 +1217,7 @@
         margin-bottom: 3px;
       }
       .review-card__name {
-        font-size: 14px;
+        font-size: var(--font-base);
         font-weight: 600;
         color: #000;
         letter-spacing: -0.15px;
@@ -1284,7 +1228,7 @@
         letter-spacing: 1px;
       }
       .review-card__info {
-        font-size: 11px;
+        font-size: var(--font-xs);
         color: rgba(0, 0, 0, 0.35);
         display: flex;
         align-items: center;
@@ -1297,12 +1241,12 @@
         padding: 0 7px;
         border-radius: 9px;
         background: rgba(0, 0, 0, 0.06);
-        font-size: 10px;
+        font-size: var(--font-2xs);
         font-weight: 500;
         color: rgba(0, 0, 0, 0.45);
       }
       .review-card__text {
-        font-size: 14px;
+        font-size: var(--font-base);
         color: rgba(0, 0, 0, 0.72);
         line-height: 1.6;
         letter-spacing: -0.15px;
@@ -1324,7 +1268,7 @@
         display: flex;
         align-items: center;
         gap: 4px;
-        font-size: 11px;
+        font-size: var(--font-xs);
         color: rgba(0, 0, 0, 0.3);
         letter-spacing: -0.1px;
       }
@@ -1462,7 +1406,7 @@
       }
       .plan-info { flex: 1; min-width: 0; }
       .plan-name {
-        font-size: 15px;
+        font-size: var(--font-md);
         font-weight: 500;
         color: #000;
         letter-spacing: -0.2px;
@@ -1514,7 +1458,7 @@
         flex-shrink: 0;
       }
       .plan-new-label {
-        font-size: 15px;
+        font-size: var(--font-md);
         font-weight: 500;
         color: var(--color-accent);
         letter-spacing: -0.2px;
@@ -1588,7 +1532,7 @@
         );
       }
       .navi-route-text__main {
-        font-size: 14px;
+        font-size: var(--font-base);
         font-weight: 500;
         color: #000;
         letter-spacing: -0.15px;
@@ -1620,7 +1564,7 @@
         flex-shrink: 0;
       }
       .navi-time-text {
-        font-size: 14px;
+        font-size: var(--font-base);
         font-weight: 500;
         color: #000;
         letter-spacing: -0.15px;
@@ -1693,7 +1637,7 @@
         border-color: var(--color-accent);
       }
       .day-chip__label {
-        font-size: 11px;
+        font-size: var(--font-xs);
         font-weight: 600;
         letter-spacing: -0.1px;
         color: rgba(0,0,0,0.4);
@@ -1701,7 +1645,7 @@
       }
       .day-chip.is-selected .day-chip__label { color: var(--color-accent); }
       .day-chip__date {
-        font-size: 14px;
+        font-size: var(--font-base);
         font-weight: 500;
         letter-spacing: -0.25px;
         color: #000;
@@ -1763,7 +1707,7 @@
         flex-shrink: 0;
       }
       .share-app-name {
-        font-size: 11px;
+        font-size: var(--font-xs);
         color: rgba(0,0,0,0.55);
         letter-spacing: -0.1px;
         text-align: center;
@@ -1799,7 +1743,7 @@
       }
       .share-action-label {
         flex: 1;
-        font-size: 15px;
+        font-size: var(--font-md);
         letter-spacing: -0.2px;
         color: #000;
       }
@@ -1832,7 +1776,7 @@
       }
       .bk-col-info { flex: 1; }
       .bk-col-name {
-        font-size: 15px;
+        font-size: var(--font-md);
         font-weight: 500;
         letter-spacing: -0.2px;
         color: #000;
@@ -1863,7 +1807,7 @@
         align-items: center;
         gap: 10px;
         padding: 14px 0 4px;
-        font-size: 14px;
+        font-size: var(--font-base);
         color: var(--color-accent);
         font-weight: 500;
         letter-spacing: -0.15px;
@@ -1888,7 +1832,7 @@
         background: linear-gradient(135deg, #0f2027, #4a7c8a);
         flex-shrink: 0;
       }
-      .bk-saved-spot { font-size: 14px; font-weight: 600; letter-spacing: -0.2px; color:#000; }
+      .bk-saved-spot { font-size: var(--font-base); font-weight: 600; letter-spacing: -0.2px; color:#000; }
       .bk-saved-col { font-size: 12px; color: rgba(0,0,0,0.4); margin-top: 2px; letter-spacing: -0.1px; }
       .bk-saved-actions {
         display: grid;
@@ -1901,7 +1845,7 @@
         border: 1.5px solid rgba(0,0,0,0.1);
         background: none;
         font-family: var(--font-family);
-        font-size: 14px;
+        font-size: var(--font-base);
         font-weight: 500;
         letter-spacing: -0.15px;
         color: #000;
@@ -1929,34 +1873,13 @@
         text-align: center;
       }
 
-      /* ======================== */
-      /* Responsive                */
-      /* ======================== */
-      @media (max-width: 390px) {
-        .phone-frame {
-          width: 100%;
-        }
-      }
-      @media (min-width: 391px) {
-        body {
-          padding: 20px 0;
-          align-items: flex-start;
-        }
-        .phone-frame {
-          border-radius: 40px;
-          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-          min-height: unset;
-          height: calc(100dvh - 40px);
-          overflow-y: auto;
-          overflow-x: hidden;
-        }
-      }
     </style>
   </head>
   <body>
+    <script src="../common/icons.js"></script>
     <div class="phone-frame">
       <!-- ======= Hero ======= -->
-      <div class="hero" style="flex-shrink: 0">
+      <div class="hero">
         <div class="hero__landscape"></div>
         <div class="hero__water"></div>
 
@@ -2083,10 +2006,10 @@
           >
         </div>
         <div class="spot-info__tags">
-          <span class="spot-info__tag">#채광맛집</span>
-          <span class="spot-info__tag">#야경</span>
-          <span class="spot-info__tag">#바다</span>
-          <span class="spot-info__tag">#일출명소</span>
+          <span class="spot-tag">#채광맛집</span>
+          <span class="spot-tag">#야경</span>
+          <span class="spot-tag">#바다</span>
+          <span class="spot-tag">#일출명소</span>
         </div>
       </div>
 
@@ -2668,9 +2591,7 @@
                   <div class="review-card__photo" style="background:linear-gradient(135deg,#203a43,#4a7c8a)"></div>
                 </div>
                 <div class="review-card__equip">
-                  <svg width="12" height="10" viewBox="0 0 14 12" fill="none" stroke="currentColor" stroke-width="1">
-                    <rect x="0" y="3" width="14" height="8" rx="2"/><circle cx="7" cy="7.5" r="2.8"/><rect x="4" y="0" width="6" height="4" rx="1.5"/>
-                  </svg>
+                  <svg width="14" height="14" viewBox="0 0 24 24"><use href="#icon-camera"/></svg>
                   Sony A7IV · 16-35mm f/2.8 GM
                 </div>
               </div>
@@ -2692,9 +2613,7 @@
                 </div>
                 <p class="review-card__text">새벽 5시 30분에 도착했는데 이미 사진가들이 꽤 있었어요. 일출 포인트는 해변 오른쪽 끝 방파제 근처가 제일 좋아요. 미세먼지 없는 날 노을 색감은 말이 필요 없을 정도예요.</p>
                 <div class="review-card__equip">
-                  <svg width="12" height="10" viewBox="0 0 14 12" fill="none" stroke="currentColor" stroke-width="1">
-                    <rect x="0" y="3" width="14" height="8" rx="2"/><circle cx="7" cy="7.5" r="2.8"/><rect x="4" y="0" width="6" height="4" rx="1.5"/>
-                  </svg>
+                  <svg width="14" height="14" viewBox="0 0 24 24"><use href="#icon-camera"/></svg>
                   Canon EOS R5 · 24-70mm f/2.8
                 </div>
               </div>
@@ -2719,9 +2638,7 @@
                   <div class="review-card__photo" style="background:linear-gradient(135deg,#c9d6df,#8da9c4)"></div>
                 </div>
                 <div class="review-card__equip">
-                  <svg width="12" height="10" viewBox="0 0 14 12" fill="none" stroke="currentColor" stroke-width="1">
-                    <rect x="0" y="3" width="14" height="8" rx="2"/><circle cx="7" cy="7.5" r="2.8"/><rect x="4" y="0" width="6" height="4" rx="1.5"/>
-                  </svg>
+                  <svg width="14" height="14" viewBox="0 0 24 24"><use href="#icon-camera"/></svg>
                   Nikon Z6II
                 </div>
               </div>
@@ -2748,9 +2665,7 @@
                   <div class="review-card__photo" style="background:linear-gradient(135deg,#1a1530,#2d1b4e)"></div>
                 </div>
                 <div class="review-card__equip">
-                  <svg width="12" height="10" viewBox="0 0 14 12" fill="none" stroke="currentColor" stroke-width="1">
-                    <rect x="0" y="3" width="14" height="8" rx="2"/><circle cx="7" cy="7.5" r="2.8"/><rect x="4" y="0" width="6" height="4" rx="1.5"/>
-                  </svg>
+                  <svg width="14" height="14" viewBox="0 0 24 24"><use href="#icon-camera"/></svg>
                   Sony A7IV · 16-35mm f/2.8 GM
                 </div>
               </div>
@@ -3047,7 +2962,7 @@
           <div class="sheet-title">DAY 선택</div>
         </div>
         <div class="sheet-body">
-          <div style="font-size:13px; color:rgba(0,0,0,0.45); letter-spacing:-0.15px; margin-bottom:16px; line-height:1.5">
+          <div style="font-size: var(--font-sm); color:rgba(0,0,0,0.45); letter-spacing:-0.15px; margin-bottom:16px; line-height:1.5">
             <span id="step2PlanName" style="color:#000; font-weight:600"></span>에서<br>이 스팟을 추가할 날을 선택해 주세요
           </div>
           <div class="day-chips" id="dayChipsContainer"></div>
@@ -3352,6 +3267,16 @@
         }
       }
 
+      /* ── 콜랩싱 헤더 ── */
+      var _frame = document.querySelector('.phone-frame');
+      var _hero  = document.querySelector('.hero');
+      var HERO_H = 360;
+
+      _frame.addEventListener('scroll', function() {
+        var s = _frame.scrollTop;
+        _hero.style.height = Math.max(0, HERO_H - s) + 'px';
+      });
+
       /* ── 탭 전환 ── */
       document.querySelectorAll(".tab-bar__item").forEach((tab) => {
         tab.addEventListener("click", () => {
@@ -3365,6 +3290,12 @@
           document
             .getElementById("tab-" + tab.dataset.tab)
             .classList.add("active");
+          /* 채팅 탭: 헤더 자동 접기 */
+          if (tab.dataset.tab === 'chat') {
+            _frame.scrollTo({ top: _frame.scrollHeight, behavior: 'smooth' });
+          } else {
+            _frame.scrollTop = 0;
+          }
         });
       });
 
