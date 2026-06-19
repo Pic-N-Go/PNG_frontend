@@ -4,84 +4,21 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>PNG - 로그인</title>
-  <link rel="stylesheet" href="../fonts.css">
+  <link rel="stylesheet" href="../common/fonts.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fugaz+One&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../common/common.css">
   <style>
-    /* ======================== */
-    /* Design Tokens (Apple DS) */
-    /* ======================== */
-    :root {
-      /* Colors */
-      --color-bg: #ffffff;
-      --color-surface: #f5f5f7;
-      --color-text-primary: #000000;
-      --color-text-secondary: rgba(0, 0, 0, 0.48);
-      --color-text-tertiary: rgba(0, 0, 0, 0.28);
-      --color-text-placeholder: rgba(0, 0, 0, 0.3);
-      --color-accent: #e31b59;
-      --color-accent-hover: #c91550;
-      --color-accent-disabled: rgba(227, 27, 89, 0.25);
-      --color-link: #e31b59;
-      --color-border: rgba(0, 0, 0, 0.08);
-      --color-input-bg: #f5f5f7;
-      --color-input-border: transparent;
-      --color-input-border-focus: #e31b59;
-      --color-kakao: #FEE500;
-      --color-kakao-text: #391B1B;
-      --color-error: #ff453a;
-      --color-success: #34c759;
 
-      /* Typography */
-      /* Spacing (8px grid) */
-      --space-xs: 4px;
-      --space-sm: 8px;
-      --space-md: 16px;
-      --space-lg: 24px;
-      --space-xl: 32px;
-      --space-2xl: 48px;
 
-      /* Radius */
-      --radius-input: 12px;
-      --radius-btn: 26px;
-      --radius-card: 16px;
-    }
-
-    /* ======================== */
-    /* Reset & Base             */
-    /* ======================== */
-    *, *::before, *::after {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    html {
-      font-size: 16px;
-      -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-    }
-
-    body {
-      font-family: var(--font-family);
-      background: #f0f0f0;
-      display: flex;
-      justify-content: center;
-      min-height: 100dvh;
-    }
-
-    /* ======================== */
-    /* Phone Frame              */
-    /* ======================== */
     .phone-frame {
-      width: 390px;
-      min-height: 844px;
+      width: 100%;
+      min-height: 100dvh;
       background: var(--color-bg);
       position: relative;
       overflow: hidden;
     }
 
-    /* ======================== */
-    /* Status Bar               */
-    /* ======================== */
     .status-bar {
       position: absolute;
       top: 0;
@@ -96,7 +33,7 @@
     }
 
     .status-bar__time {
-      font-size: 15px;
+      font-size: var(--font-md);
       font-weight: 600;
       color: #fff;
       letter-spacing: -0.3px;
@@ -124,9 +61,6 @@
       border-radius: 14px;
     }
 
-    /* ======================== */
-    /* Hero Section             */
-    /* ======================== */
     .hero {
       height: 380px;
       background: linear-gradient(
@@ -201,9 +135,6 @@
     .hero__stars span:nth-child(4) { top: 50px; left: 340px; opacity: 0.3; }
     .hero__stars span:nth-child(5) { top: 95px; left: 180px; width: 1.5px; height: 1.5px; opacity: 0.2; }
 
-    /* ======================== */
-    /* Logo                    */
-    /* ======================== */
     .logo {
       position: relative;
       z-index: 2;
@@ -215,27 +146,26 @@
       width: 52px;
       height: 52px;
       margin: 0 auto 8px;
+      object-fit: contain;
     }
 
     .logo__wordmark {
-      font-size: 32px;
-      font-weight: 600;
+      font-family: 'Fugaz One', sans-serif;
+      font-size: 40px;
+      font-weight: 400;
       color: #fff;
-      letter-spacing: -1.2px;
-      line-height: 1.1;
+      letter-spacing: -1px;
+      line-height: 1;
     }
 
     .logo__sub {
-      font-size: 11px;
+      font-size: var(--font-xs);
       font-weight: 400;
       color: rgba(255, 255, 255, 0.6);
       letter-spacing: 3.5px;
       margin-top: 4px;
     }
 
-    /* ======================== */
-    /* Content Area             */
-    /* ======================== */
     .content {
       position: relative;
       z-index: 1;
@@ -243,7 +173,7 @@
     }
 
     .content__title {
-      font-size: 28px;
+      font-size: var(--font-2xl);
       font-weight: 600;
       color: var(--color-text-primary);
       letter-spacing: -0.6px;
@@ -252,15 +182,12 @@
     }
 
     .content__subtitle {
-      font-size: 15px;
+      font-size: var(--font-md);
       color: var(--color-text-secondary);
       letter-spacing: -0.2px;
       margin-bottom: var(--space-xl);
     }
 
-    /* ======================== */
-    /* Input Group              */
-    /* ======================== */
     .input-group {
       position: relative;
       margin-bottom: var(--space-md);
@@ -269,7 +196,7 @@
     .input-group__field {
       width: 100%;
       height: 52px;
-      background: var(--color-input-bg);
+      background: var(--color-surface);
       border: 1.5px solid transparent;
       border-radius: var(--radius-input);
       padding: 0 48px 0 46px;
@@ -282,7 +209,7 @@
     }
 
     .input-group__field::placeholder {
-      color: var(--color-text-placeholder);
+      color: var(--color-text-tertiary);
     }
 
     .input-group__field:focus {
@@ -322,14 +249,11 @@
       color: rgba(0, 0, 0, 0.45);
     }
 
-    /* ======================== */
-    /* Forgot Link              */
-    /* ======================== */
     .forgot-link {
       display: block;
       text-align: right;
-      font-size: 13px;
-      color: var(--color-link);
+      font-size: var(--font-sm);
+      color: var(--color-accent);
       text-decoration: none;
       letter-spacing: -0.1px;
       margin-top: -4px;
@@ -341,9 +265,6 @@
       opacity: 0.7;
     }
 
-    /* ======================== */
-    /* Buttons                  */
-    /* ======================== */
     .btn {
       display: flex;
       align-items: center;
@@ -353,7 +274,7 @@
       border-radius: var(--radius-btn);
       border: none;
       font-family: var(--font-family);
-      font-size: 17px;
+      font-size: var(--font-lg);
       font-weight: 500;
       letter-spacing: -0.3px;
       cursor: pointer;
@@ -373,9 +294,6 @@
       background: var(--color-accent-hover);
     }
 
-    /* ======================== */
-    /* Divider                  */
-    /* ======================== */
     .divider {
       display: flex;
       align-items: center;
@@ -395,9 +313,6 @@
       letter-spacing: 0.3px;
     }
 
-    /* ======================== */
-    /* Social Buttons           */
-    /* ======================== */
     .social-row {
       display: flex;
       gap: 14px;
@@ -409,7 +324,7 @@
       border-radius: 24px;
       border: none;
       font-family: var(--font-family);
-      font-size: 14px;
+      font-size: var(--font-base);
       font-weight: 500;
       letter-spacing: -0.2px;
       cursor: pointer;
@@ -444,20 +359,17 @@
       flex-shrink: 0;
     }
 
-    /* ======================== */
-    /* Signup Link              */
-    /* ======================== */
     .signup-link {
       text-align: center;
       margin-top: var(--space-xl);
-      font-size: 14px;
+      font-size: var(--font-base);
       color: rgba(0, 0, 0, 0.4);
       letter-spacing: -0.15px;
       padding-bottom: var(--space-xl);
     }
 
     .signup-link a {
-      color: var(--color-link);
+      color: var(--color-accent);
       font-weight: 600;
       text-decoration: none;
       margin-left: 4px;
@@ -468,9 +380,6 @@
       opacity: 0.7;
     }
 
-    /* ======================== */
-    /* Bottom Sheet (비밀번호 찾기) */
-    /* ======================== */
     .sheet-dim {
       position: fixed;
       inset: 0;
@@ -489,7 +398,7 @@
       bottom: 0;
       left: 50%;
       transform: translateX(-50%) translateY(100%);
-      width: 390px;
+      width: 100%;
       background: #fff;
       border-radius: 20px 20px 0 0;
       z-index: 201;
@@ -538,15 +447,16 @@
       background: rgba(0, 0, 0, 0.08);
     }
     .sheet-desc {
-      font-size: 14px;
+      font-size: var(--font-base);
       color: rgba(0, 0, 0, 0.45);
       line-height: 1.55;
       letter-spacing: -0.15px;
       padding: 6px 24px 20px;
     }
     .sheet-body {
-      padding: 0 24px;
-    }
+      padding: 0 var(--space-lg);
+        background: #fff;
+      }
     .sheet-step {
       display: none;
     }
@@ -569,7 +479,7 @@
       border-radius: 12px;
       border: 1.5px solid transparent;
       background: var(--color-surface);
-      padding: 0 16px;
+      padding: 0 var(--space-md);
       font-family: var(--font-family);
       font-size: 16px;
       color: #000;
@@ -590,7 +500,7 @@
       font-weight: 600;
       letter-spacing: 8px;
       text-align: center;
-      padding: 0 16px;
+      padding: 0 var(--space-md);
     }
     .sheet-hint {
       font-size: 12px;
@@ -642,7 +552,7 @@
       display: flex;
       align-items: center;
       gap: 6px;
-      font-size: 14px;
+      font-size: var(--font-base);
       font-weight: 500;
       color: #fff;
       letter-spacing: -0.2px;
@@ -657,11 +567,8 @@
       transform: translateX(-50%) translateY(0);
     }
 
-    /* ======================== */
-    /* Home Indicator           */
-    /* ======================== */
     .home-indicator {
-      position: fixed;
+      position: absolute;
       bottom: 8px;
       left: 50%;
       transform: translateX(-50%);
@@ -669,38 +576,10 @@
       height: 5px;
       background: rgba(0, 0, 0, 0.1);
       border-radius: 2.5px;
-    }
-
-    /* ======================== */
-    /* Responsive               */
-    /* ======================== */
-    @media (max-width: 390px) {
-      .phone-frame {
-        width: 100%;
       }
-    }
-
-    @media (min-width: 391px) {
-      body {
-        padding: 20px 0;
-      }
-      .phone-frame {
-        border-radius: 40px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-          min-height: unset;
-          height: calc(100dvh - 40px);
-          overflow-y: auto;
-          overflow-x: hidden;
-      }
-      .home-indicator {
-        position: absolute;
-      }
-    }
   
       /* ── 스크롤바 숨김 ── */
-      * { scrollbar-width: none; -ms-overflow-style: none; }
-      *::-webkit-scrollbar { display: none; }
-</style>
+    </style>
   <style>
     #splash-screen {
       position: absolute;
@@ -797,20 +676,8 @@
 
     <!-- Logo -->
     <div class="logo">
-      <svg class="logo__icon" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="26" cy="26" r="23" stroke="rgba(255,255,255,0.9)" stroke-width="1.6"/>
-        <circle cx="26" cy="26" r="9.5" stroke="rgba(255,255,255,0.7)" stroke-width="1.2"/>
-        <circle cx="26" cy="26" r="3" fill="rgba(255,255,255,0.35)"/>
-        <line x1="26" y1="5" x2="29" y2="16" stroke="rgba(255,255,255,0.4)" stroke-width="0.8" stroke-linecap="round"/>
-        <line x1="44" y1="16" x2="37" y2="22" stroke="rgba(255,255,255,0.4)" stroke-width="0.8" stroke-linecap="round"/>
-        <line x1="44" y1="36" x2="37" y2="30" stroke="rgba(255,255,255,0.4)" stroke-width="0.8" stroke-linecap="round"/>
-        <line x1="26" y1="47" x2="23" y2="36" stroke="rgba(255,255,255,0.4)" stroke-width="0.8" stroke-linecap="round"/>
-        <line x1="8" y1="36" x2="15" y2="30" stroke="rgba(255,255,255,0.4)" stroke-width="0.8" stroke-linecap="round"/>
-        <line x1="8" y1="16" x2="15" y2="22" stroke="rgba(255,255,255,0.4)" stroke-width="0.8" stroke-linecap="round"/>
-        <circle cx="21" cy="21" r="3.5" fill="rgba(255,255,255,0.1)"/>
-      </svg>
-      <div class="logo__wordmark">PNG</div>
-      <div class="logo__sub">PICK N GO</div>
+      <div class="logo__wordmark">P N G</div>
+      <div class="logo__sub">PIC N GO</div>
     </div>
   </div>
 

@@ -1,0 +1,198 @@
+/* common.css — PNG 퍼블리싱 공통 스타일 */
+/* fonts.css 와 함께 <head> 에 링크하세요. fonts.css 다음에 위치해야 합니다. */
+
+/* ─── Design Tokens ─────────────────────────────────────────────────────── */
+:root {
+  /* Colors */
+  --color-bg: #ffffff;
+  --color-surface: #f5f5f7;       /* 카드·인풋 배경 */
+  /* 텍스트 계층: secondary(0.48) — 설명·메타, tertiary(0.28) — 비활성·플레이스홀더 */
+  --color-text-primary: #000000;
+  --color-text-secondary: rgba(0, 0, 0, 0.48);
+  --color-text-tertiary: rgba(0, 0, 0, 0.28);
+  --color-accent: #e31b59;        /* 브랜드 핑크 — 버튼·링크·탭 활성 공통 */
+  --color-accent-hover: #c91550;
+  --color-accent-disabled: rgba(227, 27, 89, 0.25);
+  --color-border: rgba(0, 0, 0, 0.08);
+  --color-border-light: rgba(0, 0, 0, 0.06);
+  --color-input-border-focus: #e31b59;
+  --color-kakao: #FEE500;
+  --color-kakao-text: #391B1B;
+  --color-error: #ff453a;
+  --color-success: #34c759;
+  --color-warning: #ff9f0a;
+
+  /* Typography — layout.ts FONT_* 와 대응 */
+  --font-2xs:  10px;   /* 배지·메타 */
+  --font-xs:   11px;   /* 캡션      — FONT_XS */
+  --font-sm:   13px;   /* 서브텍스트 — FONT_SM */
+  --font-base: 14px;   /* 본문 */
+  --font-md:   15px;   /* 강조 본문  — FONT_MD */
+  --font-lg:   17px;   /* 소제목    — FONT_LG */
+  --font-xl:   22px;   /* 제목      — FONT_XL */
+  --font-2xl:  28px;   /* 대제목    — FONT_2XL */
+
+  /* Spacing (8px grid) */
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+
+  /* Radius */
+  --radius-input: 12px;
+  --radius-btn: 26px;
+  --radius-card: 16px;
+  --radius-pill: 17px;
+}
+
+/* ─── Reset ─────────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+* { scrollbar-width: none; -ms-overflow-style: none; }
+*::-webkit-scrollbar { display: none; }
+
+/* ─── Base ──────────────────────────────────────────────────────────────── */
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-family);
+  min-height: 100dvh;
+  background: #fff;
+}
+
+/* ─── Phone Frame ───────────────────────────────────────────────────────── */
+/* 페이지별 overflow / height 는 각 파일 <style> 에서 재정의합니다. */
+.phone-frame {
+  width: 100%;
+  background: var(--color-bg);
+  position: relative;
+}
+
+/* ─── Spot Tag ──────────────────────────────────────────────────────────── */
+/* 스팟 태그 pill — spot-detail, review-write 공통 */
+.spot-tag {
+  height: 30px;
+  padding: 0 14px;
+  border-radius: var(--radius-pill);
+  border: none;
+  background: var(--color-surface);
+  display: inline-flex;
+  align-items: center;
+  font-family: var(--font-family);
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.spot-tag.is-selected {
+  background: rgba(227, 27, 89, 0.1);
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+/* ─── Search Bar ────────────────────────────────────────────────────────── */
+/* 검색바 공통 — home, community 등. 위치(.search-bar wrapper)는 각 페이지에서 지정 */
+.search-bar__inner {
+  display: flex;
+  align-items: center;
+  height: 48px;
+  padding: 0 16px;
+  background: rgba(255, 255, 255, 0.92);
+  border-radius: 24px;
+  border: 0.5px solid rgba(255, 255, 255, 0.6);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+.search-bar__icon {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  color: rgba(0, 0, 0, 0.3);
+  margin-right: 10px;
+}
+.search-bar__input {
+  flex: 1;
+  border: none;
+  background: none;
+  outline: none;
+  font-family: var(--font-family);
+  font-size: var(--font-md);
+  color: var(--color-text-primary);
+  letter-spacing: -0.2px;
+}
+.search-bar__input::placeholder {
+  color: rgba(0, 0, 0, 0.35);
+}
+.search-bar__filter {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(0, 0, 0, 0.25);
+  transition: color 0.2s;
+  position: relative;
+}
+.search-bar__filter:hover { color: rgba(0, 0, 0, 0.5); }
+.search-bar__filter.is-active { color: var(--color-accent); }
+.search-bar__filter-badge {
+  display: none;
+  position: absolute;
+  top: 2px; right: 2px;
+  width: 8px; height: 8px;
+  background: var(--color-accent);
+  border-radius: 50%;
+  border: 1.5px solid #fff;
+}
+.search-bar__filter.is-active .search-bar__filter-badge { display: block; }
+
+/* ─── Bottom Nav Tab ────────────────────────────────────────────────────── */
+/* 하단 네비 탭 — home, map, community, mypage, travel 공통.
+   컨테이너 .tab-bar 의 position/레이아웃은 페이지마다 달라 각 파일에서 정의.
+   (spot-detail 은 .tab-bar 를 페이지 내 세그먼트 탭으로 별도 사용) */
+.tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px 10px;
+  transition: opacity 0.15s;
+}
+.tab:hover { opacity: 0.7; }
+.tab__icon {
+  width: 22px;
+  height: 22px;
+  color: rgba(0, 0, 0, 0.35);
+}
+.tab__label {
+  font-size: var(--font-2xs);
+  color: rgba(0, 0, 0, 0.35);
+  font-family: var(--font-family);
+}
+.tab.is-active .tab__icon { color: var(--color-accent); }
+.tab.is-active .tab__label {
+  color: var(--color-accent);
+  font-weight: 500;
+}
+.tab-bar__indicator {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 110px;
+  height: 5px;
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 2.5px;
+}

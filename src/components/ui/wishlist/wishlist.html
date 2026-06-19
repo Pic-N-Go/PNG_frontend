@@ -4,41 +4,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>PNG - 위시리스트</title>
-  <link rel="stylesheet" href="../fonts.css">
+  <link rel="stylesheet" href="../common/fonts.css">
+  <link rel="stylesheet" href="../common/common.css">
   <style>
-    :root {
-      --color-bg: #ffffff;
-      --color-surface: #f5f5f7;
-      --color-text-primary: #000000;
-      --color-text-secondary: rgba(0,0,0,0.48);
-      --color-text-tertiary: rgba(0,0,0,0.28);
-      --color-accent: #e31b59;
-      --color-accent-hover: #c91550;
-      --color-border-light: rgba(0,0,0,0.06);
-      --color-error: #ff453a;
-      --color-success: #34c759;
-      --color-warning: #ff9f0a;
-      --color-brand: #E31B59;
-      --radius-card: 16px;
-      --radius-pill: 17px;
-      --radius-btn: 26px;
-    }
-    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-    html{font-size:16px;-webkit-font-smoothing:antialiased}
-    body{font-family:var(--font-family);background:#f0f0f0;display:flex;justify-content:center;min-height:100dvh}
-    .phone-frame{width:390px;background:var(--color-bg);position:relative;overflow-y:auto;overflow-x:hidden;padding-bottom:20px}
+.phone-frame{width: 100%;background:var(--color-bg);position:relative;overflow-y:auto;overflow-x:hidden;padding-bottom:20px;height:100dvh;}
 
     /* ── 상단 네비 ── */
-    .nav{height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;position:sticky;top:50px;background:var(--color-bg);z-index:20;border-bottom:0.5px solid var(--color-border-light)}
+    .nav{height:54px;display:flex;align-items:center;justify-content:space-between;padding:0 var(--space-md);position:sticky;top:50px;background:var(--color-bg);z-index:20;border-bottom:0.5px solid var(--color-border-light)}
     .nav__back{width:36px;height:36px;border-radius:50%;border:none;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:rgba(0,0,0,0.5);transition:background 0.15s}
     .nav__back:hover{background:var(--color-surface)}
-    .nav__title{font-size:17px;font-weight:600;color:var(--color-text-primary);letter-spacing:-0.3px}
-    .nav__add{height:32px;padding:0 14px;border-radius:16px;border:none;background:var(--color-brand);font-family:var(--font-family);font-size:13px;font-weight:500;color:#fff;cursor:pointer;display:flex;align-items:center;gap:5px;transition:opacity 0.15s}
+    .nav__title{font-size: var(--font-lg);font-weight:600;color:var(--color-text-primary);letter-spacing:-0.3px}
+    .nav__add{height:32px;padding:0 14px;border-radius:16px;border:none;background:var(--color-accent);font-family:var(--font-family);font-size: var(--font-sm);font-weight:500;color:#fff;cursor:pointer;display:flex;align-items:center;gap:5px;transition:opacity 0.15s}
     .nav__add:hover{opacity:0.88}
 
     /* ── 섹션 헤더 ── */
     .section-header{padding:20px 20px 10px;display:flex;align-items:center;justify-content:space-between;position:relative}
-    .section-header__title{font-size:13px;font-weight:600;color:rgba(0,0,0,0.3);letter-spacing:0.3px}
+    .section-header__title{font-size: var(--font-sm);font-weight:600;color:rgba(0,0,0,0.3);letter-spacing:0.3px}
 
     /* ── 정렬 드롭다운 ── */
     .sort-btn{display:flex;align-items:center;gap:4px;background:none;border:none;cursor:pointer;font-family:var(--font-family);font-size:12px;color:rgba(0,0,0,0.4);padding:4px 0;transition:color 0.15s}
@@ -48,10 +29,10 @@
     .sort-btn.is-open svg{transform:rotate(180deg)}
     .sort-dropdown{position:absolute;top:100%;right:20px;background:#fff;border-radius:12px;box-shadow:0 4px 20px rgba(0,0,0,0.12),0 0 0 0.5px rgba(0,0,0,0.06);overflow:hidden;z-index:40;min-width:120px;display:none}
     .sort-dropdown.is-open{display:block}
-    .sort-option{display:block;width:100%;padding:12px 16px;background:none;border:none;font-family:var(--font-family);font-size:13px;color:rgba(0,0,0,0.7);text-align:left;cursor:pointer;transition:background 0.12s;letter-spacing:-0.1px}
+    .sort-option{display:block;width:100%;padding:12px 16px;background:none;border:none;font-family:var(--font-family);font-size: var(--font-sm);color:rgba(0,0,0,0.7);text-align:left;cursor:pointer;transition:background 0.12s;letter-spacing:-0.1px}
     .sort-option:hover{background:var(--color-surface)}
     .sort-option.is-selected{color:var(--color-accent);font-weight:600}
-    .sort-option.is-selected::after{content:'✓';float:right;font-size:11px}
+    .sort-option.is-selected::after{content:'✓';float:right;font-size: var(--font-xs)}
 
     /* ── 위시리스트 카드 ── */
     .wishlist-card{margin:0 20px 12px;border-radius:var(--radius-card);background:var(--color-bg);border:0.5px solid rgba(0,0,0,0.07);overflow:hidden;cursor:pointer;transition:transform 0.15s}
@@ -60,7 +41,7 @@
     .wishlist-card__thumb{height:100px;position:relative;overflow:hidden}
     .wishlist-card__thumb-imgs{display:flex;height:100%}
     .wishlist-card__thumb-img{flex:1}
-    .wishlist-card__status{position:absolute;top:10px;left:10px;height:22px;padding:0 10px;border-radius:11px;font-size:10px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:4px}
+    .wishlist-card__status{position:absolute;top:10px;left:10px;height:22px;padding:0 10px;border-radius:11px;font-size: var(--font-2xs);font-weight:600;display:flex;align-items:center;justify-content:center;gap:4px}
     .wishlist-card__status--hit{background:rgba(52,199,89,0.9);color:#fff}
     .wishlist-card__status--soon{background:rgba(227,27,89,0.85);color:#fff}
     .wishlist-card__status--wait{background:rgba(0,0,0,0.35);color:#fff}
@@ -73,7 +54,7 @@
 
     /* 조건 뱃지 열 */
     .wishlist-card__conditions{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px}
-    .wishlist-card__cond{height:22px;padding:0 9px;border-radius:11px;background:var(--color-surface);font-size:11px;color:rgba(0,0,0,0.45);display:flex;align-items:center;gap:3px}
+    .wishlist-card__cond{height:22px;padding:0 9px;border-radius:11px;background:var(--color-surface);font-size: var(--font-xs);color:rgba(0,0,0,0.45);display:flex;align-items:center;gap:3px}
     .wishlist-card__cond--active{background:rgba(227,27,89,0.08);color:var(--color-accent)}
 
     /* 예보 바 */
@@ -91,32 +72,27 @@
     /* ── 빈 상태 ── */
     .empty{display:flex;flex-direction:column;align-items:center;padding:64px 40px;gap:12px;text-align:center}
     .empty__icon{width:64px;height:64px;border-radius:18px;background:var(--color-surface);display:flex;align-items:center;justify-content:center;margin-bottom:4px}
-    .empty__title{font-size:17px;font-weight:600;color:var(--color-text-primary);letter-spacing:-0.3px}
-    .empty__desc{font-size:14px;color:rgba(0,0,0,0.38);line-height:1.55;letter-spacing:-0.1px}
-    .empty__btn{margin-top:8px;height:44px;padding:0 24px;border-radius:22px;border:none;background:var(--color-brand);font-family:var(--font-family);font-size:15px;font-weight:500;color:#fff;cursor:pointer;transition:opacity 0.15s}
+    .empty__title{font-size: var(--font-lg);font-weight:600;color:var(--color-text-primary);letter-spacing:-0.3px}
+    .empty__desc{font-size: var(--font-base);color:rgba(0,0,0,0.38);line-height:1.55;letter-spacing:-0.1px}
+    .empty__btn{margin-top:8px;height:44px;padding:0 var(--space-lg);border-radius:22px;border:none;background:var(--color-accent);font-family:var(--font-family);font-size: var(--font-md);font-weight:500;color:#fff;cursor:pointer;transition:opacity 0.15s}
     .empty__btn:hover{opacity:0.88}
 
     /* ── 안내 배너 ── */
     .info-banner{margin:0 20px 20px;padding:14px 16px;border-radius:14px;background:rgba(227,27,89,0.05);border:1px solid rgba(227,27,89,0.1);display:flex;align-items:flex-start;gap:10px}
     .info-banner__icon{width:20px;height:20px;flex-shrink:0;margin-top:1px}
     .info-banner__text{flex:1}
-    .info-banner__title{font-size:13px;font-weight:500;color:var(--color-brand);margin-bottom:2px}
+    .info-banner__title{font-size: var(--font-sm);font-weight:500;color:var(--color-accent);margin-bottom:2px}
     .info-banner__desc{font-size:12px;color:rgba(0,0,0,0.4);line-height:1.45}
 
     /* ── 상태바 ── */
     .status-bar{height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;background:var(--color-bg);position:sticky;top:0;z-index:30;flex-shrink:0}
-    .status-bar__time{font-size:15px;font-weight:600;color:#000;letter-spacing:-0.3px}
+    .status-bar__time{font-size: var(--font-md);font-weight:600;color:#000;letter-spacing:-0.3px}
     .dynamic-island{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:106px;height:28px;background:#000;border-radius:14px}
     .status-bar__icons{display:flex;align-items:center;gap:6px}
     .status-bar__icons svg{height:12px;fill:#000}
 
-    @media(max-width:390px){.phone-frame{width:100%}}
-    @media(min-width:391px){body{padding:20px 0}.phone-frame{border-radius:40px;box-shadow:0 20px 60px rgba(0,0,0,0.15);min-height:unset;height:calc(100dvh - 40px);overflow-y:auto;overflow-x:hidden}}
-  
       /* ── 스크롤바 숨김 ── */
-      * { scrollbar-width: none; -ms-overflow-style: none; }
-      *::-webkit-scrollbar { display: none; }
-</style>
+    </style>
 </head>
 <body>
 <div class="phone-frame">
@@ -193,11 +169,12 @@
         <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="rgba(0,0,0,0.3)" stroke-width="1"><path d="M6 1C3.5 1 1.5 3 1.5 5.5C1.5 8.5 6 12 6 12S10.5 8.5 10.5 5.5C10.5 3 8.5 1 6 1Z"/><circle cx="6" cy="5" r="1.5"/></svg>
         서울 종로구 · 포토제닉 91점
       </div>
+      <!-- 태그 순서: 날씨 → 시간대 → 기타 조건 → 미세먼지 (항상 마지막) -->
       <div class="wishlist-card__conditions">
         <span class="wishlist-card__cond wishlist-card__cond--active"><img src="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/clear-day.svg" width="20" height="20" draggable="false"> 맑음</span>
+        <span class="wishlist-card__cond"><img src="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/thunderstorms.svg" width="20" height="20" draggable="false"> 뇌우</span>
         <span class="wishlist-card__cond wishlist-card__cond--active"><img src="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/clear-night.svg" width="20" height="20" draggable="false"> 야간</span>
         <span class="wishlist-card__cond">미세먼지 좋음</span>
-        <span class="wishlist-card__cond"><img src="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/thunderstorms.svg" width="20" height="20" draggable="false"> 뇌우</span>
       </div>
       <div class="wishlist-card__forecast">
         <div class="forecast-dot"><span class="forecast-dot__day">오늘</span><div class="forecast-dot__circle"><img src="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/overcast.svg" width="20" height="20" draggable="false"></div></div>
@@ -234,9 +211,10 @@
         <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="rgba(0,0,0,0.3)" stroke-width="1"><path d="M6 1C3.5 1 1.5 3 1.5 5.5C1.5 8.5 6 12 6 12S10.5 8.5 10.5 5.5C10.5 3 8.5 1 6 1Z"/><circle cx="6" cy="5" r="1.5"/></svg>
         부산 수영구 · 포토제닉 87점
       </div>
+      <!-- 태그 순서: 날씨 → 시간대 → 기타 조건 → 미세먼지 (항상 마지막) -->
       <div class="wishlist-card__conditions">
-        <span class="wishlist-card__cond"><img src="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/sunrise.svg" width="20" height="20" draggable="false"> 일출</span>
         <span class="wishlist-card__cond"><img src="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/clear-day.svg" width="20" height="20" draggable="false"> 맑음</span>
+        <span class="wishlist-card__cond"><img src="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/sunrise.svg" width="20" height="20" draggable="false"> 일출</span>
         <span class="wishlist-card__cond">미세먼지 좋음</span>
       </div>
       <div class="wishlist-card__forecast">
@@ -273,6 +251,7 @@
         <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="rgba(0,0,0,0.3)" stroke-width="1"><path d="M6 1C3.5 1 1.5 3 1.5 5.5C1.5 8.5 6 12 6 12S10.5 8.5 10.5 5.5C10.5 3 8.5 1 6 1Z"/><circle cx="6" cy="5" r="1.5"/></svg>
         경기 용인시 · 포토제닉 92점
       </div>
+      <!-- 태그 순서: 날씨 → 시간대 → 기타 조건 → 미세먼지 (항상 마지막) -->
       <div class="wishlist-card__conditions">
         <span class="wishlist-card__cond wishlist-card__cond--active"><img src="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/clear-day.svg" width="20" height="20" draggable="false"> 맑음</span>
         <span class="wishlist-card__cond wishlist-card__cond--active"><img src="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/clear-day.svg" width="20" height="20" draggable="false"> 개화율 90%+</span>

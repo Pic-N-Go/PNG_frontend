@@ -9,7 +9,10 @@
 
 ```
 src/components/ui/
-  fonts.css                   # Pretendard Variable 폰트 정의 (공통)
+  common/
+    fonts.css                 # Pretendard Variable 폰트 정의 (공통)
+    common.css                # 공통 디자인 토큰·리셋·phone-frame 기본 (공통)
+    icons.js                  # Tabler Icons SVG 스프라이트 (file:// 호환)
   auth/
     login.html                # 로그인 (스플래시 내장 → 이메일/소셜 로그인)
     signup.html               # 회원가입 (이메일 인증·비밀번호 강도·관심 테마·약관)
@@ -22,9 +25,11 @@ src/components/ui/
     travel-plan.html          # 여행 계획 상세 (지도 헤더·일자별 스팟 타임라인)
     travel-new.html           # 새 여행 계획 만들기
   community/
-    community-feed.html       # 커뮤니티 피드 (레시피·갤러리·콘테스트 탭·타이틀 하단 검색바)
+    community-feed.html       # 커뮤니티 피드 (레시피·갤러리 탭·타이틀 하단 검색바)
+    community-write.html      # 게시물 작성 — 미퍼블리싱
+    contest.html              # 주간 콘테스트 — 미퍼블리싱
   spot/
-    spot-detail.html          # 스팟 상세 (포토제닉 스코어·날씨·사진·리뷰 탭·채팅)
+    spot-detail.html          # 스팟 상세 (포토제닉 스코어·날씨·정보/사진/채팅 탭)
     spot-register.html        # 새 스팟 등록 (3단계 폼·장소명 필수 검증)
     spot-change.html          # 위시리스트 스팟 변경
     spot-list.html            # 스팟 목록 (방문 스팟 등 쿼리 파라미터 기반 뷰)
@@ -32,9 +37,12 @@ src/components/ui/
   mypage/
     mypage.html               # 마이페이지 (팔로워/팔로잉·방문스팟·사진·리뷰 스탯·포토제닉 리포트)
     my-photos.html            # 내 사진 갤러리 (앨범·그리드 뷰·핑크 필터 칩)
+    photo-map.html            # 사진 지도 (my-photos에서 연결)
     profile-edit.html         # 프로필 편집
     setting.html              # 설정 (알림·계정·로그아웃)
     notification.html         # 알림 목록
+    follow.html               # 팔로워/팔로잉 목록 — 미퍼블리싱
+    user-profile.html         # 타 유저 프로필 — 미퍼블리싱
   wishlist/
     wishlist.html             # 위시리스트 목록
     wishlist-setting.html     # 위시리스트 상세 설정
@@ -47,53 +55,95 @@ src/components/ui/
 ### 뷰포트 & 폰 프레임
 
 - 모바일 기준 **390 × 844px** (iPhone 15 Pro 기준)
-- 브라우저에서 열면 `.phone-frame`이 중앙에 렌더링됨
-- `@media (min-width: 391px)` 에서 폰 프레임 시뮬레이션
+- 브라우저에서 열면 `.phone-frame`이 뷰포트 전체 너비로 렌더링됨 (full-width 방식)
+- 팀 내 확인은 **브라우저 뷰포트를 390px로 맞춰서** 진행 (DevTools → 기기 시뮬레이터 또는 반응형 모드)
 
-**데스크탑 미디어 쿼리 표준 패턴** (모든 파일 공통):
-```css
-@media (min-width: 391px) {
-  body { padding: 20px 0; }
-  .phone-frame {
-    border-radius: 40px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.15);
-    min-height: unset;               /* base min-height 무효화 필수 */
-    height: calc(100dvh - 40px);     /* 고정 높이 → phone-frame이 스크롤 컨테이너 */
-    overflow-y: auto;
-    overflow-x: hidden;
-  }
-}
+> 데스크탑 폰 프레임 시뮬레이션(`@media (min-width: 391px)` + `border-radius: 40px` 등)은 사용하지 않습니다. 목업은 모바일 뷰포트 기준으로만 확인합니다.
+
+### 공통 CSS (`common.css`)
+
+모든 파일이 `fonts.css` 다음에 `common.css`를 링크합니다.
+
+```html
+<link rel="stylesheet" href="../common/fonts.css">
+<link rel="stylesheet" href="../common/common.css">
 ```
 
-> `min-height: unset` 없이 `height: calc(100dvh - 40px)`만 쓰면 CSS 우선순위상 `min-height: 100dvh`가 이겨서 JS `frame.scrollTop` 감지가 깨짐.
+`common.css`에 포함된 내용:
+- `:root` 디자인 토큰 (컬러·스페이싱·반경·**폰트 크기**)
+- CSS 리셋 (`*, *::before, *::after`)
+- **스크롤바 숨김** (`* { scrollbar-width: none; }`)
+- `html` / `body` 기본 스타일
+- `.phone-frame` 기본 스타일 (`width: 100%; background: var(--color-bg);`)
 
-### 스크롤바 숨김 (모든 파일 공통)
+페이지별 `overflow`, `height` 등은 각 파일 `<style>`에서 재정의합니다.
 
-```css
-* { scrollbar-width: none; -ms-overflow-style: none; }
-*::-webkit-scrollbar { display: none; }
-```
+### 디자인 토큰 (`common.css` `:root`)
 
-### 공통 CSS 변수 (각 파일 `:root`)
+**컬러**
 
 | 변수 | 값 | 용도 |
 |---|---|---|
-| `--color-accent` | `#e31b59` | 브랜드 핑크 — 버튼·활성 탭·포커스 |
-| `--color-accent-hover` | `#c91550` | 핑크 hover 상태 |
 | `--color-bg` | `#ffffff` | 페이지 배경 |
 | `--color-surface` | `#f5f5f7` | 카드·인풋 배경 |
 | `--color-text-primary` | `#000000` | 본문 텍스트 |
-| `--color-text-secondary` | `rgba(0,0,0,0.48)` | 보조 텍스트 |
+| `--color-text-secondary` | `rgba(0,0,0,0.48)` | 보조 텍스트 (설명·메타) |
+| `--color-text-tertiary` | `rgba(0,0,0,0.28)` | 비활성·플레이스홀더 |
+| `--color-accent` | `#e31b59` | 브랜드 핑크 — 버튼·활성 탭·포커스 |
+| `--color-accent-hover` | `#c91550` | hover 상태 |
+| `--color-accent-disabled` | `rgba(227,27,89,0.25)` | 비활성 버튼 |
+| `--color-border` | `rgba(0,0,0,0.08)` | 구분선 |
+| `--color-border-light` | `rgba(0,0,0,0.06)` | 연한 구분선 |
+| `--color-input-border-focus` | `#e31b59` | 인풋 포커스 테두리 |
+| `--color-kakao` | `#FEE500` | 카카오 버튼 배경 |
+| `--color-kakao-text` | `#391B1B` | 카카오 버튼 텍스트 |
 | `--color-error` | `#ff453a` | 에러 상태 |
 | `--color-success` | `#34c759` | 성공 상태 |
+| `--color-warning` | `#ff9f0a` | 경고 상태 |
 
-**버튼 비활성화 색상**: `rgba(227, 27, 89, 0.25)` (signup, spot-register 등 동일 적용)
+**스페이싱 (8px 그리드)**
+
+| 변수 | 값 |
+|---|---|
+| `--space-md` | `16px` |
+| `--space-lg` | `24px` |
+| `--space-xl` | `32px` |
+
+**반경**
+
+| 변수 | 값 | 용도 |
+|---|---|---|
+| `--radius-input` | `12px` | 인풋·버튼 |
+| `--radius-btn` | `26px` | 주요 CTA 버튼 (pill) |
+| `--radius-card` | `16px` | 카드 |
+| `--radius-pill` | `17px` | 필터 칩·태그 |
+
+**폰트 크기** — `layout.ts FONT_*`와 대응
+
+| 변수 | 값 | 용도 |
+|---|---|---|
+| `--font-2xs` | `10px` | 배지·메타 |
+| `--font-xs` | `11px` | 캡션 — `FONT_XS` |
+| `--font-sm` | `13px` | 서브텍스트 — `FONT_SM` |
+| `--font-base` | `14px` | 본문 |
+| `--font-md` | `15px` | 강조 본문 — `FONT_MD` |
+| `--font-lg` | `17px` | 소제목 — `FONT_LG` |
+| `--font-xl` | `22px` | 제목 — `FONT_XL` |
+| `--font-2xl` | `28px` | 대제목 — `FONT_2XL` |
+
+> `12px`, `16px` 등 스케일 외 크기는 raw px로 작성합니다.
 
 ### 폰트
 
-- `fonts.css` 를 `<link rel="stylesheet" href="../fonts.css" />` 로 참조
+- `body { font-family: var(--font-family); }` — `--font-family`는 `fonts.css`에서 정의, `common.css`의 `body` 스타일에서 적용
 - Pretendard Variable — `font-weight` 100~600 사용 (700 이상 사용 안 함)
 - 모든 텍스트에 음수 `letter-spacing` 적용 (`-0.2px` ~ `-0.6px`)
+
+### 로고 이미지
+
+- `assets/images/logo/logo.png` — 프로젝트 루트 기준 경로
+- HTML 파일에서 참조: `<img src="../../../../assets/images/logo/logo.png" alt="PNG 로고">`
+- 히어로 네비 (home, signup): 26px / 히어로 중앙 (login): 52px
 
 ### 내비게이션
 
@@ -161,14 +211,14 @@ src/components/ui/
 ### community/community-feed.html
 - 스크롤 콜랩스 헤더 (travel과 동일 패턴)
 - 타이틀 하단 검색바 (항상 노출, 스크롤 시 큰 타이틀만 접힘)
-- 레시피·갤러리·콘테스트 탭 전환
+- 레시피·갤러리 탭 전환
 - 인기순 정렬 드롭다운
+- 게시물 작성 버튼 → `community-write.html` (미퍼블리싱)
 
 ### spot/spot-detail.html
-- 탭: 정보 / 사진 / **리뷰** / AI분석
-- 리뷰 탭: 평점 분포 + 정렬 칩 + 리뷰 카드 + 하단 고정 "리뷰 작성하기" 버튼 → `review-write.html`
-- 포토제닉 스코어 (날씨·골든아워·미세먼지·혼잡도·계절 항목)
-- 실시간 채팅 패널
+- 탭: 정보 / 사진 / **채팅**
+- 정보 탭: 포토제닉 스코어 (날씨·골든아워·미세먼지·혼잡도·계절), 편의 정보, 리뷰 작성하기 → `review-write.html`
+- 채팅 탭: 실시간 채팅 패널, LIVE 뱃지, 사진 공유
 
 ### spot/spot-register.html
 - 3단계 스텝 폼 (사진 등록 → 위치 선택 → 상세 정보)
@@ -213,7 +263,8 @@ auth/login
        ├─ [검색 결과] → spot/spot-detail                  │
        ├─ home/map ──────── spot/spot-detail              │
        ├─ spot/spot-detail                                │
-       │    └─ spot/review-write                          │
+       │    ├─ spot/review-write                          │
+       │    └─ [사진 탭] → spot/photo-detail (미퍼블리싱)  │
        ├─ wishlist/wishlist                               │
        │    └─ wishlist/wishlist-setting                  │
        │         └─ spot/spot-change                      │
@@ -224,11 +275,14 @@ auth/login
             │    │    └─ spot/spot-detail
             │    └─ travel/travel-new
             ├─ community/community-feed
+            │    ├─ community/community-write (미퍼블리싱)
+            │    └─ community/contest (미퍼블리싱)
             └─ mypage/mypage
                  ├─ mypage/my-photos
                  ├─ mypage/setting
                  │    └─ mypage/profile-edit
                  ├─ mypage/notification
+                 ├─ mypage/user-profile (미퍼블리싱)
                  ├─ spot/spot-register
                  ├─ spot/spot-list?view=visited
                  └─ wishlist/wishlist
@@ -241,7 +295,7 @@ auth/login
 ### 스크롤 콜랩스 헤더 (travel-list, community-feed)
 
 ```js
-const frame = document.querySelector('.phone-frame');
+const frame = document.querySelector('.phone-scroll');
 const nav = document.getElementById('page-nav');
 if (frame && nav) {
   frame.addEventListener('scroll', () => {
@@ -250,8 +304,9 @@ if (frame && nav) {
 }
 ```
 
+- `.phone-scroll`: `.phone-frame` 내부의 실제 스크롤 컨테이너 (`height:100%; overflow-y:auto`)
 - `is-scrolled` 시 `.page-nav__large` (큰 타이틀) 접힘, `.page-nav__compact-title` 노출
-- **`min-height: unset`** 필수 — 없으면 frame이 스크롤 컨테이너가 되지 않아 `scrollTop` 항상 0
+- `.phone-frame`에 `overflow:hidden`을 주고 `.phone-scroll`을 별도 자식으로 분리해야 `position:fixed` 요소(탭바 등)가 클리핑되지 않음
 
 ### 바텀시트 패턴
 
@@ -279,9 +334,11 @@ if (frame && nav) {
   transform: translateX(-50%) translateY(0);
   opacity: 1; pointer-events: auto;
 }
+/* 데스크탑 폰 프레임 미사용 — 아래 블록 적용 안 함
 @media (min-width: 391px) {
   .search-panel { top: 20px; bottom: 20px; border-radius: 40px; overflow: hidden; }
 }
+*/
 ```
 
 ### 지도 상태바 패턴 (map.html)
@@ -299,6 +356,7 @@ if (frame && nav) {
 
 | 목업 구조 | React Native 대응 |
 |---|---|
+| HTML `.phone-frame` | `ScreenContainer` (`src/components/ScreenContainer.tsx`) |
 | `auth/` | `src/screens/auth/` |
 | `home/` | `src/screens/home/` |
 | `travel/` | `src/screens/travel/` |
@@ -320,3 +378,8 @@ open src/components/ui/home/home.html
 # VS Code Live Server 확장 사용 권장
 # (폰트·상대경로가 서버 환경에서 더 안정적으로 동작)
 ```
+
+---
+
+RN 구현 시 → [`docs/development-guide.md`](development-guide.md) 참고  
+담당자 확인 → [`docs/team-assignments.md`](team-assignments.md) 참고

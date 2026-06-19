@@ -45,7 +45,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 | Directory | Purpose |
 |---|---|
 | `src/api/` | Raw fetch functions (no hooks, no state) |
-| `src/components/ui/` | HTML mockups grouped by feature (`auth/` `home/` `travel/` `community/` `spot/` `mypage/` `wishlist/`) — see `docs/ui-publishing.md` |
+| `src/components/ui/` | HTML mockups grouped by feature (`auth/` `home/` `travel/` `community/` `spot/` `mypage/` `wishlist/`) — see `docs/ui-publishing.md`. 공통 파일: `fonts.css` (Pretendard), `common.css` (토큰·리셋·phone-frame) |
 | `src/hooks/` | Custom hooks (typically wrap TanStack Query calls) |
 | `src/screens/` | Screen-level components |
 | `src/store/` | Zustand stores |
@@ -74,7 +74,7 @@ const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 
 ## Design System
 
-Key design rules:
+Key rules:
 
 - **Brand / Accent color**: `#E31B59` (Pink) — used for all interactive elements (CTA buttons, active states, active tabs, focus borders). Primary palette: Black · White · Pink.
   - 예외: 알림 화면(`notification.html`)의 필터 탭 활성 상태는 Black(`#000`) 사용 (의도된 디자인)
@@ -94,6 +94,6 @@ Key design rules:
 - `/home` — hero + search + category filter + nearby spots map + popular spots scroll + calendar
 - `/spot/:id` — spot detail with Photogenic Score (weather/golden hour/dust/congestion/season)
 
-HTML mockups are in `src/components/ui/` (grouped by feature). Full structure and navigation flow in `docs/ui-publishing.md`.
+HTML mockups are in `src/components/ui/` (grouped by feature). Full structure and navigation flow in `docs/ui-publishing.md`. RN 구현 가이드: `docs/development-guide.md`.
 
-Team AI collaboration standards (spec/plan/review/handoff workflow): `docs/ai/README.md`
+목업 확인: 브라우저 DevTools에서 뷰포트를 **390px**로 설정 (기기 시뮬레이터 또는 반응형 모드).

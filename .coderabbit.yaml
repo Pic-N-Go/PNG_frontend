@@ -1,0 +1,4 @@
+reviews:
+  tools:
+    docstring-coverage:
+      enabled: false

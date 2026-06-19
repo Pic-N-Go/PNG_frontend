@@ -7,36 +7,17 @@
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
     <title>PNG - 내 사진</title>
-    <link rel="stylesheet" href="../fonts.css" />
+  <link rel="stylesheet" href="../common/fonts.css">
+  <link rel="stylesheet" href="../common/common.css">
     <style>
-      :root {
-        --color-bg: #ffffff;
-        --color-surface: #f5f5f7;
-        --color-text-primary: #000000;
-        --color-text-secondary: rgba(0, 0, 0, 0.48);
-        --color-accent: #e31b59;
-        --color-accent-hover: #c91550;
-        --color-border-light: rgba(0, 0, 0, 0.06);
-        --color-warning: #ff9f0a;
-        --radius-card: 16px;
-      }
-      *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
-      html { font-size: 16px; -webkit-font-smoothing: antialiased; }
-      body {
-        font-family: var(--font-family);
-        background: #f0f0f0;
-        display: flex;
-        justify-content: center;
-        min-height: 100dvh;
-      }
-      .phone-frame {
-        width: 390px;
+.phone-frame {
+        width: 100%;
         min-height: 100dvh;
         background: var(--color-bg);
         position: relative;
         overflow-y: auto;
         overflow-x: hidden;
-        padding-bottom: 32px;
+        padding-bottom: var(--space-xl);
       }
 
       /* ======= 네비 ======= */
@@ -51,7 +32,7 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 0 16px;
+        padding: 0 var(--space-md);
         border-bottom: 0.5px solid var(--color-border-light);
       }
       .nav-bar__back {
@@ -69,7 +50,7 @@
       }
       .nav-bar__back:hover { background: rgba(0,0,0,0.05); }
       .nav-bar__title {
-        font-size: 17px;
+        font-size: var(--font-lg);
         font-weight: 600;
         color: var(--color-text-primary);
         letter-spacing: -0.3px;
@@ -106,7 +87,7 @@
         margin: 14px 20px 0;
         background: var(--color-surface);
         border-radius: var(--radius-card);
-        padding: 16px 0;
+        padding: var(--space-md) 0;
         display: flex;
         align-items: center;
       }
@@ -118,14 +99,14 @@
         gap: 4px;
       }
       .summary-stat__num {
-        font-size: 22px;
+        font-size: var(--font-xl);
         font-weight: 600;
         color: var(--color-text-primary);
         letter-spacing: -0.5px;
         line-height: 1;
       }
       .summary-stat__label {
-        font-size: 11px;
+        font-size: var(--font-xs);
         color: rgba(0,0,0,0.38);
         letter-spacing: -0.1px;
       }
@@ -150,16 +131,14 @@
         padding: 10px 20px;
         margin-top: 14px;
         overflow-x: auto;
-        scrollbar-width: none;
       }
-      .filter-row::-webkit-scrollbar { display: none; }
       .filter-chip {
         height: 32px;
         padding: 0 14px;
         border-radius: 16px;
         border: none;
         font-family: var(--font-family);
-        font-size: 13px;
+        font-size: var(--font-sm);
         font-weight: 500;
         white-space: nowrap;
         cursor: pointer;
@@ -193,7 +172,7 @@
         display: flex;
         flex-direction: column;
         gap: 10px;
-        margin-bottom: 24px;
+        margin-bottom: var(--space-lg);
       }
       .album-item {
         display: flex;
@@ -227,7 +206,7 @@
       }
       .album-item__info { flex: 1; min-width: 0; }
       .album-item__name {
-        font-size: 15px;
+        font-size: var(--font-md);
         font-weight: 600;
         color: var(--color-text-primary);
         letter-spacing: -0.2px;
@@ -262,7 +241,7 @@
         padding: 0 7px;
         border-radius: 9px;
         background: rgba(0,0,0,0.06);
-        font-size: 10px;
+        font-size: var(--font-2xs);
         font-weight: 500;
         color: rgba(0,0,0,0.4);
       }
@@ -273,7 +252,7 @@
         padding: 0 7px;
         border-radius: 9px;
         background: rgba(227,27,89,0.08);
-        font-size: 10px;
+        font-size: var(--font-2xs);
         font-weight: 600;
         color: var(--color-accent);
       }
@@ -334,7 +313,7 @@
         position: fixed;
         top: 0; bottom: 0;
         left: 50%; transform: translateX(-50%);
-        width: 390px;
+        width: 100%;
         background: #000;
         z-index: 300;
         display: none;
@@ -363,7 +342,7 @@
       }
       .photo-lightbox__close:hover { background: rgba(255,255,255,0.22); }
       .photo-lightbox__counter {
-        font-size: 13px; font-weight: 500;
+        font-size: var(--font-sm); font-weight: 500;
         color: rgba(255,255,255,0.65);
         letter-spacing: -0.1px;
       }
@@ -379,7 +358,7 @@
         bottom: 0; left: 0; right: 0;
       }
       .photo-lightbox__spot {
-        font-size: 17px; font-weight: 600;
+        font-size: var(--font-lg); font-weight: 600;
         color: #fff; letter-spacing: -0.3px;
         margin-bottom: 4px;
       }
@@ -393,7 +372,7 @@
         height: 18px; padding: 0 8px;
         border-radius: 9px;
         background: rgba(255,255,255,0.15);
-        font-size: 10px; font-weight: 500;
+        font-size: var(--font-2xs); font-weight: 500;
         color: rgba(255,255,255,0.75);
         display: flex; align-items: center;
       }
@@ -413,21 +392,7 @@
       .photo-lightbox__nav--prev { left: 14px; }
       .photo-lightbox__nav--next { right: 14px; }
       .photo-lightbox__nav.is-hidden { opacity: 0; pointer-events: none; }
-
-      @media (max-width: 390px) { .phone-frame { width: 100%; } }
       @media (max-width: 390px) { .photo-lightbox { width: 100%; } }
-      @media (min-width: 391px) {
-        body { padding: 20px 0; }
-        .phone-frame {
-          border-radius: 40px;
-          box-shadow: 0 20px 60px rgba(0,0,0,0.15);
-          min-height: unset;
-          height: calc(100dvh - 40px);
-          overflow-y: auto;
-          overflow-x: hidden;
-        }
-        .photo-lightbox { top: 20px; bottom: 20px; border-radius: 40px; }
-      }
     </style>
   </head>
   <body>

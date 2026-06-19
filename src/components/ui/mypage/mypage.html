@@ -7,43 +7,11 @@
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
     <title>PNG - 마이페이지</title>
-    <link rel="stylesheet" href="../fonts.css" />
+  <link rel="stylesheet" href="../common/fonts.css">
+  <link rel="stylesheet" href="../common/common.css">
     <style>
-      :root {
-        --color-bg: #ffffff;
-        --color-surface: #f5f5f7;
-        --color-text-primary: #000000;
-        --color-text-secondary: rgba(0, 0, 0, 0.48);
-        --color-text-tertiary: rgba(0, 0, 0, 0.28);
-        --color-accent: #e31b59;
-        --color-accent-hover: #c91550;
-        --color-link: #e31b59;
-        --color-border-light: rgba(0, 0, 0, 0.06);
-        --color-success: #34c759;
-        --color-warning: #ff9f0a;
-        --radius-card: 16px;
-        --radius-btn: 26px;
-      }
-      *,
-      *::before,
-      *::after {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-      html {
-        font-size: 16px;
-        -webkit-font-smoothing: antialiased;
-      }
-      body {
-        font-family: var(--font-family);
-        background: #f0f0f0;
-        display: flex;
-        justify-content: center;
-        min-height: 100dvh;
-      }
-      .phone-frame {
-        width: 390px;
+.phone-frame {
+        width: 100%;
         min-height: 100dvh;
         background: var(--color-bg);
         position: relative;
@@ -75,7 +43,7 @@
         padding: 0 14px;
       }
       .status-bar__time {
-        font-size: 15px;
+        font-size: var(--font-md);
         font-weight: 600;
         color: #fff;
         letter-spacing: -0.3px;
@@ -117,8 +85,8 @@
       .profile-row {
         display: flex;
         align-items: center;
-        gap: 16px;
-        margin-bottom: 16px;
+        gap: var(--space-md);
+        margin-bottom: var(--space-md);
       }
       .profile-row__avatar {
         width: 72px;
@@ -155,7 +123,7 @@
         margin-bottom: 2px;
       }
       .profile-row__handle {
-        font-size: 13px;
+        font-size: var(--font-sm);
         color: rgba(255, 255, 255, 0.4);
         margin-bottom: 4px;
       }
@@ -173,7 +141,7 @@
         padding: 0 9px;
         border-radius: 10px;
         background: rgba(255, 255, 255, 0.13);
-        font-size: 11px;
+        font-size: var(--font-xs);
         font-weight: 500;
         color: rgba(255, 255, 255, 0.75);
         letter-spacing: -0.1px;
@@ -220,11 +188,11 @@
         background: rgba(255, 255, 255, 0.08);
         border: none;
         font-family: var(--font-family);
-        font-size: 13px;
+        font-size: var(--font-sm);
         font-weight: 500;
         color: rgba(255, 255, 255, 0.6);
         cursor: pointer;
-        margin-bottom: 16px;
+        margin-bottom: var(--space-md);
         transition: background 0.2s;
       }
       .edit-btn:hover {
@@ -270,7 +238,7 @@
         margin-bottom: 2px;
       }
       .stat-card__label {
-        font-size: 11px;
+        font-size: var(--font-xs);
         color: rgba(255, 255, 255, 0.35);
       }
 
@@ -296,8 +264,8 @@
         letter-spacing: -0.3px;
       }
       .section__link {
-        font-size: 13px;
-        color: var(--color-link);
+        font-size: var(--font-sm);
+        color: var(--color-accent);
         text-decoration: none;
       }
 
@@ -346,7 +314,7 @@
         display: flex;
         align-items: center;
         gap: 4px;
-        font-size: 10px;
+        font-size: var(--font-2xs);
         color: rgba(0, 0, 0, 0.4);
       }
       .map-legend__dot {
@@ -363,9 +331,6 @@
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
         padding-bottom: 4px;
-      }
-      .album-scroll::-webkit-scrollbar {
-        display: none;
       }
       .album-card {
         flex-shrink: 0;
@@ -384,14 +349,14 @@
         background: linear-gradient(to top, rgba(0, 0, 0, 0.5), transparent);
       }
       .album-card__name {
-        font-size: 14px;
+        font-size: var(--font-base);
         font-weight: 600;
         color: #fff;
         letter-spacing: -0.2px;
         margin-bottom: 2px;
       }
       .album-card__meta {
-        font-size: 11px;
+        font-size: var(--font-xs);
         color: rgba(255, 255, 255, 0.5);
       }
 
@@ -424,7 +389,7 @@
         display: flex;
         align-items: baseline;
         gap: 8px;
-        margin-bottom: 16px;
+        margin-bottom: var(--space-md);
       }
       .report__avg-num {
         font-size: 32px;
@@ -433,7 +398,7 @@
         line-height: 1;
       }
       .report__avg-max {
-        font-size: 14px;
+        font-size: var(--font-base);
         color: rgba(0, 0, 0, 0.25);
       }
       .report__trend-badge {
@@ -443,19 +408,18 @@
         padding: 0 10px;
         border-radius: 11px;
         background: rgba(52, 199, 89, 0.1);
-        font-size: 11px;
+        font-size: var(--font-xs);
         font-weight: 500;
         color: var(--color-success);
       }
       .report__body {
-        display: flex;
-        gap: 16px;
+        gap: var(--space-md);
       }
       .report__chart {
         flex: 1;
       }
       .report__chart-label {
-        font-size: 11px;
+        font-size: var(--font-xs);
         color: rgba(0, 0, 0, 0.3);
         margin-bottom: 6px;
       }
@@ -467,7 +431,7 @@
       .report__bar-num {
         flex: 1;
         text-align: center;
-        font-size: 10px;
+        font-size: var(--font-2xs);
         color: rgba(0, 0, 0, 0.25);
       }
       .report__bar-num--active {
@@ -506,7 +470,7 @@
         width: 120px;
       }
       .report__best-label {
-        font-size: 11px;
+        font-size: var(--font-xs);
         color: rgba(0, 0, 0, 0.3);
         margin-bottom: 8px;
       }
@@ -516,13 +480,13 @@
         background: #fff;
       }
       .report__best-name {
-        font-size: 13px;
+        font-size: var(--font-sm);
         font-weight: 600;
         color: #000;
         margin-bottom: 2px;
       }
       .report__best-meta {
-        font-size: 11px;
+        font-size: var(--font-xs);
         color: rgba(0, 0, 0, 0.35);
         margin-bottom: 8px;
       }
@@ -533,14 +497,14 @@
         padding: 0 8px;
         border-radius: 9px;
         background: rgba(227, 27, 89, 0.08);
-        font-size: 10px;
+        font-size: var(--font-2xs);
         font-weight: 600;
         color: var(--color-accent);
       }
 
       /* ====== Wishlist ====== */
       .section__subtitle {
-        font-size: 13px;
+        font-size: var(--font-sm);
         color: rgba(0, 0, 0, 0.4);
         margin-top: -8px;
         margin-bottom: 12px;
@@ -551,48 +515,58 @@
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
       }
-      .wish-scroll::-webkit-scrollbar {
-        display: none;
-      }
       .wish-card {
         flex-shrink: 0;
         width: 200px;
-        height: 120px;
         border-radius: var(--radius-card);
-        position: relative;
+        background: var(--color-surface);
         overflow: hidden;
-        padding: 0 12px 12px;
-        display: flex;
-        flex-direction: column;
-        justify-content: flex-end;
+        cursor: pointer;
+        transition: transform 0.2s;
+      }
+      .wish-card:active { transform: scale(0.98); }
+      .wish-card__photo {
+        height: 130px;
+        position: relative;
       }
       .wish-card__bell {
         position: absolute;
-        top: 8px;
-        right: 8px;
+        top: 10px;
+        right: 10px;
         width: 28px;
         height: 28px;
-        border-radius: 14px;
+        border-radius: 50%;
         background: rgba(0, 0, 0, 0.3);
         display: flex;
         align-items: center;
         justify-content: center;
-      }
-      .wish-card__name {
-        font-size: 14px;
-        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        padding: 0;
         color: #fff;
+        transition: background 0.15s;
+      }
+      .wish-card__bell.is-off { background: rgba(0, 0, 0, 0.15); }
+      .wish-card__bell .icon-bell-off { display: none; }
+      .wish-card__bell.is-off .icon-bell-on { display: none; }
+      .wish-card__bell.is-off .icon-bell-off { display: block; }
+      .wish-card__body { padding: 10px 12px 12px; }
+      .wish-card__name {
+        font-size: var(--font-md);
+        font-weight: 600;
+        color: var(--color-text-primary);
         letter-spacing: -0.2px;
         margin-bottom: 2px;
       }
       .wish-card__cond {
-        font-size: 11px;
-        color: rgba(255, 255, 255, 0.5);
-        margin-bottom: 2px;
+        font-size: 12px;
+        color: rgba(0, 0, 0, 0.4);
+        margin-bottom: 6px;
       }
       .wish-card__date {
-        font-size: 10px;
-        color: rgba(255, 159, 10, 0.8);
+        font-size: var(--font-xs);
+        font-weight: 500;
+        color: var(--color-accent);
       }
 
       /* ====== Equipment ====== */
@@ -621,13 +595,13 @@
         flex-shrink: 0;
       }
       .equip-item__name {
-        font-size: 14px;
+        font-size: var(--font-base);
         font-weight: 500;
         color: #000;
         letter-spacing: -0.15px;
       }
       .equip-item__desc {
-        font-size: 11px;
+        font-size: var(--font-xs);
         color: rgba(0, 0, 0, 0.35);
         margin-top: 1px;
       }
@@ -712,7 +686,7 @@
         bottom: 0;
         left: 50%;
         transform: translateX(-50%) translateY(100%);
-        width: 390px;
+        width: 100%;
         background: #fff;
         border-radius: 20px 20px 0 0;
         z-index: 101;
@@ -795,21 +769,21 @@
         min-width: 0;
       }
       .sheet-equip-name {
-        font-size: 15px;
+        font-size: var(--font-md);
         font-weight: 500;
         color: #000;
         letter-spacing: -0.15px;
         margin-bottom: 2px;
       }
       .sheet-equip-type {
-        font-size: 11px;
+        font-size: var(--font-xs);
         color: rgba(0, 0, 0, 0.35);
       }
       .sheet-equip-badge {
         height: 18px;
         padding: 0 8px;
         border-radius: 9px;
-        font-size: 10px;
+        font-size: var(--font-2xs);
         font-weight: 500;
         display: inline-flex;
         align-items: center;
@@ -842,7 +816,7 @@
 
       /* 장비 추가 영역 */
       .sheet-add-area {
-        padding: 16px 20px 20px;
+        padding: var(--space-md) 20px 20px;
         border-top: 0.5px solid rgba(0, 0, 0, 0.06);
         flex-shrink: 0;
       }
@@ -889,7 +863,7 @@
         background: var(--color-surface);
         padding: 0 14px;
         font-family: var(--font-family);
-        font-size: 14px;
+        font-size: var(--font-base);
         color: #000;
         outline: none;
         transition: box-shadow 0.2s;
@@ -908,7 +882,7 @@
         border: none;
         background: var(--color-accent);
         font-family: var(--font-family);
-        font-size: 14px;
+        font-size: var(--font-base);
         font-weight: 500;
         color: #fff;
         cursor: pointer;
@@ -925,7 +899,7 @@
         border: 1.5px dashed rgba(0, 0, 0, 0.12);
         background: none;
         font-family: var(--font-family);
-        font-size: 14px;
+        font-size: var(--font-base);
         font-weight: 500;
         color: rgba(0, 0, 0, 0.3);
         cursor: pointer;
@@ -939,120 +913,6 @@
         border-color: var(--color-accent);
         color: var(--color-accent);
         background: rgba(227, 27, 89, 0.02);
-      }
-
-      /* ====== 팔로워/팔로잉 시트 ====== */
-      .follow-tabs {
-        display: flex;
-        border-bottom: 0.5px solid rgba(0,0,0,0.07);
-        margin: 0 20px;
-      }
-      .follow-tab {
-        flex: 1;
-        height: 44px;
-        background: none;
-        border: none;
-        font-family: var(--font-family);
-        font-size: 14px;
-        font-weight: 500;
-        color: rgba(0,0,0,0.35);
-        cursor: pointer;
-        position: relative;
-        transition: color 0.2s;
-        letter-spacing: -0.15px;
-      }
-      .follow-tab.is-active {
-        color: #000;
-        font-weight: 600;
-      }
-      .follow-tab.is-active::after {
-        content: '';
-        position: absolute;
-        bottom: -0.5px;
-        left: 20%;
-        right: 20%;
-        height: 2px;
-        background: #000;
-        border-radius: 1px;
-      }
-      .follow-list {
-        overflow-y: auto;
-        max-height: 400px;
-        padding: 4px 20px 20px;
-      }
-      .follow-item {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 12px 0;
-        border-bottom: 0.5px solid rgba(0,0,0,0.04);
-      }
-      .follow-item:last-child { border-bottom: none; }
-      .follow-item__avatar {
-        width: 44px;
-        height: 44px;
-        border-radius: 50%;
-        flex-shrink: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 16px;
-        font-weight: 600;
-        color: #fff;
-      }
-      .follow-item__info {
-        flex: 1;
-        min-width: 0;
-      }
-      .follow-item__name {
-        font-size: 14px;
-        font-weight: 600;
-        color: #000;
-        letter-spacing: -0.2px;
-        margin-bottom: 1px;
-      }
-      .follow-item__handle {
-        font-size: 12px;
-        color: rgba(0,0,0,0.35);
-        letter-spacing: -0.1px;
-      }
-      .follow-item__action {
-        flex-shrink: 0;
-        height: 30px;
-        padding: 0 14px;
-        border-radius: 15px;
-        border: none;
-        font-family: var(--font-family);
-        font-size: 12px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.15s;
-      }
-      .follow-item__action--remove {
-        background: var(--color-surface);
-        color: rgba(0,0,0,0.45);
-      }
-      .follow-item__action--remove:hover {
-        background: rgba(255,69,58,0.08);
-        color: #ff453a;
-      }
-      .follow-item__action--following {
-        background: var(--color-surface);
-        color: rgba(0,0,0,0.55);
-      }
-      .follow-item__action--following:hover {
-        background: rgba(255,69,58,0.08);
-        color: #ff453a;
-      }
-      .follow-item__action--follow {
-        background: #000;
-        color: #fff;
-      }
-      .follow-empty {
-        padding: 40px 0;
-        text-align: center;
-        font-size: 14px;
-        color: rgba(0,0,0,0.3);
       }
 
       /* ====== 프로필 편집 시트 추가 스타일 ====== */
@@ -1089,7 +949,7 @@
         opacity: 1;
       }
       .profile-sheet-avatar__label {
-        font-size: 13px;
+        font-size: var(--font-sm);
         font-weight: 500;
         color: var(--color-accent);
         cursor: pointer;
@@ -1099,7 +959,7 @@
         padding: 0 20px;
       }
       .profile-sheet-field {
-        margin-bottom: 16px;
+        margin-bottom: var(--space-md);
       }
       .profile-sheet-field__label {
         font-size: 12px;
@@ -1114,7 +974,7 @@
         border-radius: 12px;
         border: 1.5px solid transparent;
         background: var(--color-surface);
-        padding: 0 16px;
+        padding: 0 var(--space-md);
         font-family: var(--font-family);
         font-size: 16px;
         color: #000;
@@ -1137,7 +997,7 @@
         background: var(--color-surface);
         padding: 12px 16px;
         font-family: var(--font-family);
-        font-size: 15px;
+        font-size: var(--font-md);
         color: #000;
         letter-spacing: -0.2px;
         outline: none;
@@ -1154,7 +1014,7 @@
       }
       .profile-sheet-counter {
         text-align: right;
-        font-size: 11px;
+        font-size: var(--font-xs);
         color: rgba(0,0,0,0.25);
         margin-top: 4px;
       }
@@ -1188,7 +1048,7 @@
         background: rgba(0,0,0,0.75);
         display: flex;
         align-items: center;
-        font-size: 14px;
+        font-size: var(--font-base);
         font-weight: 500;
         color: #fff;
         letter-spacing: -0.2px;
@@ -1203,104 +1063,11 @@
         transform: translateX(-50%) translateY(0);
       }
 
-      /* ====== 내 리뷰 시트 ====== */
-      .my-review-list {
-        overflow-y: auto;
-        max-height: 440px;
-        padding: 4px 20px 20px;
-      }
-      .my-review-item {
-        padding: 14px 0;
-        border-bottom: 0.5px solid rgba(0,0,0,0.05);
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-      }
-      .my-review-item:last-child { border-bottom: none; }
-      .my-review-item__top {
-        display: flex;
-        align-items: flex-start;
-        justify-content: space-between;
-        gap: 10px;
-      }
-      .my-review-item__left { flex: 1; min-width: 0; }
-      .my-review-item__spot {
-        font-size: 15px;
-        font-weight: 600;
-        color: #000;
-        letter-spacing: -0.2px;
-        margin-bottom: 4px;
-      }
-      .my-review-item__meta {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        font-size: 11px;
-        color: rgba(0,0,0,0.35);
-      }
-      .my-review-item__stars {
-        font-size: 11px;
-        color: var(--color-warning);
-        letter-spacing: 1px;
-      }
-      .my-review-item__badge {
-        display: inline-flex;
-        align-items: center;
-        height: 16px;
-        padding: 0 6px;
-        border-radius: 8px;
-        background: rgba(0,0,0,0.06);
-        font-size: 10px;
-        font-weight: 500;
-        color: rgba(0,0,0,0.4);
-      }
-      .my-review-item__text {
-        font-size: 13px;
-        color: rgba(0,0,0,0.6);
-        line-height: 1.55;
-        letter-spacing: -0.1px;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
-      }
-      .my-review-item__photos {
-        display: flex;
-        gap: 5px;
-      }
-      .my-review-item__photo {
-        width: 52px;
-        height: 52px;
-        border-radius: 8px;
-        flex-shrink: 0;
-      }
-      .my-review-item__del {
-        flex-shrink: 0;
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        border: none;
-        background: rgba(255,69,58,0.07);
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: background 0.15s;
-        margin-top: 2px;
-      }
-      .my-review-item__del:hover { background: rgba(255,69,58,0.14); }
-      .my-review-empty {
-        padding: 40px 0;
-        text-align: center;
-        font-size: 14px;
-        color: rgba(0,0,0,0.3);
-      }
-
       /* ====== Tab Bar ====== */
       .tab-bar {
         position: fixed;
         bottom: 0;
-        width: 390px;
+        width: 100%;
         height: 80px;
         background: #fff;
         border-top: 0.5px solid rgba(0, 0, 0, 0.08);
@@ -1310,74 +1077,13 @@
         padding-top: 8px;
         z-index: 50;
       }
-      .tab {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 4px;
-        background: none;
-        border: none;
-        cursor: pointer;
-        padding: 4px 10px;
-      }
-      .tab__icon {
-        width: 22px;
-        height: 18px;
-        color: rgba(0, 0, 0, 0.35);
-      }
-      .tab__label {
-        font-size: 10px;
-        color: rgba(0, 0, 0, 0.35);
-        font-family: var(--font-family);
-      }
-      .tab.is-active .tab__icon {
-        color: var(--color-accent);
-      }
-      .tab.is-active .tab__label {
-        color: var(--color-accent);
-        font-weight: 500;
-      }
-      .tab-bar__indicator {
-        position: absolute;
-        bottom: 8px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 110px;
-        height: 5px;
-        background: rgba(0, 0, 0, 0.1);
-        border-radius: 2.5px;
-      }
-
-      @media (max-width: 390px) {
-        .phone-frame,
-        .tab-bar,
-        .bottom-sheet {
-          width: 100%;
-        }
-      }
-      @media (min-width: 391px) {
-        body {
-          padding: 20px 0;
-        }
-        .phone-frame {
-          border-radius: 40px;
-          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-          min-height: unset;
-          height: calc(100dvh - 40px);
-          overflow-y: auto;
-          overflow-x: hidden;
-        }
-        .tab-bar {
-          border-radius: 0 0 40px 40px;
-        }
-      }
+      /* .tab / .tab__icon / .tab__label / .tab-bar__indicator → common.css */
     
       /* ── 스크롤바 숨김 ── */
-      * { scrollbar-width: none; -ms-overflow-style: none; }
-      *::-webkit-scrollbar { display: none; }
-</style>
+    </style>
   </head>
   <body>
+    <script src="../common/icons.js"></script>
     <div class="phone-frame">
       <!-- Dark Header -->
       <div class="dark-header">
@@ -1419,27 +1125,6 @@
         </div>
         <div class="header-nav">
           <div style="width: 28px"></div>
-          <button
-            class="header-nav__btn"
-            aria-label="설정"
-            onclick="location.href = './setting.html'"
-          >
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="rgba(255,255,255,0.6)"
-              stroke-width="1.8"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path
-                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 0 0 2.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 0 0 1.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 0 0-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 0 0-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 0 0-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 0 0-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 0 0 1.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-              />
-              <circle cx="12" cy="12" r="3" />
-            </svg>
-          </button>
         </div>
         <div class="profile-row">
           <div class="profile-row__avatar">
@@ -1469,11 +1154,11 @@
         <button class="edit-btn" onclick="openProfileSheet()">프로필 편집</button>
         <div class="stats-row">
           <div class="stats-row__follow">
-            <button class="stat-card stat-card--tap" onclick="openFollowSheet('followers')">
+            <button class="stat-card stat-card--tap" onclick="location.href='./follow.html?tab=followers'">
               <div class="stat-card__num" id="followerCount">1,247</div>
               <div class="stat-card__label">팔로워</div>
             </button>
-            <button class="stat-card stat-card--tap" onclick="openFollowSheet('following')">
+            <button class="stat-card stat-card--tap" onclick="location.href='./follow.html?tab=following'">
               <div class="stat-card__num" id="followingCount">356</div>
               <div class="stat-card__label">팔로잉</div>
             </button>
@@ -1487,7 +1172,7 @@
               <div class="stat-card__num">142</div>
               <div class="stat-card__label">사진</div>
             </button>
-            <button class="stat-card stat-card--tap" onclick="openMyReviewSheet()">
+            <button class="stat-card stat-card--tap" onclick="location.href='./my-reviews.html'">
               <div class="stat-card__num" id="myReviewCount">12</div>
               <div class="stat-card__label">리뷰</div>
             </button>
@@ -1673,53 +1358,41 @@
           </div>
           <p class="section__subtitle">날씨 알림이 설정된 스팟</p>
           <div class="wish-scroll">
-            <div
-              class="wish-card"
-              style="background: linear-gradient(to bottom, #1a1530, #b44a3a)"
-            >
-              <div class="wish-card__bell">
-                <svg
-                  width="12"
-                  height="12"
-                  viewBox="0 0 12 12"
-                  fill="none"
-                  stroke="#fff"
-                  stroke-width="0.9"
-                  stroke-linejoin="round"
-                >
-                  <path
-                    d="M6 1C4 1 3 2.5 3 4V6.5L2 8H10L9 6.5V4C9 2.5 8 1 6 1Z"
-                  />
-                  <path d="M4.5 8Q4.5 10 6 10T7.5 8" stroke-width="0.8" />
-                </svg>
+            <div class="wish-card" onclick="location.href='../spot/spot-detail.html'">
+              <div class="wish-card__photo" style="background: linear-gradient(to bottom, #1a1530, #b44a3a)">
+                <button class="wish-card__bell" onclick="toggleWishBell(event, this)" aria-label="알림 토글">
+                  <svg class="icon-bell-on" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10 5a2 2 0 0 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6"/>
+                    <path d="M9 17v1a3 3 0 0 0 6 0v-1"/>
+                    <path d="M21 6.727a11.05 11.05 0 0 0 -2.794 -3.727"/>
+                    <path d="M3 6.727a11.05 11.05 0 0 1 2.792 -3.727"/>
+                  </svg>
+                  <svg class="icon-bell-off" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14.235 19c.865 0 1.322 1.024 .745 1.668a3.992 3.992 0 0 1 -2.98 1.332a3.992 3.992 0 0 1 -2.98 -1.332c-.552 -.616 -.158 -1.579 .634 -1.661l.11 -.006h4.471z"/><path d="M12 2c1.358 0 2.506 .903 2.875 2.141l.046 .171l.008 .043a8.013 8.013 0 0 1 4.024 6.069l.028 .287l.019 .289v2.931l.021 .136a3 3 0 0 0 1.143 1.847l.167 .117l.162 .099c.86 .487 .56 1.766 -.377 1.864l-.116 .006h-16c-1.028 0 -1.387 -1.364 -.493 -1.87a3 3 0 0 0 1.472 -2.063l.021 -.143l.001 -2.97a8 8 0 0 1 3.821 -6.454l.248 -.146l.01 -.043a3.003 3.003 0 0 1 2.562 -2.29l.182 -.017l.176 -.004zm-1.489 6.14a1 1 0 0 0 -1.218 1.567l1.292 1.293l-1.292 1.293l-.083 .094a1 1 0 0 0 1.497 1.32l1.293 -1.292l1.293 1.292l.094 .083a1 1 0 0 0 1.32 -1.497l-1.292 -1.293l1.292 -1.293l.083 -.094a1 1 0 0 0 -1.497 -1.32l-1.293 1.292l-1.293 -1.292l-.094 -.083z"/></svg>
+                </button>
               </div>
-              <div class="wish-card__name">경복궁 야간개장</div>
-              <div class="wish-card__cond">맑은 날 · 일몰 후</div>
-              <div class="wish-card__date">다음 조건 충족 예상: 5/18</div>
+              <div class="wish-card__body">
+                <div class="wish-card__name">경복궁 야간개장</div>
+                <div class="wish-card__cond">맑은 날 · 일몰 후</div>
+                <div class="wish-card__date">다음 조건 충족 예상: 5/18</div>
+              </div>
             </div>
-            <div
-              class="wish-card"
-              style="background: linear-gradient(to bottom, #020010, #1a1545)"
-            >
-              <div class="wish-card__bell">
-                <svg
-                  width="12"
-                  height="12"
-                  viewBox="0 0 12 12"
-                  fill="none"
-                  stroke="#fff"
-                  stroke-width="0.9"
-                  stroke-linejoin="round"
-                >
-                  <path
-                    d="M6 1C4 1 3 2.5 3 4V6.5L2 8H10L9 6.5V4C9 2.5 8 1 6 1Z"
-                  />
-                  <path d="M4.5 8Q4.5 10 6 10T7.5 8" stroke-width="0.8" />
-                </svg>
+            <div class="wish-card" onclick="location.href='../spot/spot-detail.html'">
+              <div class="wish-card__photo" style="background: linear-gradient(to bottom, #020010, #1a1545)">
+                <button class="wish-card__bell" onclick="toggleWishBell(event, this)" aria-label="알림 토글">
+                  <svg class="icon-bell-on" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M10 5a2 2 0 0 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6"/>
+                    <path d="M9 17v1a3 3 0 0 0 6 0v-1"/>
+                    <path d="M21 6.727a11.05 11.05 0 0 0 -2.794 -3.727"/>
+                    <path d="M3 6.727a11.05 11.05 0 0 1 2.792 -3.727"/>
+                  </svg>
+                  <svg class="icon-bell-off" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14.235 19c.865 0 1.322 1.024 .745 1.668a3.992 3.992 0 0 1 -2.98 1.332a3.992 3.992 0 0 1 -2.98 -1.332c-.552 -.616 -.158 -1.579 .634 -1.661l.11 -.006h4.471z"/><path d="M12 2c1.358 0 2.506 .903 2.875 2.141l.046 .171l.008 .043a8.013 8.013 0 0 1 4.024 6.069l.028 .287l.019 .289v2.931l.021 .136a3 3 0 0 0 1.143 1.847l.167 .117l.162 .099c.86 .487 .56 1.766 -.377 1.864l-.116 .006h-16c-1.028 0 -1.387 -1.364 -.493 -1.87a3 3 0 0 0 1.472 -2.063l.021 -.143l.001 -2.97a8 8 0 0 1 3.821 -6.454l.248 -.146l.01 -.043a3.003 3.003 0 0 1 2.562 -2.29l.182 -.017l.176 -.004zm-1.489 6.14a1 1 0 0 0 -1.218 1.567l1.292 1.293l-1.292 1.293l-.083 .094a1 1 0 0 0 1.497 1.32l1.293 -1.292l1.293 1.292l.094 .083a1 1 0 0 0 1.32 -1.497l-1.292 -1.293l1.292 -1.293l.083 -.094a1 1 0 0 0 -1.497 -1.32l-1.293 1.292l-1.293 -1.292l-.094 -.083z"/></svg>
+                </button>
               </div>
-              <div class="wish-card__name">영월 별마로천문대</div>
-              <div class="wish-card__cond">구름 없는 밤 · 새벽</div>
-              <div class="wish-card__date">다음 조건 충족 예상: 5/21</div>
+              <div class="wish-card__body">
+                <div class="wish-card__name">영월 별마로천문대</div>
+                <div class="wish-card__cond">구름 없는 밤 · 새벽</div>
+                <div class="wish-card__date">다음 조건 충족 예상: 5/21</div>
+              </div>
             </div>
           </div>
         </div>
@@ -1735,18 +1408,7 @@
           <div class="equip-card">
             <div class="equip-item">
               <div class="equip-item__icon">
-                <svg
-                  width="14"
-                  height="12"
-                  viewBox="0 0 14 12"
-                  fill="none"
-                  stroke="rgba(0,0,0,0.3)"
-                  stroke-width="0.9"
-                >
-                  <rect x="0" y="3" width="14" height="8" rx="2" />
-                  <circle cx="7" cy="7.5" r="2.8" />
-                  <rect x="4" y="0" width="6" height="4" rx="1.5" />
-                </svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" style="color: rgba(0,0,0,0.3)"><use href="#icon-camera"/></svg>
               </div>
               <div>
                 <div class="equip-item__name">Sony A7IV</div>
@@ -1836,19 +1498,9 @@
               class="quick-action"
               onclick="location.href = './setting.html'"
             >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 14 14"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1"
-                stroke-linecap="round"
-              >
-                <circle cx="7" cy="7" r="2.5" />
-                <path
-                  d="M7 1.5V3M7 11V12.5M1.5 7H3M11 7H12.5M3.1 3.1L4.2 4.2M9.8 9.8L10.9 10.9M10.9 3.1L9.8 4.2M4.2 9.8L3.1 10.9"
-                />
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <path stroke="none" d="M0 0h24v24H0z" fill="none" />
+                <path d="M17 15c1.306 0 2.418 .835 2.83 2h.17a1 1 0 0 1 0 2h-.171a3.001 3.001 0 0 1 -5.658 0h-10.171a1 1 0 0 1 0 -2h10.173c.41 -1.165 1.52 -2 2.827 -2m-9 -6c1.306 0 2.418 .835 2.83 2h9.17a1 1 0 0 1 0 2h-9.171a3.001 3.001 0 0 1 -5.658 0h-1.171a1 1 0 0 1 0 -2h1.173c.41 -1.165 1.52 -2 2.827 -2m6 -6c1.306 0 2.418 .835 2.83 2h3.17a1 1 0 0 1 0 2h-3.171a3.001 3.001 0 0 1 -5.658 0h-7.171a1 1 0 1 1 0 -2h7.173c.41 -1.165 1.52 -2 2.827 -2" />
               </svg>
               설정
             </button>
@@ -1914,61 +1566,20 @@
         <button class="tab is-active">
           <svg
             class="tab__icon"
-            viewBox="0 0 22 18"
+            viewBox="0 0 22 22"
             fill="none"
             stroke="currentColor"
             stroke-width="1.3"
             stroke-linecap="round"
           >
-            <circle cx="11" cy="5" r="5" />
-            <path d="M2 18Q5 12 11 12T20 18" /></svg
+            <circle cx="11" cy="7" r="5" />
+            <path d="M2 20Q5 13 11 13T20 20" /></svg
           ><span class="tab__label">MY</span>
         </button>
         <div class="tab-bar__indicator"></div>
       </div>
 
       <!-- 팔로워/팔로잉 딤 -->
-      <div class="sheet-dim" id="followDim" onclick="closeFollowSheet()"></div>
-
-      <!-- 팔로워/팔로잉 바텀시트 -->
-      <div class="bottom-sheet" id="followSheet">
-        <div class="sheet-handle-wrap"><div class="sheet-handle"></div></div>
-        <div class="sheet-header">
-          <span class="sheet-header__title" id="followSheetTitle">팔로워</span>
-          <button class="sheet-close" onclick="closeFollowSheet()" aria-label="닫기">
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="rgba(0,0,0,0.4)" stroke-width="1.8" stroke-linecap="round">
-              <line x1="1" y1="1" x2="11" y2="11"/>
-              <line x1="11" y1="1" x2="1" y2="11"/>
-            </svg>
-          </button>
-        </div>
-        <!-- 탭 -->
-        <div class="follow-tabs">
-          <button class="follow-tab is-active" id="tabFollowers" onclick="switchFollowTab('followers')">팔로워</button>
-          <button class="follow-tab" id="tabFollowing" onclick="switchFollowTab('following')">팔로잉</button>
-        </div>
-        <!-- 목록 -->
-        <div class="follow-list" id="followList"></div>
-      </div>
-
-      <!-- 내 리뷰 딤 -->
-      <div class="sheet-dim" id="myReviewDim" onclick="closeMyReviewSheet()"></div>
-
-      <!-- 내 리뷰 바텀시트 -->
-      <div class="bottom-sheet" id="myReviewSheet">
-        <div class="sheet-handle-wrap"><div class="sheet-handle"></div></div>
-        <div class="sheet-header">
-          <span class="sheet-header__title">내가 쓴 리뷰</span>
-          <button class="sheet-close" onclick="closeMyReviewSheet()" aria-label="닫기">
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="rgba(0,0,0,0.4)" stroke-width="1.8" stroke-linecap="round">
-              <line x1="1" y1="1" x2="11" y2="11"/>
-              <line x1="11" y1="1" x2="1" y2="11"/>
-            </svg>
-          </button>
-        </div>
-        <div class="my-review-list" id="myReviewList"></div>
-      </div>
-
       <!-- 프로필 편집 딤 -->
       <div class="sheet-dim" id="profileDim" onclick="closeProfileSheet()"></div>
 
@@ -2116,203 +1727,10 @@
     <div class="toast" id="toast"></div>
 
     <script>
-      /* ── 내 리뷰 데이터 ── */
-      var myReviews = [
-        {
-          id: 1,
-          spot: '광안리 해수욕장',
-          stars: 5,
-          period: '야경',
-          date: '2026.04.12',
-          text: '광안대교 야경이 정말 환상적이에요. 삼각대 없으면 흔들려서 꼭 챙겨가세요. 일몰 30분 후가 골든타임입니다.',
-          photos: ['linear-gradient(135deg,#0f2027,#2c5364)', 'linear-gradient(135deg,#203a43,#4a7c8a)']
-        },
-        {
-          id: 2,
-          spot: '진해 경화역',
-          stars: 5,
-          period: '낮',
-          date: '2026.04.02',
-          text: '벚꽃 시즌에 다녀왔는데 정말 예뻤어요. 기차와 벚꽃 조합이 환상적입니다. 주말엔 사람이 많으니 평일 오전 추천해요.',
-          photos: ['linear-gradient(135deg,#8b4a6b,#f0c89a)']
-        },
-        {
-          id: 3,
-          spot: '제주 사려니숲',
-          stars: 4,
-          period: '낮',
-          date: '2026.04.15',
-          text: '피톤치드 가득한 숲길에서 촬영했어요. 빛이 나무 사이로 들어오는 장면이 정말 좋았습니다.',
-          photos: []
-        },
-        {
-          id: 4,
-          spot: '경복궁',
-          stars: 5,
-          period: '야간',
-          date: '2026.03.08',
-          text: '야간 개장 때 촬영했어요. 조명이 정말 멋지고 인파가 있어도 구도 잘 잡으면 훌륭한 사진을 얻을 수 있어요.',
-          photos: ['linear-gradient(135deg,#1a1530,#b44a3a)']
-        },
-      ];
-
-      function openMyReviewSheet() {
-        document.getElementById('myReviewDim').classList.add('is-open');
-        document.getElementById('myReviewSheet').classList.add('is-open');
-        renderMyReviews();
-      }
-
-      function closeMyReviewSheet() {
-        document.getElementById('myReviewDim').classList.remove('is-open');
-        document.getElementById('myReviewSheet').classList.remove('is-open');
-      }
-
-      function renderMyReviews() {
-        var list = document.getElementById('myReviewList');
-        if (!myReviews.length) {
-          list.innerHTML = '<div class="my-review-empty">아직 작성한 리뷰가 없어요</div>';
-          return;
-        }
-        list.innerHTML = myReviews.map(function(r) {
-          var stars = '★'.repeat(r.stars) + '☆'.repeat(5 - r.stars);
-          var photosHtml = r.photos.length
-            ? '<div class="my-review-item__photos">' +
-                r.photos.map(function(bg) {
-                  return '<div class="my-review-item__photo" style="background:' + bg + '"></div>';
-                }).join('') +
-              '</div>'
-            : '';
-          return '<div class="my-review-item" id="my-review-' + r.id + '">' +
-            '<div class="my-review-item__top">' +
-              '<div class="my-review-item__left">' +
-                '<div class="my-review-item__spot">' + r.spot + '</div>' +
-                '<div class="my-review-item__meta">' +
-                  '<span class="my-review-item__stars">' + stars + '</span>' +
-                  '<span class="my-review-item__badge">' + r.period + '</span>' +
-                  '<span>' + r.date + '</span>' +
-                '</div>' +
-              '</div>' +
-              '<button class="my-review-item__del" onclick="deleteMyReview(' + r.id + ')" aria-label="삭제">' +
-                '<svg width="12" height="12" viewBox="0 0 12 14" fill="none" stroke="#ff453a" stroke-width="1.3" stroke-linecap="round">' +
-                  '<line x1="1" y1="0" x2="11" y2="0"/><rect x="0" y="1.5" width="12" height="11" rx="2" stroke-width="1"/>' +
-                  '<line x1="4.5" y1="4.5" x2="4.5" y2="10"/><line x1="7.5" y1="4.5" x2="7.5" y2="10"/>' +
-                '</svg>' +
-              '</button>' +
-            '</div>' +
-            '<p class="my-review-item__text">' + r.text + '</p>' +
-            photosHtml +
-          '</div>';
-        }).join('');
-      }
-
-      function deleteMyReview(id) {
-        var idx = myReviews.findIndex(function(r) { return r.id === id; });
-        if (idx === -1) return;
-        myReviews.splice(idx, 1);
-        var countEl = document.getElementById('myReviewCount');
-        countEl.textContent = Math.max(0, parseInt(countEl.textContent) - 1);
-        renderMyReviews();
-        showToast('리뷰가 삭제됐어요');
-      }
-
-      /* ── 팔로워 / 팔로잉 데이터 ── */
-      const followData = {
-        followers: [
-          { id: 1, name: '한강뷰어', handle: '@hangang_view', color: '#2c5364', initial: '한', mutual: true },
-          { id: 2, name: '봄날의사진', handle: '@spring_shot', color: '#4a3060', initial: '봄', mutual: false },
-          { id: 3, name: '골든아워헌터', handle: '@golden_h', color: '#6b3a2a', initial: '골', mutual: true },
-          { id: 4, name: '제주스냅', handle: '@jeju_snap', color: '#1a4a3a', initial: '제', mutual: false },
-          { id: 5, name: '야경마스터', handle: '@night_master', color: '#2a2a5a', initial: '야', mutual: true },
-        ],
-        following: [
-          { id: 1, name: '한강뷰어', handle: '@hangang_view', color: '#2c5364', initial: '한', following: true },
-          { id: 2, name: '골든아워헌터', handle: '@golden_h', color: '#6b3a2a', initial: '골', following: true },
-          { id: 3, name: '야경마스터', handle: '@night_master', color: '#2a2a5a', initial: '야', following: true },
-          { id: 4, name: '부산사진관', handle: '@busan_photo', color: '#1a3a5a', initial: '부', following: true },
-          { id: 5, name: '새벽빛', handle: '@dawn_light', color: '#3a4a2a', initial: '새', following: false },
-        ]
-      };
-
-      let currentFollowTab = 'followers';
-
-      function openFollowSheet(tab) {
-        currentFollowTab = tab;
-        document.getElementById('followDim').classList.add('is-open');
-        document.getElementById('followSheet').classList.add('is-open');
-        switchFollowTab(tab);
-      }
-
-      function closeFollowSheet() {
-        document.getElementById('followDim').classList.remove('is-open');
-        document.getElementById('followSheet').classList.remove('is-open');
-      }
-
-      function switchFollowTab(tab) {
-        currentFollowTab = tab;
-        document.getElementById('tabFollowers').classList.toggle('is-active', tab === 'followers');
-        document.getElementById('tabFollowing').classList.toggle('is-active', tab === 'following');
-        renderFollowList(tab);
-      }
-
-      function renderFollowList(tab) {
-        const list = document.getElementById('followList');
-        const data = followData[tab];
-
-        if (!data.length) {
-          list.innerHTML = `<div class="follow-empty">${tab === 'followers' ? '팔로워가 없어요' : '팔로잉한 사람이 없어요'}</div>`;
-          return;
-        }
-
-        list.innerHTML = data.map(u => {
-          const actionBtn = tab === 'followers'
-            ? `<button class="follow-item__action follow-item__action--remove" onclick="removeFollower(${u.id})">삭제</button>`
-            : (u.following
-                ? `<button class="follow-item__action follow-item__action--following" onclick="toggleFollow(${u.id}, this)">팔로잉</button>`
-                : `<button class="follow-item__action follow-item__action--follow" onclick="toggleFollow(${u.id}, this)">팔로우</button>`
-              );
-          return `
-            <div class="follow-item" id="follow-item-${tab}-${u.id}">
-              <div class="follow-item__avatar" style="background:${u.color}">${u.initial}</div>
-              <div class="follow-item__info">
-                <div class="follow-item__name">${u.name}</div>
-                <div class="follow-item__handle">${u.handle}</div>
-              </div>
-              ${actionBtn}
-            </div>`;
-        }).join('');
-      }
-
-      function removeFollower(id) {
-        const idx = followData.followers.findIndex(u => u.id === id);
-        if (idx === -1) return;
-        followData.followers.splice(idx, 1);
-        // 카운트 업데이트
-        const countEl = document.getElementById('followerCount');
-        const current = Number(countEl.textContent.replace(/,/g, ''));
-        const next = current - 1;
-        countEl.textContent = next >= 1000 ? next.toLocaleString() : next;
-        renderFollowList('followers');
-        showToast('팔로워를 삭제했어요');
-      }
-
-      function toggleFollow(id, btn) {
-        const user = followData.following.find(u => u.id === id);
-        if (!user) return;
-        user.following = !user.following;
-
-        const countEl = document.getElementById('followingCount');
-        const current = Number(countEl.textContent.replace(/,/g, ''));
-        const next = user.following ? current + 1 : current - 1;
-        countEl.textContent = next >= 1000 ? next.toLocaleString() : next;
-
-        if (user.following) {
-          btn.textContent = '팔로잉';
-          btn.className = 'follow-item__action follow-item__action--following';
-        } else {
-          btn.textContent = '팔로우';
-          btn.className = 'follow-item__action follow-item__action--follow';
-          showToast(`${user.name} 팔로우를 취소했어요`);
-        }
+      /* ── 위시리스트 알림 토글 ── */
+      function toggleWishBell(e, btn) {
+        e.stopPropagation();
+        btn.classList.toggle('is-off');
       }
 
       /* ── 프로필 편집 ── */
@@ -2389,8 +1807,8 @@
         <div class="sheet-equip-icon">
           ${
             e.type === "카메라"
-              ? `<svg width="14" height="12" viewBox="0 0 14 12" fill="none" stroke="rgba(0,0,0,0.3)" stroke-width="0.9"><rect x="0" y="3" width="14" height="8" rx="2"/><circle cx="7" cy="7.5" r="2.8"/><rect x="4" y="0" width="6" height="4" rx="1.5"/></svg>`
-              : `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="rgba(0,0,0,0.25)" stroke-width="0.9"><circle cx="7" cy="7" r="6"/><circle cx="7" cy="7" r="3"/></svg>`
+              ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,0.3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h1a2 2 0 0 0 2 -2a1 1 0 0 1 1 -1h6a1 1 0 0 1 1 1a2 2 0 0 0 2 2h1a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-9a2 2 0 0 1 2 -2"/><circle cx="12" cy="13" r="3"/></svg>`
+              : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,0.3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8v-2a2 2 0 0 1 2 -2h2"/><path d="M4 16v2a2 2 0 0 0 2 2h2"/><path d="M16 4h2a2 2 0 0 1 2 2v2"/><path d="M16 20h2a2 2 0 0 0 2 -2v-2"/><circle cx="12" cy="12" r="3"/></svg>`
           }
         </div>
         <div class="sheet-equip-info">
@@ -2400,9 +1818,10 @@
           </div>
         </div>
         <button class="sheet-equip-del" onclick="deleteEquip(${e.id})" aria-label="삭제">
-          <svg width="12" height="12" viewBox="0 0 12 14" fill="none" stroke="#ff453a" stroke-width="1.2" stroke-linecap="round">
-            <line x1="1" y1="0" x2="11" y2="0"/><rect x="0" y="1.5" width="12" height="11" rx="2" stroke-width="1"/>
-            <line x1="4.5" y1="4" x2="4.5" y2="10"/><line x1="7.5" y1="4" x2="7.5" y2="10"/>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff453a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4 7l16 0"/><path d="M10 11l0 6"/><path d="M14 11l0 6"/>
+            <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"/>
+            <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"/>
           </svg>
         </button>
       </div>

@@ -7,46 +7,18 @@
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
     />
     <title>PNG - 출사 계획</title>
-    <link rel="stylesheet" href="../fonts.css" />
+  <link rel="stylesheet" href="../common/fonts.css">
+  <link rel="stylesheet" href="../common/common.css">
     <style>
-      :root {
-        --color-bg: #ffffff;
-        --color-surface: #f5f5f7;
-        --color-text-primary: #000000;
-        --color-text-secondary: rgba(0, 0, 0, 0.48);
-        --color-text-tertiary: rgba(0, 0, 0, 0.28);
-        --color-accent: #e31b59;
-        --color-accent-hover: #c91550;
-        --color-border-light: rgba(0, 0, 0, 0.06);
-        --color-success: #34c759;
-        --color-warning: #ff9f0a;
-        --color-brand: #e31b59;
-        --radius-card: 16px;
-        --radius-btn: 26px;
-      }
-      *,
-      *::before,
-      *::after {
-        margin: 0;
-        padding: 0;
-        box-sizing: border-box;
-      }
-      html {
-        font-size: 16px;
-        -webkit-font-smoothing: antialiased;
-      }
-      body {
-        font-family: var(--font-family);
-        background: #f0f0f0;
-        display: flex;
-        justify-content: center;
-        min-height: 100dvh;
-      }
-      .phone-frame {
-        width: 390px;
-        min-height: 100dvh;
+.phone-frame {
+        width: 100%;
+        height: 100dvh;
         background: var(--color-bg);
         position: relative;
+        overflow: hidden;
+      }
+      .phone-scroll {
+        height: 100%;
         overflow-y: auto;
         overflow-x: hidden;
         padding-bottom: 80px;
@@ -66,7 +38,7 @@
         background: #fff;
       }
       .status-bar__time {
-        font-size: 15px;
+        font-size: var(--font-md);
         font-weight: 600;
         color: #000;
         letter-spacing: -0.3px;
@@ -104,10 +76,10 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 0 16px;
+        padding: 0 var(--space-md);
       }
       .page-nav__compact-title {
-        font-size: 17px;
+        font-size: var(--font-lg);
         font-weight: 600;
         letter-spacing: -0.4px;
         opacity: 0;
@@ -133,30 +105,18 @@
         opacity: 0;
       }
       .page-nav__large-title {
-        font-size: 28px;
+        font-size: var(--font-2xl);
         font-weight: 600;
         letter-spacing: -0.6px;
       }
 
-      /* 새 계획 버튼 (공유) */
-      .page-nav__new-btn {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        height: 34px;
-        padding: 0 14px;
-        border-radius: 17px;
-        border: none;
-        background: var(--color-accent);
-        font-family: var(--font-family);
-        font-size: 13px;
-        font-weight: 500;
-        color: #fff;
-        cursor: pointer;
-        flex-shrink: 0;
-        transition: background 0.15s;
+      .page-nav__compose {
+        width: 32px; height: 32px; border: none; background: none;
+        display: flex; align-items: center; justify-content: center;
+        color: var(--color-accent); cursor: pointer; flex-shrink: 0;
+        margin-left: auto; transition: opacity 0.15s;
       }
-      .page-nav__new-btn:hover { background: var(--color-accent-hover); }
+      .page-nav__compose:hover { opacity: 0.7; }
 
       /* ── 섹션 탭 ── */
       .section-tabs {
@@ -175,7 +135,7 @@
         border: none;
         background: var(--color-surface);
         font-family: var(--font-family);
-        font-size: 13px;
+        font-size: var(--font-sm);
         font-weight: 500;
         color: rgba(0,0,0,0.45);
         cursor: pointer;
@@ -186,7 +146,7 @@
         color: #fff;
       }
       .section-tab__count {
-        font-size: 11px;
+        font-size: var(--font-xs);
         font-weight: 600;
         opacity: 0.75;
       }
@@ -198,7 +158,6 @@
         z-index: 1;
         padding: 20px 20px 0;
       }
-      .section { display: block; }
       .section.is-hidden { display: none; }
 
       /* ── 섹션 헤더 ── */
@@ -209,13 +168,13 @@
         margin-bottom: 10px;
       }
       .section-header__title {
-        font-size: 13px;
+        font-size: var(--font-sm);
         font-weight: 600;
         color: rgba(0, 0, 0, 0.3);
         letter-spacing: 0.3px;
       }
       .section-header__count {
-        font-size: 13px;
+        font-size: var(--font-sm);
         color: rgba(0, 0, 0, 0.3);
       }
 
@@ -266,7 +225,7 @@
         height: 22px;
         padding: 0 10px;
         border-radius: 11px;
-        font-size: 10px;
+        font-size: var(--font-2xs);
         font-weight: 600;
         display: flex;
         align-items: center;
@@ -292,7 +251,7 @@
         padding: 0 10px;
         border-radius: 11px;
         background: rgba(0, 0, 0, 0.35);
-        font-size: 10px;
+        font-size: var(--font-2xs);
         font-weight: 500;
         color: #fff;
         display: flex;
@@ -309,7 +268,7 @@
         margin-bottom: 4px;
       }
       .plan-card__name {
-        font-size: 17px;
+        font-size: var(--font-lg);
         font-weight: 600;
         color: var(--color-text-primary);
         letter-spacing: -0.3px;
@@ -376,7 +335,7 @@
         margin-bottom: 12px;
       }
       .new-plan-card:hover {
-        border-color: var(--color-brand);
+        border-color: var(--color-accent);
         background: rgba(227, 27, 89, 0.02);
       }
       .new-plan-card__icon {
@@ -393,25 +352,26 @@
         background: rgba(227, 27, 89, 0.08);
       }
       .new-plan-card__label {
-        font-size: 15px;
+        font-size: var(--font-md);
         font-weight: 500;
         color: rgba(0, 0, 0, 0.3);
         transition: color 0.2s;
       }
       .new-plan-card:hover .new-plan-card__label {
-        color: var(--color-brand);
+        color: var(--color-accent);
       }
 
       /* ── 섹션 구분 ── */
       .section {
-        margin-top: 24px;
+        margin-top: var(--space-lg);
       }
 
       /* ── 탭바 ── */
       .tab-bar {
-        position: fixed;
+        position: absolute;
         bottom: 0;
-        width: 390px;
+        left: 0;
+        right: 0;
         height: 80px;
         background: #fff;
         border-top: 0.5px solid rgba(0, 0, 0, 0.08);
@@ -421,78 +381,13 @@
         padding-top: 8px;
         z-index: 50;
       }
-      .tab {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 4px;
-        background: none;
-        border: none;
-        cursor: pointer;
-        padding: 4px 10px;
-        transition: opacity 0.15s;
-      }
-      .tab:hover {
-        opacity: 0.7;
-      }
-      .tab__icon {
-        width: 22px;
-        height: 22px;
-        color: rgba(0, 0, 0, 0.35);
-      }
-      .tab__label {
-        font-size: 10px;
-        color: rgba(0, 0, 0, 0.35);
-        font-family: var(--font-family);
-      }
-      .tab.is-active .tab__icon {
-        color: var(--color-accent);
-      }
-      .tab.is-active .tab__label {
-        color: var(--color-accent);
-        font-weight: 500;
-      }
-      .tab-bar__indicator {
-        position: absolute;
-        bottom: 8px;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 110px;
-        height: 5px;
-        background: rgba(0, 0, 0, 0.1);
-        border-radius: 2.5px;
-      }
-
-      @media (max-width: 390px) {
-        .phone-frame,
-        .tab-bar {
-          width: 100%;
-        }
-      }
-      @media (min-width: 391px) {
-        body {
-          padding: 20px 0;
-        }
-        .phone-frame {
-          border-radius: 40px;
-          box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-          min-height: unset;
-          height: calc(100dvh - 40px);
-          overflow-y: auto;
-          overflow-x: hidden;
-        }
-        .tab-bar {
-          border-radius: 0 0 40px 40px;
-        }
-      }
+      /* .tab / .tab__icon / .tab__label / .tab-bar__indicator → common.css */
     
-      /* ── 스크롤바 숨김 ── */
-      * { scrollbar-width: none; -ms-overflow-style: none; }
-      *::-webkit-scrollbar { display: none; }
-</style>
+    </style>
   </head>
   <body>
     <div class="phone-frame">
+      <div class="phone-scroll">
       <!-- 상태바 -->
       <div class="status-bar">
         <span class="status-bar__time">9:41</span>
@@ -525,11 +420,10 @@
         <!-- 큰 타이틀 행 -->
         <div class="page-nav__large">
           <span class="page-nav__large-title">출사 계획</span>
-          <button class="page-nav__new-btn" onclick="location.href='./travel-new.html'">
-            <svg width="11" height="11" viewBox="0 0 11 11" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round">
-              <line x1="5.5" y1="1" x2="5.5" y2="10" /><line x1="1" y1="5.5" x2="10" y2="5.5" />
+          <button class="page-nav__compose" aria-label="새 계획" onclick="location.href='./travel-new.html'">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
             </svg>
-            새 계획
           </button>
         </div>
         <!-- 섹션 탭 -->
@@ -1061,6 +955,8 @@
         <div style="height: 12px"></div>
       </div>
 
+      </div><!-- /phone-scroll -->
+
       <!-- 탭바 -->
       <div class="tab-bar">
         <button class="tab" onclick="location.href = '../home/home.html'">
@@ -1136,7 +1032,7 @@
 
   <script>
     // 스크롤 → 컴팩트 타이틀 전환
-    const frame = document.querySelector('.phone-frame');
+    const frame = document.querySelector('.phone-scroll');
     const nav = document.getElementById('page-nav');
     frame.addEventListener('scroll', () => {
       nav.classList.toggle('is-scrolled', frame.scrollTop > 44);

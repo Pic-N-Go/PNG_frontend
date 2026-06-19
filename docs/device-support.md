@@ -89,6 +89,24 @@ import { BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING, CARD_RADIUS, FONT_LG } f
 </View>
 ```
 
+### Safe Area
+
+기기 모서리(Dynamic Island, 노치, 하단 홈 인디케이터)는 `ScreenContainer`가 자동으로 처리합니다.  
+화면 구현 시 `SafeAreaView`를 직접 사용하지 말고 `ScreenContainer`를 사용하세요.
+
+```tsx
+import { ScreenContainer } from "@/components/ScreenContainer";
+
+// 기본 — top/bottom/left/right 모두 처리
+<ScreenContainer> ... </ScreenContainer>
+
+// 히어로 화면 — top 제외 (이미지가 상단 끝까지 채워야 할 때)
+<ScreenContainer edges={['left', 'right', 'bottom']}> ... </ScreenContainer>
+```
+
+> HTML 목업의 `.status-bar` 높이(54px)와 하단 인디케이터는 퍼블리싱 전용 수동 처리입니다.  
+> 실제 구현에서는 `ScreenContainer`로 대체하면 됩니다.
+
 ### normalize vs className 사용 기준
 
 | 상황 | 방법 |
@@ -124,3 +142,11 @@ import { BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING, CARD_RADIUS, FONT_LG } f
 3. **별도 목업 설계** — 현재 HTML 목업을 기반으로 태블릿 전용 시안 추가 제작
 
 > 태블릿 지원은 핸드폰 버전 안정화 이후 별도 스프린트로 진행합니다.
+
+---
+
+## 관련 문서
+
+- [`docs/development-guide.md`](development-guide.md) — RN 구현 가이드 (레이아웃 상수 사용 예시 포함)
+- [`docs/ui-publishing.md`](ui-publishing.md) — HTML 목업 구조 및 phone-frame 규칙
+- [`CLAUDE.md`](../CLAUDE.md) — 프로젝트 전체 규칙 및 디자인 시스템
