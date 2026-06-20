@@ -15,6 +15,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import AuthInput from '@/components/auth/AuthInput';
 import AuthCheckbox from '@/components/auth/AuthCheckbox';
 import ThemePill from '@/components/auth/ThemePill';
+import { THEMES } from '@/constants/themes';
 import {
   BUTTON_HEIGHT,
   BUTTON_RADIUS,
@@ -29,8 +30,6 @@ import {
 } from '@/constants/layout';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Signup'>;
-
-const THEMES = ['야경', '바다', '한옥', '꽃', '카페', '인물', '축제', '커플', '반려동물', '드론', '일출/일몰', '비오는날', '은하수', '필름'];
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const NICK_RE = /^[가-힣a-zA-Z0-9]{2,12}$/;

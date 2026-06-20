@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Modal,
@@ -64,6 +64,10 @@ export default function LoginScreen({ navigation }: Props) {
   const [toastMsg, setToastMsg] = useState('');
   const [toastVisible, setToastVisible] = useState(false);
 
+  useEffect(() => {
+    return () => { if (timerRef.current) clearInterval(timerRef.current); };
+  }, []); // timerRef는 useRef — dep array 제외 의도적
+
   function openSheet() {
     setSheetStep(1);
     setSheetEmail('');
@@ -73,12 +77,12 @@ export default function LoginScreen({ navigation }: Props) {
   }
 
   function closeSheet() {
-    clearInterval(timerRef.current ?? undefined);
+    if (timerRef.current) clearInterval(timerRef.current);
     setSheetVisible(false);
   }
 
   function startTimer() {
-    clearInterval(timerRef.current ?? undefined);
+    if (timerRef.current) clearInterval(timerRef.current);
     setTimerSec(180);
     setTimerDone(false);
     let remaining = 180;
@@ -86,7 +90,7 @@ export default function LoginScreen({ navigation }: Props) {
       remaining -= 1;
       setTimerSec(remaining);
       if (remaining <= 0) {
-        clearInterval(timerRef.current ?? undefined);
+        if (timerRef.current) clearInterval(timerRef.current);
         setTimerDone(true);
       }
     }, 1000);
@@ -105,7 +109,7 @@ export default function LoginScreen({ navigation }: Props) {
   }
 
   function handleVerify() {
-    clearInterval(timerRef.current ?? undefined);
+    if (timerRef.current) clearInterval(timerRef.current);
     closeSheet();
     setTimeout(() => showToast('임시 비밀번호를 이메일로 발송했어요'), 350);
   }

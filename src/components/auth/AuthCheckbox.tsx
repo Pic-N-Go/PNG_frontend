@@ -1,5 +1,6 @@
 import React from 'react';
-import { Pressable, Text } from 'react-native';
+import { Pressable } from 'react-native';
+import { Feather } from '@expo/vector-icons';
 
 type Props = {
   checked: boolean;
@@ -32,16 +33,7 @@ export default function AuthCheckbox({ checked, onPress, size = 'md' }: Props) {
       }}
     >
       {checked && (
-        <Text
-          style={{
-            color: '#fff',
-            fontSize: size === 'sm' ? 9 : 11,
-            lineHeight: size === 'sm' ? 12 : 14,
-            fontWeight: '700',
-          }}
-        >
-          ✓
-        </Text>
+        <Feather name="check" size={size === 'sm' ? 10 : 12} color="#fff" />
       )}
     </Pressable>
   );
