@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AuthStack from './AuthStack';
 import MainTab from './MainTab';
 import SpotStack from './stacks/SpotStack';
+import { useAuthStore } from '@/store/useAuthStore';
 
 export type RootStackParamList = {
   Main: undefined;
@@ -12,9 +13,8 @@ export type RootStackParamList = {
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-// TODO: useAuthStore에서 isLoggedIn 읽어서 분기
 export default function RootNavigator() {
-  const isLoggedIn = false;
+  const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
 
   return (
     <NavigationContainer>

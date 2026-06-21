@@ -9,7 +9,7 @@ export type AuthStackParamList = {
   Splash: undefined;
   Login: undefined;
   Signup: undefined;
-  Onboarding: undefined;
+  Onboarding: { provider: 'kakao' | 'apple' };
 };
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
