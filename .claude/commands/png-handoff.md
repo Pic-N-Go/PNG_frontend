@@ -1,5 +1,5 @@
 ---
-allowed-tools: Read, Write, Bash(git diff:*), Bash(git log:*), Bash(git ls-files:*), Bash(ls docs/ai/specs:*)
+allowed-tools: Read, Write, Bash(git diff:*), Bash(git log:*), Bash(git ls-files:*), Bash(git branch:*), Bash(ls docs/ai/specs:*)
 description: 구현 완료 후 팀원 인수인계(handoff) 문서 생성
 ---
 
@@ -12,7 +12,7 @@ description: 구현 완료 후 팀원 인수인계(handoff) 문서 생성
 - 변경 파일 요약: !`git diff --stat HEAD`
 - Untracked 파일: !`git ls-files --others --exclude-standard`
 - 최근 커밋 이력: !`git log --oneline -20`
-- 현재 스펙 목록: !`ls docs/ai/specs/`
+- 현재 브랜치: !`git branch --show-current`
 
 ## 실행 지침
 
@@ -22,8 +22,10 @@ description: 구현 완료 후 팀원 인수인계(handoff) 문서 생성
      - `../`가 포함된 경우: 즉시 거부하고 사용자에게 알립니다.
      - `/`는 `-`로 치환합니다.
      - `.md` 확장자가 포함된 경우 제거합니다.
-   - 없으면 Context의 스펙 목록을 보여주고 사용자에게 선택을 요청합니다.
-3. `docs/ai/specs/<feature-name>.md`와 `docs/ai/plans/<feature-name>-plan.md`를 Read합니다.
+   - 없으면 `git branch --show-current`로 브랜치명(`<branch>`)을 구해 `ls docs/ai/specs/<branch>/`로 목록을 표시하고 사용자에게 선택을 요청합니다.
+3. `git branch --show-current`로 현재 브랜치명(`<branch>`)을 구한 뒤 아래 파일을 Read합니다.
+   - `docs/ai/specs/<branch>/<feature-name>.md`
+   - `docs/ai/plans/<branch>/<feature-name>-plan.md`
    - 둘 중 하나라도 없으면 즉시 중단하고 어떤 파일이 없는지 알립니다.
 4. 아래 항목을 한 번에 사용자에게 요청합니다.
    - 완료된 태스크 목록 (plan 기준, 간략히)

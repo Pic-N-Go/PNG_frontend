@@ -22,9 +22,9 @@
 
 목표:
 - 내 설명을 바탕으로 부족한 정보를 질문으로 먼저 정리
-- 답변을 반영해서 아래 산출물을 작성
-  1) docs/ai/specs/<feature-name>.md
-  2) docs/ai/plans/<feature-name>-plan.md
+- 답변을 반영해서 아래 산출물을 작성 (현재 브랜치명을 `git branch --show-current`로 구해 `<branch>`에 대입)
+  1) docs/ai/specs/<branch>/<feature-name>.md
+  2) docs/ai/plans/<branch>/<feature-name>-plan.md
 
 반드시 지켜줘:
 - 질문은 우선순위 높은 것부터 5~8개만

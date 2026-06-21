@@ -1,7 +1,7 @@
 feature:
   - any:
     - title: ['^feat(\(.+\))?:', '^feature(\(.+\))?:']
-    - head-branch: ['^feat\/', '^feature\/']
+    - head-branch: ['^feature\/', '^feat\/']
 
 bug:
   - any:

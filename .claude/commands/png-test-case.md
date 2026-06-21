@@ -1,5 +1,5 @@
 ---
-allowed-tools: Read, Write, Bash(git diff:*), Bash(git status:*), Bash(git ls-files:*), Bash(ls docs/ai/plans:*), Bash(pnpm exec tsc:*), Bash(pnpm lint:*), Bash(mkdir:*)
+allowed-tools: Read, Write, Bash(git diff:*), Bash(git status:*), Bash(git ls-files:*), Bash(git branch:*), Bash(ls docs/ai/plans:*), Bash(pnpm exec tsc:*), Bash(pnpm lint:*), Bash(mkdir:*)
 description: 변경사항 기준 테스트 케이스 체크리스트 생성 (Unit/Integration/Manual 타입 구분)
 ---
 
@@ -24,10 +24,10 @@ description: 변경사항 기준 테스트 케이스 체크리스트 생성 (Uni
    - 예: `/png-test-case login-flow --run-checks --save` → feature-name=login-flow, 두 플래그 모두 활성
 3. feature-name을 확정합니다.
    - feature-name이 있으면 그 값을 사용합니다.
-   - 없으면 `ls docs/ai/plans/`로 목록을 표시하고 사용자에게 선택을 요청합니다.
-4. plan과 spec을 Read합니다.
-   - `docs/ai/plans/<feature-name>-plan.md`
-   - `docs/ai/specs/<feature-name>.md`
+   - 없으면 `git branch --show-current`로 브랜치명(`<branch>`)을 구해 `ls docs/ai/plans/<branch>/`로 목록을 표시하고 사용자에게 선택을 요청합니다.
+4. `git branch --show-current`로 현재 브랜치명(`<branch>`)을 구한 뒤 plan과 spec을 Read합니다.
+   - `docs/ai/plans/<branch>/<feature-name>-plan.md`
+   - `docs/ai/specs/<branch>/<feature-name>.md`
    - plan 파일이 없으면: "**[주의] plan 연계 불가 — diff 기준으로만 케이스를 생성합니다**" 경고를 출력하고 계속 진행합니다.
    - spec 파일만 없으면: 경고 없이 생략하고 plan + diff 기준으로 진행합니다.
 5. Context의 git diff와 untracked 파일을 확인합니다.

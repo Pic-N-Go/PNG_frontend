@@ -1,5 +1,5 @@
 ---
-allowed-tools: Read, Write
+allowed-tools: Read, Write, Bash(git branch:*), Bash(mkdir:*)
 description: PNG 프로젝트 스펙을 기반으로 구현 계획(plan) 생성 또는 보정
 ---
 
@@ -23,10 +23,12 @@ description: PNG 프로젝트 스펙을 기반으로 구현 계획(plan) 생성 
      - `/`는 `-`로 치환합니다.
      - `.md` 확장자가 포함된 경우 제거합니다.
    - 없으면 사용자에게 feature-name을 요청한 뒤 확정합니다.
-   - 정규화된 feature-name으로 스펙을 Read합니다: `docs/ai/specs/<feature-name>.md`
-3. 스펙 기준으로 plan 초안을 생성/보정합니다.
-4. 확정된 feature-name으로 산출물을 작성합니다.
-   - 저장 경로: `docs/ai/plans/<feature-name>-plan.md`
+3. `git branch --show-current`로 현재 브랜치명(`<branch>`)을 구합니다.
+   - 정규화된 feature-name으로 스펙을 Read합니다: `docs/ai/specs/<branch>/<feature-name>.md`
+4. 스펙 기준으로 plan 초안을 생성/보정합니다.
+5. 확정된 feature-name으로 산출물을 작성합니다.
+   - 디렉터리가 없으면 생성: `mkdir -p docs/ai/plans/<branch>`
+   - 저장 경로: `docs/ai/plans/<branch>/<feature-name>-plan.md`
 5. 구현 코드는 작성하지 않고 plan 검토 요청으로 마무리합니다.
 
 ## 출력 형식
