@@ -229,7 +229,7 @@ export default function OnboardingScreen({ navigation, route }: Props) {
                 }}
                 placeholder="2~12자 한글, 영문, 숫자"
                 maxLength={12}
-                isInvalid={nickError && nickname.length > 0 && !nickOk}
+                isInvalid={nickError && !nickOk}
               />
               <Text
                 style={{
@@ -246,7 +246,7 @@ export default function OnboardingScreen({ navigation, route }: Props) {
                 {nickname.length}/12
               </Text>
             </View>
-            {nickError && nickname.length > 0 && !nickOk && (
+            {nickError && !nickOk && (
               <Text
                 style={{
                   fontSize: 12,

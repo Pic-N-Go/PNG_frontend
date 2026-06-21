@@ -59,14 +59,18 @@ export default function LoginScreen({ navigation }: Props) {
   const [timerSec, setTimerSec] = useState(180);
   const [timerDone, setTimerDone] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Toast state
   const [toastMsg, setToastMsg] = useState('');
   const [toastVisible, setToastVisible] = useState(false);
 
   useEffect(() => {
-    return () => { if (timerRef.current) clearInterval(timerRef.current); };
-  }, []); // timerRef는 useRef — dep array 제외 의도적
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+      if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
+    };
+  }, []); // timerRef, toastTimeoutRef는 useRef — dep array 제외 의도적
 
   function openSheet() {
     setSheetStep(1);
@@ -111,7 +115,7 @@ export default function LoginScreen({ navigation }: Props) {
   function handleVerify() {
     if (timerRef.current) clearInterval(timerRef.current);
     closeSheet();
-    setTimeout(() => showToast('임시 비밀번호를 이메일로 발송했어요'), 350);
+    toastTimeoutRef.current = setTimeout(() => showToast('임시 비밀번호를 이메일로 발송했어요'), 350);
   }
 
   function showToast(msg: string) {
