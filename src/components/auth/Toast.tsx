@@ -20,6 +20,9 @@ export default function Toast({ message, visible, onHide }: Props) {
   useEffect(() => {
     if (!visible) return;
 
+    opacity.setValue(0);
+    translateY.setValue(16);
+
     Animated.parallel([
       Animated.timing(opacity, { toValue: 1, duration: 300, useNativeDriver: true }),
       Animated.timing(translateY, { toValue: 0, duration: 300, useNativeDriver: true }),
@@ -33,7 +36,7 @@ export default function Toast({ message, visible, onHide }: Props) {
     }, 2500);
 
     return () => clearTimeout(timer);
-  }, [visible, opacity, translateY]);
+  }, [visible, message, opacity, translateY]);
 
   if (!visible) return null;
 

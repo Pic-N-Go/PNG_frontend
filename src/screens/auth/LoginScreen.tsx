@@ -145,7 +145,7 @@ export default function LoginScreen({ navigation }: Props) {
         className="flex-1"
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <ScrollView bounces={false} showsVerticalScrollIndicator={false}>
+        <ScrollView bounces={false} showsVerticalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1 }}>
           {/* ── Hero ── */}
           <View style={{ height: heroHeight }}>
             <LinearGradient
