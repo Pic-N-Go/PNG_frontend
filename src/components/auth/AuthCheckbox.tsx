@@ -1,10 +1,10 @@
 import React from 'react';
-import { Pressable } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 
 type Props = {
   checked: boolean;
-  onPress: () => void;
+  onPress?: () => void;
   size?: 'sm' | 'md';
 };
 
@@ -17,24 +17,28 @@ export default function AuthCheckbox({ checked, onPress, size = 'md' }: Props) {
     ? 'rgba(0,0,0,0.12)'
     : 'rgba(0,0,0,0.18)';
 
-  return (
-    <Pressable
-      onPress={onPress}
-      hitSlop={8}
-      style={{
-        width: dim,
-        height: dim,
-        borderRadius: radius,
-        borderWidth: 1.2,
-        borderColor,
-        backgroundColor: checked ? '#E31B59' : 'transparent',
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-    >
-      {checked && (
-        <Feather name="check" size={size === 'sm' ? 10 : 12} color="#fff" />
-      )}
-    </Pressable>
-  );
+  const boxStyle = {
+    width: dim,
+    height: dim,
+    borderRadius: radius,
+    borderWidth: 1.2,
+    borderColor,
+    backgroundColor: checked ? '#E31B59' : 'transparent',
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+  };
+
+  const content = checked ? (
+    <Feather name="check" size={size === 'sm' ? 10 : 12} color="#fff" />
+  ) : null;
+
+  if (onPress) {
+    return (
+      <Pressable onPress={onPress} hitSlop={8} style={boxStyle}>
+        {content}
+      </Pressable>
+    );
+  }
+
+  return <View style={boxStyle}>{content}</View>;
 }

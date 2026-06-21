@@ -30,9 +30,16 @@ export default function AuthInput({ icon, isInvalid, rightElement, style, ...res
     >
       <Feather name={icon} size={20} color={iconColor} style={{ position: 'absolute', left: 16 }} />
       <TextInput
-        onFocus={() => setFocused(true)}
-        onBlur={() => setFocused(false)}
         placeholderTextColor="rgba(0,0,0,0.28)"
+        {...rest}
+        onFocus={(e) => {
+          setFocused(true);
+          rest.onFocus?.(e);
+        }}
+        onBlur={(e) => {
+          setFocused(false);
+          rest.onBlur?.(e);
+        }}
         style={[
           {
             flex: 1,
@@ -45,7 +52,6 @@ export default function AuthInput({ icon, isInvalid, rightElement, style, ...res
           },
           style,
         ]}
-        {...rest}
       />
       {rightElement && (
         <View style={{ position: 'absolute', right: 14 }}>

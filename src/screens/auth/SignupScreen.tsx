@@ -314,7 +314,7 @@ export default function SignupScreen({ navigation }: Props) {
                   marginBottom: 14,
                 }}
               >
-                <AuthCheckbox checked={term1 && term2 && term3} onPress={toggleAll} size="md" />
+                <AuthCheckbox checked={term1 && term2 && term3} size="md" />
                 <Text style={{ fontSize: FONT_MD, color: '#000', letterSpacing: -0.2, fontFamily: 'Pretendard-Medium' }}>
                   전체 동의
                 </Text>
@@ -421,7 +421,7 @@ function TermItem({ checked, onToggle, label }: { checked: boolean; onToggle: ()
       style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 6 }}
     >
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-        <AuthCheckbox checked={checked} onPress={onToggle} size="sm" />
+        <AuthCheckbox checked={checked} size="sm" />
         <Text style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.45)', letterSpacing: -0.1, fontFamily: 'Pretendard-Regular' }}>
           {label}
         </Text>
