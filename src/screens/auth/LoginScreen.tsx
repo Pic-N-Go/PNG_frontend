@@ -7,6 +7,7 @@ import {
   ScrollView,
   Text,
   TextInput,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -36,6 +37,7 @@ import {
 type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
 const HERO_COLORS = ['#1a1530', '#2d1b4e', '#8b4a6b', '#d4856a', '#e8a87c', '#f0c89a'] as const;
+const HERO_RATIO = 380 / 844;
 const HERO_LOCS = [0, 0.25, 0.5, 0.7, 0.85, 1.0] as const;
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -48,6 +50,14 @@ function formatTimer(sec: number) {
 
 export default function LoginScreen({ navigation }: Props) {
   const setLoggedIn = useAuthStore((s) => s.setLoggedIn);
+
+  const { height: SCREEN_H } = useWindowDimensions();
+  const initialHeroHeightRef = useRef<number | null>(null);
+  const computedHeroHeight = Math.min(Math.max(SCREEN_H * HERO_RATIO, 300), 440);
+  if (initialHeroHeightRef.current == null) {
+    initialHeroHeightRef.current = computedHeroHeight;
+  }
+  const heroHeight = initialHeroHeightRef.current;
 
   // Main form state
   const [email, setEmail] = useState('');
@@ -137,7 +147,7 @@ export default function LoginScreen({ navigation }: Props) {
       >
         <ScrollView bounces={false} showsVerticalScrollIndicator={false}>
           {/* ── Hero ── */}
-          <View style={{ height: 380 }}>
+          <View style={{ height: heroHeight }}>
             <LinearGradient
               colors={HERO_COLORS}
               locations={HERO_LOCS}

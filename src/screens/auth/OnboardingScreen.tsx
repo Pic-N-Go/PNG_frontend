@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
   ScrollView,
   Text,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -30,11 +31,21 @@ import {
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Onboarding'>;
 
+const HERO_RATIO = 200 / 844;
+
 const NICK_RE = /^[가-힣a-zA-Z0-9]{2,12}$/;
 
 export default function OnboardingScreen({ navigation, route }: Props) {
   const { provider } = route.params;
   const setLoggedIn = useAuthStore((s) => s.setLoggedIn);
+
+  const { height: SCREEN_H } = useWindowDimensions();
+  const initialHeroHeightRef = useRef<number | null>(null);
+  const computedHeroHeight = Math.min(Math.max(SCREEN_H * HERO_RATIO, 160), 250);
+  if (initialHeroHeightRef.current == null) {
+    initialHeroHeightRef.current = computedHeroHeight;
+  }
+  const heroHeight = initialHeroHeightRef.current;
 
   const [nickname, setNickname] = useState('');
   const [selectedThemes, setSelectedThemes] = useState<Set<string>>(new Set());
@@ -69,7 +80,7 @@ export default function OnboardingScreen({ navigation, route }: Props) {
       >
         <ScrollView bounces={false} showsVerticalScrollIndicator={false}>
           {/* ── Hero Header ── */}
-          <View style={{ height: 200 }}>
+          <View style={{ height: heroHeight }}>
             <LinearGradient
               colors={['#1a1530', '#2d1b4e', '#8b4a6b', '#d4856a']}
               locations={[0, 0.3, 0.7, 1]}
@@ -238,7 +249,7 @@ export default function OnboardingScreen({ navigation, route }: Props) {
                   right: 16,
                   top: '50%',
                   transform: [{ translateY: -8 }],
-                  fontSize: 12,
+                  fontSize: FONT_XS,
                   color: 'rgba(0,0,0,0.15)',
                   fontFamily: 'Pretendard-Regular',
                   pointerEvents: 'none',
@@ -250,7 +261,7 @@ export default function OnboardingScreen({ navigation, route }: Props) {
             {nickError && !nickOk && (
               <Text
                 style={{
-                  fontSize: 12,
+                  fontSize: FONT_XS,
                   color: '#FF3B30',
                   letterSpacing: -0.1,
                   marginBottom: 4,

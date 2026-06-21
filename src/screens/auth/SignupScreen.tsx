@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
   ScrollView,
   Text,
+  useWindowDimensions,
   View,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -32,6 +33,8 @@ import {
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Signup'>;
 
+const HERO_RATIO = 160 / 844;
+
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const NICK_RE = /^[가-힣a-zA-Z0-9]{2,12}$/;
 
@@ -50,6 +53,14 @@ const STRENGTH_COLORS = ['rgba(0,0,0,0.06)', '#FF453A', '#FF9F0A', '#34C759', '#
 
 export default function SignupScreen({ navigation }: Props) {
   const setLoggedIn = useAuthStore((s) => s.setLoggedIn);
+
+  const { height: SCREEN_H } = useWindowDimensions();
+  const initialHeroHeightRef = useRef<number | null>(null);
+  const computedHeroHeight = Math.min(Math.max(SCREEN_H * HERO_RATIO, 130), 200);
+  if (initialHeroHeightRef.current == null) {
+    initialHeroHeightRef.current = computedHeroHeight;
+  }
+  const heroHeight = initialHeroHeightRef.current;
 
   const [email, setEmail] = useState('');
   const [pw1, setPw1] = useState('');
@@ -105,7 +116,7 @@ export default function SignupScreen({ navigation }: Props) {
       >
         <ScrollView bounces={false} showsVerticalScrollIndicator={false}>
           {/* ── Hero Header ── */}
-          <View style={{ height: 160 }}>
+          <View style={{ height: heroHeight }}>
             <LinearGradient
               colors={['#2d1b4e', '#8b4a6b', '#d4856a']}
               locations={[0, 0.6, 1]}
@@ -267,7 +278,7 @@ export default function SignupScreen({ navigation }: Props) {
                   right: 16,
                   top: '50%',
                   transform: [{ translateY: -8 }],
-                  fontSize: 12,
+                  fontSize: FONT_XS,
                   color: 'rgba(0,0,0,0.15)',
                   fontFamily: 'Pretendard-Regular',
                   pointerEvents: 'none',
