@@ -1,5 +1,5 @@
 ---
-allowed-tools: Read, Write, Edit, Bash(pnpm exec tsc:*), Bash(pnpm lint:*), Bash(git diff:*), Bash(git status:*), Bash(ls docs/ai/plans:*)
+allowed-tools: Read, Write, Edit, Bash(pnpm exec tsc:*), Bash(pnpm lint:*), Bash(git diff:*), Bash(git status:*), Bash(git branch:*), Bash(ls docs/ai/plans:*)
 description: plan Task Breakdown 기준으로 step-by-step 코드 구현
 ---
 
@@ -18,10 +18,10 @@ description: plan Task Breakdown 기준으로 step-by-step 코드 구현
 2. feature-name을 확정합니다.
    - `$ARGUMENTS`가 있으면 그 값을 feature-name으로 사용합니다.
      (`../` 포함 시 즉시 거부, `/`는 `-`로 치환, `.md` 확장자 포함 시 제거)
-   - 없으면 `ls docs/ai/plans/`로 목록을 표시하고 사용자에게 선택을 요청합니다.
-3. 아래 문서를 Read합니다.
-   - `docs/ai/plans/<feature-name>-plan.md` (필수)
-   - `docs/ai/specs/<feature-name>.md` (필수)
+   - 없으면 `git branch --show-current`로 브랜치명(`<branch>`)을 구해 `ls docs/ai/plans/<branch>/`로 목록을 표시하고 사용자에게 선택을 요청합니다.
+3. `git branch --show-current`로 현재 브랜치명(`<branch>`)을 구한 뒤 아래 문서를 Read합니다.
+   - `docs/ai/plans/<branch>/<feature-name>-plan.md` (필수)
+   - `docs/ai/specs/<branch>/<feature-name>.md` (필수)
    - `CLAUDE.md`
    - plan 또는 spec 파일이 없으면 즉시 중단하고 어떤 파일이 없는지 알립니다.
 4. Task 목록을 표시하고 시작 Task 번호를 확인합니다.
@@ -34,8 +34,8 @@ description: plan Task Breakdown 기준으로 step-by-step 코드 구현
    d. `pnpm lint`를 실행합니다. 오류 시 즉시 수정합니다.
    e. 수동 검증 항목은 `TODO: <항목>` 형식으로 표시합니다.
    f. CLAUDE.md 위반 사항(StyleSheet.create() 사용 여부, 상대경로 import, any 타입, 디자인 토큰)을 자체 점검합니다.
-   g. "Task N 완료. 다음 Task로 진행할까요?" 사용자 확인을 요청합니다.
-      거부 시 step 7 중단 흐름으로 이동해 현재까지의 4-section 보고를 출력합니다.
+   g. `✅ Task N 완료 — [변경 파일명]` 을 출력하고 **사용자 확인 없이** 다음 Task로 자동 진행합니다.
+      사용자가 중단을 요청하면 step 7 중단 흐름으로 이동합니다.
 6. Plan에 없는 파일 변경이 필요하면:
    - 변경 이유, plan 수정 내용, 구현 내용을 동시에 제안합니다.
    - 승인 시에만 plan Write + 코드 Write/Edit를 실행합니다.

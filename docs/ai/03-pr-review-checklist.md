@@ -48,5 +48,5 @@ PR 생성 전/리뷰 시 아래 항목을 확인합니다.
 
 - PR/브랜치 네이밍 규칙: `.github/CONVENTIONS.md`
 - 자동화/CI 동작: `docs/github-actions-guide.md`
-- 기능 스펙: `docs/ai/specs/<feature>.md`
-- 구현 계획: `docs/ai/plans/<feature>-plan.md`
+- 기능 스펙: `docs/ai/specs/<branch>/<feature>.md`
+- 구현 계획: `docs/ai/plans/<branch>/<feature>-plan.md`

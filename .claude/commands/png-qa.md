@@ -1,5 +1,5 @@
 ---
-allowed-tools: Read, Write, Bash(git diff:*), Bash(git status:*), Bash(git ls-files:*), Bash(ls docs/ai/test-cases:*), Bash(ls docs/ai/plans:*), Bash(mkdir:*)
+allowed-tools: Read, Write, Bash(git diff:*), Bash(git status:*), Bash(git ls-files:*), Bash(git branch:*), Bash(ls docs/ai/test-cases:*), Bash(ls docs/ai/plans:*), Bash(mkdir:*)
 description: QA 세션 생성/업데이트/판정 운영 (create / update / finalize)
 ---
 
@@ -25,7 +25,7 @@ description: QA 세션 생성/업데이트/판정 운영 (create / update / fina
    - 예: `/png-qa create login-flow --save` → mode=create, feature-name=login-flow, --save 활성
 3. feature-name을 확정합니다.
    - feature-name이 있으면 그 값을 사용합니다.
-   - 없으면 `ls docs/ai/plans/`로 목록을 표시하고 사용자에게 선택을 요청합니다.
+   - 없으면 `git branch --show-current`로 브랜치명(`<branch>`)을 구해 `ls docs/ai/plans/<branch>/`로 목록을 표시하고 사용자에게 선택을 요청합니다.
 4. 모드별로 실행합니다.
 
    **create 모드**
