@@ -23,6 +23,7 @@ import {
   FONT_LG,
   FONT_MD,
   FONT_SM,
+  FONT_XS,
   FONT_2XL,
   INPUT_HEIGHT,
   SPACING_LG,
@@ -385,7 +386,7 @@ export default function SignupScreen({ navigation }: Props) {
 /* ── Sub-components ── */
 
 const labelStyle = {
-  fontSize: 13,
+  fontSize: FONT_SM,
   color: 'rgba(0,0,0,0.5)',
   letterSpacing: -0.08,
   marginBottom: 4,
@@ -398,7 +399,7 @@ function ErrorText({ children, style }: { children: React.ReactNode; style?: obj
     <Text
       style={[
         {
-          fontSize: 12,
+          fontSize: FONT_XS,
           color: '#FF3B30',
           letterSpacing: -0.1,
           lineHeight: 18,
@@ -427,7 +428,7 @@ function TermItem({ checked, onToggle, label }: { checked: boolean; onToggle: ()
         </Text>
       </View>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
-        <Text style={{ fontSize: 12, color: 'rgba(0,0,0,0.2)', fontFamily: 'Pretendard-Regular' }}>보기</Text>
+        <Text style={{ fontSize: FONT_XS, color: 'rgba(0,0,0,0.2)', fontFamily: 'Pretendard-Regular' }}>보기</Text>
         <Feather name="chevron-right" size={12} color="rgba(0,0,0,0.2)" />
       </View>
     </Pressable>

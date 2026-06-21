@@ -22,6 +22,7 @@ import {
   FONT_LG,
   FONT_MD,
   FONT_SM,
+  FONT_XS,
   FONT_2XL,
   SPACING_LG,
   SPACING_XL,
@@ -170,7 +171,7 @@ export default function OnboardingScreen({ navigation, route }: Props) {
           <View style={{ paddingHorizontal: CONTENT_PADDING, paddingTop: SPACING_XL + 12, paddingBottom: 48 }}>
             <Text
               style={{
-                fontSize: 12,
+                fontSize: FONT_XS,
                 color: '#E31B59',
                 letterSpacing: 0.5,
                 textTransform: 'uppercase',

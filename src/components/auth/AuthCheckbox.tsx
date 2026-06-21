@@ -1,6 +1,7 @@
 import React from 'react';
 import { Pressable, View } from 'react-native';
 import { Feather } from '@expo/vector-icons';
+import { ICON_SM, ICON_MD } from '@/constants/layout';
 
 type Props = {
   checked: boolean;
@@ -9,7 +10,7 @@ type Props = {
 };
 
 export default function AuthCheckbox({ checked, onPress, size = 'md' }: Props) {
-  const dim = size === 'sm' ? 18 : 22;
+  const dim = size === 'sm' ? ICON_SM : ICON_MD;
   const radius = size === 'sm' ? 5 : 6;
   const borderColor = checked
     ? '#E31B59'

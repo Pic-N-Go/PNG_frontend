@@ -16,6 +16,7 @@ import { AuthStackParamList } from '@/navigation/AuthStack';
 import { useAuthStore } from '@/store/useAuthStore';
 import AuthInput from '@/components/auth/AuthInput';
 import Toast from '@/components/auth/Toast';
+import { normalize, normalizeFontSize } from '@/utils/normalize';
 import {
   BUTTON_HEIGHT,
   BUTTON_RADIUS,
@@ -24,6 +25,8 @@ import {
   FONT_MD,
   FONT_SM,
   FONT_2XL,
+  FONT_XL,
+  INPUT_HEIGHT,
   INPUT_RADIUS,
   SPACING_LG,
   SPACING_MD,
@@ -182,7 +185,7 @@ export default function LoginScreen({ navigation }: Props) {
                 allowFontScaling={false}
                 style={{
                   fontFamily: 'FugazOne_400Regular',
-                  fontSize: 40,
+                  fontSize: normalizeFontSize(40),
                   fontWeight: '400',
                   color: '#fff',
                   letterSpacing: -1,
@@ -332,8 +335,8 @@ export default function LoginScreen({ navigation }: Props) {
                 onPress={() => navigation.navigate('Onboarding', { provider: 'kakao' })}
                 style={{
                   flex: 1,
-                  height: 48,
-                  borderRadius: 24,
+                  height: normalize(48),
+                  borderRadius: normalize(24),
                   backgroundColor: '#FEE500',
                   flexDirection: 'row',
                   alignItems: 'center',
@@ -358,8 +361,8 @@ export default function LoginScreen({ navigation }: Props) {
                 onPress={() => navigation.navigate('Onboarding', { provider: 'apple' })}
                 style={{
                   flex: 1,
-                  height: 48,
-                  borderRadius: 24,
+                  height: normalize(48),
+                  borderRadius: normalize(24),
                   backgroundColor: '#000',
                   flexDirection: 'row',
                   alignItems: 'center',
@@ -442,7 +445,7 @@ export default function LoginScreen({ navigation }: Props) {
               </View>
 
               {/* Header */}
-              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 24, paddingVertical: 8 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: SPACING_LG, paddingVertical: 8 }}>
                 <Text style={{ fontSize: 20, letterSpacing: -0.4, color: '#000', fontFamily: 'Pretendard-SemiBold' }}>
                   {sheetStep === 1 ? '비밀번호 찾기' : '인증코드 확인'}
                 </Text>
@@ -471,7 +474,7 @@ export default function LoginScreen({ navigation }: Props) {
                       color: 'rgba(0,0,0,0.45)',
                       lineHeight: 22,
                       letterSpacing: -0.15,
-                      paddingHorizontal: 24,
+                      paddingHorizontal: SPACING_LG,
                       paddingBottom: 20,
                       fontFamily: 'Pretendard-Regular',
                     }}
@@ -492,13 +495,13 @@ export default function LoginScreen({ navigation }: Props) {
                       autoCapitalize="none"
                       autoFocus
                       style={{
-                        height: 50,
+                        height: INPUT_HEIGHT,
                         borderRadius: INPUT_RADIUS,
                         borderWidth: 1.5,
                         borderColor: 'transparent',
                         backgroundColor: '#F5F5F7',
                         paddingHorizontal: SPACING_MD,
-                        fontSize: 16,
+                        fontSize: FONT_MD,
                         color: '#000',
                         letterSpacing: -0.3,
                         fontFamily: 'Pretendard-Regular',
@@ -540,7 +543,7 @@ export default function LoginScreen({ navigation }: Props) {
                       color: 'rgba(0,0,0,0.45)',
                       lineHeight: 22,
                       letterSpacing: -0.15,
-                      paddingHorizontal: 24,
+                      paddingHorizontal: SPACING_LG,
                       paddingBottom: 20,
                       fontFamily: 'Pretendard-Regular',
                     }}
@@ -561,13 +564,13 @@ export default function LoginScreen({ navigation }: Props) {
                       maxLength={6}
                       autoFocus
                       style={{
-                        height: 50,
+                        height: INPUT_HEIGHT,
                         borderRadius: INPUT_RADIUS,
                         borderWidth: 1.5,
                         borderColor: 'transparent',
                         backgroundColor: '#F5F5F7',
                         paddingHorizontal: SPACING_MD,
-                        fontSize: 24,
+                        fontSize: FONT_XL,
                         color: '#000',
                         letterSpacing: 8,
                         textAlign: 'center',

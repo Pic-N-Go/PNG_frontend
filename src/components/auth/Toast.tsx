@@ -1,6 +1,8 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Text } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FONT_MD } from '@/constants/layout';
+import { normalize } from '@/utils/normalize';
 
 type Props = {
   message: string;
@@ -9,6 +11,7 @@ type Props = {
 };
 
 export default function Toast({ message, visible, onHide }: Props) {
+  const insets = useSafeAreaInsets();
   const opacity = useRef(new Animated.Value(0)).current;
   const translateY = useRef(new Animated.Value(16)).current;
   const onHideRef = useRef(onHide);
@@ -39,7 +42,7 @@ export default function Toast({ message, visible, onHide }: Props) {
       pointerEvents="none"
       style={{
         position: 'absolute',
-        bottom: 48,
+        bottom: insets.bottom + normalize(16),
         alignSelf: 'center',
         opacity,
         transform: [{ translateY }],
