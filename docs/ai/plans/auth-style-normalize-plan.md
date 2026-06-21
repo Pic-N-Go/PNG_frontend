@@ -40,8 +40,10 @@
 - 대상 파일: `src/screens/auth/OnboardingScreen.tsx`
 - 변경 내용:
   - `~line 173` "마지막 단계" 레이블 `fontSize: 12` → `fontSize: FONT_XS`
+  - `~line 252` 닉네임 글자수 카운터 `fontSize: 12` → `fontSize: FONT_XS` (리뷰 후 추가)
+  - `~line 264` 닉네임 에러 텍스트 `fontSize: 12` → `fontSize: FONT_XS` (리뷰 후 추가)
   - import에 `FONT_XS` 추가 (`@/constants/layout`, 이미 있으면 추가만)
-- 완료 조건: raw fontSize: 12 제거
+- 완료 조건: raw fontSize: 12 전체 제거
 - 검증 방법: tsc --noEmit, lint
 
 ### Task 4 — SignupScreen.tsx: fontSize 상수화 + gradient locations
@@ -51,6 +53,7 @@
   - `~line 388` labelStyle `fontSize: 13` → `fontSize: FONT_SM`
   - `~line 399` ErrorText `fontSize: 12` → `fontSize: FONT_XS`
   - `~line 430` TermItem "보기" 레이블 `fontSize: 12` → `fontSize: FONT_XS`
+  - `~line 281` 닉네임 글자수 카운터 `fontSize: 12` → `fontSize: FONT_XS` (리뷰 후 추가)
   - `~line 107–112` 히어로 LinearGradient에 `locations={[0, 0.6, 1]}` prop 추가
   - import에 `FONT_SM, FONT_XS` 추가 (`@/constants/layout`)
 - 완료 조건: raw fontSize 제거, gradient locations 명시됨

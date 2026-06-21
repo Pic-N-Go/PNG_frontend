@@ -68,7 +68,7 @@
 
 ## 9) 수용 기준 (Acceptance Criteria)
 
-- [ ] AC1: auth 4개 파일 내 raw 픽셀 숫자(버튼 높이, fontSize, padding, icon dim)가 모두 layout 상수 또는 normalize()로 대체됨
+- [ ] AC1: auth 5개 파일 내 raw 픽셀 숫자(버튼 높이, fontSize, padding, icon dim)가 모두 layout 상수 또는 normalize()로 대체됨 (닉네임 카운터/에러 텍스트 포함)
 - [ ] AC2: Toast가 `useSafeAreaInsets`를 사용해 safe area 기반 bottom 위치를 가짐
 - [ ] AC3: SignupScreen 히어로 LinearGradient에 `locations={[0, 0.6, 1]}` 명시됨
 - [ ] AC4: `pnpm exec tsc --noEmit` + `pnpm lint` 통과
@@ -81,5 +81,5 @@
 
 ## 11) 오픈 이슈 / 결정 필요
 
-- 히어로 고정 높이(`380`, `160`, `200`) 스케일링 방식: `normalize()` vs `Dimensions.height * 비율` — 팀 정책 결정 후 별도 이슈로 처리
-- `FONT_XS = normalizeFontSize(11)`을 `fontSize: 12` 대체로 사용 (1px 근사 허용 여부 — 리뷰 문서에서 허용으로 판단)
+- 히어로 고정 높이(`380`, `160`, `200`) 스케일링 방식 → `docs/ai/review-hero-height-scaling.md`에서 확정, 별도 커밋으로 처리 완료
+- `FONT_XS = normalizeFontSize(11)`을 `fontSize: 12` 대체로 사용 (1px 근사 — 허용)
