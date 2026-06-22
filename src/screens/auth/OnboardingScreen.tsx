@@ -33,7 +33,7 @@ type Props = NativeStackScreenProps<AuthStackParamList, 'Onboarding'>;
 
 const HERO_RATIO = 200 / 844;
 
-const NICK_RE = /^[가-힣a-zA-Z0-9]{2,12}$/;
+const NICK_RE = /^[가-힣a-zA-Z0-9]{2,10}$/;
 
 export default function OnboardingScreen({ navigation, route }: Props) {
   const { provider } = route.params;
@@ -239,8 +239,8 @@ export default function OnboardingScreen({ navigation, route }: Props) {
                   setNickname(t);
                   setNickError(false);
                 }}
-                placeholder="2~12자 한글, 영문, 숫자"
-                maxLength={12}
+                placeholder="2~10자 한글, 영문, 숫자"
+                maxLength={10}
                 isInvalid={nickError && !nickOk}
               />
               <Text
@@ -255,7 +255,7 @@ export default function OnboardingScreen({ navigation, route }: Props) {
                   pointerEvents: 'none',
                 }}
               >
-                {nickname.length}/12
+                {nickname.length}/10
               </Text>
             </View>
             {nickError && !nickOk && (
@@ -269,7 +269,7 @@ export default function OnboardingScreen({ navigation, route }: Props) {
                   fontFamily: 'Pretendard-Regular',
                 }}
               >
-                닉네임은 2~12자 한글, 영문, 숫자만 사용할 수 있어요.
+                닉네임은 2~10자 한글, 영문, 숫자만 사용할 수 있어요.
               </Text>
             )}
 

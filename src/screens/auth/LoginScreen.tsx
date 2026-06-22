@@ -12,12 +12,14 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Feather } from '@expo/vector-icons';
+import { useMutation } from '@tanstack/react-query';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '@/navigation/AuthStack';
 import { useAuthStore } from '@/store/useAuthStore';
+import { authApi } from '@/api/auth';
 import AuthInput from '@/components/auth/AuthInput';
 import Toast from '@/components/auth/Toast';
-import { normalize, normalizeFontSize } from '@/utils/normalize';
+import { normalizeFontSize } from '@/utils/normalize';
 import {
   BUTTON_HEIGHT,
   BUTTON_RADIUS,
@@ -29,6 +31,8 @@ import {
   FONT_XL,
   INPUT_HEIGHT,
   INPUT_RADIUS,
+  SOCIAL_BUTTON_HEIGHT,
+  SOCIAL_BUTTON_RADIUS,
   SPACING_LG,
   SPACING_MD,
   SPACING_XL,
@@ -49,7 +53,7 @@ function formatTimer(sec: number) {
 }
 
 export default function LoginScreen({ navigation }: Props) {
-  const setLoggedIn = useAuthStore((s) => s.setLoggedIn);
+  const setAuth = useAuthStore((s) => s.setAuth);
 
   const { height: SCREEN_H } = useWindowDimensions();
   const initialHeroHeightRef = useRef<number | null>(null);
@@ -77,6 +81,14 @@ export default function LoginScreen({ navigation }: Props) {
   // Toast state
   const [toastMsg, setToastMsg] = useState('');
   const [toastVisible, setToastVisible] = useState(false);
+
+  const canLogin = email.trim().length > 0 && password.length > 0;
+
+  const loginMutation = useMutation({
+    mutationFn: () => authApi.login(email.trim(), password),
+    onSuccess: (data) => setAuth(data.accessToken, data.user),
+    onError: (err: Error) => showToast(err.message || '로그인에 실패했어요. 다시 시도해주세요.'),
+  });
 
   useEffect(() => {
     return () => {
@@ -302,24 +314,26 @@ export default function LoginScreen({ navigation }: Props) {
 
             {/* Login Button */}
             <Pressable
-              onPress={() => setLoggedIn(true)}
+              onPress={loginMutation.mutate}
+              disabled={!canLogin || loginMutation.isPending}
               style={{
                 height: BUTTON_HEIGHT,
                 borderRadius: BUTTON_RADIUS,
-                backgroundColor: '#E31B59',
+                backgroundColor: canLogin ? '#E31B59' : 'rgba(0,0,0,0.06)',
                 alignItems: 'center',
                 justifyContent: 'center',
+                opacity: loginMutation.isPending ? 0.6 : 1,
               }}
             >
               <Text
                 style={{
                   fontSize: FONT_LG,
-                  color: '#fff',
+                  color: canLogin ? '#fff' : 'rgba(0,0,0,0.3)',
                   letterSpacing: -0.3,
                   fontFamily: 'Pretendard-Medium',
                 }}
               >
-                로그인
+                {loginMutation.isPending ? '로그인 중...' : '로그인'}
               </Text>
             </Pressable>
 
@@ -340,59 +354,30 @@ export default function LoginScreen({ navigation }: Props) {
             </View>
 
             {/* Social */}
-            <View style={{ flexDirection: 'row', gap: 14 }}>
-              <Pressable
-                onPress={() => navigation.navigate('Onboarding', { provider: 'kakao' })}
+            <Pressable
+              onPress={() => navigation.navigate('Onboarding', { provider: 'kakao' })}
+              style={{
+                height: SOCIAL_BUTTON_HEIGHT,
+                borderRadius: SOCIAL_BUTTON_RADIUS,
+                backgroundColor: '#FEE500',
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+              }}
+            >
+              <Text style={{ fontSize: 14, fontWeight: '700', color: '#391B1B' }}>K</Text>
+              <Text
                 style={{
-                  flex: 1,
-                  height: normalize(48),
-                  borderRadius: normalize(24),
-                  backgroundColor: '#FEE500',
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 6,
+                  fontSize: FONT_MD,
+                  color: '#391B1B',
+                  letterSpacing: -0.2,
+                  fontFamily: 'Pretendard-Medium',
                 }}
               >
-                <Text style={{ fontSize: 14, fontWeight: '700', color: '#391B1B' }}>K</Text>
-                <Text
-                  style={{
-                    fontSize: FONT_MD,
-                    color: '#391B1B',
-                    letterSpacing: -0.2,
-                    fontFamily: 'Pretendard-Medium',
-                  }}
-                >
-                  카카오
-                </Text>
-              </Pressable>
-
-              <Pressable
-                onPress={() => navigation.navigate('Onboarding', { provider: 'apple' })}
-                style={{
-                  flex: 1,
-                  height: normalize(48),
-                  borderRadius: normalize(24),
-                  backgroundColor: '#000',
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 6,
-                }}
-              >
-                <Feather name="smartphone" size={16} color="#fff" />
-                <Text
-                  style={{
-                    fontSize: FONT_MD,
-                    color: '#fff',
-                    letterSpacing: -0.2,
-                    fontFamily: 'Pretendard-Medium',
-                  }}
-                >
-                  Apple
-                </Text>
-              </Pressable>
-            </View>
+                카카오로 계속하기
+              </Text>
+            </Pressable>
 
             {/* Signup link */}
             <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: SPACING_XL, paddingBottom: SPACING_XL }}>

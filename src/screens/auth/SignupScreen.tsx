@@ -5,14 +5,18 @@ import {
   Pressable,
   ScrollView,
   Text,
+  TextInput,
   useWindowDimensions,
   View,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Feather } from '@expo/vector-icons';
+import { useMutation } from '@tanstack/react-query';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '@/navigation/AuthStack';
 import { useAuthStore } from '@/store/useAuthStore';
+import { authApi } from '@/api/auth';
+import Toast from '@/components/auth/Toast';
 import AuthInput from '@/components/auth/AuthInput';
 import AuthCheckbox from '@/components/auth/AuthCheckbox';
 import ThemePill from '@/components/auth/ThemePill';
@@ -27,6 +31,8 @@ import {
   FONT_XS,
   FONT_2XL,
   INPUT_HEIGHT,
+  INPUT_RADIUS,
+  SPACING_MD,
   SPACING_LG,
   SPACING_XL,
 } from '@/constants/layout';
@@ -36,7 +42,7 @@ type Props = NativeStackScreenProps<AuthStackParamList, 'Signup'>;
 const HERO_RATIO = 160 / 844;
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const NICK_RE = /^[가-힣a-zA-Z0-9]{2,12}$/;
+const NICK_RE = /^[가-힣a-zA-Z0-9]{2,10}$/;
 
 function getPwStrength(val: string): number {
   if (val.length < 4) return 0;
@@ -52,7 +58,7 @@ function getPwStrength(val: string): number {
 const STRENGTH_COLORS = ['rgba(0,0,0,0.06)', '#FF453A', '#FF9F0A', '#34C759', '#34C759'];
 
 export default function SignupScreen({ navigation }: Props) {
-  const setLoggedIn = useAuthStore((s) => s.setLoggedIn);
+  const setAuth = useAuthStore((s) => s.setAuth);
 
   const { height: SCREEN_H } = useWindowDimensions();
   const initialHeroHeightRef = useRef<number | null>(null);
@@ -72,13 +78,58 @@ export default function SignupScreen({ navigation }: Props) {
   const [term2, setTerm2] = useState(false);
   const [term3, setTerm3] = useState(false);
   const [attempted, setAttempted] = useState(false);
+  const [toastMsg, setToastMsg] = useState('');
+  const [toastVisible, setToastVisible] = useState(false);
+  const [emailCodeSent, setEmailCodeSent] = useState(false);
+  const [emailVerified, setEmailVerified] = useState(false);
+  const [verifyCode, setVerifyCode] = useState('');
+  const [codeFocused, setCodeFocused] = useState(false);
+
+  function showToast(msg: string) {
+    setToastMsg(msg);
+    setToastVisible(true);
+  }
+
+  function handleEmailChange(val: string) {
+    setEmail(val);
+    if (emailCodeSent || emailVerified) {
+      setEmailCodeSent(false);
+      setEmailVerified(false);
+      setVerifyCode('');
+    }
+  }
+
+  const registerMutation = useMutation({
+    mutationFn: () => authApi.register(email.trim(), pw1, nickname.trim()),
+    onSuccess: (data) => setAuth(data.accessToken, data.user),
+    onError: (err: Error) => showToast(err.message || '회원가입에 실패했어요. 다시 시도해주세요.'),
+  });
+
+  const verifyEmailMutation = useMutation({
+    mutationFn: () => authApi.sendEmailVerification(email.trim()),
+    onSuccess: () => {
+      setEmailCodeSent(true);
+      setVerifyCode('');
+      showToast('인증 코드를 이메일로 발송했어요.');
+    },
+    onError: (err: Error) => showToast(err.message || '인증 코드 발송에 실패했어요.'),
+  });
+
+  const confirmEmailMutation = useMutation({
+    mutationFn: () => authApi.confirmEmailVerification(email.trim(), verifyCode),
+    onSuccess: () => {
+      setEmailVerified(true);
+      setEmailCodeSent(false);
+    },
+    onError: (err: Error) => showToast(err.message || '인증 코드가 올바르지 않아요.'),
+  });
 
   const emailOk = EMAIL_RE.test(email.trim());
   const pwLevel = pw1.length > 0 ? getPwStrength(pw1) : 0;
   const pwOk = pwLevel >= 2;
   const matchOk = pw1.length > 0 && pw1 === pw2;
-  const nickOk = nickname.length === 0 || NICK_RE.test(nickname.trim());
-  const allOk = emailOk && pwOk && matchOk && term1 && term2 && nickOk;
+  const nickOk = NICK_RE.test(nickname.trim());
+  const allOk = emailOk && emailVerified && pwOk && matchOk && term1 && term2 && nickOk;
 
   function toggleTheme(t: string) {
     setSelectedThemes((prev) => {
@@ -98,8 +149,7 @@ export default function SignupScreen({ navigation }: Props) {
   function handleSignup() {
     setAttempted(true);
     if (!allOk) return;
-    // TODO: API 연동 시 여기에 회원가입 API 호출
-    setLoggedIn(true);
+    registerMutation.mutate();
   }
 
   const showEmailErr = (attempted || email.length > 0) && !emailOk;
@@ -191,31 +241,114 @@ export default function SignupScreen({ navigation }: Props) {
                 <AuthInput
                   icon="mail"
                   value={email}
-                  onChangeText={setEmail}
+                  onChangeText={handleEmailChange}
                   placeholder="이메일 주소"
                   autoComplete="email"
                   keyboardType="email-address"
                   autoCapitalize="none"
                   isInvalid={showEmailErr}
+                  editable={!emailVerified}
                 />
               </View>
               <Pressable
+                onPress={() => verifyEmailMutation.mutate()}
+                disabled={!emailOk || emailVerified || verifyEmailMutation.isPending}
                 style={{
                   width: 80,
                   height: INPUT_HEIGHT,
                   borderRadius: 12,
-                  backgroundColor: '#E31B59',
+                  backgroundColor: emailVerified
+                    ? '#34C759'
+                    : emailOk ? '#E31B59' : 'rgba(0,0,0,0.06)',
                   alignItems: 'center',
                   justifyContent: 'center',
+                  opacity: verifyEmailMutation.isPending ? 0.6 : 1,
                 }}
               >
-                {/* TODO: 이메일 인증 API 연동 */}
-                <Text style={{ fontSize: FONT_MD, color: '#fff', fontFamily: 'Pretendard-Medium' }}>
-                  인증하기
+                <Text
+                  style={{
+                    fontSize: FONT_MD,
+                    color: emailVerified || emailOk ? '#fff' : 'rgba(0,0,0,0.3)',
+                    fontFamily: 'Pretendard-Medium',
+                  }}
+                >
+                  {emailVerified ? '완료' : verifyEmailMutation.isPending ? '발송 중' : emailCodeSent ? '재발송' : '인증하기'}
                 </Text>
               </Pressable>
             </View>
             {showEmailErr && <ErrorText>올바른 이메일 형식으로 입력해 주세요.</ErrorText>}
+
+            {/* ── Email Code Input ── */}
+            {emailCodeSent && !emailVerified && (
+              <View style={{ flexDirection: 'row', gap: 10, marginTop: 8, marginBottom: 4 }}>
+                <View
+                  style={{
+                    flex: 1,
+                    height: INPUT_HEIGHT,
+                    borderRadius: INPUT_RADIUS,
+                    borderWidth: 1.5,
+                    borderColor: codeFocused ? '#E31B59' : 'transparent',
+                    backgroundColor: codeFocused ? '#fff' : '#F5F5F7',
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                  }}
+                >
+                  <TextInput
+                    value={verifyCode}
+                    onChangeText={(t) => setVerifyCode(t.replace(/\D/g, '').slice(0, 6))}
+                    placeholder="인증코드 6자리"
+                    placeholderTextColor="rgba(0,0,0,0.28)"
+                    keyboardType="number-pad"
+                    autoComplete="one-time-code"
+                    maxLength={6}
+                    autoFocus
+                    onFocus={() => setCodeFocused(true)}
+                    onBlur={() => setCodeFocused(false)}
+                    style={{
+                      flex: 1,
+                      paddingHorizontal: SPACING_MD,
+                      fontSize: FONT_MD,
+                      color: '#000',
+                      letterSpacing: -0.3,
+                      fontFamily: 'Pretendard-Regular',
+                    }}
+                  />
+                </View>
+                <Pressable
+                  onPress={() => confirmEmailMutation.mutate()}
+                  disabled={verifyCode.length < 6 || confirmEmailMutation.isPending}
+                  style={{
+                    width: 80,
+                    height: INPUT_HEIGHT,
+                    borderRadius: 12,
+                    backgroundColor: verifyCode.length === 6 ? '#E31B59' : 'rgba(0,0,0,0.06)',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    opacity: confirmEmailMutation.isPending ? 0.6 : 1,
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: FONT_MD,
+                      color: verifyCode.length === 6 ? '#fff' : 'rgba(0,0,0,0.3)',
+                      fontFamily: 'Pretendard-Medium',
+                    }}
+                  >
+                    {confirmEmailMutation.isPending ? '확인 중' : '확인'}
+                  </Text>
+                </Pressable>
+              </View>
+            )}
+
+            {/* ── Email Verified Indicator ── */}
+            {emailVerified && (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4, marginBottom: 4 }}>
+                <Feather name="check-circle" size={13} color="#34C759" />
+                <Text style={{ fontSize: FONT_XS, color: '#34C759', fontFamily: 'Pretendard-Regular', letterSpacing: -0.1 }}>
+                  이메일 인증이 완료됐어요.
+                </Text>
+              </View>
+            )}
 
             {/* ── Password ── */}
             <Text style={[labelStyle, { marginTop: 14 }]}>비밀번호</Text>
@@ -268,8 +401,8 @@ export default function SignupScreen({ navigation }: Props) {
                 icon="user"
                 value={nickname}
                 onChangeText={setNickname}
-                placeholder="2~12자 한글, 영문, 숫자"
-                maxLength={12}
+                placeholder="2~10자 한글, 영문, 숫자"
+                maxLength={10}
                 isInvalid={showNickErr}
               />
               <Text
@@ -284,10 +417,10 @@ export default function SignupScreen({ navigation }: Props) {
                   pointerEvents: 'none',
                 }}
               >
-                {nickname.length}/12
+                {nickname.length}/10
               </Text>
             </View>
-            {showNickErr && <ErrorText style={{ marginTop: 4 }}>닉네임은 2~12자 한글, 영문, 숫자만 사용할 수 있어요.</ErrorText>}
+            {showNickErr && <ErrorText style={{ marginTop: 4 }}>닉네임은 2~10자 한글, 영문, 숫자만 사용할 수 있어요.</ErrorText>}
 
             {/* Divider */}
             <View style={{ height: 0.5, backgroundColor: 'rgba(0,0,0,0.08)', marginVertical: SPACING_LG }} />
@@ -356,12 +489,14 @@ export default function SignupScreen({ navigation }: Props) {
             {/* ── Signup Button ── */}
             <Pressable
               onPress={handleSignup}
+              disabled={registerMutation.isPending}
               style={{
                 height: BUTTON_HEIGHT,
                 borderRadius: BUTTON_RADIUS,
                 backgroundColor: allOk ? '#E31B59' : 'rgba(0,0,0,0.06)',
                 alignItems: 'center',
                 justifyContent: 'center',
+                opacity: registerMutation.isPending ? 0.6 : 1,
               }}
             >
               <Text
@@ -372,7 +507,7 @@ export default function SignupScreen({ navigation }: Props) {
                   fontFamily: 'Pretendard-Medium',
                 }}
               >
-                가입하기
+                {registerMutation.isPending ? '가입 중...' : '가입하기'}
               </Text>
             </Pressable>
 
@@ -390,6 +525,7 @@ export default function SignupScreen({ navigation }: Props) {
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
+      <Toast message={toastMsg} visible={toastVisible} onHide={() => setToastVisible(false)} />
     </View>
   );
 }
