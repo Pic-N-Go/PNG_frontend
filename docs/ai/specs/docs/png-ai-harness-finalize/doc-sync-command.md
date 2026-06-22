@@ -18,7 +18,7 @@
 - 포함(In Scope):
   - `.claude/commands/png-doc-sync.md` 커맨드 신규 생성
   - `.claude/skills/doc-sync-checker/SKILL.md` 스킬 신규 생성
-  - 고정 점검 문서 5개: `docs/ai/README.md`, `docs/ai/08-harness-self-audit-checklist.md`, `docs/ai-prompt-guide.md`, `CLAUDE.md`, `.github/CONVENTIONS.md`
+  - 고정 점검 문서 5개: `docs/ai/README.md`, `docs/ai/08-harness-self-audit-checklist.md`, `docs/guide/dev/prompt-writing-guide.md`, `CLAUDE.md`, `.github/CONVENTIONS.md`
   - 변경된 파일이 속한 feature의 관련 `docs/ai/specs/`, `docs/ai/plans/` 파일도 점검 대상 포함
   - 고정 매핑 규칙 정의 (어떤 변경이 어떤 문서 업데이트를 트리거하는지)
   - Broken references 탐지: 문서 내 파일 경로 존재 여부 + `docs/ai/README.md` 미등재 커맨드/스킬

@@ -83,4 +83,4 @@
 - 스펙 템플릿: `docs/ai/01-feature-spec-template.md`
 - 리뷰 기준: `docs/ai/03-pr-review-checklist.md`
 - 브랜치/PR 규칙: `.github/CONVENTIONS.md`
-- 자동화 동작/CI 대응: `docs/github-actions-guide.md`
+- 자동화 동작/CI 대응: `docs/guide/ops/github-actions-guide.md`

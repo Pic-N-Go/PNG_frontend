@@ -46,7 +46,7 @@
 
 - HTML 목업 기준: `src/components/ui/`
 - 화면 구현 위치: `src/screens/`
-- 전체 구조/흐름 참조: `docs/ui-publishing.md`
+- 전체 구조/흐름 참조: `docs/guide/dev/ui-publishing.md`
 
 ---
 
@@ -62,7 +62,7 @@
 ## 참고 문서
 
 - 기본 규칙 원문: `CLAUDE.md`
-- 화면 흐름/목업 상세: `docs/ui-publishing.md`
-- 기기/레이아웃 상수 기준: `docs/device-support.md`
-- 프론트 구현 상세: `docs/development-guide.md`
+- 화면 흐름/목업 상세: `docs/guide/dev/ui-publishing.md`
+- 기기/레이아웃 상수 기준: `docs/guide/dev/device-support.md`
+- 프론트 구현 상세: `docs/guide/dev/development-guide.md`
 - 팀 AI 협업 표준 (스펙/계획/리뷰): `docs/ai/README.md`

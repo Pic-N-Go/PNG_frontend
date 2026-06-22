@@ -31,4 +31,4 @@
 - `docs/ai/05-intake-workflow.md`
 - `docs/ai/01-feature-spec-template.md`
 - `docs/ai/02-implementation-plan-template.md`
-- `docs/ui-publishing.md` (UI 변경 시)
+- `docs/guide/dev/ui-publishing.md` (UI 변경 시)

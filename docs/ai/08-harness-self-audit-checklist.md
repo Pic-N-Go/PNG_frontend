@@ -28,7 +28,7 @@
 - [ ] 팀 작업 순서의 단일 기준 문서가 명확한가
   - 기준: `docs/ai/README.md`
 - [ ] 개인 보조 문서가 팀 표준 문서를 덮어쓰지 않는가
-  - `docs/ai-prompt-guide.md`는 보조 역할만 수행
+  - `docs/guide/dev/prompt-writing-guide.md`는 보조 역할만 수행
 - [ ] 비클로드 시작 경로가 독립 문서로 명확히 제공되는가
   - 기준: `docs/ai/07-non-claude-quickstart.md`
 - [ ] `docs/ai/00-context.md`와 `CLAUDE.md` 간 우선순위가 명시되어 있는가

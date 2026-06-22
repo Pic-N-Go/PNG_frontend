@@ -95,8 +95,8 @@ src/components/ui/
   wishlist/     wishlist, wishlist-setting
 ```
 
-전체 구조 및 화면 간 네비게이션 흐름 → `docs/ui-publishing.md`  
-담당자 확인 → `docs/team-assignments.md`
+전체 구조 및 화면 간 네비게이션 흐름 → `docs/guide/dev/ui-publishing.md`  
+담당자 확인 → `docs/guide/ops/team-assignments.md`
 
 ---
 
@@ -126,5 +126,5 @@ src/components/ui/
 
 1. 팀 표준 프로세스: `docs/ai/README.md`
 2. 프로젝트 규칙/디자인 제약: `CLAUDE.md`
-3. 화면 구조/흐름: `docs/ui-publishing.md`
+3. 화면 구조/흐름: `docs/guide/dev/ui-publishing.md`
 4. 이 문서: 개인 프롬프트 작성 보조

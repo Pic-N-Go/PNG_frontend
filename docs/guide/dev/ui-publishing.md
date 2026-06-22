@@ -381,5 +381,5 @@ open src/components/ui/home/home.html
 
 ---
 
-RN 구현 시 → [`docs/development-guide.md`](development-guide.md) 참고  
-담당자 확인 → [`docs/team-assignments.md`](team-assignments.md) 참고
+RN 구현 시 → [`docs/guide/dev/development-guide.md`](development-guide.md) 참고  
+담당자 확인 → [`docs/guide/ops/team-assignments.md`](../ops/team-assignments.md) 참고

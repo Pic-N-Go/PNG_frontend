@@ -31,7 +31,7 @@
     src/screens/auth/OnboardingScreen.tsx \
     src/screens/auth/SignupScreen.tsx \
     src/store/useAuthStore.ts \
-    docs/auth-api.md \
+    docs/guide/api/auth-api.md \
     src/components/auth
   ```
 - 완료 조건: stash list에 `wip/auth-ui-before-expo-fix` 항목 확인, package.json은 working tree에 그대로 존재

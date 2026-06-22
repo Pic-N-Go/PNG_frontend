@@ -13,7 +13,7 @@
 - docs/ai/00-context.md
 - docs/ai/specs/<feature-name>.md
 - docs/ai/plans/<feature-name>-plan.md
-- docs/ui-publishing.md (필요 시)
+- docs/guide/dev/ui-publishing.md (필요 시)
 
 요청 작업:
 - [구현할 태스크 이름/번호]
@@ -52,6 +52,6 @@
 ## 템플릿 작성 시 참고 문서
 
 - 팀 표준 진행 순서: `docs/ai/README.md`
-- 개인 프롬프트 보조: `docs/ai-prompt-guide.md`
-- 화면 상세 흐름: `docs/ui-publishing.md`
+- 개인 프롬프트 보조: `docs/guide/dev/prompt-writing-guide.md`
+- 화면 상세 흐름: `docs/guide/dev/ui-publishing.md`
 - 요구사항 정제(Intake): `docs/ai/05-intake-workflow.md`

@@ -19,7 +19,7 @@
    - `docs/ai/01-feature-spec-template.md`
    - `docs/ai/02-implementation-plan-template.md`
    - `docs/ai/03-pr-review-checklist.md`
-   - `docs/ui-publishing.md` (UI 변경 시)
+   - `docs/guide/dev/ui-publishing.md` (UI 변경 시)
 2. 스펙의 In Scope / AC / 시나리오를 기준으로 plan 태스크를 구성한다.
 3. 각 태스크에 아래 4가지를 반드시 포함한다.
    - 대상 파일

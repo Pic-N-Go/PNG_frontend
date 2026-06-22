@@ -85,7 +85,7 @@
 
 ## 작성 시 참고 문서
 
-- 화면 구조/네비게이션: `docs/ui-publishing.md`
+- 화면 구조/네비게이션: `docs/guide/dev/ui-publishing.md`
 - 구현 규칙/디자인 제약: `CLAUDE.md`
-- 프론트 구현 기준: `docs/development-guide.md`
-- 기기/스케일링 기준: `docs/device-support.md`
+- 프론트 구현 기준: `docs/guide/dev/development-guide.md`
+- 기기/스케일링 기준: `docs/guide/dev/device-support.md`

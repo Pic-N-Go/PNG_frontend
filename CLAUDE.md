@@ -45,7 +45,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 | Directory | Purpose |
 |---|---|
 | `src/api/` | Raw fetch functions (no hooks, no state) |
-| `src/components/ui/` | HTML mockups grouped by feature (`auth/` `home/` `travel/` `community/` `spot/` `mypage/` `wishlist/`) — see `docs/ui-publishing.md`. 공통 파일: `fonts.css` (Pretendard), `common.css` (토큰·리셋·phone-frame) |
+| `src/components/ui/` | HTML mockups grouped by feature (`auth/` `home/` `travel/` `community/` `spot/` `mypage/` `wishlist/`) — see `docs/guide/dev/ui-publishing.md`. 공통 파일: `fonts.css` (Pretendard), `common.css` (토큰·리셋·phone-frame) |
 | `src/hooks/` | Custom hooks (typically wrap TanStack Query calls) |
 | `src/screens/` | Screen-level components |
 | `src/store/` | Zustand stores |
@@ -68,7 +68,7 @@ const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 - **디자인 기준**: `390dp` (iPhone 15 Pro)
 - **스케일링 유틸**: `src/utils/normalize.ts` — 고정 픽셀(버튼 높이, 폰트 크기 등)에 한해 사용
 - **레이아웃 상수**: `src/constants/layout.ts` — 버튼 높이, 패딩, radius 등 디자인 기준값 상수 모음
-- 상세 지원 기기 목록, 상수 사용 예시, 태블릿 향후 계획 → `docs/device-support.md`
+- 상세 지원 기기 목록, 상수 사용 예시, 태블릿 향후 계획 → `docs/guide/dev/device-support.md`
 
 > NativeWind `className`의 Tailwind 단위(`px-7` 등)는 고정 픽셀입니다. 기기 너비에 따라 스케일이 필요한 값(버튼 높이, 폰트 크기 등)은 `src/constants/layout.ts` 상수를 사용하세요. 패딩·마진·gap은 `className`으로 표현합니다.
 
@@ -94,6 +94,6 @@ Key rules:
 - `/home` — hero + search + category filter + nearby spots map + popular spots scroll + calendar
 - `/spot/:id` — spot detail with Photogenic Score (weather/golden hour/dust/congestion/season)
 
-HTML mockups are in `src/components/ui/` (grouped by feature). Full structure and navigation flow in `docs/ui-publishing.md`. RN 구현 가이드: `docs/development-guide.md`.
+HTML mockups are in `src/components/ui/` (grouped by feature). Full structure and navigation flow in `docs/guide/dev/ui-publishing.md`. RN 구현 가이드: `docs/guide/dev/development-guide.md`.
 
 목업 확인: 브라우저 DevTools에서 뷰포트를 **390px**로 설정 (기기 시뮬레이터 또는 반응형 모드).

@@ -15,7 +15,7 @@
 - docs/ai/05-intake-workflow.md
 - docs/ai/01-feature-spec-template.md
 - docs/ai/02-implementation-plan-template.md
-- docs/ui-publishing.md
+- docs/guide/dev/ui-publishing.md
 
 내가 설명하는 기능:
 [여기에 자연어로 기능 설명]

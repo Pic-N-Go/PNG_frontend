@@ -201,7 +201,7 @@ const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 ## 문서 참조 가이드
 
 - 팀 AI 협업 표준: `docs/ai/README.md`
-- 개인 프롬프트 보조: `docs/ai-prompt-guide.md`
-- 화면 목업 구조/흐름: `docs/ui-publishing.md`
+- 개인 프롬프트 보조: `docs/guide/dev/prompt-writing-guide.md`
+- 화면 목업 구조/흐름: `docs/guide/dev/ui-publishing.md`
 - 브랜치/PR 규칙: `.github/CONVENTIONS.md`
-- GitHub 자동화 운영: `docs/github-actions-guide.md`
+- GitHub 자동화 운영: `docs/guide/ops/github-actions-guide.md`
