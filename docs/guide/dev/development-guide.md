@@ -323,7 +323,6 @@ const secret = process.env.SECRET_KEY;
 | `docs/guide/dev/ui-publishing.md` | HTML 목업 구조 및 화면 간 네비게이션 흐름 |
 | `docs/guide/dev/prompt-writing-guide.md` | AI 활용 화면 구현 프롬프트 템플릿 |
 | `docs/guide/dev/device-support.md` | 지원 기기 범위, 레이아웃 상수 사용법 |
-| `docs/style-consistency-fixes.md` | 퍼블리싱 스타일 통일성 수정 목록 |
 | `docs/guide/api/photo-upload-spec.md` | 사진 업로드 스펙 (형식·크기·EXIF 처리) |
 | `docs/guide/ops/github-actions-guide.md` | GitHub Actions 자동화 동작 및 대응 |
 | `CLAUDE.md` | 프로젝트 전체 규칙 및 디자인 시스템 |
