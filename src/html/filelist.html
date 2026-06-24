@@ -1,0 +1,491 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PNG 퍼블리싱 파일 목록</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, 'Pretendard Variable', 'Pretendard', sans-serif;
+      font-size: 14px;
+      background: #f5f5f7;
+      color: #1c1c1e;
+      padding: 32px 24px 64px;
+    }
+    h1 {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: -0.4px;
+      margin-bottom: 4px;
+    }
+    .meta {
+      font-size: 12px;
+      color: rgba(0,0,0,0.4);
+      margin-bottom: 24px;
+    }
+    /* 필터 */
+    .filters {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .filter-btn {
+      padding: 5px 14px;
+      border-radius: 20px;
+      border: 1px solid rgba(0,0,0,0.12);
+      background: #fff;
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .filter-btn.is-active, .filter-btn:hover {
+      background: #000;
+      color: #fff;
+      border-color: #000;
+    }
+    /* 테이블 래퍼 */
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: 14px;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+      min-width: 760px;
+    }
+    thead th {
+      background: #f5f5f7;
+      padding: 11px 14px;
+      text-align: left;
+      font-size: 12px;
+      font-weight: 600;
+      color: rgba(0,0,0,0.45);
+      letter-spacing: 0.2px;
+      border-bottom: 1px solid rgba(0,0,0,0.07);
+      white-space: nowrap;
+    }
+    tbody tr {
+      border-bottom: 1px solid rgba(0,0,0,0.05);
+      transition: background 0.1s;
+    }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #fafafa; }
+    tbody td {
+      padding: 11px 14px;
+      vertical-align: middle;
+      white-space: nowrap;
+    }
+    tbody td:nth-child(8) { color: rgba(0,0,0,0.3); font-style: italic; }
+    a {
+      color: #e31b59;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    a:hover { text-decoration: underline; }
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.3px;
+    }
+    .badge--page  { background: rgba(52,199,89,0.12);  color: #1a7a35; }
+    .badge--modal { background: rgba(255,159,10,0.12); color: #a05a00; }
+    .status {
+      font-size: 12px;
+      font-weight: 500;
+      padding: 2px 8px;
+      border-radius: 4px;
+    }
+    .status--todo { background: rgba(0,0,0,0.05); color: rgba(0,0,0,0.35); }
+    .status--wip  { background: rgba(255,159,10,0.12); color: #a05a00; }
+    .status--done { background: rgba(52,199,89,0.12);  color: #1a7a35; }
+    .summary {
+      margin-top: 16px;
+      font-size: 13px;
+      color: rgba(0,0,0,0.4);
+    }
+    @media (max-width: 600px) {
+      body { padding: 20px 12px 48px; }
+      h1 { font-size: 18px; }
+    }
+  </style>
+</head>
+<body>
+  <h1>PNG 퍼블리싱 파일 목록</h1>
+  <p class="meta">생성일: 2026-06-24 · 총 26개 파일 · 스캔 루트: src/components/ui</p>
+
+  <div class="filters">
+    <button class="filter-btn is-active" onclick="filterAll(this)">전체</button>
+    <button class="filter-btn" onclick="filterCat(this,'인증')">인증</button>
+    <button class="filter-btn" onclick="filterCat(this,'커뮤니티')">커뮤니티</button>
+    <button class="filter-btn" onclick="filterCat(this,'홈')">홈</button>
+    <button class="filter-btn" onclick="filterCat(this,'마이페이지')">마이페이지</button>
+    <button class="filter-btn" onclick="filterCat(this,'스팟')">스팟</button>
+    <button class="filter-btn" onclick="filterCat(this,'여행')">여행</button>
+    <button class="filter-btn" onclick="filterCat(this,'위시리스트')">위시리스트</button>
+  </div>
+
+  <div class="table-wrap">
+    <table id="fileTable">
+      <thead>
+        <tr>
+          <th>대분류</th>
+          <th>중분류</th>
+          <th>소분류</th>
+          <th>구분</th>
+          <th>경로/파일명</th>
+          <th>담당자</th>
+          <th>작업여부</th>
+          <th>최종작업일</th>
+          <th>비고</th>
+        </tr>
+      </thead>
+      <tbody>
+        
+    <tr>
+      <td>인증</td>
+      <td>auth</td>
+      <td>로그인</td>
+      <td><span class="badge badge--page">PAGE</span></td>
+      <td><a href="../components/ui/auth/login.html" target="_blank" rel="noopener">auth/login.html</a></td>
+      <td>박예은</td>
+      <td><span class="status status--wip">진행중</span></td>
+      <td>2026-06-23</td>
+      <td>api 담당자 : 소영재</td>
+    </tr>
+    <tr>
+      <td>인증</td>
+      <td>auth</td>
+      <td>OAuth 온보딩</td>
+      <td><span class="badge badge--page">PAGE</span></td>
+      <td><a href="../components/ui/auth/oauth-onboarding.html" target="_blank" rel="noopener">auth/oauth-onboarding.html</a></td>
+      <td>박예은</td>
+      <td><span class="status status--wip">진행중</span></td>
+      <td>2026-06-23</td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>인증</td>
+      <td>auth</td>
+      <td>회원가입</td>
+      <td><span class="badge badge--page">PAGE</span></td>
+      <td><a href="../components/ui/auth/signup.html" target="_blank" rel="noopener">auth/signup.html</a></td>
+      <td>박예은</td>
+      <td><span class="status status--wip">진행중</span></td>
+      <td>2026-06-23</td>
+      <td>api 담당자 : 소영재</td>
+    </tr>
+    <tr>
+      <td>커뮤니티</td>
+      <td>community</td>
+      <td>피드</td>
+      <td><span class="badge badge--page">PAGE</span></td>
+      <td><a href="../components/ui/community/community-feed.html" target="_blank" rel="noopener">community/community-feed.html</a></td>
+      <td>박예은</td>
+      <td><span class="status status--todo">미시작</span></td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>커뮤니티</td>
+      <td>community</td>
+      <td>게시글 상세</td>
+      <td><span class="badge badge--page">PAGE</span></td>
+      <td><a href="../components/ui/community/community-post.html" target="_blank" rel="noopener">community/community-post.html</a></td>
+      <td>이예인</td>
+      <td><span class="status status--todo">미시작</span></td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>커뮤니티</td>
+      <td>community</td>
+      <td>게시글 작성</td>
+      <td><span class="badge badge--page">PAGE</span></td>
+      <td><a href="../components/ui/community/community-write.html" target="_blank" rel="noopener">community/community-write.html</a></td>
+      <td>이예인</td>
+      <td><span class="status status--todo">미시작</span></td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>홈</td>
+      <td>home</td>
+      <td>홈</td>
+      <td><span class="badge badge--page">PAGE</span></td>
+      <td><a href="../components/ui/home/home.html" target="_blank" rel="noopener">home/home.html</a></td>
+      <td>박예은</td>
+      <td><span class="status status--todo">미시작</span></td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>홈</td>
+      <td>home</td>
+      <td>지도</td>
+      <td><span class="badge badge--page">PAGE</span></td>
+      <td><a href="../components/ui/home/map.html" target="_blank" rel="noopener">home/map.html</a></td>
+      <td>박예은</td>
+      <td><span class="status status--todo">미시작</span></td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>마이페이지</td>
+      <td>mypage</td>
+      <td>팔로우</td>
+      <td><span class="badge badge--page">PAGE</span></td>
+      <td><a href="../components/ui/mypage/follow.html" target="_blank" rel="noopener">mypage/follow.html</a></td>
+      <td>이예인</td>
+      <td><span class="status status--todo">미시작</span></td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>마이페이지</td>
+      <td>mypage</td>
+      <td>내 사진</td>
+      <td><span class="badge badge--page">PAGE</span></td>
+      <td><a href="../components/ui/mypage/my-photos.html" target="_blank" rel="noopener">mypage/my-photos.html</a></td>
+      <td>이예인</td>
+      <td><span class="status status--todo">미시작</span></td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>마이페이지</td>
+      <td>mypage</td>
+      <td>내 리뷰</td>
+      <td><span class="badge badge--page">PAGE</span></td>
+      <td><a href="../components/ui/mypage/my-reviews.html" target="_blank" rel="noopener">mypage/my-reviews.html</a></td>
+      <td>이예인</td>
+      <td><span class="status status--todo">미시작</span></td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>마이페이지</td>
+      <td>mypage</td>
+      <td>마이페이지</td>
+      <td><span class="badge badge--page">PAGE</span></td>
+      <td><a href="../components/ui/mypage/mypage.html" target="_blank" rel="noopener">mypage/mypage.html</a></td>
+      <td>이예인</td>
+      <td><span class="status status--todo">미시작</span></td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>마이페이지</td>
+      <td>mypage</td>
+      <td>알림</td>
+      <td><span class="badge badge--page">PAGE</span></td>
+      <td><a href="../components/ui/mypage/notification.html" target="_blank" rel="noopener">mypage/notification.html</a></td>
+      <td>모정민</td>
+      <td><span class="status status--todo">미시작</span></td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>마이페이지</td>
+      <td>mypage</td>
+      <td>포토맵</td>
+      <td><span class="badge badge--page">PAGE</span></td>
+      <td><a href="../components/ui/mypage/photo-map.html" target="_blank" rel="noopener">mypage/photo-map.html</a></td>
+      <td>이예인</td>
+      <td><span class="status status--todo">미시작</span></td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>마이페이지</td>
+      <td>mypage</td>
+      <td>프로필 편집</td>
+      <td><span class="badge badge--page">PAGE</span></td>
+      <td><a href="../components/ui/mypage/profile-edit.html" target="_blank" rel="noopener">mypage/profile-edit.html</a></td>
+      <td>이예인</td>
+      <td><span class="status status--todo">미시작</span></td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>마이페이지</td>
+      <td>mypage</td>
+      <td>설정</td>
+      <td><span class="badge badge--page">PAGE</span></td>
+      <td><a href="../components/ui/mypage/setting.html" target="_blank" rel="noopener">mypage/setting.html</a></td>
+      <td>소영재</td>
+      <td><span class="status status--todo">미시작</span></td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>스팟</td>
+      <td>spot</td>
+      <td>리뷰 작성</td>
+      <td><span class="badge badge--page">PAGE</span></td>
+      <td><a href="../components/ui/spot/review-write.html" target="_blank" rel="noopener">spot/review-write.html</a></td>
+      <td>박예은</td>
+      <td><span class="status status--todo">미시작</span></td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>스팟</td>
+      <td>spot</td>
+      <td>수정</td>
+      <td><span class="badge badge--page">PAGE</span></td>
+      <td><a href="../components/ui/spot/spot-change.html" target="_blank" rel="noopener">spot/spot-change.html</a></td>
+      <td>모정민</td>
+      <td><span class="status status--todo">미시작</span></td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>스팟</td>
+      <td>spot</td>
+      <td>상세</td>
+      <td><span class="badge badge--page">PAGE</span></td>
+      <td><a href="../components/ui/spot/spot-detail.html" target="_blank" rel="noopener">spot/spot-detail.html</a></td>
+      <td>박예은</td>
+      <td><span class="status status--todo">미시작</span></td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>스팟</td>
+      <td>spot</td>
+      <td>목록</td>
+      <td><span class="badge badge--page">PAGE</span></td>
+      <td><a href="../components/ui/spot/spot-list.html" target="_blank" rel="noopener">spot/spot-list.html</a></td>
+      <td>이예인</td>
+      <td><span class="status status--todo">미시작</span></td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>스팟</td>
+      <td>spot</td>
+      <td>등록</td>
+      <td><span class="badge badge--page">PAGE</span></td>
+      <td><a href="../components/ui/spot/spot-register.html" target="_blank" rel="noopener">spot/spot-register.html</a></td>
+      <td>소영재</td>
+      <td><span class="status status--todo">미시작</span></td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>여행</td>
+      <td>travel</td>
+      <td>코스 목록</td>
+      <td><span class="badge badge--page">PAGE</span></td>
+      <td><a href="../components/ui/travel/travel-list.html" target="_blank" rel="noopener">travel/travel-list.html</a></td>
+      <td>모정민</td>
+      <td><span class="status status--todo">미시작</span></td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>여행</td>
+      <td>travel</td>
+      <td>코스 생성</td>
+      <td><span class="badge badge--page">PAGE</span></td>
+      <td><a href="../components/ui/travel/travel-new.html" target="_blank" rel="noopener">travel/travel-new.html</a></td>
+      <td>모정민</td>
+      <td><span class="status status--todo">미시작</span></td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>여행</td>
+      <td>travel</td>
+      <td>코스 상세</td>
+      <td><span class="badge badge--page">PAGE</span></td>
+      <td><a href="../components/ui/travel/travel-plan.html" target="_blank" rel="noopener">travel/travel-plan.html</a></td>
+      <td>모정민</td>
+      <td><span class="status status--todo">미시작</span></td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>위시리스트</td>
+      <td>wishlist</td>
+      <td>위시리스트 설정</td>
+      <td><span class="badge badge--page">PAGE</span></td>
+      <td><a href="../components/ui/wishlist/wishlist-setting.html" target="_blank" rel="noopener">wishlist/wishlist-setting.html</a></td>
+      <td>모정민</td>
+      <td><span class="status status--todo">미시작</span></td>
+      <td></td>
+      <td></td>
+    </tr>
+    <tr>
+      <td>위시리스트</td>
+      <td>wishlist</td>
+      <td>위시리스트</td>
+      <td><span class="badge badge--page">PAGE</span></td>
+      <td><a href="../components/ui/wishlist/wishlist.html" target="_blank" rel="noopener">wishlist/wishlist.html</a></td>
+      <td>이예인</td>
+      <td><span class="status status--todo">미시작</span></td>
+      <td></td>
+      <td></td>
+    </tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="summary" id="summary">표시: 26개</p>
+
+  <script>
+    function filterAll(btn) {
+      setActive(btn);
+      document.querySelectorAll('#fileTable tbody tr').forEach(tr => tr.style.display = '');
+      updateSummary();
+    }
+    function filterCat(btn, cat) {
+      setActive(btn);
+      let count = 0;
+      document.querySelectorAll('#fileTable tbody tr').forEach(tr => {
+        const show = tr.children[0].textContent.trim() === cat;
+        tr.style.display = show ? '' : 'none';
+        if (show) count++;
+      });
+      updateSummary(count);
+    }
+    function setActive(btn) {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('is-active'));
+      btn.classList.add('is-active');
+    }
+    function updateSummary(n) {
+      const total = document.querySelectorAll('#fileTable tbody tr').length;
+      document.getElementById('summary').textContent = '표시: ' + (n ?? total) + '개';
+    }
+
+    /* ── broken link 체크 (콘솔 출력) ── */
+    (function checkLinks() {
+      const links = document.querySelectorAll('a[target="_blank"]');
+      const broken = [];
+      let checked = 0;
+      links.forEach(a => {
+        fetch(a.href, { method: 'HEAD', cache: 'no-store' })
+          .then(res => { if (!res.ok) broken.push(a.href); })
+          .catch(() => broken.push(a.href))
+          .finally(() => {
+            checked++;
+            if (checked === links.length) {
+              if (broken.length) {
+                console.warn('[filelist] Broken links (' + broken.length + '):');
+                broken.forEach(u => console.warn(' ✗', u));
+              } else {
+                console.info('[filelist] 링크 검증 완료 — broken link 없음 (' + links.length + '개)');
+              }
+            }
+          });
+      });
+    })();
+  </script>
+</body>
+</html>

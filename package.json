@@ -7,6 +7,7 @@
     "android": "expo start --android",
     "ios": "expo start --ios",
     "web": "expo start --web",
+    "filelist": "node scripts/generate-filelist.js",
     "lint": "eslint .",
     "prepare": "husky"
   },
