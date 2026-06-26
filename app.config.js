@@ -13,7 +13,7 @@ module.exports = {
       backgroundColor: '#E31B59',
     },
     ios: {
-      supportsTablet: true,
+      supportsTablet: false,
       bundleIdentifier: 'com.picngo.app',
       infoPlist: {
         KAKAO_APP_KEY: process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY,

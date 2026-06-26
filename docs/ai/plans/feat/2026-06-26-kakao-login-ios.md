@@ -15,7 +15,7 @@
 - NativeWind className 방식 유지 (StyleSheet.create 사용 금지)
 - 모든 import는 `@/` alias 사용
 - 번들 ID: `com.picngo.app`
-- 카카오 네이티브 앱 키: `064f119585ac3464d0933271679fff60` (PNG ios 키, `kakao` prefix 제외한 값)
+- 카카오 네이티브 앱 키: `<YOUR_KAKAO_NATIVE_APP_KEY>` (PNG ios 키, `kakao` prefix 제외한 값 — 실제 값은 `.env` 참고)
 - `.env`에 `EXPO_PUBLIC_` prefix로 저장
 - 백엔드 API 연동은 이 플랜 범위 밖 — 토큰 획득까지만 구현
 
@@ -82,7 +82,7 @@ EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY=
 
 `.env` 파일에 아래 줄 추가 (커밋하지 않음):
 ```
-EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY=064f119585ac3464d0933271679fff60
+EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY=<YOUR_KAKAO_NATIVE_APP_KEY>
 ```
 
 - [ ] **Step 4: 커밋**
@@ -176,7 +176,7 @@ git commit -m "chore: install @react-native-seoul/kakao-login"
 - Modify: `ios/PNG/AppDelegate.mm`
 
 **Interfaces:**
-- Consumes: 카카오 네이티브 앱 키 `064f119585ac3464d0933271679fff60`
+- Consumes: 카카오 네이티브 앱 키 `<YOUR_KAKAO_NATIVE_APP_KEY>`
 - Produces: 카카오톡 앱 실행 및 URL 스킴 처리 가능한 iOS 앱
 
 - [ ] **Step 1: Info.plist에 URL 스킴 및 쿼리 스킴 추가**
@@ -195,7 +195,7 @@ git commit -m "chore: install @react-native-seoul/kakao-login"
   <dict>
     <key>CFBundleURLSchemes</key>
     <array>
-      <string>kakao064f119585ac3464d0933271679fff60</string>
+      <string>kakao<YOUR_KAKAO_NATIVE_APP_KEY></string>
     </array>
   </dict>
 </array>
