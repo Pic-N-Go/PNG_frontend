@@ -78,6 +78,7 @@ export default function LoginScreen({ navigation }: Props) {
   // Toast state
   const [toastMsg, setToastMsg] = useState('');
   const [toastVisible, setToastVisible] = useState(false);
+  const [kakaoLoading, setKakaoLoading] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -136,8 +137,6 @@ export default function LoginScreen({ navigation }: Props) {
     setToastMsg(msg);
     setToastVisible(true);
   }
-
-  const [kakaoLoading, setKakaoLoading] = useState(false);
 
   async function handleKakaoLogin() {
     if (kakaoLoading) return;
