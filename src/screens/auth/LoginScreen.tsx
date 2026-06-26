@@ -137,15 +137,21 @@ export default function LoginScreen({ navigation }: Props) {
     setToastVisible(true);
   }
 
+  const [kakaoLoading, setKakaoLoading] = useState(false);
+
   async function handleKakaoLogin() {
+    if (kakaoLoading) return;
+    setKakaoLoading(true);
     try {
       const token = await kakaoLogin();
-      console.log('[kakao] accessToken:', token.accessToken);
+      if (__DEV__) console.log('[kakao] accessToken:', token.accessToken);
       // ponytail: 백엔드 API 연동 전 임시 처리 — API 완성 시 token을 서버로 전달
       setLoggedIn(true);
     } catch (e) {
-      console.error('[kakao] login error:', e);
+      if (__DEV__) console.error('[kakao] login error:', e);
       showToast('카카오 로그인에 실패했어요');
+    } finally {
+      setKakaoLoading(false);
     }
   }
 
@@ -356,11 +362,13 @@ export default function LoginScreen({ navigation }: Props) {
             <View style={{ flexDirection: 'row', gap: 14 }}>
               <Pressable
                 onPress={handleKakaoLogin}
+                disabled={kakaoLoading}
                 style={{
                   flex: 1,
                   height: normalize(48),
                   borderRadius: normalize(24),
                   backgroundColor: '#FEE500',
+                  opacity: kakaoLoading ? 0.6 : 1,
                   flexDirection: 'row',
                   alignItems: 'center',
                   justifyContent: 'center',
