@@ -8,6 +8,8 @@
 
 **Tech Stack:** React Native (Expo bare workflow), @react-native-seoul/kakao-login, Xcode, CocoaPods
 
+> **구현 노트 (플랜 이탈):** Task 4는 `AppDelegate.mm` (Objective-C) 수정을 명시했으나, `expo prebuild`가 `AppDelegate.swift` (Swift)를 생성했기 때문에 Swift API(`AuthApi.isKakaoTalkLoginUrl`, `AuthController.handleOpenUrl`)로 구현함. 기능상 동일하며 Swift가 올바른 선택.
+
 ## Global Constraints
 
 - NativeWind className 방식 유지 (StyleSheet.create 사용 금지)
