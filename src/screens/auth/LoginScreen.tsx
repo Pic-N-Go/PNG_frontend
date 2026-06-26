@@ -13,6 +13,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Feather } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { login as kakaoLogin } from '@react-native-seoul/kakao-login';
 import { AuthStackParamList } from '@/navigation/AuthStack';
 import { useAuthStore } from '@/store/useAuthStore';
 import AuthInput from '@/components/auth/AuthInput';
@@ -134,6 +135,18 @@ export default function LoginScreen({ navigation }: Props) {
   function showToast(msg: string) {
     setToastMsg(msg);
     setToastVisible(true);
+  }
+
+  async function handleKakaoLogin() {
+    try {
+      const token = await kakaoLogin();
+      console.log('[kakao] accessToken:', token.accessToken);
+      // ponytail: 백엔드 API 연동 전 임시 처리 — API 완성 시 token을 서버로 전달
+      setLoggedIn(true);
+    } catch (e) {
+      console.error('[kakao] login error:', e);
+      showToast('카카오 로그인에 실패했어요');
+    }
   }
 
   const sheetEmailOk = EMAIL_RE.test(sheetEmail.trim());
@@ -342,7 +355,7 @@ export default function LoginScreen({ navigation }: Props) {
             {/* Social */}
             <View style={{ flexDirection: 'row', gap: 14 }}>
               <Pressable
-                onPress={() => navigation.navigate('Onboarding', { provider: 'kakao' })}
+                onPress={handleKakaoLogin}
                 style={{
                   flex: 1,
                   height: normalize(48),
