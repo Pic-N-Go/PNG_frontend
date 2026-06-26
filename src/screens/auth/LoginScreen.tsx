@@ -76,8 +76,10 @@ export default function LoginScreen({ navigation }: Props) {
   const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Toast state
+  // Toast state
   const [toastMsg, setToastMsg] = useState('');
   const [toastVisible, setToastVisible] = useState(false);
+  // Kakao state
   const [kakaoLoading, setKakaoLoading] = useState(false);
 
   useEffect(() => {

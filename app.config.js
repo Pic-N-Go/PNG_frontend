@@ -17,6 +17,10 @@ module.exports = {
       bundleIdentifier: 'com.picngo.app',
       infoPlist: {
         KAKAO_APP_KEY: process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY,
+        CFBundleURLTypes: [
+          { CFBundleURLSchemes: ['com.picngo.app'] },
+          { CFBundleURLSchemes: [`kakao${process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY}`] },
+        ],
       },
     },
     android: {
