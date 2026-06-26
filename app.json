@@ -13,9 +13,11 @@
       "backgroundColor": "#E31B59"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.picngo.app"
     },
     "android": {
+      "package": "com.picngo.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/logo/logo_2.png",
         "backgroundColor": "#ffffff"
