@@ -147,6 +147,6 @@ import { ScreenContainer } from "@/components/ScreenContainer";
 
 ## 관련 문서
 
-- [`docs/development-guide.md`](development-guide.md) — RN 구현 가이드 (레이아웃 상수 사용 예시 포함)
-- [`docs/ui-publishing.md`](ui-publishing.md) — HTML 목업 구조 및 phone-frame 규칙
-- [`CLAUDE.md`](../CLAUDE.md) — 프로젝트 전체 규칙 및 디자인 시스템
+- [`docs/guide/dev/development-guide.md`](development-guide.md) — RN 구현 가이드 (레이아웃 상수 사용 예시 포함)
+- [`docs/guide/dev/ui-publishing.md`](ui-publishing.md) — HTML 목업 구조 및 phone-frame 규칙
+- [`CLAUDE.md`](../../../CLAUDE.md) — 프로젝트 전체 규칙 및 디자인 시스템

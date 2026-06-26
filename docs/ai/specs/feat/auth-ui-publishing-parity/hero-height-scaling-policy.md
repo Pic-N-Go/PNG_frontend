@@ -10,7 +10,7 @@
 
 | 문서 | 경로 |
 |---|---|
-| 디바이스 지원 정책 | `docs/device-support.md` |
+| 디바이스 지원 정책 | `docs/guide/dev/device-support.md` |
 | normalize 유틸 | `src/utils/normalize.ts` |
 | 레이아웃 상수 | `src/constants/layout.ts` |
 

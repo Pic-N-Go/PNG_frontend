@@ -9,7 +9,7 @@
 
 | 문서 | 경로 | 참조 이유 |
 |---|---|---|
-| 디바이스 지원 정책 | `docs/device-support.md` | normalize 사용 기준, 지원 기기 범위 |
+| 디바이스 지원 정책 | `docs/guide/dev/device-support.md` | normalize 사용 기준, 지원 기기 범위 |
 | 레이아웃 상수 | `src/constants/layout.ts` | BUTTON_HEIGHT, FONT_*, SPACING_*, ICON_* |
 | normalize 유틸 | `src/utils/normalize.ts` | 고정 픽셀 스케일링 함수 |
 | 스타일 규칙 | `CLAUDE.md` → Design System 섹션 | 브랜드 컬러, 버튼 규격, 타이포그래피 |
@@ -33,7 +33,7 @@
   height: normalize(48),
   borderRadius: normalize(24),
   ```
-- **참조**: `src/utils/normalize.ts`, `docs/device-support.md` — 버튼 높이는 normalize 적용 대상
+- **참조**: `src/utils/normalize.ts`, `docs/guide/dev/device-support.md` — 버튼 높이는 normalize 적용 대상
 
 ---
 
@@ -151,7 +151,7 @@
     bottom: insets.bottom + normalize(16),
   }
   ```
-- **참조**: `docs/device-support.md` — safe area 처리 정책
+- **참조**: `docs/guide/dev/device-support.md` — safe area 처리 정책
 
 ---
 
@@ -179,4 +179,4 @@
 - **파일**: `LoginScreen.tsx`, `SignupScreen.tsx`, `OnboardingScreen.tsx`
 - **현황**: 히어로 높이가 raw 픽셀로 고정되어 360dp 기기에서 상대 비율이 달라질 수 있음
 - **판단 보류 이유**: `normalize()`는 너비 기반 스케일링이라 높이 값에 적용하면 비율이 어색해질 수 있음. `Dimensions.get('window').height * 0.45` 같은 높이 기반 계산이 더 적합할 수 있어 팀 정책 결정 필요
-- **참조**: `docs/device-support.md`, `src/utils/normalize.ts`
+- **참조**: `docs/guide/dev/device-support.md`, `src/utils/normalize.ts`

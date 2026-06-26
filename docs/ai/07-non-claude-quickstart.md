@@ -72,7 +72,7 @@ git checkout -b feature/<작업명>
 - docs/ai/05-intake-workflow.md
 - docs/ai/01-feature-spec-template.md
 - docs/ai/02-implementation-plan-template.md
-[UI 작업이면] - docs/ui-publishing.md
+[UI 작업이면] - docs/guide/dev/ui-publishing.md
 
 내가 만들 기능:
 [자연어로 기능 설명]

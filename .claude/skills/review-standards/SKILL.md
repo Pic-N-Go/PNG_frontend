@@ -12,8 +12,8 @@
 - `CLAUDE.md`
 - `docs/ai/03-pr-review-checklist.md`
 - `.github/CONVENTIONS.md`
-- `docs/ui-publishing.md` (UI 변경이 있을 때)
-- `docs/device-support.md` (레이아웃/스케일링 변경이 있을 때)
+- `docs/guide/dev/ui-publishing.md` (UI 변경이 있을 때)
+- `docs/guide/dev/device-support.md` (레이아웃/스케일링 변경이 있을 때)
 
 ## 실행 규칙
 

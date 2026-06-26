@@ -19,8 +19,8 @@ description: PNG 프로젝트 변경사항을 팀 규칙 기준으로 리뷰
 - `CLAUDE.md`
 - `docs/ai/03-pr-review-checklist.md`
 - `.github/CONVENTIONS.md`
-- `docs/ui-publishing.md` (UI 변경 시)
-- `docs/device-support.md` (레이아웃 변경 시)
+- `docs/guide/dev/ui-publishing.md` (UI 변경 시)
+- `docs/guide/dev/device-support.md` (레이아웃 변경 시)
 
 ## 실행 지침
 

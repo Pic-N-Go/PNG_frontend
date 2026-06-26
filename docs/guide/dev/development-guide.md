@@ -1,7 +1,7 @@
 # 프론트엔드 개발 가이드
 
 > 퍼블리싱 완료 후 React Native 화면 구현 시 팀원이 참고하는 문서입니다.  
-> HTML 목업(`src/components/ui/`)을 기준으로 구현하며, 팀 AI 협업은 `docs/ai-prompt-guide.md`를 기준으로 진행하세요.
+> HTML 목업(`src/components/ui/`)을 기준으로 구현하며, 팀 AI 협업은 `docs/guide/dev/prompt-writing-guide.md`를 기준으로 진행하세요.
 
 ---
 
@@ -319,11 +319,10 @@ const secret = process.env.SECRET_KEY;
 
 | 문서 | 내용 |
 |---|---|
-| `docs/team-assignments.md` | 화면·API·훅·스토어 담당자 현황 |
-| `docs/ui-publishing.md` | HTML 목업 구조 및 화면 간 네비게이션 흐름 |
-| `docs/ai-prompt-guide.md` | AI 활용 화면 구현 프롬프트 템플릿 |
-| `docs/device-support.md` | 지원 기기 범위, 레이아웃 상수 사용법 |
-| `docs/style-consistency-fixes.md` | 퍼블리싱 스타일 통일성 수정 목록 |
-| `docs/photo-upload-spec.md` | 사진 업로드 스펙 (형식·크기·EXIF 처리) |
-| `docs/github-actions-guide.md` | GitHub Actions 자동화 동작 및 대응 |
+| `docs/guide/ops/team-assignments.md` | 화면·API·훅·스토어 담당자 현황 |
+| `docs/guide/dev/ui-publishing.md` | HTML 목업 구조 및 화면 간 네비게이션 흐름 |
+| `docs/guide/dev/prompt-writing-guide.md` | AI 활용 화면 구현 프롬프트 템플릿 |
+| `docs/guide/dev/device-support.md` | 지원 기기 범위, 레이아웃 상수 사용법 |
+| `docs/guide/api/photo-upload-spec.md` | 사진 업로드 스펙 (형식·크기·EXIF 처리) |
+| `docs/guide/ops/github-actions-guide.md` | GitHub Actions 자동화 동작 및 대응 |
 | `CLAUDE.md` | 프로젝트 전체 규칙 및 디자인 시스템 |

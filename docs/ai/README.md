@@ -69,7 +69,7 @@
 | `docs/ai/04-agent-handoff-prompt-template.md` | 구현 시작용 핸드오프 프롬프트 |
 | `docs/ai/03-pr-review-checklist.md` | PR 전 품질 체크리스트 |
 
-UI 기능이면 추가로: `docs/ui-publishing.md`
+UI 기능이면 추가로: `docs/guide/dev/ui-publishing.md`
 
 단계별 실행 가이드 → `docs/ai/07-non-claude-quickstart.md`
 
@@ -146,10 +146,10 @@ UI 기능이면 추가로: `docs/ui-publishing.md`
 ## 참고 문서 (단일 기준)
 
 - 구현 규칙/디자인 제약: `CLAUDE.md`
-- 화면 구조/목업 흐름: `docs/ui-publishing.md`
-- 프론트 개발 기준: `docs/development-guide.md`
-- 개인 프롬프트 작성 보조: `docs/ai-prompt-guide.md`
+- 화면 구조/목업 흐름: `docs/guide/dev/ui-publishing.md`
+- 프론트 개발 기준: `docs/guide/dev/development-guide.md`
+- 개인 프롬프트 작성 보조: `docs/guide/dev/prompt-writing-guide.md`
 - 비클로드 시작 가이드: `docs/ai/07-non-claude-quickstart.md`
 - 브랜치/PR 규칙: `.github/CONVENTIONS.md`
-- GitHub 자동화 동작: `docs/github-actions-guide.md`
+- GitHub 자동화 동작: `docs/guide/ops/github-actions-guide.md`
 - 하네스 셀프 점검: `docs/ai/08-harness-self-audit-checklist.md`
