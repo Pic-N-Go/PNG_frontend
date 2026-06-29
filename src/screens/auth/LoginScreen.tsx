@@ -12,13 +12,15 @@ import {
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Feather } from '@expo/vector-icons';
+import { useMutation } from '@tanstack/react-query';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { login as kakaoLogin } from '@react-native-seoul/kakao-login';
 import { AuthStackParamList } from '@/navigation/AuthStack';
 import { useAuthStore } from '@/store/useAuthStore';
+import { authApi } from '@/api/auth';
 import AuthInput from '@/components/auth/AuthInput';
 import Toast from '@/components/auth/Toast';
-import { normalize, normalizeFontSize } from '@/utils/normalize';
+import { normalizeFontSize } from '@/utils/normalize';
 import {
   BUTTON_HEIGHT,
   BUTTON_RADIUS,
@@ -30,6 +32,8 @@ import {
   FONT_XL,
   INPUT_HEIGHT,
   INPUT_RADIUS,
+  SOCIAL_BUTTON_HEIGHT,
+  SOCIAL_BUTTON_RADIUS,
   SPACING_LG,
   SPACING_MD,
   SPACING_XL,
@@ -50,7 +54,7 @@ function formatTimer(sec: number) {
 }
 
 export default function LoginScreen({ navigation }: Props) {
-  const setLoggedIn = useAuthStore((s) => s.setLoggedIn);
+  const setAuth = useAuthStore((s) => s.setAuth);
 
   const { height: SCREEN_H } = useWindowDimensions();
   const initialHeroHeightRef = useRef<number | null>(null);
@@ -80,6 +84,14 @@ export default function LoginScreen({ navigation }: Props) {
   const [toastVisible, setToastVisible] = useState(false);
   // Kakao state
   const [kakaoLoading, setKakaoLoading] = useState(false);
+
+  const canLogin = email.trim().length > 0 && password.length > 0;
+
+  const loginMutation = useMutation({
+    mutationFn: () => authApi.login(email.trim(), password),
+    onSuccess: (data) => setAuth(data.accessToken, data.user),
+    onError: (err: Error) => showToast(err.message || '로그인에 실패했어요. 다시 시도해주세요.'),
+  });
 
   useEffect(() => {
     return () => {
@@ -146,7 +158,7 @@ export default function LoginScreen({ navigation }: Props) {
       const token = await kakaoLogin();
       if (__DEV__) console.log('[kakao] accessToken:', token.accessToken);
       // ponytail: 백엔드 API 연동 전 임시 처리 — API 완성 시 token을 서버로 전달
-      setLoggedIn(true);
+      setAuth('oauth-placeholder', { id: 0, email: '', nickname: '', profileImageUrl: null, role: 'USER', provider: 'kakao' });
     } catch (e) {
       if (__DEV__) console.error('[kakao] login error:', e);
       if ((e as { code?: string })?.code === 'E_CANCELLED') return;
@@ -322,24 +334,26 @@ export default function LoginScreen({ navigation }: Props) {
 
             {/* Login Button */}
             <Pressable
-              onPress={() => setLoggedIn(true)}
+              onPress={() => loginMutation.mutate()}
+              disabled={!canLogin || loginMutation.isPending}
               style={{
                 height: BUTTON_HEIGHT,
                 borderRadius: BUTTON_RADIUS,
-                backgroundColor: '#E31B59',
+                backgroundColor: canLogin ? '#E31B59' : 'rgba(0,0,0,0.06)',
                 alignItems: 'center',
                 justifyContent: 'center',
+                opacity: loginMutation.isPending ? 0.6 : 1,
               }}
             >
               <Text
                 style={{
                   fontSize: FONT_LG,
-                  color: '#fff',
+                  color: canLogin ? '#fff' : 'rgba(0,0,0,0.3)',
                   letterSpacing: -0.3,
                   fontFamily: 'Pretendard-Medium',
                 }}
               >
-                로그인
+                {loginMutation.isPending ? '로그인 중...' : '로그인'}
               </Text>
             </Pressable>
 
@@ -366,8 +380,8 @@ export default function LoginScreen({ navigation }: Props) {
                 disabled={kakaoLoading}
                 style={{
                   flex: 1,
-                  height: normalize(48),
-                  borderRadius: normalize(24),
+                  height: SOCIAL_BUTTON_HEIGHT,
+                  borderRadius: SOCIAL_BUTTON_RADIUS,
                   backgroundColor: '#FEE500',
                   opacity: kakaoLoading ? 0.6 : 1,
                   flexDirection: 'row',
@@ -393,8 +407,8 @@ export default function LoginScreen({ navigation }: Props) {
                 onPress={() => navigation.navigate('Onboarding', { provider: 'apple' })}
                 style={{
                   flex: 1,
-                  height: normalize(48),
-                  borderRadius: normalize(24),
+                  height: SOCIAL_BUTTON_HEIGHT,
+                  borderRadius: SOCIAL_BUTTON_RADIUS,
                   backgroundColor: '#000',
                   flexDirection: 'row',
                   alignItems: 'center',
@@ -402,7 +416,7 @@ export default function LoginScreen({ navigation }: Props) {
                   gap: 6,
                 }}
               >
-                <Feather name="smartphone" size={16} color="#fff" />
+                <Feather name="smartphone" size={14} color="#fff" />
                 <Text
                   style={{
                     fontSize: FONT_MD,

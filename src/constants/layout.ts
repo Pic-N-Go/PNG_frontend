@@ -37,5 +37,9 @@ export const FONT_2XL = normalizeFontSize(28);
 export const TAB_BAR_HEIGHT = normalize(80);
 export const HEADER_HEIGHT = normalize(52);
 
+// ── 소셜 버튼 ─────────────────────────────────
+export const SOCIAL_BUTTON_HEIGHT = normalize(48);
+export const SOCIAL_BUTTON_RADIUS = normalize(24);
+
 // ── 바텀시트 ──────────────────────────────────
 export const BOTTOM_SHEET_RADIUS = normalize(24);

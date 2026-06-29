@@ -34,12 +34,12 @@ type Props = NativeStackScreenProps<AuthStackParamList, 'Onboarding'>;
 
 const HERO_RATIO = 200 / 844;
 
-const NICK_RE = /^[가-힣a-zA-Z0-9]{2,12}$/;
+const NICK_RE = /^[가-힣a-zA-Z0-9]{2,10}$/;
 
 export default function OnboardingScreen({ navigation, route }: Props) {
   const insets = useSafeAreaInsets();
   const { provider } = route.params;
-  const setLoggedIn = useAuthStore((s) => s.setLoggedIn);
+  const setAuth = useAuthStore((s) => s.setAuth);
 
   const { height: SCREEN_H } = useWindowDimensions();
   const initialHeroHeightRef = useRef<number | null>(null);
@@ -68,8 +68,8 @@ export default function OnboardingScreen({ navigation, route }: Props) {
       setNickError(true);
       return;
     }
-    // TODO: API 연동 시 OAuth 온보딩 API 호출
-    setLoggedIn(true);
+    // TODO: OAuth 온보딩 API 호출 후 실제 token/user로 교체
+    setAuth('oauth-placeholder', { id: 0, email: '', nickname, profileImageUrl: null, role: 'USER', provider });
   }
 
   const isKakao = provider === 'kakao';
@@ -241,8 +241,8 @@ export default function OnboardingScreen({ navigation, route }: Props) {
                   setNickname(t);
                   setNickError(false);
                 }}
-                placeholder="2~12자 한글, 영문, 숫자"
-                maxLength={12}
+                placeholder="2~10자 한글, 영문, 숫자"
+                maxLength={10}
                 isInvalid={nickError && !nickOk}
               />
               <Text
@@ -257,7 +257,7 @@ export default function OnboardingScreen({ navigation, route }: Props) {
                   pointerEvents: 'none',
                 }}
               >
-                {nickname.length}/12
+                {nickname.length}/10
               </Text>
             </View>
             {nickError && !nickOk && (
@@ -271,7 +271,7 @@ export default function OnboardingScreen({ navigation, route }: Props) {
                   fontFamily: 'Pretendard-Regular',
                 }}
               >
-                닉네임은 2~12자 한글, 영문, 숫자만 사용할 수 있어요.
+                닉네임은 2~10자 한글, 영문, 숫자만 사용할 수 있어요.
               </Text>
             )}
 

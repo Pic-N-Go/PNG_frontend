@@ -1,11 +1,16 @@
 import { create } from 'zustand';
+import type { UserResponse } from '@/api/auth';
 
 type AuthState = {
-  isLoggedIn: boolean;
-  setLoggedIn: (val: boolean) => void;
+  accessToken: string | null;
+  user: UserResponse | null;
+  setAuth: (token: string, user: UserResponse) => void;
+  clearAuth: () => void;
 };
 
 export const useAuthStore = create<AuthState>((set) => ({
-  isLoggedIn: false,
-  setLoggedIn: (val) => set({ isLoggedIn: val }),
+  accessToken: null,
+  user: null,
+  setAuth: (token, user) => set({ accessToken: token, user }),
+  clearAuth: () => set({ accessToken: null, user: null }),
 }));
