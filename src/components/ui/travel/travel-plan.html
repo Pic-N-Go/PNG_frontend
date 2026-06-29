@@ -1368,7 +1368,8 @@
       /* ── 촬영 체크리스트 렌더링 ── */
       /* 항목이 있으면 섹션 노출, 빈 배열이면 미노출 */
       function renderDayChecklist(d) {
-        var items = dayData[d].checklist || [];
+        var day = dayData[d];
+        var items = (day && day.checklist) || [];
         var section = document.getElementById('dayChecklist');
         var chipsEl = document.getElementById('dayChecklistChips');
         if (!items.length) {
@@ -1376,10 +1377,15 @@
           return;
         }
         chipsEl.innerHTML = items.map(function(label) {
-          return '<div class="day-checklist__chip" onclick="this.classList.toggle(\'is-checked\')">'
-            + '<span class="day-checklist__chip-dot"></span>' + label + '</div>';
+          return '<button type="button" class="day-checklist__chip" aria-pressed="false" onclick="toggleDayChecklistChip(this)">'
+            + '<span class="day-checklist__chip-dot"></span>' + label + '</button>';
         }).join('');
         section.style.display = 'block';
+      }
+
+      function toggleDayChecklistChip(el) {
+        var checked = el.classList.toggle('is-checked');
+        el.setAttribute('aria-pressed', String(checked));
       }
 
       /* ── 미니맵 렌더링 ── */

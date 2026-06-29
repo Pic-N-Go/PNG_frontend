@@ -148,21 +148,26 @@ const rows = files.map(fp => {
 });
 
 /* ── HTML 생성 ── */
+function escapeHtml(s) {
+  return String(s ?? '').replace(/[&<>"']/g, c =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+}
+
 function rowHtml(r, i) {
   const typeBadge = r.type === 'MODAL'
     ? `<span class="badge badge--modal">MODAL</span>`
     : `<span class="badge badge--page">PAGE</span>`;
   return `
     <tr>
-      <td>${r.cat1}</td>
-      <td>${r.cat2}</td>
-      <td>${r.cat3}</td>
+      <td>${escapeHtml(r.cat1)}</td>
+      <td>${escapeHtml(r.cat2)}</td>
+      <td>${escapeHtml(r.cat3)}</td>
       <td>${typeBadge}</td>
-      <td><a href="${r.href}" target="_blank" rel="noopener">${r.rel.replace(/\\/g, '/')}</a></td>
-      <td>${r.assignee}</td>
-      <td><span class="status status--${statusClass(r.status)}">${r.status}</span></td>
-      <td>${r.date}</td>
-      <td>${r.note}</td>
+      <td><a href="${r.href}" target="_blank" rel="noopener">${escapeHtml(r.rel.replace(/\\/g, '/'))}</a></td>
+      <td>${escapeHtml(r.assignee)}</td>
+      <td><span class="status status--${statusClass(r.status)}">${escapeHtml(r.status)}</span></td>
+      <td>${escapeHtml(r.date)}</td>
+      <td>${escapeHtml(r.note)}</td>
     </tr>`;
 }
 
@@ -344,6 +349,10 @@ const html = `<!doctype html>
 
     /* ── broken link 체크 (콘솔 출력) ── */
     (function checkLinks() {
+      if (window.location.protocol === 'file:') {
+        console.info('[filelist] file:// 환경에서는 링크 검증을 건너뜁니다. Live Server 등 로컬 서버 사용 시 검증됩니다.');
+        return;
+      }
       const links = document.querySelectorAll('a[target="_blank"]');
       const broken = [];
       let checked = 0;

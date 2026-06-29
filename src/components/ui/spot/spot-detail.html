@@ -2444,14 +2444,14 @@
             <div class="checklist-empty" id="checklistEmpty">
               <p class="checklist-empty__prompt">촬영에 필요한 항목을 선택해 체크리스트를 등록하세요.</p>
               <div class="checklist-chips" id="checklistChips">
-                <div class="checklist-chip" onclick="toggleChip(this)"><span class="checklist-chip__dot"></span>삼각대</div>
-                <div class="checklist-chip" onclick="toggleChip(this)"><span class="checklist-chip__dot"></span>광각렌즈 (16-35mm)</div>
-                <div class="checklist-chip" onclick="toggleChip(this)"><span class="checklist-chip__dot"></span>ND 필터</div>
-                <div class="checklist-chip" onclick="toggleChip(this)"><span class="checklist-chip__dot"></span>보조배터리</div>
-                <div class="checklist-chip" onclick="toggleChip(this)"><span class="checklist-chip__dot"></span>편한 신발</div>
-                <div class="checklist-chip" onclick="toggleChip(this)"><span class="checklist-chip__dot"></span>방수 재킷</div>
-                <div class="checklist-chip" onclick="toggleChip(this)"><span class="checklist-chip__dot"></span>여분 메모리카드</div>
-                <div class="checklist-chip" onclick="toggleChip(this)"><span class="checklist-chip__dot"></span>손전등</div>
+                <button type="button" class="checklist-chip" aria-pressed="false" onclick="toggleChip(this)"><span class="checklist-chip__dot"></span>삼각대</button>
+                <button type="button" class="checklist-chip" aria-pressed="false" onclick="toggleChip(this)"><span class="checklist-chip__dot"></span>광각렌즈 (16-35mm)</button>
+                <button type="button" class="checklist-chip" aria-pressed="false" onclick="toggleChip(this)"><span class="checklist-chip__dot"></span>ND 필터</button>
+                <button type="button" class="checklist-chip" aria-pressed="false" onclick="toggleChip(this)"><span class="checklist-chip__dot"></span>보조배터리</button>
+                <button type="button" class="checklist-chip" aria-pressed="false" onclick="toggleChip(this)"><span class="checklist-chip__dot"></span>편한 신발</button>
+                <button type="button" class="checklist-chip" aria-pressed="false" onclick="toggleChip(this)"><span class="checklist-chip__dot"></span>방수 재킷</button>
+                <button type="button" class="checklist-chip" aria-pressed="false" onclick="toggleChip(this)"><span class="checklist-chip__dot"></span>여분 메모리카드</button>
+                <button type="button" class="checklist-chip" aria-pressed="false" onclick="toggleChip(this)"><span class="checklist-chip__dot"></span>손전등</button>
               </div>
               <button class="checklist-save-btn" id="checklistSaveBtn" onclick="saveChecklist()" disabled>저장</button>
             </div>
@@ -3496,7 +3496,8 @@
 
       // 칩 선택/해제 — 1개 이상 선택 시 저장 버튼 활성화
       function toggleChip(chip) {
-        chip.classList.toggle("is-selected");
+        const selected = chip.classList.toggle("is-selected");
+        chip.setAttribute("aria-pressed", String(selected));
         const anySelected = document.querySelectorAll(".checklist-chip.is-selected").length > 0;
         document.getElementById("checklistSaveBtn").disabled = !anySelected;
       }
@@ -3511,10 +3512,10 @@
       // 완료 상태 렌더링
       function renderChecklistDone(items) {
         document.getElementById("checklistDone").innerHTML = items.map(label =>
-          `<div class="checklist__item" onclick="toggleCheck(this)">
+          `<button type="button" class="checklist__item" aria-pressed="true" onclick="toggleCheck(this)">
             <div class="checklist__check checklist__check--on">${SVG_CHECK}</div>
             <span class="checklist__label checklist__label--on">${label}</span>
-          </div>`
+          </button>`
         ).join("");
         document.getElementById("checklistEmpty").style.display = "none";
         document.getElementById("checklistDone").style.display = "block";
