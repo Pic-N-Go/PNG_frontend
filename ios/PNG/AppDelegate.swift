@@ -1,5 +1,4 @@
 import Expo
-import KakaoSDKAuth
 import React
 import ReactAppDependencyProvider
 
@@ -39,9 +38,6 @@ public class AppDelegate: ExpoAppDelegate {
     open url: URL,
     options: [UIApplication.OpenURLOptionsKey: Any] = [:]
   ) -> Bool {
-    if AuthApi.isKakaoTalkLoginUrl(url) {
-      return AuthController.handleOpenUrl(url: url)
-    }
     return super.application(app, open: url, options: options) || RCTLinkingManager.application(app, open: url, options: options)
   }
 
