@@ -1,5 +1,9 @@
 const BASE = process.env.EXPO_PUBLIC_API_URL ?? '';
 
+if (__DEV__ && !BASE) {
+  console.warn('[auth] EXPO_PUBLIC_API_URL 환경 변수가 설정되지 않았습니다. API 요청이 실패할 수 있습니다.');
+}
+
 export type UserResponse = {
   id: number;
   email: string;

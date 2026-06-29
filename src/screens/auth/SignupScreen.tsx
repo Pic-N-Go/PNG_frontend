@@ -301,6 +301,7 @@ export default function SignupScreen({ navigation }: Props) {
                     placeholderTextColor="rgba(0,0,0,0.28)"
                     keyboardType="number-pad"
                     autoComplete="one-time-code"
+                    textContentType="oneTimeCode"
                     maxLength={6}
                     autoFocus
                     onFocus={() => setCodeFocused(true)}

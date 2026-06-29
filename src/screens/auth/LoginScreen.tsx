@@ -334,7 +334,7 @@ export default function LoginScreen({ navigation }: Props) {
 
             {/* Login Button */}
             <Pressable
-              onPress={loginMutation.mutate}
+              onPress={() => loginMutation.mutate()}
               disabled={!canLogin || loginMutation.isPending}
               style={{
                 height: BUTTON_HEIGHT,
