@@ -154,6 +154,7 @@ export default function SignupScreen({ navigation }: Props) {
   }
 
   const showEmailErr = (attempted || email.length > 0) && !emailOk;
+  const showEmailVerificationErr = attempted && emailOk && !emailVerified;
   const showPwErr = (attempted || pw1.length > 0) && !pwOk;
   const showMatchErr = (attempted || pw2.length > 0) && !matchOk;
   const showNickErr = (attempted || nickname.length > 0) && !nickOk;
@@ -278,6 +279,7 @@ export default function SignupScreen({ navigation }: Props) {
               </Pressable>
             </View>
             {showEmailErr && <ErrorText>올바른 이메일 형식으로 입력해 주세요.</ErrorText>}
+            {showEmailVerificationErr && <ErrorText>이메일 인증을 완료해 주세요.</ErrorText>}
 
             {/* ── Email Code Input ── */}
             {emailCodeSent && !emailVerified && (

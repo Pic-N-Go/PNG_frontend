@@ -78,7 +78,7 @@
 
 ## 로컬 테스트 환경
 
-```
+```dotenv
 # .env
 EXPO_PUBLIC_API_URL=http://localhost:8080        # iOS 시뮬레이터
 # EXPO_PUBLIC_API_URL=http://10.0.2.2:8080       # Android 에뮬레이터

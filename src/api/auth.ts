@@ -27,17 +27,26 @@ export type EmailVerificationResponse = {
   verificationCode: string | null;
 };
 
+const TIMEOUT_MS = 10_000;
+
 async function post<T>(path: string, body: unknown): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
-  });
-  if (!res.ok) {
-    const err = await res.json().catch(() => ({})) as { message?: string };
-    throw new Error(err.message ?? `HTTP ${res.status}`);
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  try {
+    const res = await fetch(`${BASE}${path}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({})) as { message?: string };
+      throw new Error(err.message ?? `HTTP ${res.status}`);
+    }
+    return res.json() as Promise<T>;
+  } finally {
+    clearTimeout(timer);
   }
-  return res.json() as Promise<T>;
 }
 
 export const authApi = {
@@ -54,12 +63,18 @@ export const authApi = {
     post<EmailVerificationResponse>('/auth/email/confirm', { email, code }),
 
   checkNickname: async (value: string): Promise<{ nickname: string; available: boolean }> => {
-    const res = await fetch(`${BASE}/auth/nickname/check?value=${encodeURIComponent(value)}`);
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({})) as { message?: string };
-      throw new Error(err.message ?? `HTTP ${res.status}`);
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+    try {
+      const res = await fetch(`${BASE}/auth/nickname/check?value=${encodeURIComponent(value)}`, { signal: controller.signal });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({})) as { message?: string };
+        throw new Error(err.message ?? `HTTP ${res.status}`);
+      }
+      return res.json();
+    } finally {
+      clearTimeout(timer);
     }
-    return res.json();
   },
 
   loginWithKakao: (code: string) =>
