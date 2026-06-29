@@ -149,6 +149,7 @@ export default function LoginScreen({ navigation }: Props) {
       setLoggedIn(true);
     } catch (e) {
       if (__DEV__) console.error('[kakao] login error:', e);
+      if ((e as { code?: string })?.code === 'E_CANCELLED') return;
       showToast('카카오 로그인에 실패했어요');
     } finally {
       setKakaoLoading(false);
