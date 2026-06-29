@@ -34,6 +34,26 @@ module.exports = {
     web: {
       favicon: './assets/images/logo/logo_2.png',
     },
-    plugins: [],
+    plugins: [
+      [
+        // ponytail: prebuild 시 colorPrimary가 #023c69으로 덮어써지는 문제 방지
+        './plugins/withAndroidColorPrimary',
+      ],
+      [
+        '@react-native-seoul/kakao-login',
+        {
+          kakaoAppKey: process.env.EXPO_PUBLIC_KAKAO_ANDROID_NATIVE_APP_KEY,
+          kotlinVersion: '2.0.21',
+        },
+      ],
+      [
+        'expo-build-properties',
+        {
+          android: {
+            extraMavenRepos: ['https://devrepo.kakao.com/nexus/content/groups/public/'],
+          },
+        },
+      ],
+    ],
   },
 };

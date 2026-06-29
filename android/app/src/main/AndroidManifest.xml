@@ -27,5 +27,13 @@
         <data android:scheme="kakao064f119585ac3464d0933271679fff60"/>
       </intent-filter>
     </activity>
+    <activity android:name="com.kakao.sdk.auth.AuthCodeHandlerActivity" android:exported="true">
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW"/>
+        <category android:name="android.intent.category.DEFAULT"/>
+        <category android:name="android.intent.category.BROWSABLE"/>
+        <data android:host="oauth" android:scheme="kakaoa9f0a957cdf5c7793d2ee0c38474d39c"/>
+      </intent-filter>
+    </activity>
   </application>
 </manifest>
