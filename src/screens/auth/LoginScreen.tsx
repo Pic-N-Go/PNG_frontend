@@ -158,7 +158,7 @@ export default function LoginScreen({ navigation }: Props) {
       const token = await kakaoLogin();
       if (__DEV__) console.log('[kakao] accessToken:', token.accessToken);
       // ponytail: 백엔드 API 연동 전 임시 처리 — API 완성 시 token을 서버로 전달
-      setLoggedIn(true);
+      setAuth('oauth-placeholder', { id: 0, email: '', nickname: '', profileImageUrl: null, role: 'USER', provider: 'kakao' });
     } catch (e) {
       if (__DEV__) console.error('[kakao] login error:', e);
       if ((e as { code?: string })?.code === 'E_CANCELLED') return;
@@ -380,8 +380,8 @@ export default function LoginScreen({ navigation }: Props) {
                 disabled={kakaoLoading}
                 style={{
                   flex: 1,
-                  height: normalize(48),
-                  borderRadius: normalize(24),
+                  height: SOCIAL_BUTTON_HEIGHT,
+                  borderRadius: SOCIAL_BUTTON_RADIUS,
                   backgroundColor: '#FEE500',
                   opacity: kakaoLoading ? 0.6 : 1,
                   flexDirection: 'row',
@@ -406,15 +406,29 @@ export default function LoginScreen({ navigation }: Props) {
               <Pressable
                 onPress={() => navigation.navigate('Onboarding', { provider: 'apple' })}
                 style={{
-                  fontSize: FONT_MD,
-                  color: '#391B1B',
-                  letterSpacing: -0.2,
-                  fontFamily: 'Pretendard-Medium',
+                  flex: 1,
+                  height: SOCIAL_BUTTON_HEIGHT,
+                  borderRadius: SOCIAL_BUTTON_RADIUS,
+                  backgroundColor: '#000',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
                 }}
               >
-                카카오로 계속하기
-              </Text>
-            </Pressable>
+                <Feather name="smartphone" size={14} color="#fff" />
+                <Text
+                  style={{
+                    fontSize: FONT_MD,
+                    color: '#fff',
+                    letterSpacing: -0.2,
+                    fontFamily: 'Pretendard-Medium',
+                  }}
+                >
+                  Apple
+                </Text>
+              </Pressable>
+            </View>
 
             {/* Signup link */}
             <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: SPACING_XL, paddingBottom: SPACING_XL }}>
