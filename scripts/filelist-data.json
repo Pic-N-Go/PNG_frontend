@@ -1,0 +1,66 @@
+{
+  "_how_to_update": [
+    "1. 본인 담당 파일의 status / date / note 를 수정한다.",
+    "2. 루트에서 'pnpm filelist' 를 실행해 filelist.html 을 재생성한다.",
+    "3. filelist-data.json 과 filelist.html 을 함께 커밋한다.",
+    "",
+    "status 값: '미시작' | '진행중' | '완료'",
+    "date 형식: 'YYYY-MM-DD' (최종 작업일, 빈값 허용)",
+    "note: 특이사항 자유 입력 (빈값 허용)"
+  ],
+
+  "auth/login.html": {
+    "status": "진행중",
+    "date": "2026-06-23",
+    "note": "api 담당자 : 소영재"
+  },
+  "auth/oauth-onboarding.html": {
+    "status": "진행중",
+    "date": "2026-06-23",
+    "note": ""
+  },
+  "auth/signup.html": {
+    "status": "진행중",
+    "date": "2026-06-23",
+    "note": "api 담당자 : 소영재"
+  },
+  "community/community-feed.html": {
+    "status": "미시작",
+    "date": "",
+    "note": ""
+  },
+  "community/community-post.html": {
+    "status": "미시작",
+    "date": "",
+    "note": ""
+  },
+  "community/community-write.html": {
+    "status": "미시작",
+    "date": "",
+    "note": ""
+  },
+  "home/home.html": { "status": "미시작", "date": "", "note": "" },
+  "home/map.html": { "status": "미시작", "date": "", "note": "" },
+  "mypage/follow.html": { "status": "미시작", "date": "", "note": "" },
+  "mypage/my-photos.html": { "status": "미시작", "date": "", "note": "" },
+  "mypage/my-reviews.html": { "status": "미시작", "date": "", "note": "" },
+  "mypage/mypage.html": { "status": "미시작", "date": "", "note": "" },
+  "mypage/notification.html": { "status": "미시작", "date": "", "note": "" },
+  "mypage/photo-map.html": { "status": "미시작", "date": "", "note": "" },
+  "mypage/profile-edit.html": { "status": "미시작", "date": "", "note": "" },
+  "mypage/setting.html": { "status": "미시작", "date": "", "note": "" },
+  "spot/review-write.html": { "status": "미시작", "date": "", "note": "" },
+  "spot/spot-change.html": { "status": "미시작", "date": "", "note": "" },
+  "spot/spot-detail.html": { "status": "미시작", "date": "", "note": "" },
+  "spot/spot-list.html": { "status": "미시작", "date": "", "note": "" },
+  "spot/spot-register.html": { "status": "미시작", "date": "", "note": "" },
+  "travel/travel-list.html": { "status": "미시작", "date": "", "note": "" },
+  "travel/travel-new.html": { "status": "미시작", "date": "", "note": "" },
+  "travel/travel-plan.html": { "status": "미시작", "date": "", "note": "" },
+  "wishlist/wishlist-setting.html": {
+    "status": "미시작",
+    "date": "",
+    "note": ""
+  },
+  "wishlist/wishlist.html": { "status": "미시작", "date": "", "note": "" }
+}
