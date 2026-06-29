@@ -10,11 +10,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 pnpm install          # install dependencies
-pnpm ios              # run on iOS simulator
-pnpm android          # run on Android emulator
-pnpm start            # start Expo dev server (scan with Expo Go)
+pnpm ios              # run on iOS simulator (bare workflow — Xcode + Metro 필요)
+pnpm android          # run on Android emulator (bare workflow — Android Studio + Metro 필요)
+pnpm start            # Metro 번들러 실행 (Xcode/Android Studio 빌드 후 별도 실행)
 pnpm web              # run in browser
 ```
+
+> **bare workflow 주의**: 이 프로젝트는 `expo prebuild`로 bare workflow 전환됨. `pnpm ios` 실행 전 `pnpm start`로 Metro를 먼저 실행하거나, Xcode에서 직접 빌드할 것. Expo Go 앱으로는 실행 불가.
 
 `pnpm lint` is configured. Test scripts are not configured yet.
 

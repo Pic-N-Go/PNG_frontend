@@ -54,8 +54,11 @@ Desktop.ini
 *.tsbuildinfo
 
 # generated native folders
-/ios
-/android
+# /ios
+# /android
+
+# Android debug keystore (개발용, 배포 키는 별도 관리)
+android/app/debug.keystore
 
 # AI
 .cursor

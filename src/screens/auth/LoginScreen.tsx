@@ -13,6 +13,7 @@ import {
 import { LinearGradient } from 'expo-linear-gradient';
 import { Feather } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { login as kakaoLogin } from '@react-native-seoul/kakao-login';
 import { AuthStackParamList } from '@/navigation/AuthStack';
 import { useAuthStore } from '@/store/useAuthStore';
 import AuthInput from '@/components/auth/AuthInput';
@@ -77,6 +78,8 @@ export default function LoginScreen({ navigation }: Props) {
   // Toast state
   const [toastMsg, setToastMsg] = useState('');
   const [toastVisible, setToastVisible] = useState(false);
+  // Kakao state
+  const [kakaoLoading, setKakaoLoading] = useState(false);
 
   useEffect(() => {
     return () => {
@@ -134,6 +137,23 @@ export default function LoginScreen({ navigation }: Props) {
   function showToast(msg: string) {
     setToastMsg(msg);
     setToastVisible(true);
+  }
+
+  async function handleKakaoLogin() {
+    if (kakaoLoading) return;
+    setKakaoLoading(true);
+    try {
+      const token = await kakaoLogin();
+      if (__DEV__) console.log('[kakao] accessToken:', token.accessToken);
+      // ponytail: 백엔드 API 연동 전 임시 처리 — API 완성 시 token을 서버로 전달
+      setLoggedIn(true);
+    } catch (e) {
+      if (__DEV__) console.error('[kakao] login error:', e);
+      if ((e as { code?: string })?.code === 'E_CANCELLED') return;
+      showToast('카카오 로그인에 실패했어요');
+    } finally {
+      setKakaoLoading(false);
+    }
   }
 
   const sheetEmailOk = EMAIL_RE.test(sheetEmail.trim());
@@ -342,12 +362,14 @@ export default function LoginScreen({ navigation }: Props) {
             {/* Social */}
             <View style={{ flexDirection: 'row', gap: 14 }}>
               <Pressable
-                onPress={() => navigation.navigate('Onboarding', { provider: 'kakao' })}
+                onPress={handleKakaoLogin}
+                disabled={kakaoLoading}
                 style={{
                   flex: 1,
                   height: normalize(48),
                   borderRadius: normalize(24),
                   backgroundColor: '#FEE500',
+                  opacity: kakaoLoading ? 0.6 : 1,
                   flexDirection: 'row',
                   alignItems: 'center',
                   justifyContent: 'center',
