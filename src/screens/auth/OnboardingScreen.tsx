@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '@/navigation/AuthStack';
@@ -36,6 +37,7 @@ const HERO_RATIO = 200 / 844;
 const NICK_RE = /^[가-힣a-zA-Z0-9]{2,10}$/;
 
 export default function OnboardingScreen({ navigation, route }: Props) {
+  const insets = useSafeAreaInsets();
   const { provider } = route.params;
   const setLoggedIn = useAuthStore((s) => s.setLoggedIn);
 
@@ -78,7 +80,7 @@ export default function OnboardingScreen({ navigation, route }: Props) {
         className="flex-1"
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <ScrollView bounces={false} showsVerticalScrollIndicator={false}>
+        <ScrollView bounces={false} showsVerticalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1 }}>
           {/* ── Hero Header ── */}
           <View style={{ height: heroHeight }}>
             <LinearGradient
@@ -123,7 +125,7 @@ export default function OnboardingScreen({ navigation, route }: Props) {
             />
 
             {/* Provider Badge */}
-            <View style={{ position: 'absolute', top: 70, left: 0, right: 0, alignItems: 'center' }}>
+            <View style={{ position: 'absolute', top: insets.top + 12, left: 0, right: 0, alignItems: 'center' }}>
               <View
                 style={{
                   flexDirection: 'row',

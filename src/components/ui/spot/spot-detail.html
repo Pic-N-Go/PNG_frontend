@@ -626,13 +626,104 @@
       .checklist {
         padding: 0 20px;
       }
+      .checklist__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 14px;
+      }
       .checklist__title {
         font-size: 20px;
         font-weight: 600;
         color: var(--color-text-primary);
         letter-spacing: -0.3px;
+      }
+      /* 수정 아이콘 — 완료 상태에서만 노출 */
+      .checklist__edit-btn {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        background: none;
+        border: none;
+        padding: 4px 0;
+        cursor: pointer;
+        color: rgba(0, 0, 0, 0.4);
+        font-size: 13px;
+        font-family: inherit;
+        letter-spacing: -0.2px;
+      }
+      .checklist__edit-btn:hover { color: var(--color-accent); }
+
+      /* ── 빈 상태 (체크리스트 미등록) ── */
+      .checklist-empty {
+        border-radius: 14px;
+        background: var(--color-surface);
+        padding: 16px;
+      }
+      .checklist-empty__prompt {
+        font-size: 14px;
+        color: rgba(0, 0, 0, 0.4);
+        letter-spacing: -0.2px;
         margin-bottom: 14px;
       }
+      /* 옵션 칩 그룹 */
+      .checklist-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 16px;
+      }
+      .checklist-chip {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 12px;
+        border-radius: 50px;
+        border: 1.2px solid rgba(0, 0, 0, 0.1);
+        background: #fff;
+        font-size: 13px;
+        letter-spacing: -0.2px;
+        color: var(--color-text-primary);
+        cursor: pointer;
+        transition: all 0.15s;
+      }
+      .checklist-chip.is-selected {
+        border-color: var(--color-accent);
+        background: rgba(227, 27, 89, 0.08);
+        color: var(--color-accent);
+      }
+      .checklist-chip__dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.15);
+        flex-shrink: 0;
+        transition: background 0.15s;
+      }
+      .checklist-chip.is-selected .checklist-chip__dot {
+        background: var(--color-accent);
+      }
+      /* 저장 버튼 */
+      .checklist-save-btn {
+        width: 100%;
+        height: 44px;
+        border-radius: 50px;
+        border: none;
+        background: var(--color-accent);
+        color: #fff;
+        font-size: 15px;
+        font-weight: 600;
+        letter-spacing: -0.2px;
+        cursor: pointer;
+        transition: background 0.15s, color 0.15s;
+      }
+      .checklist-save-btn:disabled {
+        background: rgba(0, 0, 0, 0.08);
+        color: rgba(0, 0, 0, 0.25);
+        cursor: default;
+      }
+
+      /* ── 완료 상태 (등록된 체크리스트) ── */
       .checklist__card {
         border-radius: 14px;
         background: var(--color-surface);
@@ -2338,103 +2429,36 @@
 
           <!-- Checklist -->
           <div class="checklist">
-            <h2 class="checklist__title">촬영 체크리스트</h2>
-            <div class="checklist__card">
-              <div class="checklist__item" onclick="toggleCheck(this)">
-                <div class="checklist__check checklist__check--on">
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 14 14"
-                    fill="none"
-                    stroke="#fff"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <polyline points="3,7 6,10 11,4" />
-                  </svg>
-                </div>
-                <span class="checklist__label checklist__label--on"
-                  >삼각대 필요</span
-                >
+            <div class="checklist__header">
+              <h2 class="checklist__title">촬영 체크리스트</h2>
+              <!-- 수정 버튼: 완료 상태(checklist--done)일 때만 노출 -->
+              <button class="checklist__edit-btn" id="checklistEditBtn" onclick="enterChecklistEdit()" style="display:none">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9.5 2.5l2 2L4 12H2v-2L9.5 2.5z"/>
+                </svg>
+                수정
+              </button>
+            </div>
+
+            <!-- 빈 상태: 체크리스트 미등록 시 노출 / 완료 상태에서는 미노출 -->
+            <div class="checklist-empty" id="checklistEmpty">
+              <p class="checklist-empty__prompt">촬영에 필요한 항목을 선택해 체크리스트를 등록하세요.</p>
+              <div class="checklist-chips" id="checklistChips">
+                <button type="button" class="checklist-chip" aria-pressed="false" onclick="toggleChip(this)"><span class="checklist-chip__dot"></span>삼각대</button>
+                <button type="button" class="checklist-chip" aria-pressed="false" onclick="toggleChip(this)"><span class="checklist-chip__dot"></span>광각렌즈 (16-35mm)</button>
+                <button type="button" class="checklist-chip" aria-pressed="false" onclick="toggleChip(this)"><span class="checklist-chip__dot"></span>ND 필터</button>
+                <button type="button" class="checklist-chip" aria-pressed="false" onclick="toggleChip(this)"><span class="checklist-chip__dot"></span>보조배터리</button>
+                <button type="button" class="checklist-chip" aria-pressed="false" onclick="toggleChip(this)"><span class="checklist-chip__dot"></span>편한 신발</button>
+                <button type="button" class="checklist-chip" aria-pressed="false" onclick="toggleChip(this)"><span class="checklist-chip__dot"></span>방수 재킷</button>
+                <button type="button" class="checklist-chip" aria-pressed="false" onclick="toggleChip(this)"><span class="checklist-chip__dot"></span>여분 메모리카드</button>
+                <button type="button" class="checklist-chip" aria-pressed="false" onclick="toggleChip(this)"><span class="checklist-chip__dot"></span>손전등</button>
               </div>
-              <div class="checklist__item" onclick="toggleCheck(this)">
-                <div class="checklist__check checklist__check--on">
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 14 14"
-                    fill="none"
-                    stroke="#fff"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <polyline points="3,7 6,10 11,4" />
-                  </svg>
-                </div>
-                <span class="checklist__label checklist__label--on"
-                  >광각렌즈 추천 (16-35mm)</span
-                >
-              </div>
-              <div class="checklist__item" onclick="toggleCheck(this)">
-                <div class="checklist__check checklist__check--off">
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 14 14"
-                    fill="none"
-                    stroke="#fff"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <polyline points="3,7 6,10 11,4" />
-                  </svg>
-                </div>
-                <span class="checklist__label checklist__label--off"
-                  >ND 필터 (일출/일몰용)</span
-                >
-              </div>
-              <div class="checklist__item" onclick="toggleCheck(this)">
-                <div class="checklist__check checklist__check--off">
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 14 14"
-                    fill="none"
-                    stroke="#fff"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <polyline points="3,7 6,10 11,4" />
-                  </svg>
-                </div>
-                <span class="checklist__label checklist__label--off"
-                  >보조배터리</span
-                >
-              </div>
-              <div class="checklist__item" onclick="toggleCheck(this)">
-                <div class="checklist__check checklist__check--off">
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 14 14"
-                    fill="none"
-                    stroke="#fff"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <polyline points="3,7 6,10 11,4" />
-                  </svg>
-                </div>
-                <span class="checklist__label checklist__label--off"
-                  >편한 신발 (모래사장)</span
-                >
-              </div>
+              <button class="checklist-save-btn" id="checklistSaveBtn" onclick="saveChecklist()" disabled>저장</button>
+            </div>
+
+            <!-- 완료 상태: 항목 저장 후 노출 / 빈 상태에서는 미노출 -->
+            <div class="checklist__card" id="checklistDone" style="display:none">
+              <!-- JS로 선택된 항목 렌더링 -->
             </div>
           </div>
 
@@ -3465,13 +3489,64 @@
         showToast("즐겨찾기에서 제거됐어요");
       }
 
-      /* ── 체크리스트 토글 ── */
+      /* ── 체크리스트 ── */
+
+      // 모듈 스코프로 호이스팅 — toggleCheck에서도 SVG 복원에 사용
+      const SVG_CHECK = `<svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3,7 6,10 11,4"/></svg>`;
+
+      // 칩 선택/해제 — 1개 이상 선택 시 저장 버튼 활성화
+      function toggleChip(chip) {
+        const selected = chip.classList.toggle("is-selected");
+        chip.setAttribute("aria-pressed", String(selected));
+        const anySelected = document.querySelectorAll(".checklist-chip.is-selected").length > 0;
+        document.getElementById("checklistSaveBtn").disabled = !anySelected;
+      }
+
+      // 저장: 선택된 칩 → 완료 상태 렌더링
+      function saveChecklist() {
+        const selected = [...document.querySelectorAll(".checklist-chip.is-selected")]
+          .map(c => c.textContent.trim());
+        renderChecklistDone(selected);
+      }
+
+      // 완료 상태 렌더링
+      function renderChecklistDone(items) {
+        document.getElementById("checklistDone").innerHTML = items.map(label =>
+          `<button type="button" class="checklist__item" aria-pressed="true" onclick="toggleCheck(this)">
+            <div class="checklist__check checklist__check--on">${SVG_CHECK}</div>
+            <span class="checklist__label checklist__label--on">${label}</span>
+          </button>`
+        ).join("");
+        document.getElementById("checklistEmpty").style.display = "none";
+        document.getElementById("checklistDone").style.display = "block";
+        document.getElementById("checklistEditBtn").style.display = "flex";
+      }
+
+      // 수정 버튼: 완료 상태 → 칩 선택 모드로 복귀
+      // 저장된 항목 기준으로 칩 is-selected 재동기화
+      function enterChecklistEdit() {
+        const savedLabels = new Set(
+          [...document.querySelectorAll("#checklistDone .checklist__label")]
+            .map(el => el.textContent.trim())
+        );
+        document.querySelectorAll(".checklist-chip").forEach(chip => {
+          const label = chip.textContent.trim();
+          chip.classList.toggle("is-selected", savedLabels.has(label));
+        });
+        document.getElementById("checklistSaveBtn").disabled = savedLabels.size === 0;
+        document.getElementById("checklistDone").style.display = "none";
+        document.getElementById("checklistEditBtn").style.display = "none";
+        document.getElementById("checklistEmpty").style.display = "block";
+      }
+
+      // 완료 상태에서 개별 항목 체크 토글 — off 시 SVG 제거, on 시 복원
       function toggleCheck(item) {
         const check = item.querySelector(".checklist__check");
         const label = item.querySelector(".checklist__label");
         const isOn = check.classList.contains("checklist__check--on");
         check.classList.toggle("checklist__check--on", !isOn);
         check.classList.toggle("checklist__check--off", isOn);
+        check.innerHTML = isOn ? "" : SVG_CHECK;
         label.classList.toggle("checklist__label--on", !isOn);
         label.classList.toggle("checklist__label--off", isOn);
       }

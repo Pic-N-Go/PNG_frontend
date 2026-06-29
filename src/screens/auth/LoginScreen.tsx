@@ -14,6 +14,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Feather } from '@expo/vector-icons';
 import { useMutation } from '@tanstack/react-query';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { login as kakaoLogin } from '@react-native-seoul/kakao-login';
 import { AuthStackParamList } from '@/navigation/AuthStack';
 import { useAuthStore } from '@/store/useAuthStore';
 import { authApi } from '@/api/auth';
@@ -81,6 +82,8 @@ export default function LoginScreen({ navigation }: Props) {
   // Toast state
   const [toastMsg, setToastMsg] = useState('');
   const [toastVisible, setToastVisible] = useState(false);
+  // Kakao state
+  const [kakaoLoading, setKakaoLoading] = useState(false);
 
   const canLogin = email.trim().length > 0 && password.length > 0;
 
@@ -148,6 +151,23 @@ export default function LoginScreen({ navigation }: Props) {
     setToastVisible(true);
   }
 
+  async function handleKakaoLogin() {
+    if (kakaoLoading) return;
+    setKakaoLoading(true);
+    try {
+      const token = await kakaoLogin();
+      if (__DEV__) console.log('[kakao] accessToken:', token.accessToken);
+      // ponytail: 백엔드 API 연동 전 임시 처리 — API 완성 시 token을 서버로 전달
+      setLoggedIn(true);
+    } catch (e) {
+      if (__DEV__) console.error('[kakao] login error:', e);
+      if ((e as { code?: string })?.code === 'E_CANCELLED') return;
+      showToast('카카오 로그인에 실패했어요');
+    } finally {
+      setKakaoLoading(false);
+    }
+  }
+
   const sheetEmailOk = EMAIL_RE.test(sheetEmail.trim());
   const sheetCodeOk = sheetCode.replace(/\D/g, '').length === 6;
 
@@ -157,7 +177,7 @@ export default function LoginScreen({ navigation }: Props) {
         className="flex-1"
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <ScrollView bounces={false} showsVerticalScrollIndicator={false}>
+        <ScrollView bounces={false} showsVerticalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1 }}>
           {/* ── Hero ── */}
           <View style={{ height: heroHeight }}>
             <LinearGradient
@@ -354,20 +374,37 @@ export default function LoginScreen({ navigation }: Props) {
             </View>
 
             {/* Social */}
-            <Pressable
-              onPress={() => navigation.navigate('Onboarding', { provider: 'kakao' })}
-              style={{
-                height: SOCIAL_BUTTON_HEIGHT,
-                borderRadius: SOCIAL_BUTTON_RADIUS,
-                backgroundColor: '#FEE500',
-                flexDirection: 'row',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: 6,
-              }}
-            >
-              <Text style={{ fontSize: 14, fontWeight: '700', color: '#391B1B' }}>K</Text>
-              <Text
+            <View style={{ flexDirection: 'row', gap: 14 }}>
+              <Pressable
+                onPress={handleKakaoLogin}
+                disabled={kakaoLoading}
+                style={{
+                  flex: 1,
+                  height: normalize(48),
+                  borderRadius: normalize(24),
+                  backgroundColor: '#FEE500',
+                  opacity: kakaoLoading ? 0.6 : 1,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 6,
+                }}
+              >
+                <Text style={{ fontSize: 14, fontWeight: '700', color: '#391B1B' }}>K</Text>
+                <Text
+                  style={{
+                    fontSize: FONT_MD,
+                    color: '#391B1B',
+                    letterSpacing: -0.2,
+                    fontFamily: 'Pretendard-Medium',
+                  }}
+                >
+                  카카오
+                </Text>
+              </Pressable>
+
+              <Pressable
+                onPress={() => navigation.navigate('Onboarding', { provider: 'apple' })}
                 style={{
                   fontSize: FONT_MD,
                   color: '#391B1B',

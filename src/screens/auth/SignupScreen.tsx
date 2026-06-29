@@ -10,6 +10,7 @@ import {
   View,
 } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { useMutation } from '@tanstack/react-query';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -59,7 +60,7 @@ const STRENGTH_COLORS = ['rgba(0,0,0,0.06)', '#FF453A', '#FF9F0A', '#34C759', '#
 
 export default function SignupScreen({ navigation }: Props) {
   const setAuth = useAuthStore((s) => s.setAuth);
-
+  const insets = useSafeAreaInsets();
   const { height: SCREEN_H } = useWindowDimensions();
   const initialHeroHeightRef = useRef<number | null>(null);
   const computedHeroHeight = Math.min(Math.max(SCREEN_H * HERO_RATIO, 130), 200);
@@ -164,7 +165,7 @@ export default function SignupScreen({ navigation }: Props) {
         className="flex-1"
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
-        <ScrollView bounces={false} showsVerticalScrollIndicator={false}>
+        <ScrollView bounces={false} showsVerticalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1 }}>
           {/* ── Hero Header ── */}
           <View style={{ height: heroHeight }}>
             <LinearGradient
@@ -186,7 +187,7 @@ export default function SignupScreen({ navigation }: Props) {
               }}
             />
             {/* Back Button */}
-            <View style={{ position: 'absolute', top: 60, left: 12, right: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <View style={{ position: 'absolute', top: insets.top + 8, left: 12, right: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
               <Pressable
                 onPress={() => navigation.goBack()}
                 hitSlop={8}
