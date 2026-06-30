@@ -15,6 +15,9 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function RootNavigator() {
   const isLoggedIn = useAuthStore((s) => !!s.accessToken);
+  const hydrated = useAuthStore.persist.hasHydrated();
+
+  if (!hydrated) return null;
 
   return (
     <NavigationContainer>
