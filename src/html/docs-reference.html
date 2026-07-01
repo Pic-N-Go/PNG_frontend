@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PNG 개발 문서 레퍼런스</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0D1117;
+      --surface: #161B22;
+      --surface-hover: #1C2128;
+      --border: #30363D;
+      --text: #F0F6FC;
+      --text-secondary: #8B949E;
+      --text-tertiary: #484F58;
+      --accent: #E31B59;
+      --accent-dim: rgba(227, 27, 89, 0.12);
+      --accent-border: rgba(227, 27, 89, 0.35);
+      --mono: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+      --sans: -apple-system, 'Segoe UI', system-ui, sans-serif;
+    }
+
+    html { font-size: 14px; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      line-height: 1.6;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .page {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 48px 24px 80px;
+    }
+
+    .header { margin-bottom: 40px; }
+
+    .header-eyebrow {
+      font-size: 11px;
+      font-family: var(--mono);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+
+    .header h1 {
+      font-size: 26px;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      line-height: 1.2;
+      text-wrap: balance;
+      margin-bottom: 10px;
+    }
+
+    .header-desc {
+      font-size: 13px;
+      color: var(--text-secondary);
+      max-width: 520px;
+    }
+
+    .filter-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-bottom: 28px;
+    }
+
+    .filter-chip {
+      padding: 5px 12px;
+      border-radius: 20px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-secondary);
+      font-size: 12px;
+      font-family: var(--sans);
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+
+    .filter-chip:hover {
+      border-color: var(--accent-border);
+      color: var(--text);
+    }
+
+    .filter-chip.active {
+      background: var(--accent-dim);
+      border-color: var(--accent-border);
+      color: var(--accent);
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    thead tr {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      padding: 11px 16px;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+      white-space: nowrap;
+    }
+
+    tbody tr {
+      border-bottom: 1px solid var(--border);
+      transition: background 0.1s;
+    }
+
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: var(--surface-hover); }
+    tbody tr.hidden { display: none; }
+
+    td { padding: 12px 16px; vertical-align: top; }
+
+    .filepath {
+      display: inline-block;
+      font-family: var(--mono);
+      font-size: 11.5px;
+      color: var(--accent);
+      background: var(--accent-dim);
+      border: 1px solid var(--accent-border);
+      padding: 2px 7px;
+      border-radius: 4px;
+      white-space: nowrap;
+      margin: 2px 2px 2px 0;
+    }
+
+    .filepath-neutral {
+      color: #79C0FF;
+      background: rgba(121,192,255,0.08);
+      border-color: rgba(121,192,255,0.25);
+    }
+
+    .situation {
+      color: var(--text);
+      font-weight: 500;
+      line-height: 1.4;
+    }
+
+    .desc {
+      font-size: 12px;
+      color: var(--text-secondary);
+      margin-top: 4px;
+      line-height: 1.5;
+    }
+
+    .files-cell { min-width: 240px; }
+
+    .count {
+      font-size: 11px;
+      color: var(--text-tertiary);
+      margin-bottom: 16px;
+      font-family: var(--mono);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .empty-state {
+      display: none;
+      padding: 48px 16px;
+      text-align: center;
+      color: var(--text-tertiary);
+      font-size: 13px;
+    }
+
+    .empty-state.visible { display: block; }
+
+    .section-row td {
+      padding: 6px 16px;
+      background: var(--surface);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-tertiary);
+      font-weight: 500;
+      border-top: 1px solid var(--border);
+    }
+
+    .section-row:first-child td { border-top: none; }
+
+    @media (max-width: 600px) {
+      .page { padding: 32px 16px 60px; }
+      .header h1 { font-size: 20px; }
+      th:nth-child(3), td:nth-child(3) { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="header">
+      <div class="header-eyebrow">PNG · Pick N Go</div>
+      <h1>개발 문서 레퍼런스</h1>
+      <p class="header-desc">상황별로 어떤 문서를 확인해야 하는지 정리한 인덱스입니다. 작업 전 해당 항목을 먼저 확인하세요.</p>
+    </div>
+
+    <div class="filter-bar">
+      <button class="filter-chip active" data-cat="all">전체</button>
+      <button class="filter-chip" data-cat="setup">환경 설정</button>
+      <button class="filter-chip" data-cat="screen">화면 구현</button>
+      <button class="filter-chip" data-cat="style">스타일·반응형</button>
+      <button class="filter-chip" data-cat="api">API</button>
+      <button class="filter-chip" data-cat="ops">운영·CI</button>
+      <button class="filter-chip" data-cat="ai">AI 협업</button>
+    </div>
+
+    <div class="count" id="count"></div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width:36%">이런 상황일 때</th>
+            <th style="width:30%">확인할 파일</th>
+            <th style="width:34%">무엇을 얻을 수 있나</th>
+          </tr>
+        </thead>
+        <tbody id="tbody">
+
+          <!-- 환경 설정 -->
+          <tr class="section-row"><td colspan="3">환경 설정</td></tr>
+
+          <tr data-cat="setup">
+            <td><div class="situation">프로젝트 처음 셋업할 때</div><div class="desc">의존성 설치, 실행 명령어</div></td>
+            <td class="files-cell"><span class="filepath filepath-neutral">README.md</span></td>
+            <td class="desc">pnpm install, iOS/Android 실행 명령어, bare workflow 주의사항</td>
+          </tr>
+          <tr data-cat="setup">
+            <td><div class="situation">환경변수 추가·확인할 때</div></td>
+            <td class="files-cell"><span class="filepath filepath-neutral">README.md</span> <span class="filepath filepath-neutral">.env.example</span></td>
+            <td class="desc">EXPO_PUBLIC_ prefix 규칙, .env 세팅 방법, 변수 추가 프로세스</td>
+          </tr>
+          <tr data-cat="setup">
+            <td><div class="situation">브랜치명·커밋·PR 제목 규칙 확인</div></td>
+            <td class="files-cell"><span class="filepath filepath-neutral">.github/CONVENTIONS.md</span></td>
+            <td class="desc">feature/, fix/ 브랜치 패턴, feat:/fix:/chore: 커밋 타입, PR 템플릿 항목</td>
+          </tr>
+
+          <!-- 화면 구현 -->
+          <tr class="section-row"><td colspan="3">화면 구현</td></tr>
+
+          <tr data-cat="screen">
+            <td><div class="situation">어떤 화면이 있는지 전체 파악할 때</div></td>
+            <td class="files-cell"><span class="filepath">docs/guide/dev/ui-publishing.md</span></td>
+            <td class="desc">전체 HTML 목업 폴더 구조, 화면별 주요 기능, 화면 간 네비게이션 흐름도</td>
+          </tr>
+          <tr data-cat="screen">
+            <td><div class="situation">HTML 목업 파일 보고 RN 구현할 때</div></td>
+            <td class="files-cell"><span class="filepath">docs/guide/dev/ui-publishing.md</span> <span class="filepath">docs/guide/dev/development-guide.md</span></td>
+            <td class="desc">목업 열기 방법(390px 뷰포트), 바텀시트·콜랩스 헤더 등 공통 UI 패턴, 화면 구현 순서</td>
+          </tr>
+          <tr data-cat="screen">
+            <td><div class="situation">Safe Area / 노치·홈인디케이터 처리</div></td>
+            <td class="files-cell"><span class="filepath">docs/guide/dev/device-support.md</span> <span class="filepath">docs/guide/dev/development-guide.md</span></td>
+            <td class="desc">ScreenContainer 사용법, edges 옵션, 히어로 화면 예외 처리</td>
+          </tr>
+          <tr data-cat="screen">
+            <td><div class="situation">이 화면 담당자가 누구인지 확인</div></td>
+            <td class="files-cell"><span class="filepath filepath-neutral">docs/guide/ops/team-assignments.md</span></td>
+            <td class="desc">화면별 담당자 + 구현 상태(미시작/진행중/완료)</td>
+          </tr>
+          <tr data-cat="screen">
+            <td><div class="situation">상태 관리 — 어디에 뭘 써야 하나</div></td>
+            <td class="files-cell"><span class="filepath">docs/guide/dev/development-guide.md</span></td>
+            <td class="desc">클라이언트 상태(Zustand) vs 서버 상태(TanStack Query) 구분 기준</td>
+          </tr>
+
+          <!-- 스타일·반응형 -->
+          <tr class="section-row"><td colspan="3">스타일 · 반응형</td></tr>
+
+          <tr data-cat="style">
+            <td><div class="situation">목업 px 값을 RN에 옮길 때</div><div class="desc">className vs style prop 어디에 넣나</div></td>
+            <td class="files-cell"><span class="filepath">docs/guide/dev/development-guide.md</span></td>
+            <td class="desc">className(패딩·gap) vs layout.ts 상수(높이·폰트) 기준표, FONT_* 전체 px 매핑</td>
+          </tr>
+          <tr data-cat="style">
+            <td><div class="situation">반응형 구현 — 기기별 스케일링 방법</div></td>
+            <td class="files-cell"><span class="filepath">docs/guide/dev/development-guide.md</span> <span class="filepath">docs/guide/dev/device-support.md</span></td>
+            <td class="desc">normalize / normalizeFontSize 원리·공식·기기별 출력값 표, 시뮬레이터 확인 방법</td>
+          </tr>
+          <tr data-cat="style">
+            <td><div class="situation">지원 기기 목록 및 dp 범위 확인</div></td>
+            <td class="files-cell"><span class="filepath">docs/guide/dev/device-support.md</span></td>
+            <td class="desc">iOS/Android 지원 기기 표, 360~430dp 범위, 태블릿 미지원 사유</td>
+          </tr>
+          <tr data-cat="style">
+            <td><div class="situation">layout.ts에 없는 상수를 새로 추가해야 할 때</div></td>
+            <td class="files-cell"><span class="filepath">docs/guide/dev/development-guide.md</span> <span class="filepath filepath-neutral">src/constants/layout.ts</span></td>
+            <td class="desc">normalize vs normalizeFontSize 선택 기준, 상수화 vs 인라인 판단 기준</td>
+          </tr>
+          <tr data-cat="style">
+            <td><div class="situation">디자인 토큰(컬러·폰트·spacing) 확인</div></td>
+            <td class="files-cell"><span class="filepath">docs/guide/dev/ui-publishing.md</span> <span class="filepath filepath-neutral">CLAUDE.md</span></td>
+            <td class="desc">CSS 변수 전체 목록(--color-accent, --color-surface 등), 브랜드 컬러 #E31B59</td>
+          </tr>
+
+          <!-- API -->
+          <tr class="section-row"><td colspan="3">API</td></tr>
+
+          <tr data-cat="api">
+            <td><div class="situation">인증 API 엔드포인트 확인</div><div class="desc">로그인·회원가입·토큰 갱신</div></td>
+            <td class="files-cell"><span class="filepath filepath-neutral">docs/guide/api/auth-api.md</span></td>
+            <td class="desc">Request/Response 스펙, 에러 코드, 이메일 미인증 처리 방법</td>
+          </tr>
+          <tr data-cat="api">
+            <td><div class="situation">API 함수·훅 작성 패턴</div><div class="desc">fetch → hook 구조 어떻게 잡나</div></td>
+            <td class="files-cell"><span class="filepath">docs/guide/dev/development-guide.md</span></td>
+            <td class="desc">src/api/(순수 fetch) → src/hooks/(TanStack Query 훅) 레이어 분리 패턴 + 코드 예시</td>
+          </tr>
+          <tr data-cat="api">
+            <td><div class="situation">인증 연동 현황 파악</div><div class="desc">어디까지 붙었는지</div></td>
+            <td class="files-cell"><span class="filepath filepath-neutral">docs/guide/api/auth-integration.md</span></td>
+            <td class="desc">로그인·회원가입 API 연동 상태, 남은 작업 목록</td>
+          </tr>
+          <tr data-cat="api">
+            <td><div class="situation">JWT 토큰 관리 방법</div></td>
+            <td class="files-cell"><span class="filepath">docs/guide/dev/development-guide.md</span></td>
+            <td class="desc">accessToken 저장(Zustand), 만료 시 갱신 흐름, useAuthStore 사용법</td>
+          </tr>
+
+          <!-- 운영·CI -->
+          <tr class="section-row"><td colspan="3">운영 · CI</td></tr>
+
+          <tr data-cat="ops">
+            <td><div class="situation">PR 머지 전 확인사항</div></td>
+            <td class="files-cell"><span class="filepath filepath-neutral">.github/CONVENTIONS.md</span></td>
+            <td class="desc">tsc --noEmit, pnpm lint, 셀프 리뷰, CI 통과 체크리스트</td>
+          </tr>
+          <tr data-cat="ops">
+            <td><div class="situation">CI 실패 원인 파악 및 대응</div></td>
+            <td class="files-cell"><span class="filepath filepath-neutral">docs/guide/ops/github-actions-guide.md</span></td>
+            <td class="desc">워크플로우별 역할(ci/labeler/reviewdog), 실패 시 확인 포인트</td>
+          </tr>
+          <tr data-cat="ops">
+            <td><div class="situation">PR 라벨이 자동으로 안 붙을 때</div></td>
+            <td class="files-cell"><span class="filepath filepath-neutral">docs/guide/ops/github-actions-guide.md</span> <span class="filepath filepath-neutral">.github/CONVENTIONS.md</span></td>
+            <td class="desc">labeler.yml 동작 조건, 브랜치명·PR 제목 패턴 확인</td>
+          </tr>
+          <tr data-cat="ops">
+            <td><div class="situation">git pull 후 패키지 설치 안 됐을 때</div></td>
+            <td class="files-cell"><span class="filepath filepath-neutral">.github/CONVENTIONS.md</span></td>
+            <td class="desc">post-merge Husky 훅 설명, pnpm-lock.yaml 변경 시 자동 설치 동작</td>
+          </tr>
+
+          <!-- AI 협업 -->
+          <tr class="section-row"><td colspan="3">AI 협업</td></tr>
+
+          <tr data-cat="ai">
+            <td><div class="situation">AI에게 작업 맡기기 전 컨텍스트 제공</div></td>
+            <td class="files-cell"><span class="filepath filepath-neutral">docs/ai/00-context.md</span></td>
+            <td class="desc">프로젝트 기술 스택·구조·규칙 요약 — AI 프롬프트 첫 줄에 붙여 쓰는 컨텍스트</td>
+          </tr>
+          <tr data-cat="ai">
+            <td><div class="situation">새 기능 스펙 문서 작성</div></td>
+            <td class="files-cell"><span class="filepath filepath-neutral">docs/ai/01-feature-spec-template.md</span></td>
+            <td class="desc">기능 스펙 템플릿 — 배경·요구사항·엣지케이스·완료 기준 항목</td>
+          </tr>
+          <tr data-cat="ai">
+            <td><div class="situation">구현 계획(태스크 분해) 작성</div></td>
+            <td class="files-cell"><span class="filepath filepath-neutral">docs/ai/02-implementation-plan-template.md</span></td>
+            <td class="desc">스펙 → 태스크 단위 분해 템플릿, 의존성 순서 정리</td>
+          </tr>
+          <tr data-cat="ai">
+            <td><div class="situation">AI 결과물 PR 리뷰 체크</div></td>
+            <td class="files-cell"><span class="filepath filepath-neutral">docs/ai/03-pr-review-checklist.md</span></td>
+            <td class="desc">AI 생성 코드 리뷰 시 놓치기 쉬운 항목 체크리스트</td>
+          </tr>
+          <tr data-cat="ai">
+            <td><div class="situation">AI 프롬프트를 잘 쓰고 싶을 때</div></td>
+            <td class="files-cell"><span class="filepath filepath-neutral">docs/guide/dev/prompt-writing-guide.md</span></td>
+            <td class="desc">맥락 제공 방법, 좋은/나쁜 프롬프트 예시, 반복 작업 효율화 팁</td>
+          </tr>
+
+        </tbody>
+      </table>
+      <div class="empty-state" id="empty">해당 카테고리에 항목이 없습니다.</div>
+    </div>
+  </div>
+
+  <script>
+    const chips = document.querySelectorAll('.filter-chip');
+    const rows = document.querySelectorAll('tbody tr[data-cat]');
+    const sectionRows = document.querySelectorAll('tbody tr.section-row');
+    const countEl = document.getElementById('count');
+    const emptyEl = document.getElementById('empty');
+
+    const CAT_LABELS = {
+      setup: '환경 설정', screen: '화면 구현', style: '스타일·반응형',
+      api: 'API', ops: '운영·CI', ai: 'AI 협업',
+    };
+
+    function filter(cat) {
+      let visible = 0;
+      rows.forEach(row => {
+        const show = cat === 'all' || row.dataset.cat === cat;
+        row.classList.toggle('hidden', !show);
+        if (show) visible++;
+      });
+      sectionRows.forEach(section => {
+        let next = section.nextElementSibling;
+        let hasVisible = false;
+        while (next && !next.classList.contains('section-row')) {
+          if (!next.classList.contains('hidden')) hasVisible = true;
+          next = next.nextElementSibling;
+        }
+        section.classList.toggle('hidden', !hasVisible);
+      });
+      emptyEl.classList.toggle('visible', visible === 0);
+      countEl.textContent = cat === 'all'
+        ? `총 ${rows.length}개 항목`
+        : `${CAT_LABELS[cat]} · ${visible}개 항목`;
+    }
+
+    chips.forEach(chip => {
+      chip.addEventListener('click', () => {
+        chips.forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        filter(chip.dataset.cat);
+      });
+    });
+
+    filter('all');
+  </script>
+</body>
+</html>
