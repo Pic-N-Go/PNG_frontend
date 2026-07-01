@@ -115,6 +115,25 @@ src/
 - **NativeWind `className`만 사용** — `StyleSheet.create()` 사용 금지
 - Tailwind 단위(`px-7` 등)는 고정 픽셀. 기기별 스케일링이 필요한 값(버튼 높이, 폰트 크기)은 `src/constants/layout.ts` 상수 사용
 
+#### className vs layout.ts 상수 기준
+
+| 값 종류 | 방법 | 예시 |
+|---|---|---|
+| 패딩 · 마진 · gap | `className` | `className="px-7 gap-2"` |
+| 폰트 크기 | `layout.ts` 상수 (`FONT_*`) | `fontSize: FONT_LG` |
+| 버튼·인풋 높이 | `layout.ts` 상수 | `height: BUTTON_HEIGHT` |
+| border-radius (pill·card) | `layout.ts` 상수 | `borderRadius: BUTTON_RADIUS` |
+| 스케일 외 폰트 크기 (12px 등) | `normalizeFontSize(n)` 인라인 | `fontSize: normalizeFontSize(12)` |
+
+> **raw 픽셀 사용 금지**: `fontSize: 12`, `height: 52` 등 raw 숫자를 직접 쓰지 않습니다.  
+> `FONT_*` 상수가 없는 크기는 `normalizeFontSize(n)`으로 감싸 기기 스케일링을 보장합니다.
+
+#### normalizeFontSize 사용 기준
+
+- **`FONT_*` 상수로 커버되는 크기** (11·13·15·17·22·28px): 반드시 상수 사용
+- **그 외 크기** (12·14·16·20px 등): `normalizeFontSize(n)` 인라인 사용
+- **로고·히어로 타이틀 등 핵심 브랜드 요소**: `normalizeFontSize` 또는 `normalize` 적용 권장
+
 ```tsx
 // ✅ 올바른 사용
 <TouchableOpacity
@@ -126,8 +145,15 @@ src/
   </Text>
 </TouchableOpacity>
 
+// ✅ 스케일 외 크기
+<Text style={{ fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.4)' }}>
+  레이블
+</Text>
+
 // ❌ 사용 금지
 const styles = StyleSheet.create({ button: { height: 52 } });
+// ❌ raw 픽셀 직접 사용
+<Text style={{ fontSize: 12 }}>레이블</Text>
 ```
 
 ### import 경로

@@ -152,7 +152,7 @@ export default function OnboardingScreen({ navigation, route }: Props) {
                   }}
                 >
                   {isKakao ? (
-                    <Text style={{ fontSize: 11, fontWeight: '700', color: '#391B1B' }}>K</Text>
+                    <Text style={{ fontSize: FONT_XS, fontWeight: '700', color: '#391B1B' }}>K</Text>
                   ) : (
                     <Feather name="smartphone" size={12} color="#fff" />
                   )}
