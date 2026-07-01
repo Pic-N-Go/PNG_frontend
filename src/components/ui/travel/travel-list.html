@@ -160,6 +160,54 @@
       }
       .section.is-hidden { display: none; }
 
+      /* ── Empty State ── */
+      .empty-state {
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        padding: 64px 28px 40px;
+        text-align: center;
+      }
+      .empty-state.is-visible { display: flex; }
+      .empty-state__illust {
+        width: 80px; height: 80px;
+        border-radius: 24px;
+        background: var(--color-surface);
+        display: flex; align-items: center; justify-content: center;
+        margin-bottom: 20px;
+        color: rgba(0,0,0,0.18);
+      }
+      .empty-state__title {
+        font-size: var(--font-lg);
+        font-weight: 600;
+        color: #000;
+        letter-spacing: -0.3px;
+        margin-bottom: 8px;
+      }
+      .empty-state__desc {
+        font-size: var(--font-sm);
+        color: rgba(0,0,0,0.4);
+        letter-spacing: -0.1px;
+        line-height: 1.6;
+        margin-bottom: 28px;
+      }
+      .empty-state__btn {
+        height: 48px;
+        padding: 0 28px;
+        border-radius: 24px;
+        border: none;
+        background: var(--color-accent);
+        font-family: var(--font-family);
+        font-size: var(--font-base);
+        font-weight: 600;
+        color: #fff;
+        cursor: pointer;
+        letter-spacing: -0.1px;
+        display: flex; align-items: center; gap: 6px;
+        transition: background 0.15s;
+      }
+      .empty-state__btn:hover { background: var(--color-accent-hover); }
+
       /* ── 섹션 헤더 ── */
       .section-header {
         display: flex;
@@ -236,11 +284,11 @@
         color: #fff;
       }
       .plan-card__status--upcoming {
-        background: rgba(0, 0, 0, 0.35);
+        background: rgba(227, 27, 89, 0.85);
         color: #fff;
       }
       .plan-card__status--done {
-        background: rgba(0, 0, 0, 0.2);
+        background: rgba(0, 0, 0, 0.28);
         color: #fff;
       }
       .plan-card__spot-count {
@@ -421,9 +469,7 @@
         <div class="page-nav__large">
           <span class="page-nav__large-title">출사 계획</span>
           <button class="page-nav__compose" aria-label="새 계획" onclick="location.href='./travel-new.html'">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-            </svg>
+            <svg width="22" height="22" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5l0 14"/><path d="M5 12l14 0"/></svg>
           </button>
         </div>
         <!-- 섹션 탭 -->
@@ -443,14 +489,22 @@
         </div>
       </div>
 
+      <!-- Empty State (출사 없을 때) -->
+      <div class="empty-state" id="emptyState">
+        <div class="empty-state__illust">
+          <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="rgba(0,0,0,0.18)" class="icon icon-tabler icons-tabler-filled icon-tabler-zoom-pan"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 8a4 4 0 0 1 3.447 6.031l2.26 2.262a1 1 0 0 1 -1.414 1.414l-2.262 -2.26a4 4 0 0 1 -6.031 -3.447l.005 -.2a4 4 0 0 1 3.995 -3.8"/><path d="M11.293 1.293a1 1 0 0 1 1.414 0l2 2a1 1 0 1 1 -1.414 1.414l-1.293 -1.292l-1.293 1.292a1 1 0 0 1 -1.32 .083l-.094 -.083a1 1 0 0 1 0 -1.414z"/><path d="M19.293 9.293a1 1 0 0 1 1.414 0l2 2a1 1 0 0 1 0 1.414l-2 2a1 1 0 0 1 -1.414 -1.414l1.292 -1.293l-1.292 -1.293a1 1 0 0 1 -.083 -1.32z"/><path d="M3.293 9.293a1 1 0 1 1 1.414 1.414l-1.292 1.293l1.292 1.293a1 1 0 0 1 .083 1.32l-.083 .094a1 1 0 0 1 -1.414 0l-2 -2a1 1 0 0 1 0 -1.414z"/><path d="M9.293 19.293a1 1 0 0 1 1.414 0l1.293 1.292l1.294 -1.292a1 1 0 0 1 1.32 -.083l.094 .083a1 1 0 0 1 0 1.414l-2 2a1 1 0 0 1 -1.414 0l-2 -2a1 1 0 0 1 0 -1.414"/></svg>
+        </div>
+        <div class="empty-state__title">첫 출사 계획을 세워볼까요?</div>
+        <div class="empty-state__desc">가고 싶은 스팟을 모아 날짜와 일정을<br>한 번에 계획할 수 있어요.</div>
+        <button class="empty-state__btn" onclick="location.href='./travel-new.html'">
+          <svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+          새 출사 계획 만들기
+        </button>
+      </div>
+
       <div class="content">
         <!-- 진행 중 -->
         <div class="section" id="section-active">
-        <div class="section-header">
-          <span class="section-header__title">진행 중</span>
-          <span class="section-header__count">1개</span>
-        </div>
-
         <div class="plan-card" onclick="location.href = './travel-plan.html'">
           <!--
             [썸네일] 사용자가 직접 업로드하는 사진이 아닙니다.
@@ -478,115 +532,27 @@
               </svg>
               진행 중
             </div>
-            <div class="plan-card__spot-count">
-              <svg
-                width="10"
-                height="10"
-                viewBox="0 0 12 12"
-                fill="none"
-                stroke="#fff"
-                stroke-width="1"
-              >
-                <path
-                  d="M6 1C3.5 1 1.5 3 1.5 5.5C1.5 8.5 6 12 6 12S10.5 8.5 10.5 5.5C10.5 3 8.5 1 6 1Z"
-                />
-                <circle cx="6" cy="5" r="1.5" />
-              </svg>
-              3곳
-            </div>
           </div>
           <div class="plan-card__body">
             <div class="plan-card__top">
               <span class="plan-card__name">부산 1박 2일</span>
-              <svg
-                class="plan-card__arrow"
-                width="8"
-                height="14"
-                viewBox="0 0 8 14"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.3"
-                stroke-linecap="round"
-              >
-                <polyline points="1,1 7,7 1,13" />
-              </svg>
+              <svg class="plan-card__arrow" width="12" height="12" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/></svg>
             </div>
             <div class="plan-card__date">
-              <svg
-                width="10"
-                height="10"
-                viewBox="0 0 12 12"
-                fill="none"
-                stroke="rgba(0,0,0,0.3)"
-                stroke-width="1"
-              >
-                <rect x="1" y="2" width="10" height="9" rx="1.5" />
-                <line x1="4" y1="1" x2="4" y2="3" />
-                <line x1="8" y1="1" x2="8" y2="3" />
-                <line x1="1" y1="5" x2="11" y2="5" />
-              </svg>
+              <svg width="10" height="10" viewBox="0 0 24 24" stroke="rgba(0,0,0,0.3)"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12z"/><path d="M16 3v4"/><path d="M8 3v4"/><path d="M4 11h16"/></svg>
               2026.05.17 ~ 05.18 · 1박 2일
             </div>
             <div class="plan-card__stats">
               <div class="plan-card__stat">
-                <svg
-                  width="12"
-                  height="12"
-                  viewBox="0 0 12 12"
-                  fill="none"
-                  stroke="rgba(0,0,0,0.3)"
-                  stroke-width="1"
-                >
-                  <path
-                    d="M6 1C3.5 1 1.5 3 1.5 5.5C1.5 8.5 6 12 6 12S10.5 8.5 10.5 5.5C10.5 3 8.5 1 6 1Z"
-                  />
-                  <circle cx="6" cy="5" r="1.5" />
-                </svg>
+                <svg width="12" height="12" viewBox="0 0 24 24" stroke="rgba(0,0,0,0.3)"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"/><path d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z"/></svg>
                 포토스팟 3곳
               </div>
               <div class="plan-card__stat">
-                <svg
-                  width="12"
-                  height="12"
-                  viewBox="0 0 12 12"
-                  fill="none"
-                  stroke="rgba(0,0,0,0.3)"
-                  stroke-width="1"
-                >
-                  <circle cx="6" cy="6" r="5" />
-                  <polyline
-                    points="6,3 6,6 8,7.5"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  />
-                </svg>
+                <svg width="12" height="12" viewBox="0 0 24 24" stroke="rgba(0,0,0,0.3)"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"/><path d="M12 7v5l3 3"/></svg>
                 예상 12시간
               </div>
               <div class="plan-card__stat">
-                <svg
-                  width="12"
-                  height="10"
-                  viewBox="0 0 14 10"
-                  fill="none"
-                  stroke="rgba(0,0,0,0.3)"
-                  stroke-width="1"
-                >
-                  <rect x="0" y="2" width="14" height="5.5" rx="1.5" />
-                  <circle
-                    cx="3.5"
-                    cy="7.5"
-                    r="1.2"
-                    fill="rgba(0,0,0,0.2)"
-                    stroke="none"
-                  />
-                  <circle
-                    cx="10.5"
-                    cy="7.5"
-                    r="1.2"
-                    fill="rgba(0,0,0,0.2)"
-                    stroke="none"
-                  />
-                </svg>
+                <svg width="12" height="12" viewBox="0 0 24 24" stroke="rgba(0,0,0,0.3)"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M17 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M5 17h-2v-11a1 1 0 0 1 1 -1h9v12m-4 0h6m4 0h2v-6h-8m0 -5h5l3 5"/></svg>
                 142km
               </div>
             </div>
@@ -602,10 +568,6 @@
 
         <!-- 예정된 출사 -->
         <div class="section" id="section-upcoming">
-          <div class="section-header">
-            <span class="section-header__title">예정된 출사</span>
-            <span class="section-header__count">1개</span>
-          </div>
           <div class="plan-card" onclick="location.href = './travel-plan.html'">
             <div class="plan-card__thumb">
               <div
@@ -623,115 +585,27 @@
               <div class="plan-card__status plan-card__status--upcoming">
                 D-5
               </div>
-              <div class="plan-card__spot-count">
-                <svg
-                  width="10"
-                  height="10"
-                  viewBox="0 0 12 12"
-                  fill="none"
-                  stroke="#fff"
-                  stroke-width="1"
-                >
-                  <path
-                    d="M6 1C3.5 1 1.5 3 1.5 5.5C1.5 8.5 6 12 6 12S10.5 8.5 10.5 5.5C10.5 3 8.5 1 6 1Z"
-                  />
-                  <circle cx="6" cy="5" r="1.5" />
-                </svg>
-                5곳
-              </div>
             </div>
             <div class="plan-card__body">
               <div class="plan-card__top">
                 <span class="plan-card__name">서울 야경 투어</span>
-                <svg
-                  class="plan-card__arrow"
-                  width="8"
-                  height="14"
-                  viewBox="0 0 8 14"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.3"
-                  stroke-linecap="round"
-                >
-                  <polyline points="1,1 7,7 1,13" />
-                </svg>
+                <svg class="plan-card__arrow" width="8" height="14" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/></svg>
               </div>
               <div class="plan-card__date">
-                <svg
-                  width="10"
-                  height="10"
-                  viewBox="0 0 12 12"
-                  fill="none"
-                  stroke="rgba(0,0,0,0.3)"
-                  stroke-width="1"
-                >
-                  <rect x="1" y="2" width="10" height="9" rx="1.5" />
-                  <line x1="4" y1="1" x2="4" y2="3" />
-                  <line x1="8" y1="1" x2="8" y2="3" />
-                  <line x1="1" y1="5" x2="11" y2="5" />
-                </svg>
+                <svg width="10" height="10" viewBox="0 0 24 24" stroke="rgba(0,0,0,0.3)"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12z"/><path d="M16 3v4"/><path d="M8 3v4"/><path d="M4 11h16"/></svg>
                 2026.05.28 · 당일치기
               </div>
               <div class="plan-card__stats">
                 <div class="plan-card__stat">
-                  <svg
-                    width="12"
-                    height="12"
-                    viewBox="0 0 12 12"
-                    fill="none"
-                    stroke="rgba(0,0,0,0.3)"
-                    stroke-width="1"
-                  >
-                    <path
-                      d="M6 1C3.5 1 1.5 3 1.5 5.5C1.5 8.5 6 12 6 12S10.5 8.5 10.5 5.5C10.5 3 8.5 1 6 1Z"
-                    />
-                    <circle cx="6" cy="5" r="1.5" />
-                  </svg>
+                  <svg width="12" height="12" viewBox="0 0 24 24" stroke="rgba(0,0,0,0.3)"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"/><path d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z"/></svg>
                   포토스팟 5곳
                 </div>
                 <div class="plan-card__stat">
-                  <svg
-                    width="12"
-                    height="12"
-                    viewBox="0 0 12 12"
-                    fill="none"
-                    stroke="rgba(0,0,0,0.3)"
-                    stroke-width="1"
-                  >
-                    <circle cx="6" cy="6" r="5" />
-                    <polyline
-                      points="6,3 6,6 8,7.5"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    />
-                  </svg>
+                  <svg width="12" height="12" viewBox="0 0 24 24" stroke="rgba(0,0,0,0.3)"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"/><path d="M12 7v5l3 3"/></svg>
                   예상 8시간
                 </div>
                 <div class="plan-card__stat">
-                  <svg
-                    width="12"
-                    height="10"
-                    viewBox="0 0 14 10"
-                    fill="none"
-                    stroke="rgba(0,0,0,0.3)"
-                    stroke-width="1"
-                  >
-                    <rect x="0" y="2" width="14" height="5.5" rx="1.5" />
-                    <circle
-                      cx="3.5"
-                      cy="7.5"
-                      r="1.2"
-                      fill="rgba(0,0,0,0.2)"
-                      stroke="none"
-                    />
-                    <circle
-                      cx="10.5"
-                      cy="7.5"
-                      r="1.2"
-                      fill="rgba(0,0,0,0.2)"
-                      stroke="none"
-                    />
-                  </svg>
+                  <svg width="12" height="10" viewBox="0 0 24 24" stroke="rgba(0,0,0,0.3)"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M7 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M17 17m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0"/><path d="M5 17h-2v-11a1 1 0 0 1 1 -1h9v12m-4 0h6m4 0h2v-6h-8m0 -5h5l3 5"/></svg>
                   38km
                 </div>
               </div>
@@ -741,10 +615,6 @@
 
         <!-- 지난 출사 -->
         <div class="section" id="section-past">
-          <div class="section-header">
-            <span class="section-header__title">지난 출사</span>
-            <span class="section-header__count">2개</span>
-          </div>
           <div class="plan-card" onclick="location.href = './travel-plan.html'">
             <div class="plan-card__thumb">
               <div
@@ -760,88 +630,23 @@
                 style="background-image: url('../../../assets/images/travel/jeju_3.jpg')"
               ></div>
               <div class="plan-card__status plan-card__status--done">완료</div>
-              <div class="plan-card__spot-count">
-                <svg
-                  width="10"
-                  height="10"
-                  viewBox="0 0 12 12"
-                  fill="none"
-                  stroke="#fff"
-                  stroke-width="1"
-                >
-                  <path
-                    d="M6 1C3.5 1 1.5 3 1.5 5.5C1.5 8.5 6 12 6 12S10.5 8.5 10.5 5.5C10.5 3 8.5 1 6 1Z"
-                  />
-                  <circle cx="6" cy="5" r="1.5" />
-                </svg>
-                4곳
-              </div>
             </div>
             <div class="plan-card__body">
               <div class="plan-card__top">
                 <span class="plan-card__name">제주 봄 출사</span>
-                <svg
-                  class="plan-card__arrow"
-                  width="8"
-                  height="14"
-                  viewBox="0 0 8 14"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.3"
-                  stroke-linecap="round"
-                >
-                  <polyline points="1,1 7,7 1,13" />
-                </svg>
+                <svg class="plan-card__arrow" width="8" height="14" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/></svg>
               </div>
               <div class="plan-card__date">
-                <svg
-                  width="10"
-                  height="10"
-                  viewBox="0 0 12 12"
-                  fill="none"
-                  stroke="rgba(0,0,0,0.3)"
-                  stroke-width="1"
-                >
-                  <rect x="1" y="2" width="10" height="9" rx="1.5" />
-                  <line x1="4" y1="1" x2="4" y2="3" />
-                  <line x1="8" y1="1" x2="8" y2="3" />
-                  <line x1="1" y1="5" x2="11" y2="5" />
-                </svg>
+                <svg width="10" height="10" viewBox="0 0 24 24" stroke="rgba(0,0,0,0.3)"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12z"/><path d="M16 3v4"/><path d="M8 3v4"/><path d="M4 11h16"/></svg>
                 2026.04.12 ~ 04.13 · 1박 2일
               </div>
               <div class="plan-card__stats">
                 <div class="plan-card__stat">
-                  <svg
-                    width="12"
-                    height="12"
-                    viewBox="0 0 12 12"
-                    fill="none"
-                    stroke="rgba(0,0,0,0.3)"
-                    stroke-width="1"
-                  >
-                    <path
-                      d="M6 1C3.5 1 1.5 3 1.5 5.5C1.5 8.5 6 12 6 12S10.5 8.5 10.5 5.5C10.5 3 8.5 1 6 1Z"
-                    />
-                    <circle cx="6" cy="5" r="1.5" />
-                  </svg>
+                  <svg width="12" height="12" viewBox="0 0 24 24" stroke="rgba(0,0,0,0.3)"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"/><path d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z"/></svg>
                   포토스팟 4곳
                 </div>
                 <div class="plan-card__stat">
-                  <svg
-                    width="12"
-                    height="12"
-                    viewBox="0 0 12 12"
-                    fill="none"
-                    stroke="rgba(0,0,0,0.3)"
-                    stroke-width="1"
-                  >
-                    <path
-                      d="M4 9L6 11L10 4"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    />
-                    <circle cx="6" cy="6" r="5" />
-                  </svg>
+                  <svg width="12" height="12" viewBox="0 0 24 24" stroke="rgba(0,0,0,0.3)"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M9 12l2 2l4 -4"/></svg>
                   사진 127장
                 </div>
               </div>
@@ -863,88 +668,23 @@
                 style="background-image: url('../../../assets/images/travel/gyeongbok_3.jpg')"
               ></div>
               <div class="plan-card__status plan-card__status--done">완료</div>
-              <div class="plan-card__spot-count">
-                <svg
-                  width="10"
-                  height="10"
-                  viewBox="0 0 12 12"
-                  fill="none"
-                  stroke="#fff"
-                  stroke-width="1"
-                >
-                  <path
-                    d="M6 1C3.5 1 1.5 3 1.5 5.5C1.5 8.5 6 12 6 12S10.5 8.5 10.5 5.5C10.5 3 8.5 1 6 1Z"
-                  />
-                  <circle cx="6" cy="5" r="1.5" />
-                </svg>
-                2곳
-              </div>
             </div>
             <div class="plan-card__body">
               <div class="plan-card__top">
                 <span class="plan-card__name">경복궁 야간개장</span>
-                <svg
-                  class="plan-card__arrow"
-                  width="8"
-                  height="14"
-                  viewBox="0 0 8 14"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.3"
-                  stroke-linecap="round"
-                >
-                  <polyline points="1,1 7,7 1,13" />
-                </svg>
+                <svg class="plan-card__arrow" width="8" height="14" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/></svg>
               </div>
               <div class="plan-card__date">
-                <svg
-                  width="10"
-                  height="10"
-                  viewBox="0 0 12 12"
-                  fill="none"
-                  stroke="rgba(0,0,0,0.3)"
-                  stroke-width="1"
-                >
-                  <rect x="1" y="2" width="10" height="9" rx="1.5" />
-                  <line x1="4" y1="1" x2="4" y2="3" />
-                  <line x1="8" y1="1" x2="8" y2="3" />
-                  <line x1="1" y1="5" x2="11" y2="5" />
-                </svg>
+                <svg width="10" height="10" viewBox="0 0 24 24" stroke="rgba(0,0,0,0.3)"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 7a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12z"/><path d="M16 3v4"/><path d="M8 3v4"/><path d="M4 11h16"/></svg>
                 2026.03.28 · 당일치기
               </div>
               <div class="plan-card__stats">
                 <div class="plan-card__stat">
-                  <svg
-                    width="12"
-                    height="12"
-                    viewBox="0 0 12 12"
-                    fill="none"
-                    stroke="rgba(0,0,0,0.3)"
-                    stroke-width="1"
-                  >
-                    <path
-                      d="M6 1C3.5 1 1.5 3 1.5 5.5C1.5 8.5 6 12 6 12S10.5 8.5 10.5 5.5C10.5 3 8.5 1 6 1Z"
-                    />
-                    <circle cx="6" cy="5" r="1.5" />
-                  </svg>
+                  <svg width="12" height="12" viewBox="0 0 24 24" stroke="rgba(0,0,0,0.3)"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"/><path d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z"/></svg>
                   포토스팟 2곳
                 </div>
                 <div class="plan-card__stat">
-                  <svg
-                    width="12"
-                    height="12"
-                    viewBox="0 0 12 12"
-                    fill="none"
-                    stroke="rgba(0,0,0,0.3)"
-                    stroke-width="1"
-                  >
-                    <path
-                      d="M4 9L6 11L10 4"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    />
-                    <circle cx="6" cy="6" r="5" />
-                  </svg>
+                  <svg width="12" height="12" viewBox="0 0 24 24" stroke="rgba(0,0,0,0.3)"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M9 12l2 2l4 -4"/></svg>
                   사진 84장
                 </div>
               </div>
@@ -963,11 +703,7 @@
           <svg
             class="tab__icon"
             viewBox="0 0 24 24"
-            fill="none"
             stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
           >
             <path d="M5 12l-2 0l9 -9l9 9l-2 0" />
             <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
@@ -976,54 +712,26 @@
           <span class="tab__label">홈</span>
         </button>
         <button class="tab" onclick="location.href = '../home/map.html'">
-          <svg
-            class="tab__icon"
-            viewBox="0 0 22 22"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.3"
-            stroke-linejoin="round"
-          >
-            <path d="M2 5L8 3L14 7L20 5V17L14 19L8 15L2 17Z" />
-          </svg>
+          <svg class="tab__icon" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 7l6 -3l6 4l6 -3v13l-6 3l-6 -4l-6 3z"/><path d="M9 4v13"/><path d="M15 8v13"/></svg>
           <span class="tab__label">지도</span>
         </button>
         <button class="tab is-active">
           <svg
             class="tab__icon"
             viewBox="0 0 24 24"
-            fill="none"
             stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
           >
-            <circle cx="6" cy="19" r="2" />
-            <circle cx="18" cy="5" r="2" />
+            <path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="6" cy="19" r="2" /><circle cx="18" cy="5" r="2" />
             <path d="M12 19h4.5a3.5 3.5 0 0 0 0 -7h-8a3.5 3.5 0 0 1 0 -7h3.5" />
           </svg>
           <span class="tab__label">출사</span>
         </button>
         <button class="tab" onclick="location.href = '../community/community-feed.html'">
-          <svg class="tab__icon" viewBox="2 3 20 19" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M18 4a3 3 0 0 1 3 3v8a3 3 0 0 1 -3 3h-5l-5 3v-3h-2a3 3 0 0 1 -3 -3v-8a3 3 0 0 1 3 -3h12"/>
-            <path d="M9.5 9h.01"/><path d="M14.5 9h.01"/>
-            <path d="M9.5 13a3.5 3.5 0 0 0 5 0"/>
-          </svg>
+          <svg class="tab__icon" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M18 4a3 3 0 0 1 3 3v8a3 3 0 0 1 -3 3h-5l-5 3v-3h-2a3 3 0 0 1 -3 -3v-8a3 3 0 0 1 3 -3h12"/><path d="M9.5 9h.01"/><path d="M14.5 9h.01"/><path d="M9.5 13a3.5 3.5 0 0 0 5 0"/></svg>
           <span class="tab__label">커뮤니티</span>
         </button>
         <button class="tab" onclick="location.href = '../mypage/mypage.html'">
-          <svg
-            class="tab__icon"
-            viewBox="0 0 22 22"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.3"
-            stroke-linecap="round"
-          >
-            <circle cx="11" cy="7" r="5" />
-            <path d="M2 20Q5 13 11 13T20 20" />
-          </svg>
+          <svg class="tab__icon" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"/><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"/></svg>
           <span class="tab__label">MY</span>
         </button>
         <div class="tab-bar__indicator"></div>
@@ -1038,17 +746,35 @@
       nav.classList.toggle('is-scrolled', frame.scrollTop > 44);
     });
 
-    // 섹션 탭 전환
+    // ?empty=1 이면 빈 상태로 진입
     const tabs = document.querySelectorAll('.section-tab');
     const sections = document.querySelectorAll('.content .section');
+    const emptyState = document.getElementById('emptyState');
+    const contentEl = document.querySelector('.content');
+
+    if (new URLSearchParams(location.search).get('empty') === '1') {
+      emptyState.classList.add('is-visible');
+      contentEl.style.display = 'none';
+      document.querySelector('.section-tabs').style.display = 'none';
+    }
+
+    function checkEmpty(target) {
+      let visibleCards = 0;
+      sections.forEach(s => {
+        const hidden = target !== 'all' && s.id !== target;
+        s.classList.toggle('is-hidden', hidden);
+        if (!hidden) visibleCards += s.querySelectorAll('.plan-card').length;
+      });
+      const isEmpty = visibleCards === 0;
+      emptyState.classList.toggle('is-visible', isEmpty);
+      contentEl.style.display = isEmpty ? 'none' : '';
+    }
+
     tabs.forEach(tab => {
       tab.addEventListener('click', () => {
         tabs.forEach(t => t.classList.remove('is-active'));
         tab.classList.add('is-active');
-        const target = tab.dataset.target;
-        sections.forEach(s => {
-          s.classList.toggle('is-hidden', target !== 'all' && s.id !== target);
-        });
+        checkEmpty(tab.dataset.target);
         frame.scrollTop = 0;
       });
     });
