@@ -2,5 +2,4 @@
   <string name="app_name">PNG</string>
   <string name="expo_splash_screen_resize_mode" translatable="false">contain</string>
   <string name="expo_splash_screen_status_bar_translucent" translatable="false">false</string>
-  <string name="kakao_app_key">a9f0a957cdf5c7793d2ee0c38474d39c</string>
 </resources>

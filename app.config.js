@@ -12,9 +12,14 @@ module.exports = {
       resizeMode: 'contain',
       backgroundColor: '#E31B59',
     },
-    scheme: process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY
-      ? [`kakao${process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY}`]
-      : [],
+    scheme: [
+      process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY
+        ? `kakao${process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY}`
+        : null,
+      process.env.EXPO_PUBLIC_KAKAO_ANDROID_NATIVE_APP_KEY
+        ? `kakao${process.env.EXPO_PUBLIC_KAKAO_ANDROID_NATIVE_APP_KEY}`
+        : null,
+    ].filter(Boolean),
     ios: {
       supportsTablet: false,
       bundleIdentifier: 'com.picngo.app',
