@@ -281,7 +281,7 @@
           </tr>
           <tr data-cat="screen">
             <td><div class="situation">이 화면 담당자가 누구인지 확인</div></td>
-            <td class="files-cell"><a class="filepath filepath-neutral" href="../../docs/guide/ops/team-assignments.md" target="_blank">docs/guide/ops/team-assignments.md</a></td>
+            <td class="files-cell"><a class="filepath" href="../../docs/guide/ops/team-assignments.md" target="_blank">docs/guide/ops/team-assignments.md</a></td>
             <td class="desc">화면별 담당자 + 구현 상태(미시작/진행중/완료)</td>
           </tr>
           <tr data-cat="screen">
@@ -324,7 +324,7 @@
 
           <tr data-cat="api">
             <td><div class="situation">인증 API 엔드포인트 확인</div><div class="desc">로그인·회원가입·토큰 갱신</div></td>
-            <td class="files-cell"><a class="filepath filepath-neutral" href="../../docs/guide/api/auth-api.md" target="_blank">docs/guide/api/auth-api.md</a></td>
+            <td class="files-cell"><a class="filepath" href="../../docs/guide/api/auth-api.md" target="_blank">docs/guide/api/auth-api.md</a></td>
             <td class="desc">Request/Response 스펙, 에러 코드, 이메일 미인증 처리 방법</td>
           </tr>
           <tr data-cat="api">
@@ -358,12 +358,12 @@
           </tr>
           <tr data-cat="ops">
             <td><div class="situation">CI 실패 원인 파악 및 대응</div></td>
-            <td class="files-cell"><a class="filepath filepath-neutral" href="../../docs/guide/ops/github-actions-guide.md" target="_blank">docs/guide/ops/github-actions-guide.md</a></td>
+            <td class="files-cell"><a class="filepath" href="../../docs/guide/ops/github-actions-guide.md" target="_blank">docs/guide/ops/github-actions-guide.md</a></td>
             <td class="desc">워크플로우별 역할(ci/labeler/reviewdog), 실패 시 확인 포인트</td>
           </tr>
           <tr data-cat="ops">
             <td><div class="situation">PR 라벨이 자동으로 안 붙을 때</div></td>
-            <td class="files-cell"><a class="filepath filepath-neutral" href="../../docs/guide/ops/github-actions-guide.md" target="_blank">docs/guide/ops/github-actions-guide.md</a> <a class="filepath filepath-neutral" href="../../.github/CONVENTIONS.md" target="_blank">.github/CONVENTIONS.md</a></td>
+            <td class="files-cell"><a class="filepath" href="../../docs/guide/ops/github-actions-guide.md" target="_blank">docs/guide/ops/github-actions-guide.md</a> <a class="filepath filepath-neutral" href="../../.github/CONVENTIONS.md" target="_blank">.github/CONVENTIONS.md</a></td>
             <td class="desc">labeler.yml 동작 조건, 브랜치명·PR 제목 패턴 확인</td>
           </tr>
           <tr data-cat="ops">
@@ -371,44 +371,69 @@
             <td class="files-cell"><a class="filepath filepath-neutral" href="../../.github/CONVENTIONS.md" target="_blank">.github/CONVENTIONS.md</a></td>
             <td class="desc">post-merge Husky 훅 설명, pnpm-lock.yaml 변경 시 자동 설치 동작</td>
           </tr>
+          <tr data-cat="ops">
+            <td><div class="situation">PR 본문 항목 확인·작성</div></td>
+            <td class="files-cell"><a class="filepath filepath-neutral" href="../../.github/pull_request_template.md" target="_blank">.github/pull_request_template.md</a></td>
+            <td class="desc">PR 템플릿 항목(개요·관련 이슈·변경 내용·테스트·체크리스트) — 수동 작성 시 참고</td>
+          </tr>
 
           <!-- AI 협업 -->
           <tr class="section-row"><td colspan="3">AI 협업</td></tr>
 
           <tr data-cat="ai">
             <td><div class="situation">AI에게 작업 맡기기 전 컨텍스트 제공</div></td>
-            <td class="files-cell"><a class="filepath filepath-neutral" href="../../docs/ai/00-context.md" target="_blank">docs/ai/00-context.md</a></td>
+            <td class="files-cell"><a class="filepath" href="../../docs/ai/00-context.md" target="_blank">docs/ai/00-context.md</a></td>
             <td class="desc">프로젝트 기술 스택·구조·규칙 요약 — AI 프롬프트 첫 줄에 붙여 쓰는 컨텍스트</td>
           </tr>
           <tr data-cat="ai">
             <td><div class="situation">새 기능 스펙 문서 작성</div></td>
-            <td class="files-cell"><a class="filepath filepath-neutral" href="../../docs/ai/01-feature-spec-template.md" target="_blank">docs/ai/01-feature-spec-template.md</a></td>
+            <td class="files-cell"><a class="filepath" href="../../docs/ai/01-feature-spec-template.md" target="_blank">docs/ai/01-feature-spec-template.md</a></td>
             <td class="desc">기능 스펙 템플릿 — 배경·요구사항·엣지케이스·완료 기준 항목</td>
           </tr>
           <tr data-cat="ai">
             <td><div class="situation">구현 계획(태스크 분해) 작성</div></td>
-            <td class="files-cell"><a class="filepath filepath-neutral" href="../../docs/ai/02-implementation-plan-template.md" target="_blank">docs/ai/02-implementation-plan-template.md</a></td>
+            <td class="files-cell"><a class="filepath" href="../../docs/ai/02-implementation-plan-template.md" target="_blank">docs/ai/02-implementation-plan-template.md</a></td>
             <td class="desc">스펙 → 태스크 단위 분해 템플릿, 의존성 순서 정리</td>
           </tr>
           <tr data-cat="ai">
             <td><div class="situation">AI 결과물 PR 리뷰 체크</div></td>
-            <td class="files-cell"><a class="filepath filepath-neutral" href="../../docs/ai/03-pr-review-checklist.md" target="_blank">docs/ai/03-pr-review-checklist.md</a></td>
+            <td class="files-cell"><a class="filepath" href="../../docs/ai/03-pr-review-checklist.md" target="_blank">docs/ai/03-pr-review-checklist.md</a></td>
             <td class="desc">AI 생성 코드 리뷰 시 놓치기 쉬운 항목 체크리스트</td>
           </tr>
           <tr data-cat="ai">
             <td><div class="situation">AI에게 작업 넘기거나 인계받을 때</div></td>
-            <td class="files-cell"><a class="filepath filepath-neutral" href="../../docs/ai/04-agent-handoff-prompt-template.md" target="_blank">docs/ai/04-agent-handoff-prompt-template.md</a></td>
+            <td class="files-cell"><a class="filepath" href="../../docs/ai/04-agent-handoff-prompt-template.md" target="_blank">docs/ai/04-agent-handoff-prompt-template.md</a></td>
             <td class="desc">세션 인계 프롬프트 템플릿 — 현재 상태·완료 작업·남은 작업 구조화</td>
           </tr>
           <tr data-cat="ai">
             <td><div class="situation">AI 협업 시작 전 워크플로우 파악</div></td>
-            <td class="files-cell"><a class="filepath filepath-neutral" href="../../docs/ai/05-intake-workflow.md" target="_blank">docs/ai/05-intake-workflow.md</a></td>
+            <td class="files-cell"><a class="filepath" href="../../docs/ai/05-intake-workflow.md" target="_blank">docs/ai/05-intake-workflow.md</a></td>
             <td class="desc">요구사항 → 스펙 → 계획 → 구현까지 AI와 협업하는 전체 흐름</td>
           </tr>
           <tr data-cat="ai">
             <td><div class="situation">AI 프롬프트를 잘 쓰고 싶을 때</div></td>
-            <td class="files-cell"><a class="filepath filepath-neutral" href="../../docs/guide/dev/prompt-writing-guide.md" target="_blank">docs/guide/dev/prompt-writing-guide.md</a></td>
+            <td class="files-cell"><a class="filepath" href="../../docs/guide/dev/prompt-writing-guide.md" target="_blank">docs/guide/dev/prompt-writing-guide.md</a></td>
             <td class="desc">맥락 제공 방법, 좋은/나쁜 프롬프트 예시, 반복 작업 효율화 팁</td>
+          </tr>
+          <tr data-cat="ai">
+            <td><div class="situation">AI 협업 문서 전체 구조 파악</div></td>
+            <td class="files-cell"><a class="filepath" href="../../docs/ai/README.md" target="_blank">docs/ai/README.md</a></td>
+            <td class="desc">docs/ai/ 폴더의 모든 파일 설명·용도 인덱스 — AI 협업 처음 시작할 때 가장 먼저 읽을 문서</td>
+          </tr>
+          <tr data-cat="ai">
+            <td><div class="situation">/png-intake 없이 Intake 플로우 수동 실행</div></td>
+            <td class="files-cell"><a class="filepath" href="../../docs/ai/06-claude-intake-starter-prompt.md" target="_blank">docs/ai/06-claude-intake-starter-prompt.md</a></td>
+            <td class="desc">Claude Code Intake 시작 프롬프트 — /png-intake 대신 수동으로 요구사항→계획→구현 시작</td>
+          </tr>
+          <tr data-cat="ai">
+            <td><div class="situation">Claude Code 대신 다른 AI 사용할 때</div><div class="desc">ChatGPT / Gemini / Copilot 등</div></td>
+            <td class="files-cell"><a class="filepath" href="../../docs/ai/07-non-claude-quickstart.md" target="_blank">docs/ai/07-non-claude-quickstart.md</a></td>
+            <td class="desc">Claude Code 없이 동일 플로우를 따르는 방법 — 수동 Intake · 스펙 작성 · 구현 순서</td>
+          </tr>
+          <tr data-cat="ai">
+            <td><div class="situation">AI 하네스 문서·커맨드 수정 후 배포 전 검증</div></td>
+            <td class="files-cell"><a class="filepath" href="../../docs/ai/08-harness-self-audit-checklist.md" target="_blank">docs/ai/08-harness-self-audit-checklist.md</a></td>
+            <td class="desc">하네스 문서 변경 후 셀프 점검 체크리스트 — 팀 배포 전 필수 확인 항목</td>
           </tr>
 
         </tbody>
