@@ -142,11 +142,12 @@
     }
 
     .section-label {
+      display: block;
       font-size: var(--font-sm);
       font-weight: 500;
       color: rgba(0, 0, 0, 0.5);
       letter-spacing: -0.08px;
-      margin-bottom: 4px;
+      margin-bottom: 5px;
       padding-left: 4px;
     }
 
@@ -316,38 +317,6 @@
 
     .theme-section {
       margin-bottom: var(--space-lg);
-    }
-
-    .theme-pills {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .theme-pill {
-      height: 36px;
-      padding: 0 var(--space-md);
-      border-radius: 18px;
-      background: var(--color-surface);
-      border: 1px solid transparent;
-      font-family: var(--font-family);
-      font-size: var(--font-sm);
-      color: rgba(0, 0, 0, 0.5);
-      cursor: pointer;
-      transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
-    }
-
-    .theme-pill:hover {
-      background: rgba(0, 0, 0, 0.06);
-    }
-
-    .theme-pill.is-selected {
-      background: rgba(227, 27, 89, 0.08);
-      border-color: var(--color-accent);
-      color: var(--color-accent);
-      font-weight: 500;
     }
 
     .terms {
@@ -522,8 +491,8 @@
     <!-- Nav Bar -->
     <div class="nav-bar">
       <button class="nav-bar__back" onclick="location.href='./login.html'" aria-label="뒤로가기">
-        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <polyline points="11,3 5,9 11,15"/>
+        <svg width="18" height="18" viewBox="0 0 24 24" stroke="#fff">
+          <path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M15 6l-6 6l6 6" />
         </svg>
       </button>
       <div style="width:32px"></div>
@@ -540,8 +509,8 @@
     <div class="input-row">
       <div class="input-group">
         <input type="email" id="emailInput" class="input-group__field" placeholder="이메일 주소" autocomplete="email" oninput="checkForm()">
-        <svg class="input-group__icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="1" y="4" width="18" height="13" rx="2.5"/><polyline points="1,5 10,12 19,5"/>
+        <svg class="input-group__icon" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 7a2 2 0 0 1 2 -2h14a2 2 0 0 1 2 2v10a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-10z" /><path d="M3 7l9 6l9 -6" />
         </svg>
       </div>
       <button type="button" class="btn--verify">인증하기</button>
@@ -552,12 +521,12 @@
     <label class="section-label">비밀번호</label>
     <div class="input-group">
       <input type="password" id="pw1" class="input-group__field" placeholder="8자 이상, 영문/숫자/특수문자" oninput="updateStrength(this.value)">
-      <svg class="input-group__icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round">
-        <rect x="3" y="9" width="14" height="10" rx="2.5"/><path d="M6 9V6C6 3.2 7.8 1 10 1C12.2 1 14 3.2 14 6V9"/>
+      <svg class="input-group__icon" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 13a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-6z" /><path d="M11 16a1 1 0 1 0 2 0a1 1 0 0 0 -2 0" /><path d="M8 11v-4a4 4 0 1 1 8 0v4" />
       </svg>
       <button type="button" class="input-group__toggle" onclick="togglePw('pw1')" aria-label="비밀번호 표시">
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.2">
-          <ellipse cx="10" cy="10" rx="9" ry="6"/><circle cx="10" cy="10" r="3"/>
+        <svg width="20" height="20" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6" />
         </svg>
       </button>
     </div>
@@ -575,8 +544,8 @@
     <label class="section-label">비밀번호 확인</label>
     <div class="input-group">
       <input type="password" id="pw2" class="input-group__field" placeholder="비밀번호를 다시 입력하세요" oninput="checkForm()">
-      <svg class="input-group__icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round">
-        <path d="M10 1L1 5V11C1 16.5 10 19.5 10 19.5C10 19.5 19 16.5 19 11V5L10 1Z"/>
+      <svg class="input-group__icon" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 13a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-6z" /><path d="M11 16a1 1 0 1 0 2 0a1 1 0 0 0 -2 0" /><path d="M8 11v-4a4 4 0 1 1 8 0v4" />
       </svg>
     </div>
     <p class="form-feedback" id="pw2Error">비밀번호가 일치하지 않아요.</p>
@@ -585,8 +554,8 @@
     <label class="section-label">닉네임</label>
     <div class="input-group input-group--with-counter">
       <input type="text" id="nicknameInput" class="input-group__field" placeholder="2~12자 한글, 영문, 숫자" maxlength="12" oninput="updateCounter(this); checkForm()">
-      <svg class="input-group__icon" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round">
-        <circle cx="10" cy="7" r="5"/><path d="M1 19C3 13 6.5 11 10 11C13.5 11 17 13 19 19"/>
+      <svg class="input-group__icon" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0" /><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2" />
       </svg>
       <span class="input-group__counter" id="nickCounter">0/12</span>
     </div>
@@ -623,9 +592,7 @@
     <div class="terms">
       <div class="terms__all" onclick="toggleAllTerms()">
         <div class="checkbox" id="checkAll">
-          <svg viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="2,6 5,9 10,3"/>
-          </svg>
+          <svg viewBox="0 0 24 24" stroke="#fff"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10"/></svg>
         </div>
         <span class="terms__all-label">전체 동의</span>
       </div>
@@ -633,39 +600,39 @@
       <div class="terms__item" onclick="toggleTerm(this)">
         <div class="terms__item-left">
           <div class="checkbox checkbox--sm">
-            <svg viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,6 5,9 10,3"/></svg>
+            <svg viewBox="0 0 24 24" stroke="#fff"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10" /></svg>
           </div>
           <span class="terms__item-label">[필수] 이용약관 동의</span>
         </div>
         <a href="#" class="terms__item-link" onclick="event.stopPropagation()">
           보기
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><polyline points="5,3 8,6 5,9"/></svg>
+          <svg width="12" height="12" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6" /></svg>
         </a>
       </div>
 
       <div class="terms__item" onclick="toggleTerm(this)">
         <div class="terms__item-left">
           <div class="checkbox checkbox--sm">
-            <svg viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,6 5,9 10,3"/></svg>
+            <svg viewBox="0 0 24 24" stroke="#fff"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10" /></svg>
           </div>
           <span class="terms__item-label">[필수] 개인정보 수집 · 이용 동의</span>
         </div>
         <a href="#" class="terms__item-link" onclick="event.stopPropagation()">
           보기
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><polyline points="5,3 8,6 5,9"/></svg>
+          <svg width="12" height="12" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6" /></svg>
         </a>
       </div>
 
       <div class="terms__item" onclick="toggleTerm(this)">
         <div class="terms__item-left">
           <div class="checkbox checkbox--sm">
-            <svg viewBox="0 0 12 12" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="2,6 5,9 10,3"/></svg>
+            <svg viewBox="0 0 24 24" stroke="#fff"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10" /></svg>
           </div>
           <span class="terms__item-label">[선택] 마케팅 정보 수신 동의</span>
         </div>
         <a href="#" class="terms__item-link" onclick="event.stopPropagation()">
           보기
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"><polyline points="5,3 8,6 5,9"/></svg>
+          <svg width="12" height="12" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6" /></svg>
         </a>
       </div>
     </div>

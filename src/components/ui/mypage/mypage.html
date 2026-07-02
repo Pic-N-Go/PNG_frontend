@@ -1132,14 +1132,9 @@
               width="34"
               height="34"
               viewBox="0 0 24 24"
-              fill="none"
               stroke="rgba(255,255,255,0.75)"
-              stroke-width="1.5"
-              stroke-linecap="round"
-              stroke-linejoin="round"
             >
-              <circle cx="12" cy="7" r="4" />
-              <path d="M4 21v-1a8 8 0 0 1 16 0v1" />
+              <path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"/><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"/>
             </svg>
           </div>
           <div class="profile-row__info">
@@ -1361,7 +1356,7 @@
             <div class="wish-card" onclick="location.href='../spot/spot-detail.html'">
               <div class="wish-card__photo" style="background: linear-gradient(to bottom, #1a1530, #b44a3a)">
                 <button class="wish-card__bell" onclick="toggleWishBell(event, this)" aria-label="알림 토글">
-                  <svg class="icon-bell-on" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <svg class="icon-bell-on" width="14" height="14" viewBox="0 0 24 24" stroke="#fff">
                     <path d="M10 5a2 2 0 0 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6"/>
                     <path d="M9 17v1a3 3 0 0 0 6 0v-1"/>
                     <path d="M21 6.727a11.05 11.05 0 0 0 -2.794 -3.727"/>
@@ -1379,7 +1374,7 @@
             <div class="wish-card" onclick="location.href='../spot/spot-detail.html'">
               <div class="wish-card__photo" style="background: linear-gradient(to bottom, #020010, #1a1545)">
                 <button class="wish-card__bell" onclick="toggleWishBell(event, this)" aria-label="알림 토글">
-                  <svg class="icon-bell-on" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <svg class="icon-bell-on" width="14" height="14" viewBox="0 0 24 24" stroke="#fff">
                     <path d="M10 5a2 2 0 0 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6"/>
                     <path d="M9 17v1a3 3 0 0 0 6 0v-1"/>
                     <path d="M21 6.727a11.05 11.05 0 0 0 -2.794 -3.727"/>
@@ -1417,17 +1412,7 @@
             </div>
             <div class="equip-item">
               <div class="equip-item__icon">
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 14 14"
-                  fill="none"
-                  stroke="rgba(0,0,0,0.25)"
-                  stroke-width="0.9"
-                >
-                  <circle cx="7" cy="7" r="6" />
-                  <circle cx="7" cy="7" r="3" />
-                </svg>
+                <svg width="14" height="14" viewBox="0 0 24 24" stroke="rgba(0,0,0,0.25)"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"/><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/></svg>
               </div>
               <div>
                 <div class="equip-item__name">16-35mm f/2.8 GM</div>
@@ -1435,17 +1420,7 @@
               </div>
               <div class="equip-item__more" onclick="openEquipSheet()">
                 +2
-                <svg
-                  width="8"
-                  height="12"
-                  viewBox="0 0 8 12"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.2"
-                  stroke-linecap="round"
-                >
-                  <polyline points="2,2 6,6 2,10" />
-                </svg>
+                <svg width="12" height="12" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/></svg>
               </div>
             </div>
           </div>
@@ -1458,40 +1433,14 @@
               class="quick-action"
               onclick="location.href = '../spot/spot-register.html'"
             >
-              <svg
-                width="14"
-                height="16"
-                viewBox="0 0 14 16"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1"
-                stroke-linecap="round"
-              >
-                <path
-                  d="M7 1C3.5 1 1 3.5 1 6.5C1 10.5 7 15 7 15S13 10.5 13 6.5C13 3.5 10.5 1 7 1Z"
-                />
-                <circle cx="7" cy="6" r="2" />
-              </svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"/><path d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z"/></svg>
               스팟 등록
             </button>
             <button
               class="quick-action"
               onclick="location.href = '../wishlist/wishlist.html'"
             >
-              <svg
-                width="14"
-                height="16"
-                viewBox="0 0 14 16"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1"
-                stroke-linejoin="round"
-              >
-                <path
-                  d="M7 1C4.5 1 3 3 3 5V8.5L1.5 11H12.5L11 8.5V5C11 3 9.5 1 7 1Z"
-                />
-                <path d="M5 11Q5 14 7 14T9 11" stroke-width="0.9" />
-              </svg>
+              <svg width="14" height="14" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6"/><path d="M9 17v1a3 3 0 0 0 6 0v-1"/></svg>
               위시 설정
             </button>
             <button
@@ -1516,11 +1465,7 @@
           <svg
             class="tab__icon"
             viewBox="0 0 24 24"
-            fill="none"
             stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
           >
             <path d="M5 12l-2 0l9 -9l9 9l-2 0" />
             <path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7" />
@@ -1529,52 +1474,23 @@
           <span class="tab__label">홈</span>
         </button>
         <button class="tab" onclick="location.href = '../home/map.html'">
-          <svg
-            class="tab__icon"
-            viewBox="0 0 22 18"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.3"
-            stroke-linejoin="round"
-          >
-            <path d="M2 3L8 1L14 5L20 3V15L14 17L8 13L2 15Z" /></svg
-          ><span class="tab__label">지도</span>
+          <svg class="tab__icon" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 7l6 -3l6 3l6 -3v13l-6 3l-6 -3l-6 3v-13"/><path d="M9 4v13"/><path d="M15 7v13"/></svg><span class="tab__label">지도</span>
         </button>
         <button class="tab" onclick="location.href = '../travel/travel-list.html'">
           <svg
             class="tab__icon"
             viewBox="0 0 24 24"
-            fill="none"
             stroke="currentColor"
-            stroke-width="1.5"
-            stroke-linecap="round"
-            stroke-linejoin="round"
           >
-            <circle cx="6" cy="19" r="2" />
-            <circle cx="18" cy="5" r="2" />
-            <path d="M12 19h4.5a3.5 3.5 0 0 0 0 -7h-8a3.5 3.5 0 0 1 0 -7h3.5" />
+            <path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="6" cy="19" r="2" /><circle cx="18" cy="5" r="2" /><path d="M12 19h4.5a3.5 3.5 0 0 0 0 -7h-8a3.5 3.5 0 0 1 0 -7h3.5" />
           </svg>
           <span class="tab__label">출사</span>
         </button>
         <button class="tab" onclick="location.href = '../community/community-feed.html'">
-          <svg class="tab__icon" viewBox="2 3 20 19" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M18 4a3 3 0 0 1 3 3v8a3 3 0 0 1 -3 3h-5l-5 3v-3h-2a3 3 0 0 1 -3 -3v-8a3 3 0 0 1 3 -3h12"/>
-            <path d="M9.5 9h.01"/><path d="M14.5 9h.01"/>
-            <path d="M9.5 13a3.5 3.5 0 0 0 5 0"/>
-          </svg><span class="tab__label">커뮤니티</span>
+          <svg class="tab__icon" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M18 4a3 3 0 0 1 3 3v8a3 3 0 0 1 -3 3h-5l-5 3v-3h-2a3 3 0 0 1 -3 -3v-8a3 3 0 0 1 3 -3h12"/><path d="M9.5 9h.01"/><path d="M14.5 9h.01"/><path d="M9.5 13a3.5 3.5 0 0 0 5 0"/></svg><span class="tab__label">커뮤니티</span>
         </button>
         <button class="tab is-active">
-          <svg
-            class="tab__icon"
-            viewBox="0 0 22 22"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.3"
-            stroke-linecap="round"
-          >
-            <circle cx="11" cy="7" r="5" />
-            <path d="M2 20Q5 13 11 13T20 20" /></svg
-          ><span class="tab__label">MY</span>
+          <svg class="tab__icon" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"/><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"/></svg><span class="tab__label">MY</span>
         </button>
         <div class="tab-bar__indicator"></div>
       </div>
@@ -1589,25 +1505,18 @@
         <div class="sheet-header">
           <span class="sheet-header__title">프로필 편집</span>
           <button class="sheet-close" onclick="closeProfileSheet()" aria-label="닫기">
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="rgba(0,0,0,0.4)" stroke-width="1.8" stroke-linecap="round">
-              <line x1="1" y1="1" x2="11" y2="11"/>
-              <line x1="11" y1="1" x2="1" y2="11"/>
-            </svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" stroke="rgba(0,0,0,0.4)"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></svg>
           </button>
         </div>
 
         <!-- 프로필 이미지 -->
         <div class="profile-sheet-avatar">
           <div class="profile-sheet-avatar__img" onclick="changePhoto()">
-            <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.75)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="7" r="4"/>
-              <path d="M4 21v-1a8 8 0 0 1 16 0v1"/>
+            <svg width="34" height="34" viewBox="0 0 24 24" stroke="rgba(255,255,255,0.75)">
+              <path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M8 7a4 4 0 1 0 8 0a4 4 0 0 0 -8 0"/><path d="M6 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"/>
             </svg>
             <div class="profile-sheet-avatar__overlay">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-                <circle cx="12" cy="13" r="4"/>
-              </svg>
+              <svg width="20" height="20" viewBox="0 0 24 24" stroke="#fff"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 7h1a2 2 0 0 0 2 -2a1 1 0 0 1 1 -1h6a1 1 0 0 1 1 1a2 2 0 0 0 2 2h1a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-9a2 2 0 0 1 2 -2"/><path d="M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"/></svg>
             </div>
           </div>
           <span class="profile-sheet-avatar__label" onclick="changePhoto()">사진 변경</span>
@@ -1655,18 +1564,7 @@
             onclick="closeEquipSheet()"
             aria-label="닫기"
           >
-            <svg
-              width="12"
-              height="12"
-              viewBox="0 0 12 12"
-              fill="none"
-              stroke="rgba(0,0,0,0.4)"
-              stroke-width="1.8"
-              stroke-linecap="round"
-            >
-              <line x1="1" y1="1" x2="11" y2="11" />
-              <line x1="11" y1="1" x2="1" y2="11" />
-            </svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" stroke="rgba(0,0,0,0.4)"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></svg>
           </button>
         </div>
 
@@ -1706,18 +1604,7 @@
             </div>
           </div>
           <button class="sheet-add-btn" id="addBtn" onclick="toggleAddForm()">
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 14 14"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="1.8"
-              stroke-linecap="round"
-            >
-              <line x1="7" y1="2" x2="7" y2="12" />
-              <line x1="2" y1="7" x2="12" y2="7" />
-            </svg>
+            <svg width="14" height="14" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5l0 14"/><path d="M5 12l14 0"/></svg>
             장비 추가하기
           </button>
         </div>
@@ -1807,8 +1694,8 @@
         <div class="sheet-equip-icon">
           ${
             e.type === "카메라"
-              ? `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,0.3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 7h1a2 2 0 0 0 2 -2a1 1 0 0 1 1 -1h6a1 1 0 0 1 1 1a2 2 0 0 0 2 2h1a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-9a2 2 0 0 1 2 -2"/><circle cx="12" cy="13" r="3"/></svg>`
-              : `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,0.3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8v-2a2 2 0 0 1 2 -2h2"/><path d="M4 16v2a2 2 0 0 0 2 2h2"/><path d="M16 4h2a2 2 0 0 1 2 2v2"/><path d="M16 20h2a2 2 0 0 0 2 -2v-2"/><circle cx="12" cy="12" r="3"/></svg>`
+              ? `<svg width="16" height="16" viewBox="0 0 24 24" stroke="rgba(0,0,0,0.3)"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 7h1a2 2 0 0 0 2 -2a1 1 0 0 1 1 -1h6a1 1 0 0 1 1 1a2 2 0 0 0 2 2h1a2 2 0 0 1 2 2v9a2 2 0 0 1 -2 2h-14a2 2 0 0 1 -2 -2v-9a2 2 0 0 1 2 -2"/><path d="M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"/></svg>`
+              : `<svg width="16" height="16" viewBox="0 0 24 24" stroke="rgba(0,0,0,0.3)"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 8v-2a2 2 0 0 1 2 -2h2"/><path d="M4 16v2a2 2 0 0 0 2 2h2"/><path d="M16 4h2a2 2 0 0 1 2 2v2"/><path d="M16 20h2a2 2 0 0 0 2 -2v-2"/><path d="M12 12m-3 0a3 3 0 1 0 6 0a3 3 0 1 0 -6 0"/></svg>`
           }
         </div>
         <div class="sheet-equip-info">
@@ -1818,7 +1705,7 @@
           </div>
         </div>
         <button class="sheet-equip-del" onclick="deleteEquip(${e.id})" aria-label="삭제">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#ff453a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg width="16" height="16" viewBox="0 0 24 24" stroke="#ff453a">
             <path d="M4 7l16 0"/><path d="M10 11l0 6"/><path d="M14 11l0 6"/>
             <path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"/>
             <path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"/>

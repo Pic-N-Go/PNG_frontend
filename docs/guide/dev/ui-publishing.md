@@ -21,12 +21,12 @@ src/components/ui/
     home.html                 # 홈 (히어로·검색·필터 바텀시트·카테고리·주변 스팟·캘린더)
     map.html                  # 지도 (풀스크린·투명 상태바·마커 팝업·클러스터·FAB)
   travel/
-    travel-list.html          # 여행 목록 (전체·예정·진행중·완료 탭·스크롤 콜랩스 헤더)
+    travel-list.html          # 여행 목록 (전체·예정·진행중·완료 탭·스크롤 콜랩스 헤더 · 빈 상태 ?empty=1)
     travel-plan.html          # 여행 계획 상세 (지도 헤더·일자별 스팟 타임라인)
     travel-new.html           # 새 여행 계획 만들기
   community/
     community-feed.html       # 커뮤니티 피드 (레시피·갤러리 탭·타이틀 하단 검색바)
-    community-write.html      # 게시물 작성 — 미퍼블리싱
+    community-write.html      # 게시물 작성 (촬영 시간·날씨·카메라·렌즈·위치 바텀시트)
     contest.html              # 주간 콘테스트 — 미퍼블리싱
   spot/
     spot-detail.html          # 스팟 상세 (포토제닉 스코어·날씨·정보/사진/채팅 탭)
@@ -44,7 +44,7 @@ src/components/ui/
     follow.html               # 팔로워/팔로잉 목록 — 미퍼블리싱
     user-profile.html         # 타 유저 프로필 — 미퍼블리싱
   wishlist/
-    wishlist.html             # 위시리스트 목록
+    wishlist.html             # 촬영 조건 알림 설정 목록 (날씨·골든아워·미세먼지 조건, 빈 상태 ?empty=1)
     wishlist-setting.html     # 위시리스트 상세 설정
 ```
 
@@ -207,13 +207,14 @@ src/components/ui/
 - `min-height: unset` 적용으로 `frame.scrollTop` 정상 감지
 - 여행 카드 (예정·진행중·완료 상태 뱃지)
 - 새 여행 만들기 버튼 → `travel-new.html`
+- 빈 상태 (`?empty=1`): 출사 계획 없을 때 CTA → `travel-new.html`
 
 ### community/community-feed.html
 - 스크롤 콜랩스 헤더 (travel과 동일 패턴)
 - 타이틀 하단 검색바 (항상 노출, 스크롤 시 큰 타이틀만 접힘)
 - 레시피·갤러리 탭 전환
 - 인기순 정렬 드롭다운
-- 게시물 작성 버튼 → `community-write.html` (미퍼블리싱)
+- 게시물 작성 버튼 → `community-write.html`
 
 ### spot/spot-detail.html
 - 탭: 정보 / 사진 / **채팅**
@@ -275,7 +276,7 @@ auth/login
             │    │    └─ spot/spot-detail
             │    └─ travel/travel-new
             ├─ community/community-feed
-            │    ├─ community/community-write (미퍼블리싱)
+            │    ├─ community/community-write
             │    └─ community/contest (미퍼블리싱)
             └─ mypage/mypage
                  ├─ mypage/my-photos

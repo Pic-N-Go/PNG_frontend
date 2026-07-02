@@ -28,6 +28,7 @@ import {
   FONT_LG,
   FONT_MD,
   FONT_SM,
+  FONT_XS,
   FONT_2XL,
   FONT_XL,
   INPUT_HEIGHT,
@@ -240,7 +241,7 @@ export default function LoginScreen({ navigation }: Props) {
                 allowFontScaling={false}
                 style={{
                   fontFamily: 'Pretendard-Regular',
-                  fontSize: 11,
+                  fontSize: FONT_XS,
                   fontWeight: '400',
                   color: 'rgba(255,255,255,0.6)',
                   letterSpacing: 3.5,
@@ -362,7 +363,7 @@ export default function LoginScreen({ navigation }: Props) {
               <View style={{ flex: 1, height: 0.5, backgroundColor: 'rgba(0,0,0,0.1)' }} />
               <Text
                 style={{
-                  fontSize: 12,
+                  fontSize: normalizeFontSize(12),
                   color: 'rgba(0,0,0,0.25)',
                   letterSpacing: 0.3,
                   fontFamily: 'Pretendard-Regular',
@@ -390,7 +391,7 @@ export default function LoginScreen({ navigation }: Props) {
                   gap: 6,
                 }}
               >
-                <Text style={{ fontSize: 14, fontWeight: '700', color: '#391B1B' }}>K</Text>
+                <Text style={{ fontSize: normalizeFontSize(14), fontWeight: '700', color: '#391B1B' }}>K</Text>
                 <Text
                   style={{
                     fontSize: FONT_MD,
@@ -492,7 +493,7 @@ export default function LoginScreen({ navigation }: Props) {
 
               {/* Header */}
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: SPACING_LG, paddingVertical: 8 }}>
-                <Text style={{ fontSize: 20, letterSpacing: -0.4, color: '#000', fontFamily: 'Pretendard-SemiBold' }}>
+                <Text style={{ fontSize: normalizeFontSize(20), letterSpacing: -0.4, color: '#000', fontFamily: 'Pretendard-SemiBold' }}>
                   {sheetStep === 1 ? '비밀번호 찾기' : '인증코드 확인'}
                 </Text>
                 <Pressable
@@ -528,7 +529,7 @@ export default function LoginScreen({ navigation }: Props) {
                     {'가입하신 이메일을 입력하면\n인증코드를 보내드려요.'}
                   </Text>
                   <View style={{ paddingHorizontal: SPACING_LG }}>
-                    <Text style={{ fontSize: 12, color: 'rgba(0,0,0,0.4)', marginBottom: 6, fontFamily: 'Pretendard-Medium' }}>
+                    <Text style={{ fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.4)', marginBottom: 6, fontFamily: 'Pretendard-Medium' }}>
                       이메일
                     </Text>
                     <TextInput
@@ -557,8 +558,8 @@ export default function LoginScreen({ navigation }: Props) {
                     <Pressable
                       onPress={sheetEmailOk ? handleSendCode : undefined}
                       style={{
-                        height: 52,
-                        borderRadius: 26,
+                        height: BUTTON_HEIGHT,
+                        borderRadius: BUTTON_RADIUS,
                         backgroundColor: sheetEmailOk ? '#E31B59' : 'rgba(0,0,0,0.06)',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -597,7 +598,7 @@ export default function LoginScreen({ navigation }: Props) {
                     {`${sheetEmail} 으로\n인증코드를 발송했어요.`}
                   </Text>
                   <View style={{ paddingHorizontal: SPACING_LG }}>
-                    <Text style={{ fontSize: 12, color: 'rgba(0,0,0,0.4)', marginBottom: 6, fontFamily: 'Pretendard-Medium' }}>
+                    <Text style={{ fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.4)', marginBottom: 6, fontFamily: 'Pretendard-Medium' }}>
                       인증코드 6자리
                     </Text>
                     <TextInput
@@ -625,13 +626,13 @@ export default function LoginScreen({ navigation }: Props) {
                       }}
                     />
                     <View style={{ flexDirection: 'row', marginBottom: 14 }}>
-                      <Text style={{ fontSize: 12, color: 'rgba(0,0,0,0.35)', fontFamily: 'Pretendard-Regular' }}>
+                      <Text style={{ fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.35)', fontFamily: 'Pretendard-Regular' }}>
                         코드를 받지 못하셨나요?{'  '}
                       </Text>
                       <Pressable onPress={handleResend} disabled={!timerDone}>
                         <Text
                           style={{
-                            fontSize: 12,
+                            fontSize: normalizeFontSize(12),
                             color: '#E31B59',
                             fontFamily: 'Pretendard-Medium',
                           }}
@@ -643,8 +644,8 @@ export default function LoginScreen({ navigation }: Props) {
                     <Pressable
                       onPress={sheetCodeOk ? handleVerify : undefined}
                       style={{
-                        height: 52,
-                        borderRadius: 26,
+                        height: BUTTON_HEIGHT,
+                        borderRadius: BUTTON_RADIUS,
                         backgroundColor: sheetCodeOk ? '#E31B59' : 'rgba(0,0,0,0.06)',
                         alignItems: 'center',
                         justifyContent: 'center',
