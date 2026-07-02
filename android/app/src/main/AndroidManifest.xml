@@ -27,5 +27,6 @@
         <data android:scheme="kakao064f119585ac3464d0933271679fff60"/>
       </intent-filter>
     </activity>
+
   </application>
 </manifest>
