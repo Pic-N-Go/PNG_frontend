@@ -136,6 +136,9 @@
 
     td { padding: 12px 16px; vertical-align: top; }
 
+    a.filepath { text-decoration: none; }
+    a.filepath:hover { opacity: 0.8; }
+
     .filepath {
       display: inline-block;
       font-family: var(--mono);
@@ -244,17 +247,17 @@
 
           <tr data-cat="setup">
             <td><div class="situation">프로젝트 처음 셋업할 때</div><div class="desc">의존성 설치, 실행 명령어</div></td>
-            <td class="files-cell"><span class="filepath filepath-neutral">README.md</span></td>
+            <td class="files-cell"><a class="filepath filepath-neutral" href="../../README.md" target="_blank">README.md</a></td>
             <td class="desc">pnpm install, iOS/Android 실행 명령어, bare workflow 주의사항</td>
           </tr>
           <tr data-cat="setup">
             <td><div class="situation">환경변수 추가·확인할 때</div></td>
-            <td class="files-cell"><span class="filepath filepath-neutral">README.md</span> <span class="filepath filepath-neutral">.env.example</span></td>
+            <td class="files-cell"><a class="filepath filepath-neutral" href="../../README.md" target="_blank">README.md</a> <a class="filepath filepath-neutral" href="../../.env.example" target="_blank">.env.example</a></td>
             <td class="desc">EXPO_PUBLIC_ prefix 규칙, .env 세팅 방법, 변수 추가 프로세스</td>
           </tr>
           <tr data-cat="setup">
             <td><div class="situation">브랜치명·커밋·PR 제목 규칙 확인</div></td>
-            <td class="files-cell"><span class="filepath filepath-neutral">.github/CONVENTIONS.md</span></td>
+            <td class="files-cell"><a class="filepath filepath-neutral" href="../../.github/CONVENTIONS.md" target="_blank">.github/CONVENTIONS.md</a></td>
             <td class="desc">feature/, fix/ 브랜치 패턴, feat:/fix:/chore: 커밋 타입, PR 템플릿 항목</td>
           </tr>
 
@@ -263,27 +266,27 @@
 
           <tr data-cat="screen">
             <td><div class="situation">어떤 화면이 있는지 전체 파악할 때</div></td>
-            <td class="files-cell"><span class="filepath">docs/guide/dev/ui-publishing.md</span></td>
+            <td class="files-cell"><a class="filepath" href="../../docs/guide/dev/ui-publishing.md" target="_blank">docs/guide/dev/ui-publishing.md</a></td>
             <td class="desc">전체 HTML 목업 폴더 구조, 화면별 주요 기능, 화면 간 네비게이션 흐름도</td>
           </tr>
           <tr data-cat="screen">
             <td><div class="situation">HTML 목업 파일 보고 RN 구현할 때</div></td>
-            <td class="files-cell"><span class="filepath">docs/guide/dev/ui-publishing.md</span> <span class="filepath">docs/guide/dev/development-guide.md</span></td>
+            <td class="files-cell"><a class="filepath" href="../../docs/guide/dev/ui-publishing.md" target="_blank">docs/guide/dev/ui-publishing.md</a> <a class="filepath" href="../../docs/guide/dev/development-guide.md" target="_blank">docs/guide/dev/development-guide.md</a></td>
             <td class="desc">목업 열기 방법(390px 뷰포트), 바텀시트·콜랩스 헤더 등 공통 UI 패턴, 화면 구현 순서</td>
           </tr>
           <tr data-cat="screen">
             <td><div class="situation">Safe Area / 노치·홈인디케이터 처리</div></td>
-            <td class="files-cell"><span class="filepath">docs/guide/dev/device-support.md</span> <span class="filepath">docs/guide/dev/development-guide.md</span></td>
+            <td class="files-cell"><a class="filepath" href="../../docs/guide/dev/device-support.md" target="_blank">docs/guide/dev/device-support.md</a> <a class="filepath" href="../../docs/guide/dev/development-guide.md" target="_blank">docs/guide/dev/development-guide.md</a></td>
             <td class="desc">ScreenContainer 사용법, edges 옵션, 히어로 화면 예외 처리</td>
           </tr>
           <tr data-cat="screen">
             <td><div class="situation">이 화면 담당자가 누구인지 확인</div></td>
-            <td class="files-cell"><span class="filepath filepath-neutral">docs/guide/ops/team-assignments.md</span></td>
+            <td class="files-cell"><a class="filepath filepath-neutral" href="../../docs/guide/ops/team-assignments.md" target="_blank">docs/guide/ops/team-assignments.md</a></td>
             <td class="desc">화면별 담당자 + 구현 상태(미시작/진행중/완료)</td>
           </tr>
           <tr data-cat="screen">
             <td><div class="situation">상태 관리 — 어디에 뭘 써야 하나</div></td>
-            <td class="files-cell"><span class="filepath">docs/guide/dev/development-guide.md</span></td>
+            <td class="files-cell"><a class="filepath" href="../../docs/guide/dev/development-guide.md" target="_blank">docs/guide/dev/development-guide.md</a></td>
             <td class="desc">클라이언트 상태(Zustand) vs 서버 상태(TanStack Query) 구분 기준</td>
           </tr>
 
@@ -292,27 +295,27 @@
 
           <tr data-cat="style">
             <td><div class="situation">목업 px 값을 RN에 옮길 때</div><div class="desc">className vs style prop 어디에 넣나</div></td>
-            <td class="files-cell"><span class="filepath">docs/guide/dev/development-guide.md</span></td>
+            <td class="files-cell"><a class="filepath" href="../../docs/guide/dev/development-guide.md" target="_blank">docs/guide/dev/development-guide.md</a></td>
             <td class="desc">className(패딩·gap) vs layout.ts 상수(높이·폰트) 기준표, FONT_* 전체 px 매핑</td>
           </tr>
           <tr data-cat="style">
             <td><div class="situation">반응형 구현 — 기기별 스케일링 방법</div></td>
-            <td class="files-cell"><span class="filepath">docs/guide/dev/development-guide.md</span> <span class="filepath">docs/guide/dev/device-support.md</span></td>
+            <td class="files-cell"><a class="filepath" href="../../docs/guide/dev/development-guide.md" target="_blank">docs/guide/dev/development-guide.md</a> <a class="filepath" href="../../docs/guide/dev/device-support.md" target="_blank">docs/guide/dev/device-support.md</a></td>
             <td class="desc">normalize / normalizeFontSize 원리·공식·기기별 출력값 표, 시뮬레이터 확인 방법</td>
           </tr>
           <tr data-cat="style">
             <td><div class="situation">지원 기기 목록 및 dp 범위 확인</div></td>
-            <td class="files-cell"><span class="filepath">docs/guide/dev/device-support.md</span></td>
+            <td class="files-cell"><a class="filepath" href="../../docs/guide/dev/device-support.md" target="_blank">docs/guide/dev/device-support.md</a></td>
             <td class="desc">iOS/Android 지원 기기 표, 360~430dp 범위, 태블릿 미지원 사유</td>
           </tr>
           <tr data-cat="style">
             <td><div class="situation">layout.ts에 없는 상수를 새로 추가해야 할 때</div></td>
-            <td class="files-cell"><span class="filepath">docs/guide/dev/development-guide.md</span> <span class="filepath filepath-neutral">src/constants/layout.ts</span></td>
+            <td class="files-cell"><a class="filepath" href="../../docs/guide/dev/development-guide.md" target="_blank">docs/guide/dev/development-guide.md</a> <a class="filepath filepath-neutral" href="../constants/layout.ts" target="_blank">src/constants/layout.ts</a></td>
             <td class="desc">normalize vs normalizeFontSize 선택 기준, 상수화 vs 인라인 판단 기준</td>
           </tr>
           <tr data-cat="style">
             <td><div class="situation">디자인 토큰(컬러·폰트·spacing) 확인</div></td>
-            <td class="files-cell"><span class="filepath">docs/guide/dev/ui-publishing.md</span> <span class="filepath filepath-neutral">CLAUDE.md</span></td>
+            <td class="files-cell"><a class="filepath filepath-neutral" href="../components/ui/common/common.css" target="_blank">src/components/ui/common/common.css</a> <a class="filepath filepath-neutral" href="../../CLAUDE.md" target="_blank">CLAUDE.md</a></td>
             <td class="desc">CSS 변수 전체 목록(--color-accent, --color-surface 등), 브랜드 컬러 #E31B59</td>
           </tr>
 
@@ -321,22 +324,27 @@
 
           <tr data-cat="api">
             <td><div class="situation">인증 API 엔드포인트 확인</div><div class="desc">로그인·회원가입·토큰 갱신</div></td>
-            <td class="files-cell"><span class="filepath filepath-neutral">docs/guide/api/auth-api.md</span></td>
+            <td class="files-cell"><a class="filepath filepath-neutral" href="../../docs/guide/api/auth-api.md" target="_blank">docs/guide/api/auth-api.md</a></td>
             <td class="desc">Request/Response 스펙, 에러 코드, 이메일 미인증 처리 방법</td>
           </tr>
           <tr data-cat="api">
             <td><div class="situation">API 함수·훅 작성 패턴</div><div class="desc">fetch → hook 구조 어떻게 잡나</div></td>
-            <td class="files-cell"><span class="filepath">docs/guide/dev/development-guide.md</span></td>
+            <td class="files-cell"><a class="filepath" href="../../docs/guide/dev/development-guide.md" target="_blank">docs/guide/dev/development-guide.md</a></td>
             <td class="desc">src/api/(순수 fetch) → src/hooks/(TanStack Query 훅) 레이어 분리 패턴 + 코드 예시</td>
           </tr>
           <tr data-cat="api">
             <td><div class="situation">인증 연동 현황 파악</div><div class="desc">어디까지 붙었는지</div></td>
-            <td class="files-cell"><span class="filepath filepath-neutral">docs/guide/api/auth-integration.md</span></td>
+            <td class="files-cell"><a class="filepath" href="../../docs/guide/api/auth-integration.md" target="_blank">docs/guide/api/auth-integration.md</a></td>
             <td class="desc">로그인·회원가입 API 연동 상태, 남은 작업 목록</td>
           </tr>
           <tr data-cat="api">
+            <td><div class="situation">사진 업로드·스팟 미디어 API 확인</div></td>
+            <td class="files-cell"><a class="filepath" href="../../docs/guide/api/photo-upload-spec.md" target="_blank">docs/guide/api/photo-upload-spec.md</a></td>
+            <td class="desc">이미지 업로드 엔드포인트, 파일 크기·포맷 제한, presigned URL 흐름</td>
+          </tr>
+          <tr data-cat="api">
             <td><div class="situation">JWT 토큰 관리 방법</div></td>
-            <td class="files-cell"><span class="filepath">docs/guide/dev/development-guide.md</span></td>
+            <td class="files-cell"><a class="filepath" href="../../docs/guide/dev/development-guide.md" target="_blank">docs/guide/dev/development-guide.md</a></td>
             <td class="desc">accessToken 저장(Zustand), 만료 시 갱신 흐름, useAuthStore 사용법</td>
           </tr>
 
@@ -345,22 +353,22 @@
 
           <tr data-cat="ops">
             <td><div class="situation">PR 머지 전 확인사항</div></td>
-            <td class="files-cell"><span class="filepath filepath-neutral">.github/CONVENTIONS.md</span></td>
+            <td class="files-cell"><a class="filepath filepath-neutral" href="../../.github/CONVENTIONS.md" target="_blank">.github/CONVENTIONS.md</a></td>
             <td class="desc">tsc --noEmit, pnpm lint, 셀프 리뷰, CI 통과 체크리스트</td>
           </tr>
           <tr data-cat="ops">
             <td><div class="situation">CI 실패 원인 파악 및 대응</div></td>
-            <td class="files-cell"><span class="filepath filepath-neutral">docs/guide/ops/github-actions-guide.md</span></td>
+            <td class="files-cell"><a class="filepath filepath-neutral" href="../../docs/guide/ops/github-actions-guide.md" target="_blank">docs/guide/ops/github-actions-guide.md</a></td>
             <td class="desc">워크플로우별 역할(ci/labeler/reviewdog), 실패 시 확인 포인트</td>
           </tr>
           <tr data-cat="ops">
             <td><div class="situation">PR 라벨이 자동으로 안 붙을 때</div></td>
-            <td class="files-cell"><span class="filepath filepath-neutral">docs/guide/ops/github-actions-guide.md</span> <span class="filepath filepath-neutral">.github/CONVENTIONS.md</span></td>
+            <td class="files-cell"><a class="filepath filepath-neutral" href="../../docs/guide/ops/github-actions-guide.md" target="_blank">docs/guide/ops/github-actions-guide.md</a> <a class="filepath filepath-neutral" href="../../.github/CONVENTIONS.md" target="_blank">.github/CONVENTIONS.md</a></td>
             <td class="desc">labeler.yml 동작 조건, 브랜치명·PR 제목 패턴 확인</td>
           </tr>
           <tr data-cat="ops">
             <td><div class="situation">git pull 후 패키지 설치 안 됐을 때</div></td>
-            <td class="files-cell"><span class="filepath filepath-neutral">.github/CONVENTIONS.md</span></td>
+            <td class="files-cell"><a class="filepath filepath-neutral" href="../../.github/CONVENTIONS.md" target="_blank">.github/CONVENTIONS.md</a></td>
             <td class="desc">post-merge Husky 훅 설명, pnpm-lock.yaml 변경 시 자동 설치 동작</td>
           </tr>
 
@@ -369,27 +377,37 @@
 
           <tr data-cat="ai">
             <td><div class="situation">AI에게 작업 맡기기 전 컨텍스트 제공</div></td>
-            <td class="files-cell"><span class="filepath filepath-neutral">docs/ai/00-context.md</span></td>
+            <td class="files-cell"><a class="filepath filepath-neutral" href="../../docs/ai/00-context.md" target="_blank">docs/ai/00-context.md</a></td>
             <td class="desc">프로젝트 기술 스택·구조·규칙 요약 — AI 프롬프트 첫 줄에 붙여 쓰는 컨텍스트</td>
           </tr>
           <tr data-cat="ai">
             <td><div class="situation">새 기능 스펙 문서 작성</div></td>
-            <td class="files-cell"><span class="filepath filepath-neutral">docs/ai/01-feature-spec-template.md</span></td>
+            <td class="files-cell"><a class="filepath filepath-neutral" href="../../docs/ai/01-feature-spec-template.md" target="_blank">docs/ai/01-feature-spec-template.md</a></td>
             <td class="desc">기능 스펙 템플릿 — 배경·요구사항·엣지케이스·완료 기준 항목</td>
           </tr>
           <tr data-cat="ai">
             <td><div class="situation">구현 계획(태스크 분해) 작성</div></td>
-            <td class="files-cell"><span class="filepath filepath-neutral">docs/ai/02-implementation-plan-template.md</span></td>
+            <td class="files-cell"><a class="filepath filepath-neutral" href="../../docs/ai/02-implementation-plan-template.md" target="_blank">docs/ai/02-implementation-plan-template.md</a></td>
             <td class="desc">스펙 → 태스크 단위 분해 템플릿, 의존성 순서 정리</td>
           </tr>
           <tr data-cat="ai">
             <td><div class="situation">AI 결과물 PR 리뷰 체크</div></td>
-            <td class="files-cell"><span class="filepath filepath-neutral">docs/ai/03-pr-review-checklist.md</span></td>
+            <td class="files-cell"><a class="filepath filepath-neutral" href="../../docs/ai/03-pr-review-checklist.md" target="_blank">docs/ai/03-pr-review-checklist.md</a></td>
             <td class="desc">AI 생성 코드 리뷰 시 놓치기 쉬운 항목 체크리스트</td>
           </tr>
           <tr data-cat="ai">
+            <td><div class="situation">AI에게 작업 넘기거나 인계받을 때</div></td>
+            <td class="files-cell"><a class="filepath filepath-neutral" href="../../docs/ai/04-agent-handoff-prompt-template.md" target="_blank">docs/ai/04-agent-handoff-prompt-template.md</a></td>
+            <td class="desc">세션 인계 프롬프트 템플릿 — 현재 상태·완료 작업·남은 작업 구조화</td>
+          </tr>
+          <tr data-cat="ai">
+            <td><div class="situation">AI 협업 시작 전 워크플로우 파악</div></td>
+            <td class="files-cell"><a class="filepath filepath-neutral" href="../../docs/ai/05-intake-workflow.md" target="_blank">docs/ai/05-intake-workflow.md</a></td>
+            <td class="desc">요구사항 → 스펙 → 계획 → 구현까지 AI와 협업하는 전체 흐름</td>
+          </tr>
+          <tr data-cat="ai">
             <td><div class="situation">AI 프롬프트를 잘 쓰고 싶을 때</div></td>
-            <td class="files-cell"><span class="filepath filepath-neutral">docs/guide/dev/prompt-writing-guide.md</span></td>
+            <td class="files-cell"><a class="filepath filepath-neutral" href="../../docs/guide/dev/prompt-writing-guide.md" target="_blank">docs/guide/dev/prompt-writing-guide.md</a></td>
             <td class="desc">맥락 제공 방법, 좋은/나쁜 프롬프트 예시, 반복 작업 효율화 팁</td>
           </tr>
 
