@@ -3189,8 +3189,8 @@
         e.stopPropagation();
         const saved = btn.classList.toggle('is-bookmarked');
         const shape = btn.querySelectorAll('path')[1];
-        shape.setAttribute('fill', saved ? '#E31B59' : 'none');
-        shape.setAttribute('stroke', saved ? '#E31B59' : 'currentColor');
+        shape.style.fill = saved ? '#E31B59' : 'none';
+        shape.style.stroke = saved ? '#E31B59' : 'currentColor';
       }
     </script>
   </body>

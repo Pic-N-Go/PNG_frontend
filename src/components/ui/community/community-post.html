@@ -647,8 +647,8 @@
         var saved = btn.dataset.saved === "1";
         btn.dataset.saved = saved ? "0" : "1";
         var shape = btn.querySelectorAll("path")[1];
-        shape.setAttribute("fill", saved ? "none" : "#E31B59");
-        shape.setAttribute("stroke", saved ? "currentColor" : "#E31B59");
+        shape.style.fill = saved ? "none" : "#E31B59";
+        shape.style.stroke = saved ? "currentColor" : "#E31B59";
       }
 
       function openLightbox() {
