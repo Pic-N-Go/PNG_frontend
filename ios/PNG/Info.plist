@@ -28,13 +28,8 @@
         <key>CFBundleURLSchemes</key>
         <array>
           <string>kakao064f119585ac3464d0933271679fff60</string>
-          <string>com.picngo.app</string>
-        </array>
-      </dict>
-      <dict>
-        <key>CFBundleURLSchemes</key>
-        <array>
           <string>kakaoa9f0a957cdf5c7793d2ee0c38474d39c</string>
+          <string>com.picngo.app</string>
         </array>
       </dict>
     </array>
@@ -59,6 +54,8 @@
       <key>NSAllowsLocalNetworking</key>
       <true/>
     </dict>
+    <key>NSFaceIDUsageDescription</key>
+    <string>Allow $(PRODUCT_NAME) to access your Face ID biometric data.</string>
     <key>RCTNewArchEnabled</key>
     <true/>
     <key>UILaunchStoryboardName</key>

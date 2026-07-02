@@ -118,7 +118,7 @@
 </head>
 <body>
   <h1>PNG 퍼블리싱 파일 목록</h1>
-  <p class="meta">생성일: 2026-06-24 · 총 26개 파일 · 스캔 루트: src/components/ui</p>
+  <p class="meta">생성일: 2026-07-02 · 총 26개 파일 · 스캔 루트: src/components/ui</p>
 
   <div class="filters">
     <button class="filter-btn is-active" onclick="filterAll(this)">전체</button>
@@ -155,8 +155,8 @@
       <td><span class="badge badge--page">PAGE</span></td>
       <td><a href="../components/ui/auth/login.html" target="_blank" rel="noopener">auth/login.html</a></td>
       <td>박예은</td>
-      <td><span class="status status--wip">진행중</span></td>
-      <td>2026-06-23</td>
+      <td><span class="status status--done">완료</span></td>
+      <td>2026-07-02</td>
       <td>api 담당자 : 소영재</td>
     </tr>
     <tr>
@@ -177,8 +177,8 @@
       <td><span class="badge badge--page">PAGE</span></td>
       <td><a href="../components/ui/auth/signup.html" target="_blank" rel="noopener">auth/signup.html</a></td>
       <td>박예은</td>
-      <td><span class="status status--wip">진행중</span></td>
-      <td>2026-06-23</td>
+      <td><span class="status status--done">완료</span></td>
+      <td>2026-07-02</td>
       <td>api 담당자 : 소영재</td>
     </tr>
     <tr>
@@ -466,6 +466,10 @@
 
     /* ── broken link 체크 (콘솔 출력) ── */
     (function checkLinks() {
+      if (window.location.protocol === 'file:') {
+        console.info('[filelist] file:// 환경에서는 링크 검증을 건너뜁니다. Live Server 등 로컬 서버 사용 시 검증됩니다.');
+        return;
+      }
       const links = document.querySelectorAll('a[target="_blank"]');
       const broken = [];
       let checked = 0;

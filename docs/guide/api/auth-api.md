@@ -54,21 +54,12 @@
 
 ## 3. 카카오 로그인 — `POST /auth/login/social`
 
-카카오 인가 코드를 프론트에서 받아서 백엔드로 전달. 백엔드가 카카오 토큰 교환 + 유저 생성/조회까지 처리.
-
-### 카카오 인가 코드 받는 방법
-```
-https://kauth.kakao.com/oauth/authorize
-  ?client_id={KAKAO_REST_API_KEY}
-  ?response_type=code
-  &redirect_uri={REDIRECT_URI}
-```
-리다이렉트 URI는 백엔드 `.env`의 `kakao.auth.redirect-uri` 값과 일치해야 함.
+프론트(네이티브 SDK `@react-native-seoul/kakao-login`)가 카카오톡 앱으로 로그인해 받은 카카오 액세스 토큰을 백엔드로 전달. 백엔드가 해당 토큰으로 카카오 서버 검증 + 유저 생성/조회까지 처리.
 
 ### Request Body
 ```json
 {
-  "code": "인가코드값"
+  "accessToken": "카카오 액세스 토큰"
 }
 ```
 
