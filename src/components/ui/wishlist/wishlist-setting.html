@@ -297,7 +297,7 @@
         </div>
         <div class="notif-row">
           <p class="notif-row__label" style="font-size: var(--font-base)">방해 금지 시간</p>
-          <button class="time-picker-trigger">22:00 ~ 07:00 <svg width="8" height="8" viewBox="0 0 24 24" stroke="rgba(0,0,0,0.2)"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/></svg></button>
+          <button class="time-picker-trigger"><span id="tp-trigger-label">22:00 ~ 07:00</span> <svg width="8" height="8" viewBox="0 0 24 24" stroke="rgba(0,0,0,0.2)"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/></svg></button>
         </div>
       </div>
     </div>
@@ -634,7 +634,7 @@
   function confirmTimePicker() {
     const s = String(tpStart).padStart(2,'0') + ':00';
     const e = String(tpEnd).padStart(2,'0') + ':00';
-    document.querySelector('.time-picker-trigger').childNodes[0].textContent = s + ' ~ ' + e + ' ';
+    document.getElementById('tp-trigger-label').textContent = s + ' ~ ' + e;
     closeTimePicker();
     markDirty();
   }

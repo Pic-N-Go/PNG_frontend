@@ -970,9 +970,15 @@
         tempLocation = { name: el.dataset.name, addr: el.dataset.addr };
       }
       function confirmLocation() {
-        document.getElementById('locationText').innerHTML =
-          '<div class="location-row__name">' + tempLocation.name + '</div>' +
-          '<div class="location-row__addr">' + tempLocation.addr + '</div>';
+        const el = document.getElementById('locationText');
+        el.innerHTML = '';
+        const name = document.createElement('div');
+        name.className = 'location-row__name';
+        name.textContent = tempLocation.name;
+        const addr = document.createElement('div');
+        addr.className = 'location-row__addr';
+        addr.textContent = tempLocation.addr;
+        el.append(name, addr);
         closeSheet('locationSheet');
       }
 

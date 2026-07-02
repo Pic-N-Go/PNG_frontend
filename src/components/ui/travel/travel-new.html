@@ -463,6 +463,12 @@
     const activeTab = document.querySelector('.day-tab.is-active:not(.day-tab--add)');
     const idx = tabs.indexOf(activeTab);
     delete daySpots[activeDay];
+    // 삭제된 키 이후의 daySpots 키를 한 칸씩 앞으로 당김
+    const maxDay = Math.max(...Object.keys(daySpots).map(Number));
+    for (let i = activeDay; i < maxDay; i++) {
+      daySpots[i] = daySpots[i + 1];
+    }
+    delete daySpots[maxDay];
     activeTab.remove();
     document.querySelectorAll('.day-tab:not(.day-tab--add)').forEach((t, i) => {
       t.textContent = 'DAY ' + (i + 1);
@@ -611,7 +617,7 @@
       const p = str.split('.');
       el.querySelector('span').textContent = `${parseInt(p[1])}월 ${parseInt(p[2])}일`;
       el.classList.add('is-set');
-      el.querySelector('svg').querySelectorAll('path').forEach(s => s.setAttribute('stroke', '#e31b59'));
+      el.querySelector('svg').querySelectorAll('path:not([stroke="none"])').forEach(s => s.setAttribute('stroke', '#e31b59'));
     };
     setBtn('dateStart', dates.start);
     setBtn('dateEnd', dates.end);
@@ -659,7 +665,7 @@
     const desc = document.getElementById('del-desc');
     if (type === 'day') {
       title.textContent = '이 날을 삭제할까요?';
-      desc.textContent = 'DAY ' + activeDay + '에 추가된 스팟이 모두 삭제되며\n복구할 수 없어요.';
+      desc.innerHTML = 'DAY ' + activeDay + '에 추가된 스팟이 모두 삭제되며<br>복구할 수 없어요.';
     } else {
       const spot = (daySpots[dayIdx] || []).find(s => s.id === spotId);
       title.textContent = '스팟을 삭제할까요?';
@@ -706,12 +712,12 @@
     const startEl = document.getElementById('dateStart');
     startEl.querySelector('span').textContent = '6월 7일';
     startEl.classList.add('is-set');
-    startEl.querySelectorAll('path').forEach(s => s.setAttribute('stroke', '#e31b59'));
+    startEl.querySelectorAll('path:not([stroke="none"])').forEach(s => s.setAttribute('stroke', '#e31b59'));
 
     const endEl = document.getElementById('dateEnd');
     endEl.querySelector('span').textContent = '6월 9일';
     endEl.classList.add('is-set');
-    endEl.querySelectorAll('path').forEach(s => s.setAttribute('stroke', '#e31b59'));
+    endEl.querySelectorAll('path:not([stroke="none"])').forEach(s => s.setAttribute('stroke', '#e31b59'));
 
     // Day 2가 활성 상태이므로 렌더링
     renderTimeline();

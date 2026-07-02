@@ -234,6 +234,7 @@ svg[viewBox="0 0 24 24"] rect {
   border: 1px solid transparent;
   font-family: var(--font-family);
   font-size: var(--font-sm);
+  letter-spacing: -0.2px;
   color: rgba(0, 0, 0, 0.5);
   cursor: pointer;
   transition: all 0.2s ease;

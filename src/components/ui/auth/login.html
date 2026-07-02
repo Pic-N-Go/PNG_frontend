@@ -700,7 +700,7 @@
       <svg class="input-group__icon" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 13a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2v-6z" /><path d="M11 16a1 1 0 1 0 2 0a1 1 0 0 0 -2 0" /><path d="M8 11v-4a4 4 0 1 1 8 0v4" />
       </svg>
-      <button type="button" class="input-group__toggle" onclick="togglePw()" aria-label="비밀번호 표시">
+      <button type="button" class="input-group__toggle" id="togglePwBtn" onclick="togglePw()" aria-label="비밀번호 표시">
         <svg width="20" height="20" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6" />
         </svg>
@@ -810,7 +810,13 @@
 <script>
   function togglePw() {
     const pw = document.getElementById('pw');
-    pw.type = pw.type === 'password' ? 'text' : 'password';
+    const btn = document.getElementById('togglePwBtn');
+    const isHidden = pw.type === 'password';
+    pw.type = isHidden ? 'text' : 'password';
+    btn.setAttribute('aria-label', isHidden ? '비밀번호 숨기기' : '비밀번호 표시');
+    btn.innerHTML = isHidden
+      ? '<svg width="20" height="20" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 3l18 18" /><path d="M10.584 10.587a2 2 0 0 0 2.828 2.83" /><path d="M9.363 5.365a9 9 0 0 1 2.637 -.365c3.6 0 6.6 2 9 6c-.666 1.11 -1.379 2.067 -2.138 2.87m-2.248 1.807c-1.413 1.088 -2.994 1.623 -4.614 1.623c-3.6 0 -6.6 -2 -9 -6c1.09 -1.815 2.374 -3.31 3.852 -4.484" /></svg>'
+      : '<svg width="20" height="20" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0" /><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6" /></svg>';
   }
 
   /* ── 비밀번호 찾기 바텀시트 ── */
