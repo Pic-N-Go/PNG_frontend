@@ -191,6 +191,21 @@
 
     .empty-state.visible { display: block; }
 
+    .badge-start {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: #fff;
+      background: var(--accent);
+      padding: 2px 6px;
+      border-radius: 3px;
+      margin-left: 6px;
+      vertical-align: middle;
+      line-height: 1.6;
+    }
+
     .section-row td {
       padding: 6px 16px;
       background: var(--surface);
@@ -381,6 +396,11 @@
           <tr class="section-row"><td colspan="3">AI 협업</td></tr>
 
           <tr data-cat="ai">
+            <td><div class="situation">AI 협업 문서 전체 구조 파악</div></td>
+            <td class="files-cell"><a class="filepath" href="../../docs/ai/README.md" target="_blank">docs/ai/README.md</a></td>
+            <td class="desc">docs/ai/ 폴더의 모든 파일 설명·용도 인덱스. Claude Code를 사용하지 않는다면 07-non-claude-quickstart.md 하나만 읽으면 됨</td>
+          </tr>
+          <tr data-cat="ai">
             <td><div class="situation">AI에게 작업 맡기기 전 컨텍스트 제공</div></td>
             <td class="files-cell"><a class="filepath" href="../../docs/ai/00-context.md" target="_blank">docs/ai/00-context.md</a></td>
             <td class="desc">프로젝트 기술 스택·구조·규칙 요약 — AI 프롬프트 첫 줄에 붙여 쓰는 컨텍스트</td>
@@ -414,11 +434,6 @@
             <td><div class="situation">AI 프롬프트를 잘 쓰고 싶을 때</div></td>
             <td class="files-cell"><a class="filepath" href="../../docs/guide/dev/prompt-writing-guide.md" target="_blank">docs/guide/dev/prompt-writing-guide.md</a></td>
             <td class="desc">맥락 제공 방법, 좋은/나쁜 프롬프트 예시, 반복 작업 효율화 팁</td>
-          </tr>
-          <tr data-cat="ai">
-            <td><div class="situation">AI 협업 문서 전체 구조 파악</div></td>
-            <td class="files-cell"><a class="filepath" href="../../docs/ai/README.md" target="_blank">docs/ai/README.md</a></td>
-            <td class="desc">docs/ai/ 폴더의 모든 파일 설명·용도 인덱스 — AI 협업 처음 시작할 때 가장 먼저 읽을 문서</td>
           </tr>
           <tr data-cat="ai">
             <td><div class="situation">/png-intake 없이 Intake 플로우 수동 실행</div></td>
