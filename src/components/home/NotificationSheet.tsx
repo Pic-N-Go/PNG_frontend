@@ -183,7 +183,7 @@ export default function NotificationSheet({ visible, onClose, onUnreadChange }: 
         setActiveTab('all');
       });
     }
-  }, [visible]);
+  }, [visible, show, slideAnim]);
 
   useEffect(() => {
     const hasUnread = groups.some((g) => g.items.some((i) => i.isUnread));

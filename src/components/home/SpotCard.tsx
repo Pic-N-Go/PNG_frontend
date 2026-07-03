@@ -3,7 +3,7 @@ import { Pressable, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { IconBookmark } from '@tabler/icons-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { CARD_RADIUS, FONT_MD, FONT_SM, FONT_XS } from '@/constants/layout';
+import { CARD_RADIUS, FONT_MD, FONT_XS } from '@/constants/layout';
 import type { SpotItem } from '@/types/spot';
 
 interface Props {

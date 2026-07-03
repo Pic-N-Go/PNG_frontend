@@ -1,7 +1,7 @@
 import React from 'react';
 import { FlatList, Pressable, Text, View } from 'react-native';
 import { normalize } from '@/utils/normalize';
-import { FONT_MD, FONT_XL, GRID_PADDING, SPACING_MD, SPACING_XS } from '@/constants/layout';
+import { FONT_MD, FONT_XL, GRID_PADDING, SPACING_XS } from '@/constants/layout';
 import SpotCard from '@/components/home/SpotCard';
 import type { SpotItem } from '@/types/spot';
 

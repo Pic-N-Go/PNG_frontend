@@ -5,7 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { HomeStackParamList } from '@/navigation/stacks/HomeStack';
-import { CONTENT_PADDING, FONT_SM, FONT_XL, GRID_PADDING, TAB_BAR_HEIGHT } from '@/constants/layout';
+import { CONTENT_PADDING, FONT_SM, FONT_XL, TAB_BAR_HEIGHT } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
 import HeroSection from '@/components/home/HeroSection';
 import SearchBar from '@/components/home/SearchBar';
