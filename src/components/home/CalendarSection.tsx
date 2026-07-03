@@ -71,8 +71,8 @@ export default function CalendarSection({ onEventPress }: Props) {
             onPress={onEventPress ? () => onEventPress(event.id) : undefined}
             style={({ pressed }) => ({
               flex: 1,
-              opacity: pressed ? 0.95 : 1,
-              transform: [{ scale: pressed ? 0.98 : 1 }],
+              opacity: onEventPress && pressed ? 0.95 : 1,
+              transform: [{ scale: onEventPress && pressed ? 0.98 : 1 }],
             })}
           >
             {/* 헤더 */}

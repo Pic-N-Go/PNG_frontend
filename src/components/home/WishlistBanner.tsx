@@ -23,7 +23,7 @@ export default function WishlistBanner({ onPress }: Props) {
       <Pressable
         onPress={onPress}
         style={({ pressed }) => ({
-          backgroundColor: pressed ? 'rgba(227,27,89,0.04)' : 'transparent',
+          backgroundColor: onPress && pressed ? 'rgba(227,27,89,0.04)' : 'transparent',
         })}
       >
         <View

@@ -5,6 +5,7 @@ import {
   KeyboardAvoidingView,
   Platform,
   Pressable,
+  ScrollView,
   Text,
   TextInput,
   View,
@@ -48,16 +49,16 @@ export default function SearchResultScreen({ route, navigation }: Props) {
   const insets = useSafeAreaInsets();
   const inputRef = useRef<TextInput>(null);
 
-  const [query, setQuery] = useState(route.params.query ?? '');
-  const [submitted, setSubmitted] = useState(!!route.params.query);
+  const [query, setQuery] = useState(route.params?.query ?? '');
+  const [submitted, setSubmitted] = useState(!!route.params?.query);
   const [recent, setRecent] = useState(RECENT_INIT);
 
   // 동일 인스턴스 재방문 시 새 query 파라미터를 상태에 동기화
   useEffect(() => {
-    const q = route.params.query ?? '';
+    const q = route.params?.query ?? '';
     setQuery(q);
     setSubmitted(!!q);
-  }, [route.params.query]);
+  }, [route.params?.query]);
 
   function submit(q: string) {
     const trimmed = q.trim();
@@ -165,13 +166,11 @@ export default function SearchResultScreen({ route, navigation }: Props) {
 
       {/* 포커스 패널 */}
       {!submitted && (
-        <FlatList
-          data={[]}
-          renderItem={null}
+        <ScrollView
           keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{ paddingBottom: TAB_BAR_HEIGHT }}
-          ListHeaderComponent={
-            <>
+          contentContainerStyle={{ paddingBottom: TAB_BAR_HEIGHT + insets.bottom }}
+        >
+          <>
               {/* 최근 검색어 */}
               <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(18) }}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: normalize(12) }}>
@@ -252,9 +251,8 @@ export default function SearchResultScreen({ route, navigation }: Props) {
                   </Pressable>
                 ))}
               </View>
-            </>
-          }
-        />
+          </>
+        </ScrollView>
       )}
 
       {/* 결과 패널 */}
@@ -273,7 +271,7 @@ export default function SearchResultScreen({ route, navigation }: Props) {
           <View style={{ height: 1, backgroundColor: 'rgba(0,0,0,0.06)' }} />
 
           {results.length === 0 ? (
-            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingBottom: TAB_BAR_HEIGHT, gap: normalize(12) }}>
+            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingBottom: TAB_BAR_HEIGHT + insets.bottom, gap: normalize(12) }}>
               <IconSearch size={normalize(48)} color="rgba(0,0,0,0.12)" strokeWidth={1} />
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(16), color: 'rgba(0,0,0,0.5)' }}>
                 검색 결과가 없어요
@@ -287,7 +285,7 @@ export default function SearchResultScreen({ route, navigation }: Props) {
               data={results}
               keyExtractor={(item) => item.id}
               keyboardShouldPersistTaps="handled"
-              contentContainerStyle={{ paddingHorizontal: GRID_PADDING, paddingBottom: TAB_BAR_HEIGHT }}
+              contentContainerStyle={{ paddingHorizontal: GRID_PADDING, paddingBottom: TAB_BAR_HEIGHT + insets.bottom }}
               renderItem={({ item }) => (
                 // TODO: 스팟 상세 네비게이션 파라미터 확정 후 onPress 연결
                 <Pressable

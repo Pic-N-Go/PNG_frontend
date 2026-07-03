@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import {
   BOTTOM_SHEET_RADIUS,
@@ -38,11 +39,18 @@ interface Props {
 }
 
 export default function FilterBottomSheet({ visible, onClose, onApply }: Props) {
+  const insets = useSafeAreaInsets();
   const [filter, setFilter] = useState<FilterState>(EMPTY_FILTER);
+  // 마지막으로 "적용"된 필터 스냅샷 — 재열기 시 draft를 여기서 복원
+  const [applied, setApplied] = useState<FilterState>(EMPTY_FILTER);
 
-  // 닫힐 때 미적용 변경사항 초기화
+  // 열릴 때 적용된 상태로 draft 동기화 (취소 후 재열기 시 적용값 유지)
+  useEffect(() => {
+    if (visible) setFilter(applied);
+  }, [visible, applied]);
+
+  // 닫을 때는 draft를 버리기만 함 — 다음 열기 시 applied에서 복원되므로 별도 초기화 불필요
   function handleClose() {
-    reset();
     onClose();
   }
 
@@ -67,6 +75,7 @@ export default function FilterBottomSheet({ visible, onClose, onApply }: Props) 
       filter.time.length +
       filter.weather.length +
       (filter.score ? 1 : 0);
+    setApplied(filter);
     onApply(count);
     onClose();
   }
@@ -89,7 +98,7 @@ export default function FilterBottomSheet({ visible, onClose, onApply }: Props) 
               backgroundColor: '#fff',
               borderTopLeftRadius: BOTTOM_SHEET_RADIUS,
               borderTopRightRadius: BOTTOM_SHEET_RADIUS,
-              paddingBottom: normalize(28),
+              paddingBottom: normalize(28) + insets.bottom,
             }}
           >
             {/* 핸들 */}

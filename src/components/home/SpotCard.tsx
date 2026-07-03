@@ -22,8 +22,8 @@ export default function SpotCard({ item, onPress }: Props) {
     <Pressable
       onPress={onPress ?? undefined}
       style={({ pressed }) => ({
-        opacity: pressed ? 0.95 : 1,
-        transform: [{ scale: pressed ? 0.98 : 1 }],
+        opacity: onPress && pressed ? 0.95 : 1,
+        transform: [{ scale: onPress && pressed ? 0.98 : 1 }],
       })}
     >
       {/* 사진 영역 */}

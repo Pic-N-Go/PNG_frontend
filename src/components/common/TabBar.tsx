@@ -50,7 +50,16 @@ export default function TabBar({ state, navigation }: BottomTabBarProps) {
         return (
           <Pressable
             key={tab.route}
-            onPress={() => navigation.navigate(tab.route)}
+            onPress={() => {
+              const event = navigation.emit({
+                type: 'tabPress',
+                target: tab.route,
+                canPreventDefault: true,
+              });
+              if (!isFocused && !event.defaultPrevented) {
+                navigation.navigate(tab.route);
+              }
+            }}
             style={{ flex: 1, alignItems: 'center', gap: 4 }}
             accessibilityRole="button"
             accessibilityState={{ selected: isFocused }}

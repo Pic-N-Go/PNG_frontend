@@ -32,7 +32,7 @@ export default function MapBanner({ onPress }: Props) {
         <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#e8e8ed' }} />
 
         {/* 격자선 + 도로선 */}
-        <Svg style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} width="100%" height="100%">
+        <Svg style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} width="100%" height="100%" viewBox="0 0 334 160" preserveAspectRatio="none">
           <Line x1="0" y1="53" x2="100%" y2="53" stroke="rgba(0,0,0,0.04)" strokeWidth="0.5" />
           <Line x1="0" y1="106" x2="100%" y2="106" stroke="rgba(0,0,0,0.04)" strokeWidth="0.5" />
           <Line x1="33%" y1="0" x2="33%" y2="100%" stroke="rgba(0,0,0,0.04)" strokeWidth="0.5" />
