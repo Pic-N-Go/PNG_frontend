@@ -17,7 +17,7 @@
 - **레이아웃 상수** — 모든 고정 수치는 `src/constants/layout.ts`에서 import해 사용
   - 패딩: `CONTENT_PADDING`(28px), `GRID_PADDING`(20px)
   - 카드: `CARD_RADIUS`(16px)
-  - 탭바 여백: `TAB_BAR_HEIGHT`(80px) — ScrollView `paddingBottom`에 반영
+  - 탭바 여백: `TAB_BAR_HEIGHT`(80px) + `insets.bottom` — ScrollView `paddingBottom`에 반영
   - 스페이싱: `SPACING_XS/SM/MD/LG/XL`
   - 아이콘: `ICON_SM/MD/LG`
 - **폰트 크기** — `normalizeFontSize(n)` from `src/utils/normalize.ts`, 또는 `FONT_XS/SM/MD/LG/XL/2XL` 상수
@@ -29,7 +29,7 @@
 
 - `SafeAreaProvider`는 `App.tsx`에 이미 세팅됨
 - `@react-navigation/bottom-tabs`가 Safe Area를 자동 처리하므로 탭바 자체는 별도 처리 불필요
-- 단, HomeScreen의 ScrollView `contentContainerStyle`에 `paddingBottom: TAB_BAR_HEIGHT`를 반영해 콘텐츠가 탭바에 가리지 않게 할 것
+- 단, HomeScreen의 ScrollView `contentContainerStyle`에 `paddingBottom: TAB_BAR_HEIGHT + insets.bottom`를 반영해 콘텐츠가 탭바와 홈 인디케이터에 가리지 않게 할 것 (`insets`는 `useSafeAreaInsets()`)
 - Hero처럼 Safe Area 위로 올라가는 영역은 `useSafeAreaInsets()` 사용
 
 ## 3) 작업 태스크

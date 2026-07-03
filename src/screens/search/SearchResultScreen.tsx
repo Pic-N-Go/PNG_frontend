@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   FlatList,
   Keyboard,
@@ -51,6 +51,13 @@ export default function SearchResultScreen({ route, navigation }: Props) {
   const [query, setQuery] = useState(route.params.query ?? '');
   const [submitted, setSubmitted] = useState(!!route.params.query);
   const [recent, setRecent] = useState(RECENT_INIT);
+
+  // 동일 인스턴스 재방문 시 새 query 파라미터를 상태에 동기화
+  useEffect(() => {
+    const q = route.params.query ?? '';
+    setQuery(q);
+    setSubmitted(!!q);
+  }, [route.params.query]);
 
   function submit(q: string) {
     const trimmed = q.trim();
@@ -128,7 +135,7 @@ export default function SearchResultScreen({ route, navigation }: Props) {
           />
           {query.length > 0 && (
             <Pressable
-              onPress={() => { setQuery(''); setSubmitted(false); }}
+              onPress={() => { setQuery(''); setSubmitted(false); setTimeout(() => inputRef.current?.focus(), 50); }}
               hitSlop={8}
               style={{
                 width: normalize(18),
@@ -257,10 +264,11 @@ export default function SearchResultScreen({ route, navigation }: Props) {
             <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: 'rgba(0,0,0,0.4)' }}>
               스팟 <Text style={{ fontFamily: 'Pretendard-SemiBold', color: '#000' }}>{results.length}</Text>개
             </Text>
-            <Pressable style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(4) }}>
+            {/* TODO: 정렬 기능 미구현 — 정렬 옵션 시트 연결 필요 */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(4) }}>
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: 'rgba(0,0,0,0.45)' }}>관련순</Text>
               <IconChevronDown size={normalize(10)} color="rgba(0,0,0,0.45)" strokeWidth={1.5} />
-            </Pressable>
+            </View>
           </View>
           <View style={{ height: 1, backgroundColor: 'rgba(0,0,0,0.06)' }} />
 
