@@ -59,6 +59,24 @@ async function post<T>(path: string, body: unknown): Promise<T> {
   }
 }
 
+async function get<T>(path: string, accessToken?: string): Promise<T> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  try {
+    const res = await fetch(`${BASE}${path}`, {
+      headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+      signal: controller.signal,
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({})) as { message?: string };
+      throw new ApiError(err.message ?? `HTTP ${res.status}`);
+    }
+    return res.json() as Promise<T>;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 export const authApi = {
   login: (email: string, password: string) =>
     post<TokenResponse>('/auth/login', { email, password }),
@@ -72,20 +90,10 @@ export const authApi = {
   confirmEmailVerification: (email: string, code: string) =>
     post<EmailVerificationResponse>('/auth/email/confirm', { email, code }),
 
-  checkNickname: async (value: string): Promise<{ nickname: string; available: boolean }> => {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
-    try {
-      const res = await fetch(`${BASE}/auth/nickname/check?value=${encodeURIComponent(value)}`, { signal: controller.signal });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({})) as { message?: string };
-        throw new ApiError(err.message ?? `HTTP ${res.status}`);
-      }
-      return res.json();
-    } finally {
-      clearTimeout(timer);
-    }
-  },
+  checkNickname: (value: string) =>
+    get<{ nickname: string; available: boolean }>(`/auth/nickname/check?value=${encodeURIComponent(value)}`),
+
+  me: (accessToken: string) => get<UserResponse>('/users/me', accessToken),
 
   loginWithKakao: (accessToken: string) =>
     post<TokenResponse>('/auth/login/social', { accessToken }),

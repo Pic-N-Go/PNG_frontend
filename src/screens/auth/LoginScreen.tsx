@@ -112,6 +112,7 @@ export default function LoginScreen({ navigation }: Props) {
       setSheetStep(2);
       setSheetCode('');
       startTimer();
+      showToast('인증 코드를 이메일로 발송했어요.');
     },
     onError: (err: unknown) => showToast(toErrorMessage(err, '인증 코드 발송에 실패했어요.')),
   });
@@ -163,9 +164,8 @@ export default function LoginScreen({ navigation }: Props) {
   }
 
   function handleResend() {
-    if (!timerDone) return;
-    startTimer();
-    showToast('인증코드를 다시 발송했어요');
+    if (!timerDone || sendResetCodeMutation.isPending) return;
+    sendResetCodeMutation.mutate();
   }
 
   function showToast(msg: string) {
@@ -650,7 +650,13 @@ export default function LoginScreen({ navigation }: Props) {
                       </Pressable>
                     </View>
                     <Pressable
-                      onPress={sheetCodeOk ? () => setSheetStep(3) : undefined}
+                      onPress={sheetCodeOk ? () => {
+                        if (timerRef.current) {
+                          clearInterval(timerRef.current);
+                          timerRef.current = null;
+                        }
+                        setSheetStep(3);
+                      } : undefined}
                       style={{
                         height: 52,
                         borderRadius: 26,
