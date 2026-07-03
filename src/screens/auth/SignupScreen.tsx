@@ -16,12 +16,12 @@ import { useMutation } from '@tanstack/react-query';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '@/navigation/AuthStack';
 import { useAuthStore } from '@/store/useAuthStore';
-import { authApi } from '@/api/auth';
+import { authApi, toErrorMessage } from '@/api/auth';
 import Toast from '@/components/auth/Toast';
 import AuthInput from '@/components/auth/AuthInput';
 import AuthCheckbox from '@/components/auth/AuthCheckbox';
 import ThemePill from '@/components/auth/ThemePill';
-import { THEMES } from '@/constants/themes';
+import { THEMES, THEME_CATEGORY_MAP } from '@/constants/themes';
 import {
   BUTTON_HEIGHT,
   BUTTON_RADIUS,
@@ -74,7 +74,7 @@ export default function SignupScreen({ navigation }: Props) {
   const [pw2, setPw2] = useState('');
   const [pw1Visible, setPw1Visible] = useState(false);
   const [nickname, setNickname] = useState('');
-  const [selectedThemes, setSelectedThemes] = useState<Set<string>>(new Set());
+  const [selectedThemes, setSelectedThemes] = useState<Set<keyof typeof THEME_CATEGORY_MAP>>(new Set());
   const [term1, setTerm1] = useState(false);
   const [term2, setTerm2] = useState(false);
   const [term3, setTerm3] = useState(false);
@@ -101,9 +101,15 @@ export default function SignupScreen({ navigation }: Props) {
   }
 
   const registerMutation = useMutation({
-    mutationFn: () => authApi.register(email.trim(), pw1, nickname.trim()),
+    mutationFn: () =>
+      authApi.register(
+        email.trim(),
+        pw1,
+        nickname.trim(),
+        Array.from(selectedThemes, (t) => THEME_CATEGORY_MAP[t]),
+      ),
     onSuccess: (data) => setAuth(data.accessToken, data.user),
-    onError: (err: Error) => showToast(err.message || '회원가입에 실패했어요. 다시 시도해주세요.'),
+    onError: (err: unknown) => showToast(toErrorMessage(err, '회원가입에 실패했어요. 다시 시도해주세요.')),
   });
 
   const verifyEmailMutation = useMutation({
@@ -113,7 +119,7 @@ export default function SignupScreen({ navigation }: Props) {
       setVerifyCode('');
       showToast('인증 코드를 이메일로 발송했어요.');
     },
-    onError: (err: Error) => showToast(err.message || '인증 코드 발송에 실패했어요.'),
+    onError: (err: unknown) => showToast(toErrorMessage(err, '인증 코드 발송에 실패했어요.')),
   });
 
   const confirmEmailMutation = useMutation({
@@ -122,7 +128,7 @@ export default function SignupScreen({ navigation }: Props) {
       setEmailVerified(true);
       setEmailCodeSent(false);
     },
-    onError: (err: Error) => showToast(err.message || '인증 코드가 올바르지 않아요.'),
+    onError: (err: unknown) => showToast(toErrorMessage(err, '인증 코드가 올바르지 않아요.')),
   });
 
   const emailOk = EMAIL_RE.test(email.trim());
@@ -132,7 +138,7 @@ export default function SignupScreen({ navigation }: Props) {
   const nickOk = NICK_RE.test(nickname.trim());
   const allOk = emailOk && emailVerified && pwOk && matchOk && term1 && term2 && nickOk;
 
-  function toggleTheme(t: string) {
+  function toggleTheme(t: keyof typeof THEME_CATEGORY_MAP) {
     setSelectedThemes((prev) => {
       const next = new Set(prev);
       if (next.has(t)) { next.delete(t); } else { next.add(t); }

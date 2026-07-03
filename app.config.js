@@ -40,6 +40,7 @@ module.exports = {
       favicon: './assets/images/logo/logo_2.png',
     },
     plugins: [
+      'expo-secure-store',
       [
         // ponytail: prebuild 시 colorPrimary가 #023c69으로 덮어써지는 문제 방지
         './plugins/withAndroidColorPrimary',

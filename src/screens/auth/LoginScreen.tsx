@@ -17,7 +17,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { login as kakaoLogin } from '@react-native-seoul/kakao-login';
 import { AuthStackParamList } from '@/navigation/AuthStack';
 import { useAuthStore } from '@/store/useAuthStore';
-import { authApi } from '@/api/auth';
+import { authApi, toErrorMessage } from '@/api/auth';
 import AuthInput from '@/components/auth/AuthInput';
 import Toast from '@/components/auth/Toast';
 import { normalizeFontSize } from '@/utils/normalize';
@@ -72,9 +72,12 @@ export default function LoginScreen({ navigation }: Props) {
 
   // Bottom sheet state
   const [sheetVisible, setSheetVisible] = useState(false);
-  const [sheetStep, setSheetStep] = useState<1 | 2>(1);
+  const [sheetStep, setSheetStep] = useState<1 | 2 | 3>(1);
   const [sheetEmail, setSheetEmail] = useState('');
   const [sheetCode, setSheetCode] = useState('');
+  const [newPw1, setNewPw1] = useState('');
+  const [newPw2, setNewPw2] = useState('');
+  const [newPwVisible, setNewPwVisible] = useState(false);
   const [timerSec, setTimerSec] = useState(180);
   const [timerDone, setTimerDone] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -83,15 +86,45 @@ export default function LoginScreen({ navigation }: Props) {
   // Toast state
   const [toastMsg, setToastMsg] = useState('');
   const [toastVisible, setToastVisible] = useState(false);
-  // Kakao state
-  const [kakaoLoading, setKakaoLoading] = useState(false);
 
   const canLogin = email.trim().length > 0 && password.length > 0;
 
   const loginMutation = useMutation({
     mutationFn: () => authApi.login(email.trim(), password),
     onSuccess: (data) => setAuth(data.accessToken, data.user),
-    onError: (err: Error) => showToast(err.message || '로그인에 실패했어요. 다시 시도해주세요.'),
+    onError: (err: unknown) => showToast(toErrorMessage(err, '로그인에 실패했어요. 다시 시도해주세요.')),
+  });
+
+  const kakaoLoginMutation = useMutation({
+    mutationFn: async () => {
+      const token = await kakaoLogin();
+      return authApi.loginWithKakao(token.accessToken);
+    },
+    onSuccess: (data) => setAuth(data.accessToken, data.user),
+    onError: (e: unknown) => {
+      if ((e as { code?: string })?.code === 'E_CANCELLED') return;
+      showToast(toErrorMessage(e, '카카오 로그인에 실패했어요'));
+    },
+  });
+
+  const sendResetCodeMutation = useMutation({
+    mutationFn: () => authApi.sendPasswordResetCode(sheetEmail.trim()),
+    onSuccess: () => {
+      setSheetStep(2);
+      setSheetCode('');
+      startTimer();
+      showToast('인증 코드를 이메일로 발송했어요.');
+    },
+    onError: (err: unknown) => showToast(toErrorMessage(err, '인증 코드 발송에 실패했어요.')),
+  });
+
+  const resetPasswordMutation = useMutation({
+    mutationFn: () => authApi.resetPassword(sheetEmail.trim(), sheetCode, newPw1),
+    onSuccess: () => {
+      closeSheet();
+      toastTimeoutRef.current = setTimeout(() => showToast('비밀번호가 변경됐어요'), 350);
+    },
+    onError: (err: unknown) => showToast(toErrorMessage(err, '비밀번호 변경에 실패했어요.')),
   });
 
   useEffect(() => {
@@ -105,6 +138,8 @@ export default function LoginScreen({ navigation }: Props) {
     setSheetStep(1);
     setSheetEmail('');
     setSheetCode('');
+    setNewPw1('');
+    setNewPw2('');
     setTimerDone(false);
     setSheetVisible(true);
   }
@@ -129,22 +164,9 @@ export default function LoginScreen({ navigation }: Props) {
     }, 1000);
   }
 
-  function handleSendCode() {
-    setSheetStep(2);
-    setSheetCode('');
-    startTimer();
-  }
-
   function handleResend() {
-    if (!timerDone) return;
-    startTimer();
-    showToast('인증코드를 다시 발송했어요');
-  }
-
-  function handleVerify() {
-    if (timerRef.current) clearInterval(timerRef.current);
-    closeSheet();
-    toastTimeoutRef.current = setTimeout(() => showToast('임시 비밀번호를 이메일로 발송했어요'), 350);
+    if (!timerDone || sendResetCodeMutation.isPending) return;
+    sendResetCodeMutation.mutate();
   }
 
   function showToast(msg: string) {
@@ -152,25 +174,9 @@ export default function LoginScreen({ navigation }: Props) {
     setToastVisible(true);
   }
 
-  async function handleKakaoLogin() {
-    if (kakaoLoading) return;
-    setKakaoLoading(true);
-    try {
-      const token = await kakaoLogin();
-      if (__DEV__) console.log('[kakao] accessToken:', token.accessToken);
-      // ponytail: 백엔드 API 연동 전 임시 처리 — API 완성 시 token을 서버로 전달
-      setAuth('oauth-placeholder', { id: 0, email: '', nickname: '', profileImageUrl: null, role: 'USER', provider: 'kakao' });
-    } catch (e) {
-      if (__DEV__) console.error('[kakao] login error:', e);
-      if ((e as { code?: string })?.code === 'E_CANCELLED') return;
-      showToast('카카오 로그인에 실패했어요');
-    } finally {
-      setKakaoLoading(false);
-    }
-  }
-
   const sheetEmailOk = EMAIL_RE.test(sheetEmail.trim());
   const sheetCodeOk = sheetCode.replace(/\D/g, '').length === 6;
+  const newPwOk = newPw1.length >= 8 && newPw1.length <= 64 && newPw1 === newPw2;
 
   return (
     <View className="flex-1 bg-white">
@@ -377,14 +383,14 @@ export default function LoginScreen({ navigation }: Props) {
             {/* Social */}
             <View style={{ flexDirection: 'row', gap: 14 }}>
               <Pressable
-                onPress={handleKakaoLogin}
-                disabled={kakaoLoading}
+                onPress={() => kakaoLoginMutation.mutate()}
+                disabled={kakaoLoginMutation.isPending}
                 style={{
                   flex: 1,
                   height: SOCIAL_BUTTON_HEIGHT,
                   borderRadius: SOCIAL_BUTTON_RADIUS,
                   backgroundColor: '#FEE500',
-                  opacity: kakaoLoading ? 0.6 : 1,
+                  opacity: kakaoLoginMutation.isPending ? 0.6 : 1,
                   flexDirection: 'row',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -404,6 +410,7 @@ export default function LoginScreen({ navigation }: Props) {
                 </Text>
               </Pressable>
 
+              {/* Apple 로그인 — 카카오 우선 진행으로 잠정 보류, 재개 시 주석 해제
               <Pressable
                 onPress={() => navigation.navigate('Onboarding', { provider: 'apple' })}
                 style={{
@@ -429,6 +436,7 @@ export default function LoginScreen({ navigation }: Props) {
                   Apple
                 </Text>
               </Pressable>
+              */}
             </View>
 
             {/* Signup link */}
@@ -494,7 +502,7 @@ export default function LoginScreen({ navigation }: Props) {
               {/* Header */}
               <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: SPACING_LG, paddingVertical: 8 }}>
                 <Text style={{ fontSize: normalizeFontSize(20), letterSpacing: -0.4, color: '#000', fontFamily: 'Pretendard-SemiBold' }}>
-                  {sheetStep === 1 ? '비밀번호 찾기' : '인증코드 확인'}
+                  {sheetStep === 1 ? '비밀번호 찾기' : sheetStep === 2 ? '인증코드 확인' : '새 비밀번호 설정'}
                 </Text>
                 <Pressable
                   onPress={closeSheet}
@@ -556,7 +564,7 @@ export default function LoginScreen({ navigation }: Props) {
                       }}
                     />
                     <Pressable
-                      onPress={sheetEmailOk ? handleSendCode : undefined}
+                      onPress={sheetEmailOk && !sendResetCodeMutation.isPending ? () => sendResetCodeMutation.mutate() : undefined}
                       style={{
                         height: BUTTON_HEIGHT,
                         borderRadius: BUTTON_RADIUS,
@@ -564,6 +572,7 @@ export default function LoginScreen({ navigation }: Props) {
                         alignItems: 'center',
                         justifyContent: 'center',
                         marginTop: 8,
+                        opacity: sendResetCodeMutation.isPending ? 0.6 : 1,
                       }}
                     >
                       <Text
@@ -574,7 +583,7 @@ export default function LoginScreen({ navigation }: Props) {
                           fontFamily: 'Pretendard-Medium',
                         }}
                       >
-                        인증코드 발송
+                        {sendResetCodeMutation.isPending ? '발송 중...' : '인증코드 발송'}
                       </Text>
                     </Pressable>
                   </View>
@@ -642,7 +651,13 @@ export default function LoginScreen({ navigation }: Props) {
                       </Pressable>
                     </View>
                     <Pressable
-                      onPress={sheetCodeOk ? handleVerify : undefined}
+                      onPress={sheetCodeOk ? () => {
+                        if (timerRef.current) {
+                          clearInterval(timerRef.current);
+                          timerRef.current = null;
+                        }
+                        setSheetStep(3);
+                      } : undefined}
                       style={{
                         height: BUTTON_HEIGHT,
                         borderRadius: BUTTON_RADIUS,
@@ -661,6 +676,95 @@ export default function LoginScreen({ navigation }: Props) {
                         }}
                       >
                         확인
+                      </Text>
+                    </Pressable>
+                  </View>
+                </View>
+              )}
+
+              {/* Step 3 */}
+              {sheetStep === 3 && (
+                <View>
+                  <Text
+                    style={{
+                      fontSize: FONT_MD,
+                      color: 'rgba(0,0,0,0.45)',
+                      lineHeight: 22,
+                      letterSpacing: -0.15,
+                      paddingHorizontal: SPACING_LG,
+                      paddingBottom: 20,
+                      fontFamily: 'Pretendard-Regular',
+                    }}
+                  >
+                    {'새로 사용할 비밀번호를\n입력해주세요.'}
+                  </Text>
+                  <View style={{ paddingHorizontal: SPACING_LG }}>
+                    <Text style={{ fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.4)', marginBottom: 6, fontFamily: 'Pretendard-Medium' }}>
+                      새 비밀번호 (8~64자)
+                    </Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', backgroundColor: '#F5F5F7', borderRadius: INPUT_RADIUS, marginBottom: 10, paddingRight: SPACING_MD }}>
+                      <TextInput
+                        value={newPw1}
+                        onChangeText={setNewPw1}
+                        placeholder="새 비밀번호"
+                        placeholderTextColor="rgba(0,0,0,0.28)"
+                        secureTextEntry={!newPwVisible}
+                        autoComplete="new-password"
+                        autoFocus
+                        style={{
+                          flex: 1,
+                          height: INPUT_HEIGHT,
+                          paddingHorizontal: SPACING_MD,
+                          fontSize: FONT_MD,
+                          color: '#000',
+                          letterSpacing: -0.3,
+                          fontFamily: 'Pretendard-Regular',
+                        }}
+                      />
+                      <Pressable onPress={() => setNewPwVisible((v) => !v)} hitSlop={8}>
+                        <Feather name={newPwVisible ? 'eye-off' : 'eye'} size={20} color="rgba(0,0,0,0.2)" />
+                      </Pressable>
+                    </View>
+                    <TextInput
+                      value={newPw2}
+                      onChangeText={setNewPw2}
+                      placeholder="새 비밀번호 확인"
+                      placeholderTextColor="rgba(0,0,0,0.28)"
+                      secureTextEntry={!newPwVisible}
+                      autoComplete="new-password"
+                      style={{
+                        height: INPUT_HEIGHT,
+                        borderRadius: INPUT_RADIUS,
+                        backgroundColor: '#F5F5F7',
+                        paddingHorizontal: SPACING_MD,
+                        fontSize: FONT_MD,
+                        color: '#000',
+                        letterSpacing: -0.3,
+                        fontFamily: 'Pretendard-Regular',
+                        marginBottom: 14,
+                      }}
+                    />
+                    <Pressable
+                      onPress={newPwOk && !resetPasswordMutation.isPending ? () => resetPasswordMutation.mutate() : undefined}
+                      style={{
+                        height: BUTTON_HEIGHT,
+                        borderRadius: BUTTON_RADIUS,
+                        backgroundColor: newPwOk ? '#E31B59' : 'rgba(0,0,0,0.06)',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginTop: 8,
+                        opacity: resetPasswordMutation.isPending ? 0.6 : 1,
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: FONT_LG,
+                          color: newPwOk ? '#fff' : 'rgba(0,0,0,0.3)',
+                          letterSpacing: -0.3,
+                          fontFamily: 'Pretendard-Medium',
+                        }}
+                      >
+                        {resetPasswordMutation.isPending ? '변경 중...' : '비밀번호 변경'}
                       </Text>
                     </Pressable>
                   </View>

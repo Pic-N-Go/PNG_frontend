@@ -1,5 +1,6 @@
 import React, { useRef, useState } from 'react';
 import {
+  Alert,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -13,7 +14,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Feather } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '@/navigation/AuthStack';
-import { useAuthStore } from '@/store/useAuthStore';
 import AuthInput from '@/components/auth/AuthInput';
 import ThemePill from '@/components/auth/ThemePill';
 import { THEMES } from '@/constants/themes';
@@ -39,7 +39,6 @@ const NICK_RE = /^[가-힣a-zA-Z0-9]{2,10}$/;
 export default function OnboardingScreen({ navigation, route }: Props) {
   const insets = useSafeAreaInsets();
   const { provider } = route.params;
-  const setAuth = useAuthStore((s) => s.setAuth);
 
   const { height: SCREEN_H } = useWindowDimensions();
   const initialHeroHeightRef = useRef<number | null>(null);
@@ -68,8 +67,9 @@ export default function OnboardingScreen({ navigation, route }: Props) {
       setNickError(true);
       return;
     }
-    // TODO: OAuth 온보딩 API 호출 후 실제 token/user로 교체
-    setAuth('oauth-placeholder', { id: 0, email: '', nickname, profileImageUrl: null, role: 'USER', provider });
+    // 이 화면은 실제 OAuth 온보딩 API 연동 전까지 로그인을 완료시키지 않음.
+    // Apple 로그인 재개 시 여기를 실제 API 호출로 교체할 것 — setAuth로 가짜 세션을 만들지 말 것.
+    Alert.alert('준비 중', '아직 지원하지 않는 로그인 방식이에요.');
   }
 
   const isKakao = provider === 'kakao';

@@ -9,8 +9,9 @@ export type UserResponse = {
   email: string;
   nickname: string;
   profileImageUrl: string | null;
-  role: string;
-  provider: string | null;
+  role: 'USER' | 'ADMIN';
+  provider: 'LOCAL' | 'KAKAO';
+  spotCategories: string[];
 };
 
 export type TokenResponse = {
@@ -29,6 +30,14 @@ export type EmailVerificationResponse = {
 
 const TIMEOUT_MS = 10_000;
 
+// 백엔드가 응답한 에러(ErrorResponse.message)만 이 타입으로 던져짐 — 네트워크 단절/타임아웃 등
+// fetch 자체 실패는 일반 Error/DOMException이라 구분되고, 사용자에게 영어 원문 대신 한글 기본 메시지를 보여줄 수 있음.
+export class ApiError extends Error {}
+
+export function toErrorMessage(err: unknown, fallback: string): string {
+  return err instanceof ApiError ? err.message : fallback;
+}
+
 async function post<T>(path: string, body: unknown): Promise<T> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
@@ -41,7 +50,26 @@ async function post<T>(path: string, body: unknown): Promise<T> {
     });
     if (!res.ok) {
       const err = await res.json().catch(() => ({})) as { message?: string };
-      throw new Error(err.message ?? `HTTP ${res.status}`);
+      throw new ApiError(err.message ?? `HTTP ${res.status}`);
+    }
+    if (res.status === 204) return undefined as T;
+    return res.json() as Promise<T>;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function get<T>(path: string, accessToken?: string): Promise<T> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  try {
+    const res = await fetch(`${BASE}${path}`, {
+      headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
+      signal: controller.signal,
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({})) as { message?: string };
+      throw new ApiError(err.message ?? `HTTP ${res.status}`);
     }
     return res.json() as Promise<T>;
   } finally {
@@ -53,8 +81,8 @@ export const authApi = {
   login: (email: string, password: string) =>
     post<TokenResponse>('/auth/login', { email, password }),
 
-  register: (email: string, password: string, nickname: string) =>
-    post<TokenResponse>('/auth/register', { email, password, nickname }),
+  register: (email: string, password: string, nickname: string, spotCategories: string[]) =>
+    post<TokenResponse>('/auth/register', { email, password, nickname, spotCategories }),
 
   sendEmailVerification: (email: string) =>
     post<EmailVerificationResponse>('/auth/email/verify', { email }),
@@ -62,21 +90,17 @@ export const authApi = {
   confirmEmailVerification: (email: string, code: string) =>
     post<EmailVerificationResponse>('/auth/email/confirm', { email, code }),
 
-  checkNickname: async (value: string): Promise<{ nickname: string; available: boolean }> => {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
-    try {
-      const res = await fetch(`${BASE}/auth/nickname/check?value=${encodeURIComponent(value)}`, { signal: controller.signal });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({})) as { message?: string };
-        throw new Error(err.message ?? `HTTP ${res.status}`);
-      }
-      return res.json();
-    } finally {
-      clearTimeout(timer);
-    }
-  },
+  checkNickname: (value: string) =>
+    get<{ nickname: string; available: boolean }>(`/auth/nickname/check?value=${encodeURIComponent(value)}`),
 
-  loginWithKakao: (code: string) =>
-    post<TokenResponse>('/auth/login/social', { code }),
+  me: (accessToken: string) => get<UserResponse>('/users/me', accessToken),
+
+  loginWithKakao: (accessToken: string) =>
+    post<TokenResponse>('/auth/login/social', { accessToken }),
+
+  sendPasswordResetCode: (email: string) =>
+    post<EmailVerificationResponse>('/auth/password/reset/code', { email }),
+
+  resetPassword: (email: string, code: string, newPassword: string) =>
+    post<void>('/auth/password/reset', { email, code, newPassword }),
 };

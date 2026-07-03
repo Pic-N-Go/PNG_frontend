@@ -81,4 +81,8 @@ console.log('storage size (bytes):', new Blob([stored]).size);
 
 #### refresh token 처리 미구현
 
-`useAuthStore`에 `accessToken`만 있고 `refreshToken`이 없음. 토큰 만료 시 자동 갱신 로직 없어 사용자가 재로그인 필요. 백엔드 API 연동 시 함께 처리.
+`useAuthStore`에 `accessToken`만 있고 `refreshToken`이 없음. 토큰 만료 시 자동 갱신 로직 없어 사용자가 재로그인 필요.
+
+**현황 (2026-07-02):** 백엔드(`JwtTokenProvider`, `TokenResponse`)에 refresh token 발급/갱신 로직 자체가 아직 없어 프론트만으로는 구현 불가. 백엔드에 refresh token 지원이 먼저 필요.
+
+**작업 시점:** 우선순위 낮음 — 추후 개발 시간 여유 있을 때 백엔드와 함께 진행.

@@ -10,8 +10,8 @@
   ],
 
   "auth/login.html": {
-    "status": "진행중",
-    "date": "2026-06-23",
+    "status": "완료",
+    "date": "2026-07-02",
     "note": "api 담당자 : 소영재"
   },
   "auth/oauth-onboarding.html": {
@@ -20,8 +20,8 @@
     "note": ""
   },
   "auth/signup.html": {
-    "status": "진행중",
-    "date": "2026-06-23",
+    "status": "완료",
+    "date": "2026-07-02",
     "note": "api 담당자 : 소영재"
   },
   "community/community-feed.html": {

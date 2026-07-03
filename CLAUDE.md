@@ -93,7 +93,7 @@ Key rules:
 
 ### Screens Planned
 
-- `/login` — hero + email/password + social login (Kakao, Apple)
+- `/login` — hero + email/password + social login (Kakao; Apple 버튼은 카카오 우선 진행으로 보류, 코드상 주석 처리됨)
 - `/signup` — condensed hero + email verification + password strength + interest theme pills + terms
 - `/home` — hero + search + category filter + nearby spots map + popular spots scroll + calendar
 - `/spot/:id` — spot detail with Photogenic Score (weather/golden hour/dust/congestion/season)
