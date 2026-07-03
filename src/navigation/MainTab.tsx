@@ -18,8 +18,8 @@ export default function MainTab() {
   return (
     <Tab.Navigator screenOptions={{ headerShown: false }}>
       <Tab.Screen name="HomeTab" component={HomeStack} />
-      <Tab.Screen name="TravelTab" component={TravelStack} />
       <Tab.Screen name="CommunityTab" component={CommunityStack} />
+      <Tab.Screen name="TravelTab" component={TravelStack} />
       <Tab.Screen name="MyPageTab" component={MyPageStack} />
     </Tab.Navigator>
   );
