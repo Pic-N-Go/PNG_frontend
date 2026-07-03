@@ -34,6 +34,8 @@ NativeWind (Tailwind CSS v3) is used for all styling. Use `className` props dire
 
 **Do NOT use `StyleSheet.create()`** — all styles must be written as NativeWind `className`. Using StyleSheet breaks design token consistency and makes it harder to match the HTML mockups.
 
+**Do NOT use raw pixel values for font sizes or heights** — always use `src/constants/layout.ts` constants (`FONT_XS`, `FONT_SM`, `FONT_MD`, `FONT_LG`, `FONT_XL`, `FONT_2XL`, `BUTTON_HEIGHT`, etc.). For sizes not covered by a constant (e.g. 12px, 14px), use `normalizeFontSize(n)` from `src/utils/normalize.ts`. Never write `fontSize: 12` or `height: 52` as raw numbers.
+
 ### Path Alias
 
 `@/` maps to `src/`. Always use this alias for imports within the project.

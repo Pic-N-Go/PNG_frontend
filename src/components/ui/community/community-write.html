@@ -121,7 +121,6 @@
         display: flex;
         align-items: center;
       }
-
       .photo-strip {
         display: flex;
         gap: 2px;
@@ -154,9 +153,8 @@
       }
       .photo-thumb--add span { font-size: 10px; color: rgba(255, 255, 255, 0.35); letter-spacing: -0.1px; }
 
-      /* ── Form Sections ── */
+      /* ── Form ── */
       .form-body { padding: 0 20px; }
-
       .form-section {
         padding: 20px 0;
         border-bottom: 0.5px solid var(--color-border-light);
@@ -190,11 +188,7 @@
         padding: 0;
       }
       .caption-area::placeholder { color: rgba(0, 0, 0, 0.25); }
-      .caption-footer {
-        display: flex;
-        justify-content: flex-end;
-        margin-top: 6px;
-      }
+      .caption-footer { display: flex; justify-content: flex-end; margin-top: 6px; }
       .caption-count { font-size: var(--font-xs); color: rgba(0, 0, 0, 0.2); }
 
       /* ── Recipe Row ── */
@@ -205,8 +199,10 @@
         padding: 11px 0;
         border-bottom: 0.5px solid var(--color-border-light);
         cursor: pointer;
+        transition: opacity 0.15s;
       }
       .recipe-row:last-child { border-bottom: none; }
+      .recipe-row:active { opacity: 0.6; }
       .recipe-row__icon {
         width: 32px;
         height: 32px;
@@ -220,7 +216,8 @@
       }
       .recipe-row__label { font-size: var(--font-base); color: rgba(0, 0, 0, 0.35); flex: 1; letter-spacing: -0.15px; }
       .recipe-row__value { font-size: var(--font-base); color: #000; letter-spacing: -0.15px; }
-      .recipe-row__chevron { color: rgba(0, 0, 0, 0.2); }
+      .recipe-row__value.is-empty { color: rgba(0,0,0,0.25); }
+      .recipe-row__chevron { color: rgba(0, 0, 0, 0.2); flex-shrink: 0; }
 
       /* ── Location ── */
       .location-row {
@@ -228,7 +225,9 @@
         align-items: center;
         gap: 10px;
         cursor: pointer;
+        transition: opacity 0.15s;
       }
+      .location-row:active { opacity: 0.6; }
       .location-row__icon {
         width: 32px;
         height: 32px;
@@ -248,10 +247,444 @@
       /* ── Tags ── */
       .tag-wrap { display: flex; flex-wrap: wrap; gap: 8px; }
 
+      /* ── Bottom Sheet 공통 ── */
+      .sheet-dim {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.4);
+        z-index: 100;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.25s;
+      }
+      .sheet-dim.is-open { opacity: 1; pointer-events: auto; }
+
+      .bottom-sheet {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: #fff;
+        border-radius: 20px 20px 0 0;
+        z-index: 101;
+        transform: translateY(100%);
+        transition: transform 0.3s cubic-bezier(0.32,0.72,0,1);
+        padding-bottom: env(safe-area-inset-bottom, 16px);
+      }
+      .bottom-sheet.is-open { transform: translateY(0); }
+
+      .sheet-handle {
+        width: 36px;
+        height: 4px;
+        background: rgba(0,0,0,0.12);
+        border-radius: 2px;
+        margin: 12px auto 0;
+      }
+      .sheet-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 20px 12px;
+      }
+      .sheet-title { font-size: var(--font-lg); font-weight: 600; letter-spacing: -0.3px; }
+      .sheet-close {
+        width: 32px; height: 32px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(0,0,0,0.05);
+        cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        transition: background 0.15s;
+      }
+      .sheet-close:hover { background: rgba(0,0,0,0.09); }
+      .sheet-confirm {
+        margin: 8px 20px 16px;
+        width: calc(100% - 40px);
+        height: 52px;
+        border-radius: 26px;
+        border: none;
+        background: var(--color-accent);
+        font-family: var(--font-family);
+        font-size: var(--font-md);
+        font-weight: 600;
+        color: #fff;
+        cursor: pointer;
+        letter-spacing: -0.2px;
+        transition: opacity 0.15s;
+      }
+      .sheet-confirm:disabled { opacity: 0.35; cursor: default; }
+
+      /* ── 촬영 시간 시트 ── */
+      .time-sheet-body { padding: 4px 20px 16px; }
+      .time-picker-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        background: var(--color-surface);
+        border-radius: 16px;
+        padding: 16px 20px;
+      }
+      .time-col {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+      }
+      .time-adj-btn {
+        width: 36px; height: 36px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(0,0,0,0.06);
+        cursor: pointer;
+        display: flex; align-items: center; justify-content: center;
+        transition: background 0.15s;
+        color: rgba(0,0,0,0.5);
+      }
+      .time-adj-btn:hover { background: rgba(0,0,0,0.1); }
+      .time-val {
+        font-size: 36px;
+        font-weight: 600;
+        letter-spacing: -1px;
+        color: #000;
+        min-width: 60px;
+        text-align: center;
+      }
+      .time-sep { font-size: 28px; font-weight: 300; color: rgba(0,0,0,0.3); padding-bottom: 4px; }
+      .time-col-label { font-size: var(--font-xs); color: rgba(0,0,0,0.3); margin-top: 2px; }
+
+      /* ── 날씨 시트 ── */
+      .weather-list { padding: 0 20px 8px; display: flex; flex-direction: column; gap: 4px; }
+      .weather-opt {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 16px;
+        border-radius: 14px;
+        cursor: pointer;
+        transition: background 0.15s;
+        border: none;
+        background: none;
+        width: 100%;
+        text-align: left;
+        font-family: var(--font-family);
+      }
+      .weather-opt:hover { background: var(--color-surface); }
+      .weather-opt.is-selected { background: rgba(227,27,89,0.06); }
+      .weather-opt__icon {
+        width: 40px; height: 40px;
+        border-radius: 12px;
+        background: var(--color-surface);
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+      }
+      .weather-opt.is-selected .weather-opt__icon { background: rgba(227,27,89,0.1); }
+      .weather-opt__label { font-size: var(--font-md); color: #000; letter-spacing: -0.2px; flex: 1; }
+      .weather-opt__check { color: var(--color-accent); opacity: 0; transition: opacity 0.15s; }
+      .weather-opt.is-selected .weather-opt__check { opacity: 1; }
+
+      /* ── 카메라/렌즈 시트 ── */
+      .gear-sheet-body { padding: 0 20px 8px; }
+      .gear-input-wrap {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: var(--color-surface);
+        border-radius: 14px;
+        padding: 0 16px;
+        height: 52px;
+        margin-bottom: 16px;
+      }
+      .gear-input {
+        flex: 1;
+        border: none;
+        background: none;
+        outline: none;
+        font-family: var(--font-family);
+        font-size: var(--font-md);
+        color: #000;
+        letter-spacing: -0.2px;
+      }
+      .gear-input::placeholder { color: rgba(0,0,0,0.25); }
+      .gear-input-clear {
+        width: 24px; height: 24px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(0,0,0,0.1);
+        cursor: pointer;
+        display: none;
+        align-items: center; justify-content: center;
+        color: rgba(0,0,0,0.4);
+      }
+      .gear-input-clear.is-visible { display: flex; }
+      .gear-presets-label { font-size: var(--font-sm); font-weight: 600; color: rgba(0,0,0,0.35); letter-spacing: -0.1px; margin-bottom: 8px; }
+      .gear-presets { display: flex; flex-wrap: wrap; gap: 8px; }
+      .gear-preset {
+        height: 34px;
+        padding: 0 14px;
+        border-radius: 17px;
+        border: 1px solid var(--color-border);
+        background: none;
+        font-family: var(--font-family);
+        font-size: var(--font-sm);
+        color: rgba(0,0,0,0.6);
+        cursor: pointer;
+        letter-spacing: -0.1px;
+        transition: all 0.15s;
+      }
+      .gear-preset:hover { background: var(--color-surface); }
+      .gear-preset.is-selected { background: rgba(227,27,89,0.08); border-color: var(--color-accent); color: var(--color-accent); font-weight: 600; }
+
+      /* ── 위치 시트 ── */
+      .location-sheet-body { padding: 0 20px 8px; }
+      .location-search-wrap {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: var(--color-surface);
+        border-radius: 14px;
+        padding: 0 16px;
+        height: 48px;
+        margin-bottom: 16px;
+      }
+      .location-search-input {
+        flex: 1;
+        border: none; background: none; outline: none;
+        font-family: var(--font-family);
+        font-size: var(--font-base);
+        color: #000;
+        letter-spacing: -0.2px;
+      }
+      .location-search-input::placeholder { color: rgba(0,0,0,0.3); }
+      .location-results { display: flex; flex-direction: column; gap: 2px; }
+      .location-result-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 13px 12px;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: background 0.15s;
+      }
+      .location-result-item:hover { background: var(--color-surface); }
+      .location-result-item.is-selected { background: rgba(227,27,89,0.06); }
+      .location-result-item__icon {
+        width: 36px; height: 36px;
+        border-radius: 10px;
+        background: var(--color-surface);
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+        color: rgba(0,0,0,0.3);
+      }
+      .location-result-item.is-selected .location-result-item__icon { background: rgba(227,27,89,0.1); color: var(--color-accent); }
+      .location-result-item__info { flex: 1; }
+      .location-result-item__name { font-size: var(--font-base); color: #000; font-weight: 500; letter-spacing: -0.15px; }
+      .location-result-item__addr { font-size: var(--font-xs); color: rgba(0,0,0,0.35); margin-top: 2px; }
+      .location-result-item__check { color: var(--color-accent); opacity: 0; }
+      .location-result-item.is-selected .location-result-item__check { opacity: 1; }
     </style>
   </head>
   <body>
     <script src="../common/icons.js"></script>
+
+    <!-- 공유 딤 -->
+    <div class="sheet-dim" id="sheetDim" onclick="closeAllSheets()"></div>
+
+    <!-- 촬영 시간 시트 -->
+    <div class="bottom-sheet" id="timeSheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <span class="sheet-title">촬영 시간</span>
+        <button class="sheet-close" onclick="closeSheet('timeSheet')">
+          <svg width="14" height="14" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="time-sheet-body">
+        <div class="time-picker-row">
+          <div class="time-col">
+            <button class="time-adj-btn" onclick="adjustTime('hour', 1)">
+              <svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M6 15l6 -6l6 6"/></svg>
+            </button>
+            <div class="time-val" id="timeHour">05</div>
+            <button class="time-adj-btn" onclick="adjustTime('hour', -1)">
+              <svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M6 9l6 6l6 -6"/></svg>
+            </button>
+            <div class="time-col-label">시</div>
+          </div>
+          <div class="time-sep">:</div>
+          <div class="time-col">
+            <button class="time-adj-btn" onclick="adjustTime('min', 10)">
+              <svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M6 15l6 -6l6 6"/></svg>
+            </button>
+            <div class="time-val" id="timeMin">30</div>
+            <button class="time-adj-btn" onclick="adjustTime('min', -10)">
+              <svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M6 9l6 6l6 -6"/></svg>
+            </button>
+            <div class="time-col-label">분</div>
+          </div>
+        </div>
+      </div>
+      <button class="sheet-confirm" onclick="confirmTime()">확인</button>
+    </div>
+
+    <!-- 날씨 시트 -->
+    <div class="bottom-sheet" id="weatherSheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <span class="sheet-title">날씨</span>
+        <button class="sheet-close" onclick="closeSheet('weatherSheet')">
+          <svg width="14" height="14" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="weather-list" id="weatherList">
+        <button class="weather-opt is-selected" data-value="맑음" onclick="selectWeather(this)">
+          <div class="weather-opt__icon"><img src="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/clear-day.svg" width="24" height="24" draggable="false"></div>
+          <span class="weather-opt__label">맑음</span>
+          <svg class="weather-opt__check" width="18" height="18" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10"/></svg>
+        </button>
+        <button class="weather-opt" data-value="구름조금" onclick="selectWeather(this)">
+          <div class="weather-opt__icon"><img src="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/partly-cloudy-day.svg" width="24" height="24" draggable="false"></div>
+          <span class="weather-opt__label">구름조금</span>
+          <svg class="weather-opt__check" width="18" height="18" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10"/></svg>
+        </button>
+        <button class="weather-opt" data-value="흐림" onclick="selectWeather(this)">
+          <div class="weather-opt__icon"><img src="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/overcast.svg" width="24" height="24" draggable="false"></div>
+          <span class="weather-opt__label">흐림</span>
+          <svg class="weather-opt__check" width="18" height="18" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10"/></svg>
+        </button>
+        <button class="weather-opt" data-value="비" onclick="selectWeather(this)">
+          <div class="weather-opt__icon"><img src="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/rain.svg" width="24" height="24" draggable="false"></div>
+          <span class="weather-opt__label">비</span>
+          <svg class="weather-opt__check" width="18" height="18" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10"/></svg>
+        </button>
+        <button class="weather-opt" data-value="눈" onclick="selectWeather(this)">
+          <div class="weather-opt__icon"><img src="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/snow.svg" width="24" height="24" draggable="false"></div>
+          <span class="weather-opt__label">눈</span>
+          <svg class="weather-opt__check" width="18" height="18" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10"/></svg>
+        </button>
+        <button class="weather-opt" data-value="야간" onclick="selectWeather(this)">
+          <div class="weather-opt__icon"><img src="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/clear-night.svg" width="24" height="24" draggable="false"></div>
+          <span class="weather-opt__label">야간</span>
+          <svg class="weather-opt__check" width="18" height="18" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10"/></svg>
+        </button>
+      </div>
+      <button class="sheet-confirm" onclick="confirmWeather()">확인</button>
+    </div>
+
+    <!-- 카메라 시트 -->
+    <div class="bottom-sheet" id="cameraSheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <span class="sheet-title">카메라</span>
+        <button class="sheet-close" onclick="closeSheet('cameraSheet')">
+          <svg width="14" height="14" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="gear-sheet-body">
+        <div class="gear-input-wrap">
+          <svg width="16" height="16" viewBox="0 0 24 24" stroke="rgba(0,0,0,0.3)"><use href="#icon-camera"/></svg>
+          <input class="gear-input" id="cameraInput" placeholder="카메라 모델을 입력하세요" oninput="onGearInput('camera')" />
+          <button class="gear-input-clear" id="cameraClear" onclick="clearGearInput('camera')">
+            <svg width="10" height="10" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <div class="gear-presets-label">자주 쓰는 카메라</div>
+        <div class="gear-presets" id="cameraPresets">
+          <button class="gear-preset" onclick="selectGearPreset('camera', this)">Sony A7IV</button>
+          <button class="gear-preset" onclick="selectGearPreset('camera', this)">Sony A7C II</button>
+          <button class="gear-preset" onclick="selectGearPreset('camera', this)">Canon R6 II</button>
+          <button class="gear-preset" onclick="selectGearPreset('camera', this)">Canon R8</button>
+          <button class="gear-preset" onclick="selectGearPreset('camera', this)">Nikon Z6 III</button>
+          <button class="gear-preset" onclick="selectGearPreset('camera', this)">Nikon Z5 II</button>
+          <button class="gear-preset" onclick="selectGearPreset('camera', this)">Fujifilm X-T5</button>
+          <button class="gear-preset" onclick="selectGearPreset('camera', this)">iPhone 15 Pro</button>
+        </div>
+      </div>
+      <button class="sheet-confirm" id="cameraConfirm" onclick="confirmGear('camera')" disabled>확인</button>
+    </div>
+
+    <!-- 렌즈 시트 -->
+    <div class="bottom-sheet" id="lensSheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <span class="sheet-title">렌즈</span>
+        <button class="sheet-close" onclick="closeSheet('lensSheet')">
+          <svg width="14" height="14" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="gear-sheet-body">
+        <div class="gear-input-wrap">
+          <svg width="16" height="16" viewBox="0 0 24 24" stroke="rgba(0,0,0,0.3)"><use href="#icon-lens"/></svg>
+          <input class="gear-input" id="lensInput" placeholder="렌즈 정보를 입력하세요" oninput="onGearInput('lens')" />
+          <button class="gear-input-clear" id="lensClear" onclick="clearGearInput('lens')">
+            <svg width="10" height="10" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></svg>
+          </button>
+        </div>
+        <div class="gear-presets-label">자주 쓰는 렌즈</div>
+        <div class="gear-presets" id="lensPresets">
+          <button class="gear-preset" onclick="selectGearPreset('lens', this)">24mm f/1.4</button>
+          <button class="gear-preset" onclick="selectGearPreset('lens', this)">24mm f/2.8</button>
+          <button class="gear-preset" onclick="selectGearPreset('lens', this)">35mm f/1.8</button>
+          <button class="gear-preset" onclick="selectGearPreset('lens', this)">50mm f/1.8</button>
+          <button class="gear-preset" onclick="selectGearPreset('lens', this)">85mm f/1.8</button>
+          <button class="gear-preset" onclick="selectGearPreset('lens', this)">16-35mm f/4</button>
+          <button class="gear-preset" onclick="selectGearPreset('lens', this)">24-70mm f/2.8</button>
+          <button class="gear-preset" onclick="selectGearPreset('lens', this)">70-200mm f/2.8</button>
+        </div>
+      </div>
+      <button class="sheet-confirm" id="lensConfirm" onclick="confirmGear('lens')" disabled>확인</button>
+    </div>
+
+    <!-- 위치 시트 -->
+    <div class="bottom-sheet" id="locationSheet">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <span class="sheet-title">위치 태그</span>
+        <button class="sheet-close" onclick="closeSheet('locationSheet')">
+          <svg width="14" height="14" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="location-sheet-body">
+        <div class="location-search-wrap">
+          <svg width="16" height="16" viewBox="0 0 24 24" stroke="rgba(0,0,0,0.3)"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"/><path d="M21 21l-6 -6"/></svg>
+          <input class="location-search-input" id="locationSearchInput" placeholder="스팟 이름 또는 주소 검색" />
+        </div>
+        <div class="location-results" id="locationResults">
+          <div class="location-result-item is-selected" onclick="selectLocation(this)" data-name="광안리 해수욕장" data-addr="부산 수영구 광안해변로 219">
+            <div class="location-result-item__icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"/><path d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z"/></svg>
+            </div>
+            <div class="location-result-item__info">
+              <div class="location-result-item__name">광안리 해수욕장</div>
+              <div class="location-result-item__addr">부산 수영구 광안해변로 219</div>
+            </div>
+            <svg class="location-result-item__check" width="18" height="18" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10"/></svg>
+          </div>
+          <div class="location-result-item" onclick="selectLocation(this)" data-name="광안대교" data-addr="부산 수영구 민락수변공원">
+            <div class="location-result-item__icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"/><path d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z"/></svg>
+            </div>
+            <div class="location-result-item__info">
+              <div class="location-result-item__name">광안대교</div>
+              <div class="location-result-item__addr">부산 수영구 민락수변공원</div>
+            </div>
+            <svg class="location-result-item__check" width="18" height="18" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10"/></svg>
+          </div>
+          <div class="location-result-item" onclick="selectLocation(this)" data-name="민락수변공원" data-addr="부산 수영구 광안해변로 187">
+            <div class="location-result-item__icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"/><path d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z"/></svg>
+            </div>
+            <div class="location-result-item__info">
+              <div class="location-result-item__name">민락수변공원</div>
+              <div class="location-result-item__addr">부산 수영구 광안해변로 187</div>
+            </div>
+            <svg class="location-result-item__check" width="18" height="18" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10"/></svg>
+          </div>
+        </div>
+      </div>
+      <button class="sheet-confirm" id="locationConfirm" onclick="confirmLocation()">확인</button>
+    </div>
+
     <div class="phone-frame">
 
       <!-- Status Bar -->
@@ -274,31 +707,20 @@
 
       <!-- Photo Upload -->
       <div class="photo-section">
-        <!-- Main preview -->
         <div class="photo-main-preview" onclick="selectPhoto()" id="mainPreview">
           <div class="photo-main-preview__bg is-visible" id="mainBg"></div>
           <div class="photo-main-preview__placeholder" id="mainPlaceholder" style="display:none">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="rgba(255,255,255,0.3)">
-              <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-              <path d="M8.813 11.612c.457-.38.918-.38 1.386.011l.108.098 4.986 4.986.094.083a1 1 0 0 0 1.403-1.403l-.083-.094-1.292-1.293.292-.293.106-.095c.457-.38.918-.38 1.386.011l.108.098 4.674 4.675a4 4 0 0 1-3.775 3.599l-.206.005h-12a4 4 0 0 1-3.98-3.603l6.687-6.69.106-.095zm9.187-9.612a4 4 0 0 1 3.995 3.8l.005.2v9.585l-3.293-3.292-.15-.137c-1.256-1.095-2.85-1.097-4.096-.017l-.154.14-.307.306-2.293-2.292-.15-.137c-1.256-1.095-2.85-1.097-4.096-.017l-.154.14-5.307 5.306v-9.585a4 4 0 0 1 3.8-3.995l.2-.005h12zm-2.99 5-.127.007a1 1 0 0 0 0 1.986l.117.007.127-.007a1 1 0 0 0 0-1.986l-.117-.007z"/>
-            </svg>
+            <svg width="40" height="40" viewBox="0 0 24 24" stroke="rgba(255,255,255,0.3)"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M15 8h.01"/><path d="M3 6a3 3 0 0 1 3 -3h12a3 3 0 0 1 3 3v12a3 3 0 0 1 -3 3h-12a3 3 0 0 1 -3 -3v-12z"/><path d="M3 16l5 -5c.928 -.893 2.072 -.893 3 0l5 5"/><path d="M14 14l1 -1c.928 -.893 2.072 -.893 3 0l3 3"/></svg>
             <div class="photo-main-preview__label">사진을 선택하세요</div>
             <div class="photo-main-preview__sub">최대 10장까지 업로드 가능</div>
           </div>
           <div class="photo-main-preview__ratio-badge">4:3</div>
         </div>
-
-        <!-- Photo strip -->
         <div class="photo-strip" id="photoStrip">
-          <!-- 추가 버튼 -->
           <div class="photo-thumb photo-thumb--add" onclick="selectPhoto()">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.4)" stroke-width="1.5" stroke-linecap="round">
-              <line x1="12" y1="5" x2="12" y2="19"/>
-              <line x1="5" y1="12" x2="19" y2="12"/>
-            </svg>
+            <svg width="22" height="22" viewBox="0 0 24 24" stroke="rgba(255,255,255,0.4)"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5v14"/><path d="M5 12h14"/></svg>
             <span>사진 추가</span>
           </div>
-          <!-- 목업 썸네일 -->
           <div class="photo-thumb is-selected" onclick="selectThumb(this)">
             <div class="photo-thumb__bg" style="background:linear-gradient(135deg,#0f2027,#2c5364,#4a7c8a);width:100%;height:100%"></div>
           </div>
@@ -332,65 +754,55 @@
         <div class="form-section">
           <div class="form-section__label">촬영 정보 <span>선택</span></div>
 
-          <!-- 촬영 시간 -->
-          <div class="recipe-row">
+          <div class="recipe-row" onclick="openSheet('timeSheet')">
             <div class="recipe-row__icon">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round">
-                <circle cx="8" cy="8" r="7"/>
-                <polyline points="8,4 8,8 10.5,10"/>
-              </svg>
+              <svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"/><path d="M12 7v5l3 3"/></svg>
             </div>
             <span class="recipe-row__label">촬영 시간</span>
-            <span class="recipe-row__value">05:30</span>
-            <svg class="recipe-row__chevron" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><polyline points="5,3 9,7 5,11"/></svg>
+            <span class="recipe-row__value" id="timeValue">05:30</span>
+            <svg class="recipe-row__chevron" width="14" height="14" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/></svg>
           </div>
 
-          <!-- 날씨 -->
-          <div class="recipe-row">
+          <div class="recipe-row" onclick="openSheet('weatherSheet')">
             <div class="recipe-row__icon">
-              <img src="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/clear-day.svg" width="20" height="20" draggable="false" style="opacity:0.45">
+              <svg width="18" height="18" viewBox="0 0 24 24" stroke="rgba(0,0,0,0.3)"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12m-4 0a4 4 0 1 0 8 0a4 4 0 1 0 -8 0"/><path d="M3 12h1m8 -9v1m8 8h1m-9 8v1m-6.4 -15.4l.7 .7m12.1 -.7l-.7 .7m0 11.4l.7 .7m-12.1 -.7l-.7 .7"/></svg>
             </div>
             <span class="recipe-row__label">날씨</span>
-            <span class="recipe-row__value">맑음</span>
-            <svg class="recipe-row__chevron" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><polyline points="5,3 9,7 5,11"/></svg>
+            <span class="recipe-row__value" id="weatherValue">맑음</span>
+            <svg class="recipe-row__chevron" width="14" height="14" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/></svg>
           </div>
 
-          <!-- 카메라 -->
-          <div class="recipe-row">
+          <div class="recipe-row" onclick="openSheet('cameraSheet')">
             <div class="recipe-row__icon">
               <svg width="18" height="18" viewBox="0 0 24 24" style="color:rgba(0,0,0,0.3)"><use href="#icon-camera"/></svg>
             </div>
             <span class="recipe-row__label">카메라</span>
-            <span class="recipe-row__value">Sony A7IV</span>
-            <svg class="recipe-row__chevron" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><polyline points="5,3 9,7 5,11"/></svg>
+            <span class="recipe-row__value" id="cameraValue">Sony A7IV</span>
+            <svg class="recipe-row__chevron" width="14" height="14" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/></svg>
           </div>
 
-          <!-- 렌즈 -->
-          <div class="recipe-row">
+          <div class="recipe-row" onclick="openSheet('lensSheet')">
             <div class="recipe-row__icon">
               <svg width="18" height="18" viewBox="0 0 24 24" style="color:rgba(0,0,0,0.3)"><use href="#icon-lens"/></svg>
             </div>
             <span class="recipe-row__label">렌즈</span>
-            <span class="recipe-row__value">24mm f/2.8</span>
-            <svg class="recipe-row__chevron" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><polyline points="5,3 9,7 5,11"/></svg>
+            <span class="recipe-row__value" id="lensValue">24mm f/2.8</span>
+            <svg class="recipe-row__chevron" width="14" height="14" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/></svg>
           </div>
         </div>
 
         <!-- 위치 -->
         <div class="form-section">
           <div class="form-section__label">위치 <span>선택</span></div>
-          <div class="location-row">
+          <div class="location-row" onclick="openSheet('locationSheet')">
             <div class="location-row__icon">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="var(--color-accent)" stroke-width="1.2">
-                <path d="M8 1C5.2 1 3 3.2 3 6C3 9.5 8 15 8 15S13 9.5 13 6C13 3.2 10.8 1 8 1Z"/>
-                <circle cx="8" cy="6" r="2"/>
-              </svg>
+              <svg width="16" height="16" viewBox="0 0 24 24" stroke="var(--color-accent)"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"/><path d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z"/></svg>
             </div>
-            <div class="location-row__text">
+            <div class="location-row__text" id="locationText">
               <div class="location-row__name">광안리 해수욕장</div>
               <div class="location-row__addr">부산 수영구 광안해변로 219</div>
             </div>
-            <svg class="location-row__chevron" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"><polyline points="5,3 9,7 5,11"/></svg>
+            <svg class="location-row__chevron" width="14" height="14" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/></svg>
           </div>
         </div>
 
@@ -417,34 +829,49 @@
     <script>
       const MAX_TAGS = 5;
 
+      /* ── 시트 열기/닫기 ── */
+      let currentSheet = null;
+      function openSheet(id) {
+        if (currentSheet) closeSheet(currentSheet);
+        currentSheet = id;
+        document.getElementById('sheetDim').classList.add('is-open');
+        document.getElementById(id).classList.add('is-open');
+        // 카메라/렌즈 시트 열 때 기존 값 채우기
+        if (id === 'cameraSheet') syncGearSheet('camera');
+        if (id === 'lensSheet') syncGearSheet('lens');
+      }
+      function closeSheet(id) {
+        document.getElementById('sheetDim').classList.remove('is-open');
+        document.getElementById(id).classList.remove('is-open');
+        currentSheet = null;
+      }
+      function closeAllSheets() {
+        if (currentSheet) closeSheet(currentSheet);
+      }
+
+      /* ── 기본 ── */
       function goBack() {
         if (history.length > 1) history.back();
         else location.href = './community-feed.html';
       }
-
       function onCaptionInput(el) {
         document.getElementById('captionLen').textContent = el.value.length;
         checkSubmit();
       }
-
       function checkSubmit() {
         const hasPhoto = document.querySelector('.photo-thumb:not(.photo-thumb--add)');
         const hasCaption = document.getElementById('captionInput').value.trim().length > 0;
         document.getElementById('submitBtn').disabled = !(hasPhoto && hasCaption);
       }
-
       function selectPhoto() {
-        /* 목업: 이미 사진이 있는 상태로 표시 */
         document.getElementById('mainPlaceholder').style.display = 'none';
         document.getElementById('mainBg').classList.add('is-visible');
         checkSubmit();
       }
-
       function selectThumb(el) {
         document.querySelectorAll('.photo-thumb').forEach(t => t.classList.remove('is-selected'));
         el.classList.add('is-selected');
       }
-
       function toggleTag(btn) {
         const selected = document.querySelectorAll('#tagWrap .spot-tag.is-selected');
         if (btn.classList.contains('is-selected')) {
@@ -454,9 +881,105 @@
           btn.classList.add('is-selected');
         }
       }
-
       function submitPost() {
         location.href = './community-feed.html';
+      }
+
+      /* ── 촬영 시간 ── */
+      let tHour = 5, tMin = 30;
+      function adjustTime(part, delta) {
+        if (part === 'hour') {
+          tHour = (tHour + delta + 24) % 24;
+          document.getElementById('timeHour').textContent = String(tHour).padStart(2, '0');
+        } else {
+          tMin = (tMin + delta + 60) % 60;
+          document.getElementById('timeMin').textContent = String(tMin).padStart(2, '0');
+        }
+      }
+      function confirmTime() {
+        const val = String(tHour).padStart(2,'0') + ':' + String(tMin).padStart(2,'0');
+        document.getElementById('timeValue').textContent = val;
+        document.getElementById('timeValue').classList.remove('is-empty');
+        closeSheet('timeSheet');
+      }
+
+      /* ── 날씨 ── */
+      let tempWeather = '맑음';
+      function selectWeather(btn) {
+        document.querySelectorAll('.weather-opt').forEach(o => o.classList.remove('is-selected'));
+        btn.classList.add('is-selected');
+        tempWeather = btn.dataset.value;
+      }
+      function confirmWeather() {
+        document.getElementById('weatherValue').textContent = tempWeather;
+        document.getElementById('weatherValue').classList.remove('is-empty');
+        closeSheet('weatherSheet');
+      }
+
+      /* ── 카메라/렌즈 ── */
+      function syncGearSheet(type) {
+        const curVal = document.getElementById(type + 'Value').textContent;
+        const input = document.getElementById(type + 'Input');
+        const isPlaceholder = input.placeholder;
+        // 현재 값이 '미입력'이 아니면 input에 채움
+        if (!document.getElementById(type + 'Value').classList.contains('is-empty')) {
+          input.value = curVal;
+          document.getElementById(type + 'Clear').classList.add('is-visible');
+          document.getElementById(type + 'Confirm').disabled = false;
+          // 프리셋 매칭
+          document.querySelectorAll('#' + type + 'Presets .gear-preset').forEach(p => {
+            p.classList.toggle('is-selected', p.textContent === curVal);
+          });
+        }
+      }
+      function onGearInput(type) {
+        const val = document.getElementById(type + 'Input').value;
+        document.getElementById(type + 'Clear').classList.toggle('is-visible', val.length > 0);
+        document.getElementById(type + 'Confirm').disabled = val.trim().length === 0;
+        // 프리셋 하이라이트
+        document.querySelectorAll('#' + type + 'Presets .gear-preset').forEach(p => {
+          p.classList.toggle('is-selected', p.textContent === val);
+        });
+      }
+      function clearGearInput(type) {
+        document.getElementById(type + 'Input').value = '';
+        document.getElementById(type + 'Clear').classList.remove('is-visible');
+        document.getElementById(type + 'Confirm').disabled = true;
+        document.querySelectorAll('#' + type + 'Presets .gear-preset').forEach(p => p.classList.remove('is-selected'));
+      }
+      function selectGearPreset(type, btn) {
+        document.querySelectorAll('#' + type + 'Presets .gear-preset').forEach(p => p.classList.remove('is-selected'));
+        btn.classList.add('is-selected');
+        document.getElementById(type + 'Input').value = btn.textContent;
+        document.getElementById(type + 'Clear').classList.add('is-visible');
+        document.getElementById(type + 'Confirm').disabled = false;
+      }
+      function confirmGear(type) {
+        const val = document.getElementById(type + 'Input').value.trim();
+        if (!val) return;
+        document.getElementById(type + 'Value').textContent = val;
+        document.getElementById(type + 'Value').classList.remove('is-empty');
+        closeSheet(type + 'Sheet');
+      }
+
+      /* ── 위치 ── */
+      let tempLocation = { name: '광안리 해수욕장', addr: '부산 수영구 광안해변로 219' };
+      function selectLocation(el) {
+        document.querySelectorAll('.location-result-item').forEach(i => i.classList.remove('is-selected'));
+        el.classList.add('is-selected');
+        tempLocation = { name: el.dataset.name, addr: el.dataset.addr };
+      }
+      function confirmLocation() {
+        const el = document.getElementById('locationText');
+        el.innerHTML = '';
+        const name = document.createElement('div');
+        name.className = 'location-row__name';
+        name.textContent = tempLocation.name;
+        const addr = document.createElement('div');
+        addr.className = 'location-row__addr';
+        addr.textContent = tempLocation.addr;
+        el.append(name, addr);
+        closeSheet('locationSheet');
       }
 
       checkSubmit();

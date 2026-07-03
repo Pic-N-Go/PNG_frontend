@@ -74,6 +74,28 @@ body {
   position: relative;
 }
 
+/* ─── Tabler 아이콘 공통 스타일 ─────────────────────────────────────────── */
+/* viewBox="0 0 24 24" SVG 에 적용 — stroke 색은 각 아이콘에서 직접 지정 */
+svg[viewBox="0 0 24 24"] {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+/* outline 아이콘 (SVG에 fill 속성 없음): 자식 요소에 fill:none 적용 */
+svg[viewBox="0 0 24 24"]:not([fill]) path,
+svg[viewBox="0 0 24 24"]:not([fill]) circle,
+svg[viewBox="0 0 24 24"]:not([fill]) line,
+svg[viewBox="0 0 24 24"]:not([fill]) polyline,
+svg[viewBox="0 0 24 24"]:not([fill]) rect {
+  fill: none;
+}
+svg[viewBox="0 0 24 24"] path,
+svg[viewBox="0 0 24 24"] circle,
+svg[viewBox="0 0 24 24"] line,
+svg[viewBox="0 0 24 24"] polyline,
+svg[viewBox="0 0 24 24"] rect {
+  stroke-width: 1.5;
+}
+
 /* ─── Spot Tag ──────────────────────────────────────────────────────────── */
 /* 스팟 태그 pill — spot-detail, review-write 공통 */
 .spot-tag {
@@ -195,4 +217,36 @@ body {
   height: 5px;
   background: rgba(0, 0, 0, 0.1);
   border-radius: 2.5px;
+}
+
+/* ─── Theme Pill ────────────────────────────────────────────────────────── */
+/* 관심 테마 선택 칩 — signup, mypage/setting 공통 */
+.theme-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.theme-pill {
+  height: 36px;
+  padding: 0 var(--space-md);
+  border-radius: 18px;
+  background: var(--color-surface);
+  border: 1px solid transparent;
+  font-family: var(--font-family);
+  font-size: var(--font-sm);
+  letter-spacing: -0.2px;
+  color: rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+}
+.theme-pill:hover {
+  background: rgba(0, 0, 0, 0.06);
+}
+.theme-pill.is-selected {
+  background: rgba(227, 27, 89, 0.08);
+  border-color: var(--color-accent);
+  color: var(--color-accent);
+  font-weight: 500;
 }

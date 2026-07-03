@@ -54,7 +54,7 @@
   "spot/spot-detail.html": { "status": "미시작", "date": "", "note": "" },
   "spot/spot-list.html": { "status": "미시작", "date": "", "note": "" },
   "spot/spot-register.html": { "status": "미시작", "date": "", "note": "" },
-  "travel/travel-list.html": { "status": "미시작", "date": "", "note": "" },
+  "travel/travel-list.html": { "status": "미시작", "date": "", "note": "빈 상태: ?empty=1" },
   "travel/travel-new.html": { "status": "미시작", "date": "", "note": "" },
   "travel/travel-plan.html": { "status": "미시작", "date": "", "note": "" },
   "wishlist/wishlist-setting.html": {
@@ -62,5 +62,5 @@
     "date": "",
     "note": ""
   },
-  "wishlist/wishlist.html": { "status": "미시작", "date": "", "note": "" }
+  "wishlist/wishlist.html": { "status": "미시작", "date": "", "note": "빈 상태: ?empty=1" }
 }
