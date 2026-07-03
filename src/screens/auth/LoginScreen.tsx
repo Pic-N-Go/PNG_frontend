@@ -102,8 +102,8 @@ export default function LoginScreen({ navigation }: Props) {
     },
     onSuccess: (data) => setAuth(data.accessToken, data.user),
     onError: (e: unknown) => {
-      console.error('[KakaoLogin Error]', e);
       if ((e as { code?: string })?.code === 'E_CANCELLED') return;
+      console.error('[KakaoLogin Error]', e);
       showToast(toErrorMessage(e, '카카오 로그인에 실패했어요'));
     },
   });
