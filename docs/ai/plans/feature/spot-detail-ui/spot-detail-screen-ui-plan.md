@@ -77,7 +77,7 @@
 
 - 대상 파일:
   - `src/components/spot/PhotoGridTab.tsx`
-- 변경 내용: 필터 칩(전체/일출/야경/인물/풍경)을 공통 `Chip`으로 구현(클릭 시 active 스타일 전환 + 그리드 초기화 후 재로드), `FlatList`(3열, `numColumns=3`) + `onEndReached`로 mock 247장을 18장씩 로드, 로딩 중 하단 로더 dot 3개 표시(`setTimeout` 600ms)
+- 변경 내용: 필터 칩(전체/일출/야경/인물/풍경)을 공통 `Chip`으로 구현(클릭 시 active 스타일 전환 + 그리드 초기화 후 재로드). **계획 변경**: `FlatList`+`onEndReached` 대신 상위 `Animated.ScrollView`(Task 10) 안에 중첩 배치해야 해서 VirtualizedList 중첩 경고를 피하기 위해 일반 `View` flex-wrap 3열 그리드로 구현하고, 상위 스크롤 핸들러가 하단 근접을 감지해 `loadMoreSignal` prop을 올려주는 방식으로 mock 247장을 18장씩 로드. 로딩 중 하단 로더 dot 3개 표시(정적, `setTimeout` 600ms로 지연만 시뮬레이션)
 - 완료 조건: AC5 충족 — 총 247장 로드 후 추가 로딩 없음
 - 검증 방법: `pnpm exec tsc --noEmit` / `pnpm lint`, 시뮬레이터에서 스크롤 끝까지 확인
 
@@ -113,9 +113,22 @@
 - 대상 파일:
   - `src/screens/spot/SpotDetailScreen.tsx`
   - `src/navigation/stacks/SpotStack.tsx` (기존 라우트 확인만, 변경 불필요 시 그대로 유지)
-- 변경 내용: `ScreenContainer`(`edges={['left','right','bottom']}`, 히어로 화면이므로 top 제외) 최상위 래퍼, 탭 상태(`activeTab`)와 4개 시트 visible 상태 관리, Task 3~9 컴포넌트 조립, Toast 상태 관리
+- 변경 내용: **계획 변경**: `ScreenContainer` 컴포넌트가 실제 코드베이스에 존재하지 않아(`development-guide.md`에 문서화만 돼 있고 미구현), `HomeScreen.tsx` 선례를 따라 순수 `View` + `useSafeAreaInsets()` 직접 사용으로 최상위 래퍼 구성. 탭 상태(`activeTab`)와 4개 시트 visible 상태 관리, Task 3~9 컴포넌트 조립, Toast 상태 관리, 히어로 콜랩싱용 `scrollY` 공유 값 및 사진 탭 `loadMoreSignal` 관리
 - 완료 조건: 화면 전체가 목업과 동일하게 렌더링되고 AC1~AC11(AC3-1 포함) 전체 충족
 - 검증 방법: `pnpm exec tsc --noEmit` / `pnpm lint`, iPhone SE(375dp)/iPhone 15 Plus(428dp) 시뮬레이터 확인
+
+### Task 11 - 추가 작업 (구현 중 사용자 피드백으로 발생, 계획에 없었음)
+
+- 대상 파일:
+  - `src/components/spot/TimePickerSheet.tsx` (신규) — 포토제닉 시간대 선택용 네이티브 타임피커 시트
+  - `src/components/spot/PhotogenicScoreCard.tsx` — 날짜(3일 리스트)/시간(네이티브 피커) 선택 연결
+  - `src/components/spot/BookmarkSheet.tsx` — 새 컬렉션 만들기(이름+색상 5종, 최대 10개) 실제 기능 추가
+  - `src/components/spot/ConvenienceInfoSection.tsx`, `src/components/common/Skeleton.tsx` — 스켈레톤 로딩
+  - `src/components/spot/ChatTab.tsx` — 메시지 전송/탭 진입 시 자동 스크롤 (원래 AC7에 있었으나 최초 구현에서 누락, 코드리뷰로 발견 후 수정)
+  - `src/navigation/index.tsx`, `src/screens/home/HomeScreen.tsx` — `SpotStack` 네비게이션 타입 안전성 수정 + 인기 스팟 카드 연동
+  - `app.config.js`, `package.json` — `@react-native-community/datetimepicker` 의존성 추가 (iOS pod install 완료)
+- 완료 조건: 코드리뷰(Critical 0 / Important 2 / Minor 3, 전부 반영) 통과, tsc/lint 통과
+- 검증 방법: 시뮬레이터 수동 확인 (사용자 직접 테스트로 다수 회 반복 확인함)
 
 ## 4) 검증 체크포인트
 

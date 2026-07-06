@@ -20,7 +20,7 @@
   - 스팟 기본 정보(배지·이름·위치·평점·태그)
   - 탭 바(정보/사진/리뷰/채팅) 전환
   - 정보 탭: 포토제닉 스코어 카드(SVG 링+팩터 그리드), 편의 정보, 촬영 체크리스트(빈 상태↔완료 상태 로컬 토글), 위시리스트 배너, Bottom CTA(코스에 저장/바로 출발)
-  - 사진 탭: 필터 칩 + 로컬 mock 기반 무한 스크롤 페이지네이션 흉내(`FlatList onEndReached`)
+  - 사진 탭: 필터 칩 + 로컬 mock 기반 무한 스크롤 페이지네이션 흉내(중첩 VirtualizedList 경고를 피하기 위해 `FlatList`가 아닌 일반 `View` flex-wrap 그리드 + 상위 `ScrollView` 근접-하단 감지로 구현)
   - 리뷰 탭: 요약(평점 분포 바) + 정렬 칩(스타일 토글만, 실제 재정렬 없음) + 리뷰 카드 리스트 + 리뷰 작성하기 sticky CTA(네비게이션 진입점만, `ReviewWriteScreen` 자체 구현은 제외)
   - 채팅 탭: 메시지 리스트 + 로컬 state 기반 전송(append만, 영속화 없음)
   - 바텀시트 4종: 코스에 저장(여행 선택→DAY 선택 2단계), 바로 출발(내비 앱 선택), 공유하기, 즐겨찾기(북마크, 미저장/저장됨 2 패널)
@@ -32,13 +32,18 @@
     - `StarRating.tsx` — 별점 표시 — 스팟 정보 헤더·리뷰 요약·리뷰 카드 3곳에서 재사용
     - `InitialAvatar.tsx` — 이니셜 원형 아바타 — 리뷰 카드·채팅 메시지에서 재사용
     - 기존 `src/components/home/`의 유사 코드(`FilterBottomSheet`, `CategoryFilter` 등)는 이번 스코프에서 리팩터링하지 않음 (범위 밖 파일 변경 승인 절차 필요 — 오픈 이슈에 기재)
+  - **포토제닉 날짜/시간 선택** (당초 오픈 이슈 → 세션 중 API팀 확인 후 확정·구현): 날짜는 당일 포함 3일(오늘/내일/모레) 리스트를 공통 `OptionSheet`로 선택. 시간은 24시간 임의 시각 조회가 가능하다는 API 제약에 따라 신규 의존성 `@react-native-community/datetimepicker`(네이티브 스피너, `minuteInterval=5`)로 자유 선택. 선택해도 포토제닉 점수 자체는 mock 고정값이라 변하지 않음(API 연동 시 교체 예정, 코드에 TODO 표시)
+  - **편의정보 스켈레톤 로딩**: 공통 `Skeleton`(펄스 애니메이션 블록) 컴포넌트 추가, `ConvenienceInfoSection`에 `loading` prop으로 아이콘/라벨은 고정 노출하고 값만 스켈레톤 처리. `SpotDetailScreen`엔 미리보기용 5초 타이머가 TEMP로 남아있음(API 연동 시 `isLoading`으로 교체 필요, TODO 표시)
+  - **즐겨찾기 컬렉션 생성**: `BookmarkSheet`의 "새 컬렉션 만들기"가 원래 목업엔 토스트만 띄우는 placeholder였는데, 이름 입력 + 색상 5종(핑크/블루/퍼플/그린/오렌지) 선택으로 실제 컬렉션을 만들 수 있도록 확장(세션 내 화면 상태로만 유지, 최대 10개 제한, 목업에 없던 기능)
+  - **홈 화면 인기 스팟 카드 → 스팟 상세 진입 연동**: `PopularSpotsSection`의 기존 `onSpotPress` 훅에 `HomeScreen`에서 실제 네비게이션(`SpotStack`/`SpotDetail`, `spotId` 파라미터 전달)을 연결함
 - 제외(Out of Scope):
   - 스팟 상세 조회/리뷰/사진/채팅/체크리스트/위시리스트/코스저장 등 실제 API 연동 (`src/api/spot.ts` 등은 후속 이슈)
   - TanStack Query 훅 연결 (현재는 로컬 state만)
   - `ReviewWriteScreen`, `PhotoDetailScreen`의 실제 구현 (네비게이션 연결만 확인, 화면 내부는 기존 placeholder 유지)
   - 리뷰 정렬 로직(실제 배열 재정렬), 사진 필터 칩의 실제 필터링(칩 active 스타일만 전환)
   - 실시간 채팅(웹소켓 등), 딥링크 기반 내비게이션 앱 실제 실행(Linking 호출 등은 TODO 주석만)
-  - 접근 경로(홈 검색결과/지도/여행플랜 등)에서의 실제 이동 연결 — `SpotStack`의 `SpotDetail` 라우트 자체는 이미 등록되어 있으므로 화면 내부 구현에 집중
+  - 홈/지도/여행플랜 등 **다른** 진입 경로에서의 이동 연결(인기 스팟 카드 제외) — `SpotStack`의 `SpotDetail` 라우트 자체는 이미 등록되어 있으므로 필요 시 각 화면에서 개별 연결
+  - `SpotDetailScreen`이 `route.params.spotId`를 실제로 소비해 스팟별 다른 데이터를 보여주는 것 — 현재는 어떤 경로로 들어와도 mock 광안리 데이터만 고정 표시
 
 ## 4) 사용자 시나리오
 
@@ -108,7 +113,7 @@
 - [ ] AC3: 포토제닉 스코어 카드가 SVG 링 차트 + 3열 팩터 그리드로 목업과 동일한 수치·색상·문구로 렌더링된다
 - [ ] AC3-1: 체크리스트 칩/사진 필터 칩/리뷰 정렬 칩/DAY 칩이 공통 `Chip` 컴포넌트로 구현되고, 별점 표시가 공통 `StarRating`, 아바타가 공통 `InitialAvatar`, 바텀시트 4종이 공통 `BottomSheet`로 구현된다
 - [ ] AC4: 체크리스트가 빈 상태(칩 선택)↔완료 상태(개별 체크 토글) 간 로컬로 전환된다
-- [ ] AC5: 사진 탭에서 `FlatList onEndReached`로 18장씩 추가 로드되며 총 247장 이후 더 로드하지 않는다
+- [ ] AC5: 사진 탭에서 스크롤이 하단에 가까워지면 18장씩 추가 로드되며 총 247장 이후 더 로드하지 않는다 (`FlatList`가 아닌 `View` 그리드 + 상위 스크롤 감지 방식)
 - [ ] AC6: 리뷰 탭 정렬 칩 클릭 시 active 스타일만 전환된다 (재정렬 로직 없음, 후속 이슈로 이관)
 - [ ] AC7: 채팅 탭에서 메시지 입력 후 전송 시 로컬 리스트에 append되고 입력창이 초기화된다
 - [ ] AC8: 코스에 저장 시트가 다일차 계획 선택 시 DAY 선택 스텝으로 전환되고, 단일/미정 계획은 바로 저장 완료 처리된다
@@ -128,6 +133,9 @@
 - 내비게이션 앱 실행(카카오맵/네이버지도/Apple지도 딥링크)은 `Linking.openURL` 연동 대신 `Toast` 피드백 + `// TODO: 딥링크 연동`으로 대체
 - 별도 QA 체크리스트는 구현 완료 후 `png-test-case` 스킬로 산출 예정 (Phase 4~5 사이)
 - `src/components/home/FilterBottomSheet.tsx`, `CategoryFilter.tsx` 등 기존 파일도 신규 공통 컴포넌트(`BottomSheet`, `Chip`)로 교체하면 중복이 줄지만, 이번 이슈 범위 밖이므로 리팩토링하지 않음 — 필요 시 별도 이슈로 제안
+- ~~포토제닉 날짜/시간 선택 UI 형태 미정~~ → **해결됨**: API팀 확인 결과대로 날짜는 3일 리스트, 시간은 네이티브 타임피커로 구현 완료 (3장 참고)
+- `BookmarkSheet`의 즐겨찾기 컬렉션 생성은 세션 내 로컬 state로만 유지됨 — 새로고침/재진입 시 초기화됨. 영속화(AsyncStorage 등)는 API 연동 시 함께 처리 필요
+- `MyPageStack`의 즐겨찾기(PIC MAP) 화면이 아직 없어 `BookmarkSheet`의 "즐겨찾기 보기" 버튼은 TODO로 비활성 상태 — 해당 화면 구현 후 연결 필요
 
 ---
 
