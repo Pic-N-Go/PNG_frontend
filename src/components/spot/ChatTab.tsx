@@ -6,6 +6,10 @@ import { GRID_PADDING } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import type { ChatEntry } from '@/types/spot';
 
+// TODO: API 연동 — 아래 MOCK_CHAT_ENTRIES와 handleSend의 로컬 append를 실제 채팅 API/웹소켓으로 교체
+// - 메시지 목록 조회: 스팟별 채팅방 메시지 히스토리 API 필요 (participant 수 "현재 12명 참여 중"도 실시간 값으로 교체)
+// - 메시지 전송: handleSend가 로컬 state에만 append하는 부분을 실제 전송 API/소켓 emit으로 교체
+// - 참고: docs/ai/specs/feature/spot-detail-ui/spot-detail-screen-ui.md의 "실시간 채팅(웹소켓 등)" Out of Scope 항목
 export const MOCK_CHAT_ENTRIES: ChatEntry[] = [
   { id: 'd1', type: 'date', text: '2026년 5월 12일 월요일' },
   { id: 's1', type: 'system', text: '포토스팟 채팅방에 입장했습니다' },
