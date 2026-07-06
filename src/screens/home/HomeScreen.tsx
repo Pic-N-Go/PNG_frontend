@@ -3,8 +3,9 @@ import React, { useState } from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
 import { HomeStackParamList } from '@/navigation/stacks/HomeStack';
+import type { RootStackParamList } from '@/navigation';
 import { CONTENT_PADDING, FONT_SM, FONT_XL, TAB_BAR_HEIGHT } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
 import HeroSection from '@/components/home/HeroSection';
@@ -70,7 +71,14 @@ export default function HomeScreen({ navigation }: Props) {
           <MapBanner onPress={() => navigation.getParent()?.navigate('MapTab' as never)} />
         </View>
 
-        <PopularSpotsSection />
+        <PopularSpotsSection
+          onSpotPress={(id) => {
+            const rootNavigation = navigation.getParent()?.getParent() as
+              | NativeStackNavigationProp<RootStackParamList>
+              | undefined;
+            rootNavigation?.navigate('SpotStack', { screen: 'SpotDetail', params: { spotId: id } });
+          }}
+        />
 
         <CalendarSection />
         <WishlistBanner />
