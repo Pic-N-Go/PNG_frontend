@@ -132,6 +132,15 @@ Intake 승인 후 아래 프롬프트로 구현을 시작합니다.
 .github/CONVENTIONS.md의 형식을 따라야 해.
 ```
 
+3. **UI 작업이 있었다면** — 퍼블리싱 파일 진행 상태(`scripts/filelist-data.json`)도 갱신
+
+```
+이번에 구현한 게 src/components/ui/ 아래 어떤 mockup 파일에 대응하는지 확인해서,
+scripts/filelist-data.json에서 해당 파일의 uiStatus를 완료로 갱신하고 date를 오늘 날짜로 넣어줘.
+API 연동은 아직 안 했으면 apiStatus는 미시작으로 유지해줘.
+수정 후 pnpm filelist를 실행해서 src/html/filelist.html을 재생성해줘.
+```
+
 ---
 
 ## 자주 하는 실수

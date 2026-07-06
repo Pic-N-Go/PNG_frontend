@@ -79,7 +79,7 @@
       vertical-align: middle;
       white-space: nowrap;
     }
-    tbody td:nth-child(8) { color: rgba(0,0,0,0.3); font-style: italic; }
+    tbody td:nth-child(10) { color: rgba(0,0,0,0.3); font-style: italic; }
     a {
       color: #e31b59;
       text-decoration: none;
@@ -118,7 +118,7 @@
 </head>
 <body>
   <h1>PNG 퍼블리싱 파일 목록</h1>
-  <p class="meta">생성일: 2026-07-02 · 총 26개 파일 · 스캔 루트: src/components/ui</p>
+  <p class="meta">생성일: 2026-07-06 · 총 26개 파일 · 스캔 루트: src/components/ui</p>
 
   <div class="filters">
     <button class="filter-btn is-active" onclick="filterAll(this)">전체</button>
@@ -141,7 +141,8 @@
           <th>구분</th>
           <th>경로/파일명</th>
           <th>담당자</th>
-          <th>작업여부</th>
+          <th>UI 작업여부</th>
+          <th>API 연동여부</th>
           <th>최종작업일</th>
           <th>비고</th>
         </tr>
@@ -156,6 +157,7 @@
       <td><a href="../components/ui/auth/login.html" target="_blank" rel="noopener">auth/login.html</a></td>
       <td>박예은</td>
       <td><span class="status status--done">완료</span></td>
+      <td><span class="status status--todo">미시작</span></td>
       <td>2026-07-02</td>
       <td>api 담당자 : 소영재</td>
     </tr>
@@ -167,6 +169,7 @@
       <td><a href="../components/ui/auth/oauth-onboarding.html" target="_blank" rel="noopener">auth/oauth-onboarding.html</a></td>
       <td>박예은</td>
       <td><span class="status status--wip">진행중</span></td>
+      <td><span class="status status--todo">미시작</span></td>
       <td>2026-06-23</td>
       <td></td>
     </tr>
@@ -178,6 +181,7 @@
       <td><a href="../components/ui/auth/signup.html" target="_blank" rel="noopener">auth/signup.html</a></td>
       <td>박예은</td>
       <td><span class="status status--done">완료</span></td>
+      <td><span class="status status--todo">미시작</span></td>
       <td>2026-07-02</td>
       <td>api 담당자 : 소영재</td>
     </tr>
@@ -188,6 +192,7 @@
       <td><span class="badge badge--page">PAGE</span></td>
       <td><a href="../components/ui/community/community-feed.html" target="_blank" rel="noopener">community/community-feed.html</a></td>
       <td>박예은</td>
+      <td><span class="status status--todo">미시작</span></td>
       <td><span class="status status--todo">미시작</span></td>
       <td></td>
       <td></td>
@@ -200,6 +205,7 @@
       <td><a href="../components/ui/community/community-post.html" target="_blank" rel="noopener">community/community-post.html</a></td>
       <td>이예인</td>
       <td><span class="status status--todo">미시작</span></td>
+      <td><span class="status status--todo">미시작</span></td>
       <td></td>
       <td></td>
     </tr>
@@ -210,6 +216,7 @@
       <td><span class="badge badge--page">PAGE</span></td>
       <td><a href="../components/ui/community/community-write.html" target="_blank" rel="noopener">community/community-write.html</a></td>
       <td>이예인</td>
+      <td><span class="status status--todo">미시작</span></td>
       <td><span class="status status--todo">미시작</span></td>
       <td></td>
       <td></td>
@@ -222,6 +229,7 @@
       <td><a href="../components/ui/home/home.html" target="_blank" rel="noopener">home/home.html</a></td>
       <td>박예은</td>
       <td><span class="status status--todo">미시작</span></td>
+      <td><span class="status status--todo">미시작</span></td>
       <td></td>
       <td></td>
     </tr>
@@ -232,6 +240,7 @@
       <td><span class="badge badge--page">PAGE</span></td>
       <td><a href="../components/ui/home/map.html" target="_blank" rel="noopener">home/map.html</a></td>
       <td>박예은</td>
+      <td><span class="status status--todo">미시작</span></td>
       <td><span class="status status--todo">미시작</span></td>
       <td></td>
       <td></td>
@@ -244,6 +253,7 @@
       <td><a href="../components/ui/mypage/follow.html" target="_blank" rel="noopener">mypage/follow.html</a></td>
       <td>이예인</td>
       <td><span class="status status--todo">미시작</span></td>
+      <td><span class="status status--todo">미시작</span></td>
       <td></td>
       <td></td>
     </tr>
@@ -254,6 +264,7 @@
       <td><span class="badge badge--page">PAGE</span></td>
       <td><a href="../components/ui/mypage/my-photos.html" target="_blank" rel="noopener">mypage/my-photos.html</a></td>
       <td>이예인</td>
+      <td><span class="status status--todo">미시작</span></td>
       <td><span class="status status--todo">미시작</span></td>
       <td></td>
       <td></td>
@@ -266,6 +277,7 @@
       <td><a href="../components/ui/mypage/my-reviews.html" target="_blank" rel="noopener">mypage/my-reviews.html</a></td>
       <td>이예인</td>
       <td><span class="status status--todo">미시작</span></td>
+      <td><span class="status status--todo">미시작</span></td>
       <td></td>
       <td></td>
     </tr>
@@ -276,6 +288,7 @@
       <td><span class="badge badge--page">PAGE</span></td>
       <td><a href="../components/ui/mypage/mypage.html" target="_blank" rel="noopener">mypage/mypage.html</a></td>
       <td>이예인</td>
+      <td><span class="status status--todo">미시작</span></td>
       <td><span class="status status--todo">미시작</span></td>
       <td></td>
       <td></td>
@@ -288,6 +301,7 @@
       <td><a href="../components/ui/mypage/notification.html" target="_blank" rel="noopener">mypage/notification.html</a></td>
       <td>모정민</td>
       <td><span class="status status--todo">미시작</span></td>
+      <td><span class="status status--todo">미시작</span></td>
       <td></td>
       <td></td>
     </tr>
@@ -298,6 +312,7 @@
       <td><span class="badge badge--page">PAGE</span></td>
       <td><a href="../components/ui/mypage/photo-map.html" target="_blank" rel="noopener">mypage/photo-map.html</a></td>
       <td>이예인</td>
+      <td><span class="status status--todo">미시작</span></td>
       <td><span class="status status--todo">미시작</span></td>
       <td></td>
       <td></td>
@@ -310,6 +325,7 @@
       <td><a href="../components/ui/mypage/profile-edit.html" target="_blank" rel="noopener">mypage/profile-edit.html</a></td>
       <td>이예인</td>
       <td><span class="status status--todo">미시작</span></td>
+      <td><span class="status status--todo">미시작</span></td>
       <td></td>
       <td></td>
     </tr>
@@ -320,6 +336,7 @@
       <td><span class="badge badge--page">PAGE</span></td>
       <td><a href="../components/ui/mypage/setting.html" target="_blank" rel="noopener">mypage/setting.html</a></td>
       <td>소영재</td>
+      <td><span class="status status--todo">미시작</span></td>
       <td><span class="status status--todo">미시작</span></td>
       <td></td>
       <td></td>
@@ -332,6 +349,7 @@
       <td><a href="../components/ui/spot/review-write.html" target="_blank" rel="noopener">spot/review-write.html</a></td>
       <td>박예은</td>
       <td><span class="status status--todo">미시작</span></td>
+      <td><span class="status status--todo">미시작</span></td>
       <td></td>
       <td></td>
     </tr>
@@ -343,6 +361,7 @@
       <td><a href="../components/ui/spot/spot-change.html" target="_blank" rel="noopener">spot/spot-change.html</a></td>
       <td>모정민</td>
       <td><span class="status status--todo">미시작</span></td>
+      <td><span class="status status--todo">미시작</span></td>
       <td></td>
       <td></td>
     </tr>
@@ -353,9 +372,10 @@
       <td><span class="badge badge--page">PAGE</span></td>
       <td><a href="../components/ui/spot/spot-detail.html" target="_blank" rel="noopener">spot/spot-detail.html</a></td>
       <td>박예은</td>
+      <td><span class="status status--done">완료</span></td>
       <td><span class="status status--todo">미시작</span></td>
-      <td></td>
-      <td></td>
+      <td>2026-07-06</td>
+      <td>채팅 등 API 연동은 별도 진행 예정</td>
     </tr>
     <tr>
       <td>스팟</td>
@@ -364,6 +384,7 @@
       <td><span class="badge badge--page">PAGE</span></td>
       <td><a href="../components/ui/spot/spot-list.html" target="_blank" rel="noopener">spot/spot-list.html</a></td>
       <td>이예인</td>
+      <td><span class="status status--todo">미시작</span></td>
       <td><span class="status status--todo">미시작</span></td>
       <td></td>
       <td></td>
@@ -376,6 +397,7 @@
       <td><a href="../components/ui/spot/spot-register.html" target="_blank" rel="noopener">spot/spot-register.html</a></td>
       <td>소영재</td>
       <td><span class="status status--todo">미시작</span></td>
+      <td><span class="status status--todo">미시작</span></td>
       <td></td>
       <td></td>
     </tr>
@@ -384,11 +406,12 @@
       <td>travel</td>
       <td>코스 목록</td>
       <td><span class="badge badge--page">PAGE</span></td>
-      <td><a href="../components/ui/travel/travel-list.html" target="_blank" rel="noopener">travel/travel-list.html</a><br><a href="../components/ui/travel/travel-list.html?empty=1" target="_blank" rel="noopener" style="font-size:11px;color:rgba(0,0,0,0.38)">↳ 빈 상태 (?empty=1)</a></td>
+      <td><a href="../components/ui/travel/travel-list.html" target="_blank" rel="noopener">travel/travel-list.html</a></td>
       <td>모정민</td>
       <td><span class="status status--todo">미시작</span></td>
+      <td><span class="status status--todo">미시작</span></td>
       <td></td>
-      <td></td>
+      <td>빈 상태: ?empty=1</td>
     </tr>
     <tr>
       <td>여행</td>
@@ -397,6 +420,7 @@
       <td><span class="badge badge--page">PAGE</span></td>
       <td><a href="../components/ui/travel/travel-new.html" target="_blank" rel="noopener">travel/travel-new.html</a></td>
       <td>모정민</td>
+      <td><span class="status status--todo">미시작</span></td>
       <td><span class="status status--todo">미시작</span></td>
       <td></td>
       <td></td>
@@ -409,6 +433,7 @@
       <td><a href="../components/ui/travel/travel-plan.html" target="_blank" rel="noopener">travel/travel-plan.html</a></td>
       <td>모정민</td>
       <td><span class="status status--todo">미시작</span></td>
+      <td><span class="status status--todo">미시작</span></td>
       <td></td>
       <td></td>
     </tr>
@@ -420,6 +445,7 @@
       <td><a href="../components/ui/wishlist/wishlist-setting.html" target="_blank" rel="noopener">wishlist/wishlist-setting.html</a></td>
       <td>모정민</td>
       <td><span class="status status--todo">미시작</span></td>
+      <td><span class="status status--todo">미시작</span></td>
       <td></td>
       <td></td>
     </tr>
@@ -428,11 +454,12 @@
       <td>wishlist</td>
       <td>위시리스트</td>
       <td><span class="badge badge--page">PAGE</span></td>
-      <td><a href="../components/ui/wishlist/wishlist.html" target="_blank" rel="noopener">wishlist/wishlist.html</a><br><a href="../components/ui/wishlist/wishlist.html?empty=1" target="_blank" rel="noopener" style="font-size:11px;color:rgba(0,0,0,0.38)">↳ 빈 상태 (?empty=1)</a></td>
+      <td><a href="../components/ui/wishlist/wishlist.html" target="_blank" rel="noopener">wishlist/wishlist.html</a></td>
       <td>이예인</td>
       <td><span class="status status--todo">미시작</span></td>
+      <td><span class="status status--todo">미시작</span></td>
       <td></td>
-      <td></td>
+      <td>빈 상태: ?empty=1</td>
     </tr>
       </tbody>
     </table>

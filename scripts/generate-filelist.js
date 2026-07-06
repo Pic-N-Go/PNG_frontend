@@ -143,7 +143,7 @@ const rows = files.map(fp => {
     href,
     filename,
     rel,
-    ...fileData[rel.replace(/\\/g, '/')] ?? { status: '미시작', date: '', note: '' },
+    ...fileData[rel.replace(/\\/g, '/')] ?? { uiStatus: '미시작', apiStatus: '미시작', date: '', note: '' },
   };
 });
 
@@ -165,7 +165,8 @@ function rowHtml(r, i) {
       <td>${typeBadge}</td>
       <td><a href="${r.href}" target="_blank" rel="noopener">${escapeHtml(r.rel.replace(/\\/g, '/'))}</a></td>
       <td>${escapeHtml(r.assignee)}</td>
-      <td><span class="status status--${statusClass(r.status)}">${escapeHtml(r.status)}</span></td>
+      <td><span class="status status--${statusClass(r.uiStatus)}">${escapeHtml(r.uiStatus)}</span></td>
+      <td><span class="status status--${statusClass(r.apiStatus)}">${escapeHtml(r.apiStatus)}</span></td>
       <td>${escapeHtml(r.date)}</td>
       <td>${escapeHtml(r.note)}</td>
     </tr>`;
@@ -252,7 +253,7 @@ const html = `<!doctype html>
       vertical-align: middle;
       white-space: nowrap;
     }
-    tbody td:nth-child(8) { color: rgba(0,0,0,0.3); font-style: italic; }
+    tbody td:nth-child(10) { color: rgba(0,0,0,0.3); font-style: italic; }
     a {
       color: #e31b59;
       text-decoration: none;
@@ -310,7 +311,8 @@ const html = `<!doctype html>
           <th>구분</th>
           <th>경로/파일명</th>
           <th>담당자</th>
-          <th>작업여부</th>
+          <th>UI 작업여부</th>
+          <th>API 연동여부</th>
           <th>최종작업일</th>
           <th>비고</th>
         </tr>
