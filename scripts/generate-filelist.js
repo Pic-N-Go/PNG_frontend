@@ -143,7 +143,8 @@ const rows = files.map(fp => {
     href,
     filename,
     rel,
-    ...fileData[rel.replace(/\\/g, '/')] ?? { uiStatus: '미시작', apiStatus: '미시작', date: '', note: '' },
+    ...{ uiStatus: '미시작', apiStatus: '미시작', date: '', note: '' },
+    ...(fileData[rel.replace(/\\/g, '/')] ?? {}),
   };
 });
 
