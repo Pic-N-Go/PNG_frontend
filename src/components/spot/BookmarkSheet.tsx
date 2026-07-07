@@ -59,6 +59,13 @@ export default function BookmarkSheet({
   const [newName, setNewName] = useState('');
   const [newColor, setNewColor] = useState(COLLECTION_COLOR_PALETTE[0].color);
 
+  function handleClose() {
+    setCreating(false);
+    setNewName('');
+    setNewColor(COLLECTION_COLOR_PALETTE[0].color);
+    onClose();
+  }
+
   function handleConfirm() {
     const collection = collections.find((c) => c.id === selectedId);
     if (!collection) return;
@@ -84,7 +91,7 @@ export default function BookmarkSheet({
   }
 
   return (
-    <BottomSheet visible={visible} onClose={onClose}>
+    <BottomSheet visible={visible} onClose={handleClose}>
       {isSaved ? (
         <>
           <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(16), paddingBottom: normalize(12) }}>

@@ -48,11 +48,17 @@ export default function PhotoGridTab({ loadMoreSignal }: Props) {
   }, [loadMoreSignal]);
 
   // mock 단계라 필터는 실제로 사진 종류를 바꾸지 않고 그리드만 초기화 후 재로드함 (API 연동 시 필터별 조회로 교체)
+  // loadMore()는 클로저에 갇힌 이전 loadedCount를 참조하므로 여기서 직접 재로드 (247장 다 본 뒤 필터 전환 시 재로드 안 되는 버그 방지)
   function handleFilterPress(filter: string) {
     setActiveFilter(filter);
     setLoadedCount(0);
-    loadingRef.current = false;
-    setTimeout(loadMore, 0);
+    loadingRef.current = true;
+    setLoading(true);
+    setTimeout(() => {
+      setLoadedCount(Math.min(PHOTO_TOTAL, PHOTOS_PER_PAGE));
+      setLoading(false);
+      loadingRef.current = false;
+    }, 600);
   }
 
   return (

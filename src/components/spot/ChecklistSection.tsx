@@ -35,11 +35,12 @@ export default function ChecklistSection() {
   }
 
   function handleSave() {
+    const prevCheckedById = new Map(savedItems.map((item) => [item.id, item.checked]));
     setSavedItems(
       selectedIds.map((id) => ({
         id,
         label: MOCK_CHECKLIST_OPTIONS.find((o) => o.id === id)?.label ?? id,
-        checked: true,
+        checked: prevCheckedById.get(id) ?? true,
       }))
     );
     setIsEditing(false);
