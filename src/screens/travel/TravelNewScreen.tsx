@@ -355,7 +355,7 @@ export default function TravelNewScreen() {
                 </View>
                 <Text className="text-[16px] font-medium text-black/40 mb-1">아직 추가된 스팟이 없어요</Text>
                 <Text className="text-[14px] text-black/20 text-center leading-relaxed">아래 버튼으로 포토스팟을{'\n'}추가해보세요</Text>
-                <TouchableOpacity onPress={() => navigation.navigate('Map', { mode: 'plan' })} className="mt-6 w-full h-[54px] rounded-2xl border-[1.5px] border-dashed border-black/10 flex-row items-center justify-center">
+                <TouchableOpacity onPress={() => navigation.navigate('Map', { source: 'plan' })} className="mt-6 w-full h-[54px] rounded-2xl border-[1.5px] border-dashed border-black/10 flex-row items-center justify-center">
                   <IconPlus size={15} color="rgba(0,0,0,0.25)" />
                   <Text className="text-[16px] font-medium text-black/25 ml-2">스팟 추가하기</Text>
                 </TouchableOpacity>
@@ -396,7 +396,7 @@ export default function TravelNewScreen() {
                     </View>
                   </View>
                 ))}
-                <TouchableOpacity onPress={() => navigation.navigate('Map', { mode: 'plan' })} className="mt-3 w-full h-[54px] rounded-2xl border-[1.5px] border-dashed border-black/10 flex-row items-center justify-center">
+                <TouchableOpacity onPress={() => navigation.navigate('Map', { source: 'plan' })} className="mt-6 w-full h-[54px] rounded-2xl border-[1.5px] border-dashed border-black/10 flex-row items-center justify-center">
                   <IconPlus size={15} color="rgba(0,0,0,0.25)" />
                   <Text className="text-[16px] font-medium text-black/25 ml-2">스팟 추가하기</Text>
                 </TouchableOpacity>
