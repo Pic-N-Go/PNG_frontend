@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { IconPhoto, IconSend } from '@tabler/icons-react-native';
 import InitialAvatar from '@/components/common/InitialAvatar';
 import { GRID_PADDING } from '@/constants/layout';
@@ -24,7 +24,12 @@ export const MOCK_CHAT_ENTRIES: ChatEntry[] = [
   { id: 'm8', type: 'message', senderName: '박민준', avatarInitial: 'MJ', avatarColor: '#0071e3', text: '지금 미세먼지 정말 좋아요. 오늘 포토제닉 지수 87점이래요!', time: '7:02' },
 ];
 
-export default function ChatTab() {
+interface Props {
+  // 입력창 포커스 여부 변경 시 알림 — 상위에서 SpotInfoHeader를 접어 메시지 영역을 확보하는 데 사용
+  onFocusChange?: (focused: boolean) => void;
+}
+
+export default function ChatTab({ onFocusChange }: Props) {
   const [entries, setEntries] = useState<ChatEntry[]>(MOCK_CHAT_ENTRIES);
   const [input, setInput] = useState('');
   const scrollRef = useRef<ScrollView>(null);
@@ -45,7 +50,7 @@ export default function ChatTab() {
   }
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+    <View style={{ flex: 1 }}>
       <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(14), paddingBottom: normalize(12), borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)' }}>
         <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(15), color: '#000', letterSpacing: -0.2 }}>
           광안리 해수욕장 채팅방
@@ -130,6 +135,8 @@ export default function ChatTab() {
             placeholder="메시지 입력..."
             placeholderTextColor="rgba(0,0,0,0.3)"
             onSubmitEditing={handleSend}
+            onFocus={() => onFocusChange?.(true)}
+            onBlur={() => onFocusChange?.(false)}
             style={{ flex: 1, fontSize: normalizeFontSize(14), color: '#000', letterSpacing: -0.15 }}
           />
         </View>
@@ -140,6 +147,6 @@ export default function ChatTab() {
           <IconSend size={normalize(18)} color="#fff" strokeWidth={2} />
         </Pressable>
       </View>
-    </KeyboardAvoidingView>
+    </View>
   );
 }

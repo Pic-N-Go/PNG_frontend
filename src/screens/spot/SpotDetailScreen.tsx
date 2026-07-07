@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { useAnimatedRef, useAnimatedScrollHandler, useSharedValue, runOnJS } from 'react-native-reanimated';
 import { IconChevronLeft } from '@tabler/icons-react-native';
@@ -62,6 +62,8 @@ export default function SpotDetailScreen({ navigation }: Props) {
 
   const [activeTab, setActiveTab] = useState<SpotTabKey>('info');
   const [photoLoadSignal, setPhotoLoadSignal] = useState(0);
+  // 채팅 입력창 포커스 시 SpotInfoHeader를 접어 메시지 영역 확보
+  const [chatInputFocused, setChatInputFocused] = useState(false);
 
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [savedCollectionName, setSavedCollectionName] = useState('내 즐겨찾기');
@@ -122,7 +124,7 @@ export default function SpotDetailScreen({ navigation }: Props) {
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
       {activeTab === 'chat' ? (
-        <>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
           <View style={{ paddingTop: insets.top, paddingHorizontal: normalize(12), paddingBottom: normalize(6) }}>
             <Pressable
               onPress={() => navigation.goBack()}
@@ -132,12 +134,12 @@ export default function SpotDetailScreen({ navigation }: Props) {
               <IconChevronLeft size={normalize(20)} color="#000" strokeWidth={2} />
             </Pressable>
           </View>
-          <SpotInfoHeader spot={MOCK_SPOT} />
+          {!chatInputFocused && <SpotInfoHeader spot={MOCK_SPOT} />}
           <SpotTabBar activeTab={activeTab} onChange={handleTabChange} />
           <View style={{ flex: 1, paddingBottom: insets.bottom }}>
-            <ChatTab />
+            <ChatTab onFocusChange={setChatInputFocused} />
           </View>
-        </>
+        </KeyboardAvoidingView>
       ) : (
         <Animated.ScrollView
           ref={scrollRef}
