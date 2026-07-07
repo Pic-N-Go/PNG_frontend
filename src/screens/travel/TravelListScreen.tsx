@@ -114,8 +114,7 @@ export default function TravelListScreen({ navigation }: any) {
 
   // 새 출사 계획 화면으로 이동
   const handleNewPlan = () => {
-    // 임시 로직
-    console.log('Navigate to TravelNewScreen');
+    navigation.navigate('TravelNew');
   };
 
   // 상세 화면으로 이동
