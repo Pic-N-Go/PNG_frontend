@@ -157,7 +157,7 @@ export default function MapScreen() {
 <html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
-  <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_KEY}"></script>
+  <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_KEY}&autoload=false"></script>
   <style>
     body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #e8e8ed; }
     #map { width: 100%; height: 100%; }
@@ -172,15 +172,19 @@ export default function MapScreen() {
 <body>
   <div id="map"></div>
   <script>
-    if (!window.kakao || !window.kakao.maps) {
-       document.getElementById('map').innerHTML = '<div style="padding:20px;">Kakao Map API failed to load. API 키를 확인해주세요.</div>';
-    } else {
-      var mapContainer = document.getElementById('map');
-      var mapOption = {
-          center: new kakao.maps.LatLng(36.5, 127.5),
-          level: 13
-      };
-      var map = new kakao.maps.Map(mapContainer, mapOption);
+    kakao.maps.load(function() {
+      function initMap() {
+        var mapContainer = document.getElementById('map');
+        if (mapContainer.clientHeight === 0 || mapContainer.clientWidth === 0) {
+          setTimeout(initMap, 50);
+          return;
+        }
+
+        var mapOption = {
+            center: new kakao.maps.LatLng(36.5, 127.5),
+            level: 13
+        };
+        var map = new kakao.maps.Map(mapContainer, mapOption);
 
       // 마커(오버레이) 탭 시 kakao가 지도 'click'도 함께 발생시켜 '열자마자 닫힘' 깜빡임이 생긴다.
       // 지도 클릭에 의한 닫기(MAP_CLICK)를 살짝 지연시키고, 그 사이 마커 탭이 오면 취소한다(순서 무관).
@@ -196,22 +200,43 @@ export default function MapScreen() {
         if (pendingMapClose) { clearTimeout(pendingMapClose); pendingMapClose = null; }
       }
 
-      var spots = [
+      var defaultSpots = [
         { id: '1', name: '광안리 해수욕장', lat: 35.1532, lng: 129.1186, tags: ['바다', '야경'], score: '4.8', loc: '부산 수영구', photo: 'https://images.unsplash.com/photo-1598514982205-f36b96d1e8dd?q=80&w=400&auto=format&fit=crop' },
         { id: '2', name: '경복궁', lat: 37.5796, lng: 126.9770, tags: ['역사', '고궁'], score: '4.9', loc: '서울 종로구', photo: 'https://images.unsplash.com/photo-1538485399081-7191377e8241?q=80&w=400&auto=format&fit=crop' },
         { id: '3', name: '제주 애월 해안도로', lat: 33.4632, lng: 126.3195, tags: ['드라이브', '바다'], score: '4.7', loc: '제주 제주시', photo: 'https://images.unsplash.com/photo-1600758208050-a35f99478f68?q=80&w=400&auto=format&fit=crop' },
         { id: '4', name: '남산 서울타워', lat: 37.5512, lng: 126.9882, tags: ['야경', '랜드마크'], score: '4.7', loc: '서울 용산구', photo: 'https://images.unsplash.com/photo-1610311756586-81e8eb9f3152?q=80&w=400&auto=format&fit=crop' },
         { id: '5', name: '전주 한옥마을', lat: 35.8147, lng: 127.1526, tags: ['한옥', '먹거리'], score: '4.6', loc: '전북 전주시', photo: 'https://images.unsplash.com/photo-1582236968962-d2f1f58b9cf6?q=80&w=400&auto=format&fit=crop' },
       ];
+      
+      var injectedSpots = ${JSON.stringify(route.params?.spots || null)};
+      var spots = injectedSpots || defaultSpots;
 
       var bounds = new kakao.maps.LatLngBounds();
 
-      spots.forEach(function(spot) {
+      // 경로선 그리기 (route에서 넘어온 spots가 있을 경우에만 선으로 이음)
+      if (injectedSpots && spots.length > 0) {
+        var linePath = spots.map(function(s) { return new kakao.maps.LatLng(s.lat, s.lng); });
+        var polyline = new kakao.maps.Polyline({
+          path: linePath,
+          strokeWeight: 3,
+          strokeColor: '#e31b59',
+          strokeOpacity: 0.8,
+          strokeStyle: 'solid'
+        });
+        polyline.setMap(map);
+      }
+
+      spots.forEach(function(spot, index) {
         var markerPosition = new kakao.maps.LatLng(spot.lat, spot.lng);
 
         var content = document.createElement('div');
         content.className = 'custom-marker';
-        content.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>';
+        // injectedSpots일 때는 숫자, 아닐 때는 하트 아이콘
+        if (injectedSpots) {
+          content.innerHTML = '<span style="color:white; font-size:14px; font-weight:bold;">' + (index + 1) + '</span>';
+        } else {
+          content.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>';
+        }
 
         content.onclick = function(e) {
             e.stopPropagation();
@@ -235,7 +260,9 @@ export default function MapScreen() {
       kakao.maps.event.addListener(map, 'click', function() {
           scheduleMapClose();
       });
-    }
+      }
+      initMap();
+    });
   </script>
 </body>
 </html>
@@ -249,7 +276,16 @@ export default function MapScreen() {
         <View className="absolute top-0 left-0 right-0 z-20 pt-[54px] px-4 pointer-events-box-none">
           <View className="flex-row items-center gap-2">
             <TouchableOpacity
-              onPress={() => navigation.goBack()}
+              onPress={() => {
+                if (route.params?.spots) {
+                  navigation.setParams({ spots: undefined, from: undefined });
+                }
+                if (route.params?.from === 'TravelPlan') {
+                  navigation.navigate('TravelTab', { screen: 'TravelPlan' });
+                } else {
+                  navigation.goBack();
+                }
+              }}
               className="w-10 h-10 rounded-full bg-white items-center justify-center shadow-sm"
             >
               <IconChevronLeft size={24} color="#000" />
@@ -336,7 +372,7 @@ export default function MapScreen() {
 
                   <Animated.View style={[{ overflow: 'hidden' }, tagsStyle]}>
                     <View className="flex-row flex-wrap gap-1.5 mt-3 mb-1">
-                      {activeSpot.tags.map(tag => (
+                      {(activeSpot.tags || []).map(tag => (
                         <View key={tag} className="px-2.5 py-1 bg-[#f5f5f7] rounded-full">
                           <Text className="text-[12px] text-black/50">{tag}</Text>
                         </View>

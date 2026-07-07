@@ -119,7 +119,7 @@ export default function TravelListScreen({ navigation }: any) {
 
   // 상세 화면으로 이동
   const handlePlanDetail = (id: number) => {
-    console.log('Navigate to TravelPlanScreen', id);
+    navigation.navigate('TravelPlan', { planId: String(id) });
   };
 
   return (
