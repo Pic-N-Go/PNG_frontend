@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { IconPhoto, IconSend } from '@tabler/icons-react-native';
 import InitialAvatar from '@/components/common/InitialAvatar';
 import { GRID_PADDING } from '@/constants/layout';
@@ -45,7 +45,7 @@ export default function ChatTab() {
   }
 
   return (
-    <View style={{ flex: 1 }}>
+    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
       <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(14), paddingBottom: normalize(12), borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)' }}>
         <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(15), color: '#000', letterSpacing: -0.2 }}>
           광안리 해수욕장 채팅방
@@ -140,6 +140,6 @@ export default function ChatTab() {
           <IconSend size={normalize(18)} color="#fff" strokeWidth={2} />
         </Pressable>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }

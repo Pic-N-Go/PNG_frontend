@@ -25,12 +25,13 @@ export default function PhotoGridTab({ loadMoreSignal }: Props) {
   const [loadedCount, setLoadedCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const loadingRef = useRef(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   function loadMore() {
     if (loadingRef.current || loadedCount >= PHOTO_TOTAL) return;
     loadingRef.current = true;
     setLoading(true);
-    setTimeout(() => {
+    timeoutRef.current = setTimeout(() => {
       setLoadedCount((prev) => Math.min(PHOTO_TOTAL, prev + PHOTOS_PER_PAGE));
       setLoading(false);
       loadingRef.current = false;
@@ -39,6 +40,9 @@ export default function PhotoGridTab({ loadMoreSignal }: Props) {
 
   useEffect(() => {
     loadMore();
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -50,11 +54,12 @@ export default function PhotoGridTab({ loadMoreSignal }: Props) {
   // mock 단계라 필터는 실제로 사진 종류를 바꾸지 않고 그리드만 초기화 후 재로드함 (API 연동 시 필터별 조회로 교체)
   // loadMore()는 클로저에 갇힌 이전 loadedCount를 참조하므로 여기서 직접 재로드 (247장 다 본 뒤 필터 전환 시 재로드 안 되는 버그 방지)
   function handleFilterPress(filter: string) {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
     setActiveFilter(filter);
     setLoadedCount(0);
     loadingRef.current = true;
     setLoading(true);
-    setTimeout(() => {
+    timeoutRef.current = setTimeout(() => {
       setLoadedCount(Math.min(PHOTO_TOTAL, PHOTOS_PER_PAGE));
       setLoading(false);
       loadingRef.current = false;

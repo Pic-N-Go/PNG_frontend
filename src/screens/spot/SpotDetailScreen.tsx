@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Animated, { useAnimatedRef, useAnimatedScrollHandler, useSharedValue, runOnJS, scrollTo } from 'react-native-reanimated';
+import Animated, { useAnimatedRef, useAnimatedScrollHandler, useSharedValue, runOnJS } from 'react-native-reanimated';
 import { IconChevronLeft } from '@tabler/icons-react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { SpotStackParamList } from '@/navigation/stacks/SpotStack';
@@ -93,7 +93,7 @@ export default function SpotDetailScreen({ navigation }: Props) {
     setActiveTab(tab);
     scrollY.value = 0;
     if (tab !== 'chat') {
-      scrollTo(scrollRef, 0, 0, false);
+      scrollRef.current?.scrollTo({ x: 0, y: 0, animated: false });
     }
   }
 
@@ -101,13 +101,20 @@ export default function SpotDetailScreen({ navigation }: Props) {
     setPhotoLoadSignal((prev) => prev + 1);
   }
 
+  const hasTriggeredLoadMore = useSharedValue(false);
+
   const onScroll = useAnimatedScrollHandler({
     onScroll: (event) => {
       scrollY.value = event.contentOffset.y;
       const nearBottom =
         event.contentOffset.y + event.layoutMeasurement.height >= event.contentSize.height - 300;
       if (nearBottom) {
-        runOnJS(triggerPhotoLoadMore)();
+        if (!hasTriggeredLoadMore.value) {
+          hasTriggeredLoadMore.value = true;
+          runOnJS(triggerPhotoLoadMore)();
+        }
+      } else {
+        hasTriggeredLoadMore.value = false;
       }
     },
   });

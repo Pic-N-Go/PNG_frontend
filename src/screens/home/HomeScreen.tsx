@@ -73,10 +73,10 @@ export default function HomeScreen({ navigation }: Props) {
 
         <PopularSpotsSection
           onSpotPress={(id) => {
-            const rootNavigation = navigation.getParent()?.getParent() as
-              | NativeStackNavigationProp<RootStackParamList>
-              | undefined;
-            rootNavigation?.navigate('SpotStack', { screen: 'SpotDetail', params: { spotId: id } });
+            // SpotStack은 HomeStack의 조상 네비게이터(RootStack)에 등록돼 있음 —
+            // React Navigation이 자동으로 상위로 액션을 전파(bubbling)하므로 getParent() 체이닝 불필요
+            const rootNavigation = navigation as unknown as NativeStackNavigationProp<RootStackParamList>;
+            rootNavigation.navigate('SpotStack', { screen: 'SpotDetail', params: { spotId: id } });
           }}
         />
 
