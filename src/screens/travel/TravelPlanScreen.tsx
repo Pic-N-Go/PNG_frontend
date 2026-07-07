@@ -1,16 +1,13 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, TouchableOpacity, Dimensions } from 'react-native';
-import Animated, { useSharedValue, useAnimatedStyle, interpolate, Extrapolate } from 'react-native-reanimated';
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import { NestableScrollContainer, NestableDraggableFlatList, RenderItemParams, ScaleDecorator } from 'react-native-draggable-flatlist';
-import Svg, { Path, Polyline, Line } from 'react-native-svg';
+import { useNavigation } from '@react-navigation/native';
 import { SvgUri } from 'react-native-svg';
 import { WebView } from 'react-native-webview';
-import { 
-  IconChevronLeft, IconShare, IconMap, IconDots, 
-  IconClock, IconCar, IconWalk, IconGripVertical, IconTrash, 
-  IconMapPinFilled, IconRoad, IconCheck
+import {
+  IconChevronLeft, IconShare, IconMap, IconDots,
+  IconClock, IconCar, IconWalk, IconGripVertical, IconTrash,
+  IconMapPinFilled, IconRoad, IconCheck, IconChevronUp, IconChevronDown
 } from '@tabler/icons-react-native';
 
 const KAKAO_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_API_KEY;
@@ -53,11 +50,42 @@ export default function TravelPlanScreen() {
   const [currentDay, setCurrentDay] = useState<'1' | '2'>('1');
   const [isEditMode, setIsEditMode] = useState(false);
   const [data, setData] = useState(MOCK_DATA);
-  
-  // Checklist states
+  const [selectedSpotId, setSelectedSpotId] = useState<string | null>(null);
+
+  // Fabric(New Architecture, app.config.js newArchEnabled:true)에서
+  // react-native-draggable-flatlist@4.0.3의 measureLayout/measure가 깨져
+  // 'measureLayout must be called with a ref to a native component' → 트리 붕괴 →
+  // NavigationContainer 컨텍스트 유실 순으로 크래시된다. reanimated 4가 New Arch를
+  // 강제하므로 New Arch를 끌 수도 없다. → 이 화면에서 라이브러리를 제거하고
+  // 순수 ScrollView + ref.scrollTo(measureLayout 미사용)로 안전하게 처리한다.
+  const scrollRef = useRef<ScrollView>(null);
+  const headerHeightRef = useRef(0);
+  const rowOffsets = useRef<Record<string, number>>({}); // 행 wrapper 기준 y offset
+
   const [checkedItems, setCheckedItems] = useState<string[]>([]);
 
   const currentData = data[currentDay];
+
+  const handleMapMessage = (event: any) => {
+    try {
+      const parsed = JSON.parse(event.nativeEvent.data);
+      if (parsed.type === 'SPOT_CLICK') {
+        const spotId = parsed.data.id;
+        const index = currentData.spots.findIndex((s: any) => s.id === spotId);
+        if (index === -1) return;
+
+        setSelectedSpotId(spotId); // 선택 하이라이트 (항상 동작)
+
+        // 헤더 높이 + 행 offset = 절대 y. ScrollView.scrollTo는 measureLayout을 쓰지 않아 안전.
+        const y = Math.max(0, headerHeightRef.current + (rowOffsets.current[spotId] ?? 0) - 24);
+        scrollRef.current?.scrollTo({ y, animated: true });
+      } else if (parsed.type === 'MAP_CLICK') {
+        setSelectedSpotId(null);
+      }
+    } catch (e) {
+      console.log('WebView Message Parse Error:', e);
+    }
+  };
 
   const toggleChecklist = (item: string) => {
     setCheckedItems(prev => 
@@ -65,14 +93,15 @@ export default function TravelPlanScreen() {
     );
   };
 
-  const handleDragEnd = ({ data: newSpots }: { data: any[] }) => {
-    setData((prev) => ({
-      ...prev,
-      [currentDay]: {
-        ...prev[currentDay],
-        spots: newSpots
-      }
-    }));
+  const moveSpot = (index: number, dir: -1 | 1) => {
+    setData((prev) => {
+      const dayData = prev[currentDay];
+      const target = index + dir;
+      if (target < 0 || target >= dayData.spots.length) return prev;
+      const spots = [...dayData.spots];
+      [spots[index], spots[target]] = [spots[target], spots[index]];
+      return { ...prev, [currentDay]: { ...dayData, spots } };
+    });
   };
 
   const removeSpot = (spotId: string) => {
@@ -90,7 +119,7 @@ export default function TravelPlanScreen() {
     });
   };
 
-  const renderKakaoMapHTML = (showAllDays = true, drawLine = true) => {
+  const renderKakaoMapHTML = (showAllDays = true, drawLine = true, isInteractive = false) => {
     let allMarkersHtml = '';
     let allPolylinesHtml = '';
     let totalSpots = 0;
@@ -110,10 +139,21 @@ export default function TravelPlanScreen() {
         var pos_${day}_${i} = new kakao.maps.LatLng(${spot.lat}, ${spot.lng});
         bounds.extend(pos_${day}_${i});
         
-        var content_${day}_${i} = '<div style="background:${color}; opacity:${opacity}; color:white; font-size:12px; font-weight:bold; padding:4px 8px; border-radius:12px; transform:translateY(-10px); box-shadow:0 2px 4px rgba(0,0,0,0.2);">${i+1}</div>';
+        var contentWrapper_${day}_${i} = document.createElement('div');
+        contentWrapper_${day}_${i}.innerHTML = '<div style="background:${color}; opacity:${opacity}; color:white; font-size:12px; font-weight:bold; padding:4px 8px; border-radius:12px; transform:translateY(-10px); box-shadow:0 2px 4px rgba(0,0,0,0.2); pointer-events:auto;">${i+1}</div>';
+        
+        ${isInteractive ? `
+        contentWrapper_${day}_${i}.onclick = function(e) {
+            e.stopPropagation();
+            cancelMapClose();
+            window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'SPOT_CLICK', data: ${JSON.stringify(spot)} }));
+        };
+        contentWrapper_${day}_${i}.addEventListener('touchstart', function(e) { e.stopPropagation(); cancelMapClose(); }, { passive: true });
+        ` : ''}
+
         var customOverlay_${day}_${i} = new kakao.maps.CustomOverlay({
             position: pos_${day}_${i},
-            content: content_${day}_${i},
+            content: contentWrapper_${day}_${i},
             yAnchor: 1
         });
         customOverlay_${day}_${i}.setMap(map);
@@ -166,6 +206,18 @@ export default function TravelPlanScreen() {
                 };
                 var map = new kakao.maps.Map(mapContainer, mapOption);
                 var bounds = new kakao.maps.LatLngBounds();
+
+                var pendingMapClose = null;
+                function scheduleMapClose() {
+                  if (pendingMapClose) clearTimeout(pendingMapClose);
+                  pendingMapClose = setTimeout(function () {
+                    pendingMapClose = null;
+                    window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'MAP_CLICK' }));
+                  }, 80);
+                }
+                function cancelMapClose() {
+                  if (pendingMapClose) { clearTimeout(pendingMapClose); pendingMapClose = null; }
+                }
                 
                 ${allMarkersHtml}
                 ${allPolylinesHtml}
@@ -173,6 +225,12 @@ export default function TravelPlanScreen() {
                 if (${totalSpots} > 0) {
                     map.setBounds(bounds, 50, 50, 50, 50);
                 }
+
+                ${isInteractive ? `
+                kakao.maps.event.addListener(map, 'click', function() {
+                    scheduleMapClose();
+                });
+                ` : ''}
               }
               initMap();
             });
@@ -182,13 +240,22 @@ export default function TravelPlanScreen() {
     `;
   };
 
+  // 마커 선택(setState)마다 HTML 문자열이 새로 만들어져 WebView가 리로드되지 않도록,
+  // data/currentDay가 바뀔 때만 재생성한다.
+  const interactiveMapHtml = React.useMemo(() => renderKakaoMapHTML(true, true, true), [data, currentDay]);
+  const miniMapHtml = React.useMemo(() => renderKakaoMapHTML(false, true), [data, currentDay]);
+
   const renderHeader = () => (
-    <View style={{ backgroundColor: 'white' }}>
+    <View
+      style={{ backgroundColor: 'white' }}
+      onLayout={(e) => { headerHeightRef.current = e.nativeEvent.layout.height; }}
+    >
         {/* Map Area */}
         <View className="h-[210px] bg-[#e8e8ed] overflow-hidden relative">
-          <WebView 
-            source={{ html: renderKakaoMapHTML() }}
-            style={{ width: '100%', height: '100%' }}
+          <WebView
+            source={{ html: interactiveMapHtml }}
+            onMessage={handleMapMessage}
+            style={{ width: '100%', height: '100%', backgroundColor: 'transparent' }}
             scrollEnabled={false}
           />
         </View>
@@ -308,8 +375,8 @@ export default function TravelPlanScreen() {
           </TouchableOpacity>
         </View>
         <View className="h-[120px] bg-[#f5f5f7] rounded-2xl overflow-hidden relative border border-black/5" pointerEvents="none">
-           <WebView 
-              source={{ html: renderKakaoMapHTML(false, true) }}
+           <WebView
+              source={{ html: miniMapHtml }}
               style={{ width: '100%', height: '100%', backgroundColor: 'transparent' }}
               scrollEnabled={false}
               showsVerticalScrollIndicator={false}
@@ -345,79 +412,90 @@ export default function TravelPlanScreen() {
     </View>
   );
 
-  const renderSpotItem = ({ item, drag, isActive, getIndex }: RenderItemParams<any>) => {
-    const idx = getIndex() ?? 0;
+  const renderSpotRow = (item: any, idx: number) => {
     const transport = currentData.transports[idx];
+    const isSelected = selectedSpotId === item.id;
+    const isFirst = idx === 0;
+    const isLast = idx === currentData.spots.length - 1;
 
     return (
-      <ScaleDecorator>
-        <View className="px-5 relative pt-1 bg-white">
-          <View className="absolute left-[31px] top-[24px] bottom-[-16px] w-[1.5px] bg-black/5" />
-          
-          <View className="flex-row items-start relative mb-2">
-            <View className="absolute -left-[5px] top-[24px] w-6 h-6 rounded-full items-center justify-center z-10" style={{ backgroundColor: DAY_COLORS[currentDay] }}>
-              <Text className="text-[10px] font-semibold text-white">{idx + 1}</Text>
-            </View>
+      <View
+        key={item.id}
+        className="px-5 relative pt-1 bg-white"
+        onLayout={(e) => { rowOffsets.current[item.id] = e.nativeEvent.layout.y; }}
+      >
+        <View className="absolute left-[31px] top-[24px] bottom-[-16px] w-[1.5px] bg-black/5" />
 
-            <TouchableOpacity 
-              activeOpacity={0.9}
-              disabled={isEditMode}
-              onLongPress={isEditMode ? undefined : drag}
-              className="flex-1 flex-row gap-3 p-3 rounded-[16px] bg-[#f5f5f7] ml-[28px]"
-              style={isActive ? {
-                opacity: 0.7,
-                backgroundColor: 'rgba(227,27,89,0.05)',
-                borderColor: 'rgba(227,27,89,0.2)',
-                borderWidth: 1,
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 1 },
-                shadowOpacity: 0.1,
-                shadowRadius: 2,
-                elevation: 2,
-              } : undefined}
-            >
-              <View className="w-[72px] h-[72px] rounded-xl shrink-0" style={{ backgroundColor: item.bg }} />
-              <View className="flex-1 justify-center pr-8">
-                <View className="flex-row items-center justify-between mb-1">
-                  <Text className="text-[16px] font-semibold text-black tracking-[-0.2px]" numberOfLines={1}>{item.name}</Text>
-                  <View className="px-2.5 h-6 rounded-full items-center justify-center" style={{ backgroundColor: item.scoreColor }}>
-                    <Text className="text-[12px] font-semibold text-white">{item.score}</Text>
-                  </View>
-                </View>
-                <Text className="text-[12px] text-black/40 mb-2">{item.loc}</Text>
-                <View className="flex-row items-center gap-1.5">
-                  <IconClock size={12} color="rgba(0,0,0,0.3)" />
-                  <Text className="text-[12px] text-black/50">{item.time} <Text className="text-black/25">{item.dur}</Text></Text>
-                </View>
-              </View>
-
-              <View className="absolute right-3 top-0 bottom-0 justify-center">
-                {isEditMode ? (
-                  <TouchableOpacity 
-                    onPress={() => removeSpot(item.id)}
-                    className="w-8 h-8 rounded-full bg-black/5 items-center justify-center"
-                  >
-                    <IconTrash size={16} color="rgba(0,0,0,0.4)" />
-                  </TouchableOpacity>
-                ) : (
-                  <TouchableOpacity onPressIn={drag} className="py-2 px-1">
-                    <IconGripVertical size={18} color="rgba(0,0,0,0.2)" />
-                  </TouchableOpacity>
-                )}
-              </View>
-            </TouchableOpacity>
+        <View className="flex-row items-start relative mb-2">
+          <View className="absolute -left-[5px] top-[24px] w-6 h-6 rounded-full items-center justify-center z-10" style={{ backgroundColor: DAY_COLORS[currentDay] }}>
+            <Text className="text-[10px] font-semibold text-white">{idx + 1}</Text>
           </View>
 
-          {transport && !isActive && (
-            <View className="ml-[28px] mb-3 py-2">
-              <View className="self-start flex-row items-center gap-1.5 h-8 px-3.5 rounded-full bg-white border border-black/5">
-                {transport.type === 'car' ? <IconCar size={14} color="rgba(0,0,0,0.3)" /> : <IconWalk size={14} color="rgba(0,0,0,0.3)" />}
-                <Text className="text-[12px] text-black/45">{transport.label}</Text>
+          <View
+            className="flex-1 flex-row gap-3 p-3 rounded-[16px] bg-[#f5f5f7] ml-[28px]"
+            style={isSelected ? {
+              backgroundColor: 'rgba(227,27,89,0.06)',
+              borderColor: 'rgba(227,27,89,0.5)',
+              borderWidth: 1.5,
+            } : undefined}
+          >
+            <View className="w-[72px] h-[72px] rounded-xl shrink-0" style={{ backgroundColor: item.bg }} />
+            <View className="flex-1 justify-center pr-8">
+              <View className="flex-row items-center justify-between mb-1">
+                <Text className="text-[16px] font-semibold text-black tracking-[-0.2px]" numberOfLines={1}>{item.name}</Text>
+                <View className="px-2.5 h-6 rounded-full items-center justify-center" style={{ backgroundColor: item.scoreColor }}>
+                  <Text className="text-[12px] font-semibold text-white">{item.score}</Text>
+                </View>
+              </View>
+              <Text className="text-[12px] text-black/40 mb-2">{item.loc}</Text>
+              <View className="flex-row items-center gap-1.5">
+                <IconClock size={12} color="rgba(0,0,0,0.3)" />
+                <Text className="text-[12px] text-black/50">{item.time} <Text className="text-black/25">{item.dur}</Text></Text>
               </View>
             </View>
-          )}
+
+            <View className="absolute right-2 top-0 bottom-0 justify-center gap-1">
+              {isEditMode ? (
+                <>
+                  <TouchableOpacity
+                    onPress={() => moveSpot(idx, -1)}
+                    disabled={isFirst}
+                    className="w-7 h-7 rounded-full bg-black/5 items-center justify-center"
+                  >
+                    <IconChevronUp size={15} color={isFirst ? 'rgba(0,0,0,0.15)' : 'rgba(0,0,0,0.45)'} />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => moveSpot(idx, 1)}
+                    disabled={isLast}
+                    className="w-7 h-7 rounded-full bg-black/5 items-center justify-center"
+                  >
+                    <IconChevronDown size={15} color={isLast ? 'rgba(0,0,0,0.15)' : 'rgba(0,0,0,0.45)'} />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={() => removeSpot(item.id)}
+                    className="w-7 h-7 rounded-full bg-black/5 items-center justify-center"
+                  >
+                    <IconTrash size={14} color="rgba(0,0,0,0.4)" />
+                  </TouchableOpacity>
+                </>
+              ) : (
+                <View className="py-2 px-1">
+                  <IconGripVertical size={18} color="rgba(0,0,0,0.2)" />
+                </View>
+              )}
+            </View>
+          </View>
         </View>
-      </ScaleDecorator>
+
+        {transport && (
+          <View className="ml-[28px] mb-3 py-2">
+            <View className="self-start flex-row items-center gap-1.5 h-8 px-3.5 rounded-full bg-white border border-black/5">
+              {transport.type === 'car' ? <IconCar size={14} color="rgba(0,0,0,0.3)" /> : <IconWalk size={14} color="rgba(0,0,0,0.3)" />}
+              <Text className="text-[12px] text-black/45">{transport.label}</Text>
+            </View>
+          </View>
+        )}
+      </View>
     );
   };
 
@@ -446,19 +524,15 @@ export default function TravelPlanScreen() {
       </View>
 
       <View className="flex-1 bg-white">
-        <NestableScrollContainer showsVerticalScrollIndicator={false}>
+        <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
           {renderHeader()}
 
-          <View className="flex-1 overflow-hidden">
-            <NestableDraggableFlatList
-              data={currentData.spots}
-              onDragEnd={handleDragEnd}
-              keyExtractor={(item) => item.id}
-              renderItem={renderSpotItem}
-              ListFooterComponent={renderFooter()}
-            />
+          <View className="bg-white">
+            {currentData.spots.map((item, idx) => renderSpotRow(item, idx))}
           </View>
-        </NestableScrollContainer>
+
+          {renderFooter()}
+        </ScrollView>
       </View>
 
       {/* Bottom CTA */}

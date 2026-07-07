@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.ts",
   "engines": {
-    "node": "^20.19.4"
+    "node": ">=20.0.0"
   },
   "scripts": {
     "start": "expo start",
