@@ -7,6 +7,7 @@
 | 파일 | 용도 |
 |---|---|
 | `development-guide.md` | RN 구현 기준 — 폴더 구조, 상태 관리, 스타일링, 네비게이션 |
+| `bottom-tab-usage.md` | 하단탭(TabBar) 사용법 — 탭 화면 구현 예시, 하단 여백/탭 이동 규칙 |
 | `ui-publishing.md` | HTML 목업 구조 및 화면 간 네비게이션 흐름 |
 | `device-support.md` | 지원 기기 범위(360dp–430dp), normalize/layout 상수 사용법 |
 | `prompt-writing-guide.md` | 화면 구현용 AI 프롬프트 템플릿 |
