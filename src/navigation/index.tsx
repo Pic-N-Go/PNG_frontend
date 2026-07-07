@@ -1,14 +1,14 @@
 import React from 'react';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, type NavigatorScreenParams } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AuthStack from './AuthStack';
 import MainTab from './MainTab';
-import SpotStack from './stacks/SpotStack';
+import SpotStack, { type SpotStackParamList } from './stacks/SpotStack';
 import { useAuthStore } from '@/store/useAuthStore';
 
 export type RootStackParamList = {
   Main: undefined;
-  SpotStack: undefined;
+  SpotStack: NavigatorScreenParams<SpotStackParamList>;
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
