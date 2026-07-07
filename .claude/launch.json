@@ -12,6 +12,12 @@
       "runtimeExecutable": "npx",
       "runtimeArgs": ["serve", "-p", "5502", "src/components/ui"],
       "port": 5502
+    },
+    {
+      "name": "filelist",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "-p", "5503", "src/html"],
+      "port": 5503
     }
   ]
 }
