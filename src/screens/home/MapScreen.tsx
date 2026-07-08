@@ -99,7 +99,7 @@ export default function MapScreen() {
         { id: '5', name: '전주 한옥마을', lat: 35.8147, lng: 127.1526, tags: ['한옥', '먹거리'], score: '4.6', loc: '전북 전주시', photo: 'https://images.unsplash.com/photo-1582236968962-d2f1f58b9cf6?q=80&w=400&auto=format&fit=crop' },
       ];
       
-      var injectedSpots = ${JSON.stringify(route.params?.spots || null)};
+      var injectedSpots = ${JSON.stringify(route.params?.spots || null).replace(/</g, '\\u003c')};
       var spots = injectedSpots || defaultSpots;
 
       var bounds = new kakao.maps.LatLngBounds();

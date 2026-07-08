@@ -153,7 +153,7 @@ export default function TravelPlanScreen({ navigation }: any) {
         contentWrapper_${day}_${i}.onclick = function(e) {
             e.stopPropagation();
             cancelMapClose();
-            window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'SPOT_CLICK', data: ${JSON.stringify(spot)} }));
+            window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'SPOT_CLICK', data: ${JSON.stringify(spot).replace(/</g, '\\u003c')} }));
         };
         contentWrapper_${day}_${i}.addEventListener('touchstart', function(e) { e.stopPropagation(); cancelMapClose(); }, { passive: true });
         ` : ''}
