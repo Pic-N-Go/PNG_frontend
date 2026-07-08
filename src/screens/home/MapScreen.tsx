@@ -14,6 +14,14 @@ export default function MapScreen() {
   const route = useRoute<any>();
   const mode = route.params?.source === 'plan' ? 'plan' : 'view';
 
+  if (!KAKAO_KEY) {
+    return (
+      <View className="flex-1 items-center justify-center bg-white">
+        <Text className="text-[16px] text-black/50">카카오 맵 API 키가 설정되지 않았습니다.</Text>
+      </View>
+    );
+  }
+
   const { selectedSpots, addSpot, removeSpot } = useTravelStore();
   const [activeSpot, setActiveSpot] = useState<Spot | null>(null);
   const [isCourseModalOpen, setCourseModalOpen] = useState(false);
@@ -226,7 +234,7 @@ export default function MapScreen() {
                     setCourseModalOpen(true);
                   }
                 }}
-                className={`flex-1 h-11 rounded-full items-center justify-center ${isSelected && mode === 'plan' ? 'bg-black' : 'bg-[#f5f5f7]'}`}
+                className={`flex-1 h-11 rounded-full items-center justify-center ${isSelected && mode === 'plan' ? 'bg-[#e31b59]' : 'bg-[#f5f5f7]'}`}
               >
                 <Text className={`text-[15px] font-medium ${isSelected && mode === 'plan' ? 'text-white' : 'text-black/60'}`}>
                   {mode === 'plan' ? (isSelected ? '현재 코스에 저장됨' : '현재 코스에 저장') : '코스에 저장'}
@@ -247,7 +255,7 @@ export default function MapScreen() {
         {isCourseModalOpen && (
           <View className="absolute inset-0 bg-black/40 items-center justify-center z-50">
             <View className="bg-white rounded-2xl w-[80%] p-5 items-center">
-              <Text className="text-[18px] font-bold text-black mb-4">어떤 코스에 저장할까요?</Text>
+              <Text className="text-[18px] font-semibold text-black mb-4">어떤 코스에 저장할까요?</Text>
 
               <TouchableOpacity
                 onPress={() => {

@@ -127,7 +127,7 @@ export default function SpotPopup({ activeSpot, onClose, renderButtons }: Props)
               </TouchableOpacity>
 
               <View className="absolute top-3 left-3 h-7 px-3 rounded-full bg-[#E31B59] items-center justify-center z-10 shadow-sm shadow-[#E31B59]/30">
-                <Text className="text-[13px] font-bold text-white">{displaySpot.score}점</Text>
+                <Text className="text-[13px] font-semibold text-white">{displaySpot.score}점</Text>
               </View>
             </View>
 
@@ -135,7 +135,7 @@ export default function SpotPopup({ activeSpot, onClose, renderButtons }: Props)
             <View className="px-4 pt-5 pb-6">
               <View className="flex-row justify-between items-start">
                 <View className="flex-1">
-                  <Text className="text-[20px] font-bold text-black">{displaySpot.name}</Text>
+                  <Text className="text-[20px] font-semibold text-black">{displaySpot.name}</Text>
 
                   <View className="flex-row items-center mt-1.5">
                     <View className="flex-row mr-1.5">

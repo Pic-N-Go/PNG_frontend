@@ -147,7 +147,7 @@ export default function TravelListScreen({ navigation }: any) {
           }}
           className="px-[28px] pb-[10px] bg-white z-40"
         >
-          <Text className="text-[28px] font-bold text-black tracking-tight">출사 계획</Text>
+          <Text className="text-[28px] font-semibold text-black tracking-tight">출사 계획</Text>
         </Animated.View>
 
         {/* 1: 탭 메뉴 */}
@@ -230,7 +230,7 @@ export default function TravelListScreen({ navigation }: any) {
                 key={plan.id}
                 activeOpacity={0.9}
                 onPress={() => handlePlanDetail(plan.id)}
-                className="bg-white rounded-2xl border border-black/5 overflow-hidden mb-3 shadow-sm"
+                className="bg-white rounded-2xl overflow-hidden mb-3"
               >
                 {/* 썸네일 영역 */}
                 <View className="h-[120px] flex-row bg-gray-100">
@@ -263,7 +263,7 @@ export default function TravelListScreen({ navigation }: any) {
                     {plan.status === 'active' && (
                       <View className="w-[6px] h-[6px] rounded-full bg-white mr-1.5" />
                     )}
-                    <Text className="text-[10px] font-bold text-white tracking-tight">
+                    <Text className="text-[10px] font-semibold text-white tracking-tight">
                       {plan.statusText}
                     </Text>
                   </View>
