@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useLayoutEffect } from 'react';
 import { Dimensions, Modal, Pressable, View, Animated, PanResponder } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BOTTOM_SHEET_RADIUS } from '@/constants/layout';
@@ -50,7 +50,7 @@ export default function BottomSheet({ visible, onClose, children }: Props) {
     });
   }
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (visible) {
       panY.setValue(Dimensions.get('window').height);
       Animated.timing(panY, {

@@ -6,7 +6,8 @@ import { WebView } from 'react-native-webview';
 import {
   IconChevronLeft, IconShare, IconMap, IconDots,
   IconClock, IconCar, IconWalk, IconTrash,
-  IconMapPinFilled, IconRoad, IconCheck, IconChevronUp, IconChevronDown
+  IconMapPinFilled, IconRoad, IconCheck, IconChevronUp, IconChevronDown,
+  IconWand, IconCamera
 } from '@tabler/icons-react-native';
 import NaviSheet from '@/components/spot/NaviSheet';
 
@@ -299,7 +300,7 @@ export default function TravelPlanScreen({ navigation }: any) {
                 <TouchableOpacity 
                   key={day}
                   onPress={() => setCurrentDay(day)}
-                  className={`h-10 px-5 rounded-full items-center justify-center flex-row ${currentDay === day ? 'bg-black' : 'bg-[#f5f5f7]'}`}
+                  className={`h-10 px-5 rounded-full items-center justify-center flex-row ${currentDay === day ? 'bg-[#e31b59]' : 'bg-[#f5f5f7]'}`}
                 >
                   <View className="w-2 h-2 rounded-full mr-1.5" style={{ backgroundColor: DAY_COLORS[day] || '#ccc' }} />
                   <Text className={`text-[15px] font-medium ${currentDay === day ? 'text-white font-semibold' : 'text-black/50'}`}>DAY {day}</Text>
@@ -347,7 +348,7 @@ export default function TravelPlanScreen({ navigation }: any) {
         </View>
       ) : (
         <View className="bg-[#f5f5f7] rounded-2xl p-6 items-center justify-center">
-          <Text className="text-[32px] mb-2">🧚‍♀️</Text>
+          <IconWand size={32} color="rgba(0,0,0,0.3)" style={{ marginBottom: 8 }} />
           <Text className="text-[15px] font-semibold text-black/70 mb-0.5">날씨 요정도 아직 모른대요</Text>
           <Text className="text-[13px] text-black/40">어떤 날씨든 완벽한 여행이 될 거예요!</Text>
         </View>
@@ -381,7 +382,7 @@ export default function TravelPlanScreen({ navigation }: any) {
         ) : (
           <>
             <View className="w-8 h-8 rounded-full bg-[#e31b59]/10 items-center justify-center shrink-0">
-              <Text className="text-[16px]">📷</Text>
+              <IconCamera size={16} color="#e31b59" />
             </View>
             <View className="flex-1">
               <Text className="text-[14px] font-semibold text-black tracking-[-0.15px] mb-0.5">자유로운 셔터 찬스</Text>
@@ -568,7 +569,7 @@ export default function TravelPlanScreen({ navigation }: any) {
             {isEditMode && (
               <View className="px-5 mb-4">
                 <View className="bg-[#f5f5f7] border border-black/5 rounded-xl py-3 px-4 items-center">
-                  <Text className="text-[13px] text-black/60 font-medium tracking-[-0.2px]">✨ 우측의 화살표 버튼을 눌러 스팟 순서를 변경해보세요.</Text>
+                  <Text className="text-[13px] text-black/60 font-medium tracking-[-0.2px]">우측의 화살표 버튼을 눌러 스팟 순서를 변경해보세요.</Text>
                 </View>
               </View>
             )}

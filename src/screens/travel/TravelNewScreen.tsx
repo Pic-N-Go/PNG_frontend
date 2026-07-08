@@ -365,7 +365,7 @@ export default function TravelNewScreen() {
                 {daySpots[activeDay].map((spot, i) => (
                   <View key={spot.id} className="relative mb-[10px]">
                     <View className="absolute -left-[32px] top-4 w-[22px] h-[22px] rounded-full bg-[#e31b59] items-center justify-center z-10">
-                      <Text className="text-[10px] font-bold text-white">{i + 1}</Text>
+                      <Text className="text-[10px] font-semibold text-white">{i + 1}</Text>
                     </View>
                     <View className="bg-[#f5f5f7] rounded-2xl p-3 flex-row items-center">
                       <View className="w-[60px] h-[60px] rounded-xl overflow-hidden" style={{ backgroundColor: '#2d9cdb' }} />
