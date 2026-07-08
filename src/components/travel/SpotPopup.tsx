@@ -38,6 +38,11 @@ export default function SpotPopup({ activeSpot, onClose, renderButtons }: Props)
     }
   }, [activeSpot, translateY]);
 
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
   const handleClose = () => {
     Animated.timing(translateY, {
       toValue: 400,
@@ -45,12 +50,13 @@ export default function SpotPopup({ activeSpot, onClose, renderButtons }: Props)
       easing: Easing.in(Easing.cubic),
       useNativeDriver: true,
     }).start(({ finished }) => {
-      if (finished) onClose();
+      if (finished) onCloseRef.current();
     });
   };
 
-  const panResponder = useRef(
-    PanResponder.create({
+  const panResponder = useRef<any>(null);
+  if (!panResponder.current) {
+    panResponder.current = PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: () => true,
       onPanResponderMove: (e, gestureState) => {
@@ -71,8 +77,8 @@ export default function SpotPopup({ activeSpot, onClose, renderButtons }: Props)
           }).start();
         }
       },
-    })
-  ).current;
+    });
+  }
 
   return (
     <Animated.View
@@ -91,7 +97,7 @@ export default function SpotPopup({ activeSpot, onClose, renderButtons }: Props)
         
         {/* Handle Bar floating over the image */}
         <View
-          {...panResponder.panHandlers}
+          {...panResponder.current.panHandlers}
           className="absolute top-0 left-0 right-0 h-12 z-40 items-center pt-2.5"
         >
           <View
