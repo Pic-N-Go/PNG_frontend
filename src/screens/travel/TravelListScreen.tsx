@@ -132,7 +132,7 @@ export default function TravelListScreen({ navigation }: any) {
         </TouchableOpacity>
       </View>
 
-      <ScrollView
+      <Animated.ScrollView
         className="flex-1 bg-[#fbfbfb]"
         onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
           useNativeDriver: true,
@@ -315,7 +315,7 @@ export default function TravelListScreen({ navigation }: any) {
           </View>
         )}
         </View>
-      </ScrollView>
+      </Animated.ScrollView>
     </SafeAreaView>
   );
 }
