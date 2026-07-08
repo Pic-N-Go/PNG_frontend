@@ -98,7 +98,7 @@ export default function SpotPopup({ activeSpot, onClose, renderButtons }: Props)
         {/* Handle Bar floating over the image */}
         <View
           {...panResponder.current.panHandlers}
-          className="absolute top-0 left-0 right-0 h-12 z-40 items-center pt-2.5"
+          className="absolute top-0 left-12 right-12 h-12 z-40 items-center pt-2.5"
         >
           <View
             className="w-10 h-1.5 bg-white/95 rounded-full"
