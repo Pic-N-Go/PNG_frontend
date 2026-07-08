@@ -1,10 +1,11 @@
 import React, { useState, useMemo, useCallback } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { WebView } from 'react-native-webview';
-import { IconChevronLeft } from '@tabler/icons-react-native';
+import { IconChevronLeft, IconSearch } from '@tabler/icons-react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTravelStore, Spot } from '@/store/useTravelStore';
 import SpotPopup from '@/components/travel/SpotPopup';
+import CategoryFilter from '@/components/home/CategoryFilter';
 import { StatusBar } from 'expo-status-bar';
 
 const KAKAO_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_API_KEY;
@@ -17,6 +18,7 @@ export default function MapScreen() {
   const { selectedSpots, addSpot, removeSpot } = useTravelStore();
   const [activeSpot, setActiveSpot] = useState<Spot | null>(null);
   const [isCourseModalOpen, setCourseModalOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState('all');
 
   const isSelected = activeSpot ? selectedSpots.some(s => s.id === activeSpot.id) : false;
 
@@ -173,9 +175,9 @@ export default function MapScreen() {
   return (
     <View className="flex-1 bg-white">
         <StatusBar style="dark" />
-        {/* 투명 헤더 */}
-        <View className="absolute top-0 left-0 right-0 z-20 pt-[54px] px-4 pointer-events-box-none">
-          <View className="flex-row items-center gap-2">
+        {/* 상단 오버레이 (검색창 + 뒤로가기) */}
+        <View className="absolute top-0 left-0 right-0 z-20 pt-[54px] pointer-events-box-none">
+          <View className="flex-row items-center px-4 gap-2 pointer-events-auto">
             <TouchableOpacity
               onPress={() => {
                 // 파라미터를 지우기 전에 분기 판단에 필요한 값을 먼저 캡처한다.
@@ -206,6 +208,19 @@ export default function MapScreen() {
             >
               <IconChevronLeft size={24} color="#000" />
             </TouchableOpacity>
+
+            <TouchableOpacity 
+              activeOpacity={0.9} 
+              onPress={() => navigation.navigate('SearchResult', { query: '' })}
+              className="flex-1 h-10 bg-white rounded-full flex-row items-center px-4 shadow-sm"
+            >
+              <IconSearch size={18} color="rgba(0,0,0,0.3)" />
+              <Text className="ml-2 text-[15px] text-black/40">장소, 테마, 키워드 검색</Text>
+            </TouchableOpacity>
+          </View>
+          
+          <View className="mt-2 pointer-events-auto">
+            <CategoryFilter selected={selectedCategory} onSelect={setSelectedCategory} />
           </View>
         </View>
 
