@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+
 import BottomSheet from '@/components/common/BottomSheet';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import {
-  BOTTOM_SHEET_RADIUS,
   BUTTON_HEIGHT,
   BUTTON_RADIUS,
   FONT_LG,
@@ -40,7 +39,6 @@ interface Props {
 }
 
 export default function FilterBottomSheet({ visible, onClose, onApply }: Props) {
-  const insets = useSafeAreaInsets();
   const [filter, setFilter] = useState<FilterState>(EMPTY_FILTER);
   // 마지막으로 "적용"된 필터 스냅샷 — 재열기 시 draft를 여기서 복원
   const [applied, setApplied] = useState<FilterState>(EMPTY_FILTER);
