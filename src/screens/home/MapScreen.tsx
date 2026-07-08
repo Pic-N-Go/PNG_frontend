@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { WebView } from 'react-native-webview';
-import { IconChevronLeft, IconSearch, IconAdjustmentsHorizontal, IconTarget } from '@tabler/icons-react-native';
+import { IconChevronLeft, IconSearch, IconAdjustmentsHorizontal, IconFocus2 } from '@tabler/icons-react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useTravelStore, Spot } from '@/store/useTravelStore';
 import SpotPopup from '@/components/travel/SpotPopup';
@@ -545,7 +545,7 @@ export default function MapScreen() {
                 justifyContent: 'center',
               }}
             >
-              <IconTarget size={18} color="rgba(0,0,0,0.45)" />
+              <IconFocus2 size={18} color="rgba(0,0,0,0.45)" />
             </TouchableOpacity>
           </View>
         </View>
