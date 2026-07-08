@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, Image, Animated, Easing } from 'react-native';
+import { View, Text, TouchableOpacity, Image, Animated, Easing, PanResponder } from 'react-native';
 import { IconMapPin, IconX, IconStarFilled, IconHeart, IconBookmark } from '@tabler/icons-react-native';
 import { Spot } from '@/store/useTravelStore';
 
@@ -49,6 +49,31 @@ export default function SpotPopup({ activeSpot, onClose, renderButtons }: Props)
     });
   };
 
+  const panResponder = useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderMove: (e, gestureState) => {
+        if (gestureState.dy > 0) {
+          translateY.setValue(gestureState.dy);
+        }
+      },
+      onPanResponderRelease: (e, gestureState) => {
+        if (gestureState.dy > 100 || gestureState.vy > 0.5) {
+          handleClose();
+        } else {
+          Animated.spring(translateY, {
+            toValue: 0,
+            stiffness: 200,
+            damping: 20,
+            mass: 0.8,
+            useNativeDriver: true,
+          }).start();
+        }
+      },
+    })
+  ).current;
+
   return (
     <Animated.View
       style={{
@@ -66,9 +91,14 @@ export default function SpotPopup({ activeSpot, onClose, renderButtons }: Props)
         
         {/* Handle Bar floating over the image */}
         <View
-          className="absolute top-2.5 left-1/2 -ml-[20px] w-10 h-1.5 bg-white/95 rounded-full z-40"
-          style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.3, shadowRadius: 2, elevation: 3 }}
-        />
+          {...panResponder.panHandlers}
+          className="absolute top-0 left-0 right-0 h-12 z-40 items-center pt-2.5"
+        >
+          <View
+            className="w-10 h-1.5 bg-white/95 rounded-full"
+            style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.3, shadowRadius: 2, elevation: 3 }}
+          />
+        </View>
 
         {displaySpot && (
           <>
