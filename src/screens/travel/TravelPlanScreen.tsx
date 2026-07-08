@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { SvgUri } from 'react-native-svg';
 import { WebView } from 'react-native-webview';
@@ -8,7 +8,7 @@ import {
   IconClock, IconCar, IconWalk, IconTrash,
   IconMapPinFilled, IconRoad, IconCheck, IconChevronUp, IconChevronDown
 } from '@tabler/icons-react-native';
-import DepartModal from '@/components/travel/DepartModal';
+import NaviSheet from '@/components/spot/NaviSheet';
 
 const KAKAO_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_API_KEY;
 
@@ -600,17 +600,18 @@ export default function TravelPlanScreen({ navigation }: any) {
               <Text className="text-[16px] font-medium text-black">코스 편집</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setIsDepartModalVisible(true)} className="flex-1 h-[52px] rounded-full bg-[#e31b59] items-center justify-center">
-              <Text className="text-[16px] font-medium text-white">출발하기</Text>
+              <Text className="text-[16px] font-medium text-white">바로 출발</Text>
             </TouchableOpacity>
           </>
         )}
       </View>
 
-      <DepartModal 
+      <NaviSheet 
         visible={isDepartModalVisible} 
         onClose={() => setIsDepartModalVisible(false)} 
-        firstSpot={currentData?.spots?.[0] || null}
-        day={currentDay}
+        spotName={currentData?.spots?.[0]?.name || ''}
+        address={currentData?.spots?.[0]?.loc || ''}
+        onLaunched={(msg) => Alert.alert('안내', msg)}
       />
     </SafeAreaView>
   );
