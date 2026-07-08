@@ -85,7 +85,7 @@ export default function TravelNewScreen() {
   const maxDays = useMemo(() => {
     if (startDate && endDate) {
       const diffTime = Math.abs(endDate.getTime() - startDate.getTime());
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+      const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24)) + 1;
       return Math.min(Math.max(diffDays, 1), 15);
     }
     if (selectedChip === '당일치기') return 1;
