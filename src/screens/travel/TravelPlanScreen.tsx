@@ -9,6 +9,7 @@ import {
   IconClock, IconCar, IconWalk, IconGripVertical, IconTrash,
   IconMapPinFilled, IconRoad, IconCheck, IconChevronUp, IconChevronDown
 } from '@tabler/icons-react-native';
+import DepartModal from '@/components/travel/DepartModal';
 
 const KAKAO_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_API_KEY;
 
@@ -61,6 +62,7 @@ const MOCK_DATA: Record<string, any> = {
 export default function TravelPlanScreen({ navigation }: any) {
   const [currentDay, setCurrentDay] = useState<string>('1');
   const [isEditMode, setIsEditMode] = useState(false);
+  const [isDepartModalVisible, setIsDepartModalVisible] = useState(false);
   const [data, setData] = useState(MOCK_DATA);
   const [selectedSpotId, setSelectedSpotId] = useState<string | null>(null);
 
@@ -596,12 +598,19 @@ export default function TravelPlanScreen({ navigation }: any) {
             <TouchableOpacity onPress={() => setIsEditMode(true)} className="flex-1 h-[52px] rounded-2xl bg-[#f5f5f7] items-center justify-center">
               <Text className="text-[16px] font-medium text-black">코스 편집</Text>
             </TouchableOpacity>
-            <TouchableOpacity className="flex-1 h-[52px] rounded-2xl bg-[#e31b59] items-center justify-center">
+            <TouchableOpacity onPress={() => setIsDepartModalVisible(true)} className="flex-1 h-[52px] rounded-2xl bg-[#e31b59] items-center justify-center">
               <Text className="text-[16px] font-medium text-white">출발하기</Text>
             </TouchableOpacity>
           </>
         )}
       </View>
+
+      <DepartModal 
+        visible={isDepartModalVisible} 
+        onClose={() => setIsDepartModalVisible(false)} 
+        firstSpot={currentData?.spots?.[0] || null}
+        day={currentDay}
+      />
     </SafeAreaView>
   );
 }
