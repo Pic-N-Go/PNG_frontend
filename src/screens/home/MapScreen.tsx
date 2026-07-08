@@ -14,14 +14,6 @@ export default function MapScreen() {
   const route = useRoute<any>();
   const mode = route.params?.source === 'plan' ? 'plan' : 'view';
 
-  if (!KAKAO_KEY) {
-    return (
-      <View className="flex-1 items-center justify-center bg-white">
-        <Text className="text-[16px] text-black/50">카카오 맵 API 키가 설정되지 않았습니다.</Text>
-      </View>
-    );
-  }
-
   const { selectedSpots, addSpot, removeSpot } = useTravelStore();
   const [activeSpot, setActiveSpot] = useState<Spot | null>(null);
   const [isCourseModalOpen, setCourseModalOpen] = useState(false);
@@ -169,6 +161,14 @@ export default function MapScreen() {
 
   // source 객체도 HTML 문자열이 바뀔 때만 새로 만들어 WebView가 재로딩되지 않게 한다.
   const mapSource = useMemo(() => ({ html: HTML }), [HTML]);
+
+  if (!KAKAO_KEY) {
+    return (
+      <View className="flex-1 items-center justify-center bg-white">
+        <Text className="text-[16px] text-black/50">카카오 맵 API 키가 설정되지 않았습니다.</Text>
+      </View>
+    );
+  }
 
   return (
     <View className="flex-1 bg-white">
