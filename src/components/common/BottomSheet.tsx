@@ -17,20 +17,14 @@ export default function BottomSheet({ visible, onClose, children }: Props) {
 
   const panY = useRef(new Animated.Value(0)).current;
 
-  const resetPositionAnim = Animated.timing(panY, {
-    toValue: 0,
-    duration: 300,
-    useNativeDriver: true,
-  });
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
 
-  const closeAnim = Animated.timing(panY, {
-    toValue: Dimensions.get('window').height,
-    duration: 300,
-    useNativeDriver: true,
-  });
-
-  const panResponder = useRef(
-    PanResponder.create({
+  const panResponder = useRef<any>(null);
+  if (!panResponder.current) {
+    panResponder.current = PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: () => true,
       onPanResponderMove: (e, gestureState) => {
@@ -40,13 +34,21 @@ export default function BottomSheet({ visible, onClose, children }: Props) {
       },
       onPanResponderRelease: (e, gestureState) => {
         if (gestureState.dy > 100 || gestureState.vy > 0.5) {
-          closeAnim.start(() => onClose());
+          Animated.timing(panY, {
+            toValue: Dimensions.get('window').height,
+            duration: 300,
+            useNativeDriver: true,
+          }).start(() => onCloseRef.current());
         } else {
-          resetPositionAnim.start();
+          Animated.timing(panY, {
+            toValue: 0,
+            duration: 300,
+            useNativeDriver: true,
+          }).start();
         }
       },
-    })
-  ).current;
+    });
+  }
 
   useEffect(() => {
     if (visible) {
