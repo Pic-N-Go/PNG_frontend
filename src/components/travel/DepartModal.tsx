@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Linking, Alert } from 'react-native';
 import BottomSheet from '@/components/common/BottomSheet';
-import { IconCircle, IconCircleDot, IconClock, IconMessageCircleFilled, IconCompass } from '@tabler/icons-react-native';
+import { IconCircleDot, IconClock, IconMessageCircleFilled, IconCompass } from '@tabler/icons-react-native';
 
 interface SpotInfo {
   name: string;
