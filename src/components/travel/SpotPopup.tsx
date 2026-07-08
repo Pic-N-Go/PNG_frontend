@@ -36,7 +36,7 @@ export default function SpotPopup({ activeSpot, onClose, renderButtons }: Props)
         useNativeDriver: true,
       }).start();
     }
-  }, [activeSpot]);
+  }, [activeSpot, translateY]);
 
   const handleClose = () => {
     Animated.timing(translateY, {

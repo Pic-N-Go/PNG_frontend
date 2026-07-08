@@ -1,12 +1,11 @@
-import React, { useState, useRef, useMemo } from 'react';
+import React, { useState, useRef } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useFocusEffect } from '@react-navigation/native';
 import { SvgUri } from 'react-native-svg';
 import { WebView } from 'react-native-webview';
 import {
   IconChevronLeft, IconShare, IconMap, IconDots,
-  IconClock, IconCar, IconWalk, IconGripVertical, IconTrash,
+  IconClock, IconCar, IconWalk, IconTrash,
   IconMapPinFilled, IconRoad, IconCheck, IconChevronUp, IconChevronDown
 } from '@tabler/icons-react-native';
 import DepartModal from '@/components/travel/DepartModal';
@@ -250,7 +249,9 @@ export default function TravelPlanScreen({ navigation }: any) {
 
   // 마커 선택(setState)마다 HTML 문자열이 새로 만들어져 WebView가 리로드되지 않도록,
   // data/currentDay가 바뀔 때만 재생성한다.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const interactiveMapHtml = React.useMemo(() => renderKakaoMapHTML(true, true, true), [data, currentDay]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const miniMapHtml = React.useMemo(() => renderKakaoMapHTML(false, true), [data, currentDay]);
 
   const renderHeader = () => (

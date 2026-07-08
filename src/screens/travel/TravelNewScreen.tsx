@@ -7,7 +7,7 @@ import {
   ScrollView,
   Modal,
   Pressable,
-  Alert,
+
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';

@@ -43,7 +43,7 @@ export default function DepartModal({ visible, onClose, firstSpot, day }: Depart
       } else {
         Alert.alert('앱을 찾을 수 없습니다.', '해당 길 안내 앱이 설치되어 있지 않거나 열 수 없습니다.');
       }
-    } catch (error) {
+    } catch {
       Alert.alert('오류 발생', '길 안내 앱을 실행하는 중 문제가 발생했습니다.');
     }
   };

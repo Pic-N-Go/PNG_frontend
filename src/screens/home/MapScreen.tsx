@@ -217,7 +217,11 @@ export default function MapScreen() {
               <TouchableOpacity
                 onPress={() => {
                   if (mode === 'plan') {
-                    isSelected ? removeSpot(activeSpot!.id) : addSpot(activeSpot!);
+                    if (isSelected) {
+                      removeSpot(activeSpot!.id);
+                    } else {
+                      addSpot(activeSpot!);
+                    }
                   } else {
                     setCourseModalOpen(true);
                   }

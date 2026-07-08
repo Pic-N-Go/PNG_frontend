@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, Animated, Image, Dimensions }
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { IconPlus, IconChevronRight, IconCalendarEvent, IconMapPin, IconClock, IconRoute, IconZoomPan } from '@tabler/icons-react-native';
 
-const { width } = Dimensions.get('window');
+
 
 // 더미 데이터
 const dummyPlans = [
