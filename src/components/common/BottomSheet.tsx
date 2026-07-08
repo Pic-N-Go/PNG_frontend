@@ -52,12 +52,17 @@ export default function BottomSheet({ visible, onClose, children }: Props) {
 
   useEffect(() => {
     if (visible) {
-      panY.setValue(0);
+      panY.setValue(Dimensions.get('window').height);
+      Animated.timing(panY, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }).start();
     }
   }, [visible, panY]);
 
   return (
-    <Modal visible={visible} transparent animationType="slide" statusBarTranslucent onRequestClose={onClose}>
+    <Modal visible={visible} transparent animationType="fade" statusBarTranslucent onRequestClose={onClose}>
       <Pressable
         style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' }}
         onPress={onClose}
@@ -74,7 +79,7 @@ export default function BottomSheet({ visible, onClose, children }: Props) {
               }}
             >
               <View 
-                {...panResponder.panHandlers}
+                {...panResponder.current.panHandlers}
                 style={{ alignItems: 'center', paddingTop: normalize(10), paddingBottom: normalize(20) }}
               >
                 <View
