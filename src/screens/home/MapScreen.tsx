@@ -7,6 +7,8 @@ import { useTravelStore, Spot } from '@/store/useTravelStore';
 import SpotPopup from '@/components/travel/SpotPopup';
 import FilterBottomSheet, { FilterState, EMPTY_FILTER } from '@/components/home/FilterBottomSheet';
 import { StatusBar } from 'expo-status-bar';
+import { normalize } from '@/utils/normalize';
+import { FONT_MD } from '@/constants/layout';
 
 const KAKAO_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_API_KEY;
 
@@ -330,47 +332,61 @@ export default function MapScreen() {
                   navigation.navigate('HomeTab');
                 }
               }}
+              activeOpacity={0.7}
               style={{
-                width: 40,
-                height: 40,
-                borderRadius: 20,
-                backgroundColor: '#ffffff',
+                width: normalize(48),
+                height: normalize(48),
+                borderRadius: normalize(24),
+                backgroundColor: 'rgba(255,255,255,0.92)',
+                borderWidth: 0.5,
+                borderColor: 'rgba(255,255,255,0.6)',
                 alignItems: 'center',
                 justifyContent: 'center',
                 shadowColor: '#000',
                 shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.08,
-                shadowRadius: 8,
-                elevation: 2,
+                shadowOpacity: 0.06,
+                shadowRadius: 12,
+                elevation: 3,
               }}
             >
-              <IconChevronLeft size={18} color="rgba(0,0,0,0.5)" />
+              <IconChevronLeft size={normalize(24)} color="#000" strokeWidth={1.5} />
             </TouchableOpacity>
 
             {/* 검색바 */}
             <View
               style={{
                 flex: 1,
-                height: 40,
-                borderRadius: 20,
-                backgroundColor: '#ffffff',
+                height: normalize(48),
+                borderRadius: normalize(24),
+                backgroundColor: 'rgba(255,255,255,0.92)',
+                borderWidth: 0.5,
+                borderColor: 'rgba(255,255,255,0.6)',
                 flexDirection: 'row',
                 alignItems: 'center',
-                paddingHorizontal: 14,
+                paddingHorizontal: normalize(16),
                 shadowColor: '#000',
                 shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.08,
-                shadowRadius: 8,
-                elevation: 2,
+                shadowOpacity: 0.06,
+                shadowRadius: 12,
+                elevation: 3,
               }}
             >
               <TouchableOpacity
                 activeOpacity={0.9}
                 onPress={() => navigation.navigate('SearchResult', { query: '' })}
-                style={{ flex: 1, flexDirection: 'row', alignItems: 'center', height: '100%' }}
+                style={{ flex: 1, flexDirection: 'row', alignItems: 'center', height: '100%', paddingRight: normalize(32) }}
               >
-                <IconSearch size={15} color="rgba(0,0,0,0.3)" />
-                <Text style={{ marginLeft: 8, fontSize: 15, color: 'rgba(0,0,0,0.35)', fontFamily: 'Pretendard-Regular' }}>
+                <IconSearch size={normalize(18)} color="rgba(0,0,0,0.3)" strokeWidth={1.5} />
+                <Text
+                  allowFontScaling={false}
+                  style={{
+                    marginLeft: normalize(8),
+                    fontSize: FONT_MD,
+                    color: 'rgba(0,0,0,0.3)',
+                    fontFamily: 'Pretendard-Regular',
+                    letterSpacing: -0.2,
+                  }}
+                >
                   장소, 테마, 키워드 검색
                 </Text>
               </TouchableOpacity>
@@ -379,16 +395,16 @@ export default function MapScreen() {
               <TouchableOpacity
                 onPress={() => setFilterVisible(true)}
                 hitSlop={8}
-                style={{ paddingLeft: 8, justifyContent: 'center' }}
+                style={{ position: 'absolute', right: normalize(16), top: 0, bottom: 0, justifyContent: 'center' }}
               >
                 <View style={{ position: 'relative' }}>
-                  <IconAdjustmentsHorizontal size={18} color="rgba(0,0,0,0.45)" />
+                  <IconAdjustmentsHorizontal size={normalize(18)} color="rgba(0,0,0,0.45)" strokeWidth={1.5} />
                   {activeFilterCount > 0 && (
                     <View
                       style={{
                         position: 'absolute',
-                        top: -5,
-                        right: -5,
+                        top: -normalize(4),
+                        right: -normalize(4),
                         width: 14,
                         height: 14,
                         borderRadius: 7,
