@@ -1,7 +1,7 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect } from '@react-navigation/native';
 import { SvgUri } from 'react-native-svg';
 import { WebView } from 'react-native-webview';
 import {
@@ -12,11 +12,10 @@ import {
 
 const KAKAO_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_API_KEY;
 
-// Mock Data
-const DAY_COLORS = { '1': '#f59e0b', '2': '#3b82f6' };
+const DAY_COLORS: Record<string, string> = { '1': '#f59e0b', '2': '#3b82f6', '3': '#10b981', '4': '#8b5cf6' };
 const COMMON_CHECKLIST = ['삼각대', '광각렌즈 (16-35mm)', 'ND 필터', '보조배터리', '편한 신발', '드론', '편광 필터'];
 
-const MOCK_DATA = {
+const MOCK_DATA: Record<string, any> = {
   '1': {
     date: '5월 17일 토요일',
     tip: '광안리 일출 시간 05:32 · 골든아워 06:00~06:40\n미세먼지 좋음 · 일출 포인트로 이동 추천',
@@ -42,25 +41,32 @@ const MOCK_DATA = {
     transports: [
       { type: 'car', label: '차량 15분 · 7km' }
     ]
+  },
+  '3': {
+    date: '5월 19일 월요일',
+    tip: null,
+    checklist: [],
+    spots: [],
+    transports: []
+  },
+  '4': {
+    date: '5월 20일 화요일',
+    tip: null,
+    checklist: [],
+    spots: [],
+    transports: []
   }
 };
 
-export default function TravelPlanScreen() {
-  const navigation = useNavigation<any>();
-  const [currentDay, setCurrentDay] = useState<'1' | '2'>('1');
+export default function TravelPlanScreen({ navigation }: any) {
+  const [currentDay, setCurrentDay] = useState<string>('1');
   const [isEditMode, setIsEditMode] = useState(false);
   const [data, setData] = useState(MOCK_DATA);
   const [selectedSpotId, setSelectedSpotId] = useState<string | null>(null);
 
-  // Fabric(New Architecture, app.config.js newArchEnabled:true)에서
-  // react-native-draggable-flatlist@4.0.3의 measureLayout/measure가 깨져
-  // 'measureLayout must be called with a ref to a native component' → 트리 붕괴 →
-  // NavigationContainer 컨텍스트 유실 순으로 크래시된다. reanimated 4가 New Arch를
-  // 강제하므로 New Arch를 끌 수도 없다. → 이 화면에서 라이브러리를 제거하고
-  // 순수 ScrollView + ref.scrollTo(measureLayout 미사용)로 안전하게 처리한다.
-  const scrollRef = useRef<ScrollView>(null);
-  const headerHeightRef = useRef(0);
-  const rowOffsets = useRef<Record<string, number>>({}); // 행 wrapper 기준 y offset
+  const scrollRef = useRef<any>(null);
+  const headerHeightRef = useRef<number>(0);
+  const rowOffsets = useRef<{ [key: number]: number }>({});
 
   const [checkedItems, setCheckedItems] = useState<string[]>([]);
 
@@ -76,9 +82,8 @@ export default function TravelPlanScreen() {
 
         setSelectedSpotId(spotId); // 선택 하이라이트 (항상 동작)
 
-        // 헤더 높이 + 행 offset = 절대 y. ScrollView.scrollTo는 measureLayout을 쓰지 않아 안전.
-        const y = Math.max(0, headerHeightRef.current + (rowOffsets.current[spotId] ?? 0) - 24);
-        scrollRef.current?.scrollTo({ y, animated: true });
+        const yOffset = rowOffsets.current[index] || 0;
+        scrollRef.current?.scrollTo({ y: headerHeightRef.current + yOffset - 24, animated: true });
       } else if (parsed.type === 'MAP_CLICK') {
         setSelectedSpotId(null);
       }
@@ -103,6 +108,7 @@ export default function TravelPlanScreen() {
       return { ...prev, [currentDay]: { ...dayData, spots } };
     });
   };
+
 
   const removeSpot = (spotId: string) => {
     setData((prev) => {
@@ -246,10 +252,7 @@ export default function TravelPlanScreen() {
   const miniMapHtml = React.useMemo(() => renderKakaoMapHTML(false, true), [data, currentDay]);
 
   const renderHeader = () => (
-    <View
-      style={{ backgroundColor: 'white' }}
-      onLayout={(e) => { headerHeightRef.current = e.nativeEvent.layout.height; }}
-    >
+    <View className="bg-white pt-4 pb-2">
         {/* Map Area */}
         <View className="h-[210px] bg-[#e8e8ed] overflow-hidden relative">
           <WebView
@@ -260,7 +263,7 @@ export default function TravelPlanScreen() {
           />
         </View>
 
-        <View className="px-5 pt-6 pb-2">
+        <View className="px-5 pt-6 pb-0">
           {/* Summary Card */}
           <View className="bg-[#f5f5f7] p-4 rounded-2xl mb-5 flex-row">
             <View className="flex-1 items-start">
@@ -287,59 +290,67 @@ export default function TravelPlanScreen() {
           </View>
 
           {/* Day Tabs */}
-          <View className="flex-row gap-3 mb-2">
-            <TouchableOpacity 
-              onPress={() => setCurrentDay('1')}
-              className={`h-10 px-5 rounded-full items-center justify-center flex-row ${currentDay === '1' ? 'bg-black' : 'bg-[#f5f5f7]'}`}
-            >
-              <View className="w-2 h-2 rounded-full mr-1.5" style={{ backgroundColor: DAY_COLORS['1'] }} />
-              <Text className={`text-[15px] font-medium ${currentDay === '1' ? 'text-white font-semibold' : 'text-black/50'}`}>DAY 1</Text>
-            </TouchableOpacity>
-            <TouchableOpacity 
-              onPress={() => setCurrentDay('2')}
-              className={`h-10 px-5 rounded-full items-center justify-center flex-row ${currentDay === '2' ? 'bg-black' : 'bg-[#f5f5f7]'}`}
-            >
-              <View className="w-2 h-2 rounded-full mr-1.5" style={{ backgroundColor: DAY_COLORS['2'] }} />
-              <Text className={`text-[15px] font-medium ${currentDay === '2' ? 'text-white font-semibold' : 'text-black/50'}`}>DAY 2</Text>
-            </TouchableOpacity>
-          </View>
-          <Text className="text-[14px] text-black/40 tracking-[-0.1px] mb-4">{currentData.date}</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-2 mb-2">
+            <View className="flex-row gap-2 pr-5">
+              {Object.keys(data).map(day => (
+                <TouchableOpacity 
+                  key={day}
+                  onPress={() => setCurrentDay(day)}
+                  className={`h-10 px-5 rounded-full items-center justify-center flex-row ${currentDay === day ? 'bg-black' : 'bg-[#f5f5f7]'}`}
+                >
+                  <View className="w-2 h-2 rounded-full mr-1.5" style={{ backgroundColor: DAY_COLORS[day] || '#ccc' }} />
+                  <Text className={`text-[15px] font-medium ${currentDay === day ? 'text-white font-semibold' : 'text-black/50'}`}>DAY {day}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </ScrollView>
+          <Text className="text-[14px] text-black/40 tracking-[-0.1px] mb-1">{currentData.date}</Text>
         </View>
       </View>
   );
 
   // Memoize the weather row to prevent SvgUri flickering when checklist state updates
+  const hasWeather = parseInt(currentDay) <= 2; // 목업에서 1, 2일차만 날씨 제공 시뮬레이션
+
   const weatherRow = React.useMemo(() => (
     <View className="mt-8">
       <Text className="text-[18px] font-semibold text-black tracking-[-0.3px] mb-3">DAY {currentDay} 날씨</Text>
-      <View className="flex-row gap-2">
-        <View className="flex-1 bg-[#f5f5f7] rounded-2xl p-3 relative">
-          <Text className="text-[12px] text-black/35 mb-1.5">오전</Text>
-          <Text className="text-[20px] font-semibold text-black mb-0.5">18°</Text>
-          <Text className="text-[12px] text-black/35">맑음</Text>
-          <View className="absolute right-3 top-[50%] -translate-y-2.5">
-            <SvgUri width="24" height="24" uri="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/clear-day.svg" />
+      {hasWeather ? (
+        <View className="flex-row gap-2">
+          <View className="flex-1 bg-[#f5f5f7] rounded-2xl p-3 relative">
+            <Text className="text-[12px] text-black/35 mb-1.5">오전</Text>
+            <Text className="text-[20px] font-semibold text-black mb-0.5">18°</Text>
+            <Text className="text-[12px] text-black/35">맑음</Text>
+            <View className="absolute right-3 top-[50%] -translate-y-2.5">
+              <SvgUri width="24" height="24" uri="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/clear-day.svg" />
+            </View>
+          </View>
+          <View className="flex-1 bg-[#f5f5f7] rounded-2xl p-3 relative">
+            <Text className="text-[12px] text-black/35 mb-1.5">오후</Text>
+            <Text className="text-[20px] font-semibold text-black mb-0.5">24°</Text>
+            <Text className="text-[12px] text-black/35">구름 조금</Text>
+            <View className="absolute right-3 top-[50%] -translate-y-2.5">
+              <SvgUri width="24" height="24" uri="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/partly-cloudy-day.svg" />
+            </View>
+          </View>
+          <View className="flex-1 bg-[#f5f5f7] rounded-2xl p-3 relative">
+            <Text className="text-[12px] text-black/35 mb-1.5">저녁</Text>
+            <Text className="text-[20px] font-semibold text-black mb-0.5">20°</Text>
+            <Text className="text-[12px] text-black/35">맑음</Text>
+            <View className="absolute right-3 top-[50%] -translate-y-2.5">
+              <SvgUri width="24" height="24" uri="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/clear-night.svg" />
+            </View>
           </View>
         </View>
-        <View className="flex-1 bg-[#f5f5f7] rounded-2xl p-3 relative">
-          <Text className="text-[12px] text-black/35 mb-1.5">오후</Text>
-          <Text className="text-[20px] font-semibold text-black mb-0.5">24°</Text>
-          <Text className="text-[12px] text-black/35">구름 조금</Text>
-          <View className="absolute right-3 top-[50%] -translate-y-2.5">
-            <SvgUri width="24" height="24" uri="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/partly-cloudy-day.svg" />
-          </View>
+      ) : (
+        <View className="bg-[#f5f5f7] rounded-2xl p-6 items-center justify-center">
+          <Text className="text-[32px] mb-2">🧚‍♀️</Text>
+          <Text className="text-[15px] font-semibold text-black/70 mb-0.5">날씨 요정도 아직 모른대요</Text>
+          <Text className="text-[13px] text-black/40">어떤 날씨든 완벽한 여행이 될 거예요!</Text>
         </View>
-        <View className="flex-1 bg-[#f5f5f7] rounded-2xl p-3 relative">
-          <Text className="text-[12px] text-black/35 mb-1.5">저녁</Text>
-          <Text className="text-[20px] font-semibold text-black mb-0.5">20°</Text>
-          <Text className="text-[12px] text-black/35">맑음</Text>
-          <View className="absolute right-3 top-[50%] -translate-y-2.5">
-            <SvgUri width="24" height="24" uri="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/clear-night.svg" />
-          </View>
-        </View>
-      </View>
+      )}
     </View>
-  ), [currentDay]);
+  ), [currentDay, hasWeather]);
 
   const renderFooter = () => (
     <View className="px-5 pb-12 pt-4">
@@ -353,14 +364,28 @@ export default function TravelPlanScreen() {
       )}
 
       {/* Tip Banner */}
-      <View className="flex-row gap-3 p-4 bg-[#f5f5f7] rounded-2xl mt-4">
-        <View className="w-7 h-7 rounded-lg bg-[#ff9f0a]/10 items-center justify-center shrink-0">
-          <IconClock size={14} color="#ff9f0a" />
-        </View>
-        <View className="flex-1">
-          <Text className="text-[15px] font-medium text-black tracking-[-0.15px] mb-1">오늘의 촬영 팁</Text>
-          <Text className="text-[12px] text-black/40 leading-relaxed">{currentData.tip}</Text>
-        </View>
+      <View className="flex-row gap-3 p-4 bg-[#f5f5f7] rounded-2xl mt-4 items-center">
+        {currentData.tip ? (
+          <>
+            <View className="w-8 h-8 rounded-full bg-[#ff9f0a]/10 items-center justify-center shrink-0">
+              <IconClock size={16} color="#ff9f0a" />
+            </View>
+            <View className="flex-1">
+              <Text className="text-[14px] font-semibold text-black tracking-[-0.15px] mb-0.5">오늘의 촬영 팁</Text>
+              <Text className="text-[12px] text-black/50 leading-relaxed">{currentData.tip}</Text>
+            </View>
+          </>
+        ) : (
+          <>
+            <View className="w-8 h-8 rounded-full bg-[#e31b59]/10 items-center justify-center shrink-0">
+              <Text className="text-[16px]">📷</Text>
+            </View>
+            <View className="flex-1">
+              <Text className="text-[14px] font-semibold text-black tracking-[-0.15px] mb-0.5">자유로운 셔터 찬스</Text>
+              <Text className="text-[12px] text-black/50 leading-relaxed">계획에 얽매이지 말고 발길 닿는 대로, 마음 가는 대로 셔터를 눌러보세요!</Text>
+            </View>
+          </>
+        )}
       </View>
 
       {/* Weather Row */}
@@ -419,10 +444,17 @@ export default function TravelPlanScreen() {
     const isLast = idx === currentData.spots.length - 1;
 
     return (
+      // key는 스팟 id가 아니라 위치 인덱스(idx)를 쓴다.
+      // id를 키로 쓰면 순서 변경 시 React가 같은 키의 네이티브 뷰 서브트리를
+      // 물리적으로 '이동(reparent)'시키는데, Fabric(New Arch) 환경에서 이때 뷰 트리가
+      // 붕괴되며 'Couldn't find a navigation context' 크래시가 난다.
+      // 인덱스 키를 쓰면 순서 변경이 '뷰 이동'이 아니라 '제자리에서 내용만 교체'가 되어
+      // (날짜 탭 전환과 동일한 동작) 크래시가 사라진다. 이 행들은 자체 상태가 없고
+      // 레이아웃도 인덱스 기준(rowOffsets[idx])이라 위치 키가 안전하다.
       <View
-        key={item.id}
+        key={idx}
         className="px-5 relative pt-1 bg-white"
-        onLayout={(e) => { rowOffsets.current[item.id] = e.nativeEvent.layout.y; }}
+        onLayout={(e) => { rowOffsets.current[idx] = e.nativeEvent.layout.y; }}
       >
         <View className="absolute left-[31px] top-[24px] bottom-[-16px] w-[1.5px] bg-black/5" />
 
@@ -432,15 +464,26 @@ export default function TravelPlanScreen() {
           </View>
 
           <View
-            className="flex-1 flex-row gap-3 p-3 rounded-[16px] bg-[#f5f5f7] ml-[28px]"
-            style={isSelected ? {
-              backgroundColor: 'rgba(227,27,89,0.06)',
-              borderColor: 'rgba(227,27,89,0.5)',
-              borderWidth: 1.5,
-            } : undefined}
+            className="flex-1 flex-row gap-3 p-3 rounded-[16px] ml-[28px] relative"
+            style={[
+              { backgroundColor: '#f5f5f7' },
+              isSelected ? {
+                backgroundColor: 'rgba(227,27,89,0.06)',
+                borderColor: 'rgba(227,27,89,0.5)',
+                borderWidth: 1.5,
+              } : undefined
+            ]}
           >
+            {isEditMode && (
+              <TouchableOpacity
+                onPress={() => removeSpot(item.id)}
+                className="absolute -top-2 -left-2 w-6 h-6 rounded-full bg-white border border-black/10 items-center justify-center z-20 shadow-sm"
+              >
+                <IconTrash size={12} color="rgba(227,27,89,0.9)" />
+              </TouchableOpacity>
+            )}
             <View className="w-[72px] h-[72px] rounded-xl shrink-0" style={{ backgroundColor: item.bg }} />
-            <View className="flex-1 justify-center pr-8">
+            <View className={`flex-1 justify-center ${isEditMode ? 'pr-10' : 'pr-4'}`}>
               <View className="flex-row items-center justify-between mb-1">
                 <Text className="text-[16px] font-semibold text-black tracking-[-0.2px]" numberOfLines={1}>{item.name}</Text>
                 <View className="px-2.5 h-6 rounded-full items-center justify-center" style={{ backgroundColor: item.scoreColor }}>
@@ -454,36 +497,24 @@ export default function TravelPlanScreen() {
               </View>
             </View>
 
-            <View className="absolute right-2 top-0 bottom-0 justify-center gap-1">
-              {isEditMode ? (
-                <>
-                  <TouchableOpacity
-                    onPress={() => moveSpot(idx, -1)}
-                    disabled={isFirst}
-                    className="w-7 h-7 rounded-full bg-black/5 items-center justify-center"
-                  >
-                    <IconChevronUp size={15} color={isFirst ? 'rgba(0,0,0,0.15)' : 'rgba(0,0,0,0.45)'} />
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() => moveSpot(idx, 1)}
-                    disabled={isLast}
-                    className="w-7 h-7 rounded-full bg-black/5 items-center justify-center"
-                  >
-                    <IconChevronDown size={15} color={isLast ? 'rgba(0,0,0,0.15)' : 'rgba(0,0,0,0.45)'} />
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() => removeSpot(item.id)}
-                    className="w-7 h-7 rounded-full bg-black/5 items-center justify-center"
-                  >
-                    <IconTrash size={14} color="rgba(0,0,0,0.4)" />
-                  </TouchableOpacity>
-                </>
-              ) : (
-                <View className="py-2 px-1">
-                  <IconGripVertical size={18} color="rgba(0,0,0,0.2)" />
-                </View>
-              )}
-            </View>
+            {isEditMode && (
+              <View className="absolute right-2 top-0 bottom-0 justify-center gap-1.5">
+                <TouchableOpacity
+                  onPress={() => moveSpot(idx, -1)}
+                  disabled={isFirst}
+                  className={`w-7 h-7 rounded-full items-center justify-center ${isFirst ? 'opacity-30 bg-black/5' : 'bg-white shadow-sm border border-black/5'}`}
+                >
+                  <IconChevronUp size={16} color="rgba(0,0,0,0.6)" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => moveSpot(idx, 1)}
+                  disabled={isLast}
+                  className={`w-7 h-7 rounded-full items-center justify-center ${isLast ? 'opacity-30 bg-black/5' : 'bg-white shadow-sm border border-black/5'}`}
+                >
+                  <IconChevronDown size={16} color="rgba(0,0,0,0.6)" />
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
         </View>
 
@@ -523,17 +554,36 @@ export default function TravelPlanScreen() {
         </View>
       </View>
 
-      <View className="flex-1 bg-white">
-        <ScrollView ref={scrollRef} showsVerticalScrollIndicator={false}>
+      <ScrollView ref={scrollRef} className="flex-1 bg-white" showsVerticalScrollIndicator={false}>
+        <View onLayout={(e) => { headerHeightRef.current = e.nativeEvent.layout.height; }}>
           {renderHeader()}
-
           <View className="bg-white">
-            {currentData.spots.map((item, idx) => renderSpotRow(item, idx))}
+            <View className="flex-row items-center justify-between px-5 mb-3 mt-1">
+              <Text className="text-[18px] font-semibold text-black tracking-[-0.3px]">타임라인</Text>
+            </View>
+            
+            {isEditMode && (
+              <View className="px-5 mb-4">
+                <View className="bg-[#f5f5f7] border border-black/5 rounded-xl py-3 px-4 items-center">
+                  <Text className="text-[13px] text-black/60 font-medium tracking-[-0.2px]">✨ 우측의 화살표 버튼을 눌러 스팟 순서를 변경해보세요.</Text>
+                </View>
+              </View>
+            )}
           </View>
+        </View>
 
+        {currentData.spots.length === 0 ? (
+          <View className="items-center justify-center py-10 bg-white">
+            <Text className="text-[14px] text-black/40">등록된 스팟이 없습니다.</Text>
+          </View>
+        ) : (
+          currentData.spots.map((item: any, idx: number) => renderSpotRow(item, idx))
+        )}
+
+        <View className="bg-white">
           {renderFooter()}
-        </ScrollView>
-      </View>
+        </View>
+      </ScrollView>
 
       {/* Bottom CTA */}
       <View className="flex-row gap-3 p-5 pt-3 border-t-[0.5px] border-black/5 bg-white z-50">
