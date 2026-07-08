@@ -114,7 +114,7 @@ export default function TravelPlanScreen({ navigation }: any) {
   const removeSpot = (spotId: string) => {
     setData((prev) => {
       const dayData = prev[currentDay];
-      const newSpots = dayData.spots.filter(s => s.id !== spotId);
+      const newSpots = dayData.spots.filter((s: any) => s.id !== spotId);
       const newTransports = [...dayData.transports];
       if (newTransports.length >= newSpots.length && newTransports.length > 0) {
         newTransports.pop();

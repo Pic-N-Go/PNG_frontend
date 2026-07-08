@@ -485,7 +485,7 @@ export default function TravelNewScreen() {
                 return (
                   <TouchableOpacity 
                     key={d} 
-                    disabled={disabled}
+                    disabled={!!disabled}
                     onPress={() => handleDaySelect(d)}
                     className={`w-[14.28%] h-10 items-center justify-center ${bgClass}`}
                   >

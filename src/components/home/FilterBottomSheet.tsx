@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import BottomSheet from '@/components/common/BottomSheet';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import {
   BOTTOM_SHEET_RADIUS,
@@ -81,30 +82,8 @@ export default function FilterBottomSheet({ visible, onClose, onApply }: Props) 
   }
 
   return (
-    <Modal
-      visible={visible}
-      transparent
-      animationType="slide"
-      statusBarTranslucent
-      onRequestClose={handleClose}
-    >
-      <Pressable
-        style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' }}
-        onPress={handleClose}
-      >
-        <Pressable onPress={() => {}}>
-          <View
-            style={{
-              backgroundColor: '#fff',
-              borderTopLeftRadius: BOTTOM_SHEET_RADIUS,
-              borderTopRightRadius: BOTTOM_SHEET_RADIUS,
-              paddingBottom: normalize(28) + insets.bottom,
-            }}
-          >
-            {/* 핸들 */}
-            <View style={{ alignItems: 'center', paddingTop: normalize(12), paddingBottom: normalize(4) }}>
-              <View style={{ width: normalize(36), height: normalize(4), borderRadius: normalize(2), backgroundColor: 'rgba(0,0,0,0.1)' }} />
-            </View>
+    <BottomSheet visible={visible} onClose={handleClose}>
+      <View style={{ paddingBottom: normalize(12) }}>
 
             {/* 헤더 */}
             <View
@@ -218,10 +197,8 @@ export default function FilterBottomSheet({ visible, onClose, onApply }: Props) 
                   적용하기
                 </Text>
               </Pressable>
-            </View>
           </View>
-        </Pressable>
-      </Pressable>
-    </Modal>
+      </View>
+    </BottomSheet>
   );
 }
