@@ -590,15 +590,15 @@ export default function TravelPlanScreen({ navigation }: any) {
       {/* Bottom CTA */}
       <View className="flex-row gap-3 p-5 pt-3 border-t-[0.5px] border-black/5 bg-white z-50">
         {isEditMode ? (
-          <TouchableOpacity onPress={() => setIsEditMode(false)} className="flex-1 h-[52px] rounded-2xl bg-black items-center justify-center">
+          <TouchableOpacity onPress={() => setIsEditMode(false)} className="flex-1 h-[52px] rounded-full bg-black items-center justify-center">
             <Text className="text-[16px] font-medium text-white">편집 완료</Text>
           </TouchableOpacity>
         ) : (
           <>
-            <TouchableOpacity onPress={() => setIsEditMode(true)} className="flex-1 h-[52px] rounded-2xl bg-[#f5f5f7] items-center justify-center">
+            <TouchableOpacity onPress={() => setIsEditMode(true)} className="flex-1 h-[52px] rounded-full bg-[#f5f5f7] items-center justify-center">
               <Text className="text-[16px] font-medium text-black">코스 편집</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => setIsDepartModalVisible(true)} className="flex-1 h-[52px] rounded-2xl bg-[#e31b59] items-center justify-center">
+            <TouchableOpacity onPress={() => setIsDepartModalVisible(true)} className="flex-1 h-[52px] rounded-full bg-[#e31b59] items-center justify-center">
               <Text className="text-[16px] font-medium text-white">출발하기</Text>
             </TouchableOpacity>
           </>
