@@ -95,11 +95,6 @@ export default function TravelListScreen({ navigation }: any) {
     extrapolate: 'clamp',
   });
 
-  const largeHeaderHeight = scrollY.interpolate({
-    inputRange: [0, 60],
-    outputRange: [60, 0],
-    extrapolate: 'clamp',
-  });
 
   const largeHeaderOpacity = scrollY.interpolate({
     inputRange: [0, 40],
@@ -137,63 +132,64 @@ export default function TravelListScreen({ navigation }: any) {
         </TouchableOpacity>
       </View>
 
-      {/* 접히는 Large Title 영역 */}
-      <Animated.View
-        style={{
-          height: largeHeaderHeight,
-          opacity: largeHeaderOpacity,
-        }}
-        className="px-[28px] flex-row justify-between items-start bg-white z-40 overflow-hidden"
-      >
-        <Text className="text-[28px] font-bold text-black tracking-tight">출사 계획</Text>
-      </Animated.View>
-
-      {/* 탭 메뉴 */}
-      <View className="flex-row px-[16px] py-[10px] bg-white border-b border-black/5 z-40">
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-          {TABS.map((tab) => {
-            const isActive = activeTab === tab.id;
-            const count =
-              tab.id === 'all'
-                ? dummyPlans.length
-                : dummyPlans.filter((p) => p.status === tab.id).length;
-
-            return (
-              <TouchableOpacity
-                key={tab.id}
-                onPress={() => handleTabPress(tab.id)}
-                className={`flex-row items-center h-[32px] px-[14px] rounded-full ${
-                  isActive ? 'bg-[#E31B59]' : 'bg-[#f5f5f7]'
-                }`}
-              >
-                <Text
-                  className={`text-sm font-medium ${
-                    isActive ? 'text-white' : 'text-black/40'
-                  }`}
-                >
-                  {tab.label}
-                </Text>
-                <Text
-                  className={`text-xs font-semibold ml-1 ${
-                    isActive ? 'text-white' : 'text-black/40'
-                  }`}
-                >
-                  {count}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
-      </View>
-
       <ScrollView
         className="flex-1 bg-[#fbfbfb]"
-        contentContainerStyle={{ paddingHorizontal: 28, paddingTop: 20, paddingBottom: 40 }}
         onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
-          useNativeDriver: false,
+          useNativeDriver: true,
         })}
         scrollEventThrottle={16}
+        stickyHeaderIndices={[1]}
       >
+        {/* 0: 접히는 Large Title 영역 */}
+        <Animated.View
+          style={{
+            opacity: largeHeaderOpacity,
+          }}
+          className="px-[28px] pb-[10px] bg-white z-40"
+        >
+          <Text className="text-[28px] font-bold text-black tracking-tight">출사 계획</Text>
+        </Animated.View>
+
+        {/* 1: 탭 메뉴 */}
+        <View className="flex-row px-[16px] py-[10px] bg-white border-b border-black/5 z-40">
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+            {TABS.map((tab) => {
+              const isActive = activeTab === tab.id;
+              const count =
+                tab.id === 'all'
+                  ? dummyPlans.length
+                  : dummyPlans.filter((p) => p.status === tab.id).length;
+
+              return (
+                <TouchableOpacity
+                  key={tab.id}
+                  onPress={() => handleTabPress(tab.id)}
+                  className={`flex-row items-center h-[32px] px-[14px] rounded-full ${
+                    isActive ? 'bg-[#E31B59]' : 'bg-[#f5f5f7]'
+                  }`}
+                >
+                  <Text
+                    className={`text-sm font-medium ${
+                      isActive ? 'text-white' : 'text-black/40'
+                    }`}
+                  >
+                    {tab.label}
+                  </Text>
+                  <Text
+                    className={`text-xs font-semibold ml-1 ${
+                      isActive ? 'text-white' : 'text-black/40'
+                    }`}
+                  >
+                    {count}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
+
+        {/* 2: 리스트 콘텐츠 영역 */}
+        <View style={{ paddingHorizontal: 28, paddingTop: 20, paddingBottom: 40 }}>
         {/* 리스트가 비어있을 때 (Empty State) */}
         {filteredPlans.length === 0 ? (
           <View className="items-center mt-[40px]">
@@ -318,6 +314,7 @@ export default function TravelListScreen({ navigation }: any) {
             ))}
           </View>
         )}
+        </View>
       </ScrollView>
     </SafeAreaView>
   );
