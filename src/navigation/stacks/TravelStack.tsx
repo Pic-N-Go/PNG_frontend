@@ -14,7 +14,12 @@ export type TravelStackParamList = {
   TravelNew: undefined;
   Wishlist: undefined;
   WishlistSetting: { spotId: string };
-  Map: { mode: 'plan' | 'view' };
+  Map: { 
+    source?: 'plan' | string;
+    spots?: any[];
+    from?: string;
+    planId?: string;
+  };
   SearchResult: { query: string };
 };
 
