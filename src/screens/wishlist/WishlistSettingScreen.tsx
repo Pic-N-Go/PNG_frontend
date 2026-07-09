@@ -448,7 +448,7 @@ export default function WishlistSettingScreen({ navigation, route }: any) {
           <Text className="text-black/30 mb-2" style={{ fontSize: normalizeFontSize(12) }}>최근 본 스팟</Text>
 
           {MOCK_SPOTS.map((s) => {
-            const isSelected = s.id === selectedSpot.id;
+            const isSelected = String(s.id) === String(selectedSpot.id);
             return (
               <TouchableOpacity 
                 key={s.id} 
