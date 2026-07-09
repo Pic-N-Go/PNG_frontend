@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Platform, PermissionsAndroid } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { IconChevronLeft, IconSearch, IconAdjustmentsHorizontal, IconFocus2 } from '@tabler/icons-react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -85,7 +85,20 @@ export default function MapScreen() {
     }
   }, []);
 
-  const handleMyLocation = useCallback(() => {
+  const handleMyLocation = useCallback(async () => {
+    if (Platform.OS === 'android') {
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+        );
+        if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+          console.log('Location permission denied');
+        }
+      } catch (err) {
+        console.warn(err);
+      }
+    }
+
     if (webViewRef.current) {
       webViewRef.current.injectJavaScript(`
         if (window.kakaoMap) {
