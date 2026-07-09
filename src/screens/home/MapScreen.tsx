@@ -141,7 +141,7 @@ export default function MapScreen() {
     if (webViewRef.current) {
       webViewRef.current.injectJavaScript(`
         if (window.updateMarkers) {
-          window.updateMarkers('${JSON.stringify(filteredSpots)}');
+          window.updateMarkers(${JSON.stringify(JSON.stringify(filteredSpots))});
         }
       `);
     }
