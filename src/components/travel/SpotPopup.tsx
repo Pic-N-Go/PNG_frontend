@@ -111,7 +111,7 @@ export default function SpotPopup({ activeSpot, onClose, renderButtons }: Props)
         {displaySpot && (
           <>
             {/* Photos */}
-            <View className="h-[190px] w-full relative bg-gray-200">
+            <View className="h-[110px] w-full relative bg-gray-200">
               {displaySpot.photo ? (
                 <View className="flex-row w-full h-full gap-[2px] bg-white">
                   <Image source={{ uri: displaySpot.photo }} className="flex-1 h-full bg-gray-200" resizeMode="cover" />
