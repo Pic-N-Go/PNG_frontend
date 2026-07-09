@@ -100,7 +100,9 @@ export default function WishlistScreen({ navigation, route }: any) {
     if (sortType === '이름순') return a.title.localeCompare(b.title);
     if (sortType === '조건 충족순') {
       const order = { 'hit': 0, 'soon': 1, 'wait': 2 };
-      return order[a.status as keyof typeof order] - order[b.status as keyof typeof order];
+      const aOrder = order[a.status as keyof typeof order] ?? 99;
+      const bOrder = order[b.status as keyof typeof order] ?? 99;
+      return aOrder - bOrder;
     }
     return b.id - a.id;
   });
