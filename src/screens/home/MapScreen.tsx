@@ -1,10 +1,11 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Platform, PermissionsAndroid, BackHandler } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Platform, PermissionsAndroid, BackHandler, Image } from 'react-native';
 import { WebView } from 'react-native-webview';
-import { IconChevronLeft, IconSearch, IconAdjustmentsHorizontal, IconFocus2 } from '@tabler/icons-react-native';
-import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
+import { IconChevronLeft, IconSearch, IconAdjustmentsHorizontal, IconFocus2, IconX } from '@tabler/icons-react-native';
+import { useNavigation, useRoute, useFocusEffect, CommonActions } from '@react-navigation/native';
 import { useTravelStore, Spot } from '@/store/useTravelStore';
 import SpotPopup from '@/components/travel/SpotPopup';
+import BottomSheet from '@/components/common/BottomSheet';
 import FilterBottomSheet, { FilterState, EMPTY_FILTER } from '@/components/home/FilterBottomSheet';
 import { StatusBar } from 'expo-status-bar';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
@@ -34,7 +35,9 @@ const CATEGORIES = [
 export default function MapScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
-  const mode = route.params?.source === 'plan' ? 'plan' : 'view';
+  const mode = route.params?.source === 'plan' ? 'plan' 
+             : route.params?.source === 'wishlist-change' ? 'wishlist-change'
+             : 'view';
 
   const webViewRef = useRef<any>(null);
   const { selectedSpots, addSpot, removeSpot } = useTravelStore();
@@ -357,7 +360,24 @@ export default function MapScreen() {
     <View className="flex-1 bg-white">
         <StatusBar style="dark" />
         {/* 상단 오버레이 (검색창 + 뒤로가기) */}
-        <View className="absolute top-0 left-0 right-0 z-20 pointer-events-box-none" style={{ paddingTop: HEADER_HEIGHT }}>
+        {mode === 'wishlist-change' ? (
+          <View className="bg-[#E31B59] pt-14 pb-4 px-5 z-20 absolute top-0 left-0 right-0 w-full pointer-events-auto shadow-md">
+            <View className="flex-row items-center justify-between mb-5">
+              <TouchableOpacity onPress={handleBackNavigation} className="bg-white/20 items-center justify-center rounded-full" style={{ width: normalize(32), height: normalize(32) }}>
+                <IconChevronLeft size={normalize(20)} color="#fff" />
+              </TouchableOpacity>
+              <Text className="font-semibold text-white" style={{ fontSize: normalizeFontSize(18) }}>변경할 스팟을 선택하세요</Text>
+              <TouchableOpacity onPress={handleBackNavigation} className="bg-white/20 items-center justify-center rounded-full" style={{ width: normalize(32), height: normalize(32) }}>
+                <IconX size={normalize(16)} color="#fff" />
+              </TouchableOpacity>
+            </View>
+            <View className="bg-[#f5f5f7] rounded-xl flex-row items-center px-4" style={{ height: normalize(44) }}>
+              <IconSearch size={normalize(18)} color="rgba(0,0,0,0.3)" />
+              <Text className="ml-2 text-black/30" style={{ fontSize: normalizeFontSize(14) }}>스팟 이름으로 검색</Text>
+            </View>
+          </View>
+        ) : (
+          <View className="absolute top-0 left-0 right-0 z-20 pointer-events-box-none" style={{ paddingTop: HEADER_HEIGHT }}>
           <View className="flex-row items-center px-4 gap-2 pointer-events-auto">
             {/* 뒤로가기 버튼 */}
             <TouchableOpacity
@@ -489,6 +509,7 @@ export default function MapScreen() {
             </ScrollView>
           </View>
         </View>
+        )}
 
         <WebView
           ref={webViewRef}
@@ -582,22 +603,68 @@ export default function MapScreen() {
           </View>
         </View>
 
-        <SpotPopup
-          activeSpot={activeSpot}
-          onClose={closeSheet}
-          renderButtons={() => (
-            <View className="flex-row gap-2 mt-4">
-              <TouchableOpacity
-                onPress={() => {
-                  if (mode === 'plan') {
-                    if (isSelected) {
-                      removeSpot(activeSpot!.id);
-                    } else {
-                      addSpot(activeSpot!);
+        {mode === 'wishlist-change' ? (
+          <BottomSheet visible={!!activeSpot} onClose={closeSheet}>
+            {activeSpot && (
+              <View className="px-5 pb-5 pt-2">
+                <View className="flex-row items-center mb-6">
+                  <Image source={{ uri: activeSpot.photo }} className="rounded-xl mr-3" style={{ width: normalize(64), height: normalize(64) }} />
+                  <View className="flex-1 justify-center">
+                    <Text className="font-semibold text-black mb-1" style={{ fontSize: normalizeFontSize(20) }}>{activeSpot.name}</Text>
+                    <Text className="text-black/40 mb-2.5" style={{ fontSize: normalizeFontSize(14) }}>{activeSpot.loc}</Text>
+                    <View className="flex-row items-center gap-2 flex-wrap">
+                      <View className="bg-[#E31B59]/10 items-center justify-center rounded-full px-2.5 py-1">
+                        <Text className="text-[#E31B59] font-semibold" style={{ fontSize: normalizeFontSize(10) }}>포토제닉 {activeSpot.score}</Text>
+                      </View>
+                      {activeSpot.tags.map(t => (
+                        <View key={t} className="bg-black/5 items-center justify-center rounded-full px-2.5 py-1">
+                          <Text className="text-black/50 font-medium" style={{ fontSize: normalizeFontSize(10) }}>{t}</Text>
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+                </View>
+                <TouchableOpacity 
+                  onPress={() => {
+                    closeSheet();
+                    const state = navigation.getState();
+                    if (state && state.routes.length > 1) {
+                      const prevRoute = state.routes[state.routes.length - 2];
+                      if (prevRoute.name === 'WishlistSetting') {
+                        navigation.dispatch({
+                          ...CommonActions.setParams({ newSpot: activeSpot }),
+                          source: prevRoute.key,
+                        });
+                        navigation.goBack();
+                        return;
+                      }
                     }
-                  } else {
-                    setCourseModalOpen(true);
-                  }
+                    navigation.navigate('WishlistSetting', { newSpot: activeSpot }, { merge: true });
+                  }} 
+                  className="bg-[#E31B59] items-center justify-center" 
+                  style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}>
+                  <Text className="font-medium text-white" style={{ fontSize: normalizeFontSize(16) }}>이 스팟으로 변경</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+          </BottomSheet>
+        ) : (
+          <SpotPopup
+            activeSpot={activeSpot}
+            onClose={closeSheet}
+            renderButtons={() => (
+              <View className="flex-row gap-2 mt-4">
+                <TouchableOpacity
+                  onPress={() => {
+                    if (mode === 'plan') {
+                      if (isSelected) {
+                        removeSpot(activeSpot!.id);
+                      } else {
+                        addSpot(activeSpot!);
+                      }
+                    } else {
+                      setCourseModalOpen(true);
+                    }
                 }}
                 className={`flex-1 items-center justify-center ${isSelected && mode === 'plan' ? 'bg-[#E31B59]' : 'bg-[#f5f5f7]'}`}
                 style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}
@@ -620,6 +687,7 @@ export default function MapScreen() {
             </View>
           )}
         />
+        )}
 
         {/* Course Select Modal (Dummy) */}
         {isCourseModalOpen && (

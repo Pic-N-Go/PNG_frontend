@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, TextInput, Switch, Modal, Pressable, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
+import { CommonActions } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FONT_SM, BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING, BOTTOM_SHEET_RADIUS } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
@@ -46,7 +47,7 @@ const getWeatherIcon = (w: string, selected: boolean) => {
   return <IconComponent size={normalize(22)} color={selected ? activeColor : 'rgba(0,0,0,0.25)'} style={{ marginBottom: normalize(2) }} />;
 };
 
-export default function WishlistSettingScreen({ navigation }: any) {
+export default function WishlistSettingScreen({ navigation, route }: any) {
   const [selectedWeathers, setSelectedWeathers] = useState<string[]>(['맑음']);
   const [selectedDust, setSelectedDust] = useState('좋음');
   const [selectedTimes, setSelectedTimes] = useState<string[]>(['일몰', '야간']);
@@ -56,6 +57,20 @@ export default function WishlistSettingScreen({ navigation }: any) {
   const [dndEnd, setDndEnd] = useState('07:00');
   const [memo, setMemo] = useState('야간 개장 때 한복 입고 찍어보고 싶다.\n맑은 날이어야 조명이 잘 나올 것 같음.');
   const [selectedSpot, setSelectedSpot] = useState(MOCK_SPOTS[0]);
+
+  useEffect(() => {
+    if (route.params?.newSpot) {
+      const incomingSpot = route.params.newSpot;
+      const existingMock = MOCK_SPOTS.find(s => String(s.id) === String(incomingSpot.id) || s.name === incomingSpot.name);
+      
+      setSelectedSpot({
+        ...incomingSpot,
+        bg: incomingSpot.bg || existingMock?.bg || '#2c3e50'
+      });
+      markDirty();
+      navigation.setParams({ newSpot: undefined });
+    }
+  }, [route.params?.newSpot]);
 
   const adjustTime = (time: string, delta: number) => {
     const [h, m] = time.split(':').map(Number);
@@ -123,11 +138,19 @@ export default function WishlistSettingScreen({ navigation }: any) {
 
     setIsDirty(false);
     setTimeout(() => {
-      navigation.navigate({
-        name: 'Wishlist',
-        params: { newWishlist },
-        merge: true,
-      });
+      const state = navigation.getState();
+      if (state && state.routes.length > 1) {
+        const prevRoute = state.routes[state.routes.length - 2];
+        if (prevRoute.name === 'Wishlist') {
+          navigation.dispatch({
+            ...CommonActions.setParams({ newWishlist }),
+            source: prevRoute.key,
+          });
+          navigation.goBack();
+          return;
+        }
+      }
+      navigation.navigate('Wishlist', { newWishlist }, { merge: true });
     }, 10);
   };
 
@@ -443,7 +466,7 @@ export default function WishlistSettingScreen({ navigation }: any) {
                 </View>
                 {isSelected && (
                   <View className="items-center justify-center bg-[#E31B59] rounded-full" style={{ width: normalize(22), height: normalize(22) }}>
-                    <IconCheck size={normalize(14)} color="#fff" stroke={3} />
+                    <IconCheck size={normalize(14)} color="#fff" strokeWidth={3} />
                   </View>
                 )}
               </TouchableOpacity>
@@ -452,7 +475,10 @@ export default function WishlistSettingScreen({ navigation }: any) {
 
         </ScrollView>
         <View className="px-5 pt-3 pb-2 bg-white">
-          <TouchableOpacity className="items-center py-2">
+          <TouchableOpacity onPress={() => {
+            setSpotSheetVisible(false);
+            navigation.push('Map', { source: 'wishlist-change' });
+          }} className="items-center py-2">
             <Text className="font-medium text-[#E31B59]" style={{ fontSize: normalizeFontSize(14) }}>전체 스팟에서 검색 →</Text>
           </TouchableOpacity>
         </View>
