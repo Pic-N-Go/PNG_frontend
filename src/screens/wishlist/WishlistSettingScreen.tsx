@@ -48,15 +48,21 @@ const getWeatherIcon = (w: string, selected: boolean) => {
 };
 
 export default function WishlistSettingScreen({ navigation, route }: any) {
-  const [selectedWeathers, setSelectedWeathers] = useState<string[]>(['맑음']);
-  const [selectedDust, setSelectedDust] = useState('좋음');
-  const [selectedTimes, setSelectedTimes] = useState<string[]>(['일몰', '야간']);
-  const [notifEnabled, setNotifEnabled] = useState(true);
+  const init = route.params?.wishlist;
+  const initWeather = init ? init.conditions.filter((c:any) => c.type === 'weather' && c.active).map((c:any) => c.text) : ['맑음'];
+  const initDust = init ? (init.conditions.find((c:any) => c.type === 'dust' && c.active)?.text.replace('미세먼지 ', '') || '좋음') : '좋음';
+  const initTime = init ? init.conditions.filter((c:any) => c.type === 'time' && c.active).map((c:any) => c.text) : ['일몰', '야간'];
+  const initSpot = init ? { ...MOCK_SPOTS[0], id: init.id, name: init.title, loc: init.loc.split(' · ')[0] } : MOCK_SPOTS[0];
+
+  const [selectedWeathers, setSelectedWeathers] = useState<string[]>(initWeather.length ? initWeather : ['맑음']);
+  const [selectedDust, setSelectedDust] = useState(initDust);
+  const [selectedTimes, setSelectedTimes] = useState<string[]>(initTime.length ? initTime : ['일몰', '야간']);
+  const [notifEnabled, setNotifEnabled] = useState(init ? !!init.notifText : true);
   const [notifTiming, setNotifTiming] = useState('1일 전');
   const [dndStart, setDndStart] = useState('22:00');
   const [dndEnd, setDndEnd] = useState('07:00');
-  const [memo, setMemo] = useState('야간 개장 때 한복 입고 찍어보고 싶다.\n맑은 날이어야 조명이 잘 나올 것 같음.');
-  const [selectedSpot, setSelectedSpot] = useState(MOCK_SPOTS[0]);
+  const [memo, setMemo] = useState(init ? '' : '야간 개장 때 한복 입고 찍어보고 싶다.\n맑은 날이어야 조명이 잘 나올 것 같음.');
+  const [selectedSpot, setSelectedSpot] = useState(initSpot);
 
   useEffect(() => {
     if (route.params?.newSpot) {
@@ -329,7 +335,7 @@ export default function WishlistSettingScreen({ navigation, route }: any) {
                 <View key={i} className="flex-1 items-center gap-1">
                   <Text style={{ fontSize: normalizeFontSize(11), color: f.hit ? '#E31B59' : 'rgba(0,0,0,0.3)', fontWeight: f.hit ? '600' : 'normal' }}>{f.day}</Text>
                   <View className={`items-center justify-center rounded-full bg-white border ${f.hit ? 'border-[#E31B59] bg-[#E31B59]/10' : 'border-black/5'}`} style={{ width: normalize(38), height: normalize(38) }}>
-                    <Text>☁️</Text>
+                    {f.hit ? <IconSun size={normalize(20)} color="#E31B59" /> : <IconCloud size={normalize(20)} color="rgba(0,0,0,0.25)" />}
                   </View>
                   <Text style={{ fontSize: normalizeFontSize(10), color: f.hit ? '#E31B59' : 'rgba(0,0,0,0.25)', fontWeight: f.hit ? '500' : 'normal' }}>{f.hit ? '맑음' : '구름'}</Text>
                   <Text style={{ fontSize: normalizeFontSize(10), color: f.hit ? '#E31B59' : 'rgba(0,0,0,0.2)' }}>{f.date}</Text>
@@ -414,7 +420,14 @@ export default function WishlistSettingScreen({ navigation, route }: any) {
         <View className="px-5 pb-5 pt-2">
           <Text className="font-semibold text-black mb-2" style={{ fontSize: normalizeFontSize(20) }}>위시리스트를 삭제할까요?</Text>
           <Text className="text-black/45 leading-relaxed mb-6" style={{ fontSize: normalizeFontSize(16) }}>{selectedSpot.name} 위시리스트가 삭제돼요. 삭제 후에는 복구할 수 없어요.</Text>
-          <TouchableOpacity onPress={() => navigation.goBack()} className="bg-[#ff453a]/10 items-center justify-center mb-2.5" style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}>
+          <TouchableOpacity onPress={() => {
+            setDeleteModalVisible(false);
+            if (init?.id) {
+              navigation.navigate('Wishlist', { deletedId: init.id }, { merge: true });
+            } else {
+              navigation.goBack();
+            }
+          }} className="bg-[#ff453a]/10 items-center justify-center mb-2.5" style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}>
             <Text className="font-medium text-[#ff453a]" style={{ fontSize: normalizeFontSize(16) }}>삭제하기</Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => setDeleteModalVisible(false)} className="bg-[#f5f5f7] items-center justify-center" style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}>

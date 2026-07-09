@@ -1,17 +1,22 @@
 import React from 'react';
-import { Text, TouchableOpacity } from 'react-native';
+import { Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING } from '@/constants/layout';
+import { normalize, normalizeFontSize } from '@/utils/normalize';
 
 export default function MyPageScreen({ navigation }: any) {
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#f5f5f7', justifyContent: 'center', padding: 20 }}>
-      <Text style={{ fontSize: 24, fontWeight: 'bold', marginBottom: 30, textAlign: 'center' }}>프로필(MY) 탭 임시 화면</Text>
+    <SafeAreaView className="flex-1 bg-[#f5f5f7] justify-center" style={{ paddingHorizontal: CONTENT_PADDING }}>
+      <Text className="font-semibold text-black tracking-tight" style={{ fontSize: normalizeFontSize(24), marginBottom: normalize(30) }}>
+        프로필(MY) 탭 임시 화면
+      </Text>
       
       <TouchableOpacity 
-        style={{ backgroundColor: '#E31B59', padding: 16, borderRadius: 12, alignItems: 'center' }}
+        className="bg-[#E31B59] items-center justify-center"
+        style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}
         onPress={() => navigation.navigate('Wishlist')}
       >
-        <Text style={{ color: 'white', fontSize: 16, fontWeight: 'bold' }}>위시리스트 화면 보기</Text>
+        <Text className="font-medium text-white" style={{ fontSize: normalizeFontSize(16) }}>위시리스트 화면 보기</Text>
       </TouchableOpacity>
     </SafeAreaView>
   );

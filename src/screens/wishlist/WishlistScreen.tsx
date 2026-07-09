@@ -94,7 +94,11 @@ export default function WishlistScreen({ navigation, route }: any) {
       });
       navigation.setParams({ newWishlist: undefined });
     }
-  }, [route.params?.newWishlist, navigation]);
+    if (route.params?.deletedId) {
+      setWishlists(prev => prev.filter(w => w.id !== route.params.deletedId));
+      navigation.setParams({ deletedId: undefined });
+    }
+  }, [route.params?.newWishlist, route.params?.deletedId, navigation]);
 
   const sortedWishlists = [...wishlists].sort((a, b) => {
     if (sortType === '이름순') return a.title.localeCompare(b.title);
@@ -174,7 +178,7 @@ export default function WishlistScreen({ navigation, route }: any) {
               <TouchableOpacity
                 key={item.id}
                 activeOpacity={0.9}
-                onPress={() => navigation.navigate('WishlistSetting', { id: item.id })}
+                onPress={() => navigation.navigate('WishlistSetting', { id: item.id, wishlist: item })}
                 className="bg-[#f5f5f7] overflow-hidden"
                 style={{ marginHorizontal: CONTENT_PADDING, marginBottom: normalize(12), borderRadius: CARD_RADIUS }}
               >
