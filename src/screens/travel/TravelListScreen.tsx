@@ -143,7 +143,7 @@ export default function TravelListScreen({ navigation }: any) {
         stickyHeaderIndices={[1]}
       >
         {/* 0: 접히는 Large Title 영역 */}
-        <View
+        <Animated.View
           className="bg-white z-40"
           style={{
             opacity: largeHeaderOpacity,
@@ -152,7 +152,7 @@ export default function TravelListScreen({ navigation }: any) {
           }}
         >
           <Text className="font-semibold text-black tracking-tight" style={{ fontSize: FONT_2XL }}>출사 계획</Text>
-        </View>
+        </Animated.View>
 
         {/* 1: 탭 메뉴 */}
         <View className="flex-row bg-white border-b border-black/5 z-40" style={{ paddingHorizontal: normalize(16), paddingVertical: normalize(10) }}>

@@ -1,8 +1,8 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Platform, PermissionsAndroid } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Platform, PermissionsAndroid, BackHandler } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { IconChevronLeft, IconSearch, IconAdjustmentsHorizontal, IconFocus2 } from '@tabler/icons-react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { useTravelStore, Spot } from '@/store/useTravelStore';
 import SpotPopup from '@/components/travel/SpotPopup';
 import FilterBottomSheet, { FilterState, EMPTY_FILTER } from '@/components/home/FilterBottomSheet';
@@ -46,6 +46,39 @@ export default function MapScreen() {
   const [detailFilter, setDetailFilter] = useState<FilterState>(EMPTY_FILTER);
 
   const isSelected = activeSpot ? selectedSpots.some(s => s.id === activeSpot.id) : false;
+
+  const handleBackNavigation = useCallback(() => {
+    const fromTravelPlan = route.params?.from === 'TravelPlan';
+    const planId = route.params?.planId;
+
+    if (route.params?.spots || route.params?.from) {
+      navigation.setParams({ spots: undefined, from: undefined, planId: undefined });
+    }
+
+    if (fromTravelPlan) {
+      navigation.navigate('TravelTab', {
+        screen: 'TravelPlan',
+        ...(planId ? { params: { planId } } : {}),
+      });
+    } else if (navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      navigation.navigate('HomeTab');
+    }
+    return true; // prevent default behavior
+  }, [navigation, route.params]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        return handleBackNavigation();
+      };
+
+      const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+      return () => subscription.remove();
+    }, [handleBackNavigation])
+  );
 
   const closeSheet = useCallback(() => {
     setActiveSpot(null);
@@ -326,25 +359,7 @@ export default function MapScreen() {
           <View className="flex-row items-center px-4 gap-2 pointer-events-auto">
             {/* 뒤로가기 버튼 */}
             <TouchableOpacity
-              onPress={() => {
-                const fromTravelPlan = route.params?.from === 'TravelPlan';
-                const planId = route.params?.planId;
-
-                if (route.params?.spots || route.params?.from) {
-                  navigation.setParams({ spots: undefined, from: undefined, planId: undefined });
-                }
-
-                if (fromTravelPlan) {
-                  navigation.navigate('TravelTab', {
-                    screen: 'TravelPlan',
-                    ...(planId ? { params: { planId } } : {}),
-                  });
-                } else if (navigation.canGoBack()) {
-                  navigation.goBack();
-                } else {
-                  navigation.navigate('HomeTab');
-                }
-              }}
+              onPress={handleBackNavigation}
               activeOpacity={0.7}
               style={{
                 width: normalize(48),
