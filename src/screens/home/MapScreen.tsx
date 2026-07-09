@@ -467,6 +467,8 @@ export default function MapScreen() {
           style={{ flex: 1 }}
           javaScriptEnabled={true}
           domStorageEnabled={true}
+          geolocationEnabled={true}
+          originWhitelist={['*']}
         />
 
         {/* 우측 지도 편의 컨트롤 */}
