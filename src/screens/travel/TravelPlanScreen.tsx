@@ -325,7 +325,7 @@ export default function TravelPlanScreen({ navigation }: any) {
             <Text className="text-[12px] text-black/35 mb-1.5">오전</Text>
             <Text className="text-[20px] font-semibold text-black mb-0.5">18°</Text>
             <Text className="text-[12px] text-black/35">맑음</Text>
-            <View className="absolute right-3 top-[50%] -translate-y-2.5">
+            <View className="absolute right-3 top-0 bottom-0 justify-center">
               <SvgUri width="24" height="24" uri="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/clear-day.svg" />
             </View>
           </View>
@@ -333,7 +333,7 @@ export default function TravelPlanScreen({ navigation }: any) {
             <Text className="text-[12px] text-black/35 mb-1.5">오후</Text>
             <Text className="text-[20px] font-semibold text-black mb-0.5">24°</Text>
             <Text className="text-[12px] text-black/35">구름 조금</Text>
-            <View className="absolute right-3 top-[50%] -translate-y-2.5">
+            <View className="absolute right-3 top-0 bottom-0 justify-center">
               <SvgUri width="24" height="24" uri="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/partly-cloudy-day.svg" />
             </View>
           </View>
@@ -341,7 +341,7 @@ export default function TravelPlanScreen({ navigation }: any) {
             <Text className="text-[12px] text-black/35 mb-1.5">저녁</Text>
             <Text className="text-[20px] font-semibold text-black mb-0.5">20°</Text>
             <Text className="text-[12px] text-black/35">맑음</Text>
-            <View className="absolute right-3 top-[50%] -translate-y-2.5">
+            <View className="absolute right-3 top-0 bottom-0 justify-center">
               <SvgUri width="24" height="24" uri="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/clear-night.svg" />
             </View>
           </View>
