@@ -22,9 +22,12 @@ import {
 
 import { StatusBar } from 'expo-status-bar';
 import { useTravelStore, Spot } from '@/store/useTravelStore';
+import Toast from '@/components/auth/Toast';
 
 // --- Types ---
 type ChipType = '당일치기' | '1박 2일' | '2박 3일' | '3박 이상';
+
+const MAX_TRIP_DAYS = 15;
 
 export default function TravelNewScreen() {
   const navigation = useNavigation<any>();
@@ -32,11 +35,18 @@ export default function TravelNewScreen() {
   // --- State ---
   const [isDirty, setIsDirty] = useState(false);
   const [tripName, setTripName] = useState('');
-  
+
   // Dates
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [selectedChip, setSelectedChip] = useState<ChipType | null>(null);
+
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  function showToast(message: string) {
+    setToastMessage(message);
+    setToastVisible(true);
+  }
 
   // Timeline & Days
   const [activeDay, setActiveDay] = useState(1);
@@ -213,6 +223,13 @@ export default function TravelNewScreen() {
   };
 
   const confirmDate = () => {
+    if (tempStart && tempEnd) {
+      const diffDays = Math.round((tempEnd.getTime() - tempStart.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+      if (diffDays > MAX_TRIP_DAYS) {
+        showToast(`출사 계획은 최대 ${MAX_TRIP_DAYS}일까지 만들 수 있어요.`);
+        return;
+      }
+    }
     setStartDate(tempStart);
     setEndDate(tempEnd);
     setIsDateSheetOpen(false);
@@ -505,6 +522,7 @@ export default function TravelNewScreen() {
               </TouchableOpacity>
             </View>
           </View>
+          <Toast message={toastMessage} visible={toastVisible} onHide={() => setToastVisible(false)} />
         </View>
       </Modal>
 
@@ -547,7 +565,6 @@ export default function TravelNewScreen() {
           </View>
         </View>
       </Modal>
-
     </View>
   );
 }

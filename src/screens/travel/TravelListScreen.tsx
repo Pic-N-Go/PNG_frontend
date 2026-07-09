@@ -120,20 +120,17 @@ export default function TravelListScreen({ navigation }: any) {
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right']}>
       {/* 고정 헤더: 컴팩트 타이틀 영역 */}
-      <View className="flex-row items-center justify-between h-[54px] px-[28px] bg-white z-50">
+      <View className="flex-row items-center h-[54px] px-[28px] bg-white z-50">
         <Animated.Text
           style={{ opacity: compactTitleOpacity }}
           className="text-lg font-semibold text-black tracking-tight"
         >
           출사 계획
         </Animated.Text>
-        <TouchableOpacity onPress={handleNewPlan} className="w-[32px] h-[32px] items-end justify-center">
-          <IconPlus size={24} color="#E31B59" />
-        </TouchableOpacity>
       </View>
 
       <Animated.ScrollView
-        className="flex-1 bg-[#fbfbfb]"
+        className="flex-1 bg-white"
         onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
           useNativeDriver: true,
         })}
@@ -145,13 +142,19 @@ export default function TravelListScreen({ navigation }: any) {
           style={{
             opacity: largeHeaderOpacity,
           }}
-          className="px-[28px] pb-[10px] bg-white z-40"
+          className="flex-row items-center justify-between px-[28px] pb-[10px] bg-white z-40"
         >
           <Text className="text-[28px] font-semibold text-black tracking-tight">출사 계획</Text>
+          <TouchableOpacity onPress={handleNewPlan} className="w-[32px] h-[32px] items-center justify-center">
+            <IconPlus size={22} color="#E31B59" />
+          </TouchableOpacity>
         </Animated.View>
 
         {/* 1: 탭 메뉴 */}
-        <View className="flex-row px-[16px] py-[10px] bg-white border-b border-black/5 z-40">
+        <View
+          className="flex-row px-[16px] py-[10px] bg-white z-40"
+          style={{ borderBottomWidth: 0.5, borderBottomColor: "rgba(0,0,0,0.08)" }}
+        >
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
             {TABS.map((tab) => {
               const isActive = activeTab === tab.id;
@@ -213,17 +216,6 @@ export default function TravelListScreen({ navigation }: any) {
         ) : (
           /* 리스트가 있을 때 */
           <View>
-            {/* 새 계획 만들기 인라인 버튼 */}
-            <TouchableOpacity
-              onPress={handleNewPlan}
-              className="flex-row items-center justify-center h-[72px] rounded-2xl border-2 border-dashed border-black/10 bg-white mb-4"
-            >
-              <View className="w-[30px] h-[30px] rounded-full bg-[#f5f5f7] items-center justify-center mr-2">
-                <IconPlus size={18} color="rgba(0,0,0,0.4)" />
-              </View>
-              <Text className="text-base font-medium text-black/40">새 출사 계획 만들기</Text>
-            </TouchableOpacity>
-
             {/* 카드 목록 */}
             {filteredPlans.map((plan) => (
               <TouchableOpacity
