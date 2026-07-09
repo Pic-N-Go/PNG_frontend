@@ -593,7 +593,7 @@ export default function MapScreen() {
                 onPress={() => navigation.navigate('SpotStack', { screen: 'SpotDetail', params: { spotId: activeSpot!.id } })}
                 className="flex-1 h-[52px] rounded-full bg-[#E31B59] items-center justify-center"
               >
-                <Text className="text-[15px] font-semibold text-white">상세 보기 {'>'}</Text>
+                <Text className="text-[15px] font-semibold text-white">상세 보기</Text>
               </TouchableOpacity>
             </View>
           )}
