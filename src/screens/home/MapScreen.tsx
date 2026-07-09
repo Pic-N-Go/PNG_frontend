@@ -7,8 +7,8 @@ import { useTravelStore, Spot } from '@/store/useTravelStore';
 import SpotPopup from '@/components/travel/SpotPopup';
 import FilterBottomSheet, { FilterState, EMPTY_FILTER } from '@/components/home/FilterBottomSheet';
 import { StatusBar } from 'expo-status-bar';
-import { normalize } from '@/utils/normalize';
-import { FONT_MD } from '@/constants/layout';
+import { normalize, normalizeFontSize } from '@/utils/normalize';
+import { FONT_SM, FONT_MD, FONT_LG, BUTTON_HEIGHT, BUTTON_RADIUS, HEADER_HEIGHT } from '@/constants/layout';
 
 const KAKAO_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_API_KEY;
 
@@ -313,7 +313,7 @@ export default function MapScreen() {
   if (!KAKAO_KEY) {
     return (
       <View className="flex-1 items-center justify-center bg-white">
-        <Text className="text-[16px] text-black/50">카카오 맵 API 키가 설정되지 않았습니다.</Text>
+        <Text className="text-black/50" style={{ fontSize: normalizeFontSize(16) }}>카카오 맵 API 키가 설정되지 않았습니다.</Text>
       </View>
     );
   }
@@ -322,7 +322,7 @@ export default function MapScreen() {
     <View className="flex-1 bg-white">
         <StatusBar style="dark" />
         {/* 상단 오버레이 (검색창 + 뒤로가기) */}
-        <View className="absolute top-0 left-0 right-0 z-20 pt-[54px] pointer-events-box-none">
+        <View className="absolute top-0 left-0 right-0 z-20 pointer-events-box-none" style={{ paddingTop: HEADER_HEIGHT }}>
           <View className="flex-row items-center px-4 gap-2 pointer-events-auto">
             {/* 뒤로가기 버튼 */}
             <TouchableOpacity
@@ -582,18 +582,23 @@ export default function MapScreen() {
                     setCourseModalOpen(true);
                   }
                 }}
-                className={`flex-1 h-[52px] rounded-full items-center justify-center ${isSelected && mode === 'plan' ? 'bg-[#E31B59]' : 'bg-[#f5f5f7]'}`}
+                className={`flex-1 items-center justify-center ${isSelected && mode === 'plan' ? 'bg-[#E31B59]' : 'bg-[#f5f5f7]'}`}
+                style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}
               >
-                <Text className={`text-[15px] font-semibold ${isSelected && mode === 'plan' ? 'text-white' : 'text-black/60'}`}>
+                <Text
+                  className={`font-semibold ${isSelected && mode === 'plan' ? 'text-white' : 'text-black/60'}`}
+                  style={{ fontSize: FONT_MD }}
+                >
                   {mode === 'plan' ? (isSelected ? '현재 코스에 저장됨' : '현재 코스에 저장') : '코스에 저장'}
                 </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 onPress={() => navigation.navigate('SpotStack', { screen: 'SpotDetail', params: { spotId: activeSpot!.id } })}
-                className="flex-1 h-[52px] rounded-full bg-[#E31B59] items-center justify-center"
+                className="flex-1 bg-[#E31B59] items-center justify-center"
+                style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}
               >
-                <Text className="text-[15px] font-semibold text-white">상세 보기</Text>
+                <Text className="font-semibold text-white" style={{ fontSize: FONT_MD }}>상세 보기</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -603,16 +608,17 @@ export default function MapScreen() {
         {isCourseModalOpen && (
           <View className="absolute inset-0 bg-black/40 items-center justify-center z-50">
             <View className="bg-white rounded-2xl w-[80%] p-5 items-center">
-              <Text className="text-[18px] font-semibold text-black mb-4">어떤 코스에 저장할까요?</Text>
+              <Text className="font-semibold text-black mb-4" style={{ fontSize: normalizeFontSize(18) }}>어떤 코스에 저장할까요?</Text>
 
               <TouchableOpacity
                 onPress={() => {
                   setCourseModalOpen(false);
                   navigation.navigate('TravelTab', { screen: 'TravelNew' });
                 }}
-                className="w-full h-12 bg-[#f5f5f7] rounded-xl items-center justify-center mb-2"
+                className="w-full bg-[#f5f5f7] rounded-xl items-center justify-center mb-2"
+                style={{ height: BUTTON_HEIGHT }}
               >
-                <Text className="text-[15px] text-black font-medium">+ 새 코스 만들기</Text>
+                <Text className="text-black font-medium" style={{ fontSize: FONT_MD }}>+ 새 코스 만들기</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -621,16 +627,17 @@ export default function MapScreen() {
                   addSpot(activeSpot!);
                   navigation.navigate('TravelTab', { screen: 'TravelNew' });
                 }}
-                className="w-full h-12 bg-[#E31B59] rounded-xl items-center justify-center"
+                className="w-full bg-[#E31B59] rounded-xl items-center justify-center"
+                style={{ height: BUTTON_HEIGHT }}
               >
-                <Text className="text-[15px] text-white font-medium">현재 진행중인 코스</Text>
+                <Text className="text-white font-medium" style={{ fontSize: FONT_MD }}>현재 진행중인 코스</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 onPress={() => setCourseModalOpen(false)}
                 className="mt-4 p-2"
               >
-                <Text className="text-[14px] text-black/50">취소</Text>
+                <Text className="text-black/50" style={{ fontSize: normalizeFontSize(14) }}>취소</Text>
               </TouchableOpacity>
             </View>
           </View>
