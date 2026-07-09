@@ -13,7 +13,7 @@ export type RootStackParamList = {
   Main: undefined;
   SpotStack: NavigatorScreenParams<SpotStackParamList>;
   Wishlist: undefined;
-  WishlistSetting: { spotId?: string; newSpot?: any; newWishlist?: any };
+  WishlistSetting: { id?: number; wishlist?: any; spotId?: string; newSpot?: any; newWishlist?: any };
   Map: { source?: string; newSpot?: any };
 };
 
