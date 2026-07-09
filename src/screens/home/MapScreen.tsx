@@ -439,7 +439,7 @@ export default function MapScreen() {
                       height: 32,
                       paddingHorizontal: 14,
                       borderRadius: 16,
-                      backgroundColor: isActive ? '#000000' : '#F5F5F7',
+                      backgroundColor: isActive ? '#E31B59' : '#F5F5F7',
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}

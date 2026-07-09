@@ -79,13 +79,34 @@ export default function TravelPlanScreen({ navigation }: any) {
       const parsed = JSON.parse(event.nativeEvent.data);
       if (parsed.type === 'SPOT_CLICK') {
         const spotId = parsed.data.id;
-        const index = currentData.spots.findIndex((s: any) => s.id === spotId);
+        let targetDay = currentDay;
+        let index = currentData.spots.findIndex((s: any) => s.id === spotId);
+
+        if (index === -1) {
+          for (const [dayKey, dayData] of Object.entries(data)) {
+            const foundIndex = dayData.spots.findIndex((s: any) => s.id === spotId);
+            if (foundIndex !== -1) {
+              targetDay = dayKey;
+              index = foundIndex;
+              break;
+            }
+          }
+        }
+
         if (index === -1) return;
 
-        setSelectedSpotId(spotId); // 선택 하이라이트 (항상 동작)
-
-        const yOffset = rowOffsets.current[index] || 0;
-        scrollRef.current?.scrollTo({ y: headerHeightRef.current + yOffset - 24, animated: true });
+        if (targetDay !== currentDay) {
+          setCurrentDay(targetDay);
+          setSelectedSpotId(spotId);
+          setTimeout(() => {
+            const yOffset = rowOffsets.current[index] || 0;
+            scrollRef.current?.scrollTo({ y: headerHeightRef.current + yOffset - 24, animated: true });
+          }, 100);
+        } else {
+          setSelectedSpotId(spotId);
+          const yOffset = rowOffsets.current[index] || 0;
+          scrollRef.current?.scrollTo({ y: headerHeightRef.current + yOffset - 24, animated: true });
+        }
       } else if (parsed.type === 'MAP_CLICK') {
         setSelectedSpotId(null);
       }
@@ -399,7 +420,7 @@ export default function TravelPlanScreen({ navigation }: any) {
       <View className="mt-8">
         <View className="flex-row items-baseline justify-between mb-3">
           <Text className="text-[18px] font-semibold text-black tracking-[-0.3px]">이동 경로</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('MapTab', { screen: 'Map', params: { spots: currentData.spots, from: 'TravelPlan' } })}>
+          <TouchableOpacity onPress={() => navigation.navigate('MapTab', { screen: 'Map', params: { source: 'plan', spots: currentData.spots, from: 'TravelPlan' } })}>
             <Text className="text-[13px] text-[#e31b59]">지도에서 보기</Text>
           </TouchableOpacity>
         </View>

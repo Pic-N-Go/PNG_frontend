@@ -133,7 +133,7 @@ export default function TravelListScreen({ navigation }: any) {
       </View>
 
       <Animated.ScrollView
-        className="flex-1 bg-[#fbfbfb]"
+        className="flex-1 bg-white"
         onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
           useNativeDriver: true,
         })}
@@ -216,7 +216,7 @@ export default function TravelListScreen({ navigation }: any) {
             {/* 새 계획 만들기 인라인 버튼 */}
             <TouchableOpacity
               onPress={handleNewPlan}
-              className="flex-row items-center justify-center h-[72px] rounded-2xl border-2 border-dashed border-black/10 bg-white mb-4"
+              className="flex-row items-center justify-center h-[72px] rounded-2xl border-2 border-dashed border-black/10 bg-[#f5f5f7] mb-4"
             >
               <View className="w-[30px] h-[30px] rounded-full bg-[#f5f5f7] items-center justify-center mr-2">
                 <IconPlus size={18} color="rgba(0,0,0,0.4)" />
@@ -230,7 +230,7 @@ export default function TravelListScreen({ navigation }: any) {
                 key={plan.id}
                 activeOpacity={0.9}
                 onPress={() => handlePlanDetail(plan.id)}
-                className="bg-white rounded-2xl overflow-hidden mb-3"
+                className="bg-[#f5f5f7] rounded-2xl overflow-hidden mb-3"
               >
                 {/* 썸네일 영역 */}
                 <View className="h-[120px] flex-row bg-gray-100">
