@@ -474,10 +474,10 @@ export default function TravelNewScreen() {
                   bgClass = "bg-[#e31b59]/10 rounded-none";
                 }
                 if (tempStart && dateObj.getTime() === tempStart.getTime()) {
-                  bgClass = tempEnd ? "bg-[#e31b59] rounded-l-full rounded-r-none" : "bg-[#e31b59] rounded-full";
+                  const isSameDay = tempEnd && tempStart.getTime() === tempEnd.getTime();
+                  bgClass = (tempEnd && !isSameDay) ? "bg-[#e31b59] rounded-l-full rounded-r-none" : "bg-[#e31b59] rounded-full";
                   textClass = "text-white";
-                }
-                if (tempEnd && dateObj.getTime() === tempEnd.getTime()) {
+                } else if (tempEnd && dateObj.getTime() === tempEnd.getTime()) {
                   bgClass = "bg-[#e31b59] rounded-r-full rounded-l-none";
                   textClass = "text-white";
                 }
