@@ -7,6 +7,7 @@
 | 파일 | 용도 |
 |---|---|
 | `github-actions-guide.md` | GitHub Actions 자동화 동작 및 대응 방법 |
+| `ios-pod-lock-workflow.md` | `pnpm ios`/`Podfile.lock` 자동 변경 대응 기준 |
 | `team-assignments.md` | 화면·API·훅·스토어 담당자 현황 |
 
 ## 포함 기준
