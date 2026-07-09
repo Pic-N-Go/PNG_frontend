@@ -582,7 +582,7 @@ export default function MapScreen() {
                     setCourseModalOpen(true);
                   }
                 }}
-                className={`flex-1 h-11 rounded-full items-center justify-center ${isSelected && mode === 'plan' ? 'bg-[#e31b59]' : 'bg-[#f5f5f7]'}`}
+                className={`flex-1 h-[42px] rounded-full items-center justify-center ${isSelected && mode === 'plan' ? 'bg-[#E31B59]' : 'bg-[#f5f5f7]'}`}
               >
                 <Text className={`text-[15px] font-medium ${isSelected && mode === 'plan' ? 'text-white' : 'text-black/60'}`}>
                   {mode === 'plan' ? (isSelected ? '현재 코스에 저장됨' : '현재 코스에 저장') : '코스에 저장'}
@@ -591,7 +591,7 @@ export default function MapScreen() {
 
               <TouchableOpacity
                 onPress={() => navigation.navigate('SpotStack', { screen: 'SpotDetail', params: { spotId: activeSpot!.id } })}
-                className="flex-1 h-11 rounded-full bg-[#E31B59] items-center justify-center"
+                className="flex-1 h-[42px] rounded-full bg-[#E31B59] items-center justify-center"
               >
                 <Text className="text-[15px] font-medium text-white">상세 보기 {'>'}</Text>
               </TouchableOpacity>
