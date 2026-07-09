@@ -185,7 +185,7 @@ export default function WishlistSettingScreen({ navigation, route }: any) {
           <Text className="font-semibold text-white tracking-tight mb-1" style={{ fontSize: normalizeFontSize(18) }}>{selectedSpot.name}</Text>
           <Text className="text-white/50 mb-2.5" style={{ fontSize: normalizeFontSize(12) }}>{selectedSpot.loc} · 포토제닉 {selectedSpot.score}점</Text>
           <View className="flex-row gap-1.5 relative z-10">
-            {selectedSpot.tags.map(tag => (
+            {(selectedSpot.tags || []).map((tag: string) => (
               <View key={tag} className="bg-white/10 items-center justify-center rounded-full" style={{ paddingVertical: normalize(2), paddingHorizontal: normalize(12) }}>
                 <Text className="text-white/75" style={{ fontSize: normalizeFontSize(10) }}>{tag}</Text>
               </View>
