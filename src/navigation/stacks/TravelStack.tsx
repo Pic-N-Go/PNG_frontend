@@ -5,6 +5,7 @@ import TravelPlanScreen from '@/screens/travel/TravelPlanScreen';
 import TravelNewScreen from '@/screens/travel/TravelNewScreen';
 import WishlistScreen from '@/screens/wishlist/WishlistScreen';
 import WishlistSettingScreen from '@/screens/wishlist/WishlistSettingScreen';
+import MapScreen from '@/screens/home/MapScreen';
 
 export type TravelStackParamList = {
   TravelList: undefined;
@@ -12,6 +13,7 @@ export type TravelStackParamList = {
   TravelNew: undefined;
   Wishlist: undefined;
   WishlistSetting: { spotId: string };
+  Map: { mode: 'plan' | 'view' };
 };
 
 const Stack = createNativeStackNavigator<TravelStackParamList>();
@@ -24,6 +26,7 @@ export default function TravelStack() {
       <Stack.Screen name="TravelNew" component={TravelNewScreen} />
       <Stack.Screen name="Wishlist" component={WishlistScreen} />
       <Stack.Screen name="WishlistSetting" component={WishlistSettingScreen} />
+      <Stack.Screen name="Map" component={MapScreen} />
     </Stack.Navigator>
   );
 }

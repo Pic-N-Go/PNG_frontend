@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 
 import { ScrollView, Text, View } from 'react-native';
@@ -95,6 +96,7 @@ export default function HomeScreen({ navigation }: Props) {
         onClose={() => setFilterVisible(false)}
         onApply={(count) => setActiveFilterCount(count)}
       />
+
     </View>
   );
 }
