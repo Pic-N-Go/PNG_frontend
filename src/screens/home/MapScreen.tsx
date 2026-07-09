@@ -126,9 +126,11 @@ export default function MapScreen() {
         );
         if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
           console.log('Location permission denied');
+          return;
         }
       } catch (err) {
         console.warn(err);
+        return;
       }
     }
 
