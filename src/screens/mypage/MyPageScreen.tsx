@@ -9,7 +9,7 @@ export default function MyPageScreen({ navigation }: any) {
       
       <TouchableOpacity 
         style={{ backgroundColor: '#E31B59', padding: 16, borderRadius: 12, alignItems: 'center' }}
-        onPress={() => navigation.navigate('TravelTab', { screen: 'Wishlist' })}
+        onPress={() => navigation.navigate('Wishlist')}
       >
         <Text style={{ color: 'white', fontSize: 16, fontWeight: 'bold' }}>위시리스트 화면 보기</Text>
       </TouchableOpacity>

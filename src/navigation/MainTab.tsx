@@ -26,17 +26,7 @@ export default function MainTab() {
     >
       <Tab.Screen name="HomeTab" component={HomeStack} />
       <Tab.Screen name="MapTab" component={MapStack} />
-      <Tab.Screen 
-        name="TravelTab" 
-        component={TravelStack} 
-        options={({ route }) => {
-          const routeName = getFocusedRouteNameFromRoute(route) ?? 'TravelList';
-          if (routeName === 'Wishlist' || routeName === 'WishlistSetting') {
-            return { tabBarStyle: { display: 'none' } };
-          }
-          return {};
-        }}
-      />
+      <Tab.Screen name="TravelTab" component={TravelStack} />
       <Tab.Screen name="CommunityTab" component={CommunityStack} />
       <Tab.Screen name="MyPageTab" component={MyPageStack} />
     </Tab.Navigator>
