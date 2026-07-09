@@ -82,7 +82,7 @@ export default function HomeScreen({ navigation }: Props) {
         />
 
         <CalendarSection />
-        <WishlistBanner />
+        <WishlistBanner onPress={() => navigation.navigate('TravelTab', { screen: 'Wishlist' } as any)} />
 
       </ScrollView>
 
