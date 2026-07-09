@@ -96,6 +96,41 @@ export default function WishlistSettingScreen({ navigation }: any) {
     }
   };
 
+  const handleSave = () => {
+    const newWishlist = {
+      id: Date.now(),
+      title: selectedSpot.name,
+      loc: `${selectedSpot.loc} · 포토제닉 ${selectedSpot.score}점`,
+      status: 'wait',
+      statusText: '대기 중',
+      conditions: [
+        ...selectedWeathers.map(w => ({ type: 'weather', text: w, active: false })),
+        ...selectedTimes.map(t => ({ type: 'time', text: t, active: false })),
+        { type: 'dust', text: `미세먼지 ${selectedDust}`, active: false }
+      ],
+      forecast: [
+        { day: '오늘', status: 'overcast', hit: false },
+        { day: '내일', status: 'clear', hit: true },
+        { day: '+2', status: 'partly-cloudy', hit: false },
+        { day: '+3', status: 'clear', hit: true },
+        { day: '+4', status: 'rain', hit: false },
+        { day: '+5', status: 'partly-cloudy', hit: false },
+        { day: '+6', status: 'clear', hit: false },
+      ],
+      notifText: notifEnabled ? '설정한 조건에 맞춰 대기 중' : null,
+      thumbnails: ['#1a1530', '#232526', '#2a2020'],
+    };
+
+    setIsDirty(false);
+    setTimeout(() => {
+      navigation.navigate({
+        name: 'Wishlist',
+        params: { newWishlist },
+        merge: true,
+      });
+    }, 10);
+  };
+
   const toggleWeather = (w: string) => {
     setSelectedWeathers(prev => prev.includes(w) ? prev.filter(x => x !== w) : [...prev, w]);
     markDirty();
@@ -318,7 +353,7 @@ export default function WishlistSettingScreen({ navigation }: any) {
 
       {/* CTA Bar */}
       <View className="bg-white border-t border-black/5" style={{ padding: normalize(12), paddingHorizontal: CONTENT_PADDING, paddingBottom: normalize(28) }}>
-        <TouchableOpacity onPress={() => navigation.goBack()} className="bg-[#E31B59] items-center justify-center" style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}>
+        <TouchableOpacity onPress={handleSave} className="bg-[#E31B59] items-center justify-center" style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}>
           <Text className="font-medium text-white" style={{ fontSize: normalizeFontSize(16) }}>설정 저장</Text>
         </TouchableOpacity>
       </View>
@@ -415,10 +450,12 @@ export default function WishlistSettingScreen({ navigation }: any) {
             );
           })}
 
-          <TouchableOpacity className="items-center py-4">
+        </ScrollView>
+        <View className="px-5 pt-3 pb-2 bg-white">
+          <TouchableOpacity className="items-center py-2">
             <Text className="font-medium text-[#E31B59]" style={{ fontSize: normalizeFontSize(14) }}>전체 스팟에서 검색 →</Text>
           </TouchableOpacity>
-        </ScrollView>
+        </View>
       </BottomSheet>
 
       {/* Time Picker Sheet */}

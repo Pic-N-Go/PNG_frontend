@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Animated, Image, Modal, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FONT_SM, BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING, CARD_RADIUS } from '@/constants/layout';
@@ -78,10 +78,23 @@ const dummyWishlists = [
   }
 ];
 
-export default function WishlistScreen({ navigation }: any) {
+export default function WishlistScreen({ navigation, route }: any) {
   const [wishlists, setWishlists] = useState(dummyWishlists);
   const [sortType, setSortType] = useState('최신순');
   const [sortModalVisible, setSortModalVisible] = useState(false);
+
+  useEffect(() => {
+    if (route.params?.newWishlist) {
+      setWishlists(prev => {
+        const exists = prev.find(w => w.id === route.params.newWishlist.id);
+        if (exists) {
+          return prev.map(w => w.id === route.params.newWishlist.id ? route.params.newWishlist : w);
+        }
+        return [route.params.newWishlist, ...prev];
+      });
+      navigation.setParams({ newWishlist: undefined });
+    }
+  }, [route.params?.newWishlist]);
 
   const sortedWishlists = [...wishlists].sort((a, b) => {
     if (sortType === '이름순') return a.title.localeCompare(b.title);
