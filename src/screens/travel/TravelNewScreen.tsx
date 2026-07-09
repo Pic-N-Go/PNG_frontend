@@ -23,7 +23,7 @@ import {
 import { StatusBar } from 'expo-status-bar';
 import { useTravelStore, Spot } from '@/store/useTravelStore';
 
-import { FONT_SM, FONT_MD, BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING } from '@/constants/layout';
+import { BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 
 // --- Types ---
