@@ -616,7 +616,7 @@ export default function MapScreen() {
                       <View className="bg-[#E31B59]/10 items-center justify-center rounded-full px-2.5 py-1">
                         <Text className="text-[#E31B59] font-semibold" style={{ fontSize: normalizeFontSize(10) }}>포토제닉 {activeSpot.score}</Text>
                       </View>
-                      {activeSpot.tags.map(t => (
+                      {(activeSpot.tags || []).map((t: string) => (
                         <View key={t} className="bg-black/5 items-center justify-center rounded-full px-2.5 py-1">
                           <Text className="text-black/50 font-medium" style={{ fontSize: normalizeFontSize(10) }}>{t}</Text>
                         </View>
