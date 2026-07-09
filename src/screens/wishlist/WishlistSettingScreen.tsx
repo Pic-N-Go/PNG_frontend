@@ -113,7 +113,7 @@ export default function WishlistSettingScreen({ navigation, route }: any) {
 
   const handleSave = () => {
     const newWishlist = {
-      id: Date.now(),
+      id: route.params?.id || Date.now(),
       title: selectedSpot.name,
       loc: `${selectedSpot.loc} · 포토제닉 ${selectedSpot.score}점`,
       status: 'wait',
