@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, Image, Animated, Easing, PanResponder } from 'react-native';
+import { View, Text, TouchableOpacity, Image, Animated, Easing, PanResponder, Dimensions } from 'react-native';
 import { IconMapPin, IconX, IconStarFilled, IconHeart, IconBookmark } from '@tabler/icons-react-native';
 import { Spot } from '@/store/useTravelStore';
 
@@ -9,8 +9,10 @@ interface Props {
   renderButtons?: () => React.ReactNode;
 }
 
+const SCREEN_HEIGHT = Dimensions.get('window').height;
+
 export default function SpotPopup({ activeSpot, onClose, renderButtons }: Props) {
-  const translateY = useRef(new Animated.Value(400)).current;
+  const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const lastSpot = useRef<Spot | null>(null);
 
   if (activeSpot) {
@@ -30,7 +32,7 @@ export default function SpotPopup({ activeSpot, onClose, renderButtons }: Props)
       }).start();
     } else {
       Animated.timing(translateY, {
-        toValue: 400,
+        toValue: SCREEN_HEIGHT,
         duration: 250,
         easing: Easing.in(Easing.cubic),
         useNativeDriver: true,
@@ -45,7 +47,7 @@ export default function SpotPopup({ activeSpot, onClose, renderButtons }: Props)
 
   const handleClose = () => {
     Animated.timing(translateY, {
-      toValue: 400,
+      toValue: SCREEN_HEIGHT,
       duration: 250,
       easing: Easing.in(Easing.cubic),
       useNativeDriver: true,
@@ -98,7 +100,7 @@ export default function SpotPopup({ activeSpot, onClose, renderButtons }: Props)
         {/* Handle Bar floating over the image */}
         <View
           {...panResponder.current.panHandlers}
-          className="absolute top-0 left-0 right-0 h-12 z-40 items-center pt-2.5"
+          className="absolute top-0 left-12 right-12 h-12 z-40 items-center pt-2.5"
         >
           <View
             className="w-10 h-1.5 bg-white/95 rounded-full"
@@ -109,7 +111,7 @@ export default function SpotPopup({ activeSpot, onClose, renderButtons }: Props)
         {displaySpot && (
           <>
             {/* Photos */}
-            <View className="h-[190px] w-full relative bg-gray-200">
+            <View className="h-[110px] w-full relative bg-gray-200">
               {displaySpot.photo ? (
                 <View className="flex-row w-full h-full gap-[2px] bg-white">
                   <Image source={{ uri: displaySpot.photo }} className="flex-1 h-full bg-gray-200" resizeMode="cover" />
