@@ -1,6 +1,5 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
 import HomeStack from './stacks/HomeStack';
 import MapStack from './stacks/MapStack';
 import TravelStack from './stacks/TravelStack';

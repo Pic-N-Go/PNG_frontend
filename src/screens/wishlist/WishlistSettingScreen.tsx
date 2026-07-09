@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, TextInput, Switch, Modal, Pressable, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, TextInput, Switch, KeyboardAvoidingView, Platform } from 'react-native';
 import { CommonActions } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { FONT_SM, BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING, BOTTOM_SHEET_RADIUS } from '@/constants/layout';
+import { FONT_SM, BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { IconChevronLeft, IconTrash, IconX, IconSearch, IconCheck, IconAlertCircle, IconSun, IconCloud, IconCloudRain, IconCloudSnow, IconCloudFog, IconCloudStorm, IconMinus, IconPlus } from '@tabler/icons-react-native';
 import BottomSheet from '@/components/common/BottomSheet';
@@ -70,7 +70,7 @@ export default function WishlistSettingScreen({ navigation, route }: any) {
       markDirty();
       navigation.setParams({ newSpot: undefined });
     }
-  }, [route.params?.newSpot]);
+  }, [route.params?.newSpot, navigation]);
 
   const adjustTime = (time: string, delta: number) => {
     const [h, m] = time.split(':').map(Number);

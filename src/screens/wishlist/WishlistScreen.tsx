@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Animated, Image, Modal, Pressable } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FONT_SM, BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING, CARD_RADIUS } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { IconChevronLeft, IconPlus, IconBell, IconChevronRight, IconMapPin, IconCircleCheck, IconCheck, IconChevronDown } from '@tabler/icons-react-native';
+import { IconChevronLeft, IconBell, IconChevronRight, IconMapPin, IconCircleCheck, IconCheck, IconChevronDown } from '@tabler/icons-react-native';
 
 const dummyWishlists = [
   {
@@ -94,7 +94,7 @@ export default function WishlistScreen({ navigation, route }: any) {
       });
       navigation.setParams({ newWishlist: undefined });
     }
-  }, [route.params?.newWishlist]);
+  }, [route.params?.newWishlist, navigation]);
 
   const sortedWishlists = [...wishlists].sort((a, b) => {
     if (sortType === '이름순') return a.title.localeCompare(b.title);
