@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Animated, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { FONT_SM, FONT_2XL, BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING } from '@/constants/layout';
+import { FONT_SM, FONT_2XL, BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING, CARD_RADIUS } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { IconPlus, IconChevronRight, IconCalendarEvent, IconMapPin, IconClock, IconRoute, IconZoomPan } from '@tabler/icons-react-native';
 const dummyPlans = [
@@ -147,7 +147,7 @@ export default function TravelListScreen({ navigation }: any) {
         >
           <Text className="font-semibold text-black tracking-tight" style={{ fontSize: FONT_2XL }}>출사 계획</Text>
           <TouchableOpacity onPress={handleNewPlan} className="items-end justify-center" style={{ width: normalize(32), height: normalize(32) }}>
-            <IconPlus size={24} color="#E31B59" />
+            <IconPlus size={normalize(24)} color="#E31B59" />
           </TouchableOpacity>
         </Animated.View>
 
@@ -191,12 +191,12 @@ export default function TravelListScreen({ navigation }: any) {
         {filteredPlans.length === 0 ? (
           <View className="items-center" style={{ marginTop: normalize(40) }}>
             <View className="rounded-3xl bg-[#f5f5f7] items-center justify-center mb-5" style={{ width: normalize(80), height: normalize(80) }}>
-              <IconZoomPan size={36} color="rgba(0,0,0,0.18)" />
+              <IconZoomPan size={normalize(36)} color="rgba(0,0,0,0.18)" />
             </View>
-            <Text className="text-lg font-semibold text-black tracking-tight mb-2">
+            <Text className="font-semibold text-black tracking-tight mb-2" style={{ fontSize: normalizeFontSize(18) }}>
               첫 출사 계획을 세워볼까요?
             </Text>
-            <Text className="text-sm text-black/40 text-center leading-relaxed mb-7">
+            <Text className="text-black/40 text-center leading-relaxed mb-7" style={{ fontSize: FONT_SM }}>
               가고 싶은 스팟을 모아 날짜와 일정을{'\n'}한 번에 계획할 수 있어요.
             </Text>
             <TouchableOpacity
@@ -204,8 +204,8 @@ export default function TravelListScreen({ navigation }: any) {
               className="bg-[#E31B59] flex-row items-center"
               style={{ height: BUTTON_HEIGHT, paddingHorizontal: CONTENT_PADDING, borderRadius: BUTTON_RADIUS }}
             >
-              <IconPlus size={20} color="#fff" />
-              <Text className="text-base font-semibold text-white ml-1.5">새 출사 계획 만들기</Text>
+              <IconPlus size={normalize(20)} color="#fff" />
+              <Text className="font-semibold text-white ml-1.5" style={{ fontSize: normalizeFontSize(16) }}>새 출사 계획 만들기</Text>
             </TouchableOpacity>
           </View>
         ) : (
@@ -214,13 +214,13 @@ export default function TravelListScreen({ navigation }: any) {
             {/* 새 계획 만들기 인라인 버튼 */}
             <TouchableOpacity
               onPress={handleNewPlan}
-              className="flex-row items-center justify-center rounded-2xl border-2 border-dashed border-black/10 bg-[#f5f5f7] mb-4"
-              style={{ height: normalize(72) }}
+              className="flex-row items-center justify-center border-2 border-dashed border-black/10 bg-[#f5f5f7] mb-4"
+              style={{ height: normalize(72), borderRadius: CARD_RADIUS }}
             >
               <View className="rounded-full bg-[#f5f5f7] items-center justify-center mr-2" style={{ width: normalize(30), height: normalize(30) }}>
-                <IconPlus size={18} color="rgba(0,0,0,0.4)" />
+                <IconPlus size={normalize(18)} color="rgba(0,0,0,0.4)" />
               </View>
-              <Text className="text-base font-medium text-black/40">새 출사 계획 만들기</Text>
+              <Text className="font-medium text-black/40" style={{ fontSize: normalizeFontSize(16) }}>새 출사 계획 만들기</Text>
             </TouchableOpacity>
 
             {/* 카드 목록 */}
@@ -229,7 +229,8 @@ export default function TravelListScreen({ navigation }: any) {
                 key={plan.id}
                 activeOpacity={0.9}
                 onPress={() => handlePlanDetail(plan.id)}
-                className="bg-white rounded-[20px] overflow-hidden mb-5 border border-black/5 shadow-sm"
+                className="bg-[#f5f5f7] overflow-hidden mb-5"
+                style={{ borderRadius: CARD_RADIUS }}
               >
                 {/* 썸네일 영역 */}
                 <View className="flex-row bg-gray-100" style={{ height: normalize(120) }}>
@@ -245,7 +246,7 @@ export default function TravelListScreen({ navigation }: any) {
                     ))
                   ) : (
                     <View className="flex-1 items-center justify-center bg-[#f5f5f7]">
-                      <IconMapPin size={24} color="rgba(0,0,0,0.1)" />
+                      <IconMapPin size={normalize(24)} color="rgba(0,0,0,0.1)" />
                     </View>
                   )}
 
@@ -275,11 +276,11 @@ export default function TravelListScreen({ navigation }: any) {
                     <Text className="font-semibold text-black tracking-tight" numberOfLines={1} style={{ fontSize: normalizeFontSize(18) }}>
                       {plan.title}
                     </Text>
-                    <IconChevronRight size={18} color="rgba(0,0,0,0.2)" />
+                    <IconChevronRight size={normalize(18)} color="rgba(0,0,0,0.2)" />
                   </View>
                   
                   <View className="flex-row items-center mb-3">
-                    <IconCalendarEvent size={12} color="rgba(0,0,0,0.3)" />
+                    <IconCalendarEvent size={normalize(12)} color="rgba(0,0,0,0.3)" />
                     <Text className="text-black/40 ml-1" style={{ fontSize: normalizeFontSize(12) }}>
                       {plan.date} · {plan.duration}
                     </Text>
@@ -287,15 +288,15 @@ export default function TravelListScreen({ navigation }: any) {
 
                   <View className="flex-row items-center gap-x-3">
                     <View className="flex-row items-center">
-                      <IconMapPin size={12} color="rgba(0,0,0,0.3)" />
+                      <IconMapPin size={normalize(12)} color="rgba(0,0,0,0.3)" />
                       <Text className="text-black/40 ml-1" style={{ fontSize: normalizeFontSize(12) }}>포토스팟 {plan.spots}곳</Text>
                     </View>
                     <View className="flex-row items-center">
-                      <IconClock size={12} color="rgba(0,0,0,0.3)" />
+                      <IconClock size={normalize(12)} color="rgba(0,0,0,0.3)" />
                       <Text className="text-black/40 ml-1" style={{ fontSize: normalizeFontSize(12) }}>{plan.estimatedTime}</Text>
                     </View>
                     <View className="flex-row items-center">
-                      <IconRoute size={12} color="rgba(0,0,0,0.3)" />
+                      <IconRoute size={normalize(12)} color="rgba(0,0,0,0.3)" />
                       <Text className="text-black/40 ml-1" style={{ fontSize: normalizeFontSize(12) }}>{plan.distance}</Text>
                     </View>
                   </View>
