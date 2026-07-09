@@ -22,9 +22,9 @@ const MOCK_DATA: Record<string, any> = {
     tip: '광안리 일출 시간 05:32 · 골든아워 06:00~06:40\n미세먼지 좋음 · 일출 포인트로 이동 추천',
     checklist: ['삼각대', '광각렌즈 (16-35mm)', 'ND 필터', '보조배터리', '편한 신발'],
     spots: [
-      { id: 'spot1', name: '광안리 해수욕장', loc: '부산 수영구 · 야경/바다', time: '06:30 ~ 08:00', dur: '1시간 30분', score: '87점', scoreColor: '#ff9f0a', bg: '#0f2027', lat: 35.1531696, lng: 129.118666 },
-      { id: 'spot2', name: '해동용궁사', loc: '부산 기장군 · 한옥/바다', time: '09:00 ~ 10:30', dur: '1시간 30분', score: '82점', scoreColor: '#ff9f0a', bg: '#8e7b5a', lat: 35.1884148, lng: 129.223293 },
-      { id: 'spot3', name: '감천문화마을', loc: '부산 사하구 · 인물/감성', time: '11:00 ~ 13:00', dur: '2시간', score: '79점', scoreColor: '#34c759', bg: '#b44a3a', lat: 35.0974711, lng: 129.010595 }
+      { id: 'spot1', name: '광안리 해수욕장', loc: '부산 수영구 · 야경/바다', time: '06:30 ~ 08:00', dur: '1시간 30분', score: 87, scoreColor: '#ff9f0a', bg: '#0f2027', lat: 35.1531696, lng: 129.118666 },
+      { id: 'spot2', name: '해동용궁사', loc: '부산 기장군 · 한옥/바다', time: '09:00 ~ 10:30', dur: '1시간 30분', score: 82, scoreColor: '#ff9f0a', bg: '#8e7b5a', lat: 35.1884148, lng: 129.223293 },
+      { id: 'spot3', name: '감천문화마을', loc: '부산 사하구 · 인물/감성', time: '11:00 ~ 13:00', dur: '2시간', score: 79, scoreColor: '#34c759', bg: '#b44a3a', lat: 35.0974711, lng: 129.010595 }
     ],
     transports: [
       { type: 'car', label: '차량 25분 · 18km' },
@@ -36,8 +36,8 @@ const MOCK_DATA: Record<string, any> = {
     tip: '영도 일몰 시간 19:22 · 골든아워 18:40~19:22\n미세먼지 보통 · 흰여울마을 오전 방문 추천',
     checklist: ['편광 필터', '드론', '삼각대', '여분의 메모리카드'],
     spots: [
-      { id: 'spot4', name: '흰여울문화마을', loc: '부산 영도구 · 뷰/감성', time: '09:30 ~ 11:00', dur: '1시간 30분', score: '91점', scoreColor: '#e31b59', bg: '#667eea', lat: 35.0788, lng: 129.0439 },
-      { id: 'spot5', name: '태종대 유원지', loc: '부산 영도구 · 바다/절벽', time: '11:30 ~ 13:30', dur: '2시간', score: '88점', scoreColor: '#ff9f0a', bg: '#1a6b8a', lat: 35.0527, lng: 129.0877 }
+      { id: 'spot4', name: '흰여울문화마을', loc: '부산 영도구 · 뷰/감성', time: '09:30 ~ 11:00', dur: '1시간 30분', score: 91, scoreColor: '#e31b59', bg: '#667eea', lat: 35.0788, lng: 129.0439 },
+      { id: 'spot5', name: '태종대 유원지', loc: '부산 영도구 · 바다/절벽', time: '11:30 ~ 13:30', dur: '2시간', score: 88, scoreColor: '#ff9f0a', bg: '#1a6b8a', lat: 35.0527, lng: 129.0877 }
     ],
     transports: [
       { type: 'car', label: '차량 15분 · 7km' }
@@ -491,7 +491,7 @@ export default function TravelPlanScreen({ navigation }: any) {
               <View className="flex-row items-center justify-between mb-1">
                 <Text className="text-[16px] font-semibold text-black tracking-[-0.2px]" numberOfLines={1}>{item.name}</Text>
                 <View className="px-2.5 h-6 rounded-full items-center justify-center" style={{ backgroundColor: item.scoreColor }}>
-                  <Text className="text-[12px] font-semibold text-white">{item.score}</Text>
+                  <Text className="text-[12px] font-semibold text-white">{item.score}점</Text>
                 </View>
               </View>
               <Text className="text-[12px] text-black/40 mb-2">{item.loc}</Text>
