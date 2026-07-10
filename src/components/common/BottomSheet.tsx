@@ -22,6 +22,14 @@ export default function BottomSheet({ visible, onClose, children }: Props) {
     onCloseRef.current = onClose;
   }, [onClose]);
 
+  const handleClose = React.useCallback(() => {
+    Animated.timing(panY, {
+      toValue: Dimensions.get('window').height,
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => onCloseRef.current());
+  }, [panY]);
+
   const panResponder = useRef<any>(null);
   if (!panResponder.current) {
     panResponder.current = PanResponder.create({
@@ -34,11 +42,7 @@ export default function BottomSheet({ visible, onClose, children }: Props) {
       },
       onPanResponderRelease: (e, gestureState) => {
         if (gestureState.dy > 100 || gestureState.vy > 0.5) {
-          Animated.timing(panY, {
-            toValue: Dimensions.get('window').height,
-            duration: 300,
-            useNativeDriver: true,
-          }).start(() => onCloseRef.current());
+          handleClose();
         } else {
           Animated.timing(panY, {
             toValue: 0,
@@ -62,10 +66,10 @@ export default function BottomSheet({ visible, onClose, children }: Props) {
   }, [visible, panY]);
 
   return (
-    <Modal visible={visible} transparent animationType="fade" statusBarTranslucent onRequestClose={onClose}>
+    <Modal visible={visible} transparent animationType="fade" statusBarTranslucent onRequestClose={handleClose}>
       <Pressable
         style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' }}
-        onPress={onClose}
+        onPress={handleClose}
       >
         <Animated.View style={{ transform: [{ translateY: panY }] }}>
           <Pressable onPress={() => {}}>

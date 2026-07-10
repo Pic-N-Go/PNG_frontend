@@ -1,24 +1,84 @@
-import React, { useState, useMemo, useCallback } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, Platform, PermissionsAndroid, BackHandler } from 'react-native';
 import { WebView } from 'react-native-webview';
-import { IconChevronLeft } from '@tabler/icons-react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { IconChevronLeft, IconSearch, IconAdjustmentsHorizontal, IconFocus2 } from '@tabler/icons-react-native';
+import { useNavigation, useRoute, useFocusEffect } from '@react-navigation/native';
 import { useTravelStore, Spot } from '@/store/useTravelStore';
 import SpotPopup from '@/components/travel/SpotPopup';
+import FilterBottomSheet, { FilterState, EMPTY_FILTER } from '@/components/home/FilterBottomSheet';
 import { StatusBar } from 'expo-status-bar';
+import { normalize, normalizeFontSize } from '@/utils/normalize';
+import { FONT_MD, BUTTON_HEIGHT, BUTTON_RADIUS, HEADER_HEIGHT } from '@/constants/layout';
 
 const KAKAO_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_API_KEY;
+
+const DEFAULT_SPOTS = [
+  { id: '1', name: '광안리 해수욕장', lat: 35.1532, lng: 129.1186, tags: ['바다', '야경'], score: 87, loc: '부산 수영구', photo: 'https://images.unsplash.com/photo-1598514982205-f36b96d1e8dd?q=80&w=400&auto=format&fit=crop' },
+  { id: '2', name: '경복궁', lat: 37.5796, lng: 126.9770, tags: ['역사', '고궁', '한옥'], score: 91, loc: '서울 종로구', photo: 'https://images.unsplash.com/photo-1538485399081-7191377e8241?q=80&w=400&auto=format&fit=crop' },
+  { id: '3', name: '제주 사려니숲길', lat: 33.4000, lng: 126.6000, tags: ['숲', '안개'], score: 78, loc: '제주 제주시', photo: 'https://images.unsplash.com/photo-1600758208050-a35f99478f68?q=80&w=400&auto=format&fit=crop' },
+  { id: '4', name: '남산 서울타워', lat: 37.5512, lng: 126.9882, tags: ['야경', '랜드마크'], score: 86, loc: '서울 용산구', photo: 'https://images.unsplash.com/photo-1610311756586-81e8eb9f3152?q=80&w=400&auto=format&fit=crop' },
+  { id: '5', name: '전주 한옥마을', lat: 35.8147, lng: 127.1526, tags: ['한옥', '먹거리'], score: 85, loc: '전북 전주시', photo: 'https://images.unsplash.com/photo-1582236968962-d2f1f58b9cf6?q=80&w=400&auto=format&fit=crop' },
+];
+
+const CATEGORIES = [
+  { id: 'all', label: '전체' },
+  { id: '야경', label: '야경' },
+  { id: '바다', label: '바다' },
+  { id: '한옥', label: '한옥' },
+  { id: '꽃', label: '꽃' },
+  { id: '카페', label: '카페' },
+  { id: '숲', label: '숲' },
+  { id: '축제', label: '축제' },
+];
 
 export default function MapScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const mode = route.params?.source === 'plan' ? 'plan' : 'view';
 
+  const webViewRef = useRef<any>(null);
   const { selectedSpots, addSpot, removeSpot } = useTravelStore();
   const [activeSpot, setActiveSpot] = useState<Spot | null>(null);
   const [isCourseModalOpen, setCourseModalOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [activeFilterCount, setActiveFilterCount] = useState(0);
+  const [filterVisible, setFilterVisible] = useState(false);
+  const [detailFilter, setDetailFilter] = useState<FilterState>(EMPTY_FILTER);
 
   const isSelected = activeSpot ? selectedSpots.some(s => s.id === activeSpot.id) : false;
+
+  const handleBackNavigation = useCallback(() => {
+    const fromTravelPlan = route.params?.from === 'TravelPlan';
+    const planId = route.params?.planId;
+
+    if (route.params?.spots || route.params?.from) {
+      navigation.setParams({ spots: undefined, from: undefined, planId: undefined });
+    }
+
+    if (fromTravelPlan) {
+      navigation.navigate('TravelTab', {
+        screen: 'TravelPlan',
+        ...(planId ? { params: { planId } } : {}),
+      });
+    } else if (navigation.canGoBack()) {
+      navigation.goBack();
+    } else {
+      navigation.navigate('HomeTab');
+    }
+    return true; // prevent default behavior
+  }, [navigation, route.params]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => {
+        return handleBackNavigation();
+      };
+
+      const subscription = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+
+      return () => subscription.remove();
+    }, [handleBackNavigation])
+  );
 
   const closeSheet = useCallback(() => {
     setActiveSpot(null);
@@ -37,6 +97,103 @@ export default function MapScreen() {
       console.log('WebView Message Parse Error:', e);
     }
   }, []);
+
+  const handleZoomIn = useCallback(() => {
+    if (webViewRef.current) {
+      webViewRef.current.injectJavaScript(`
+        if (window.kakaoMap) {
+          window.kakaoMap.setLevel(window.kakaoMap.getLevel() - 1);
+        }
+      `);
+    }
+  }, []);
+
+  const handleZoomOut = useCallback(() => {
+    if (webViewRef.current) {
+      webViewRef.current.injectJavaScript(`
+        if (window.kakaoMap) {
+          window.kakaoMap.setLevel(window.kakaoMap.getLevel() + 1);
+        }
+      `);
+    }
+  }, []);
+
+  const handleMyLocation = useCallback(async () => {
+    if (Platform.OS === 'android') {
+      try {
+        const granted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+        );
+        if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
+          console.log('Location permission denied');
+          return;
+        }
+      } catch (err) {
+        console.warn(err);
+        return;
+      }
+    }
+
+    if (webViewRef.current) {
+      webViewRef.current.injectJavaScript(`
+        if (window.kakaoMap) {
+          if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(function(position) {
+              var lat = position.coords.latitude;
+              var lng = position.coords.longitude;
+              window.kakaoMap.setCenter(new kakao.maps.LatLng(lat, lng));
+            }, function(error) {
+              window.kakaoMap.setCenter(new kakao.maps.LatLng(35.1532, 129.1186));
+            });
+          } else {
+            window.kakaoMap.setCenter(new kakao.maps.LatLng(35.1532, 129.1186));
+          }
+        }
+      `);
+    }
+  }, []);
+
+  const baseSpots = useMemo(() => route.params?.spots || DEFAULT_SPOTS, [route.params?.spots]);
+
+  const filteredSpots = useMemo(() => {
+    return baseSpots.filter((spot: any) => {
+      // 1. 카테고리 필터링
+      if (selectedCategory !== 'all' && selectedCategory !== '전체') {
+        const matchesCategory = spot.tags.some((t: string) => t.includes(selectedCategory));
+        if (!matchesCategory) return false;
+      }
+
+      // 2. 상세 필터링 (FilterBottomSheet)
+      // 시간대 필터
+      if (detailFilter.time.length > 0) {
+        const matchesTime = spot.tags.some((t: string) => detailFilter.time.includes(t));
+        if (!matchesTime) return false;
+      }
+      // 날씨 필터
+      if (detailFilter.weather.length > 0) {
+        const matchesWeather = spot.tags.some((t: string) => detailFilter.weather.includes(t));
+        if (!matchesWeather) return false;
+      }
+      // 스코어 필터 (예: '80점 이상')
+      if (detailFilter.score) {
+        const minScore = parseInt(detailFilter.score.replace(/[^0-9]/g, ''), 10);
+        if (spot.score < minScore) return false;
+      }
+
+      return true;
+    });
+  }, [baseSpots, selectedCategory, detailFilter]);
+
+  // filteredSpots가 변경될 때마다 WebView에 메시지를 보내 마커 갱신
+  useEffect(() => {
+    if (webViewRef.current) {
+      webViewRef.current.injectJavaScript(`
+        if (window.updateMarkers) {
+          window.updateMarkers(${JSON.stringify(JSON.stringify(filteredSpots))});
+        }
+      `);
+    }
+  }, [filteredSpots]);
 
   // 마커 탭(setActiveSpot)마다 HTML 문자열이 새로 만들어지면 WebView가 통째로 리로드된다.
   // Fabric(New Arch) 환경에서 WebView 리마운트가 SpotPopup(reanimated) 마운트와 겹치면
@@ -76,6 +233,7 @@ export default function MapScreen() {
             level: 13
         };
         var map = new kakao.maps.Map(mapContainer, mapOption);
+        window.kakaoMap = map;
 
       // 마커(오버레이) 탭 시 kakao가 지도 'click'도 함께 발생시켜 '열자마자 닫힘' 깜빡임이 생긴다.
       // 지도 클릭에 의한 닫기(MAP_CLICK)를 살짝 지연시키고, 그 사이 마커 탭이 오면 취소한다(순서 무관).
@@ -94,7 +252,7 @@ export default function MapScreen() {
       var defaultSpots = [
         { id: '1', name: '광안리 해수욕장', lat: 35.1532, lng: 129.1186, tags: ['바다', '야경'], score: '4.8', loc: '부산 수영구', photo: 'https://images.unsplash.com/photo-1598514982205-f36b96d1e8dd?q=80&w=400&auto=format&fit=crop' },
         { id: '2', name: '경복궁', lat: 37.5796, lng: 126.9770, tags: ['역사', '고궁'], score: '4.9', loc: '서울 종로구', photo: 'https://images.unsplash.com/photo-1538485399081-7191377e8241?q=80&w=400&auto=format&fit=crop' },
-        { id: '3', name: '제주 애월 해안도로', lat: 33.4632, lng: 126.3195, tags: ['드라이브', '바다'], score: '4.7', loc: '제주 제주시', photo: 'https://images.unsplash.com/photo-1600758208050-a35f99478f68?q=80&w=400&auto=format&fit=crop' },
+        { id: '3', name: '제주 사려니숲길', lat: 33.4000, lng: 126.6000, tags: ['숲', '안개'], score: '4.7', loc: '제주 제주시', photo: 'https://images.unsplash.com/photo-1600758208050-a35f99478f68?q=80&w=400&auto=format&fit=crop' },
         { id: '4', name: '남산 서울타워', lat: 37.5512, lng: 126.9882, tags: ['야경', '랜드마크'], score: '4.7', loc: '서울 용산구', photo: 'https://images.unsplash.com/photo-1610311756586-81e8eb9f3152?q=80&w=400&auto=format&fit=crop' },
         { id: '5', name: '전주 한옥마을', lat: 35.8147, lng: 127.1526, tags: ['한옥', '먹거리'], score: '4.6', loc: '전북 전주시', photo: 'https://images.unsplash.com/photo-1582236968962-d2f1f58b9cf6?q=80&w=400&auto=format&fit=crop' },
       ];
@@ -103,6 +261,7 @@ export default function MapScreen() {
       var spots = injectedSpots || defaultSpots;
 
       var bounds = new kakao.maps.LatLngBounds();
+      var activeOverlays = [];
 
       // 경로선 그리기 (route에서 넘어온 spots가 있을 경우에만 선으로 이음)
       if (injectedSpots && spots.length > 0) {
@@ -117,36 +276,60 @@ export default function MapScreen() {
         polyline.setMap(map);
       }
 
-      spots.forEach(function(spot, index) {
-        var markerPosition = new kakao.maps.LatLng(spot.lat, spot.lng);
+      function drawMarkers(targetSpots) {
+        // 기존 오버레이 모두 제거
+        activeOverlays.forEach(function(o) { o.setMap(null); });
+        activeOverlays = [];
 
-        var content = document.createElement('div');
-        content.className = 'custom-marker';
-        // injectedSpots일 때는 숫자, 아닐 때는 하트 아이콘
-        if (injectedSpots) {
-          content.innerHTML = '<span style="color:white; font-size:14px; font-weight:bold;">' + (index + 1) + '</span>';
-        } else {
-          content.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>';
-        }
+        var markerBounds = new kakao.maps.LatLngBounds();
 
-        content.onclick = function(e) {
-            e.stopPropagation();
-            cancelMapClose();
-            window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'SPOT_CLICK', data: spot }));
-        };
-        // 터치 환경에서 지도 click이 마커 onclick보다 먼저 예약되는 경우까지 대비
-        content.addEventListener('touchstart', function(e) { e.stopPropagation(); cancelMapClose(); }, { passive: true });
+        targetSpots.forEach(function(spot, index) {
+          var markerPosition = new kakao.maps.LatLng(spot.lat, spot.lng);
 
-        var customOverlay = new kakao.maps.CustomOverlay({
-            position: markerPosition,
-            content: content,
-            yAnchor: 1
+          var content = document.createElement('div');
+          content.className = 'custom-marker';
+          // injectedSpots일 때는 숫자, 아닐 때는 하트 아이콘
+          if (injectedSpots) {
+            content.innerHTML = '<span style="color:white; font-size:14px; font-weight:bold;">' + (index + 1) + '</span>';
+          } else {
+            content.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>';
+          }
+
+          content.onclick = function(e) {
+              e.stopPropagation();
+              cancelMapClose();
+              window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'SPOT_CLICK', data: spot }));
+          };
+          // 터치 환경에서 지도 click이 마커 onclick보다 먼저 예약되는 경우까지 대비
+          content.addEventListener('touchstart', function(e) { e.stopPropagation(); cancelMapClose(); }, { passive: true });
+
+          var customOverlay = new kakao.maps.CustomOverlay({
+              position: markerPosition,
+              content: content,
+              yAnchor: 1
+          });
+          customOverlay.setMap(map);
+          activeOverlays.push(customOverlay);
+          markerBounds.extend(markerPosition);
         });
-        customOverlay.setMap(map);
-        bounds.extend(markerPosition);
-      });
 
-      map.setBounds(bounds);
+        if (targetSpots.length > 0) {
+          map.setBounds(markerBounds);
+        }
+      }
+
+      // 초기 마커 그리기
+      drawMarkers(spots);
+
+      // 외부(React Native)에서 호출 가능한 마커 갱신 함수 노출
+      window.updateMarkers = function(spotsJson) {
+        try {
+          var parsed = JSON.parse(spotsJson);
+          drawMarkers(parsed);
+        } catch (e) {
+          console.error("updateMarkers Error: ", e);
+        }
+      };
 
       kakao.maps.event.addListener(map, 'click', function() {
           scheduleMapClose();
@@ -165,7 +348,7 @@ export default function MapScreen() {
   if (!KAKAO_KEY) {
     return (
       <View className="flex-1 items-center justify-center bg-white">
-        <Text className="text-[16px] text-black/50">카카오 맵 API 키가 설정되지 않았습니다.</Text>
+        <Text className="text-black/50" style={{ fontSize: normalizeFontSize(16) }}>카카오 맵 API 키가 설정되지 않았습니다.</Text>
       </View>
     );
   }
@@ -173,49 +356,231 @@ export default function MapScreen() {
   return (
     <View className="flex-1 bg-white">
         <StatusBar style="dark" />
-        {/* 투명 헤더 */}
-        <View className="absolute top-0 left-0 right-0 z-20 pt-[54px] px-4 pointer-events-box-none">
-          <View className="flex-row items-center gap-2">
+        {/* 상단 오버레이 (검색창 + 뒤로가기) */}
+        <View className="absolute top-0 left-0 right-0 z-20 pointer-events-box-none" style={{ paddingTop: HEADER_HEIGHT }}>
+          <View className="flex-row items-center px-4 gap-2 pointer-events-auto">
+            {/* 뒤로가기 버튼 */}
             <TouchableOpacity
-              onPress={() => {
-                // 파라미터를 지우기 전에 분기 판단에 필요한 값을 먼저 캡처한다.
-                const fromTravelPlan = route.params?.from === 'TravelPlan';
-                const planId = route.params?.planId;
-
-                // 지도에 주입된 코스 마커/출처 정보를 초기화해, 다음에 지도 탭을 다시
-                // 열었을 때 이전 코스가 남아있지 않도록 한다.
-                if (route.params?.spots || route.params?.from) {
-                  navigation.setParams({ spots: undefined, from: undefined, planId: undefined });
-                }
-
-                if (fromTravelPlan) {
-                  // 코스 상세보기에서 넘어온 경우: 지도 탭은 단일 스크린 스택이라
-                  // goBack()이 탭 네비게이터로 버블링돼 홈으로 가버린다.
-                  // 명시적으로 출사 탭의 코스 상세보기로 복귀한다.
-                  navigation.navigate('TravelTab', {
-                    screen: 'TravelPlan',
-                    ...(planId ? { params: { planId } } : {}),
-                  });
-                } else if (navigation.canGoBack()) {
-                  navigation.goBack();
-                } else {
-                  navigation.navigate('HomeTab');
-                }
+              onPress={handleBackNavigation}
+              activeOpacity={0.7}
+              style={{
+                width: normalize(48),
+                height: normalize(48),
+                borderRadius: normalize(24),
+                backgroundColor: 'rgba(255,255,255,0.92)',
+                borderWidth: 0.5,
+                borderColor: 'rgba(255,255,255,0.6)',
+                alignItems: 'center',
+                justifyContent: 'center',
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.06,
+                shadowRadius: 12,
+                elevation: 3,
               }}
-              className="w-10 h-10 rounded-full bg-white items-center justify-center shadow-sm"
             >
-              <IconChevronLeft size={24} color="#000" />
+              <IconChevronLeft size={normalize(24)} color="#000" strokeWidth={1.5} />
             </TouchableOpacity>
+
+            {/* 검색바 */}
+            <View
+              style={{
+                flex: 1,
+                height: normalize(48),
+                borderRadius: normalize(24),
+                backgroundColor: 'rgba(255,255,255,0.92)',
+                borderWidth: 0.5,
+                borderColor: 'rgba(255,255,255,0.6)',
+                flexDirection: 'row',
+                alignItems: 'center',
+                paddingHorizontal: normalize(16),
+                shadowColor: '#000',
+                shadowOffset: { width: 0, height: 2 },
+                shadowOpacity: 0.06,
+                shadowRadius: 12,
+                elevation: 3,
+              }}
+            >
+              <TouchableOpacity
+                activeOpacity={0.9}
+                onPress={() => navigation.navigate('SearchResult', { query: '' })}
+                style={{ flex: 1, flexDirection: 'row', alignItems: 'center', height: '100%', paddingRight: normalize(32) }}
+              >
+                <IconSearch size={normalize(18)} color="rgba(0,0,0,0.3)" strokeWidth={1.5} />
+                <Text
+                  allowFontScaling={false}
+                  style={{
+                    marginLeft: normalize(8),
+                    fontSize: FONT_MD,
+                    color: 'rgba(0,0,0,0.3)',
+                    fontFamily: 'Pretendard-Regular',
+                    letterSpacing: -0.2,
+                  }}
+                >
+                  장소, 테마, 키워드 검색
+                </Text>
+              </TouchableOpacity>
+
+              {/* 필터 조절 아이콘 */}
+              <TouchableOpacity
+                onPress={() => setFilterVisible(true)}
+                hitSlop={8}
+                style={{ position: 'absolute', right: normalize(16), top: 0, bottom: 0, justifyContent: 'center' }}
+              >
+                <View style={{ position: 'relative' }}>
+                  <IconAdjustmentsHorizontal size={normalize(18)} color="rgba(0,0,0,0.45)" strokeWidth={1.5} />
+                  {activeFilterCount > 0 && (
+                    <View
+                      style={{
+                        position: 'absolute',
+                        top: -normalize(4),
+                        right: -normalize(4),
+                        width: 14,
+                        height: 14,
+                        borderRadius: 7,
+                        backgroundColor: '#E31B59',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <Text style={{ fontSize: 8, color: '#fff', fontFamily: 'Pretendard-Medium' }}>
+                        {activeFilterCount}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              </TouchableOpacity>
+            </View>
+          </View>
+          
+          <View className="mt-2 pointer-events-auto">
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 4, gap: 6 }}
+            >
+              {CATEGORIES.map((cat) => {
+                const isActive = selectedCategory === cat.id;
+                return (
+                  <TouchableOpacity
+                    key={cat.id}
+                    onPress={() => setSelectedCategory(cat.id)}
+                    style={{
+                      height: 32,
+                      paddingHorizontal: 14,
+                      borderRadius: 16,
+                      backgroundColor: isActive ? '#E31B59' : '#F5F5F7',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontFamily: isActive ? 'Pretendard-Medium' : 'Pretendard-Regular',
+                        fontSize: 12,
+                        color: isActive ? '#ffffff' : 'rgba(0,0,0,0.55)',
+                      }}
+                    >
+                      {cat.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
           </View>
         </View>
 
         <WebView
+          ref={webViewRef}
           source={mapSource}
           onMessage={handleMessage}
           style={{ flex: 1 }}
           javaScriptEnabled={true}
           domStorageEnabled={true}
+          geolocationEnabled={true}
+          originWhitelist={['*']}
         />
+
+        {/* 우측 지도 편의 컨트롤 */}
+        <View
+          pointerEvents="box-none"
+          style={{
+            position: 'absolute',
+            right: 16,
+            top: 160,
+            zIndex: 10,
+            gap: 8,
+          }}
+        >
+          {/* 줌 컨트롤 그룹 */}
+          <View
+            style={{
+              backgroundColor: '#ffffff',
+              borderRadius: 12,
+              overflow: 'hidden',
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.1,
+              shadowRadius: 8,
+              elevation: 3,
+            }}
+          >
+            <TouchableOpacity
+              onPress={handleZoomIn}
+              activeOpacity={0.7}
+              style={{
+                width: 40,
+                height: 40,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Text style={{ fontSize: 20, color: 'rgba(0,0,0,0.45)', fontFamily: 'Pretendard-Regular' }}>+</Text>
+            </TouchableOpacity>
+            
+            <View style={{ height: 0.5, backgroundColor: 'rgba(0,0,0,0.06)' }} />
+
+            <TouchableOpacity
+              onPress={handleZoomOut}
+              activeOpacity={0.7}
+              style={{
+                width: 40,
+                height: 40,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Text style={{ fontSize: 20, color: 'rgba(0,0,0,0.45)', fontFamily: 'Pretendard-Regular' }}>−</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* 내 위치 이동 버튼 */}
+          <View
+            style={{
+              backgroundColor: '#ffffff',
+              borderRadius: 12,
+              overflow: 'hidden',
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.1,
+              shadowRadius: 8,
+              elevation: 3,
+            }}
+          >
+            <TouchableOpacity
+              onPress={handleMyLocation}
+              activeOpacity={0.7}
+              style={{
+                width: 40,
+                height: 40,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <IconFocus2 size={18} color="rgba(0,0,0,0.45)" />
+            </TouchableOpacity>
+          </View>
+        </View>
 
         <SpotPopup
           activeSpot={activeSpot}
@@ -234,18 +599,23 @@ export default function MapScreen() {
                     setCourseModalOpen(true);
                   }
                 }}
-                className={`flex-1 h-11 rounded-full items-center justify-center ${isSelected && mode === 'plan' ? 'bg-[#e31b59]' : 'bg-[#f5f5f7]'}`}
+                className={`flex-1 items-center justify-center ${isSelected && mode === 'plan' ? 'bg-[#E31B59]' : 'bg-[#f5f5f7]'}`}
+                style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}
               >
-                <Text className={`text-[15px] font-medium ${isSelected && mode === 'plan' ? 'text-white' : 'text-black/60'}`}>
+                <Text
+                  className={`font-semibold ${isSelected && mode === 'plan' ? 'text-white' : 'text-black/60'}`}
+                  style={{ fontSize: FONT_MD }}
+                >
                   {mode === 'plan' ? (isSelected ? '현재 코스에 저장됨' : '현재 코스에 저장') : '코스에 저장'}
                 </Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 onPress={() => navigation.navigate('SpotStack', { screen: 'SpotDetail', params: { spotId: activeSpot!.id } })}
-                className="flex-1 h-11 rounded-full bg-[#E31B59] items-center justify-center"
+                className="flex-1 bg-[#E31B59] items-center justify-center"
+                style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}
               >
-                <Text className="text-[15px] font-medium text-white">상세 보기 {'>'}</Text>
+                <Text className="font-semibold text-white" style={{ fontSize: FONT_MD }}>상세 보기</Text>
               </TouchableOpacity>
             </View>
           )}
@@ -255,16 +625,17 @@ export default function MapScreen() {
         {isCourseModalOpen && (
           <View className="absolute inset-0 bg-black/40 items-center justify-center z-50">
             <View className="bg-white rounded-2xl w-[80%] p-5 items-center">
-              <Text className="text-[18px] font-semibold text-black mb-4">어떤 코스에 저장할까요?</Text>
+              <Text className="font-semibold text-black mb-4" style={{ fontSize: normalizeFontSize(18) }}>어떤 코스에 저장할까요?</Text>
 
               <TouchableOpacity
                 onPress={() => {
                   setCourseModalOpen(false);
                   navigation.navigate('TravelTab', { screen: 'TravelNew' });
                 }}
-                className="w-full h-12 bg-[#f5f5f7] rounded-xl items-center justify-center mb-2"
+                className="w-full bg-[#f5f5f7] rounded-xl items-center justify-center mb-2"
+                style={{ height: BUTTON_HEIGHT }}
               >
-                <Text className="text-[15px] text-black font-medium">+ 새 코스 만들기</Text>
+                <Text className="text-black font-medium" style={{ fontSize: FONT_MD }}>+ 새 코스 만들기</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
@@ -273,20 +644,30 @@ export default function MapScreen() {
                   addSpot(activeSpot!);
                   navigation.navigate('TravelTab', { screen: 'TravelNew' });
                 }}
-                className="w-full h-12 bg-[#E31B59] rounded-xl items-center justify-center"
+                className="w-full bg-[#E31B59] rounded-xl items-center justify-center"
+                style={{ height: BUTTON_HEIGHT }}
               >
-                <Text className="text-[15px] text-white font-medium">현재 진행중인 코스</Text>
+                <Text className="text-white font-medium" style={{ fontSize: FONT_MD }}>현재 진행중인 코스</Text>
               </TouchableOpacity>
 
               <TouchableOpacity
                 onPress={() => setCourseModalOpen(false)}
                 className="mt-4 p-2"
               >
-                <Text className="text-[14px] text-black/50">취소</Text>
+                <Text className="text-black/50" style={{ fontSize: normalizeFontSize(14) }}>취소</Text>
               </TouchableOpacity>
             </View>
           </View>
         )}
+
+        <FilterBottomSheet
+          visible={filterVisible}
+          onClose={() => setFilterVisible(false)}
+          onApply={(count, filterState) => {
+            setActiveFilterCount(count);
+            setDetailFilter(filterState);
+          }}
+        />
       </View>
     );
 }

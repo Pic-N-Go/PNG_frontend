@@ -23,19 +23,19 @@ const FILTER_GROUPS = {
   score:    { label: '포토제닉 스코어', options: ['60점 이상', '70점 이상', '80점 이상', '90점 이상'], multi: false },
 } as const;
 
-type FilterState = {
+export type FilterState = {
   distance: string | null;
   time: string[];
   weather: string[];
   score: string | null;
 };
 
-const EMPTY_FILTER: FilterState = { distance: null, time: [], weather: [], score: null };
+export const EMPTY_FILTER: FilterState = { distance: null, time: [], weather: [], score: null };
 
 interface Props {
   visible: boolean;
   onClose: () => void;
-  onApply: (count: number) => void;
+  onApply: (count: number, filterState: FilterState) => void;
 }
 
 export default function FilterBottomSheet({ visible, onClose, onApply }: Props) {
@@ -75,7 +75,7 @@ export default function FilterBottomSheet({ visible, onClose, onApply }: Props) 
       filter.weather.length +
       (filter.score ? 1 : 0);
     setApplied(filter);
-    onApply(count);
+    onApply(count, filter);
     onClose();
   }
 

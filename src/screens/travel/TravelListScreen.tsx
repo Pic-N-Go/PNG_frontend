@@ -1,11 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Animated, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { FONT_SM, FONT_2XL, BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING, CARD_RADIUS } from '@/constants/layout';
+import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { IconPlus, IconChevronRight, IconCalendarEvent, IconMapPin, IconClock, IconRoute, IconZoomPan } from '@tabler/icons-react-native';
-
-
-
-// 더미 데이터
 const dummyPlans = [
   {
     id: 1,
@@ -80,26 +78,12 @@ const TABS = [
 
 export default function TravelListScreen({ navigation }: any) {
   const [activeTab, setActiveTab] = useState('all');
-  const scrollY = React.useRef(new Animated.Value(0)).current;
+  const scrollY = useRef(new Animated.Value(0)).current;
 
   // 더미 데이터를 탭에 맞게 필터링
   const filteredPlans = dummyPlans.filter((plan) => {
     if (activeTab === 'all') return true;
     return plan.status === activeTab;
-  });
-
-  // 애니메이션 효과 값 계산
-  const compactTitleOpacity = scrollY.interpolate({
-    inputRange: [0, 40],
-    outputRange: [0, 1],
-    extrapolate: 'clamp',
-  });
-
-
-  const largeHeaderOpacity = scrollY.interpolate({
-    inputRange: [0, 40],
-    outputRange: [1, 0],
-    extrapolate: 'clamp',
   });
 
   // 탭 클릭 핸들러
@@ -117,100 +101,111 @@ export default function TravelListScreen({ navigation }: any) {
     navigation.navigate('TravelPlan', { planId: String(id) });
   };
 
+  const compactTitleOpacity = scrollY.interpolate({
+    inputRange: [0, 40],
+    outputRange: [0, 1],
+    extrapolate: 'clamp',
+  });
+
+  const largeHeaderOpacity = scrollY.interpolate({
+    inputRange: [0, 40],
+    outputRange: [1, 0],
+    extrapolate: 'clamp',
+  });
+
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right']}>
-      {/* 고정 헤더: 컴팩트 타이틀 영역 */}
-      <View className="flex-row items-center h-[54px] px-[28px] bg-white z-50">
+      {/* 고정 헤더: 컴팩트 타이틀 영역 (스크롤 시 나타남) */}
+      <View className="flex-row items-center bg-white z-50" style={{ height: normalize(36), paddingHorizontal: CONTENT_PADDING }}>
         <Animated.Text
           style={{ opacity: compactTitleOpacity }}
-          className="text-lg font-semibold text-black tracking-tight"
+          className="font-semibold text-black tracking-tight"
         >
-          출사 계획
+          <Text style={{ fontSize: normalizeFontSize(18) }}>출사 계획</Text>
         </Animated.Text>
       </View>
 
       <Animated.ScrollView
         className="flex-1 bg-white"
-        onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], {
-          useNativeDriver: true,
-        })}
-        scrollEventThrottle={16}
+        showsVerticalScrollIndicator={false}
         stickyHeaderIndices={[1]}
+        onScroll={Animated.event(
+          [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+          { useNativeDriver: true }
+        )}
+        scrollEventThrottle={16}
       >
-        {/* 0: 접히는 Large Title 영역 */}
-        <Animated.View
-          style={{
+        {/* 0번 인덱스: 상단 타이틀 영역 (스크롤 시 사라짐) */}
+        <Animated.View 
+          className="flex-row items-center justify-between bg-white z-40" 
+          style={{ 
             opacity: largeHeaderOpacity,
+            paddingHorizontal: CONTENT_PADDING, 
+            paddingTop: normalize(10), 
+            paddingBottom: normalize(16) 
           }}
-          className="flex-row items-center justify-between px-[28px] pb-[10px] bg-white z-40"
         >
-          <Text className="text-[28px] font-semibold text-black tracking-tight">출사 계획</Text>
-          <TouchableOpacity onPress={handleNewPlan} className="w-[32px] h-[32px] items-center justify-center">
+          <Text className="font-semibold text-black tracking-tight" style={{ fontSize: FONT_2XL }}>출사 계획</Text>
+          <TouchableOpacity onPress={handleNewPlan} className="items-center justify-center" style={{ width: normalize(32), height: normalize(32) }}>
             <IconPlus size={22} color="#E31B59" />
           </TouchableOpacity>
         </Animated.View>
 
-        {/* 1: 탭 메뉴 */}
-        <View
-          className="flex-row px-[16px] py-[10px] bg-white z-40"
-          style={{ borderBottomWidth: 0.5, borderBottomColor: "rgba(0,0,0,0.08)" }}
-        >
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
-            {TABS.map((tab) => {
-              const isActive = activeTab === tab.id;
-              const count =
-                tab.id === 'all'
-                  ? dummyPlans.length
-                  : dummyPlans.filter((p) => p.status === tab.id).length;
+        {/* 탭 메뉴 (Sticky) */}
+        <View className="bg-white z-40">
+          <View className="flex-row" style={{ paddingHorizontal: CONTENT_PADDING, paddingBottom: normalize(16) }}>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
+              {TABS.map((tab) => {
+                const isActive = activeTab === tab.id;
+                const count =
+                  tab.id === 'all'
+                    ? dummyPlans.length
+                    : dummyPlans.filter((p) => p.status === tab.id).length;
 
-              return (
-                <TouchableOpacity
-                  key={tab.id}
-                  onPress={() => handleTabPress(tab.id)}
-                  className={`flex-row items-center h-[32px] px-[14px] rounded-full ${
-                    isActive ? 'bg-[#E31B59]' : 'bg-[#f5f5f7]'
-                  }`}
-                >
-                  <Text
-                    className={`text-sm font-medium ${
-                      isActive ? 'text-white' : 'text-black/40'
+                return (
+                  <TouchableOpacity
+                    key={tab.id}
+                    onPress={() => handleTabPress(tab.id)}
+                    className={`flex-row items-center rounded-full ${
+                      isActive ? 'bg-[#E31B59]' : 'bg-[#f5f5f7]'
                     }`}
+                    style={{ height: normalize(32), paddingHorizontal: normalize(14) }}
                   >
-                    {tab.label}
-                  </Text>
-                  <Text
-                    className={`text-xs font-semibold ml-1 ${
-                      isActive ? 'text-white' : 'text-black/40'
-                    }`}
-                  >
-                    {count}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </ScrollView>
+                    <Text className={`font-medium ${isActive ? 'text-white' : 'text-black/40'}`} style={{ fontSize: FONT_SM }}>
+                      {tab.label}
+                    </Text>
+                    <Text className={`font-semibold ml-1 ${isActive ? 'text-white' : 'text-black/40'}`} style={{ fontSize: normalizeFontSize(12) }}>
+                      {count}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+          <View style={{ height: 0.5, backgroundColor: 'rgba(0,0,0,0.08)' }} />
         </View>
 
-        {/* 2: 리스트 콘텐츠 영역 */}
-        <View style={{ paddingHorizontal: 28, paddingTop: 20, paddingBottom: 40 }}>
+        {/* 리스트 콘텐츠 영역 */}
+        <View style={{ paddingHorizontal: CONTENT_PADDING, paddingTop: normalize(20), paddingBottom: normalize(40) }}>
         {/* 리스트가 비어있을 때 (Empty State) */}
         {filteredPlans.length === 0 ? (
-          <View className="items-center mt-[40px]">
-            <View className="w-[80px] h-[80px] rounded-3xl bg-[#f5f5f7] items-center justify-center mb-5">
-              <IconZoomPan size={36} color="rgba(0,0,0,0.18)" />
+          <View className="items-center" style={{ marginTop: normalize(40) }}>
+            <View className="rounded-3xl bg-[#f5f5f7] items-center justify-center mb-5" style={{ width: normalize(80), height: normalize(80) }}>
+              <IconZoomPan size={normalize(36)} color="rgba(0,0,0,0.18)" />
             </View>
-            <Text className="text-lg font-semibold text-black tracking-tight mb-2">
+            <Text className="font-semibold text-black tracking-tight mb-2" style={{ fontSize: normalizeFontSize(18) }}>
               첫 출사 계획을 세워볼까요?
             </Text>
-            <Text className="text-sm text-black/40 text-center leading-relaxed mb-7">
+            <Text className="text-black/40 text-center leading-relaxed mb-7" style={{ fontSize: FONT_SM }}>
               가고 싶은 스팟을 모아 날짜와 일정을{'\n'}한 번에 계획할 수 있어요.
             </Text>
             <TouchableOpacity
               onPress={handleNewPlan}
-              className="h-[52px] px-[28px] rounded-[26px] bg-[#E31B59] flex-row items-center"
+              className="bg-[#E31B59] flex-row items-center"
+              style={{ height: BUTTON_HEIGHT, paddingHorizontal: CONTENT_PADDING, borderRadius: BUTTON_RADIUS }}
             >
-              <IconPlus size={20} color="#fff" />
-              <Text className="text-base font-semibold text-white ml-1.5">새 출사 계획 만들기</Text>
+              <IconPlus size={normalize(20)} color="#fff" />
+              <Text className="font-semibold text-white ml-1.5" style={{ fontSize: normalizeFontSize(16) }}>새 출사 계획 만들기</Text>
             </TouchableOpacity>
           </View>
         ) : (
@@ -222,10 +217,11 @@ export default function TravelListScreen({ navigation }: any) {
                 key={plan.id}
                 activeOpacity={0.9}
                 onPress={() => handlePlanDetail(plan.id)}
-                className="bg-white rounded-2xl overflow-hidden mb-3"
+                className="bg-[#f5f5f7] overflow-hidden mb-5"
+                style={{ borderRadius: CARD_RADIUS }}
               >
                 {/* 썸네일 영역 */}
-                <View className="h-[120px] flex-row bg-gray-100">
+                <View className="flex-row bg-gray-100" style={{ height: normalize(120) }}>
                   {plan.thumbnails.length > 0 ? (
                     plan.thumbnails.map((url, index) => (
                       <View
@@ -238,66 +234,67 @@ export default function TravelListScreen({ navigation }: any) {
                     ))
                   ) : (
                     <View className="flex-1 items-center justify-center bg-[#f5f5f7]">
-                      <IconMapPin size={24} color="rgba(0,0,0,0.1)" />
+                      <IconMapPin size={normalize(24)} color="rgba(0,0,0,0.1)" />
                     </View>
                   )}
 
                   {/* 뱃지 */}
                   <View
-                    className={`absolute top-2.5 left-2.5 h-[22px] px-2.5 rounded-full flex-row items-center justify-center ${
+                    className={`absolute top-3 left-3 rounded-full flex-row items-center justify-center ${
                       plan.status === 'active'
                         ? 'bg-[#34C759]'
                         : plan.status === 'upcoming'
                         ? 'bg-[#E31B59]'
                         : 'bg-black/30'
                     }`}
+                    style={{ height: normalize(22), paddingHorizontal: normalize(10) }}
                   >
                     {plan.status === 'active' && (
-                      <View className="w-[6px] h-[6px] rounded-full bg-white mr-1.5" />
+                      <View className="rounded-full bg-white mr-1.5" style={{ width: normalize(6), height: normalize(6) }} />
                     )}
-                    <Text className="text-[10px] font-semibold text-white tracking-tight">
+                    <Text className="font-semibold text-white tracking-tight" style={{ fontSize: normalizeFontSize(10) }}>
                       {plan.statusText}
                     </Text>
                   </View>
                 </View>
 
                 {/* 카드 본문 */}
-                <View className="p-3.5">
-                  <View className="flex-row items-start justify-between mb-1">
-                    <Text className="text-lg font-semibold text-black tracking-tight" numberOfLines={1}>
+                <View className="p-4">
+                  <View className="flex-row items-center justify-between mb-1.5">
+                    <Text className="font-semibold text-black tracking-tight" numberOfLines={1} style={{ fontSize: normalizeFontSize(18) }}>
                       {plan.title}
                     </Text>
-                    <IconChevronRight size={18} color="rgba(0,0,0,0.2)" />
+                    <IconChevronRight size={normalize(18)} color="rgba(0,0,0,0.2)" />
                   </View>
                   
-                  <View className="flex-row items-center mb-2.5">
-                    <IconCalendarEvent size={12} color="rgba(0,0,0,0.3)" />
-                    <Text className="text-xs text-black/40 ml-1">
+                  <View className="flex-row items-center mb-3">
+                    <IconCalendarEvent size={normalize(12)} color="rgba(0,0,0,0.3)" />
+                    <Text className="text-black/40 ml-1" style={{ fontSize: normalizeFontSize(12) }}>
                       {plan.date} · {plan.duration}
                     </Text>
                   </View>
 
                   <View className="flex-row items-center gap-x-3">
                     <View className="flex-row items-center">
-                      <IconMapPin size={12} color="rgba(0,0,0,0.3)" />
-                      <Text className="text-xs text-black/40 ml-1">포토스팟 {plan.spots}곳</Text>
+                      <IconMapPin size={normalize(12)} color="rgba(0,0,0,0.3)" />
+                      <Text className="text-black/40 ml-1" style={{ fontSize: normalizeFontSize(12) }}>포토스팟 {plan.spots}곳</Text>
                     </View>
                     <View className="flex-row items-center">
-                      <IconClock size={12} color="rgba(0,0,0,0.3)" />
-                      <Text className="text-xs text-black/40 ml-1">{plan.estimatedTime}</Text>
+                      <IconClock size={normalize(12)} color="rgba(0,0,0,0.3)" />
+                      <Text className="text-black/40 ml-1" style={{ fontSize: normalizeFontSize(12) }}>{plan.estimatedTime}</Text>
                     </View>
                     <View className="flex-row items-center">
-                      <IconRoute size={12} color="rgba(0,0,0,0.3)" />
-                      <Text className="text-xs text-black/40 ml-1">{plan.distance}</Text>
+                      <IconRoute size={normalize(12)} color="rgba(0,0,0,0.3)" />
+                      <Text className="text-black/40 ml-1" style={{ fontSize: normalizeFontSize(12) }}>{plan.distance}</Text>
                     </View>
                   </View>
                 </View>
 
                 {/* 진행 중 상태일 때 하단 프로그레스 바 */}
                 {plan.status === 'active' && plan.progressText && (
-                  <View className="flex-row items-center px-3.5 py-2 bg-[#34C759]/5 border-t border-[#34C759]/10">
-                    <View className="w-1.5 h-1.5 rounded-full bg-[#34C759] mr-1.5" />
-                    <Text className="text-xs font-medium text-[#34C759]">
+                  <View className="flex-row items-center px-4 py-2.5 bg-[#34C759]/5 border-t border-[#34C759]/10">
+                    <View className="rounded-full bg-[#34C759] mr-1.5" style={{ width: normalize(6), height: normalize(6) }} />
+                    <Text className="font-medium text-[#34C759]" style={{ fontSize: normalizeFontSize(12) }}>
                       {plan.progressText}
                     </Text>
                   </View>

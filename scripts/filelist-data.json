@@ -48,7 +48,7 @@
     "note": ""
   },
   "home/home.html": { "uiStatus": "미시작", "apiStatus": "미시작", "date": "", "note": "" },
-  "home/map.html": { "uiStatus": "미시작", "apiStatus": "미시작", "date": "", "note": "" },
+  "home/map.html": { "uiStatus": "완료", "apiStatus": "완료", "date": "2026-07-08", "note": "" },
   "mypage/follow.html": { "uiStatus": "미시작", "apiStatus": "미시작", "date": "", "note": "" },
   "mypage/my-photos.html": { "uiStatus": "미시작", "apiStatus": "미시작", "date": "", "note": "" },
   "mypage/my-reviews.html": { "uiStatus": "미시작", "apiStatus": "미시작", "date": "", "note": "" },

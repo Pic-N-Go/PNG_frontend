@@ -19,6 +19,7 @@ import {
   IconGripVertical,
   IconWand,
   IconCamera,
+  IconInfoCircle,
 } from "@tabler/icons-react-native";
 import NaviSheet from "@/components/spot/NaviSheet";
 import { FONT_XS, FONT_SM } from "@/constants/layout";
@@ -275,20 +276,43 @@ export default function TravelPlanScreen({ navigation }: any) {
       const parsed = JSON.parse(event.nativeEvent.data);
       if (parsed.type === "SPOT_CLICK") {
         const spotId = parsed.data.id;
-        const index = currentData.spots.findIndex((s: any) => s.id === spotId);
+        let targetDay = currentDay;
+        let index = currentData.spots.findIndex((s: any) => s.id === spotId);
+
+        if (index === -1) {
+          for (const [dayKey, dayData] of Object.entries(data)) {
+            const foundIndex = dayData.spots.findIndex((s: any) => s.id === spotId);
+            if (foundIndex !== -1) {
+              targetDay = dayKey;
+              index = foundIndex;
+              break;
+            }
+          }
+        }
+
         if (index === -1) return;
 
         setSelectedSpotId(spotId); // 선택 하이라이트 (항상 동작)
 
-        let yOffset = 0;
-        for (let i = 0; i < index; i++) {
-          const spot = currentData.spots[i];
-          yOffset += rowHeights.current[spot.id] || 0;
+        const scrollToSpot = () => {
+          let yOffset = 0;
+          const targetSpots = data[targetDay].spots;
+          for (let i = 0; i < index; i++) {
+            yOffset += rowHeights.current[targetSpots[i].id] || 0;
+          }
+          scrollRef.current?.scrollTo({
+            y: headerHeightRef.current + yOffset - 24,
+            animated: true,
+          });
+        };
+
+        if (targetDay !== currentDay) {
+          // 다른 Day의 마커면 먼저 탭을 전환하고, 리스트가 다시 그려진 뒤 스크롤한다.
+          setCurrentDay(targetDay);
+          setTimeout(scrollToSpot, 100);
+        } else {
+          scrollToSpot();
         }
-        scrollRef.current?.scrollTo({
-          y: headerHeightRef.current + yOffset - 24,
-          animated: true,
-        });
       } else if (parsed.type === "MAP_CLICK") {
         setSelectedSpotId(null);
       }
@@ -645,7 +669,7 @@ export default function TravelPlanScreen({ navigation }: any) {
         {currentData.tip ? (
           <>
             <View className="w-8 h-8 rounded-lg bg-[#e31b59]/10 items-center justify-center shrink-0">
-              <IconClock size={16} color="#e31b59" />
+              <IconInfoCircle size={16} color="#e31b59" />
             </View>
             <View className="flex-1">
               <Text className="text-[14px] font-semibold text-black tracking-[-0.15px] mb-0.5">
@@ -687,7 +711,7 @@ export default function TravelPlanScreen({ navigation }: any) {
             onPress={() =>
               navigation.navigate("MapTab", {
                 screen: "Map",
-                params: { spots: currentData.spots, from: "TravelPlan" },
+                params: { source: "plan", spots: currentData.spots, from: "TravelPlan" },
               })
             }
           >
