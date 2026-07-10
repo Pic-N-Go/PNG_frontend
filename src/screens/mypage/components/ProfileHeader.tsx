@@ -28,7 +28,7 @@ export default function ProfileHeader() {
     <LinearGradient
       colors={['#000000', '#1d1d1f']}
       style={{
-        paddingTop: insets.top + normalize(20),
+        paddingTop: insets.top + normalize(32),
         paddingHorizontal: normalize(20),
         paddingBottom: normalize(20),
         borderBottomLeftRadius: normalize(20),
