@@ -188,6 +188,7 @@ export default function TravelNewScreen() {
 
   // -- Calendar Logic --
   const openDateSheet = (type: 'start' | 'end') => {
+    setToastVisible(false);
     setTempStart(startDate);
     setTempEnd(endDate);
     setPickPhase((type === 'end' && startDate) ? 'end' : 'start');

@@ -16,8 +16,8 @@
   2. `TravelPlanScreen.tsx`에 `text-[13px]` 등 raw pixel 폰트 사이즈가 다수 남아 있어 `CLAUDE.md`의 "폰트는 `layout.ts` 상수 또는 `normalizeFontSize` 사용" 규칙과 불일치
   3. `scrollRef.current as any` 불필요한 캐스팅 — `useAnimatedRef<ScrollView>()`로 타입이 이미 확보되어 있음
   4. 숫자 배지(`bg-black`)에 `shadow-sm`이 남아 있어 "카드는 배경색 대비로만 구분(보더·섀도우 없음)" 디자인 시스템 규칙과 불일치
-  5. 스팟 삭제 시 `rowHeights` ref의 죽은 인덱스가 정리되지 않음 (현재는 무해하나 잠재적 누적 데이터)
-- 사용자 가치: 편집 모드 조작 정확도 향상, 기기별 폰트 렌더링 일관성, 디자인 시스템 준수
+  5. ~~스팟 삭제 시 `rowHeights` ref의 죽은 인덱스가 정리되지 않음~~ — **[해결됨]** 코드 리뷰(CodeRabbit)로 더 근본적인 문제가 드러나 함께 수정: `react-native-sortables`는 재정렬 시 Reanimated로 UI 스레드에서만 위치를 바꾸므로 JS 쪽 `onLayout`이 다시 호출되지 않음. 즉 인덱스 기준으로 저장한 높이는 재정렬 후 실제 스팟과 매핑이 어긋나 지도 마커 클릭 시 잘못된 위치로 스크롤될 수 있었음. `rowHeights`를 인덱스(`number`) 대신 스팟 고유 id(`string`) 기준으로 저장/조회하도록 변경, `removeSpot`에서도 해당 id 캐시를 정리하도록 수정함
+- 사용자 가치: 편집 모드 조작 정확도 향상, 기기별 폰트 렌더링 일관성, 디자인 시스템 준수, 지도 마커 클릭 시 스크롤 정확도 보장
 - 완료 기준(한 줄): 5개 항목 확인/수정 후 tsc + lint 통과
 
 ## 3) 범위
@@ -27,7 +27,7 @@
   - `TravelPlanScreen.tsx` — raw pixel 폰트(`text-[Npx]`) → `FONT_SM`/`FONT_XS`/`normalizeFontSize` 전환
   - `TravelPlanScreen.tsx` — `scrollRef.current as any` 캐스팅 제거
   - `TravelPlanScreen.tsx` — 숫자 배지 `shadow-sm` 제거 여부 재검토
-  - `TravelPlanScreen.tsx` — `removeSpot` 시 `rowHeights` ref 정리 로직 추가
+  - [x] `TravelPlanScreen.tsx` — `rowHeights`를 스팟 id 기준 lookup으로 전환, `removeSpot` 시 정리 로직 추가
 - 제외(Out of Scope):
   - 드래그 재정렬 기능 자체의 재설계 (이미 완료됨)
   - `transports` 데이터 구조 변경 (스팟 id 쌍 기반 lookup으로 이미 별도 수정 완료)
@@ -71,9 +71,9 @@
 
 - [ ] AC1: 편집 모드에서 삭제 버튼 탭 시 드래그가 발동하지 않음 (실기기 확인)
 - [ ] AC2: `TravelPlanScreen.tsx`에 `text-[Npx]` 형태의 raw pixel 폰트 클래스가 남아있지 않음
-- [ ] AC3: `scrollRef.current as any` 캐스팅이 제거되고 타입 에러 없이 `scrollTo` 호출됨
+- [x] AC3: `scrollRef.current as any` 캐스팅이 제거되고 타입 에러 없이 `scrollTo` 호출됨
 - [ ] AC4: 숫자 배지의 `shadow-sm` 유지/제거 여부가 결정되고 그에 맞게 적용됨
-- [ ] AC5: 스팟 삭제 시 해당 인덱스 이후의 `rowHeights` 캐시가 정리됨
+- [x] AC5: `rowHeights`가 스팟 id 기준으로 저장/조회되며, 재정렬·삭제 후에도 지도 마커 클릭 시 정확한 위치로 스크롤됨
 - [ ] AC6: `pnpm exec tsc --noEmit` 및 `pnpm lint` 오류 없음
 
 ## 10) 테스트 시나리오

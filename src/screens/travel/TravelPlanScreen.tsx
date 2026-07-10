@@ -264,7 +264,7 @@ export default function TravelPlanScreen({ navigation }: any) {
   // Sortable.Grid는 각 행을 position:absolute로 배치하므로 onLayout의 y값은
   // 행 자신의 절대 위치가 아니라 그 위치 래퍼 안에서의 상대값(항상 0)이 된다.
   // 대신 각 행의 측정된 높이(height)를 모아 앞선 행들의 높이를 더해 오프셋을 직접 계산한다.
-  const rowHeights = useRef<{ [key: number]: number }>({});
+  const rowHeights = useRef<{ [key: string]: number }>({});
 
   const [checkedItems, setCheckedItems] = useState<string[]>([]);
 
@@ -281,8 +281,11 @@ export default function TravelPlanScreen({ navigation }: any) {
         setSelectedSpotId(spotId); // 선택 하이라이트 (항상 동작)
 
         let yOffset = 0;
-        for (let i = 0; i < index; i++) yOffset += rowHeights.current[i] || 0;
-        (scrollRef.current as any)?.scrollTo({
+        for (let i = 0; i < index; i++) {
+          const spot = currentData.spots[i];
+          yOffset += rowHeights.current[spot.id] || 0;
+        }
+        scrollRef.current?.scrollTo({
           y: headerHeightRef.current + yOffset - 24,
           animated: true,
         });
@@ -308,6 +311,7 @@ export default function TravelPlanScreen({ navigation }: any) {
   };
 
   const removeSpot = (spotId: string) => {
+    delete rowHeights.current[spotId];
     setData((prev) => {
       const dayData = prev[currentDay];
       const newSpots = dayData.spots.filter((s: any) => s.id !== spotId);
@@ -348,7 +352,7 @@ export default function TravelPlanScreen({ navigation }: any) {
         bounds.extend(pos_${day}_${i});
         
         var contentWrapper_${day}_${i} = document.createElement('div');
-        contentWrapper_${day}_${i}.innerHTML = '<div style="background:${color.bg}; opacity:${opacity}; color:${color.text}; font-size:12px; font-weight:bold; padding:4px 8px; border-radius:12px; transform:translateY(-10px); box-shadow:0 2px 4px rgba(0,0,0,0.2); pointer-events:auto;">${i + 1}</div>';
+        contentWrapper_${day}_${i}.innerHTML = '<div style="background:${color.bg}; opacity:${opacity}; color:${color.text}; font-size:12px; font-weight:600; padding:4px 8px; border-radius:12px; transform:translateY(-10px); box-shadow:0 2px 4px rgba(0,0,0,0.2); pointer-events:auto;">${i + 1}</div>';
         
         ${
           isInteractive
@@ -691,7 +695,7 @@ export default function TravelPlanScreen({ navigation }: any) {
           </TouchableOpacity>
         </View>
         <View
-          className="h-[120px] bg-[#f5f5f7] rounded-2xl overflow-hidden relative border border-black/5"
+          className="h-[120px] bg-[#f5f5f7] rounded-2xl overflow-hidden relative"
           pointerEvents="none"
         >
           <WebView
@@ -754,7 +758,7 @@ export default function TravelPlanScreen({ navigation }: any) {
       <View
         className="px-5 relative pt-1"
         onLayout={(e) => {
-          rowHeights.current[idx] = e.nativeEvent.layout.height;
+          rowHeights.current[item.id] = e.nativeEvent.layout.height;
         }}
       >
         <View className="flex-row items-start relative mb-2">

@@ -41,7 +41,7 @@
 
 - 현재 브랜치가 `feature/course-v2`, 원본이 `feature/course`라면 `feature/course` 기준으로 비교합니다.
 - 예시:
-  - `git diff -- feature/course -- ios/Podfile.lock`
+  - `git diff feature/course -- ios/Podfile.lock`
   - `git diff --name-status feature/course...HEAD`
 - 브랜치 커밋 차이는 없고 워킹트리에서만 `Podfile.lock`이 달라졌다면, 로컬 자동 동기화 변경일 가능성이 큽니다.
 
@@ -53,7 +53,7 @@ git status
 git diff -- ios/Podfile.lock
 
 # 원본 브랜치 기준 비교
-git diff -- feature/course -- ios/Podfile.lock
+git diff feature/course -- ios/Podfile.lock
 
 # 불필요한 자동 변경 되돌리기
 git restore ios/Podfile.lock .claude/launch.json
