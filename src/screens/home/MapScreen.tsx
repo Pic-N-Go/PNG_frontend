@@ -418,7 +418,7 @@ export default function MapScreen() {
             </TouchableOpacity>
 
             {/* 검색바 또는 모드별 헤더 */}
-            {mode !== 'plan' ? (
+            {mode !== 'plan-view' ? (
               <View
                 style={{
                   flex: 1,
