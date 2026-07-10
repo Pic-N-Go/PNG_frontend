@@ -13,7 +13,7 @@ const CHART_DATA = [
 
 export default function PhotogenicReport() {
   return (
-    <View className="mb-7 px-5">
+    <View className="mb-10 px-5">
       <View className="mb-3">
         <Text className="font-semibold tracking-tight text-black" style={{ fontSize: normalizeFontSize(20) }}>
           5월 포토제닉 리포트

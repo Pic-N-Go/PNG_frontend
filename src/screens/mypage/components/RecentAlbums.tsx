@@ -12,7 +12,7 @@ const ALBUMS = [
 
 export default function RecentAlbums() {
   return (
-    <View className="mb-7">
+    <View className="mb-10">
       <View className="flex-row justify-between items-baseline mb-3 px-5">
         <Text className="font-semibold tracking-tight text-black" style={{ fontSize: normalizeFontSize(20) }}>
           지난 촬영

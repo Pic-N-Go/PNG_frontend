@@ -6,7 +6,7 @@ import { FONT_SM } from '@/constants/layout';
 
 export default function PhotoMapPreview() {
   return (
-    <View className="mb-7 px-5">
+    <View className="mb-10 px-5">
       <View className="flex-row justify-between items-baseline mb-3">
         <Text className="font-semibold tracking-tight text-black" style={{ fontSize: normalizeFontSize(20) }}>
           PIC MAP
