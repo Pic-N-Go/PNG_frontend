@@ -469,15 +469,15 @@ export default function MapScreen() {
                           position: 'absolute',
                           top: -normalize(4),
                           right: -normalize(4),
-                          width: 14,
-                          height: 14,
-                          borderRadius: 7,
+                          width: normalize(14),
+                          height: normalize(14),
+                          borderRadius: normalize(7),
                           backgroundColor: '#E31B59',
                           alignItems: 'center',
                           justifyContent: 'center',
                         }}
                       >
-                        <Text style={{ fontSize: 8, color: '#fff', fontFamily: 'Pretendard-Medium' }}>
+                        <Text style={{ fontSize: normalizeFontSize(8), color: '#fff', fontFamily: 'Pretendard-Medium', letterSpacing: -0.2 }}>
                           {activeFilterCount}
                         </Text>
                       </View>
@@ -499,14 +499,14 @@ export default function MapScreen() {
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-1 ml-4" contentContainerStyle={{ flexGrow: 1, justifyContent: 'flex-end', gap: 8 }}>
                   {Object.keys(route.params?.planData || {}).map((dayStr) => {
                     const isActive = dayStr === currentPlanDay;
-                    const bg = isActive ? (DAY_COLORS[dayStr] || '#f59e0b') : '#f5f5f7';
+                    const bg = isActive ? '#E31B59' : '#f5f5f7';
                     const textColor = isActive ? 'text-white' : 'text-black/50';
                     return (
                       <TouchableOpacity
                         key={dayStr}
                         onPress={() => setCurrentPlanDay(dayStr)}
                         style={{
-                          paddingHorizontal: 16,
+                          paddingHorizontal: isActive ? 28 : 16,
                           paddingVertical: 6,
                           borderRadius: 20,
                           backgroundColor: bg,
@@ -517,7 +517,7 @@ export default function MapScreen() {
                           elevation: isActive ? 2 : 0,
                         }}
                       >
-                        <Text className={`${textColor} font-bold tracking-tight`} style={{ fontSize: normalizeFontSize(12) }}>
+                        <Text className={`${textColor} font-semibold tracking-tight`} style={{ fontSize: normalizeFontSize(12), letterSpacing: -0.2 }}>
                           DAY {dayStr}
                         </Text>
                       </TouchableOpacity>
@@ -538,9 +538,9 @@ export default function MapScreen() {
                       key={cat.id}
                       onPress={() => setSelectedCategory(cat.id)}
                       style={{
-                        height: 32,
-                        paddingHorizontal: 14,
-                        borderRadius: 16,
+                        height: normalize(32),
+                        paddingHorizontal: normalize(14),
+                        borderRadius: normalize(16),
                         backgroundColor: isActive ? '#E31B59' : '#F5F5F7',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -549,8 +549,9 @@ export default function MapScreen() {
                       <Text
                         style={{
                           fontFamily: isActive ? 'Pretendard-Medium' : 'Pretendard-Regular',
-                          fontSize: 12,
+                          fontSize: normalizeFontSize(12),
                           color: isActive ? '#ffffff' : 'rgba(0,0,0,0.55)',
+                          letterSpacing: -0.2,
                         }}
                       >
                         {cat.label}

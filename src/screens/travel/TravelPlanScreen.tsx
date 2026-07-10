@@ -520,25 +520,25 @@ export default function TravelPlanScreen({ navigation }: any) {
           {/* Summary Card */}
           <View className="bg-[#f5f5f7] p-4 rounded-2xl mb-5 flex-row">
             <View className="flex-1 items-start">
-              <View className="w-7 h-7 rounded-lg bg-[#e31b59]/10 items-center justify-center mb-1">
-                <IconMapPinFilled size={14} color="#e31b59" />
+              <View className="rounded-lg bg-[#e31b59]/10 items-center justify-center mb-1" style={{ width: normalize(28), height: normalize(28) }}>
+                <IconMapPinFilled size={normalize(14)} color="#e31b59" />
               </View>
-              <Text className="font-semibold text-black" style={{ fontSize: normalizeFontSize(14) }}>{currentData.spots.length}곳</Text>
-              <Text className="text-black/30" style={{ fontSize: normalizeFontSize(12) }}>포토스팟</Text>
+              <Text className="font-semibold text-black tracking-tight" style={{ fontSize: normalizeFontSize(14) }}>{currentData.spots.length}곳</Text>
+              <Text className="text-black/30 tracking-tight" style={{ fontSize: normalizeFontSize(12) }}>포토스팟</Text>
             </View>
             <View className="flex-1 items-start">
-              <View className="w-7 h-7 rounded-lg bg-[#e31b59]/10 items-center justify-center mb-1">
-                <IconRoad size={14} color="#e31b59" />
+              <View className="rounded-lg bg-[#e31b59]/10 items-center justify-center mb-1" style={{ width: normalize(28), height: normalize(28) }}>
+                <IconRoad size={normalize(14)} color="#e31b59" />
               </View>
-              <Text className="font-semibold text-black" style={{ fontSize: normalizeFontSize(14) }}>142km</Text>
-              <Text className="text-black/30" style={{ fontSize: normalizeFontSize(12) }}>총 이동거리</Text>
+              <Text className="font-semibold text-black tracking-tight" style={{ fontSize: normalizeFontSize(14) }}>142km</Text>
+              <Text className="text-black/30 tracking-tight" style={{ fontSize: normalizeFontSize(12) }}>총 이동거리</Text>
             </View>
             <View className="flex-1 items-start">
-              <View className="w-7 h-7 rounded-lg bg-[#e31b59]/10 items-center justify-center mb-1">
-                <IconClock size={14} color="#e31b59" />
+              <View className="rounded-lg bg-[#e31b59]/10 items-center justify-center mb-1" style={{ width: normalize(28), height: normalize(28) }}>
+                <IconClock size={normalize(14)} color="#e31b59" />
               </View>
-              <Text className="font-semibold text-black" style={{ fontSize: normalizeFontSize(14) }}>12시간</Text>
-              <Text className="text-black/30" style={{ fontSize: normalizeFontSize(12) }}>예상 소요</Text>
+              <Text className="font-semibold text-black tracking-tight" style={{ fontSize: normalizeFontSize(14) }}>12시간</Text>
+              <Text className="text-black/30 tracking-tight" style={{ fontSize: normalizeFontSize(12) }}>예상 소요</Text>
             </View>
           </View>
 
@@ -549,11 +549,12 @@ export default function TravelPlanScreen({ navigation }: any) {
                 <TouchableOpacity 
                   key={day}
                   onPress={() => setCurrentDay(day)}
-                  className={`h-10 px-5 rounded-full items-center justify-center flex-row ${currentDay === day ? "bg-[#e31b59]" : "bg-[#f5f5f7]"}`}
+                  className={`rounded-full items-center justify-center flex-row ${currentDay === day ? "bg-[#e31b59]" : "bg-[#f5f5f7]"}`}
+                  style={{ height: normalize(40), paddingHorizontal: normalize(20) }}
                 >
-                  <View className="w-2 h-2 rounded-full mr-1.5" style={{ backgroundColor: currentDay === day ? "#fff" : getDayColor(day).text }} />
+                  <View className="rounded-full" style={{ width: normalize(8), height: normalize(8), marginRight: normalize(6), backgroundColor: currentDay === day ? "#fff" : getDayColor(day).text }} />
                   <Text
-                    className={`font-medium ${currentDay === day ? "text-white font-semibold" : "text-black/50"}`} style={{ fontSize: FONT_SM }}>DAY {day}</Text>
+                    className={`font-medium tracking-tight ${currentDay === day ? "text-white font-semibold" : "text-black/50"}`} style={{ fontSize: FONT_SM }}>DAY {day}</Text>
                 </TouchableOpacity>
               ))}
             </View>
