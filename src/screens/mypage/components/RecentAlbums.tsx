@@ -27,7 +27,8 @@ export default function RecentAlbums() {
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: normalize(20), gap: normalize(10) }}
+        style={{ marginHorizontal: normalize(20) }}
+        contentContainerStyle={{ gap: normalize(10) }}
       >
         {ALBUMS.map((album) => (
           <LinearGradient

@@ -21,30 +21,27 @@ export default function WishlistPreview() {
 
   return (
     <View className="mb-10">
-      <View className="px-5" style={{ position: 'relative' }}>
-        <View className="mb-1">
+      <View className="px-5 mb-3">
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: normalize(4) }}>
           <Text className="font-semibold tracking-tight text-black" style={{ fontSize: normalizeFontSize(20) }}>
             위시리스트 스팟
           </Text>
+          <TouchableOpacity onPress={() => console.log('전체보기: wishlist')}>
+            <Text className="tracking-tight" style={{ fontSize: FONT_SM, color: '#e31b59' }}>
+              설정
+            </Text>
+          </TouchableOpacity>
         </View>
-        <Text className="tracking-tight" style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.4)', marginBottom: normalize(12) }}>
-          조건이 충족되면 알려드려요
+        <Text className="tracking-tight" style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.4)' }}>
+          날씨 알림이 설정된 스팟
         </Text>
-
-        <TouchableOpacity 
-          onPress={() => console.log('전체보기: wishlist')} 
-          style={{ position: 'absolute', bottom: normalize(12), right: normalize(20) }}
-        >
-          <Text className="tracking-tight" style={{ fontSize: FONT_SM, color: '#e31b59' }}>
-            전체보기
-          </Text>
-        </TouchableOpacity>
       </View>
 
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingHorizontal: normalize(20), gap: normalize(10) }}
+        style={{ marginHorizontal: normalize(20) }}
+        contentContainerStyle={{ gap: normalize(10) }}
       >
         {WISHLIST_DATA.map((item) => (
           <TouchableOpacity

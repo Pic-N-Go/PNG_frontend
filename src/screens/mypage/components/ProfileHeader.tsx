@@ -1,8 +1,9 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { IconUser } from '@tabler/icons-react-native';
+import { IconUser, IconSettings } from '@tabler/icons-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { FONT_SM, FONT_XS } from '@/constants/layout';
 
@@ -23,6 +24,7 @@ const MOCK_PROFILE = {
 
 export default function ProfileHeader() {
   const insets = useSafeAreaInsets();
+  const navigation = useNavigation<any>();
 
   return (
     <LinearGradient
@@ -95,28 +97,26 @@ export default function ProfileHeader() {
               </View>
             ))}
           </View>
-          <Text className="leading-relaxed tracking-tight" style={{ fontSize: normalizeFontSize(12), color: 'rgba(255, 255, 255, 0.5)', marginBottom: normalize(6) }}>
+          <Text className="leading-relaxed tracking-tight" style={{ fontSize: normalizeFontSize(12), color: 'rgba(255, 255, 255, 0.5)' }}>
             {MOCK_PROFILE.bio}
           </Text>
         </View>
-      </View>
 
-      <TouchableOpacity
-        style={{
-          width: '100%',
-          height: normalize(36),
-          borderRadius: normalize(10),
-          backgroundColor: 'rgba(255, 255, 255, 0.08)',
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginBottom: normalize(16),
-        }}
-        onPress={() => console.log('설정')}
-      >
-        <Text className="font-medium tracking-tight" style={{ fontSize: normalizeFontSize(14), color: '#ffffff' }}>
-          설정
-        </Text>
-      </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() => navigation.navigate('Setting')}
+          style={{
+            width: normalize(34),
+            height: normalize(34),
+            borderRadius: normalize(17),
+            backgroundColor: 'rgba(255, 255, 255, 0.08)',
+            alignItems: 'center',
+            justifyContent: 'center',
+            alignSelf: 'flex-start',
+          }}
+        >
+          <IconSettings size={normalize(20)} color="#ffffff" strokeWidth={1.5} />
+        </TouchableOpacity>
+      </View>
 
       <View style={{ gap: normalize(8) }}>
         <View className="flex-row" style={{ gap: normalize(8) }}>
