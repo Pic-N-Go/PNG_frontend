@@ -42,7 +42,7 @@ export default function MapScreen() {
              : 'view';
 
   const webViewRef = useRef<any>(null);
-  const { selectedSpots, addSpot, removeSpot } = useTravelStore();
+  const { addSpot } = useTravelStore();
   const [activeSpot, setActiveSpot] = useState<Spot | null>(null);
   const [isCourseModalOpen, setCourseModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -51,7 +51,7 @@ export default function MapScreen() {
   const [detailFilter, setDetailFilter] = useState<FilterState>(EMPTY_FILTER);
   const [currentPlanDay, setCurrentPlanDay] = useState<string>(route.params?.initialDay || '1');
 
-  const isSelected = activeSpot ? selectedSpots.some(s => s.id === activeSpot.id) : false;
+
 
   const handleBackNavigation = useCallback(() => {
     const fromTravelPlan = route.params?.from === 'TravelPlan';
@@ -701,28 +701,17 @@ export default function MapScreen() {
             onClose={closeSheet}
             renderButtons={() => (
               <View className="flex-row gap-2 mt-4">
-                <TouchableOpacity
-                  onPress={() => {
-                    if (mode === 'plan') {
-                      if (isSelected) {
-                        removeSpot(activeSpot!.id);
-                      } else {
-                        addSpot(activeSpot!);
-                      }
-                    } else {
-                      setCourseModalOpen(true);
-                    }
-                }}
-                className={`flex-1 items-center justify-center ${isSelected && mode === 'plan' ? 'bg-[#E31B59]' : 'bg-[#f5f5f7]'}`}
-                style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}
-              >
-                <Text
-                  className={`font-semibold ${isSelected && mode === 'plan' ? 'text-white' : 'text-black/60'}`}
-                  style={{ fontSize: FONT_MD }}
-                >
-                  {mode === 'plan' ? (isSelected ? '현재 코스에 저장됨' : '현재 코스에 저장') : '코스에 저장'}
-                </Text>
-              </TouchableOpacity>
+                {mode !== 'plan' && (
+                  <TouchableOpacity
+                    onPress={() => setCourseModalOpen(true)}
+                    className="flex-1 items-center justify-center bg-[#f5f5f7]"
+                    style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}
+                  >
+                    <Text className="font-semibold text-black/60" style={{ fontSize: FONT_MD }}>
+                      코스에 저장
+                    </Text>
+                  </TouchableOpacity>
+                )}
 
               <TouchableOpacity
                 onPress={() => navigation.navigate('SpotStack', { screen: 'SpotDetail', params: { spotId: activeSpot!.id } })}
