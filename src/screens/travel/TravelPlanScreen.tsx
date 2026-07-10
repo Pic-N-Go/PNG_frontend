@@ -10,7 +10,7 @@ import {
   IconChevronLeft, IconShare, IconMap, IconDots,
   IconClock, IconCar, IconWalk, IconTrash,
   IconMapPinFilled, IconRoad, IconCheck, IconChevronUp, IconChevronDown,
-  IconWand, IconCamera
+  IconWand, IconCamera, IconArrowsMaximize
 } from '@tabler/icons-react-native';
 import NaviSheet from '@/components/spot/NaviSheet';
 
@@ -276,8 +276,6 @@ export default function TravelPlanScreen({ navigation }: any) {
   // data/currentDay가 바뀔 때만 재생성한다.
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const interactiveMapHtml = React.useMemo(() => renderKakaoMapHTML(true, true, true), [data, currentDay]);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const miniMapHtml = React.useMemo(() => renderKakaoMapHTML(false, true), [data, currentDay]);
 
   const renderHeader = () => (
     <View className="bg-white pt-4 pb-2">
@@ -289,6 +287,14 @@ export default function TravelPlanScreen({ navigation }: any) {
             style={{ width: '100%', height: '100%', backgroundColor: 'transparent' }}
             scrollEnabled={false}
           />
+          <TouchableOpacity
+            className="absolute top-3 right-3 bg-white/90 items-center justify-center rounded-lg shadow-sm"
+            style={{ width: normalize(32), height: normalize(32) }}
+            activeOpacity={0.8}
+            onPress={() => navigation.navigate('MapTab', { screen: 'Map', params: { source: 'plan', spots: currentData.spots, from: 'TravelPlan' } })}
+          >
+            <IconArrowsMaximize size={20} color="#000" />
+          </TouchableOpacity>
         </View>
 
         <View className="px-5 pt-6 pb-0">
@@ -418,25 +424,6 @@ export default function TravelPlanScreen({ navigation }: any) {
 
       {/* Weather Row */}
       {weatherRow}
-
-      {/* Route Mini Map */}
-      <View className="mt-8">
-        <View className="flex-row items-baseline justify-between mb-3">
-          <Text className="font-semibold text-black tracking-[-0.3px]" style={{ fontSize: normalizeFontSize(18) }}>이동 경로</Text>
-          <TouchableOpacity onPress={() => navigation.navigate('MapTab', { screen: 'Map', params: { source: 'plan', spots: currentData.spots, from: 'TravelPlan' } })}>
-            <Text className="text-[#e31b59]" style={{ fontSize: FONT_SM }}>지도에서 보기</Text>
-          </TouchableOpacity>
-        </View>
-        <View className="bg-[#f5f5f7] rounded-2xl overflow-hidden relative border border-black/5" pointerEvents="none" style={{ height: normalize(120) }}>
-           <WebView
-              source={{ html: miniMapHtml }}
-              style={{ width: '100%', height: '100%', backgroundColor: 'transparent' }}
-              scrollEnabled={false}
-              showsVerticalScrollIndicator={false}
-              showsHorizontalScrollIndicator={false}
-            />
-        </View>
-      </View>
 
       {/* Checklist */}
       {COMMON_CHECKLIST.length > 0 && (
