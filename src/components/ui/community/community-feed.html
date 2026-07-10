@@ -1651,6 +1651,8 @@
       .photo-lightbox__bg{width:100%;height:100%}
       .photo-lightbox__close{position:absolute;top:14px;right:14px;width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,0.5);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;transition:background 0.15s}
       .photo-lightbox__close:hover{background:rgba(0,0,0,0.75)}
+      .photo-lightbox__info{position:absolute;top:14px;left:14px;width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,0.5);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;transition:background 0.15s}
+      .photo-lightbox__info:hover{background:rgba(0,0,0,0.75)}
 
       /* ── 콘테스트 사진 라이트박스 ── */
       .contest-lightbox{position:fixed;top:0;left:50%;transform:translateX(-50%);width: 100%;height:100dvh;background:rgba(0,0,0,0.88);z-index:401;display:flex;align-items:center;justify-content:center;padding:0 20px;opacity:0;pointer-events:none;transition:opacity 0.2s}
@@ -2719,6 +2721,9 @@
       <div class="photo-lightbox" id="photoLightbox" onclick="closePhotoLightbox()">
         <div class="photo-lightbox__inner">
           <div class="photo-lightbox__bg" id="lightboxBg"></div>
+          <button class="photo-lightbox__info" onclick="event.stopPropagation(); location.href='../spot/photo-detail.html'" aria-label="사진 정보">
+            <svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"/><path d="M12 9h.01"/><path d="M11 12h1v4h1"/></svg>
+          </button>
           <button class="photo-lightbox__close" onclick="closePhotoLightbox()">
             <svg width="14" height="14" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></svg>
           </button>

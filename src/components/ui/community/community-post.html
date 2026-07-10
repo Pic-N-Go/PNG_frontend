@@ -467,10 +467,244 @@
         justify-content: center;
         color: #fff;
         transition: background 0.15s;
-        z-index: 401;
       }
       .photo-lightbox__close:hover {
         background: rgba(0, 0, 0, 0.75);
+      }
+      .photo-lightbox__info {
+        position: absolute;
+        top: 14px;
+        left: 14px;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.5);
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        transition: background 0.15s;
+      }
+      .photo-lightbox__info:hover {
+        background: rgba(0, 0, 0, 0.75);
+      }
+
+      /* ── 게시글 액션시트 (삭제하기 / 신고하기) ── */
+      .action-sheet-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0);
+        z-index: 500;
+        pointer-events: none;
+        transition: background 0.3s;
+      }
+      .action-sheet-backdrop.is-open {
+        background: rgba(0, 0, 0, 0.35);
+        pointer-events: auto;
+      }
+      .action-sheet {
+        position: fixed;
+        bottom: 0;
+        left: 50%;
+        width: 100%;
+        transform: translateX(-50%) translateY(100%);
+        z-index: 501;
+        padding: 0 8px calc(8px + env(safe-area-inset-bottom));
+        transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+      }
+      .action-sheet.is-open {
+        transform: translateX(-50%) translateY(0);
+      }
+      .action-sheet__group {
+        background: #fff;
+        border-radius: 14px;
+        overflow: hidden;
+        margin-bottom: 8px;
+      }
+      .action-sheet__item {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 54px;
+        border: none;
+        background: none;
+        font-family: var(--font-family);
+        font-size: var(--font-md);
+        font-weight: 500;
+        color: #000;
+        cursor: pointer;
+      }
+      .action-sheet__item + .action-sheet__item {
+        border-top: 0.5px solid rgba(0, 0, 0, 0.08);
+      }
+      .action-sheet__item--destructive {
+        color: var(--color-error);
+      }
+      .action-sheet__cancel {
+        width: 100%;
+        height: 54px;
+        border: none;
+        border-radius: 14px;
+        background: #fff;
+        font-family: var(--font-family);
+        font-size: var(--font-md);
+        font-weight: 600;
+        color: #000;
+        cursor: pointer;
+      }
+
+      /* ── 신고 사유 선택 바텀시트 ── */
+      .sheet-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0);
+        z-index: 500;
+        pointer-events: none;
+        transition: background 0.3s;
+      }
+      .sheet-backdrop.is-open {
+        background: rgba(0, 0, 0, 0.35);
+        pointer-events: auto;
+      }
+      .sheet {
+        position: fixed;
+        bottom: 0;
+        left: 50%;
+        transform: translateX(-50%) translateY(100%);
+        width: 100%;
+        background: #fff;
+        border-radius: 20px 20px 0 0;
+        z-index: 501;
+        transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+        overflow: hidden;
+        padding-bottom: env(safe-area-inset-bottom);
+      }
+      .sheet.is-open {
+        transform: translateX(-50%) translateY(0);
+      }
+      .sheet__handle {
+        width: 36px;
+        height: 5px;
+        border-radius: 3px;
+        background: rgba(0, 0, 0, 0.1);
+        margin: 10px auto 0;
+      }
+      .sheet__header {
+        padding: 12px 20px 4px;
+      }
+      .sheet__title {
+        font-size: var(--font-lg);
+        font-weight: 600;
+        color: #000;
+        letter-spacing: -0.3px;
+      }
+      .sheet__body {
+        padding-bottom: 8px;
+      }
+      .report-reason {
+        display: block;
+        width: 100%;
+        text-align: left;
+        padding: 14px 20px;
+        border: none;
+        background: none;
+        font-family: var(--font-family);
+        font-size: var(--font-md);
+        color: #000;
+        cursor: pointer;
+      }
+      .report-reason + .report-reason {
+        border-top: 0.5px solid rgba(0, 0, 0, 0.06);
+      }
+      .report-reason:active {
+        background: rgba(0, 0, 0, 0.03);
+      }
+
+      /* ── 삭제 확인 모달 ── */
+      .confirm-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+        z-index: 510;
+        align-items: center;
+        justify-content: center;
+      }
+      .confirm-overlay.is-open {
+        display: flex;
+      }
+      .confirm-modal {
+        background: #fff;
+        border-radius: 20px;
+        padding: 28px 24px 20px;
+        width: 300px;
+        text-align: center;
+      }
+      .confirm-modal__title {
+        font-size: var(--font-lg);
+        font-weight: 600;
+        color: var(--color-text-primary);
+        letter-spacing: -0.3px;
+        margin-bottom: 8px;
+      }
+      .confirm-modal__desc {
+        font-size: var(--font-sm);
+        color: rgba(0, 0, 0, 0.45);
+        letter-spacing: -0.1px;
+        line-height: 1.55;
+        margin-bottom: var(--space-lg);
+      }
+      .confirm-modal__btns {
+        display: flex;
+        gap: 8px;
+      }
+      .confirm-modal__btn {
+        flex: 1;
+        height: 46px;
+        border-radius: 23px;
+        border: none;
+        font-family: var(--font-family);
+        font-size: var(--font-base);
+        font-weight: 500;
+        cursor: pointer;
+        letter-spacing: -0.1px;
+      }
+      .confirm-modal__btn--cancel {
+        background: var(--color-surface);
+        color: rgba(0, 0, 0, 0.55);
+      }
+      .confirm-modal__btn--delete {
+        background: var(--color-error);
+        color: #fff;
+      }
+
+      /* ── 토스트 ── */
+      .toast {
+        position: fixed;
+        bottom: 96px;
+        left: 50%;
+        transform: translateX(-50%) translateY(20px);
+        height: 44px;
+        padding: 0 20px;
+        border-radius: 22px;
+        background: rgba(0, 0, 0, 0.75);
+        display: flex;
+        align-items: center;
+        font-size: var(--font-base);
+        font-weight: 500;
+        color: #fff;
+        z-index: 520;
+        opacity: 0;
+        transition: all 0.3s;
+        pointer-events: none;
+        white-space: nowrap;
+      }
+      .toast.is-visible {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
       }
     </style>
   </head>
@@ -506,7 +740,7 @@
           <svg width="18" height="18" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M15 6l-6 6l6 6"/></svg>
         </button>
         <span class="nav-bar__title">게시글</span>
-        <button class="nav-bar__btn" aria-label="더보기">
+        <button class="nav-bar__btn" onclick="openActionSheet()" aria-label="더보기">
           <svg width="18" height="18" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/><path d="M12 19m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/><path d="M12 5m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/></svg>
         </button>
       </div>
@@ -614,17 +848,106 @@
       </button>
     </div>
 
+    <!-- 하단 탭바(홈·지도·출사·커뮤니티·MY) 의도적으로 없음: 피드에서 push되는 게시글 상세 화면이라 탭 루트가 아님 (review-write.html, photo-detail.html과 동일한 패턴) -->
+
     <!-- Photo Lightbox -->
     <div class="photo-lightbox" id="photoLightbox" onclick="closeLightbox()">
       <div class="photo-lightbox__inner">
         <div class="photo-lightbox__bg" id="lightboxBg" style="background: linear-gradient(to bottom, #0f2027, #203a43, #4a7c8a)"></div>
+        <button class="photo-lightbox__info" onclick="event.stopPropagation(); location.href='../spot/photo-detail.html'" aria-label="사진 정보">
+          <svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"/><path d="M12 9h.01"/><path d="M11 12h1v4h1"/></svg>
+        </button>
+        <button class="photo-lightbox__close" onclick="closeLightbox()" aria-label="닫기">
+          <svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></svg>
+        </button>
       </div>
-      <button class="photo-lightbox__close" onclick="closeLightbox()" aria-label="닫기">
-        <svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></svg>
-      </button>
     </div>
 
+    <!-- 게시글 액션시트: 내 글이면 삭제하기, 아니면 신고하기 -->
+    <div class="action-sheet-backdrop" id="actionSheetBackdrop" onclick="closeActionSheet()"></div>
+    <div class="action-sheet" id="actionSheet">
+      <div class="action-sheet__group">
+        <button class="action-sheet__item action-sheet__item--destructive" id="actionSheetDelete" onclick="closeActionSheet(); openDeleteConfirm();">삭제하기</button>
+        <button class="action-sheet__item" id="actionSheetReport" onclick="closeActionSheet(); openReportSheet();">신고하기</button>
+      </div>
+      <div class="action-sheet__group">
+        <button class="action-sheet__cancel" onclick="closeActionSheet()">취소</button>
+      </div>
+    </div>
+
+    <!-- 게시글 삭제 확인 모달 -->
+    <div class="confirm-overlay" id="deleteConfirmOverlay" onclick="closeDeleteConfirm()">
+      <div class="confirm-modal" onclick="event.stopPropagation()">
+        <div class="confirm-modal__title">게시글을 삭제할까요?</div>
+        <div class="confirm-modal__desc">삭제한 게시글은 복구할 수 없어요.</div>
+        <div class="confirm-modal__btns">
+          <button class="confirm-modal__btn confirm-modal__btn--cancel" onclick="closeDeleteConfirm()">취소</button>
+          <button class="confirm-modal__btn confirm-modal__btn--delete" onclick="confirmDelete()">삭제</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 신고 사유 선택 바텀시트 -->
+    <div class="sheet-backdrop" id="reportSheetBackdrop" onclick="closeReportSheet()"></div>
+    <div class="sheet" id="reportSheet">
+      <div class="sheet__handle"></div>
+      <div class="sheet__header">
+        <span class="sheet__title">신고 사유 선택</span>
+      </div>
+      <div class="sheet__body">
+        <button class="report-reason" onclick="submitReport('스팸')">스팸</button>
+        <button class="report-reason" onclick="submitReport('욕설/혐오')">욕설/혐오</button>
+        <button class="report-reason" onclick="submitReport('저작권 침해')">저작권 침해</button>
+        <button class="report-reason" onclick="submitReport('부적절한 콘텐츠')">부적절한 콘텐츠</button>
+        <button class="report-reason" onclick="submitReport('기타')">기타</button>
+      </div>
+    </div>
+
+    <div class="toast" id="postToast"></div>
+
     <script>
+      var isMyPost = new URLSearchParams(location.search).get('mine') === '1';
+      document.getElementById('actionSheetDelete').style.display = isMyPost ? 'flex' : 'none';
+      document.getElementById('actionSheetReport').style.display = isMyPost ? 'none' : 'flex';
+
+      function openActionSheet() {
+        document.getElementById('actionSheetBackdrop').classList.add('is-open');
+        document.getElementById('actionSheet').classList.add('is-open');
+      }
+      function closeActionSheet() {
+        document.getElementById('actionSheetBackdrop').classList.remove('is-open');
+        document.getElementById('actionSheet').classList.remove('is-open');
+      }
+      function openDeleteConfirm() {
+        document.getElementById('deleteConfirmOverlay').classList.add('is-open');
+      }
+      function closeDeleteConfirm() {
+        document.getElementById('deleteConfirmOverlay').classList.remove('is-open');
+      }
+      function confirmDelete() {
+        closeDeleteConfirm();
+        showToast('게시글이 삭제되었어요');
+        setTimeout(function () { location.href = '../community/community-feed.html'; }, 900);
+      }
+      function openReportSheet() {
+        document.getElementById('reportSheetBackdrop').classList.add('is-open');
+        document.getElementById('reportSheet').classList.add('is-open');
+      }
+      function closeReportSheet() {
+        document.getElementById('reportSheetBackdrop').classList.remove('is-open');
+        document.getElementById('reportSheet').classList.remove('is-open');
+      }
+      function submitReport(reason) {
+        closeReportSheet();
+        showToast('신고가 접수되었어요');
+      }
+      function showToast(message) {
+        var toast = document.getElementById('postToast');
+        toast.textContent = message;
+        toast.classList.add('is-visible');
+        setTimeout(function () { toast.classList.remove('is-visible'); }, 2200);
+      }
+
       function goBack() {
         if (history.length > 1) history.back();
         else location.href = "./community-feed.html";

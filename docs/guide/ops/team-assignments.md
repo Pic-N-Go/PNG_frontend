@@ -45,7 +45,6 @@
 | 스팟 상세 - 정보 탭 | 포토제닉 지수, 편의 정보, 촬영 체크리스트, 북마크 | 박예은 | 미시작 | `SpotDetailScreen.tsx` |
 | 스팟 상세 - 사진 탭 | 사진 갤러리, 풀스크린 뷰, EXIF 정보 | 소영재 | 미시작 | `SpotDetailScreen.tsx` |
 | 스팟 상세 - 채팅 탭 | 실시간 채팅, LIVE 뱃지, 참여 인원, 사진 공유 | 소영재 | 미시작 | `SpotDetailScreen.tsx` |
-| 스팟 등록 | 3단계 등록 (사진/위치/정보), EXIF 파싱, 검토 | 소영재 | 미시작 | `SpotRegisterScreen.tsx` |
 | 스팟 리뷰 작성 | 별점, 방문 시간대, 텍스트, 사진 첨부 | 박예은 | 미시작 | `ReviewWriteScreen.tsx` |
 | 사진 상세 뷰 | 풀스크린, 핀치 줌, EXIF 오버레이, 저장/공유 | 소영재 | 미시작 | `PhotoDetailScreen.tsx` |
 

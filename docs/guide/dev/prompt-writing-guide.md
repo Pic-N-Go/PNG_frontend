@@ -89,8 +89,8 @@ src/components/ui/
   auth/         login, signup, oauth-onboarding
   home/         home, map
   travel/       travel-list, travel-plan, travel-new
-  community/    community-feed  ※ community-write, contest 미퍼블리싱
-  spot/         spot-detail, spot-register, spot-change, spot-list, review-write
+  community/    community-feed, community-write  ※ contest 미퍼블리싱
+  spot/         spot-detail, spot-register, spot-change, spot-list, review-write, photo-detail
   mypage/       mypage, my-photos, profile-edit, setting, notification, photo-map  ※ user-profile 미퍼블리싱
   wishlist/     wishlist, wishlist-setting
 ```
