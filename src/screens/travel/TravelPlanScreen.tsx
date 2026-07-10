@@ -551,7 +551,7 @@ export default function TravelPlanScreen({ navigation }: any) {
                   onPress={() => setCurrentDay(day)}
                   className={`h-10 px-5 rounded-full items-center justify-center flex-row ${currentDay === day ? "bg-[#e31b59]" : "bg-[#f5f5f7]"}`}
                 >
-                  <View className="w-2 h-2 rounded-full mr-1.5" style={{ backgroundColor: getDayColor(day).bg }} />
+                  <View className="w-2 h-2 rounded-full mr-1.5" style={{ backgroundColor: currentDay === day ? "#fff" : getDayColor(day).text }} />
                   <Text
                     className={`font-medium ${currentDay === day ? "text-white font-semibold" : "text-black/50"}`} style={{ fontSize: FONT_SM }}>DAY {day}</Text>
                 </TouchableOpacity>
