@@ -25,8 +25,13 @@ const TABS: { route: string; label: string; Icon: TabIcon }[] = [
 const ACTIVE_COLOR = '#E31B59';
 const INACTIVE_COLOR = 'rgba(0,0,0,0.35)';
 
-export default function TabBar({ state, navigation }: BottomTabBarProps) {
+export default function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
+  const focusedOptions = descriptors[state.routes[state.index].key].options;
+
+  if (focusedOptions?.tabBarStyle && (focusedOptions.tabBarStyle as any).display === 'none') {
+    return null;
+  }
 
   return (
     <View
