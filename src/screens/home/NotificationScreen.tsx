@@ -109,7 +109,7 @@ export default function NotificationScreen({ navigation }: Props) {
             <View key={group.label}>
               <Text
                 allowFontScaling={false}
-                style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.3)', letterSpacing: 0.2, paddingHorizontal: GRID_PADDING, paddingTop: normalize(14), paddingBottom: normalize(6) }}
+                style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.3)', letterSpacing: -0.2, paddingHorizontal: GRID_PADDING, paddingTop: normalize(14), paddingBottom: normalize(6) }}
               >
                 {group.label}
               </Text>
@@ -137,7 +137,7 @@ export default function NotificationScreen({ navigation }: Props) {
                         {/* 본문 */}
                         <View style={{ flex: 1 }}>
                           <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', gap: normalize(8), marginBottom: normalize(2) }}>
-                            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.45)', letterSpacing: 0.2 }}>
+                            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.45)', letterSpacing: -0.2 }}>
                               {item.label}
                             </Text>
                             <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.28)', letterSpacing: -0.1, flexShrink: 0 }}>
@@ -150,15 +150,19 @@ export default function NotificationScreen({ navigation }: Props) {
                           <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: 'rgba(0,0,0,0.45)', letterSpacing: -0.1, lineHeight: FONT_SM * 1.4 }} numberOfLines={2}>
                             {item.desc}
                           </Text>
-
-                          {item.cta && (
-                            <Pressable style={({ pressed }) => ({ alignSelf: 'flex-start', height: normalize(32), paddingHorizontal: normalize(14), borderRadius: normalize(16), backgroundColor: pressed ? '#c91550' : '#E31B59', alignItems: 'center', justifyContent: 'center', marginTop: normalize(10) })}>
-                              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: '#fff' }}>{item.cta}</Text>
-                            </Pressable>
-                          )}
                         </View>
                       </View>
                     </Pressable>
+                    {item.cta && (
+                      <View style={{ paddingLeft: GRID_PADDING + normalize(56), paddingBottom: normalize(12), marginTop: normalize(-4) }}>
+                        <Pressable
+                          onPress={() => { /* TODO: CTA 액션 연동 */ }}
+                          style={({ pressed }) => ({ alignSelf: 'flex-start', height: normalize(32), paddingHorizontal: normalize(14), borderRadius: normalize(16), backgroundColor: pressed ? '#c91550' : '#E31B59', alignItems: 'center', justifyContent: 'center' })}
+                        >
+                          <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: '#fff' }}>{item.cta}</Text>
+                        </Pressable>
+                      </View>
+                    )}
                   </View>
 
                   {idx < group.items.length - 1 && (
