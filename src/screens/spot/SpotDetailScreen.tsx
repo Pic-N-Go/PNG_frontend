@@ -171,7 +171,8 @@ export default function SpotDetailScreen({ navigation }: Props) {
                 <View style={{ height: normalize(24) }} />
                 <SpotWishlistBanner
                   onPress={() => {
-                    // TODO: WishlistStack 연결 (스코프 밖 — 진입 경로는 후속 이슈에서 연결)
+                    // @ts-ignore
+                    navigation.navigate('Wishlist');
                   }}
                 />
                 <View style={{ height: normalize(24) }} />
