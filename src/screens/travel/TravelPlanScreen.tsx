@@ -510,7 +510,7 @@ export default function TravelPlanScreen({ navigation }: any) {
             className="absolute top-3 right-3 bg-white/90 items-center justify-center rounded-lg shadow-sm"
             style={{ width: normalize(32), height: normalize(32) }}
             activeOpacity={0.8}
-            onPress={() => navigation.navigate('Map', { source: 'plan-view', planData: data, initialDay: '1', from: 'TravelPlan' })}
+            onPress={() => navigation.navigate('Map', { source: 'plan-view', planData: data, initialDay: currentDay, from: 'TravelPlan' })}
           >
             <IconArrowsMaximize size={20} color="#000" />
           </TouchableOpacity>
