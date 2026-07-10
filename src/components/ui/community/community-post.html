@@ -472,6 +472,26 @@
       .photo-lightbox__close:hover {
         background: rgba(0, 0, 0, 0.75);
       }
+      .photo-lightbox__info {
+        position: absolute;
+        top: 14px;
+        left: 14px;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.5);
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        transition: background 0.15s;
+        z-index: 401;
+      }
+      .photo-lightbox__info:hover {
+        background: rgba(0, 0, 0, 0.75);
+      }
     </style>
   </head>
   <body>
@@ -619,6 +639,9 @@
       <div class="photo-lightbox__inner">
         <div class="photo-lightbox__bg" id="lightboxBg" style="background: linear-gradient(to bottom, #0f2027, #203a43, #4a7c8a)"></div>
       </div>
+      <button class="photo-lightbox__info" onclick="event.stopPropagation(); location.href='../spot/photo-detail.html'" aria-label="사진 정보">
+        <svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"/><path d="M12 9h.01"/><path d="M11 12h1v4h1"/></svg>
+      </button>
       <button class="photo-lightbox__close" onclick="closeLightbox()" aria-label="닫기">
         <svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></svg>
       </button>
