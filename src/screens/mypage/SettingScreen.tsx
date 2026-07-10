@@ -112,7 +112,7 @@ export default function SettingScreen() {
         <View style={{ paddingTop: normalize(24), paddingHorizontal: normalize(20) }}>
           <Text className="font-semibold" style={{ fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.3)', marginBottom: normalize(8), letterSpacing: 0.4 }}>계정</Text>
           <View style={{ borderRadius: normalize(16), backgroundColor: '#f8f8f9', overflow: 'hidden' }}>
-            <SettingRow icon={<IconUser size={normalize(16)} color="rgba(0,0,0,0.4)" />} label="프로필 편집" desc="이미지, 닉네임, 소개 수정" onPress={() => Alert.alert('알림', '프로필 편집 기능은 추후 업데이트 될 예정입니다.')} />
+            <SettingRow icon={<IconUser size={normalize(16)} color="rgba(0,0,0,0.4)" />} label="프로필 편집" desc="이미지, 닉네임, 소개 수정" onPress={() => navigation.navigate('ProfileEdit' as never)} />
             <SettingRow icon={<IconMail size={normalize(16)} color="rgba(0,0,0,0.4)" />} label="이메일 변경" desc="sunset_jk@gmail.com" onPress={() => openSheet('email')} />
             <SettingRow icon={<IconLock size={normalize(16)} color="rgba(0,0,0,0.4)" />} label="비밀번호 변경" onPress={() => openSheet('pw')} />
             <SettingRow icon={<IconHeart size={normalize(16)} color="#e31b59" />} label="관심 테마" desc="홈 피드 및 추천에 반영" onPress={() => openSheet('theme')} />
