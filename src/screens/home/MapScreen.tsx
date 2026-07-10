@@ -38,11 +38,12 @@ export default function MapScreen() {
   const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const mode = route.params?.source === 'plan' ? 'plan' 
+             : route.params?.source === 'plan-view' ? 'plan-view'
              : route.params?.source === 'wishlist-change' ? 'wishlist-change'
              : 'view';
 
   const webViewRef = useRef<any>(null);
-  const { addSpot } = useTravelStore();
+  const { selectedSpots, addSpot, removeSpot } = useTravelStore();
   const [activeSpot, setActiveSpot] = useState<Spot | null>(null);
   const [isCourseModalOpen, setCourseModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -51,7 +52,13 @@ export default function MapScreen() {
   const [detailFilter, setDetailFilter] = useState<FilterState>(EMPTY_FILTER);
   const [currentPlanDay, setCurrentPlanDay] = useState<string>(route.params?.initialDay || '1');
 
+  const isSelected = activeSpot ? selectedSpots.some(s => s.id === activeSpot.id) : false;
 
+  useEffect(() => {
+    if (route.params?.initialDay) {
+      setCurrentPlanDay(route.params.initialDay);
+    }
+  }, [route.params?.initialDay]);
 
   const handleBackNavigation = useCallback(() => {
     const fromTravelPlan = route.params?.from === 'TravelPlan';
@@ -160,7 +167,7 @@ export default function MapScreen() {
   }, []);
 
   const baseSpots = useMemo(() => {
-    if (mode === 'plan' && route.params?.planData) {
+    if ((mode === 'plan' || mode === 'plan-view') && route.params?.planData) {
       return route.params.planData[currentPlanDay]?.spots || [];
     }
     return route.params?.spots || DEFAULT_SPOTS;
@@ -701,14 +708,24 @@ export default function MapScreen() {
             onClose={closeSheet}
             renderButtons={() => (
               <View className="flex-row gap-2 mt-4">
-                {mode !== 'plan' && (
+                {mode !== 'plan-view' && (
                   <TouchableOpacity
-                    onPress={() => setCourseModalOpen(true)}
-                    className="flex-1 items-center justify-center bg-[#f5f5f7]"
+                    onPress={() => {
+                      if (mode === 'plan') {
+                        if (isSelected) {
+                          removeSpot(activeSpot!.id);
+                        } else {
+                          addSpot(activeSpot!);
+                        }
+                      } else {
+                        setCourseModalOpen(true);
+                      }
+                    }}
+                    className={`flex-1 items-center justify-center ${isSelected && mode === 'plan' ? 'bg-[#E31B59]' : 'bg-[#f5f5f7]'}`}
                     style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}
                   >
-                    <Text className="font-semibold text-black/60" style={{ fontSize: FONT_MD }}>
-                      코스에 저장
+                    <Text className={`font-semibold ${isSelected && mode === 'plan' ? 'text-white' : 'text-black/60'}`} style={{ fontSize: FONT_MD }}>
+                      {mode === 'plan' ? (isSelected ? '현재 코스에 저장됨' : '현재 코스에 저장') : '코스에 저장'}
                     </Text>
                   </TouchableOpacity>
                 )}
