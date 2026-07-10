@@ -13,6 +13,8 @@ import { FONT_MD, BUTTON_HEIGHT, BUTTON_RADIUS, HEADER_HEIGHT } from '@/constant
 
 const KAKAO_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_API_KEY;
 
+const DAY_COLORS: Record<string, string> = { '1': '#f59e0b', '2': '#3b82f6', '3': '#10b981', '4': '#8b5cf6' };
+
 const DEFAULT_SPOTS = [
   { id: '1', name: '광안리 해수욕장', lat: 35.1532, lng: 129.1186, tags: ['바다', '야경'], score: 87, loc: '부산 수영구', photo: 'https://images.unsplash.com/photo-1598514982205-f36b96d1e8dd?q=80&w=400&auto=format&fit=crop' },
   { id: '2', name: '경복궁', lat: 37.5796, lng: 126.9770, tags: ['역사', '고궁', '한옥'], score: 91, loc: '서울 종로구', photo: 'https://images.unsplash.com/photo-1538485399081-7191377e8241?q=80&w=400&auto=format&fit=crop' },
@@ -47,6 +49,7 @@ export default function MapScreen() {
   const [activeFilterCount, setActiveFilterCount] = useState(0);
   const [filterVisible, setFilterVisible] = useState(false);
   const [detailFilter, setDetailFilter] = useState<FilterState>(EMPTY_FILTER);
+  const [currentPlanDay, setCurrentPlanDay] = useState<string>(route.params?.initialDay || '1');
 
   const isSelected = activeSpot ? selectedSpots.some(s => s.id === activeSpot.id) : false;
 
@@ -54,8 +57,8 @@ export default function MapScreen() {
     const fromTravelPlan = route.params?.from === 'TravelPlan';
     const planId = route.params?.planId;
 
-    if (route.params?.spots || route.params?.from) {
-      navigation.setParams({ spots: undefined, from: undefined, planId: undefined });
+    if (route.params?.spots || route.params?.from || route.params?.planData) {
+      navigation.setParams({ spots: undefined, from: undefined, planId: undefined, planData: undefined, initialDay: undefined });
     }
 
     if (fromTravelPlan) {
@@ -156,7 +159,12 @@ export default function MapScreen() {
     }
   }, []);
 
-  const baseSpots = useMemo(() => route.params?.spots || DEFAULT_SPOTS, [route.params?.spots]);
+  const baseSpots = useMemo(() => {
+    if (mode === 'plan' && route.params?.planData) {
+      return route.params.planData[currentPlanDay]?.spots || [];
+    }
+    return route.params?.spots || DEFAULT_SPOTS;
+  }, [mode, route.params?.spots, route.params?.planData, currentPlanDay]);
 
   const filteredSpots = useMemo(() => {
     return baseSpots.filter((spot: any) => {
@@ -402,111 +410,150 @@ export default function MapScreen() {
               <IconChevronLeft size={normalize(24)} color="#000" strokeWidth={1.5} />
             </TouchableOpacity>
 
-            {/* 검색바 */}
-            <View
-              style={{
-                flex: 1,
-                height: normalize(48),
-                borderRadius: normalize(24),
-                backgroundColor: 'rgba(255,255,255,0.92)',
-                borderWidth: 0.5,
-                borderColor: 'rgba(255,255,255,0.6)',
-                flexDirection: 'row',
-                alignItems: 'center',
-                paddingHorizontal: normalize(16),
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.06,
-                shadowRadius: 12,
-                elevation: 3,
-              }}
-            >
-              <TouchableOpacity
-                activeOpacity={0.9}
-                onPress={() => navigation.navigate('SearchResult', { query: '' })}
-                style={{ flex: 1, flexDirection: 'row', alignItems: 'center', height: '100%', paddingRight: normalize(32) }}
+            {/* 검색바 또는 모드별 헤더 */}
+            {mode !== 'plan' ? (
+              <View
+                style={{
+                  flex: 1,
+                  height: normalize(48),
+                  borderRadius: normalize(24),
+                  backgroundColor: 'rgba(255,255,255,0.92)',
+                  borderWidth: 0.5,
+                  borderColor: 'rgba(255,255,255,0.6)',
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  paddingHorizontal: normalize(16),
+                  shadowColor: '#000',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.06,
+                  shadowRadius: 12,
+                  elevation: 3,
+                }}
               >
-                <IconSearch size={normalize(18)} color="rgba(0,0,0,0.3)" strokeWidth={1.5} />
-                <Text
-                  allowFontScaling={false}
-                  style={{
-                    marginLeft: normalize(8),
-                    fontSize: FONT_MD,
-                    color: 'rgba(0,0,0,0.3)',
-                    fontFamily: 'Pretendard-Regular',
-                    letterSpacing: -0.2,
-                  }}
+                <TouchableOpacity
+                  activeOpacity={0.9}
+                  onPress={() => navigation.navigate('SearchResult', { query: '' })}
+                  style={{ flex: 1, flexDirection: 'row', alignItems: 'center', height: '100%', paddingRight: normalize(32) }}
                 >
-                  장소, 테마, 키워드 검색
-                </Text>
-              </TouchableOpacity>
+                  <IconSearch size={normalize(18)} color="rgba(0,0,0,0.3)" strokeWidth={1.5} />
+                  <Text
+                    allowFontScaling={false}
+                    style={{
+                      marginLeft: normalize(8),
+                      fontSize: FONT_MD,
+                      color: 'rgba(0,0,0,0.3)',
+                      fontFamily: 'Pretendard-Regular',
+                      letterSpacing: -0.2,
+                    }}
+                  >
+                    장소, 테마, 키워드 검색
+                  </Text>
+                </TouchableOpacity>
 
-              {/* 필터 조절 아이콘 */}
-              <TouchableOpacity
-                onPress={() => setFilterVisible(true)}
-                hitSlop={8}
-                style={{ position: 'absolute', right: normalize(16), top: 0, bottom: 0, justifyContent: 'center' }}
+                {/* 필터 조절 아이콘 */}
+                <TouchableOpacity
+                  onPress={() => setFilterVisible(true)}
+                  hitSlop={8}
+                  style={{ position: 'absolute', right: normalize(16), top: 0, bottom: 0, justifyContent: 'center' }}
+                >
+                  <View style={{ position: 'relative' }}>
+                    <IconAdjustmentsHorizontal size={normalize(18)} color="rgba(0,0,0,0.45)" strokeWidth={1.5} />
+                    {activeFilterCount > 0 && (
+                      <View
+                        style={{
+                          position: 'absolute',
+                          top: -normalize(4),
+                          right: -normalize(4),
+                          width: 14,
+                          height: 14,
+                          borderRadius: 7,
+                          backgroundColor: '#E31B59',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        <Text style={{ fontSize: 8, color: '#fff', fontFamily: 'Pretendard-Medium' }}>
+                          {activeFilterCount}
+                        </Text>
+                      </View>
+                    )}
+                  </View>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <View style={{ flex: 1 }} />
+            )}
+          </View>
+          
+          <View className="mt-2 pointer-events-auto">
+            {mode === 'plan' ? (
+              <View className="flex-row items-center justify-between px-4 mt-2">
+                <Text className="font-bold tracking-tight" style={{ color: DAY_COLORS[currentPlanDay] || '#f59e0b', fontSize: normalizeFontSize(16) }}>
+                  DAY {currentPlanDay} 경로
+                </Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-1 ml-4" contentContainerStyle={{ justifyContent: 'flex-end', gap: 8 }}>
+                  {Object.keys(route.params?.planData || {}).map((dayStr) => {
+                    const isActive = dayStr === currentPlanDay;
+                    const bg = isActive ? (DAY_COLORS[dayStr] || '#f59e0b') : '#9ca3af';
+                    return (
+                      <TouchableOpacity
+                        key={dayStr}
+                        onPress={() => setCurrentPlanDay(dayStr)}
+                        style={{
+                          paddingHorizontal: 16,
+                          paddingVertical: 6,
+                          borderRadius: 20,
+                          backgroundColor: bg,
+                          shadowColor: '#000',
+                          shadowOffset: { width: 0, height: 1 },
+                          shadowOpacity: isActive ? 0.2 : 0,
+                          shadowRadius: 2,
+                          elevation: isActive ? 2 : 0,
+                        }}
+                      >
+                        <Text className="text-white font-bold tracking-tight" style={{ fontSize: normalizeFontSize(12) }}>
+                          DAY {dayStr}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
+              </View>
+            ) : (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 4, gap: 6 }}
               >
-                <View style={{ position: 'relative' }}>
-                  <IconAdjustmentsHorizontal size={normalize(18)} color="rgba(0,0,0,0.45)" strokeWidth={1.5} />
-                  {activeFilterCount > 0 && (
-                    <View
+                {CATEGORIES.map((cat) => {
+                  const isActive = selectedCategory === cat.id;
+                  return (
+                    <TouchableOpacity
+                      key={cat.id}
+                      onPress={() => setSelectedCategory(cat.id)}
                       style={{
-                        position: 'absolute',
-                        top: -normalize(4),
-                        right: -normalize(4),
-                        width: 14,
-                        height: 14,
-                        borderRadius: 7,
-                        backgroundColor: '#E31B59',
+                        height: 32,
+                        paddingHorizontal: 14,
+                        borderRadius: 16,
+                        backgroundColor: isActive ? '#E31B59' : '#F5F5F7',
                         alignItems: 'center',
                         justifyContent: 'center',
                       }}
                     >
-                      <Text style={{ fontSize: 8, color: '#fff', fontFamily: 'Pretendard-Medium' }}>
-                        {activeFilterCount}
+                      <Text
+                        style={{
+                          fontFamily: isActive ? 'Pretendard-Medium' : 'Pretendard-Regular',
+                          fontSize: 12,
+                          color: isActive ? '#ffffff' : 'rgba(0,0,0,0.55)',
+                        }}
+                      >
+                        {cat.label}
                       </Text>
-                    </View>
-                  )}
-                </View>
-              </TouchableOpacity>
-            </View>
-          </View>
-          
-          <View className="mt-2 pointer-events-auto">
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 4, gap: 6 }}
-            >
-              {CATEGORIES.map((cat) => {
-                const isActive = selectedCategory === cat.id;
-                return (
-                  <TouchableOpacity
-                    key={cat.id}
-                    onPress={() => setSelectedCategory(cat.id)}
-                    style={{
-                      height: 32,
-                      paddingHorizontal: 14,
-                      borderRadius: 16,
-                      backgroundColor: isActive ? '#E31B59' : '#F5F5F7',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <Text
-                      style={{
-                        fontFamily: isActive ? 'Pretendard-Medium' : 'Pretendard-Regular',
-                        fontSize: 12,
-                        color: isActive ? '#ffffff' : 'rgba(0,0,0,0.55)',
-                      }}
-                    >
-                      {cat.label}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </ScrollView>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            )}
           </View>
         </View>
         )}
