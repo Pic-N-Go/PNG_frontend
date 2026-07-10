@@ -21,7 +21,7 @@ export default function WishlistPreview() {
 
   return (
     <View className="mb-10">
-      <View className="px-5 mb-3">
+      <View className="mb-3" style={{ paddingHorizontal: normalize(20) }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: normalize(4) }}>
           <Text className="font-semibold tracking-tight text-black" style={{ fontSize: normalizeFontSize(20) }}>
             위시리스트 스팟
