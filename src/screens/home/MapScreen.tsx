@@ -499,7 +499,8 @@ export default function MapScreen() {
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-1 ml-4" contentContainerStyle={{ flexGrow: 1, justifyContent: 'flex-end', gap: 8 }}>
                   {Object.keys(route.params?.planData || {}).map((dayStr) => {
                     const isActive = dayStr === currentPlanDay;
-                    const bg = isActive ? (DAY_COLORS[dayStr] || '#f59e0b') : '#9ca3af';
+                    const bg = isActive ? (DAY_COLORS[dayStr] || '#f59e0b') : '#f5f5f7';
+                    const textColor = isActive ? 'text-white' : 'text-black/50';
                     return (
                       <TouchableOpacity
                         key={dayStr}
@@ -516,7 +517,7 @@ export default function MapScreen() {
                           elevation: isActive ? 2 : 0,
                         }}
                       >
-                        <Text className="text-white font-bold tracking-tight" style={{ fontSize: normalizeFontSize(12) }}>
+                        <Text className={`${textColor} font-bold tracking-tight`} style={{ fontSize: normalizeFontSize(12) }}>
                           DAY {dayStr}
                         </Text>
                       </TouchableOpacity>
