@@ -6,6 +6,7 @@ import SettingScreen from '@/screens/mypage/SettingScreen';
 import NotificationScreen from '@/screens/mypage/NotificationScreen';
 import ProfileEditScreen from '@/screens/mypage/ProfileEditScreen';
 import FollowScreen from '@/screens/mypage/FollowScreen';
+import MyPhotosScreen from '@/screens/mypage/MyPhotosScreen';
 
 export type MyPageStackParamList = {
   MyPage: undefined;
@@ -14,6 +15,7 @@ export type MyPageStackParamList = {
   Notification: undefined;
   ProfileEdit: undefined;
   Follow: { initialTab: 'followers' | 'following' };
+  MyPhotos: undefined;
 };
 
 const Stack = createNativeStackNavigator<MyPageStackParamList>();
@@ -27,6 +29,7 @@ export default function MyPageStack() {
       <Stack.Screen name="Notification" component={NotificationScreen} />
       <Stack.Screen name="ProfileEdit" component={ProfileEditScreen} />
       <Stack.Screen name="Follow" component={FollowScreen} />
+      <Stack.Screen name="MyPhotos" component={MyPhotosScreen} />
     </Stack.Navigator>
   );
 }

@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { FONT_SM } from '@/constants/layout';
@@ -11,13 +12,15 @@ const ALBUMS = [
 ];
 
 export default function RecentAlbums() {
+  const navigation = useNavigation();
+
   return (
     <View className="mb-10">
       <View className="flex-row justify-between items-baseline mb-3 px-5">
         <Text className="font-semibold tracking-tight text-black" style={{ fontSize: normalizeFontSize(20) }}>
           지난 촬영
         </Text>
-        <TouchableOpacity onPress={() => console.log('전체보기: my-photos')}>
+        <TouchableOpacity onPress={() => navigation.navigate('MyPhotos' as never)}>
           <Text className="tracking-tight" style={{ fontSize: FONT_SM, color: '#e31b59' }}>
             전체보기
           </Text>
