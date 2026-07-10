@@ -61,25 +61,13 @@ export default function MapScreen() {
   }, [route.params?.initialDay]);
 
   const handleBackNavigation = useCallback(() => {
-    const fromTravelPlan = route.params?.from === 'TravelPlan';
-    const planId = route.params?.planId;
-
-    if (route.params?.spots || route.params?.from || route.params?.planData) {
-      navigation.setParams({ spots: undefined, from: undefined, planId: undefined, planData: undefined, initialDay: undefined });
-    }
-
-    if (fromTravelPlan) {
-      navigation.navigate('TravelTab', {
-        screen: 'TravelPlan',
-        ...(planId ? { params: { planId } } : {}),
-      });
-    } else if (navigation.canGoBack()) {
+    if (navigation.canGoBack()) {
       navigation.goBack();
     } else {
       navigation.navigate('HomeTab');
     }
     return true; // prevent default behavior
-  }, [navigation, route.params]);
+  }, [navigation]);
 
   useFocusEffect(
     useCallback(() => {
