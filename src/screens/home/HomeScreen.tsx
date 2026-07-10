@@ -17,7 +17,7 @@ import PopularSpotsSection from '@/components/home/PopularSpotsSection';
 import CalendarSection from '@/components/home/CalendarSection';
 import WishlistBanner from '@/components/home/WishlistBanner';
 import FilterBottomSheet from '@/components/home/FilterBottomSheet';
-import NotificationSheet from '@/components/home/NotificationSheet';
+import { useNotificationStore, selectHasUnread } from '@/store/useNotificationStore';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'Home'>;
 
@@ -26,8 +26,7 @@ export default function HomeScreen({ navigation }: Props) {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [activeFilterCount, setActiveFilterCount] = useState(0);
   const [filterVisible, setFilterVisible] = useState(false);
-  const [notifVisible, setNotifVisible] = useState(false);
-  const [hasUnread, setHasUnread] = useState(true);
+  const hasUnread = useNotificationStore(selectHasUnread);
 
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
@@ -36,7 +35,7 @@ export default function HomeScreen({ navigation }: Props) {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: TAB_BAR_HEIGHT + insets.bottom }}
       >
-        <HeroSection onNotificationPress={() => setNotifVisible(true)} hasUnread={hasUnread} />
+        <HeroSection onNotificationPress={() => navigation.navigate('Notification')} hasUnread={hasUnread} />
 
         {/* 히어로 → 흰 배경 페이드 */}
         <LinearGradient
@@ -86,11 +85,6 @@ export default function HomeScreen({ navigation }: Props) {
 
       </ScrollView>
 
-      <NotificationSheet
-        visible={notifVisible}
-        onClose={() => setNotifVisible(false)}
-        onUnreadChange={setHasUnread}
-      />
       <FilterBottomSheet
         visible={filterVisible}
         onClose={() => setFilterVisible(false)}

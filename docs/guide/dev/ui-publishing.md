@@ -19,7 +19,7 @@ src/components/ui/
     oauth-onboarding.html     # 소셜 로그인 후 추가 정보 입력
   home/
     home.html                 # 홈 (히어로·검색·필터 바텀시트·카테고리·주변 스팟·캘린더)
-    map.html                  # 지도 (풀스크린·투명 상태바·마커 팝업·클러스터·FAB)
+    map.html                  # 지도 (풀스크린·투명 상태바·마커 팝업·클러스터)
   travel/
     travel-list.html          # 여행 목록 (전체·예정·진행중·완료 탭·스크롤 콜랩스 헤더 · 빈 상태 ?empty=1)
     travel-plan.html          # 여행 계획 상세 (지도 헤더·일자별 스팟 타임라인)
@@ -284,7 +284,6 @@ auth/login
                  │    └─ mypage/profile-edit
                  ├─ mypage/notification
                  ├─ mypage/user-profile (미퍼블리싱)
-                 ├─ spot/spot-register
                  ├─ spot/spot-list?view=visited
                  └─ wishlist/wishlist
 ```
