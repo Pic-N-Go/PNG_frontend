@@ -488,14 +488,14 @@ export default function TravelPlanScreen({ navigation }: any) {
 
   // 마커 선택(setState)마다 HTML 문자열이 새로 만들어져 WebView가 리로드되지 않도록,
   // data/currentDay가 바뀔 때만 재생성한다.
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const interactiveMapHtml = React.useMemo(
     () => renderKakaoMapHTML(true, true, true),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [data, currentDay],
   );
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const miniMapHtml = React.useMemo(
     () => renderKakaoMapHTML(false, true),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [data, currentDay],
   );
 
