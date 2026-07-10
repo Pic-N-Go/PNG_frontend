@@ -61,28 +61,6 @@
     .map-ctrl:hover{background:var(--color-surface)}
     .map-ctrl-divider{height:0.5px;background:rgba(0,0,0,0.06)}
 
-    /* 스팟 등록 FAB */
-    .map-fab{position:absolute;right:16px;bottom:100px;z-index:10;width:52px;height:52px;border-radius:50%;background:var(--color-accent);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 14px rgba(227,27,89,0.35);transition:all 0.2s}
-    .map-fab:hover{background:var(--color-accent-hover);transform:scale(1.05)}
-    .map-fab:active{transform:scale(0.95)}
-    .map-fab__tooltip{position:absolute;right:60px;top:50%;transform:translateY(-50%);height:32px;padding:0 12px;border-radius:16px;background:rgba(0,0,0,0.65);font-size:12px;font-weight:500;color:#fff;display:none;align-items:center;white-space:nowrap}
-    .map-fab:hover .map-fab__tooltip{display:flex}
-
-    /* ── 위치 선택 모드 ── */
-    .select-overlay{position:absolute;inset:0;z-index:15;display:none}
-    .select-overlay.is-active{display:block}
-    .select-overlay__dim{position:absolute;inset:0;background:rgba(0,0,0,0.2)}
-    .select-overlay__hint{position:absolute;top:160px;left:50%;transform:translateX(-50%);height:36px;padding:0 var(--space-md);border-radius:18px;background:rgba(0,0,0,0.65);display:flex;align-items:center;gap:6px;font-size: var(--font-sm);font-weight:500;color:#fff;white-space:nowrap}
-    .select-overlay__cancel{position:absolute;top:160px;right:16px;height:36px;padding:0 var(--space-md);border-radius:18px;background:#fff;border:none;font-family:var(--font-family);font-size: var(--font-sm);font-weight:500;color:rgba(0,0,0,0.55);cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.1)}
-    .select-overlay__crosshair{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none}
-    .select-pin{position:absolute;top:50%;left:50%;transform:translate(-50%,-100%) translateY(-8px);pointer-events:none;transition:top 0.1s,left 0.1s}
-    .select-pin__shadow{width:16px;height:6px;border-radius:50%;background:rgba(0,0,0,0.2);position:absolute;bottom:-3px;left:50%;transform:translateX(-50%)}
-
-    /* 위치 확정 바텀 버튼 */
-    .select-cta{position:absolute;bottom:96px;left:16px;right:16px;height:48px;border-radius:24px;background:var(--color-accent);border:none;font-family:var(--font-family);font-size: var(--font-md);font-weight:500;color:#fff;cursor:pointer;z-index:16;display:none;align-items:center;justify-content:center;gap:8px;box-shadow:0 4px 14px rgba(227,27,89,0.3);transition:background 0.2s}
-    .select-cta.is-active{display:flex}
-    .select-cta:hover{background:var(--color-accent-hover)}
-
     /* ── 마커 팝업 카드 ── */
     .spot-popup{position:absolute;bottom:92px;left:16px;right:16px;z-index:12;background:#fff;border-radius:20px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.16);transform:translateY(120%);transition:transform 0.3s cubic-bezier(0.32,0.72,0,1);pointer-events:none}
     .spot-popup.is-visible{transform:translateY(0);pointer-events:auto}
@@ -265,31 +243,6 @@
     </div>
   </div>
 
-  <!-- 스팟 등록 FAB -->
-  <button class="map-fab" onclick="enterSelectMode()" aria-label="포토스팟 등록">
-    <svg width="20" height="20" viewBox="0 0 24 24" stroke="#fff"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5l0 14" /><path d="M5 12l14 0" /></svg>
-    <div class="map-fab__tooltip">포토스팟 등록</div>
-  </button>
-
-  <!-- 위치 선택 모드 -->
-  <div class="select-overlay" id="selectOverlay">
-    <div class="select-overlay__dim" onclick="handleMapTap(event)"></div>
-    <div class="select-overlay__hint">
-      <svg width="14" height="14" viewBox="0 0 24 24" stroke="#fff"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0" /><path d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z" /></svg>
-      등록할 위치를 탭해주세요
-    </div>
-    <button class="select-overlay__cancel" onclick="exitSelectMode()">취소</button>
-    <!-- 드롭 핀 -->
-    <div class="select-pin" id="selectPin" style="display:none">
-      <svg width="32" height="40" viewBox="0 0 28 34" fill="none"><path d="M14 0C6.3 0 0 6.3 0 14C0 23 14 34 14 34S28 23 28 14C28 6.3 21.7 0 14 0Z" fill="#E31B59"/><circle cx="14" cy="12" r="5" fill="#fff"/></svg>
-      <div class="select-pin__shadow"></div>
-    </div>
-  </div>
-  <button class="select-cta" id="selectCta" onclick="goRegister()">
-    <svg width="18" height="18" viewBox="0 0 24 24" stroke="#fff"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M9 12l2 2l4 -4" /></svg>
-    이 위치로 스팟 등록하기
-  </button>
-
   <!-- 마커 팝업 카드 -->
   <div class="spot-popup" id="spotPopup">
     <div style="position:relative">
@@ -433,11 +386,9 @@
 
   // 경로 확인 모드 초기화
   if (isViewMode) {
-    // 검색바, 필터, FAB, 팝업 숨기기
+    // 검색바, 필터, 팝업 숨기기
     document.getElementById('mapSearchBar').style.display = 'none';
     document.getElementById('mapFilters').style.display = 'none';
-    const fab = document.querySelector('.map-fab');
-    if (fab) fab.style.display = 'none';
     // 기존 카테고리 핀들 숨기기
     document.querySelectorAll('.map-pin').forEach(p => p.style.display = 'none');
     // 뒤로가기 -> history.back()
@@ -555,35 +506,6 @@
   function filterMap(el) {
     document.querySelectorAll('.map-filter').forEach(f => f.classList.remove('is-active'));
     el.classList.add('is-active');
-  }
-
-  /* ── 위치 선택 모드 ── */
-  function enterSelectMode() {
-    closePopup();
-    document.getElementById('selectOverlay').classList.add('is-active');
-  }
-
-  function exitSelectMode() {
-    document.getElementById('selectOverlay').classList.remove('is-active');
-    document.getElementById('selectPin').style.display = 'none';
-    document.getElementById('selectCta').classList.remove('is-active');
-  }
-
-  function handleMapTap(e) {
-    const overlay = document.getElementById('selectOverlay');
-    const rect = overlay.getBoundingClientRect();
-    const x = ((e.clientX - rect.left) / rect.width * 100).toFixed(1);
-    const y = ((e.clientY - rect.top) / rect.height * 100).toFixed(1);
-
-    const pin = document.getElementById('selectPin');
-    pin.style.display = 'block';
-    pin.style.left = x + '%';
-    pin.style.top = y + '%';
-    document.getElementById('selectCta').classList.add('is-active');
-  }
-
-  function goRegister() {
-    location.href = '../spot/spot-register.html';
   }
 </script>
 </body>

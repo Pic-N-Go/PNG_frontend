@@ -50,7 +50,7 @@ src/
 │   ├── MainTab.tsx             # 메인 탭 (홈·여행·커뮤니티·마이)
 │   └── stacks/
 │       ├── HomeStack.tsx       # Home, Map
-│       ├── SpotStack.tsx       # SpotDetail, SpotRegister, ReviewWrite, PhotoDetail
+│       ├── SpotStack.tsx       # SpotDetail, ReviewWrite, PhotoDetail
 │       ├── TravelStack.tsx     # TravelList, TravelPlan, TravelNew, Wishlist, WishlistSetting
 │       ├── CommunityStack.tsx  # CommunityFeed, CommunityWrite, Contest
 │       └── MyPageStack.tsx     # MyPage, UserProfile, Setting, Notification
