@@ -5,6 +5,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { SvgUri } from "react-native-svg";
 import { WebView } from "react-native-webview";
 import Sortable from "react-native-sortables";
+import { normalize, normalizeFontSize } from "@/utils/normalize";
 import {
   IconChevronLeft,
   IconShare,
@@ -16,9 +17,10 @@ import {
   IconTrash,
   IconMapPinFilled,
   IconRoad,
-  IconGripVertical,
   IconWand,
   IconCamera,
+  IconArrowsMaximize,
+  IconGripVertical,
   IconInfoCircle,
 } from "@tabler/icons-react-native";
 import NaviSheet from "@/components/spot/NaviSheet";
@@ -491,88 +493,76 @@ export default function TravelPlanScreen({ navigation }: any) {
   const interactiveMapHtml = React.useMemo(
     () => renderKakaoMapHTML(true, true, true),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [data, currentDay],
-  );
-  const miniMapHtml = React.useMemo(
-    () => renderKakaoMapHTML(false, true),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [data, currentDay],
+    [data, currentDay]
   );
 
   const renderHeader = () => (
-    <View className="bg-white pt-4">
-      {/* Map Area */}
-      <View className="h-[210px] bg-[#e8e8ed] overflow-hidden relative">
-        <WebView
-          source={{ html: interactiveMapHtml }}
-          onMessage={handleMapMessage}
-          style={{
-            width: "100%",
-            height: "100%",
-            backgroundColor: "transparent",
-          }}
-          scrollEnabled={false}
-        />
-      </View>
-
-      <View className="px-5 pt-6 pb-0">
-        {/* Summary Card */}
-        <View className="bg-[#f5f5f7] p-4 rounded-2xl mb-5 flex-row">
-          <View className="flex-1 items-center">
-            <View className="w-7 h-7 rounded-lg bg-[#e31b59]/10 items-center justify-center mb-1">
-              <IconMapPinFilled size={14} color="#e31b59" />
-            </View>
-            <Text className="text-[14px] font-semibold text-black">
-              {currentData.spots.length}곳
-            </Text>
-            <Text className="text-[12px] text-black/30">포토스팟</Text>
-          </View>
-          <View className="flex-1 items-center">
-            <View className="w-7 h-7 rounded-lg bg-[#e31b59]/10 items-center justify-center mb-1">
-              <IconRoad size={14} color="#e31b59" />
-            </View>
-            <Text className="text-[14px] font-semibold text-black">142km</Text>
-            <Text className="text-[12px] text-black/30">총 이동거리</Text>
-          </View>
-          <View className="flex-1 items-center">
-            <View className="w-7 h-7 rounded-lg bg-[#e31b59]/10 items-center justify-center mb-1">
-              <IconClock size={14} color="#e31b59" />
-            </View>
-            <Text className="text-[14px] font-semibold text-black">12시간</Text>
-            <Text className="text-[12px] text-black/30">예상 소요</Text>
-          </View>
+    <View className="bg-white pt-4 pb-2">
+        {/* Map Area */}
+        <View className="bg-[#e8e8ed] overflow-hidden relative" style={{ height: normalize(210) }}>
+          <WebView
+            source={{ html: interactiveMapHtml }}
+            onMessage={handleMapMessage}
+            style={{ width: '100%', height: '100%', backgroundColor: 'transparent' }}
+            scrollEnabled={false}
+          />
+          <TouchableOpacity
+            className="absolute top-3 right-3 bg-white/90 items-center justify-center rounded-lg shadow-sm"
+            style={{ width: normalize(32), height: normalize(32) }}
+            activeOpacity={0.8}
+            onPress={() => navigation.navigate('Map', { source: 'plan-view', planData: data, initialDay: currentDay, from: 'TravelPlan' })}
+          >
+            <IconArrowsMaximize size={20} color="#000" />
+          </TouchableOpacity>
         </View>
 
-        {/* Day Tabs */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          className="mt-2 mb-5"
-        >
-          <View className="flex-row gap-2 pr-5">
-            {Object.keys(data).map((day) => (
-              <TouchableOpacity
-                key={day}
-                onPress={() => setCurrentDay(day)}
-                className={`h-10 px-5 rounded-full items-center justify-center flex-row ${currentDay === day ? "bg-[#e31b59]" : "bg-[#f5f5f7]"}`}
-              >
-                <Text
-                  className={`text-[15px] font-medium ${currentDay === day ? "text-white font-semibold" : "text-black/50"}`}
-                >
-                  DAY {day}
-                </Text>
-              </TouchableOpacity>
-            ))}
+        <View className="px-5 pt-6 pb-0">
+          {/* Summary Card */}
+          <View className="bg-[#f5f5f7] p-4 rounded-2xl mb-5 flex-row">
+            <View className="flex-1 items-start">
+              <View className="rounded-lg bg-[#e31b59]/10 items-center justify-center mb-1" style={{ width: normalize(28), height: normalize(28) }}>
+                <IconMapPinFilled size={normalize(14)} color="#e31b59" />
+              </View>
+              <Text className="font-semibold text-black tracking-tight" style={{ fontSize: normalizeFontSize(14) }}>{currentData.spots.length}곳</Text>
+              <Text className="text-black/30 tracking-tight" style={{ fontSize: normalizeFontSize(12) }}>포토스팟</Text>
+            </View>
+            <View className="flex-1 items-start">
+              <View className="rounded-lg bg-[#e31b59]/10 items-center justify-center mb-1" style={{ width: normalize(28), height: normalize(28) }}>
+                <IconRoad size={normalize(14)} color="#e31b59" />
+              </View>
+              <Text className="font-semibold text-black tracking-tight" style={{ fontSize: normalizeFontSize(14) }}>142km</Text>
+              <Text className="text-black/30 tracking-tight" style={{ fontSize: normalizeFontSize(12) }}>총 이동거리</Text>
+            </View>
+            <View className="flex-1 items-start">
+              <View className="rounded-lg bg-[#e31b59]/10 items-center justify-center mb-1" style={{ width: normalize(28), height: normalize(28) }}>
+                <IconClock size={normalize(14)} color="#e31b59" />
+              </View>
+              <Text className="font-semibold text-black tracking-tight" style={{ fontSize: normalizeFontSize(14) }}>12시간</Text>
+              <Text className="text-black/30 tracking-tight" style={{ fontSize: normalizeFontSize(12) }}>예상 소요</Text>
+            </View>
           </View>
-        </ScrollView>
-        <Text
-          className="mb-5"
-          style={{ fontSize: FONT_SM, color: "rgba(0,0,0,0.4)", letterSpacing: -0.1 }}
-        >
-          {currentData.date}
-        </Text>
+
+          {/* Day Tabs */}
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} className="mt-2 mb-2">
+            <View className="flex-row gap-2 pr-5">
+              {Object.keys(data).map(day => (
+                <TouchableOpacity 
+                  key={day}
+                  onPress={() => setCurrentDay(day)}
+                  className={`rounded-full items-center justify-center flex-row ${currentDay === day ? "bg-[#e31b59]" : "bg-[#f5f5f7]"}`}
+                  style={{ height: normalize(40), paddingHorizontal: normalize(20) }}
+                >
+                  <View className="rounded-full" style={{ width: normalize(8), height: normalize(8), marginRight: normalize(6), backgroundColor: currentDay === day ? "#fff" : getDayColor(day).text }} />
+                  <Text
+                    className={`font-medium tracking-tight ${currentDay === day ? "text-white font-semibold" : "text-black/50"}`} style={{ fontSize: FONT_SM }}>DAY {day}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </ScrollView>
+          <Text className="text-black/40 tracking-[-0.1px] mb-1" style={{ fontSize: normalizeFontSize(14) }}>{currentData.date}</Text>
+        </View>
       </View>
-    </View>
+
   );
 
   // Memoize the weather row to prevent SvgUri flickering when checklist state updates
@@ -701,40 +691,6 @@ export default function TravelPlanScreen({ navigation }: any) {
       {/* Weather Row */}
       {weatherRow}
 
-      {/* Route Mini Map */}
-      <View className="mt-8">
-        <View className="flex-row items-baseline justify-between mb-5">
-          <Text className="text-[18px] font-semibold text-black tracking-[-0.3px]">
-            이동 경로
-          </Text>
-          <TouchableOpacity
-            onPress={() =>
-              navigation.navigate("MapTab", {
-                screen: "Map",
-                params: { source: "plan", spots: currentData.spots, from: "TravelPlan" },
-              })
-            }
-          >
-            <Text className="text-[13px] text-[#e31b59]">지도에서 보기</Text>
-          </TouchableOpacity>
-        </View>
-        <View
-          className="h-[120px] bg-[#f5f5f7] rounded-2xl overflow-hidden relative"
-          pointerEvents="none"
-        >
-          <WebView
-            source={{ html: miniMapHtml }}
-            style={{
-              width: "100%",
-              height: "100%",
-              backgroundColor: "transparent",
-            }}
-            scrollEnabled={false}
-            showsVerticalScrollIndicator={false}
-            showsHorizontalScrollIndicator={false}
-          />
-        </View>
-      </View>
 
       {/* Checklist */}
       {COMMON_CHECKLIST.length > 0 && (
