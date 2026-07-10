@@ -493,7 +493,7 @@ export default function MapScreen() {
           <View className="mt-2 pointer-events-auto">
             {mode === 'plan-view' ? (
               <View className="flex-row items-center justify-between px-4 mt-2">
-                <Text className="font-bold tracking-tight" style={{ color: DAY_COLORS[currentPlanDay] || '#f59e0b', fontSize: normalizeFontSize(16) }}>
+                <Text className="font-semibold tracking-tight" style={{ color: '#E31B59', fontSize: normalizeFontSize(16) }}>
                   DAY {currentPlanDay} 경로
                 </Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-1 ml-4" contentContainerStyle={{ flexGrow: 1, justifyContent: 'flex-end', gap: 8 }}>
