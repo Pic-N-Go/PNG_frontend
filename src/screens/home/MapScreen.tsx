@@ -13,7 +13,7 @@ import { FONT_MD, BUTTON_HEIGHT, BUTTON_RADIUS, HEADER_HEIGHT } from '@/constant
 
 const KAKAO_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_API_KEY;
 
-const DAY_COLORS: Record<string, string> = { '1': '#f59e0b', '2': '#3b82f6', '3': '#10b981', '4': '#8b5cf6' };
+
 
 const DEFAULT_SPOTS = [
   { id: '1', name: '광안리 해수욕장', lat: 35.1532, lng: 129.1186, tags: ['바다', '야경'], score: 87, loc: '부산 수영구', photo: 'https://images.unsplash.com/photo-1598514982205-f36b96d1e8dd?q=80&w=400&auto=format&fit=crop' },
