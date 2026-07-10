@@ -21,20 +21,24 @@ export default function WishlistPreview() {
 
   return (
     <View className="mb-10">
-      <View className="px-5">
-        <View className="flex-row justify-between items-baseline mb-3">
+      <View className="px-5" style={{ position: 'relative' }}>
+        <View className="mb-1">
           <Text className="font-semibold tracking-tight text-black" style={{ fontSize: normalizeFontSize(20) }}>
-            촬영 위시리스트
+            위시리스트 스팟
           </Text>
-          <TouchableOpacity onPress={() => console.log('전체보기: wishlist')}>
-            <Text className="tracking-tight" style={{ fontSize: FONT_SM, color: '#e31b59' }}>
-              전체보기
-            </Text>
-          </TouchableOpacity>
         </View>
-        <Text className="tracking-tight" style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.4)', marginTop: -normalize(8), marginBottom: normalize(12) }}>
+        <Text className="tracking-tight" style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.4)', marginBottom: normalize(12) }}>
           조건이 충족되면 알려드려요
         </Text>
+
+        <TouchableOpacity 
+          onPress={() => console.log('전체보기: wishlist')} 
+          style={{ position: 'absolute', bottom: normalize(12), right: normalize(20) }}
+        >
+          <Text className="tracking-tight" style={{ fontSize: FONT_SM, color: '#e31b59' }}>
+            전체보기
+          </Text>
+        </TouchableOpacity>
       </View>
 
       <ScrollView

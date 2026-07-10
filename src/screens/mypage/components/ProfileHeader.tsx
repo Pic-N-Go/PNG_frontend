@@ -111,10 +111,10 @@ export default function ProfileHeader() {
           justifyContent: 'center',
           marginBottom: normalize(16),
         }}
-        onPress={() => console.log('프로필 편집')}
+        onPress={() => console.log('설정')}
       >
-        <Text className="font-medium tracking-tight" style={{ fontSize: FONT_SM, color: 'rgba(255, 255, 255, 0.6)' }}>
-          프로필 편집
+        <Text className="font-medium tracking-tight" style={{ fontSize: normalizeFontSize(14), color: '#ffffff' }}>
+          설정
         </Text>
       </TouchableOpacity>
 

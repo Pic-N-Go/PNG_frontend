@@ -49,16 +49,16 @@ export default function PhotogenicReport() {
           </Text>
           <View
             style={{
-              height: normalize(22),
-              paddingHorizontal: normalize(10),
-              borderRadius: normalize(11),
+              height: normalize(26),
+              paddingHorizontal: normalize(12),
+              borderRadius: normalize(13),
               backgroundColor: '#e6f4ea',
               alignItems: 'center',
               justifyContent: 'center',
               marginLeft: normalize(4)
             }}
           >
-            <Text className="font-medium tracking-tight" style={{ fontSize: FONT_XS, color: '#1e8e3e' }}>
+            <Text className="font-medium tracking-tight" style={{ fontSize: normalizeFontSize(13), color: '#1e8e3e' }}>
               전월 대비 ▲ 3.1점
             </Text>
           </View>

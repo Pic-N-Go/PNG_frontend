@@ -8,7 +8,6 @@ import RecentAlbums from './components/RecentAlbums';
 import PhotogenicReport from './components/PhotogenicReport';
 import WishlistPreview from './components/WishlistPreview';
 import EquipmentSection from './components/EquipmentSection';
-import QuickActions from './components/QuickActions';
 
 export default function MyPageScreen({ navigation }: any) {
   return (
@@ -26,7 +25,6 @@ export default function MyPageScreen({ navigation }: any) {
           <PhotogenicReport />
           <WishlistPreview />
           <EquipmentSection />
-          <QuickActions />
         </View>
       </ScrollView>
     </View>
