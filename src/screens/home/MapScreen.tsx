@@ -167,7 +167,7 @@ export default function MapScreen() {
   }, []);
 
   const baseSpots = useMemo(() => {
-    if ((mode === 'plan' || mode === 'plan-view') && route.params?.planData) {
+    if (mode === 'plan-view' && route.params?.planData) {
       return route.params.planData[currentPlanDay]?.spots || [];
     }
     return route.params?.spots || DEFAULT_SPOTS;
@@ -493,7 +493,7 @@ export default function MapScreen() {
           </View>
           
           <View className="mt-2 pointer-events-auto">
-            {mode === 'plan' || mode === 'plan-view' ? (
+            {mode === 'plan-view' ? (
               <View className="flex-row items-center justify-between px-4 mt-2">
                 <Text className="font-bold tracking-tight" style={{ color: DAY_COLORS[currentPlanDay] || '#f59e0b', fontSize: normalizeFontSize(16) }}>
                   DAY {currentPlanDay} 경로
