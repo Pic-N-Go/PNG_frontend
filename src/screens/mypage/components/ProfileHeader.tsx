@@ -129,7 +129,7 @@ export default function ProfileHeader() {
               borderWidth: 0.5,
               borderColor: 'rgba(255, 255, 255, 0.06)',
             }}
-            onPress={() => console.log('팔로워 목록')}
+            onPress={() => navigation.navigate('Follow', { initialTab: 'followers' } as never)}
           >
             <Text className="font-semibold text-white tracking-tight" style={{ fontSize: normalizeFontSize(20), marginBottom: normalize(2) }}>
               {MOCK_PROFILE.followerCount.toLocaleString()}
@@ -147,7 +147,7 @@ export default function ProfileHeader() {
               borderWidth: 0.5,
               borderColor: 'rgba(255, 255, 255, 0.06)',
             }}
-            onPress={() => console.log('팔로잉 목록')}
+            onPress={() => navigation.navigate('Follow', { initialTab: 'following' } as never)}
           >
             <Text className="font-semibold text-white tracking-tight" style={{ fontSize: normalizeFontSize(20), marginBottom: normalize(2) }}>
               {MOCK_PROFILE.followingCount.toLocaleString()}
