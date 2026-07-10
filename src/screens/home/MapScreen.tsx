@@ -195,18 +195,18 @@ export default function MapScreen() {
     if (webViewRef.current) {
       webViewRef.current.injectJavaScript(`
         if (window.updateMarkers) {
-          window.updateMarkers(${JSON.stringify(JSON.stringify(filteredSpots))});
+          window.updateMarkers('${JSON.stringify(filteredSpots).replace(/'/g, "\\'")}');
         }
       `);
     }
   }, [filteredSpots]);
+  const HTML = useMemo(() => {
+    const initialSpots = (mode === 'plan-view' && route.params?.planData)
+      ? (route.params.planData[route.params.initialDay || '1']?.spots || [])
+      : (route.params?.spots || null);
+    const isCourseView = mode === 'plan-view' || !!route.params?.spots;
 
-  // 마커 탭(setActiveSpot)마다 HTML 문자열이 새로 만들어지면 WebView가 통째로 리로드된다.
-  // Fabric(New Arch) 환경에서 WebView 리마운트가 SpotPopup(reanimated) 마운트와 겹치면
-  // 네이티브 뷰 트리가 붕괴되며 'Couldn't find a navigation context' 크래시가 난다
-  // (TravelPlanScreen 상단 주석의 트리 붕괴 케이스와 동일). route로 주입된 spots가
-  // 바뀔 때만 HTML을 재생성해 WebView 리로드를 막는다.
-  const HTML = useMemo(() => `
+    return `
 <!DOCTYPE html>
 <html>
 <head>
@@ -263,23 +263,30 @@ export default function MapScreen() {
         { id: '5', name: '전주 한옥마을', lat: 35.8147, lng: 127.1526, tags: ['한옥', '먹거리'], score: '4.6', loc: '전북 전주시', photo: 'https://images.unsplash.com/photo-1582236968962-d2f1f58b9cf6?q=80&w=400&auto=format&fit=crop' },
       ];
       
-      var injectedSpots = ${JSON.stringify(route.params?.spots || null).replace(/</g, '\\u003c')};
+      var injectedSpots = ${JSON.stringify(initialSpots).replace(/</g, '\\u003c')};
+      var isCourseView = ${isCourseView};
       var spots = injectedSpots || defaultSpots;
 
       var bounds = new kakao.maps.LatLngBounds();
       var activeOverlays = [];
+      var activePolyline = null;
 
-      // 경로선 그리기 (route에서 넘어온 spots가 있을 경우에만 선으로 이음)
-      if (injectedSpots && spots.length > 0) {
-        var linePath = spots.map(function(s) { return new kakao.maps.LatLng(s.lat, s.lng); });
-        var polyline = new kakao.maps.Polyline({
-          path: linePath,
-          strokeWeight: 3,
-          strokeColor: '#e31b59',
-          strokeOpacity: 0.8,
-          strokeStyle: 'solid'
-        });
-        polyline.setMap(map);
+      function drawPolyline(targetSpots) {
+        if (activePolyline) {
+          activePolyline.setMap(null);
+          activePolyline = null;
+        }
+        if (isCourseView && targetSpots && targetSpots.length > 0) {
+          var linePath = targetSpots.map(function(s) { return new kakao.maps.LatLng(s.lat, s.lng); });
+          activePolyline = new kakao.maps.Polyline({
+            path: linePath,
+            strokeWeight: 3,
+            strokeColor: '#e31b59',
+            strokeOpacity: 0.8,
+            strokeStyle: 'solid'
+          });
+          activePolyline.setMap(map);
+        }
       }
 
       function drawMarkers(targetSpots) {
@@ -294,8 +301,8 @@ export default function MapScreen() {
 
           var content = document.createElement('div');
           content.className = 'custom-marker';
-          // injectedSpots일 때는 숫자, 아닐 때는 하트 아이콘
-          if (injectedSpots) {
+          // isCourseView일 때는 숫자, 아닐 때는 하트 아이콘
+          if (isCourseView) {
             content.innerHTML = '<span style="color:white; font-size:14px; font-weight:bold;">' + (index + 1) + '</span>';
           } else {
             content.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>';
@@ -322,9 +329,11 @@ export default function MapScreen() {
         if (targetSpots.length > 0) {
           map.setBounds(markerBounds);
         }
+        
+        drawPolyline(targetSpots);
       }
 
-      // 초기 마커 그리기
+      // 초기 마커 정렬 및 그리기
       drawMarkers(spots);
 
       // 외부(React Native)에서 호출 가능한 마커 갱신 함수 노출
@@ -346,7 +355,8 @@ export default function MapScreen() {
   </script>
 </body>
 </html>
-  `, [route.params?.spots]);
+  `;
+  }, [route.params?.spots, route.params?.planData, route.params?.initialDay, mode]);
 
   // source 객체도 HTML 문자열이 바뀔 때만 새로 만들어 WebView가 재로딩되지 않게 한다.
   const mapSource = useMemo(() => ({ html: HTML }), [HTML]);
