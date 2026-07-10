@@ -204,7 +204,7 @@ export default function ProfileHeader() {
               borderWidth: 0.5,
               borderColor: 'rgba(255, 255, 255, 0.06)',
             }}
-            onPress={() => console.log('내 리뷰')}
+            onPress={() => navigation.navigate('MyReviews' as never)}
           >
             <Text className="font-semibold text-white tracking-tight" style={{ fontSize: normalizeFontSize(20), marginBottom: normalize(2) }}>
               {MOCK_PROFILE.activity.reviews}
