@@ -116,7 +116,7 @@ export default function TravelListScreen({ navigation }: any) {
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right']}>
       {/* 고정 헤더: 컴팩트 타이틀 영역 (스크롤 시 나타남) */}
-      <View className="flex-row items-end bg-white z-50" style={{ height: normalize(44), paddingHorizontal: CONTENT_PADDING, paddingBottom: normalize(10) }}>
+      <View className="flex-row items-center bg-white z-50" style={{ height: normalize(36), paddingHorizontal: CONTENT_PADDING }}>
         <Animated.Text
           style={{ opacity: compactTitleOpacity }}
           className="font-semibold text-black tracking-tight"
@@ -146,8 +146,8 @@ export default function TravelListScreen({ navigation }: any) {
           }}
         >
           <Text className="font-semibold text-black tracking-tight" style={{ fontSize: FONT_2XL }}>출사 계획</Text>
-          <TouchableOpacity onPress={handleNewPlan} className="items-end justify-center" style={{ width: normalize(32), height: normalize(32) }}>
-            <IconPlus size={normalize(24)} color="#E31B59" />
+          <TouchableOpacity onPress={handleNewPlan} className="items-center justify-center" style={{ width: normalize(32), height: normalize(32) }}>
+            <IconPlus size={22} color="#E31B59" />
           </TouchableOpacity>
         </Animated.View>
 
@@ -182,7 +182,7 @@ export default function TravelListScreen({ navigation }: any) {
               })}
             </ScrollView>
           </View>
-          <View className="h-[1px] bg-black/5 w-full" />
+          <View style={{ height: 0.5, backgroundColor: 'rgba(0,0,0,0.08)' }} />
         </View>
 
         {/* 리스트 콘텐츠 영역 */}
@@ -211,18 +211,6 @@ export default function TravelListScreen({ navigation }: any) {
         ) : (
           /* 리스트가 있을 때 */
           <View>
-            {/* 새 계획 만들기 인라인 버튼 */}
-            <TouchableOpacity
-              onPress={handleNewPlan}
-              className="flex-row items-center justify-center border-2 border-dashed border-black/10 bg-[#f5f5f7] mb-4"
-              style={{ height: normalize(72), borderRadius: CARD_RADIUS }}
-            >
-              <View className="rounded-full bg-[#f5f5f7] items-center justify-center mr-2" style={{ width: normalize(30), height: normalize(30) }}>
-                <IconPlus size={normalize(18)} color="rgba(0,0,0,0.4)" />
-              </View>
-              <Text className="font-medium text-black/40" style={{ fontSize: normalizeFontSize(16) }}>새 출사 계획 만들기</Text>
-            </TouchableOpacity>
-
             {/* 카드 목록 */}
             {filteredPlans.map((plan) => (
               <TouchableOpacity

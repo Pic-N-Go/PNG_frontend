@@ -8,7 +8,7 @@
 |---|---|---|
 | [`dev/`](dev/README.md) | **코드를 어떻게 구현하는가?** | [development-guide.md](dev/development-guide.md) · [ui-publishing.md](dev/ui-publishing.md) · [device-support.md](dev/device-support.md) · [prompt-writing-guide.md](dev/prompt-writing-guide.md) |
 | [`api/`](api/README.md) | **백엔드와 무엇을 주고받는가?** | [auth-api.md](api/auth-api.md) · [photo-upload-spec.md](api/photo-upload-spec.md) |
-| [`ops/`](ops/README.md) | **팀을 어떻게 운영하는가?** | [github-actions-guide.md](ops/github-actions-guide.md) · [team-assignments.md](ops/team-assignments.md) |
+| [`ops/`](ops/README.md) | **팀을 어떻게 운영하는가?** | [github-actions-guide.md](ops/github-actions-guide.md) · [ios-pod-lock-workflow.md](ops/ios-pod-lock-workflow.md) · [team-assignments.md](ops/team-assignments.md) |
 
 ## 문서 메타 규칙 (선택 권장)
 
