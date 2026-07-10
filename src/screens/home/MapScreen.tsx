@@ -496,7 +496,7 @@ export default function MapScreen() {
                 <Text className="font-bold tracking-tight" style={{ color: DAY_COLORS[currentPlanDay] || '#f59e0b', fontSize: normalizeFontSize(16) }}>
                   DAY {currentPlanDay} 경로
                 </Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-1 ml-4" contentContainerStyle={{ justifyContent: 'flex-end', gap: 8 }}>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-1 ml-4" contentContainerStyle={{ flexGrow: 1, justifyContent: 'flex-end', gap: 8 }}>
                   {Object.keys(route.params?.planData || {}).map((dayStr) => {
                     const isActive = dayStr === currentPlanDay;
                     const bg = isActive ? (DAY_COLORS[dayStr] || '#f59e0b') : '#9ca3af';
