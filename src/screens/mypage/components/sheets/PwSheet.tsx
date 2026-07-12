@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
 import BottomSheet from '@/components/common/BottomSheet';
 import { IconX } from '@tabler/icons-react-native';
@@ -16,7 +16,19 @@ export default function PwSheet({ visible, onClose, onChangePw }: PwSheetProps) 
   const [newPw, setNewPw] = useState('');
   const [confirmPw, setConfirmPw] = useState('');
 
+  useEffect(() => {
+    if (!visible) {
+      setCurrentPw('');
+      setNewPw('');
+      setConfirmPw('');
+    }
+  }, [visible]);
+
   const handleSubmit = () => {
+    if (!currentPw.trim()) {
+      Alert.alert('오류', '현재 비밀번호를 입력해주세요.');
+      return;
+    }
     if (newPw.length < 8 || !/^(?=.*[a-zA-Z])(?=.*[0-9])/.test(newPw)) {
       Alert.alert('오류', '새 비밀번호는 영문, 숫자 조합 8자 이상이어야 합니다.');
       return;
@@ -26,6 +38,9 @@ export default function PwSheet({ visible, onClose, onChangePw }: PwSheetProps) 
       return;
     }
     onChangePw(currentPw, newPw);
+    setCurrentPw('');
+    setNewPw('');
+    setConfirmPw('');
   };
   return (
     <BottomSheet visible={visible} onClose={onClose}>
