@@ -403,7 +403,9 @@ function SpotListSheet({ spots, activeSpot, onSpotPress, filterName }: { spots: 
     } else {
       Animated.spring(translateY, {
         toValue: isExpanded ? expandedY : peekY,
-        stiffness: 250, damping: 25, mass: 1, useNativeDriver: true
+        stiffness: 250, damping: 25, mass: 1,
+        restSpeedThreshold: 100, restDisplacementThreshold: 40,
+        useNativeDriver: true
       }).start();
     }
   }, [activeSpot]); // Removed isExpanded to handle animation in PanResponderRelease directly
@@ -427,7 +429,10 @@ function SpotListSheet({ spots, activeSpot, onSpotPress, filterName }: { spots: 
         
         Animated.spring(translateY, {
           toValue: nextExpanded ? expandedY : peekY,
-          stiffness: 250, damping: 25, mass: 1, useNativeDriver: true
+          velocity: state.vy,
+          stiffness: 250, damping: 25, mass: 1,
+          restSpeedThreshold: 100, restDisplacementThreshold: 40,
+          useNativeDriver: true
         }).start();
       }
     })
@@ -455,7 +460,7 @@ function SpotListSheet({ spots, activeSpot, onSpotPress, filterName }: { spots: 
         </View>
       </View>
 
-      <ScrollView style={{ flex: 1, paddingHorizontal: normalize(20) }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, normalize(20)) + normalize(20) }}>
+      <ScrollView keyboardShouldPersistTaps="always" style={{ flex: 1, paddingHorizontal: normalize(20) }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, normalize(20)) + normalize(20) }}>
         {spots.map((spot, idx) => (
           <TouchableOpacity
             key={spot.id}
