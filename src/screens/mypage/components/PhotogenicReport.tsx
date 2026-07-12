@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { FONT_SM, FONT_XS } from '@/constants/layout';
+import { FONT_XS } from '@/constants/layout';
 
 const CHART_DATA = [
   { week: '1주', score: 78 },

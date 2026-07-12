@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity } from 'react-native';
 import BottomSheet from '@/components/common/BottomSheet';
 import { IconX } from '@tabler/icons-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { FONT_MD, FONT_BASE, BUTTON_HEIGHT, BUTTON_RADIUS } from '@/constants/layout';
+import { FONT_MD, BUTTON_HEIGHT, BUTTON_RADIUS } from '@/constants/layout';
 
 interface EmailSheetProps {
   visible: boolean;

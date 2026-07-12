@@ -7,7 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconChevronLeft, IconTrash } from '@tabler/icons-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { FONT_XS, FONT_SM, FONT_MD, FONT_LG } from '@/constants/layout';
+import { FONT_XS, FONT_SM, FONT_MD } from '@/constants/layout';
 import Toast from '@/components/auth/Toast';
 
 interface ReviewData {

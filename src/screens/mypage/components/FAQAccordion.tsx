@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, TouchableOpacity, Animated } from 'react-native';
 import { IconChevronRight } from '@tabler/icons-react-native';
-import { normalize, normalizeFontSize } from '@/utils/normalize';
+import { normalize } from '@/utils/normalize';
 import { FONT_SM, FONT_MD } from '@/constants/layout';
 
 interface FAQAccordionProps {

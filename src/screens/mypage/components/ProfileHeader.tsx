@@ -5,7 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { IconUser, IconSettings } from '@tabler/icons-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { FONT_SM, FONT_XS } from '@/constants/layout';
+import { FONT_XS } from '@/constants/layout';
 
 // 임시 모의 데이터
 const MOCK_PROFILE = {

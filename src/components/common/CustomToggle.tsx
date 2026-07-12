@@ -26,7 +26,7 @@ export default function CustomToggle({ value, onValueChange, style }: CustomTogg
       duration: 200,
       useNativeDriver: false, // color interpolation requires false
     }).start();
-  }, [value]);
+  }, [value, animValue]);
 
   const translateX = animValue.interpolate({
     inputRange: [0, 1],

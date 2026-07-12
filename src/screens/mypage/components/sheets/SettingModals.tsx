@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Modal, Pressable } from 'react-native';
+import { Text, TouchableOpacity, Modal, Pressable } from 'react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { FONT_BASE, FONT_MD, BUTTON_HEIGHT } from '@/constants/layout';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';

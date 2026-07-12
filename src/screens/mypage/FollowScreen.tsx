@@ -4,7 +4,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconChevronLeft } from '@tabler/icons-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { FONT_SM, FONT_BASE } from '@/constants/layout';
+import { FONT_BASE } from '@/constants/layout';
 import Toast from '@/components/auth/Toast';
 
 type FollowTab = 'followers' | 'following';
@@ -103,7 +103,7 @@ export default function FollowScreen() {
     );
   };
 
-  const currentData = activeTab === 'followers' ? followers : following;
+
   const scrollViewRef = React.useRef<ScrollView>(null);
   const screenWidth = Dimensions.get('window').width;
 
@@ -130,7 +130,7 @@ export default function FollowScreen() {
         scrollViewRef.current?.scrollTo({ x: screenWidth, animated: false });
       }, 0);
     }
-  }, []);
+  }, [route.params?.initialTab, screenWidth]);
 
   return (
     <View style={{ flex: 1, backgroundColor: '#fff', paddingTop: insets.top }}>
