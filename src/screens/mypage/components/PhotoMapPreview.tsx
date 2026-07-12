@@ -4,14 +4,18 @@ import Svg, { Line, Circle, Path } from 'react-native-svg';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { FONT_SM } from '@/constants/layout';
 
+import { useNavigation } from '@react-navigation/native';
+
 export default function PhotoMapPreview() {
+  const navigation = useNavigation();
+
   return (
-    <View className="mb-10 px-5">
+    <View className="mb-10" style={{ paddingHorizontal: normalize(20) }}>
       <View className="flex-row justify-between items-baseline mb-3">
         <Text className="font-semibold tracking-tight text-black" style={{ fontSize: normalizeFontSize(20) }}>
           PIC MAP
         </Text>
-        <TouchableOpacity onPress={() => console.log('전체보기: photo-map')}>
+        <TouchableOpacity onPress={() => navigation.navigate('PhotoMap' as never)}>
           <Text className="tracking-tight" style={{ fontSize: FONT_SM, color: '#e31b59' }}>
             전체보기
           </Text>
