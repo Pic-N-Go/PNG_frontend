@@ -1,5 +1,5 @@
-import React, { useEffect, useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, Text, View } from 'react-native';
+import React, { useState } from 'react';
+import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { useAnimatedRef, useAnimatedScrollHandler, useSharedValue, runOnJS } from 'react-native-reanimated';
 import { IconChevronLeft } from '@tabler/icons-react-native';
@@ -10,7 +10,7 @@ import SpotHero from '@/components/spot/SpotHero';
 import SpotInfoHeader from '@/components/spot/SpotInfoHeader';
 import SpotTabBar, { type SpotTabKey } from '@/components/spot/SpotTabBar';
 import PhotogenicScoreCard from '@/components/spot/PhotogenicScoreCard';
-import ConvenienceInfoSection, { MOCK_CONVENIENCE_INFO } from '@/components/spot/ConvenienceInfoSection';
+import ConvenienceInfoSection from '@/components/spot/ConvenienceInfoSection';
 import ChecklistSection from '@/components/spot/ChecklistSection';
 import SpotWishlistBanner from '@/components/spot/SpotWishlistBanner';
 import PhotoGridTab from '@/components/spot/PhotoGridTab';
@@ -20,45 +20,25 @@ import SaveToPlanSheet from '@/components/spot/SaveToPlanSheet';
 import NaviSheet from '@/components/spot/NaviSheet';
 import ShareSheet from '@/components/spot/ShareSheet';
 import BookmarkSheet from '@/components/spot/BookmarkSheet';
+import { useSpotDetail } from '@/hooks/useSpot';
 import { BUTTON_RADIUS, GRID_PADDING, TAB_BAR_HEIGHT } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import type { PhotogenicScoreData, SpotDetailInfo } from '@/types/spot';
 
-const MOCK_SPOT: SpotDetailInfo = {
-  id: 'gwangalli',
-  badge: '관광공사 인증',
-  name: '광안리 해수욕장',
-  address: '부산광역시 수영구 광안해변로 219',
-  rating: 4.8,
-  reviewCount: 324,
-  photoCount: 1247,
-  tags: ['#채광맛집', '#야경', '#바다', '#일출명소'],
-  heroPhotoCount: 12,
-};
-
-const MOCK_PHOTOGENIC_SCORE: PhotogenicScoreData = {
-  score: 87,
-  maxScore: 100,
-  grade: '매우 좋음',
-  goldenHourMinutesLeft: 23,
-  goldenHourTime: '오후 6:53',
-  factors: [
-    { key: 'weather', label: '날씨', value: '옅은 구름', score: 18, valueColor: '#000', iconBg: '#E8F3FF', iconColor: '#0071E3', barColor: '#0071E3', barPercent: 90 },
-    { key: 'goldenHour', label: '골든아워', value: '23분 후', score: 20, valueColor: '#FF9F0A', iconBg: '#FFF3E0', iconColor: '#FF9500', barColor: '#FF9500', barPercent: 100 },
-    { key: 'dust', label: '미세먼지', value: '좋음', score: 15, valueColor: '#34C759', iconBg: '#E8F5EB', iconColor: '#34C759', barColor: '#34C759', barPercent: 75 },
-    // '시즌' 팩터는 단일 항목이 아니라 카테고리 슬롯 — 실제로는 벚꽃 개화율(봄)/단풍 절정(가을)/설경(겨울) 등
-    // 여러 시즌별 지표 중 현재 날짜에 해당하는 것 하나만 노출되어야 함. 아래 값은 봄 시즌(벚꽃) 예시 하드코딩.
-    // TODO: 시즌 API 연동 시 현재 날짜 기준으로 어떤 시즌 카테고리를 보여줄지 결정하는 로직 추가
-    { key: 'season', label: '시즌 — 벚꽃 개화율', value: '92%', score: 20, valueColor: '#E31B59', iconBg: '#FFF0F3', iconColor: '#E31B59', barColor: '#E31B59', barPercent: 92, wide: true },
-  ],
-};
+// 히어로 이미지 갤러리는 사진 탭 담당자 스코프 — 실제 이미지 연동 전까지 플레이스홀더 페이지 수.
+// TODO(사진 API): GET /spots/{id}/photos 연동 시 실제 이미지/개수로 대체.
+const HERO_PLACEHOLDER_PAGES = 5;
 
 type Props = NativeStackScreenProps<SpotStackParamList, 'SpotDetail'>;
 
-export default function SpotDetailScreen({ navigation }: Props) {
+export default function SpotDetailScreen({ navigation, route }: Props) {
+  const { spotId } = route.params;
   const insets = useSafeAreaInsets();
   const scrollRef = useAnimatedRef<Animated.ScrollView>();
   const scrollY = useSharedValue(0);
+
+  const { data: detail, isLoading, isError, refetch } = useSpotDetail(spotId);
+  const spot = detail?.info;
+  const convenience = detail?.convenience;
 
   const [activeTab, setActiveTab] = useState<SpotTabKey>('info');
   const [photoLoadSignal, setPhotoLoadSignal] = useState(0);
@@ -75,16 +55,6 @@ export default function SpotDetailScreen({ navigation }: Props) {
 
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
-
-  // TEMP: 스켈레톤 UI 미리보기용 가짜 로딩 — 5초 뒤 자동으로 loading=false 처리
-  // TODO(API 연동): 아래 useState(true) + setTimeout 블록을 통째로 지우고,
-  //   편의정보 조회 useQuery(예: useConvenienceInfo(spotId))의 isLoading을 convenienceLoading 자리에 연결할 것.
-  //   ConvenienceInfoSection의 loading prop 계약(아이콘/라벨 고정 노출, 값만 스켈레톤)은 그대로 유지.
-  const [convenienceLoading, setConvenienceLoading] = useState(true);
-  useEffect(() => {
-    const timer = setTimeout(() => setConvenienceLoading(false), 5000);
-    return () => clearTimeout(timer);
-  }, []);
 
   function showToast(message: string) {
     setToastMessage(message);
@@ -121,20 +91,55 @@ export default function SpotDetailScreen({ navigation }: Props) {
     },
   });
 
+  function BackButton() {
+    return (
+      <View style={{ paddingTop: insets.top, paddingHorizontal: normalize(12), paddingBottom: normalize(6) }}>
+        <Pressable
+          onPress={() => navigation.goBack()}
+          hitSlop={8}
+          style={{ width: normalize(36), height: normalize(36), alignItems: 'center', justifyContent: 'center' }}
+        >
+          <IconChevronLeft size={normalize(20)} color="#000" strokeWidth={2} />
+        </Pressable>
+      </View>
+    );
+  }
+
+  // ── 로딩 / 에러 게이트 ──
+  if (isLoading || !spot || !convenience) {
+    return (
+      <View style={{ flex: 1, backgroundColor: '#fff' }}>
+        <BackButton />
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          {isError ? (
+            <View style={{ alignItems: 'center', gap: normalize(12), paddingHorizontal: GRID_PADDING }}>
+              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(15), color: 'rgba(0,0,0,0.5)', letterSpacing: -0.2, textAlign: 'center' }}>
+                스팟 정보를 불러오지 못했어요.
+              </Text>
+              <Pressable
+                onPress={() => refetch()}
+                style={{ height: normalize(44), paddingHorizontal: normalize(24), borderRadius: BUTTON_RADIUS, backgroundColor: '#F5F5F7', alignItems: 'center', justifyContent: 'center' }}
+              >
+                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(14), color: '#000', letterSpacing: -0.2 }}>
+                  다시 시도
+                </Text>
+              </Pressable>
+            </View>
+          ) : (
+            <ActivityIndicator color="#E31B59" />
+          )}
+        </View>
+        <Toast message={toastMessage} visible={toastVisible} onHide={() => setToastVisible(false)} />
+      </View>
+    );
+  }
+
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
       {activeTab === 'chat' ? (
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
-          <View style={{ paddingTop: insets.top, paddingHorizontal: normalize(12), paddingBottom: normalize(6) }}>
-            <Pressable
-              onPress={() => navigation.goBack()}
-              hitSlop={8}
-              style={{ width: normalize(36), height: normalize(36), alignItems: 'center', justifyContent: 'center' }}
-            >
-              <IconChevronLeft size={normalize(20)} color="#000" strokeWidth={2} />
-            </Pressable>
-          </View>
-          {!chatInputFocused && <SpotInfoHeader spot={MOCK_SPOT} />}
+          <BackButton />
+          {!chatInputFocused && <SpotInfoHeader spot={spot} />}
           <SpotTabBar activeTab={activeTab} onChange={handleTabChange} />
           <View style={{ flex: 1, paddingBottom: insets.bottom }}>
             <ChatTab onFocusChange={setChatInputFocused} />
@@ -151,23 +156,23 @@ export default function SpotDetailScreen({ navigation }: Props) {
         >
           <SpotHero
             scrollY={scrollY}
-            photoTotal={MOCK_SPOT.heroPhotoCount}
+            photoTotal={HERO_PLACEHOLDER_PAGES}
             isBookmarked={isBookmarked}
             onBack={() => navigation.goBack()}
             onShare={() => setShareSheetVisible(true)}
             onBookmark={() => setBookmarkSheetVisible(true)}
           />
-          <SpotInfoHeader spot={MOCK_SPOT} />
+          <SpotInfoHeader spot={spot} />
           <SpotTabBar activeTab={activeTab} onChange={handleTabChange} />
 
           <View>
             {activeTab === 'info' && (
               <View>
-                <PhotogenicScoreCard spotName={MOCK_SPOT.name} data={MOCK_PHOTOGENIC_SCORE} />
+                <PhotogenicScoreCard spotId={spot.id} spotName={spot.name} />
                 <View style={{ height: 1, backgroundColor: 'rgba(0,0,0,0.06)', marginHorizontal: GRID_PADDING, marginVertical: normalize(24) }} />
-                <ConvenienceInfoSection info={MOCK_CONVENIENCE_INFO} loading={convenienceLoading} />
+                <ConvenienceInfoSection info={convenience} />
                 <View style={{ height: 1, backgroundColor: 'rgba(0,0,0,0.06)', marginHorizontal: GRID_PADDING, marginVertical: normalize(24) }} />
-                <ChecklistSection />
+                <ChecklistSection spotId={spot.id} />
                 <View style={{ height: normalize(24) }} />
                 <SpotWishlistBanner
                   onPress={() => {
@@ -200,7 +205,7 @@ export default function SpotDetailScreen({ navigation }: Props) {
             {activeTab === 'photo' && <PhotoGridTab loadMoreSignal={photoLoadSignal} />}
 
             {activeTab === 'review' && (
-              <ReviewTab onWriteReview={() => navigation.navigate('ReviewWrite', { spotId: MOCK_SPOT.id })} />
+              <ReviewTab spotId={spot.id} onWriteReview={() => navigation.navigate('ReviewWrite', { spotId: spot.id })} />
             )}
           </View>
         </Animated.ScrollView>
@@ -217,8 +222,8 @@ export default function SpotDetailScreen({ navigation }: Props) {
       <NaviSheet
         visible={naviSheetVisible}
         onClose={() => setNaviSheetVisible(false)}
-        spotName={MOCK_SPOT.name}
-        address={MOCK_SPOT.address}
+        spotName={spot.name}
+        address={spot.address}
         onLaunched={(message) => {
           setNaviSheetVisible(false);
           showToast(message);
@@ -233,7 +238,7 @@ export default function SpotDetailScreen({ navigation }: Props) {
         visible={bookmarkSheetVisible}
         onClose={() => setBookmarkSheetVisible(false)}
         isSaved={isBookmarked}
-        spotName={MOCK_SPOT.name}
+        spotName={spot.name}
         savedCollectionName={savedCollectionName}
         onConfirm={(_id, name) => {
           setIsBookmarked(true);

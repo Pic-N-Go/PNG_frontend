@@ -6,21 +6,6 @@ import { FONT_SM, GRID_PADDING } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import type { ConvenienceInfo } from '@/types/spot';
 
-export const MOCK_CONVENIENCE_INFO: ConvenienceInfo = {
-  transport: [
-    { icon: 'parking', main: '500m 이내 무료 주차장 2곳', sub: '수영구 공영주차장 · 광안리해변 주차장' },
-    { icon: 'car', main: '현재 위치에서 차로 18분', sub: '지하철 광안역 도보 10분' },
-  ],
-  cells: [
-    { label: '화장실', value: '있음', variant: 'green' },
-    { label: '휠체어 접근', value: '가능', variant: 'green' },
-    { label: '유모차', value: '가능', variant: 'green' },
-    { label: '반려동물', value: '가능', variant: 'green' },
-    { label: '지하철', value: '도보 10분', variant: 'default' },
-    { label: '문의 전화', value: '051-123-4567', variant: 'default' },
-  ],
-};
-
 const CELL_COLOR: Record<ConvenienceInfo['cells'][number]['variant'], string> = {
   green: '#34C759',
   orange: '#FF9F0A',

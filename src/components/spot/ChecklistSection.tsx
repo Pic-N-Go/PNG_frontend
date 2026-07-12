@@ -1,150 +1,168 @@
 import React, { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
-import { IconCheck, IconEdit } from '@tabler/icons-react-native';
-import Chip from '@/components/common/Chip';
-import { BUTTON_RADIUS, FONT_MD, FONT_SM, GRID_PADDING } from '@/constants/layout';
+import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
+import { IconCheck, IconPlus, IconX } from '@tabler/icons-react-native';
+import { toErrorMessage } from '@/api/auth';
+import { useAddChecklistItem, useChecklist, useDeleteChecklistItem } from '@/hooks/useSpot';
+import { FONT_MD, FONT_SM, GRID_PADDING } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import type { ChecklistOption } from '@/types/spot';
+import type { ChecklistItemDTO } from '@/types/spot';
 
-export const MOCK_CHECKLIST_OPTIONS: ChecklistOption[] = [
-  { id: 'tripod', label: '삼각대' },
-  { id: 'wide-lens', label: '광각렌즈 (16-35mm)' },
-  { id: 'nd-filter', label: 'ND 필터' },
-  { id: 'battery', label: '보조배터리' },
-  { id: 'shoes', label: '편한 신발' },
-  { id: 'jacket', label: '방수 재킷' },
-  { id: 'memory-card', label: '여분 메모리카드' },
-  { id: 'flashlight', label: '손전등' },
-];
+const MAX_USER_ITEMS = 10;
+const MAX_CONTENT_LEN = 20;
 
-interface SavedItem {
-  id: string;
-  label: string;
-  checked: boolean;
+interface Props {
+  spotId: string;
 }
 
-export default function ChecklistSection() {
-  const [savedItems, setSavedItems] = useState<SavedItem[]>([]);
-  const [isEditing, setIsEditing] = useState(true);
-  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+// key: 기본 항목은 내용 기준, 사용자 항목은 id 기준 (재조회 후에도 체크 상태 유지)
+function itemKey(item: ChecklistItemDTO): string {
+  return item.id != null ? `u:${item.id}` : `d:${item.content}`;
+}
 
-  const hasSaved = savedItems.length > 0;
+export default function ChecklistSection({ spotId }: Props) {
+  const { data, isLoading, isError } = useChecklist(spotId);
+  const addItem = useAddChecklistItem(spotId);
+  const deleteItem = useDeleteChecklistItem(spotId);
 
-  function toggleOption(id: string) {
-    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((v) => v !== id) : [...prev, id]));
+  const [checkedKeys, setCheckedKeys] = useState<Set<string>>(new Set());
+  const [input, setInput] = useState('');
+
+  function toggleChecked(key: string) {
+    setCheckedKeys((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
   }
 
-  function handleSave() {
-    const prevCheckedById = new Map(savedItems.map((item) => [item.id, item.checked]));
-    setSavedItems(
-      selectedIds.map((id) => ({
-        id,
-        label: MOCK_CHECKLIST_OPTIONS.find((o) => o.id === id)?.label ?? id,
-        checked: prevCheckedById.get(id) ?? true,
-      }))
+  function handleAdd() {
+    const content = input.trim();
+    if (!content || addItem.isPending || (data?.userItems.length ?? 0) >= MAX_USER_ITEMS) return;
+    addItem.mutate(content, { onSuccess: () => setInput('') });
+  }
+
+  const Title = (
+    <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(20), color: '#000', letterSpacing: -0.3, marginBottom: normalize(14) }}>
+      촬영 체크리스트
+    </Text>
+  );
+
+  // 로그인은 앱 진입 시 강제되므로(RootNavigator) 이 화면 도달 시 토큰은 항상 존재 → 미인증 분기 불필요
+  if (isLoading || !data) {
+    return (
+      <View style={{ paddingHorizontal: GRID_PADDING }}>
+        {Title}
+        <View style={{ borderRadius: normalize(14), backgroundColor: '#F5F5F7', padding: normalize(20), alignItems: 'center' }}>
+          {isError ? (
+            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(14), color: 'rgba(0,0,0,0.4)', letterSpacing: -0.2 }}>
+              체크리스트를 불러오지 못했어요.
+            </Text>
+          ) : (
+            <ActivityIndicator color="#E31B59" />
+          )}
+        </View>
+      </View>
     );
-    setIsEditing(false);
   }
 
-  function enterEdit() {
-    setSelectedIds(savedItems.map((item) => item.id));
-    setIsEditing(true);
-  }
-
-  function toggleChecked(id: string) {
-    setSavedItems((prev) => prev.map((item) => (item.id === id ? { ...item, checked: !item.checked } : item)));
-  }
+  const items: ChecklistItemDTO[] = [...data.defaultItems, ...data.userItems];
+  const canAdd = input.trim().length > 0 && data.userItems.length < MAX_USER_ITEMS && !addItem.isPending;
 
   return (
     <View style={{ paddingHorizontal: GRID_PADDING }}>
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: normalize(14) }}>
-        <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(20), color: '#000', letterSpacing: -0.3 }}>
-          촬영 체크리스트
-        </Text>
-        {!isEditing && hasSaved && (
-          <Pressable onPress={enterEdit} hitSlop={8} style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(4) }}>
-            <IconEdit size={normalize(14)} color="rgba(0,0,0,0.4)" strokeWidth={2} />
-            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(13), color: 'rgba(0,0,0,0.4)', letterSpacing: -0.2 }}>
-              수정
-            </Text>
-          </Pressable>
-        )}
-      </View>
-
-      {isEditing ? (
-        <View style={{ borderRadius: normalize(14), backgroundColor: '#F5F5F7', padding: normalize(16) }}>
-          <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(14), color: 'rgba(0,0,0,0.4)', letterSpacing: -0.2, marginBottom: normalize(14) }}>
-            촬영에 필요한 항목을 선택해 체크리스트를 등록하세요.
-          </Text>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: normalize(8), marginBottom: normalize(16) }}>
-            {MOCK_CHECKLIST_OPTIONS.map((option) => (
-              <Chip
-                key={option.id}
-                label={option.label}
-                selected={selectedIds.includes(option.id)}
-                onPress={() => toggleOption(option.id)}
-                variant="outline"
-                showDot
-                fontSize={normalizeFontSize(13)}
-              />
-            ))}
-          </View>
-          <Pressable
-            onPress={handleSave}
-            disabled={selectedIds.length === 0}
-            style={{
-              width: '100%',
-              height: normalize(44),
-              borderRadius: BUTTON_RADIUS,
-              alignItems: 'center',
-              justifyContent: 'center',
-              backgroundColor: selectedIds.length === 0 ? 'rgba(0,0,0,0.08)' : '#E31B59',
-            }}
-          >
-            <Text
-              allowFontScaling={false}
-              style={{
-                fontFamily: 'Pretendard-SemiBold',
-                fontSize: FONT_SM,
-                color: selectedIds.length === 0 ? 'rgba(0,0,0,0.25)' : '#fff',
-                letterSpacing: -0.2,
-              }}
-            >
-              저장
-            </Text>
-          </Pressable>
-        </View>
-      ) : (
-        <View style={{ borderRadius: normalize(14), backgroundColor: '#F5F5F7', paddingVertical: normalize(6) }}>
-          {savedItems.map((item) => (
-            <Pressable
-              key={item.id}
-              onPress={() => toggleChecked(item.id)}
+      {Title}
+      <View style={{ borderRadius: normalize(14), backgroundColor: '#F5F5F7', paddingVertical: normalize(6) }}>
+        {items.map((item) => {
+          const key = itemKey(item);
+          const checked = checkedKeys.has(key);
+          const deletable = item.id != null;
+          return (
+            <View
+              key={key}
               style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(12), paddingHorizontal: normalize(16), paddingVertical: normalize(12) }}
             >
-              <View
+              <Pressable
+                onPress={() => toggleChecked(key)}
+                hitSlop={8}
                 style={{
                   width: normalize(24),
                   height: normalize(24),
                   borderRadius: normalize(12),
                   alignItems: 'center',
                   justifyContent: 'center',
-                  backgroundColor: item.checked ? '#E31B59' : 'transparent',
-                  borderWidth: item.checked ? 0 : 1.2,
+                  backgroundColor: checked ? '#E31B59' : 'transparent',
+                  borderWidth: checked ? 0 : 1.2,
                   borderColor: 'rgba(0,0,0,0.12)',
                 }}
               >
-                {item.checked && <IconCheck size={normalize(14)} color="#fff" strokeWidth={2.5} />}
-              </View>
+                {checked && <IconCheck size={normalize(14)} color="#fff" strokeWidth={2.5} />}
+              </Pressable>
               <Text
                 allowFontScaling={false}
-                style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_MD, letterSpacing: -0.2, color: item.checked ? '#000' : 'rgba(0,0,0,0.4)' }}
+                style={{ flex: 1, fontFamily: 'Pretendard-Regular', fontSize: FONT_MD, letterSpacing: -0.2, color: checked ? '#000' : 'rgba(0,0,0,0.4)' }}
               >
-                {item.label}
+                {item.content}
               </Text>
-            </Pressable>
-          ))}
+              {deletable && (
+                <Pressable
+                  onPress={() => deleteItem.mutate(item.id as number)}
+                  disabled={deleteItem.isPending}
+                  hitSlop={8}
+                  style={{ width: normalize(24), height: normalize(24), alignItems: 'center', justifyContent: 'center' }}
+                >
+                  <IconX size={normalize(16)} color="rgba(0,0,0,0.3)" strokeWidth={2} />
+                </Pressable>
+              )}
+            </View>
+          );
+        })}
+
+        {/* 자유 입력 추가 행 */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(8), paddingHorizontal: normalize(16), paddingVertical: normalize(10) }}>
+          <TextInput
+            value={input}
+            onChangeText={setInput}
+            onSubmitEditing={handleAdd}
+            editable={data.userItems.length < MAX_USER_ITEMS}
+            placeholder={data.userItems.length < MAX_USER_ITEMS ? '준비물 추가 (최대 20자)' : '최대 10개까지 추가할 수 있어요'}
+            placeholderTextColor="rgba(0,0,0,0.3)"
+            maxLength={MAX_CONTENT_LEN}
+            returnKeyType="done"
+            allowFontScaling={false}
+            style={{ flex: 1, fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: '#000', letterSpacing: -0.2, paddingVertical: normalize(4) }}
+          />
+          <Pressable
+            onPress={handleAdd}
+            disabled={!canAdd}
+            hitSlop={8}
+            style={{
+              width: normalize(28),
+              height: normalize(28),
+              borderRadius: normalize(14),
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: canAdd ? '#E31B59' : 'rgba(0,0,0,0.08)',
+            }}
+          >
+            {addItem.isPending ? (
+              <ActivityIndicator size="small" color="#fff" />
+            ) : (
+              <IconPlus size={normalize(16)} color={canAdd ? '#fff' : 'rgba(0,0,0,0.25)'} strokeWidth={2.5} />
+            )}
+          </Pressable>
         </View>
+      </View>
+
+      {(addItem.isError || deleteItem.isError) && (
+        <Text
+          allowFontScaling={false}
+          style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: '#FF453A', letterSpacing: -0.2, marginTop: normalize(8) }}
+        >
+          {addItem.isError
+            ? toErrorMessage(addItem.error, '항목 추가에 실패했어요.')
+            : toErrorMessage(deleteItem.error, '항목 삭제에 실패했어요.')}
+        </Text>
       )}
     </View>
   );
