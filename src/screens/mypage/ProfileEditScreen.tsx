@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { 
-  View, Text, TouchableOpacity, TextInput, 
+  View, Text, TouchableOpacity, TextInput, KeyboardAvoidingView,
   Platform, ScrollView
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
