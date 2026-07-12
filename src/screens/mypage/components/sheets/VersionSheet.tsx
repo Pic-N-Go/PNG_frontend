@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import BottomSheet from '@/components/common/BottomSheet';
 import { IconX } from '@tabler/icons-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { FONT_BASE } from '@/constants/layout';
+import { FONT_SM } from '@/constants/layout';
 
 interface VersionSheetProps {
   visible: boolean;
@@ -24,38 +24,38 @@ export default function VersionSheet({ visible, onClose }: VersionSheetProps) {
         </View>
 
         <View style={{ paddingVertical: normalize(10), borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.05)', flexDirection: 'row', justifyContent: 'space-between' }}>
-          <Text style={{ fontSize: FONT_BASE, color: 'rgba(0,0,0,0.45)' }}>앱 버전</Text>
-          <Text className="font-medium" style={{ fontSize: FONT_BASE, color: '#000' }}>v1.0.0</Text>
+          <Text style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.45)' }}>앱 버전</Text>
+          <Text className="font-medium" style={{ fontSize: FONT_SM, color: '#000' }}>v1.0.0</Text>
         </View>
         <View style={{ paddingVertical: normalize(10), borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.05)', flexDirection: 'row', justifyContent: 'space-between' }}>
-          <Text style={{ fontSize: FONT_BASE, color: 'rgba(0,0,0,0.45)' }}>업데이트 상태</Text>
-          <Text className="font-medium" style={{ fontSize: FONT_BASE, color: '#34c759' }}>최신 버전</Text>
+          <Text style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.45)' }}>업데이트 상태</Text>
+          <Text className="font-medium" style={{ fontSize: FONT_SM, color: '#34c759' }}>최신 버전</Text>
         </View>
         <View style={{ paddingVertical: normalize(10), borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.05)', flexDirection: 'row', justifyContent: 'space-between' }}>
-          <Text style={{ fontSize: FONT_BASE, color: 'rgba(0,0,0,0.45)' }}>출시일</Text>
-          <Text className="font-medium" style={{ fontSize: FONT_BASE, color: '#000' }}>2026.05.01</Text>
+          <Text style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.45)' }}>출시일</Text>
+          <Text className="font-medium" style={{ fontSize: FONT_SM, color: '#000' }}>2026.05.01</Text>
         </View>
         <View style={{ paddingVertical: normalize(10), borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.05)', flexDirection: 'row', justifyContent: 'space-between' }}>
-          <Text style={{ fontSize: FONT_BASE, color: 'rgba(0,0,0,0.45)' }}>개발사</Text>
-          <Text className="font-medium" style={{ fontSize: FONT_BASE, color: '#000' }}>多多益Shot</Text>
+          <Text style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.45)' }}>개발사</Text>
+          <Text className="font-medium" style={{ fontSize: FONT_SM, color: '#000' }}>多多益Shot</Text>
         </View>
         
         <View style={{ paddingVertical: normalize(10), borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.05)', flexDirection: 'row', justifyContent: 'space-between' }}>
-          <Text style={{ fontSize: FONT_BASE, color: 'rgba(0,0,0,0.45)' }}>이용약관</Text>
+          <Text style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.45)' }}>이용약관</Text>
           <TouchableOpacity onPress={() => console.log('이용약관')}>
-            <Text className="font-medium" style={{ fontSize: FONT_BASE, color: '#e31b59' }}>보기 →</Text>
+            <Text className="font-medium" style={{ fontSize: FONT_SM, color: '#e31b59' }}>보기 →</Text>
           </TouchableOpacity>
         </View>
         <View style={{ paddingVertical: normalize(10), borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.05)', flexDirection: 'row', justifyContent: 'space-between' }}>
-          <Text style={{ fontSize: FONT_BASE, color: 'rgba(0,0,0,0.45)' }}>개인정보처리방침</Text>
+          <Text style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.45)' }}>개인정보처리방침</Text>
           <TouchableOpacity onPress={() => console.log('개인정보처리방침')}>
-            <Text className="font-medium" style={{ fontSize: FONT_BASE, color: '#e31b59' }}>보기 →</Text>
+            <Text className="font-medium" style={{ fontSize: FONT_SM, color: '#e31b59' }}>보기 →</Text>
           </TouchableOpacity>
         </View>
         <View style={{ paddingVertical: normalize(10), flexDirection: 'row', justifyContent: 'space-between' }}>
-          <Text style={{ fontSize: FONT_BASE, color: 'rgba(0,0,0,0.45)' }}>오픈소스 라이선스</Text>
+          <Text style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.45)' }}>오픈소스 라이선스</Text>
           <TouchableOpacity onPress={() => console.log('오픈소스 라이선스')}>
-            <Text className="font-medium" style={{ fontSize: FONT_BASE, color: '#e31b59' }}>보기 →</Text>
+            <Text className="font-medium" style={{ fontSize: FONT_SM, color: '#e31b59' }}>보기 →</Text>
           </TouchableOpacity>
         </View>
       </View>

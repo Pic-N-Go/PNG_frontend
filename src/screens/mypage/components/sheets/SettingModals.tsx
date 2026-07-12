@@ -44,7 +44,7 @@ export function WithdrawModal({ visible, onClose, onConfirm }: ModalProps) {
           <Text className="font-semibold text-black tracking-tight" style={{ fontSize: normalizeFontSize(20), marginBottom: normalize(8) }}>
             정말 탈퇴하시겠어요?
           </Text>
-          <Text className="tracking-tight" style={{ fontSize: FONT_BASE, color: 'rgba(0,0,0,0.45)', lineHeight: normalize(22), marginBottom: normalize(24) }}>
+          <Text className="tracking-tight" style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.45)', lineHeight: normalize(22), marginBottom: normalize(24) }}>
             탈퇴 시 모든 데이터(스팟, 사진, 여행 계획, 위시리스트)가 삭제되며 복구할 수 없어요.
           </Text>
 

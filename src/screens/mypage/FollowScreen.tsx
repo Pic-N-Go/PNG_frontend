@@ -4,7 +4,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconChevronLeft } from '@tabler/icons-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { FONT_BASE } from '@/constants/layout';
+import { FONT_SM } from '@/constants/layout';
 import Toast from '@/components/auth/Toast';
 
 type FollowTab = 'followers' | 'following';
@@ -58,13 +58,14 @@ export default function FollowScreen() {
   };
 
   const handleToggleFollowing = (id: number) => {
+    const targetUser = following.find(user => user.id === id);
+    if (targetUser && targetUser.isFollowing) {
+      showToast(`${targetUser.name} 팔로우를 취소했어요`);
+    }
+
     setFollowing(prev => prev.map(user => {
       if (user.id === id) {
-        const nextFollowing = !user.isFollowing;
-        if (!nextFollowing) {
-          showToast(`${user.name} 팔로우를 취소했어요`);
-        }
-        return { ...user, isFollowing: nextFollowing };
+        return { ...user, isFollowing: !user.isFollowing };
       }
       return user;
     }));
@@ -254,7 +255,7 @@ const styles = StyleSheet.create({
     //
   },
   tabText: {
-    fontSize: FONT_BASE,
+    fontSize: FONT_SM,
     fontFamily: 'Pretendard-Medium',
     color: 'rgba(0,0,0,0.35)',
     letterSpacing: -0.15,
@@ -301,7 +302,7 @@ const styles = StyleSheet.create({
     marginRight: normalize(12),
   },
   nameText: {
-    fontSize: FONT_BASE,
+    fontSize: FONT_SM,
     fontWeight: '600',
     color: '#000',
     letterSpacing: -0.2,
@@ -343,7 +344,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   emptyText: {
-    fontSize: FONT_BASE,
+    fontSize: FONT_SM,
     color: 'rgba(0,0,0,0.3)',
   }
 });
