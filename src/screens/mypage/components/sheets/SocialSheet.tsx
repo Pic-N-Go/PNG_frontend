@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import BottomSheet from '@/components/common/BottomSheet';
 import { IconX } from '@tabler/icons-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { FONT_SM, FONT_BASE } from '@/constants/layout';
+import { FONT_SM } from '@/constants/layout';
 
 interface SocialSheetProps {
   visible: boolean;
@@ -31,7 +31,7 @@ export default function SocialSheet({ visible, onClose }: SocialSheetProps) {
               <Text style={{ fontWeight: 'bold', color: '#3A1D1D', fontSize: normalizeFontSize(16) }}>K</Text>
             </View>
             <View>
-              <Text className="font-medium text-black tracking-tight" style={{ fontSize: FONT_BASE }}>카카오</Text>
+              <Text className="font-medium text-black tracking-tight" style={{ fontSize: FONT_SM }}>카카오 계정</Text>
               <Text className="tracking-tight mt-0.5" style={{ fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.35)' }}>sunset_jk@kakao.com</Text>
             </View>
           </View>
@@ -48,7 +48,7 @@ export default function SocialSheet({ visible, onClose }: SocialSheetProps) {
               <Text style={{ fontWeight: 'bold', color: '#fff', fontSize: normalizeFontSize(16) }}>A</Text>
             </View>
             <View>
-              <Text className="font-medium text-black tracking-tight" style={{ fontSize: FONT_BASE }}>Apple</Text>
+              <Text className="font-medium text-black tracking-tight" style={{ fontSize: FONT_SM }}>Apple 계정</Text>
               <Text className="tracking-tight mt-0.5" style={{ fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.35)' }}>연결 안 됨</Text>
             </View>
           </View>
@@ -64,7 +64,7 @@ export default function SocialSheet({ visible, onClose }: SocialSheetProps) {
               <Text style={{ fontWeight: 'bold', color: '#EA4335', fontSize: normalizeFontSize(16) }}>G</Text>
             </View>
             <View>
-              <Text className="font-medium text-black tracking-tight" style={{ fontSize: FONT_BASE }}>Google</Text>
+              <Text className="font-medium text-black tracking-tight" style={{ fontSize: FONT_SM }}>Google 계정</Text>
               <Text className="tracking-tight mt-0.5" style={{ fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.35)' }}>연결 안 됨</Text>
             </View>
           </View>

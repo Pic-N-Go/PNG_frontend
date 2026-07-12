@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, TextInput, TouchableOpacity } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
 import BottomSheet from '@/components/common/BottomSheet';
 import { IconX } from '@tabler/icons-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
@@ -8,10 +8,25 @@ import { FONT_MD, BUTTON_HEIGHT, BUTTON_RADIUS } from '@/constants/layout';
 interface PwSheetProps {
   visible: boolean;
   onClose: () => void;
-  onChangePw: () => void;
+  onChangePw: (currentPw: string, newPw: string) => void;
 }
 
 export default function PwSheet({ visible, onClose, onChangePw }: PwSheetProps) {
+  const [currentPw, setCurrentPw] = useState('');
+  const [newPw, setNewPw] = useState('');
+  const [confirmPw, setConfirmPw] = useState('');
+
+  const handleSubmit = () => {
+    if (newPw.length < 8 || !/^(?=.*[a-zA-Z])(?=.*[0-9])/.test(newPw)) {
+      Alert.alert('오류', '새 비밀번호는 영문, 숫자 조합 8자 이상이어야 합니다.');
+      return;
+    }
+    if (newPw !== confirmPw) {
+      Alert.alert('오류', '새 비밀번호 확인이 일치하지 않습니다.');
+      return;
+    }
+    onChangePw(currentPw, newPw);
+  };
   return (
     <BottomSheet visible={visible} onClose={onClose}>
       <View style={{ paddingHorizontal: normalize(20) }}>
@@ -32,6 +47,8 @@ export default function PwSheet({ visible, onClose, onChangePw }: PwSheetProps) 
             placeholder="현재 비밀번호"
             placeholderTextColor="rgba(0,0,0,0.25)"
             secureTextEntry
+            value={currentPw}
+            onChangeText={setCurrentPw}
             style={{
               height: BUTTON_HEIGHT,
               borderRadius: normalize(12),
@@ -51,6 +68,8 @@ export default function PwSheet({ visible, onClose, onChangePw }: PwSheetProps) 
             placeholder="8자 이상, 영문+숫자 조합"
             placeholderTextColor="rgba(0,0,0,0.25)"
             secureTextEntry
+            value={newPw}
+            onChangeText={setNewPw}
             style={{
               height: BUTTON_HEIGHT,
               borderRadius: normalize(12),
@@ -70,6 +89,8 @@ export default function PwSheet({ visible, onClose, onChangePw }: PwSheetProps) 
             placeholder="새 비밀번호 재입력"
             placeholderTextColor="rgba(0,0,0,0.25)"
             secureTextEntry
+            value={confirmPw}
+            onChangeText={setConfirmPw}
             style={{
               height: BUTTON_HEIGHT,
               borderRadius: normalize(12),
@@ -82,7 +103,7 @@ export default function PwSheet({ visible, onClose, onChangePw }: PwSheetProps) 
         </View>
 
         <TouchableOpacity
-          onPress={onChangePw}
+          onPress={handleSubmit}
           className="w-full items-center justify-center bg-[#E31B59] mt-2"
           style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}
         >

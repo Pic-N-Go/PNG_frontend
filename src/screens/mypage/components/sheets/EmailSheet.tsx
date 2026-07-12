@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity } from 'react-native';
 import BottomSheet from '@/components/common/BottomSheet';
 import { IconX } from '@tabler/icons-react-native';
@@ -8,10 +8,12 @@ import { FONT_MD, BUTTON_HEIGHT, BUTTON_RADIUS } from '@/constants/layout';
 interface EmailSheetProps {
   visible: boolean;
   onClose: () => void;
-  onSendAuth: () => void;
+  onSendAuth: (email: string, pw: string) => void;
 }
 
 export default function EmailSheet({ visible, onClose, onSendAuth }: EmailSheetProps) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   return (
     <BottomSheet visible={visible} onClose={onClose}>
       <View style={{ paddingHorizontal: normalize(20) }}>
@@ -31,6 +33,8 @@ export default function EmailSheet({ visible, onClose, onSendAuth }: EmailSheetP
           <TextInput
             placeholder="새 이메일 주소 입력"
             placeholderTextColor="rgba(0,0,0,0.25)"
+            value={email}
+            onChangeText={setEmail}
             style={{
               height: BUTTON_HEIGHT,
               borderRadius: normalize(12),
@@ -50,6 +54,8 @@ export default function EmailSheet({ visible, onClose, onSendAuth }: EmailSheetP
             placeholder="현재 비밀번호 입력"
             placeholderTextColor="rgba(0,0,0,0.25)"
             secureTextEntry
+            value={password}
+            onChangeText={setPassword}
             style={{
               height: BUTTON_HEIGHT,
               borderRadius: normalize(12),
@@ -66,7 +72,7 @@ export default function EmailSheet({ visible, onClose, onSendAuth }: EmailSheetP
         </Text>
 
         <TouchableOpacity
-          onPress={onSendAuth}
+          onPress={() => onSendAuth(email, password)}
           className="w-full items-center justify-center bg-[#E31B59] mt-3"
           style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}
         >

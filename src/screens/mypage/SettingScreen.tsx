@@ -28,6 +28,40 @@ const FAQS = [
   { q: '게시물이나 댓글을 신고하려면?', a: '게시물 또는 댓글 우측 상단의 ··· 버튼을 탭하면 신고 옵션이 나타나요. 신고 접수 후 24시간 이내 검토해드려요.' },
 ];
 
+const SettingRow = ({ icon, label, desc, rightText, onPress, isDanger = false, toggleValue, onToggle }: any) => (
+  <TouchableOpacity
+    activeOpacity={0.7}
+    onPress={onPress}
+    disabled={!onPress && onToggle === undefined}
+    style={{
+      flexDirection: 'row',
+      alignItems: 'center',
+      paddingVertical: normalize(14),
+      paddingHorizontal: normalize(16),
+      borderTopWidth: 0.5,
+      borderTopColor: 'rgba(0,0,0,0.05)'
+    }}
+  >
+    <View style={{ width: normalize(32), height: normalize(32), borderRadius: normalize(9), backgroundColor: isDanger ? 'rgba(255, 69, 58, 0.08)' : 'rgba(0,0,0,0.06)', alignItems: 'center', justifyContent: 'center', marginRight: normalize(12) }}>
+      {icon}
+    </View>
+    <View style={{ flex: 1, justifyContent: 'center' }}>
+      <Text className="font-medium tracking-tight" style={{ fontSize: FONT_MD, color: isDanger ? '#ff453a' : '#000' }}>
+        {label}
+      </Text>
+      {desc && <Text className="tracking-tight mt-0.5" style={{ fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.38)' }}>{desc}</Text>}
+    </View>
+    <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(6) }}>
+      {rightText && <Text style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.35)' }}>{rightText}</Text>}
+      {toggleValue !== undefined ? (
+        <CustomToggle value={toggleValue} onValueChange={onToggle} />
+      ) : (
+        <IconChevronRight size={normalize(14)} color={isDanger ? '#ff453a' : 'rgba(0,0,0,0.2)'} strokeWidth={2} />
+      )}
+    </View>
+  </TouchableOpacity>
+);
+
 export default function SettingScreen() {
   const navigation = useNavigation();
   const clearAuth = useAuthStore((s) => s.clearAuth);
@@ -61,39 +95,7 @@ export default function SettingScreen() {
     setInquiryText('');
   };
 
-  const SettingRow = ({ icon, label, desc, rightText, onPress, isDanger = false, toggleKey }: any) => (
-    <TouchableOpacity
-      activeOpacity={0.7}
-      onPress={onPress}
-      disabled={!onPress}
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: normalize(14),
-        paddingHorizontal: normalize(16),
-        borderTopWidth: 0.5,
-        borderTopColor: 'rgba(0,0,0,0.05)'
-      }}
-    >
-      <View style={{ width: normalize(32), height: normalize(32), borderRadius: normalize(9), backgroundColor: isDanger ? 'rgba(255, 69, 58, 0.08)' : 'rgba(0,0,0,0.06)', alignItems: 'center', justifyContent: 'center', marginRight: normalize(12) }}>
-        {icon}
-      </View>
-      <View style={{ flex: 1, justifyContent: 'center' }}>
-        <Text className="font-medium tracking-tight" style={{ fontSize: FONT_MD, color: isDanger ? '#ff453a' : '#000' }}>
-          {label}
-        </Text>
-        {desc && <Text className="tracking-tight mt-0.5" style={{ fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.38)' }}>{desc}</Text>}
-      </View>
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(6) }}>
-        {rightText && <Text style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.35)' }}>{rightText}</Text>}
-        {toggleKey ? (
-          <CustomToggle value={toggles[toggleKey as keyof typeof toggles]} onValueChange={() => handleToggle(toggleKey as keyof typeof toggles)} />
-        ) : (
-          <IconChevronRight size={normalize(14)} color={isDanger ? '#ff453a' : 'rgba(0,0,0,0.2)'} strokeWidth={2} />
-        )}
-      </View>
-    </TouchableOpacity>
-  );
+
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#fff' }} edges={['top', 'bottom']}>
@@ -124,9 +126,9 @@ export default function SettingScreen() {
         <View style={{ paddingTop: normalize(24), paddingHorizontal: normalize(20) }}>
           <Text className="font-semibold" style={{ fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.3)', marginBottom: normalize(8), letterSpacing: 0.4 }}>알림</Text>
           <View style={{ borderRadius: normalize(16), backgroundColor: '#f8f8f9', overflow: 'hidden' }}>
-            <SettingRow icon={<IconBell size={normalize(16)} color="#e31b59" />} label="위시리스트 알림" desc="조건 충족 시 알림" toggleKey="wishlist" />
-            <SettingRow icon={<IconSun size={normalize(16)} color="#ff9f0a" />} label="골든아워 알림" desc="일출·일몰 30분 전" toggleKey="goldenHour" />
-            <SettingRow icon={<IconMessageCircle size={normalize(16)} color="#3b82f6" />} label="커뮤니티 알림" desc="좋아요, 댓글, 팔로우" toggleKey="community" />
+            <SettingRow icon={<IconBell size={normalize(16)} color="#e31b59" />} label="위시리스트 알림" desc="조건 충족 시 알림" toggleValue={toggles.wishlist} onToggle={() => handleToggle('wishlist')} />
+            <SettingRow icon={<IconSun size={normalize(16)} color="#ff9f0a" />} label="골든아워 알림" desc="일출·일몰 30분 전" toggleValue={toggles.goldenHour} onToggle={() => handleToggle('goldenHour')} />
+            <SettingRow icon={<IconMessageCircle size={normalize(16)} color="#3b82f6" />} label="커뮤니티 알림" desc="좋아요, 댓글, 팔로우" toggleValue={toggles.community} onToggle={() => handleToggle('community')} />
           </View>
         </View>
 
@@ -210,8 +212,8 @@ export default function SettingScreen() {
       </ScrollView>
 
       {/* Sheets & Modals */}
-      <EmailSheet visible={activeSheet === 'email'} onClose={closeSheet} onSendAuth={() => { closeSheet(); Alert.alert('완료', '인증 메일을 발송했어요 ✓'); }} />
-      <PwSheet visible={activeSheet === 'pw'} onClose={closeSheet} onChangePw={() => { closeSheet(); Alert.alert('완료', '비밀번호가 변경됐어요 ✓'); }} />
+      <EmailSheet visible={activeSheet === 'email'} onClose={closeSheet} onSendAuth={(email, pw) => { closeSheet(); Alert.alert('완료', '인증 메일을 발송했어요 ✓'); }} />
+      <PwSheet visible={activeSheet === 'pw'} onClose={closeSheet} onChangePw={(curr, newPw) => { closeSheet(); Alert.alert('완료', '비밀번호가 변경됐어요 ✓'); }} />
       <ThemeSheet visible={activeSheet === 'theme'} onClose={closeSheet} onSave={() => { closeSheet(); Alert.alert('완료', '관심 테마가 저장됐어요 ✓'); }} />
       <SocialSheet visible={activeSheet === 'social'} onClose={closeSheet} />
       <VersionSheet visible={activeSheet === 'version'} onClose={closeSheet} />

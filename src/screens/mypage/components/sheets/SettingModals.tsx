@@ -1,7 +1,7 @@
 import React from 'react';
 import { Text, TouchableOpacity, Modal, Pressable } from 'react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { FONT_BASE, FONT_MD, BUTTON_HEIGHT } from '@/constants/layout';
+import { FONT_SM, FONT_MD, BUTTON_HEIGHT } from '@/constants/layout';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 interface ModalProps {
@@ -19,7 +19,7 @@ export function LogoutModal({ visible, onClose, onConfirm }: ModalProps) {
           <Text className="font-semibold text-black tracking-tight" style={{ fontSize: normalizeFontSize(20), marginBottom: normalize(8) }}>
             로그아웃할까요?
           </Text>
-          <Text className="tracking-tight" style={{ fontSize: FONT_BASE, color: 'rgba(0,0,0,0.45)', lineHeight: normalize(22), marginBottom: normalize(24) }}>
+          <Text className="tracking-tight" style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.45)', lineHeight: normalize(22), marginBottom: normalize(24) }}>
             다음에 다시 로그인하면 모든 기능을 이용할 수 있어요.
           </Text>
 

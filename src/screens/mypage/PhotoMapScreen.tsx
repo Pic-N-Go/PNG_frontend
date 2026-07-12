@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Platform, PermissionsAndroid, BackHandler, Image, Animated, PanResponder, Dimensions, ScrollView, Easing } from 'react-native';
+import { View, Text, TouchableOpacity, Platform, PermissionsAndroid, BackHandler, Image, Animated, PanResponder, Easing, ScrollView, useWindowDimensions } from 'react-native';
 import { WebView } from 'react-native-webview';
-import { IconChevronLeft, IconMapPin, IconStarFilled, IconBookmark, IconFocus2, IconChevronRight } from '@tabler/icons-react-native';
+import { IconChevronLeft, IconMapPin, IconFocus2, IconChevronRight } from '@tabler/icons-react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import BottomSheet from '@/components/common/BottomSheet';
 import { StatusBar } from 'expo-status-bar';
@@ -65,7 +65,6 @@ export default function PhotoMapScreen() {
     return PHOTO_SPOTS;
   }, [filter]);
 
-  // WebView로부터의 메시지 처리
   const handleMessage = useCallback((event: any) => {
     try {
       const parsed = JSON.parse(event.nativeEvent.data);
@@ -116,16 +115,21 @@ export default function PhotoMapScreen() {
           PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
         );
         if (granted !== PermissionsAndroid.RESULTS.GRANTED) return;
-      } catch (err) {
+      } catch {
         return;
       }
     }
     if (webViewRef.current) {
       webViewRef.current.injectJavaScript(`
         if (window.kakaoMap && navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(function(position) {
-            window.kakaoMap.setCenter(new kakao.maps.LatLng(position.coords.latitude, position.coords.longitude));
-          });
+          navigator.geolocation.getCurrentPosition(
+            function(position) {
+              window.kakaoMap.setCenter(new kakao.maps.LatLng(position.coords.latitude, position.coords.longitude));
+            },
+            function(error) {
+              console.error("Geolocation error:", error);
+            }
+          );
         }
       `);
     }
@@ -139,7 +143,7 @@ export default function PhotoMapScreen() {
         }
       `);
     }
-  }, [filteredSpots]);
+  }, [filteredSpots, webViewRef]);
 
   const HTML = useMemo(() => {
     return `
@@ -149,7 +153,7 @@ export default function PhotoMapScreen() {
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
   <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_KEY}&autoload=false"></script>
   <style>
-    body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #e8e8ed; }
+    body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #ffffff; }
     #map { width: 100%; height: 100%; }
     .map-pin {
       position: absolute;
@@ -239,7 +243,6 @@ export default function PhotoMapScreen() {
           window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'MAP_CLICK' }));
         });
 
-        // 초기 마커 렌더링
         window.updateMarkers(${JSON.stringify(JSON.stringify(filteredSpots))});
       }
       initMap();
@@ -248,13 +251,12 @@ export default function PhotoMapScreen() {
 </body>
 </html>
     `;
-  }, []);
+  }, [filteredSpots]);
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#e8e8ed' }}>
+    <View style={{ flex: 1, backgroundColor: '#ffffff' }}>
       <StatusBar style="dark" />
 
-      {/* 플로팅 네비 바 */}
       <View 
         style={{ 
           position: 'absolute', top: 0, left: 0, right: 0, zIndex: 50,
@@ -273,7 +275,6 @@ export default function PhotoMapScreen() {
           <View style={{ width: normalize(36) }} />
         </View>
 
-        {/* 필터 칩 */}
         <View style={{ flexDirection: 'row', paddingHorizontal: normalize(16), paddingVertical: normalize(10), gap: normalize(7) }}>
           {(['all', 'visit', 'fav'] as FilterType[]).map((f) => {
             const isActive = filter === f;
@@ -303,6 +304,7 @@ export default function PhotoMapScreen() {
       <WebView
         ref={webViewRef}
         source={{ html: HTML }}
+        geolocationEnabled={true}
         originWhitelist={['*']}
         onMessage={handleMessage}
         javaScriptEnabled
@@ -313,9 +315,8 @@ export default function PhotoMapScreen() {
         style={{ flex: 1 }}
       />
 
-      {/* 지도 컨트롤 */}
       <View style={{ position: 'absolute', right: normalize(14), top: insets.top + normalize(120), zIndex: 30, gap: normalize(8) }}>
-        <View style={{ backgroundColor: '#fff', borderRadius: normalize(12), shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.12, shadowRadius: 8, elevation: 3, overflow: 'hidden' }}>
+        <View style={{ backgroundColor: '#fff', borderRadius: normalize(12), overflow: 'hidden' }}>
           <TouchableOpacity onPress={handleZoomIn} style={{ width: normalize(40), height: normalize(40), alignItems: 'center', justifyContent: 'center' }}>
             <Text style={{ fontSize: normalizeFontSize(20), color: 'rgba(0,0,0,0.55)' }}>+</Text>
           </TouchableOpacity>
@@ -324,13 +325,12 @@ export default function PhotoMapScreen() {
             <Text style={{ fontSize: normalizeFontSize(20), color: 'rgba(0,0,0,0.55)' }}>−</Text>
           </TouchableOpacity>
         </View>
-        <TouchableOpacity onPress={handleMyLocation} style={{ width: normalize(40), height: normalize(40), backgroundColor: '#fff', borderRadius: normalize(12), shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.12, shadowRadius: 8, elevation: 3, alignItems: 'center', justifyContent: 'center' }}>
+        <TouchableOpacity onPress={handleMyLocation} style={{ width: normalize(40), height: normalize(40), backgroundColor: '#fff', borderRadius: normalize(12), alignItems: 'center', justifyContent: 'center' }}>
           <IconFocus2 size={normalize(20)} color="rgba(0,0,0,0.45)" />
         </TouchableOpacity>
       </View>
 
-      {/* 레전드 (범례) */}
-      <View style={{ position: 'absolute', left: normalize(14), top: insets.top + normalize(120), zIndex: 30, backgroundColor: 'rgba(255,255,255,0.88)', borderRadius: normalize(10), paddingHorizontal: normalize(12), paddingVertical: normalize(8), gap: normalize(6), shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 2 }}>
+      <View style={{ position: 'absolute', left: normalize(14), top: insets.top + normalize(120), zIndex: 30, backgroundColor: 'rgba(255,255,255,0.88)', borderRadius: normalize(10), paddingHorizontal: normalize(12), paddingVertical: normalize(8), gap: normalize(6) }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(6) }}>
           <View style={{ width: normalize(10), height: normalize(10), borderRadius: normalize(5), backgroundColor: '#1c1c1e' }} />
           <Text style={{ fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.55)' }}>방문</Text>
@@ -341,10 +341,8 @@ export default function PhotoMapScreen() {
         </View>
       </View>
 
-      {/* 스팟 리스트 바텀 시트 */}
-      <SpotListSheet spots={filteredSpots} activeSpot={activeSpot} onSpotPress={(spot) => setActiveSpot(spot)} filterName={filter === 'all' ? '전체 스팟' : filter === 'visit' ? '방문한 스팟' : '즐겨찾기 스팟'} />
+      <SpotListSheet spots={filteredSpots} activeSpot={activeSpot} onSpotPress={handleSpotPress} filterName={filter === 'all' ? '전체 스팟' : filter === 'visit' ? '방문한 스팟' : '즐겨찾기 스팟'} />
 
-      {/* 스팟 상세 바텀 시트 */}
       <BottomSheet visible={!!activeSpot} onClose={() => setActiveSpot(null)}>
         {activeSpot && (
           <View style={{ paddingHorizontal: normalize(20), paddingBottom: normalize(20) }}>
@@ -367,11 +365,11 @@ export default function PhotoMapScreen() {
             </Text>
 
             <View style={{ flexDirection: 'row', gap: normalize(8), marginBottom: normalize(16) }}>
-              <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.03)', borderRadius: normalize(10), padding: normalize(10) }}>
+              <View style={{ flex: 1, backgroundColor: '#f5f5f7', borderRadius: normalize(10), padding: normalize(10) }}>
                 <Text style={{ fontSize: normalizeFontSize(10), color: 'rgba(0,0,0,0.35)', marginBottom: normalize(3) }}>최근 방문일</Text>
                 <Text style={{ fontSize: FONT_MD, fontWeight: '600', color: '#000' }}>{activeSpot.date}</Text>
               </View>
-              <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.03)', borderRadius: normalize(10), padding: normalize(10) }}>
+              <View style={{ flex: 1, backgroundColor: '#f5f5f7', borderRadius: normalize(10), padding: normalize(10) }}>
                 <Text style={{ fontSize: normalizeFontSize(10), color: 'rgba(0,0,0,0.35)', marginBottom: normalize(3) }}>사진 점수</Text>
                 <Text style={{ fontSize: FONT_MD, fontWeight: '600', color: '#E31B59' }}>{activeSpot.score}점</Text>
               </View>
@@ -391,12 +389,12 @@ export default function PhotoMapScreen() {
     </View>
   );}
 
-const SCREEN_HEIGHT = Dimensions.get('window').height;
 const LIST_PEEK_HEIGHT = normalize(160);
-const LIST_EXPANDED_HEIGHT = SCREEN_HEIGHT * 0.7;
 
 function SpotListSheet({ spots, activeSpot, onSpotPress, filterName }: { spots: MapSpot[], activeSpot: MapSpot | null, onSpotPress: (s: MapSpot) => void, filterName: string }) {
   const insets = useSafeAreaInsets();
+  const { height: SCREEN_HEIGHT } = useWindowDimensions();
+  const LIST_EXPANDED_HEIGHT = SCREEN_HEIGHT * 0.7;
   const [isExpanded, setIsExpanded] = useState(false);
   const isExpandedRef = useRef(isExpanded);
   
@@ -405,47 +403,51 @@ function SpotListSheet({ spots, activeSpot, onSpotPress, filterName }: { spots: 
   }, [isExpanded]);
 
   const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
+  const peekYRef = useRef(SCREEN_HEIGHT - LIST_PEEK_HEIGHT - Math.max(insets.bottom, normalize(10)));
+  const expandedYRef = useRef(SCREEN_HEIGHT - LIST_EXPANDED_HEIGHT);
 
-  const peekY = SCREEN_HEIGHT - LIST_PEEK_HEIGHT - Math.max(insets.bottom, normalize(10));
-  const expandedY = SCREEN_HEIGHT - LIST_EXPANDED_HEIGHT;
+  useEffect(() => {
+    peekYRef.current = SCREEN_HEIGHT - LIST_PEEK_HEIGHT - Math.max(insets.bottom, normalize(10));
+    expandedYRef.current = SCREEN_HEIGHT - LIST_EXPANDED_HEIGHT;
+  }, [SCREEN_HEIGHT, insets.bottom, LIST_EXPANDED_HEIGHT]);
 
   useEffect(() => {
     if (activeSpot) {
       Animated.timing(translateY, { toValue: SCREEN_HEIGHT, duration: 250, easing: Easing.in(Easing.cubic), useNativeDriver: true }).start();
     } else {
       Animated.spring(translateY, {
-        toValue: isExpanded ? expandedY : peekY,
+        toValue: isExpanded ? expandedYRef.current : peekYRef.current,
         stiffness: 250, damping: 25, mass: 1,
         restSpeedThreshold: 100, restDisplacementThreshold: 40,
         useNativeDriver: true
       }).start();
     }
-  }, [activeSpot, isExpanded, peekY, expandedY, translateY]);
+  }, [activeSpot, isExpanded, translateY, SCREEN_HEIGHT]);
 
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: (_, state) => Math.abs(state.dy) > 5,
       onPanResponderMove: (_, state) => {
-        const startY = isExpandedRef.current ? expandedY : peekY;
+        const startY = isExpandedRef.current ? expandedYRef.current : peekYRef.current;
         let newY = startY + state.dy;
-        if (newY < expandedY) newY = expandedY + (newY - expandedY) * 0.3; // rubber band
+        if (newY < expandedYRef.current) newY = expandedYRef.current + (newY - expandedYRef.current) * 0.3;
         translateY.setValue(newY);
       },
       onPanResponderRelease: (_, state) => {
-        let nextExpanded = isExpandedRef.current;
-        if (state.vy < -0.5 || state.dy < -50) nextExpanded = true;
-        else if (state.vy > 0.5 || state.dy > 50) nextExpanded = false;
-        
-        setIsExpanded(nextExpanded);
-        
-        Animated.spring(translateY, {
-          toValue: nextExpanded ? expandedY : peekY,
-          velocity: state.vy,
-          stiffness: 250, damping: 25, mass: 1,
-          restSpeedThreshold: 100, restDisplacementThreshold: 40,
-          useNativeDriver: true
-        }).start();
+        if (Math.abs(state.dy) < 20) {
+          Animated.spring(translateY, { toValue: isExpandedRef.current ? expandedYRef.current : peekYRef.current, useNativeDriver: true }).start();
+        } else {
+          const nextExpanded = state.dy < 0;
+          setIsExpanded(nextExpanded);
+          Animated.spring(translateY, {
+            toValue: nextExpanded ? expandedYRef.current : peekYRef.current,
+            velocity: state.vy,
+            stiffness: 250, damping: 25, mass: 1,
+            restSpeedThreshold: 100, restDisplacementThreshold: 40,
+            useNativeDriver: true
+          }).start();
+        }
       }
     })
   ).current;
@@ -456,8 +458,7 @@ function SpotListSheet({ spots, activeSpot, onSpotPress, filterName }: { spots: 
         position: 'absolute', top: 0, left: 0, right: 0, height: LIST_EXPANDED_HEIGHT,
         transform: [{ translateY }], zIndex: 40,
         backgroundColor: '#fff',
-        borderTopLeftRadius: normalize(24), borderTopRightRadius: normalize(24),
-        shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.1, shadowRadius: 16, elevation: 10
+        borderTopLeftRadius: normalize(24), borderTopRightRadius: normalize(24)
       }}
     >
       <View {...panResponder.panHandlers} style={{ backgroundColor: 'transparent' }}>
@@ -483,11 +484,11 @@ function SpotListSheet({ spots, activeSpot, onSpotPress, filterName }: { spots: 
               <Image source={{ uri: spot.photo }} style={{ width: '100%', height: '100%' }} />
               <View style={{ position: 'absolute', bottom: normalize(4), left: normalize(4) }}>
                 {spot.isFav ? (
-                  <View style={{ shadowColor: '#E31B59', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.4, shadowRadius: 2, elevation: 2 }}>
+                  <View>
                     <IconMapPin size={normalize(14)} color="#E31B59" fill="#E31B59" />
                   </View>
                 ) : (
-                  <View style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.3, shadowRadius: 2, elevation: 2 }}>
+                  <View>
                     <IconMapPin size={normalize(14)} color="#1c1c1e" fill="#1c1c1e" />
                   </View>
                 )}

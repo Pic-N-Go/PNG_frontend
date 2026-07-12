@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
-  View, Text, TouchableOpacity, TextInput, KeyboardAvoidingView, 
-  Platform, ScrollView, Animated, Keyboard
+  View, Text, TouchableOpacity, TextInput, 
+  Platform, ScrollView
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
