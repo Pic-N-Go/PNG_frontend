@@ -41,6 +41,7 @@ export default function PhotoMapScreen() {
   const webViewRef = useRef<any>(null);
   const [filter, setFilter] = useState<FilterType>('all');
   const [activeSpot, setActiveSpot] = useState<MapSpot | null>(null);
+  const ignoreMapClickRef = useRef(false);
 
   const handleBackNavigation = useCallback(() => {
     if (navigation.canGoBack()) {
@@ -64,17 +65,28 @@ export default function PhotoMapScreen() {
     return PHOTO_SPOTS;
   }, [filter]);
 
+  // WebView로부터의 메시지 처리
   const handleMessage = useCallback((event: any) => {
     try {
       const parsed = JSON.parse(event.nativeEvent.data);
       if (parsed.type === 'SPOT_CLICK') {
         setActiveSpot(parsed.data);
       } else if (parsed.type === 'MAP_CLICK') {
-        setActiveSpot(null);
+        if (!ignoreMapClickRef.current) {
+          setActiveSpot(null);
+        }
       }
     } catch (e) {
       console.log('WebView Message Parse Error:', e);
     }
+  }, []);
+
+  const handleSpotPress = useCallback((spot: MapSpot) => {
+    setActiveSpot(spot);
+    ignoreMapClickRef.current = true;
+    setTimeout(() => {
+      ignoreMapClickRef.current = false;
+    }, 500);
   }, []);
 
   const handleZoomIn = useCallback(() => {
