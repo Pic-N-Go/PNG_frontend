@@ -420,7 +420,7 @@ function SpotListSheet({ spots, activeSpot, onSpotPress, filterName }: { spots: 
         useNativeDriver: true
       }).start();
     }
-  }, [activeSpot]); // Removed isExpanded to handle animation in PanResponderRelease directly
+  }, [activeSpot, isExpanded, peekY, expandedY]);
 
   const panResponder = useRef(
     PanResponder.create({

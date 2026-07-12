@@ -93,6 +93,10 @@ export default function MyPhotosScreen() {
     }, {} as Record<string, PhotoData[]>);
   }, []);
 
+  const filteredPhotos = useMemo(() => {
+    return MOCK_PHOTOS.filter(p => activeFilter === 'all' || p.badge === activeFilter);
+  }, [activeFilter]);
+
   const FILTERS: FilterType[] = ['all', '야경', '일출', '일몰', '낮'];
 
   const openLightbox = (index: number) => {
@@ -102,7 +106,7 @@ export default function MyPhotosScreen() {
 
   const navLightbox = (dir: number) => {
     const next = currentPhotoIndex + dir;
-    if (next >= 0 && next < MOCK_PHOTOS.length) {
+    if (next >= 0 && next < filteredPhotos.length) {
       setCurrentPhotoIndex(next);
     }
   };
@@ -217,13 +221,13 @@ export default function MyPhotosScreen() {
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: GRID_SPACING }}>
                   {groupedPhotos[section].map((photo, i) => {
                     const isVisible = activeFilter === 'all' || photo.badge === activeFilter;
-                    const globalIdx = MOCK_PHOTOS.findIndex(p => p.id === photo.id);
+                    const filteredIdx = filteredPhotos.findIndex(p => p.id === photo.id);
                     return (
                       <TouchableOpacity
                         key={photo.id}
                         activeOpacity={0.8}
                         disabled={!isVisible}
-                        onPress={() => openLightbox(globalIdx)}
+                        onPress={() => openLightbox(filteredIdx)}
                         style={[styles.photoCell, { opacity: isVisible ? 1 : 0.35 }]}
                       >
                         <LinearGradient colors={photo.colors as [string, string]} style={styles.photoInner} />
@@ -251,12 +255,12 @@ export default function MyPhotosScreen() {
             <TouchableOpacity onPress={() => setLightboxVisible(false)} style={styles.lbClose}>
               <IconX size={20} color="#fff" />
             </TouchableOpacity>
-            <Text style={styles.lbCounter}>{currentPhotoIndex + 1} / {MOCK_PHOTOS.length}</Text>
+            <Text style={styles.lbCounter}>{currentPhotoIndex + 1} / {filteredPhotos.length}</Text>
           </LinearGradient>
 
           {/* Current Photo Gradient (Mocking image) */}
           <LinearGradient 
-            colors={MOCK_PHOTOS[currentPhotoIndex]?.colors as [string, string] || ['#000', '#000']} 
+            colors={filteredPhotos[currentPhotoIndex]?.colors as [string, string] || ['#000', '#000']} 
             style={{ flex: 1 }} 
           />
 
@@ -266,19 +270,19 @@ export default function MyPhotosScreen() {
               <IconChevronLeft size={20} color="#fff" />
             </TouchableOpacity>
           )}
-          {currentPhotoIndex < MOCK_PHOTOS.length - 1 && (
+          {currentPhotoIndex < filteredPhotos.length - 1 && (
             <TouchableOpacity style={[styles.lbNav, styles.lbNavNext]} onPress={() => navLightbox(1)}>
               <IconChevronRight size={20} color="#fff" />
             </TouchableOpacity>
           )}
 
           <LinearGradient colors={['transparent', 'rgba(0,0,0,0.8)']} style={styles.lbFooter}>
-            <Text style={styles.lbSpot}>{MOCK_PHOTOS[currentPhotoIndex]?.spot}</Text>
+            <Text style={styles.lbSpot}>{filteredPhotos[currentPhotoIndex]?.spot}</Text>
             <View style={styles.lbFooterMeta}>
-              <Text style={styles.lbDate}>{MOCK_PHOTOS[currentPhotoIndex]?.date}</Text>
-              {MOCK_PHOTOS[currentPhotoIndex]?.badge && (
+              <Text style={styles.lbDate}>{filteredPhotos[currentPhotoIndex]?.date}</Text>
+              {filteredPhotos[currentPhotoIndex]?.badge && (
                 <View style={styles.lbMetaBadge}>
-                  <Text style={styles.lbMetaBadgeText}>{MOCK_PHOTOS[currentPhotoIndex]?.badge}</Text>
+                  <Text style={styles.lbMetaBadgeText}>{filteredPhotos[currentPhotoIndex]?.badge}</Text>
                 </View>
               )}
             </View>

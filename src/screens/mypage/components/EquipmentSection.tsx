@@ -69,6 +69,7 @@ export default function EquipmentSection() {
   };
 
   const closeSheet = () => {
+    Keyboard.dismiss();
     Animated.timing(translateY, {
       toValue: 500,
       duration: 250,

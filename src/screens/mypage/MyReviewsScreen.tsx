@@ -94,7 +94,7 @@ export default function MyReviewsScreen() {
         </Text>
       );
     }
-    return <Text style={styles.starsContainer}>{stars}</Text>;
+    return <View style={styles.starsContainer}>{stars}</View>;
   };
 
   return (
