@@ -302,7 +302,7 @@ export default function PhotoMapScreen() {
       />
 
       {/* 지도 컨트롤 */}
-      <View style={{ position: 'absolute', right: normalize(14), bottom: normalize(30) + (activeSpot ? normalize(200) : 0), zIndex: 30, gap: normalize(8) }}>
+      <View style={{ position: 'absolute', right: normalize(14), top: normalize(120), zIndex: 30, gap: normalize(8) }}>
         <View style={{ backgroundColor: '#fff', borderRadius: normalize(12), shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.12, shadowRadius: 8, elevation: 3, overflow: 'hidden' }}>
           <TouchableOpacity onPress={handleZoomIn} style={{ width: normalize(40), height: normalize(40), alignItems: 'center', justifyContent: 'center' }}>
             <Text style={{ fontSize: normalizeFontSize(20), color: 'rgba(0,0,0,0.55)' }}>+</Text>
@@ -318,7 +318,7 @@ export default function PhotoMapScreen() {
       </View>
 
       {/* 레전드 (범례) */}
-      <View style={{ position: 'absolute', left: normalize(14), bottom: normalize(30) + (activeSpot ? normalize(200) : normalize(80)), zIndex: 30, backgroundColor: 'rgba(255,255,255,0.88)', borderRadius: normalize(10), paddingHorizontal: normalize(12), paddingVertical: normalize(8), gap: normalize(6), shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 2 }}>
+      <View style={{ position: 'absolute', left: normalize(14), top: normalize(120), zIndex: 30, backgroundColor: 'rgba(255,255,255,0.88)', borderRadius: normalize(10), paddingHorizontal: normalize(12), paddingVertical: normalize(8), gap: normalize(6), shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.08, shadowRadius: 8, elevation: 2 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(6) }}>
           <View style={{ width: normalize(10), height: normalize(10), borderRadius: normalize(5), backgroundColor: '#1c1c1e' }} />
           <Text style={{ fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.55)' }}>방문</Text>
