@@ -420,7 +420,7 @@ function SpotListSheet({ spots, activeSpot, onSpotPress, filterName }: { spots: 
         useNativeDriver: true
       }).start();
     }
-  }, [activeSpot, isExpanded, peekY, expandedY]);
+  }, [activeSpot, isExpanded, peekY, expandedY, translateY]);
 
   const panResponder = useRef(
     PanResponder.create({
