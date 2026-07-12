@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Modal, Animated, Pressable, PanResponder, TextInput, Platform, Keyboard, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, Modal, Animated, Pressable, PanResponder, TextInput, Platform, Keyboard } from 'react-native';
 import { IconCamera, IconAperture, IconChevronRight, IconX, IconTrash } from '@tabler/icons-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { FONT_SM, FONT_MD, FONT_XS } from '@/constants/layout';
+import { FONT_SM, FONT_XS } from '@/constants/layout';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const MY_EQUIPMENTS = [
