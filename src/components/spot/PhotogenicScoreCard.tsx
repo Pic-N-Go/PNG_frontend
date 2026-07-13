@@ -2,17 +2,44 @@ import React, { useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { LinearGradient as ExpoLinearGradient } from 'expo-linear-gradient';
 import Svg, { Circle, Defs, LinearGradient, Stop } from 'react-native-svg';
-import { IconAtom, IconCalendar, IconChevronDown, IconClock, IconCloud, IconFlowerFilled, IconSun, IconWind } from '@tabler/icons-react-native';
+import { IconAtom, IconCalendarEvent, IconChevronDown, IconClock, IconFlowerFilled, IconSun, IconWind } from '@tabler/icons-react-native';
 import OptionSheet from '@/components/common/OptionSheet';
+import Skeleton from '@/components/common/Skeleton';
 import TimePickerSheet from '@/components/spot/TimePickerSheet';
 import { useSpotPhotogenicScore } from '@/hooks/useSpot';
-import { FONT_XL, GRID_PADDING } from '@/constants/layout';
+import { GRID_PADDING } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import type { PhotogenicFactor } from '@/types/spot';
 
-const RING_SIZE = normalize(160);
-const RING_RADIUS = 68;
-const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS;
+const COLORS = {
+  accent: '#E31B59',
+  card: '#F7F6F4',
+  input: '#F5F5F7',
+  text: '#1F1E1D',
+  textSub: '#37352F',
+  label: '#8B8680',
+  muted: '#A39E98',
+  chevron: '#B5B0AA',
+  track: '#E7E4E0',
+  golden: { bg: '#FEF3E2', icon: '#E8890B', text: '#7A5A1E', strong: '#B4700C' },
+};
+
+// 등급별 배지 색 (좋음류=핑크, 보통=주황, 그 외=회색)
+const GRADE_COLOR: Record<string, { fg: string; bg: string }> = {
+  '매우 좋음': { fg: '#E31B59', bg: '#FDEBEF' },
+  좋음: { fg: '#E31B59', bg: '#FDEBEF' },
+  보통: { fg: '#E8890B', bg: '#FDF0E0' },
+  비추천: { fg: '#9A9A9A', bg: '#EFEFEF' },
+};
+const gradeColor = (g: string) => GRADE_COLOR[g] ?? { fg: '#E31B59', bg: '#FDEBEF' };
+
+const FACTOR_ICONS: Record<PhotogenicFactor['key'], React.ComponentType<{ size: number; color: string; strokeWidth?: number }>> = {
+  weather: IconSun,
+  goldenHour: IconSun,
+  dust: IconWind,
+  ozone: IconAtom,
+  season: IconFlowerFilled,
+};
 
 // ponytail: 기기 로컬시간 기준으로 date/time 파라미터를 만든다. 국내(KST) 기기 가정.
 // TODO(타임존): 비-KST 기기에서 잘못된 날짜/시각을 조회할 수 있음 → 필요 시 Asia/Seoul 기준으로 정규화.
@@ -30,13 +57,79 @@ function formatTimeLabel(date: Date): string {
   return `${period} ${displayHour}:${String(minutes).padStart(2, '0')}`;
 }
 
-const FACTOR_ICONS: Record<PhotogenicFactor['key'], React.ComponentType<{ size: number; color: string; strokeWidth?: number }>> = {
-  weather: IconCloud,
-  goldenHour: IconSun,
-  dust: IconWind,
-  ozone: IconAtom,
-  season: IconFlowerFilled,
+// 등급(백엔드 grade)에 맞춘 추천 문구. 배지와 같은 소스라 문구가 등급과 모순되지 않음.
+const GRADE_MESSAGE: Record<string, string> = {
+  '매우 좋음': '방문하기 최적인 시간대예요',
+  좋음: '방문하기 좋은 시간대예요',
+  보통: '방문하기 무난한 시간대예요',
+  비추천: '방문을 추천하지 않는 시간대예요',
 };
+// ponytail: 미확인 등급은 중립 문구로 폴백. 백엔드 등급 추가 시 위 맵에 한 줄만 추가.
+const gradeMessage = (grade: string) => GRADE_MESSAGE[grade] ?? '방문 정보를 확인해보세요';
+
+// 원형 게이지 (그라데이션 트랙)
+const GAUGE_SIZE = normalize(184);
+const GAUGE_R = 79;
+const GAUGE_STROKE = 14;
+const GAUGE_CIRC = 2 * Math.PI * GAUGE_R;
+
+function SelectorPill({ Icon, label, active, onPress }: { Icon: React.ComponentType<{ size: number; color: string; strokeWidth?: number }>; label: string; active: boolean; onPress: () => void }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={{
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: normalize(8),
+        backgroundColor: COLORS.input,
+        borderRadius: normalize(12),
+        borderWidth: 1.5,
+        borderColor: active ? COLORS.accent : 'transparent',
+        paddingVertical: normalize(12),
+        paddingHorizontal: normalize(13),
+      }}
+    >
+      <Icon size={normalize(17)} color={active ? COLORS.accent : COLORS.label} strokeWidth={2} />
+      <Text allowFontScaling={false} numberOfLines={1} style={{ flex: 1, fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(14.5), color: COLORS.text, letterSpacing: -0.2 }}>
+        {label}
+      </Text>
+      <IconChevronDown size={normalize(16)} color={active ? COLORS.accent : COLORS.chevron} strokeWidth={2} />
+    </Pressable>
+  );
+}
+
+// 카드 레이아웃(게이지·문구·배너·점수구성) 모양의 스켈레톤 — 초기 로딩용
+function PhotogenicSkeleton() {
+  const tint = { backgroundColor: COLORS.track };
+  return (
+    <View>
+      <View style={{ position: 'absolute', top: 0, right: 0 }}>
+        <Skeleton width={normalize(60)} height={normalize(26)} borderRadius={normalize(999)} style={tint} />
+      </View>
+      <View style={{ alignItems: 'center', marginTop: normalize(8) }}>
+        <Skeleton width={GAUGE_SIZE} height={GAUGE_SIZE} borderRadius={GAUGE_SIZE / 2} style={tint} />
+      </View>
+      <View style={{ alignItems: 'center', marginTop: normalize(18), gap: normalize(9) }}>
+        <Skeleton width="60%" height={normalize(16)} style={tint} />
+        <Skeleton width="45%" height={normalize(16)} style={tint} />
+      </View>
+      <Skeleton width="100%" height={normalize(44)} borderRadius={normalize(12)} style={{ ...tint, marginTop: normalize(16) }} />
+      <View style={{ marginTop: normalize(18), paddingTop: normalize(16), borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.06)', gap: normalize(16) }}>
+        {[0, 1, 2, 3].map((i) => (
+          <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(12) }}>
+            <Skeleton width={normalize(38)} height={normalize(38)} borderRadius={normalize(10)} style={tint} />
+            <View style={{ flex: 1, gap: normalize(6) }}>
+              <Skeleton width={normalize(44)} height={normalize(11)} style={tint} />
+              <Skeleton width={normalize(72)} height={normalize(15)} style={tint} />
+            </View>
+            <Skeleton width={normalize(28)} height={normalize(15)} style={tint} />
+          </View>
+        ))}
+      </View>
+    </View>
+  );
+}
 
 interface Props {
   spotId: string;
@@ -64,198 +157,131 @@ export default function PhotogenicScoreCard({ spotId, spotName }: Props) {
 
   const { data, isError, isFetching } = useSpotPhotogenicScore(spotId, dateParam, timeParam);
 
-  const progress = data ? data.score / data.maxScore : 0;
-  const dash = RING_CIRCUMFERENCE * progress;
-  const gap = RING_CIRCUMFERENCE - dash;
-
   const gh = data?.goldenHour;
+  // 골든아워는 배너가 대표 → 점수 구성 행에서는 제외
+  const factors = data ? data.factors.filter((f) => f.key !== 'goldenHour') : [];
+  const gauge = data ? gradeColor(data.grade) : null;
+  const ratio = data ? Math.max(0, Math.min(1, data.score / data.maxScore)) : 0;
 
   return (
     <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(24) }}>
-      <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XL, color: '#000', letterSpacing: -0.4, marginBottom: normalize(16) }}>
+      <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(20), color: COLORS.text, letterSpacing: -0.4, marginBottom: normalize(16) }}>
         포토제닉 지수
       </Text>
 
-      <View style={{ flexDirection: 'row', gap: normalize(10), marginBottom: normalize(16) }}>
-        <Pressable
-          onPress={() => setDateSheetVisible(true)}
-          style={{ flex: 1, height: normalize(40), borderRadius: normalize(10), backgroundColor: '#F5F5F7', flexDirection: 'row', alignItems: 'center', gap: normalize(8), paddingHorizontal: normalize(12) }}
-        >
-          <IconCalendar size={normalize(16)} color="rgba(0,0,0,0.6)" strokeWidth={2} />
-          <Text allowFontScaling={false} numberOfLines={1} style={{ flex: 1, fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(14), color: 'rgba(0,0,0,0.6)', letterSpacing: -0.15 }}>
-            {selectedDateLabel}
-          </Text>
-          <IconChevronDown size={normalize(10)} color="rgba(0,0,0,0.2)" strokeWidth={2} />
-        </Pressable>
-        <Pressable
-          onPress={() => setTimeSheetVisible(true)}
-          style={{ flex: 1, height: normalize(40), borderRadius: normalize(10), backgroundColor: '#F5F5F7', flexDirection: 'row', alignItems: 'center', gap: normalize(8), paddingHorizontal: normalize(12) }}
-        >
-          <IconClock size={normalize(16)} color="rgba(0,0,0,0.6)" strokeWidth={2} />
-          <Text allowFontScaling={false} numberOfLines={1} style={{ flex: 1, fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(14), color: 'rgba(0,0,0,0.6)', letterSpacing: -0.15 }}>
-            {formatTimeLabel(selectedTime)}
-          </Text>
-          <IconChevronDown size={normalize(10)} color="rgba(0,0,0,0.2)" strokeWidth={2} />
-        </Pressable>
+      {/* 날짜 / 시간 셀렉터 */}
+      <View style={{ flexDirection: 'row', gap: normalize(10), marginBottom: normalize(14) }}>
+        <SelectorPill Icon={IconCalendarEvent} label={selectedDateLabel} active={dateSheetVisible} onPress={() => setDateSheetVisible(true)} />
+        <SelectorPill Icon={IconClock} label={formatTimeLabel(selectedTime)} active={timeSheetVisible} onPress={() => setTimeSheetVisible(true)} />
       </View>
 
-      <View style={{ borderRadius: normalize(20), backgroundColor: '#F5F5F7', paddingTop: normalize(24), paddingBottom: normalize(20), paddingHorizontal: GRID_PADDING, alignItems: 'center', minHeight: normalize(240), justifyContent: 'center' }}>
+      {/* 점수 히어로 카드 (무테/무그림자) */}
+      <View style={{ backgroundColor: COLORS.card, borderRadius: normalize(20), paddingHorizontal: normalize(18), paddingTop: normalize(24), paddingBottom: normalize(18), minHeight: normalize(240), justifyContent: 'center' }}>
         {!data ? (
           isError ? (
-            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(14), color: 'rgba(0,0,0,0.4)', letterSpacing: -0.2 }}>
-              포토제닉 지수를 불러오지 못했어요.
-            </Text>
+            <View style={{ alignItems: 'center' }}>
+              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(14), color: 'rgba(0,0,0,0.4)', letterSpacing: -0.2 }}>
+                포토제닉 지수를 불러오지 못했어요.
+              </Text>
+            </View>
           ) : (
-            <ActivityIndicator color="#E31B59" />
+            <PhotogenicSkeleton />
           )
         ) : (
           <>
-            <View
-              style={{
-                position: 'absolute',
-                top: normalize(18),
-                right: normalize(18),
-                backgroundColor: 'rgba(227,27,89,0.1)',
-                paddingHorizontal: normalize(10),
-                paddingVertical: normalize(4),
-                borderRadius: normalize(20),
-              }}
-            >
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(11), color: '#E31B59', letterSpacing: -0.1 }}>
+            {/* 등급 배지 */}
+            <View style={{ position: 'absolute', top: normalize(18), right: normalize(18), flexDirection: 'row', alignItems: 'center', gap: normalize(5), backgroundColor: gauge!.bg, borderRadius: normalize(999), paddingVertical: normalize(6), paddingHorizontal: normalize(12) }}>
+              <View style={{ width: normalize(6), height: normalize(6), borderRadius: normalize(3), backgroundColor: gauge!.fg }} />
+              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(13), color: gauge!.fg }}>
                 {data.grade}
               </Text>
             </View>
 
-            <View style={{ width: RING_SIZE, height: RING_SIZE, marginBottom: normalize(16) }}>
-              <Svg width={RING_SIZE} height={RING_SIZE} viewBox="0 0 160 160">
+            {/* 게이지 */}
+            <View style={{ width: GAUGE_SIZE, height: GAUGE_SIZE, alignSelf: 'center', marginTop: normalize(8) }}>
+              <Svg width={GAUGE_SIZE} height={GAUGE_SIZE} viewBox="0 0 184 184">
                 <Defs>
-                  <LinearGradient id="pgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <Stop offset="0%" stopColor="#FF9500" />
-                    <Stop offset="100%" stopColor="#E31B59" />
+                  <LinearGradient id="pgGauge" x1="0" y1="1" x2="1" y2="0">
+                    <Stop offset="0" stopColor="#FF7A00" />
+                    <Stop offset="1" stopColor="#E31B59" />
                   </LinearGradient>
                 </Defs>
-                <Circle cx={80} cy={80} r={RING_RADIUS} fill="none" stroke="rgba(0,0,0,0.06)" strokeWidth={8} />
+                <Circle cx={92} cy={92} r={GAUGE_R} fill="none" stroke={COLORS.track} strokeWidth={GAUGE_STROKE} />
                 <Circle
-                  cx={80}
-                  cy={80}
-                  r={RING_RADIUS}
+                  cx={92}
+                  cy={92}
+                  r={GAUGE_R}
                   fill="none"
-                  stroke="url(#pgGrad)"
-                  strokeWidth={8}
-                  strokeDasharray={`${dash} ${gap}`}
+                  stroke="url(#pgGauge)"
+                  strokeWidth={GAUGE_STROKE}
                   strokeLinecap="round"
-                  rotation={-90}
-                  origin="80,80"
+                  strokeDasharray={GAUGE_CIRC}
+                  strokeDashoffset={GAUGE_CIRC * (1 - ratio)}
+                  transform="rotate(-90 92 92)"
                 />
               </Svg>
               <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, alignItems: 'center', justifyContent: 'center' }}>
-                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(11), color: 'rgba(0,0,0,0.3)', letterSpacing: 0.4, marginBottom: normalize(2) }}>
-                  SCORE
-                </Text>
-                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(56), letterSpacing: -3, color: '#E31B59', lineHeight: normalizeFontSize(56) }}>
-                  {data.score}
-                </Text>
-                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.25)', marginTop: normalize(3) }}>
-                  {`/ ${data.maxScore}점`}
-                </Text>
+                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(11), letterSpacing: 1.5, color: COLORS.muted }}>SCORE</Text>
+                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(56), lineHeight: normalizeFontSize(60), color: COLORS.accent, letterSpacing: -1 }}>{data.score}</Text>
+                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(14), color: COLORS.muted }}>{`/ ${data.maxScore}점`}</Text>
               </View>
             </View>
 
-            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(14), color: 'rgba(0,0,0,0.5)', letterSpacing: -0.2, textAlign: 'center', lineHeight: normalizeFontSize(14) * 1.55, marginBottom: normalize(14) }}>
-              지금 <Text style={{ fontFamily: 'Pretendard-SemiBold', color: '#000' }}>{spotName}</Text>에{'\n'}방문하기 최적인 시간대예요
+            {/* 안내 문구 (히어로 예외: 중앙 정렬) */}
+            <Text allowFontScaling={false} style={{ marginTop: normalize(14), textAlign: 'center', fontSize: normalizeFontSize(17), lineHeight: normalizeFontSize(25), color: COLORS.textSub }}>
+              지금 <Text style={{ fontFamily: 'Pretendard-SemiBold', color: COLORS.text }}>{spotName}</Text>에{'\n'}{gradeMessage(data.grade)}
             </Text>
 
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: normalize(8),
-                backgroundColor: 'rgba(255,159,10,0.1)',
-                borderRadius: normalize(12),
-                paddingVertical: normalize(10),
-                paddingHorizontal: normalize(14),
-                width: '100%',
-                marginBottom: normalize(18),
-              }}
-            >
-              <IconSun size={normalize(18)} color="#FF9500" strokeWidth={2} />
-              <Text allowFontScaling={false} style={{ flex: 1, fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(13), color: 'rgba(0,0,0,0.6)', letterSpacing: -0.15 }}>
+            {/* 골든아워 배너 */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(9), marginTop: normalize(16), backgroundColor: COLORS.golden.bg, borderRadius: normalize(12), paddingVertical: normalize(12), paddingHorizontal: normalize(14) }}>
+              <IconSun size={normalize(18)} color={COLORS.golden.icon} strokeWidth={2} />
+              <Text allowFontScaling={false} style={{ flex: 1, fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(14), color: COLORS.golden.text }}>
                 {gh && gh.minutesUntilStart != null ? (
                   <>
-                    골든아워 <Text style={{ fontFamily: 'Pretendard-SemiBold', color: '#C77700' }}>{gh.minutesUntilStart}분 후</Text> 시작{gh.startTime ? ` · ${gh.startTime}` : ''}
+                    골든아워 <Text style={{ fontFamily: 'Pretendard-SemiBold', color: COLORS.golden.strong }}>{gh.minutesUntilStart}분 후</Text> 시작{gh.startTime ? ` · ${gh.startTime}` : ''}
                   </>
                 ) : gh && gh.isActive ? (
                   <>
-                    골든아워 <Text style={{ fontFamily: 'Pretendard-SemiBold', color: '#C77700' }}>진행 중</Text>
+                    골든아워 <Text style={{ fontFamily: 'Pretendard-SemiBold', color: COLORS.golden.strong }}>진행 중</Text>
                   </>
                 ) : (
                   <>
-                    골든아워 <Text style={{ fontFamily: 'Pretendard-SemiBold', color: '#C77700' }}>{gh?.label ?? '정보 없음'}</Text>
+                    골든아워 <Text style={{ fontFamily: 'Pretendard-SemiBold', color: COLORS.golden.strong }}>{gh?.label ?? '정보 없음'}</Text>
                   </>
                 )}
               </Text>
             </View>
 
-            <View style={{ width: '100%', height: 1, backgroundColor: 'rgba(0,0,0,0.06)', marginBottom: normalize(16) }} />
+            {/* 점수 구성 */}
+            <View style={{ marginTop: normalize(18), paddingTop: normalize(16), borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.06)' }}>
+              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(13), color: COLORS.text, marginBottom: normalize(6) }}>점수 구성</Text>
 
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', width: '100%', gap: normalize(8) }}>
-              {data.factors.map((factor) => {
+              {factors.map((factor, i) => {
                 const Icon = FACTOR_ICONS[factor.key];
-                if (factor.wide) {
-                  return (
-                    <View key={factor.key} style={{ width: '100%', backgroundColor: '#fff', borderRadius: normalize(14), padding: normalize(14), paddingBottom: normalize(12) }}>
-                      <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: normalize(6) }}>
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(10) }}>
-                          <View style={{ width: normalize(34), height: normalize(34), borderRadius: normalize(10), backgroundColor: factor.iconBg, alignItems: 'center', justifyContent: 'center' }}>
-                            <Icon size={normalize(18)} color={factor.iconColor} />
-                          </View>
-                          <View>
-                            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: normalizeFontSize(11), color: 'rgba(0,0,0,0.38)', letterSpacing: -0.1 }}>
-                              {factor.label}
-                            </Text>
-                            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(15), color: factor.valueColor, letterSpacing: -0.3 }}>
-                              {factor.value}
-                            </Text>
-                          </View>
-                        </View>
-                        <View style={{ backgroundColor: 'rgba(227,27,89,0.08)', borderRadius: normalize(20), paddingHorizontal: normalize(6), paddingVertical: normalize(1) }}>
-                          <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(10), color: '#E31B59' }}>
-                            {`+${factor.score}`}
-                          </Text>
-                        </View>
+                const showBar = factor.barPercent < 100; // 만점이면 바 생략 (부분 점수만 표시)
+                const showDivider = i < factors.length - 1;
+                return (
+                  <View key={factor.key} style={{ paddingTop: normalize(11), paddingBottom: showBar ? normalize(2) : normalize(11), borderBottomWidth: showDivider ? 1 : 0, borderBottomColor: 'rgba(0,0,0,0.05)' }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(12) }}>
+                      <View style={{ width: normalize(38), height: normalize(38), borderRadius: normalize(10), backgroundColor: factor.iconBg, alignItems: 'center', justifyContent: 'center' }}>
+                        <Icon size={normalize(20)} color={factor.iconColor} strokeWidth={2} />
                       </View>
-                      <View style={{ height: 3, borderRadius: 2, backgroundColor: 'rgba(0,0,0,0.06)', overflow: 'hidden', marginTop: normalize(6) }}>
+                      <View style={{ flex: 1 }}>
+                        <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: normalizeFontSize(12), color: COLORS.label, marginBottom: normalize(1) }}>{factor.label}</Text>
+                        <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(15.5), color: factor.valueColor }}>{factor.value}</Text>
+                      </View>
+                      <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(15), color: COLORS.textSub }}>+{factor.score}</Text>
+                    </View>
+                    {showBar && (
+                      <View style={{ height: normalize(6), borderRadius: normalize(999), backgroundColor: COLORS.track, marginTop: normalize(10), overflow: 'hidden' }}>
                         <ExpoLinearGradient
-                          colors={['#FF9500', '#E31B59']}
+                          colors={['#FF7A00', '#E31B59']}
                           start={{ x: 0, y: 0 }}
                           end={{ x: 1, y: 0 }}
-                          style={{ width: `${factor.barPercent}%`, height: '100%', borderRadius: 2 }}
+                          style={{ width: `${factor.barPercent}%`, height: '100%', borderRadius: normalize(999) }}
                         />
                       </View>
-                    </View>
-                  );
-                }
-                return (
-                  <View key={factor.key} style={{ flexBasis: '31%', flexGrow: 1, backgroundColor: '#fff', borderRadius: normalize(14), padding: normalize(14), paddingBottom: normalize(12), gap: normalize(5) }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: normalize(2) }}>
-                      <View style={{ width: normalize(34), height: normalize(34), borderRadius: normalize(10), backgroundColor: factor.iconBg, alignItems: 'center', justifyContent: 'center' }}>
-                        <Icon size={normalize(18)} color={factor.iconColor} />
-                      </View>
-                      <View style={{ backgroundColor: 'rgba(227,27,89,0.08)', borderRadius: normalize(20), paddingHorizontal: normalize(6), paddingVertical: normalize(1) }}>
-                        <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(10), color: '#E31B59' }}>
-                          {`+${factor.score}`}
-                        </Text>
-                      </View>
-                    </View>
-                    <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: normalizeFontSize(11), color: 'rgba(0,0,0,0.38)', letterSpacing: -0.1 }}>
-                      {factor.label}
-                    </Text>
-                    <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(15), color: factor.valueColor, letterSpacing: -0.3 }}>
-                      {factor.value}
-                    </Text>
-                    <View style={{ height: 3, borderRadius: 2, backgroundColor: 'rgba(0,0,0,0.06)', overflow: 'hidden', marginTop: normalize(2) }}>
-                      <View style={{ width: `${factor.barPercent}%`, height: '100%', borderRadius: 2, backgroundColor: factor.barColor }} />
-                    </View>
+                    )}
                   </View>
                 );
               })}
@@ -263,8 +289,8 @@ export default function PhotogenicScoreCard({ spotId, spotName }: Props) {
 
             {/* 재조회 로딩 오버레이 */}
             {isFetching && (
-              <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: normalize(20), backgroundColor: 'rgba(245,245,247,0.72)', alignItems: 'center', justifyContent: 'center' }}>
-                <ActivityIndicator color="#E31B59" />
+              <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: normalize(20), backgroundColor: 'rgba(247,246,244,0.72)', alignItems: 'center', justifyContent: 'center' }}>
+                <ActivityIndicator color={COLORS.accent} />
               </View>
             )}
           </>
