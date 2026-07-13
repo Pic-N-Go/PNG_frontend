@@ -52,9 +52,7 @@ export interface PhotogenicFactor {
   valueColor: string;
   iconBg: string;
   iconColor: string;
-  barColor: string;
   barPercent: number;
-  wide?: boolean;
 }
 
 export interface PhotogenicGoldenHour {
@@ -76,21 +74,32 @@ export interface PhotogenicScoreData {
   factors: PhotogenicFactor[];
 }
 
-export interface TransportInfoItem {
-  icon: 'parking' | 'car';
-  main: string;
-  sub: string;
-}
+export type FacilityKey = 'parking' | 'wheel' | 'stroller' | 'pet' | 'subway' | 'holiday';
+// good: 가능/있음(초록), neutral: 값 있음(없음 등), missing: 미제공(회색), accent: 강조(휴무일 핑크)
+export type FacilityStatus = 'good' | 'neutral' | 'missing' | 'accent';
 
-export interface ConvenienceInfoCell {
+export interface FacilityChipData {
+  key: FacilityKey;
   label: string;
   value: string;
-  variant: 'green' | 'orange' | 'default';
+  status: FacilityStatus;
+}
+
+// 이용시간 파싱 결과 — 이름-시간 행 / 값만 있는 행(범위 등) / 안내(note)
+export type ScheduleRow = { name: string; time: string } | { value: string } | { note: string };
+export interface ScheduleGroup {
+  title: string;
+  rows: ScheduleRow[];
 }
 
 export interface ConvenienceInfo {
-  transport: TransportInfoItem[];
-  cells: ConvenienceInfoCell[];
+  facilities: FacilityChipData[];
+  /** 이용시간 파싱 성공 시 구조화 데이터, 실패 시 null */
+  schedule: ScheduleGroup[] | null;
+  /** 파싱 실패 시 원문(폴백). schedule·scheduleText 둘 다 null이면 미제공 */
+  scheduleText: string | null;
+  /** 문의 전화(infocenter 원문). null이면 미제공 */
+  phone: string | null;
 }
 
 export interface ReviewStarDistribution {
@@ -216,15 +225,20 @@ export interface ReviewListResponse {
   };
 }
 
-/** defaultItems는 id=null(삭제 불가), userItems는 숫자 id(삭제 가능) */
-export interface ChecklistItemDTO {
-  id: number | null;
+/** 기본 항목은 defaultItemId로 숨김(hide), 사용자 항목은 id로 삭제 */
+export interface ChecklistDefaultItemDTO {
+  defaultItemId: number;
+  content: string;
+}
+
+export interface ChecklistUserItemDTO {
+  id: number;
   content: string;
 }
 
 export interface ChecklistResponse {
-  defaultItems: ChecklistItemDTO[];
-  userItems: ChecklistItemDTO[];
+  defaultItems: ChecklistDefaultItemDTO[];
+  userItems: ChecklistUserItemDTO[];
 }
 
 export interface PhotogenicFactorDTO {

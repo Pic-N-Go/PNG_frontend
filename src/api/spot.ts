@@ -2,8 +2,8 @@
 // 스펙: docs/ai/specs/feature/spot-detail-screen/spot-detail-api.md
 import { ApiError } from '@/api/auth';
 import type {
-  ChecklistItemDTO,
   ChecklistResponse,
+  ChecklistUserItemDTO,
   PhotogenicScoreResponse,
   ReviewListResponse,
   ReviewSortApi,
@@ -61,10 +61,14 @@ export const spotApi = {
     request<ChecklistResponse>(`/spots/${id}/checklist`, { token }),
 
   addChecklistItem: (id: string | number, content: string, token: string) =>
-    request<ChecklistItemDTO>(`/spots/${id}/checklist`, { method: 'POST', body: { content }, token }),
+    request<ChecklistUserItemDTO>(`/spots/${id}/checklist`, { method: 'POST', body: { content }, token }),
 
   deleteChecklistItem: (id: string | number, itemId: number, token: string) =>
     request<void>(`/spots/${id}/checklist/${itemId}`, { method: 'DELETE', token }),
+
+  // 기본 항목 숨김 (멱등, 204). userItem 삭제와 달리 defaultItemId 사용.
+  hideDefaultChecklistItem: (id: string | number, defaultItemId: number, token: string) =>
+    request<void>(`/spots/${id}/checklist/default/${defaultItemId}`, { method: 'DELETE', token }),
 
   getPhotogenicScore: (id: string | number, { date, time }: { date?: string; time?: string } = {}) => {
     const qs: string[] = [];

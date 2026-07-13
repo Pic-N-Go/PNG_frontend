@@ -70,3 +70,15 @@ export function useDeleteChecklistItem(id: string) {
     onSuccess: () => qc.invalidateQueries({ queryKey: checklistKey(id) }),
   });
 }
+
+export function useHideDefaultChecklistItem(id: string) {
+  const token = useAuthStore((s) => s.accessToken);
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (defaultItemId: number) => {
+      if (!token) return Promise.reject(new ApiError('로그인이 필요합니다.'));
+      return spotApi.hideDefaultChecklistItem(id, defaultItemId, token);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: checklistKey(id) }),
+  });
+}

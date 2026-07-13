@@ -3,6 +3,9 @@
 import type {
   ConvenienceDTO,
   ConvenienceInfo,
+  FacilityStatus,
+  ScheduleGroup,
+  ScheduleRow,
   PhotogenicFactor,
   PhotogenicFactorKey,
   PhotogenicScoreData,
@@ -39,46 +42,104 @@ export function avatarColorFor(name: string): string {
   return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
 }
 
-const CONVENIENCE_NONE = '정보 없음';
+const NOT_PROVIDED = '미제공'; // API가 값을 안 준 경우 (null·빈문자열)
 
-// null·빈문자열 → "정보 없음", 그 외는 원값 (HTML 태그/개행은 제거)
-function orNone(value: string | null): string {
-  if (!value) return CONVENIENCE_NONE;
-  const clean = value.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-  return clean || CONVENIENCE_NONE;
+// HTML 태그 제거 + 공백 정리. 값 없으면 '' 반환.
+function clean(value: string | null): string {
+  if (!value) return '';
+  return value.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
 }
 
-// 셀용 짧은 상태값 — "가능 요금(...)" 같은 자유 텍스트는 앞 상태어만 추출 (셀 레이아웃 보호)
-function shortAvail(value: string | null): string {
-  const s = orNone(value);
+// 긴 값(이용시간 등): <br>은 줄바꿈으로 보존, 나머지 태그 제거, 빈 줄 제거
+function cleanMultiline(value: string | null): string {
+  if (!value) return '';
+  return value
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<[^>]*>/g, ' ')
+    .split('\n')
+    .map((line) => line.replace(/\s+/g, ' ').trim())
+    .filter((line) => line.length > 0)
+    .join('\n');
+}
+
+// 편의 항목 상태: 가능/있음=good, 미제공=missing, 그 외 값(없음 등)=neutral
+function availStatus(raw: string | null): FacilityStatus {
+  const s = clean(raw);
+  if (!s) return 'missing';
+  return s.startsWith('가능') || s.startsWith('있음') ? 'good' : 'neutral';
+}
+
+// 칩 표시값 — 앞 상태어 추출, 없으면 '미제공', 길면 절삭
+function facilityValue(raw: string | null): string {
+  const s = clean(raw);
+  if (!s) return NOT_PROVIDED;
   if (s.startsWith('가능')) return '가능';
   if (s.startsWith('불가')) return '불가';
   if (s.startsWith('있음')) return '있음';
   if (s.startsWith('없음')) return '없음';
-  return s.length > 12 ? `${s.slice(0, 12)}…` : s;
+  return s.length > 10 ? `${s.slice(0, 10)}…` : s;
 }
 
-// "가능"/"있음"으로 시작하면 green (shortAvail과 동일하게 orNone 정제값 기준 → HTML/공백 프리픽스도 일치)
-function availVariant(value: string | null): ConvenienceInfo['cells'][number]['variant'] {
-  const s = orNone(value);
-  return s.startsWith('가능') || s.startsWith('있음') ? 'green' : 'default';
+// 이용시간 행 파싱: 범위(~)가 없고 끝에 단일 시각이 있으면 이름-시간 쌍,
+// 그 외(계절별 범위 "09:00~17:00 (입장마감 16:00)" 등)는 값만 있는 행으로
+const SCHEDULE_TIME_RE = /(\d{1,2}:\d{2})\s*$/;
+function parseScheduleRow(s: string): ScheduleRow {
+  if (!s.includes('~')) {
+    const m = s.match(SCHEDULE_TIME_RE);
+    if (m && m.index && m.index > 0) {
+      const name = s.slice(0, m.index).trim();
+      if (name) return { name, time: m[1] };
+    }
+  }
+  return { value: s };
+}
+
+// "[헤더]" 그룹 + "- 이름 시간" 행 + "※ 노트" 파싱. 헤더가 없으면 null(폴백 → 원문 표시)
+function parseSchedule(raw: string | null): ScheduleGroup[] | null {
+  if (!raw) return null;
+  const lines = cleanMultiline(raw)
+    .split('\n')
+    .map((l) => l.trim())
+    .filter(Boolean);
+  const HEADER_RE = /^\[([^\]]+)\]\s*(.*)$/;
+  if (!lines.some((l) => HEADER_RE.test(l))) return null;
+  const groups: ScheduleGroup[] = [];
+  let current: ScheduleGroup | null = null;
+  for (const line of lines) {
+    const h = line.match(HEADER_RE);
+    if (h) {
+      current = { title: h[1].trim(), rows: [] };
+      groups.push(current);
+      const rest = h[2].trim();
+      if (rest) current.rows.push(parseScheduleRow(rest));
+      continue;
+    }
+    if (!current) {
+      current = { title: '', rows: [] };
+      groups.push(current);
+    }
+    if (line.startsWith('※')) current.rows.push({ note: line.replace(/^※\s*/, '').trim() });
+    else if (line.startsWith('-')) current.rows.push(parseScheduleRow(line.replace(/^-\s*/, '').trim()));
+    else current.rows.push(parseScheduleRow(line));
+  }
+  return groups;
 }
 
 export function mapConvenience(c: ConvenienceDTO): ConvenienceInfo {
+  const holiday = clean(c.restdate);
+  const schedule = parseSchedule(c.usetime);
   return {
-    transport: [
-      // 상세 텍스트는 넓은 교통 카드에 유지 (셀은 짧게)
-      { icon: 'parking', main: `주차 ${orNone(c.parking)}`, sub: '' },
-      { icon: 'car', main: orNone(c.subwayAccess), sub: '' },
+    facilities: [
+      { key: 'parking', label: '주차장', value: facilityValue(c.parking), status: availStatus(c.parking) },
+      { key: 'wheel', label: '휠체어 접근', value: facilityValue(c.wheelchairAccess), status: availStatus(c.wheelchairAccess) },
+      { key: 'stroller', label: '유모차', value: facilityValue(c.strollerAccess), status: availStatus(c.strollerAccess) },
+      { key: 'pet', label: '반려동물', value: facilityValue(c.petFriendly), status: availStatus(c.petFriendly) },
+      { key: 'subway', label: '지하철', value: facilityValue(c.subwayAccess), status: availStatus(c.subwayAccess) },
+      { key: 'holiday', label: '휴무일', value: holiday || NOT_PROVIDED, status: holiday ? 'accent' : 'missing' },
     ],
-    cells: [
-      { label: '주차장', value: shortAvail(c.parking), variant: availVariant(c.parking) },
-      { label: '휠체어 접근', value: shortAvail(c.wheelchairAccess), variant: availVariant(c.wheelchairAccess) },
-      { label: '유모차', value: shortAvail(c.strollerAccess), variant: availVariant(c.strollerAccess) },
-      { label: '반려동물', value: shortAvail(c.petFriendly), variant: availVariant(c.petFriendly) },
-      { label: '지하철', value: orNone(c.subwayAccess), variant: 'default' },
-      { label: '문의 전화', value: orNone(c.infocenter), variant: 'default' },
-    ],
+    schedule,
+    scheduleText: schedule ? null : cleanMultiline(c.usetime) || null,
+    phone: clean(c.infocenter) || null,
   };
 }
 
@@ -139,13 +200,14 @@ export function mapReviewList(res: ReviewListResponse): { summary: ReviewSummary
 // 팩터별 만점(총 80) + 디자인 색/라벨 (클라 고정)
 const PG_FACTOR_META: Record<
   PhotogenicFactorKey,
-  { label: string; max: number; valueColor: string; iconBg: string; iconColor: string; barColor: string; wide?: boolean }
+  { label: string; max: number; valueColor: string; iconBg: string; iconColor: string }
 > = {
-  weather: { label: '날씨', max: 30, valueColor: '#000', iconBg: '#E8F3FF', iconColor: '#0071E3', barColor: '#0071E3' },
-  dust: { label: '미세먼지', max: 20, valueColor: '#34C759', iconBg: '#E8F5EB', iconColor: '#34C759', barColor: '#34C759' },
-  ozone: { label: '오존', max: 10, valueColor: '#7C3AED', iconBg: '#F3F0FF', iconColor: '#7C3AED', barColor: '#7C3AED' },
-  goldenHour: { label: '골든아워', max: 5, valueColor: '#FF9F0A', iconBg: '#FFF3E0', iconColor: '#FF9500', barColor: '#FF9500' },
-  season: { label: '시즌', max: 15, valueColor: '#E31B59', iconBg: '#FFF0F3', iconColor: '#E31B59', barColor: '#E31B59', wide: true },
+  // 색은 팩터 "종류" 고정 (핸드오프 디자인). value 텍스트는 공통 text색, 아이콘만 종류색.
+  weather: { label: '날씨', max: 30, valueColor: '#1F1E1D', iconBg: '#E4EEFD', iconColor: '#2E7BF6' },
+  dust: { label: '미세먼지', max: 20, valueColor: '#1F1E1D', iconBg: '#E7F6EC', iconColor: '#16A34A' },
+  ozone: { label: '오존', max: 10, valueColor: '#1F1E1D', iconBg: '#EEE9FE', iconColor: '#7C4DFF' },
+  goldenHour: { label: '골든아워', max: 5, valueColor: '#1F1E1D', iconBg: '#FEF3E2', iconColor: '#E8890B' },
+  season: { label: '시즌', max: 15, valueColor: '#1F1E1D', iconBg: '#FDE8EF', iconColor: '#E31B59' },
 };
 
 function toFactor(key: PhotogenicFactorKey, dtoLabel: string, score: number): PhotogenicFactor {
@@ -158,9 +220,7 @@ function toFactor(key: PhotogenicFactorKey, dtoLabel: string, score: number): Ph
     valueColor: m.valueColor,
     iconBg: m.iconBg,
     iconColor: m.iconColor,
-    barColor: m.barColor,
     barPercent: Math.round((score / m.max) * 100),
-    wide: m.wide,
   };
 }
 
@@ -207,13 +267,39 @@ if (__DEV__) {
   console.assert(ended.goldenHour.isActive === false, '골든아워 종료 판정 오류');
   console.assert(ended.goldenHour.label === '해당 없음', '골든아워 label 전달 오류');
 
-  const conv = mapConvenience({ parking: '가능', wheelchairAccess: null, strollerAccess: '없음', petFriendly: '', subwayAccess: null, usetime: 'a<br>\nb', restdate: null, infocenter: '02-1' });
-  console.assert(conv.cells.find((c) => c.label === '휠체어 접근')?.value === '정보 없음', 'convenience null→정보없음 오류');
-  console.assert(conv.cells.find((c) => c.label === '주차장')?.variant === 'green', 'convenience 가능→green 오류');
-  console.assert(orNone('a<br>\nb') === 'a b', 'convenience HTML/개행 정리 오류');
-  const convLong = mapConvenience({ parking: '가능 요금 (5시간 무료 / 10분당 600원)', wheelchairAccess: null, strollerAccess: '불가', petFriendly: null, subwayAccess: null, usetime: null, restdate: null, infocenter: null });
-  console.assert(convLong.cells.find((c) => c.label === '주차장')?.value === '가능', '긴 parking 텍스트 → 짧은 상태값 오류');
-  console.assert(convLong.cells.find((c) => c.label === '주차장')?.variant === 'green', '긴 parking → green 오류');
-  const convHtml = mapConvenience({ parking: '<b>가능</b>', wheelchairAccess: null, strollerAccess: null, petFriendly: null, subwayAccess: null, usetime: null, restdate: null, infocenter: null });
-  console.assert(convHtml.cells.find((c) => c.label === '주차장')?.variant === 'green', 'HTML 래핑 가능 → variant/값 불일치');
+  const conv = mapConvenience({
+    parking: '가능',
+    wheelchairAccess: null,
+    strollerAccess: '없음',
+    petFriendly: '',
+    subwayAccess: null,
+    usetime: '[주일미사]<br>- 새벽미사 06:00<br>※ 월요일 휴무<br>[토요일] 저녁미사 18:00',
+    restdate: '매주 월요일',
+    infocenter: '02-1',
+  });
+  const F = (k: string) => conv.facilities.find((f) => f.key === k);
+  console.assert(F('parking')?.status === 'good' && F('parking')?.value === '가능', 'parking 가능→good 오류');
+  console.assert(F('wheel')?.status === 'missing' && F('wheel')?.value === '미제공', 'wheel null→missing 오류');
+  console.assert(F('stroller')?.status === 'neutral' && F('stroller')?.value === '없음', 'stroller 없음→neutral 오류');
+  console.assert(F('holiday')?.status === 'accent' && F('holiday')?.value === '매주 월요일', 'holiday accent 오류');
+  console.assert(conv.schedule?.length === 2 && conv.schedule[0].title === '주일미사', 'schedule 그룹/헤더 파싱 오류');
+  const r0 = conv.schedule?.[0].rows[0];
+  console.assert(!!r0 && 'time' in r0 && r0.time === '06:00' && r0.name === '새벽미사', 'schedule 시간 행 파싱 오류');
+  const rNote = conv.schedule?.[0].rows[1];
+  console.assert(!!rNote && 'note' in rNote && rNote.note === '월요일 휴무', 'schedule 노트 파싱 오류');
+  const rInline = conv.schedule?.[1].rows[0];
+  console.assert(!!rInline && 'time' in rInline && rInline.time === '18:00', 'schedule 인라인 헤더 행 오류');
+  console.assert(conv.scheduleText === null && conv.phone === '02-1', 'schedule 파싱 시 scheduleText null / phone 오류');
+
+  const convFree = mapConvenience({ parking: '<b>가능</b>', wheelchairAccess: null, strollerAccess: null, petFriendly: null, subwayAccess: null, usetime: '상시 개방 (평일 10:00~18:00)', restdate: null, infocenter: null });
+  console.assert(convFree.facilities.find((f) => f.key === 'parking')?.status === 'good', 'HTML 래핑 가능→good 오류');
+  console.assert(convFree.schedule === null && convFree.scheduleText === '상시 개방 (평일 10:00~18:00)', 'usetime 자유문 폴백 오류');
+  console.assert(convFree.facilities.find((f) => f.key === 'holiday')?.status === 'missing', 'restdate 없음→missing 오류');
+  console.assert(convFree.phone === null, 'infocenter 없음→null 오류');
+
+  // 계절별 [헤더]+범위 → 노트박스가 아니라 값 행(value)으로
+  const convSeason = mapConvenience({ parking: null, wheelchairAccess: null, strollerAccess: null, petFriendly: null, subwayAccess: null, usetime: '[1월~2월] 09:00~17:00 (입장마감 16:00)<br>[3월~5월] 09:00~18:00', restdate: null, infocenter: null });
+  console.assert(convSeason.schedule?.length === 2 && convSeason.schedule[0].title === '1월~2월', 'season 그룹/헤더 오류');
+  const sr = convSeason.schedule?.[0].rows[0];
+  console.assert(!!sr && 'value' in sr && sr.value === '09:00~17:00 (입장마감 16:00)', 'season 범위→value 행 오류');
 }
