@@ -172,7 +172,14 @@ export default function SpotDetailScreen({ navigation }: Props) {
                 <SpotWishlistBanner
                   onPress={() => {
                     // @ts-ignore
-                    navigation.navigate('Wishlist');
+                    navigation.navigate('WishlistSetting', { 
+                      newSpot: { 
+                        id: 2, // 하드코딩된 예시 스팟 ID
+                        name: MOCK_SPOT.name, 
+                        loc: MOCK_SPOT.address.split(' ').slice(0, 2).join(' '), 
+                        score: 87 
+                      } 
+                    });
                   }}
                 />
                 <View style={{ height: normalize(24) }} />
