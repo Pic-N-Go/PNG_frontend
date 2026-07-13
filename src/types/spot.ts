@@ -155,6 +155,17 @@ export interface TravelPlanOption {
 
 export type NaviAppId = 'kakao' | 'naver' | 'apple';
 
+// 북마크 컬렉션 (GET /bookmark-collections?spotId=). color/icon은 문자열 키.
+export interface BookmarkCollectionDTO {
+  id: number;
+  name: string;
+  color: string;
+  icon: string;
+  spotCount: number;
+  /** 이 스팟이 해당 컬렉션에 이미 속해있는지 */
+  contains: boolean;
+}
+
 // ── API DTO (서버 응답 원형) ──────────────────────
 // 스펙: docs/ai/specs/feature/spot-detail-screen/spot-detail-api.md
 

@@ -2,6 +2,7 @@
 // 스펙: docs/ai/specs/feature/spot-detail-screen/spot-detail-api.md
 import { ApiError } from '@/api/auth';
 import type {
+  BookmarkCollectionDTO,
   ChecklistResponse,
   ChecklistUserItemDTO,
   PhotogenicScoreResponse,
@@ -18,7 +19,7 @@ if (__DEV__ && !BASE) {
 
 const TIMEOUT_MS = 10_000;
 
-type Method = 'GET' | 'POST' | 'DELETE';
+type Method = 'GET' | 'POST' | 'PUT' | 'DELETE';
 
 async function request<T>(path: string, opts: { method?: Method; body?: unknown; token?: string } = {}): Promise<T> {
   const { method = 'GET', body, token } = opts;
@@ -77,4 +78,15 @@ export const spotApi = {
     const suffix = qs.length ? `?${qs.join('&')}` : '';
     return request<PhotogenicScoreResponse>(`/spots/${id}/photogenic-score${suffix}`);
   },
+
+  // 북마크 컬렉션 — 유저별. 최초 조회 시 서버가 "내 즐겨찾기" 자동 생성.
+  getBookmarkCollections: (spotId: string | number, token: string) =>
+    request<BookmarkCollectionDTO[]>(`/bookmark-collections?spotId=${spotId}`, { token }),
+
+  createBookmarkCollection: (body: { name: string; color: string; icon: string }, token: string) =>
+    request<BookmarkCollectionDTO>('/bookmark-collections', { method: 'POST', body, token }),
+
+  // 스팟 소속 통째 동기화 (체크된 집합 → 추가+제거, 빈 배열=전체 제거). 204.
+  syncSpotBookmarks: (spotId: string | number, collectionIds: number[], token: string) =>
+    request<void>(`/spots/${spotId}/bookmark-collections`, { method: 'PUT', body: { collectionIds }, token }),
 };

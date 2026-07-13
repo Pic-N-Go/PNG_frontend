@@ -82,3 +82,40 @@ export function useHideDefaultChecklistItem(id: string) {
     onSuccess: () => qc.invalidateQueries({ queryKey: checklistKey(id) }),
   });
 }
+
+const bookmarkKey = (id: string) => ['bookmark-collections', id] as const;
+
+// 화면(별표)과 시트가 같은 키로 공유 → 한 번만 fetch, 캐시 공유
+export function useBookmarkCollections(id: string) {
+  const token = useAuthStore((s) => s.accessToken);
+  return useQuery({
+    queryKey: bookmarkKey(id),
+    queryFn: () => spotApi.getBookmarkCollections(id, token as string),
+    enabled: !!id && !!token,
+  });
+}
+
+export function useCreateBookmarkCollection() {
+  const token = useAuthStore((s) => s.accessToken);
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: { name: string; color: string; icon: string }) => {
+      if (!token) return Promise.reject(new ApiError('로그인이 필요합니다.'));
+      return spotApi.createBookmarkCollection(body, token);
+    },
+    // 새 컬렉션은 모든 스팟의 목록에 나타나므로 prefix로 무효화
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['bookmark-collections'] }),
+  });
+}
+
+export function useSyncSpotBookmarks(id: string) {
+  const token = useAuthStore((s) => s.accessToken);
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (collectionIds: number[]) => {
+      if (!token) return Promise.reject(new ApiError('로그인이 필요합니다.'));
+      return spotApi.syncSpotBookmarks(id, collectionIds, token);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: bookmarkKey(id) }),
+  });
+}

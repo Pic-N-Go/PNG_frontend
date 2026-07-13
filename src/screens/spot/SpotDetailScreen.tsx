@@ -20,7 +20,7 @@ import SaveToPlanSheet from '@/components/spot/SaveToPlanSheet';
 import NaviSheet from '@/components/spot/NaviSheet';
 import ShareSheet from '@/components/spot/ShareSheet';
 import BookmarkSheet from '@/components/spot/BookmarkSheet';
-import { useSpotDetail } from '@/hooks/useSpot';
+import { useBookmarkCollections, useSpotDetail } from '@/hooks/useSpot';
 import { BUTTON_RADIUS, GRID_PADDING, TAB_BAR_HEIGHT } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 
@@ -45,7 +45,9 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
   // 채팅 입력창 포커스 시 SpotInfoHeader를 접어 메시지 영역 확보
   const [chatInputFocused, setChatInputFocused] = useState(false);
 
-  const [isBookmarked, setIsBookmarked] = useState(false);
+  // 별표 상태 = 이 스팟이 1개 이상 컬렉션에 소속 (시트와 같은 쿼리키 공유)
+  const { data: bookmarkCollections } = useBookmarkCollections(spotId);
+  const isBookmarked = bookmarkCollections?.some((c) => c.contains) ?? false;
 
   const [saveSheetVisible, setSaveSheetVisible] = useState(false);
   const [naviSheetVisible, setNaviSheetVisible] = useState(false);
@@ -235,11 +237,11 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
       />
       <BookmarkSheet
         visible={bookmarkSheetVisible}
+        spotId={spotId}
         onClose={() => setBookmarkSheetVisible(false)}
-        onAdd={(names) => {
-          setIsBookmarked(names.length > 0);
+        onSaved={(count) => {
           setBookmarkSheetVisible(false);
-          showToast(names.length === 1 ? `${names[0]}에 저장됐어요` : `${names.length}개 컬렉션에 저장됐어요`);
+          showToast(count > 0 ? `${count}개 컬렉션에 저장됐어요` : '즐겨찾기에서 제거됐어요');
         }}
       />
 
