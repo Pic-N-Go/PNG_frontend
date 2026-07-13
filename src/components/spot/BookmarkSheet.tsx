@@ -1,273 +1,282 @@
-import React, { useState } from 'react';
-import { Pressable, Text, TextInput, View } from 'react-native';
-import { IconArchive, IconCheck, IconChevronLeft, IconClock, IconFolder, IconPlus, IconStar } from '@tabler/icons-react-native';
+import React, { useRef, useState } from 'react';
+import { Dimensions, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import {
+  IconArchive,
+  IconBookmark,
+  IconCamera,
+  IconCheck,
+  IconChevronLeft,
+  IconChevronRight,
+  IconClock,
+  IconFlag,
+  IconHeart,
+  IconMapPin,
+  IconMountain,
+  IconPlus,
+  IconSparkles,
+  IconStar,
+} from '@tabler/icons-react-native';
 import BottomSheet from '@/components/common/BottomSheet';
-import { BUTTON_RADIUS, GRID_PADDING } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import type { BookmarkCollection } from '@/types/spot';
 
-export const MOCK_BOOKMARK_COLLECTIONS: BookmarkCollection[] = [
-  { id: 'my-favorites', name: '내 즐겨찾기', count: 12, iconBg: '#FFF0F3', iconColor: '#E31B59' },
-  { id: 'want-to-go', name: '가고싶어요', count: 8, iconBg: '#E8F3FF', iconColor: '#0071E3' },
-  { id: 'travel-candidates', name: '여행 후보지', count: 5, iconBg: '#F3F0FF', iconColor: '#7C3AED' },
-];
+const ACCENT = '#E31B59';
 
-const COLLECTION_ICONS: Record<string, React.ComponentType<{ size: number; color: string; strokeWidth?: number }>> = {
-  'my-favorites': IconStar,
-  'want-to-go': IconClock,
-  'travel-candidates': IconArchive,
+// 컬렉션 색 팔레트 (s = 강조색, t = 연한 틴트)
+type ColorKey = 'pink' | 'blue' | 'purple' | 'green' | 'orange';
+const PAL: Record<ColorKey, { s: string; t: string }> = {
+  pink: { s: '#E31B59', t: '#FDE8EF' },
+  blue: { s: '#2E7BF6', t: '#E4EEFD' },
+  purple: { s: '#7C4DFF', t: '#EEE9FE' },
+  green: { s: '#16A34A', t: '#E7F6EC' },
+  orange: { s: '#E8890B', t: '#FCEBD5' },
 };
+const COLOR_KEYS: ColorKey[] = ['pink', 'blue', 'purple', 'green', 'orange'];
 
-// 새로 만드는 컬렉션은 전용 아이콘이 없어 폴더 아이콘으로 통일
-const DEFAULT_COLLECTION_ICON = IconFolder;
+type IconKey = 'star' | 'heart' | 'bookmark' | 'map-pin' | 'camera' | 'flag' | 'sparkles' | 'mountain' | 'clock' | 'archive';
+const ICON_MAP: Record<IconKey, React.ComponentType<{ size: number; color: string; strokeWidth?: number }>> = {
+  star: IconStar,
+  heart: IconHeart,
+  bookmark: IconBookmark,
+  'map-pin': IconMapPin,
+  camera: IconCamera,
+  flag: IconFlag,
+  sparkles: IconSparkles,
+  mountain: IconMountain,
+  clock: IconClock,
+  archive: IconArchive,
+};
+const ICON_SET: IconKey[] = ['star', 'heart', 'bookmark', 'map-pin', 'camera', 'flag', 'sparkles', 'mountain'];
 
-// 목업에 없던 기능 — 커스텀 컬러 피커 대신 앱 기존 팔레트에서 고르는 방식으로 단순화
-const COLLECTION_COLOR_PALETTE: { color: string; bg: string }[] = [
-  { color: '#E31B59', bg: '#FFF0F3' },
-  { color: '#0071E3', bg: '#E8F3FF' },
-  { color: '#7C3AED', bg: '#F3F0FF' },
-  { color: '#34C759', bg: '#E8F5EB' },
-  { color: '#FF9F0A', bg: '#FFF3E0' },
+function CollectionIcon({ name, size, color }: { name: IconKey; size: number; color: string }) {
+  const Cmp = ICON_MAP[name] ?? IconBookmark;
+  return <Cmp size={size} color={color} strokeWidth={2} />;
+}
+
+interface Collection {
+  id: string;
+  name: string;
+  count: number;
+  color: ColorKey;
+  icon: IconKey;
+  selected: boolean;
+}
+
+// UI 목업 — 북마크는 아직 실 API 미연동(스펙상 후속), 로컬 상태로 동작
+const INITIAL_COLLECTIONS: Collection[] = [
+  { id: 'my-favorites', name: '내 즐겨찾기', count: 12, color: 'pink', icon: 'star', selected: true },
+  { id: 'want-to-go', name: '가고싶어요', count: 8, color: 'blue', icon: 'clock', selected: false },
+  { id: 'travel-candidates', name: '여행 후보지', count: 5, color: 'purple', icon: 'archive', selected: false },
 ];
 
-const MAX_COLLECTIONS = 10;
+const MAX_CONTENT_LEN = 20;
+// 시트는 창 높이의 80%까지 → 핸들+헤더+CTA 예약분(약 180)을 뺀 값으로 스크롤 영역을 제한해
+// 작은 기기(iPhone SE 등)에서도 하단 CTA가 화면 밖으로 밀리지 않게 한다.
+const SCROLL_MAX = Dimensions.get('window').height * 0.8 - normalize(180);
 
 interface Props {
   visible: boolean;
   onClose: () => void;
-  isSaved: boolean;
-  spotName: string;
-  savedCollectionName: string;
-  onConfirm: (collectionId: string, collectionName: string) => void;
-  onRemove: () => void;
-  onViewFavorites: () => void;
+  /** 추가 완료 — 선택된 컬렉션 이름들 (화면에서 토스트/북마크 상태 처리) */
+  onAdd: (collectionNames: string[]) => void;
 }
 
-export default function BookmarkSheet({
-  visible,
-  onClose,
-  isSaved,
-  spotName,
-  savedCollectionName,
-  onConfirm,
-  onRemove,
-  onViewFavorites,
-}: Props) {
-  const [collections, setCollections] = useState<BookmarkCollection[]>(MOCK_BOOKMARK_COLLECTIONS);
-  const [selectedId, setSelectedId] = useState(MOCK_BOOKMARK_COLLECTIONS[0].id);
-  const [creating, setCreating] = useState(false);
-  const [newName, setNewName] = useState('');
-  const [newColor, setNewColor] = useState(COLLECTION_COLOR_PALETTE[0].color);
+function CollectionRow({ item, onToggle }: { item: Collection; onToggle: () => void }) {
+  const p = PAL[item.color];
+  return (
+    <Pressable
+      onPress={onToggle}
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: normalize(14),
+        paddingVertical: normalize(13),
+        paddingHorizontal: normalize(14),
+        borderRadius: normalize(16),
+        backgroundColor: item.selected ? p.t : '#fff',
+        borderWidth: 1,
+        borderColor: item.selected ? `${p.s}33` : 'transparent',
+      }}
+    >
+      <View style={{ width: normalize(46), height: normalize(46), borderRadius: normalize(13), backgroundColor: p.t, alignItems: 'center', justifyContent: 'center' }}>
+        <CollectionIcon name={item.icon} size={normalize(23)} color={p.s} />
+      </View>
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(15), color: '#1F1E1D' }}>{item.name}</Text>
+        <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(12), color: '#A39E98', marginTop: normalize(2) }}>{`스팟 ${item.count}개`}</Text>
+      </View>
+      <View
+        style={{
+          width: normalize(26),
+          height: normalize(26),
+          borderRadius: normalize(13),
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: item.selected ? p.s : 'transparent',
+          borderWidth: item.selected ? 0 : 2,
+          borderColor: '#D8D4CF',
+        }}
+      >
+        {item.selected && <IconCheck size={normalize(16)} color="#fff" strokeWidth={3} />}
+      </View>
+    </Pressable>
+  );
+}
+
+export default function BookmarkSheet({ visible, onClose, onAdd }: Props) {
+  const [view, setView] = useState<'list' | 'create'>('list');
+  // 선택/생성 상태는 화면에 머무는 동안만 유지되는 목업(실 API 후속). 시트를 닫았다 열면 선택이 그대로 보임(=소속).
+  const [collections, setCollections] = useState<Collection[]>(INITIAL_COLLECTIONS);
+  const nextId = useRef(1);
+  const [name, setName] = useState('');
+  const [colorKey, setColorKey] = useState<ColorKey>('pink');
+  const [iconKey, setIconKey] = useState<IconKey>('star');
+
+  const cur = PAL[colorKey];
+  const selected = collections.filter((c) => c.selected);
+  const canAdd = selected.length > 0;
+  const canCreate = name.trim().length > 0;
+
+  function resetForm() {
+    setName('');
+    setColorKey('pink');
+    setIconKey('star');
+  }
 
   function handleClose() {
-    setCreating(false);
-    setNewName('');
-    setNewColor(COLLECTION_COLOR_PALETTE[0].color);
+    setView('list');
+    resetForm();
     onClose();
   }
 
-  function handleConfirm() {
-    const collection = collections.find((c) => c.id === selectedId);
-    if (!collection) return;
-    onConfirm(collection.id, collection.name);
+  function toggle(id: string) {
+    setCollections((prev) => prev.map((c) => (c.id === id ? { ...c, selected: !c.selected } : c)));
   }
 
-  function handleCreateCollection() {
-    const name = newName.trim();
-    if (!name) return;
-    const swatch = COLLECTION_COLOR_PALETTE.find((c) => c.color === newColor) ?? COLLECTION_COLOR_PALETTE[0];
-    const newCollection: BookmarkCollection = {
-      id: `custom-${Date.now()}`,
-      name,
+  function handleCreate() {
+    if (!canCreate) return;
+    const item: Collection = {
+      id: `custom-${nextId.current++}`,
+      name: name.trim(),
       count: 0,
-      iconBg: swatch.bg,
-      iconColor: swatch.color,
+      color: colorKey,
+      icon: iconKey,
+      selected: true,
     };
-    setCollections((prev) => [...prev, newCollection]);
-    setSelectedId(newCollection.id);
-    setNewName('');
-    setNewColor(COLLECTION_COLOR_PALETTE[0].color);
-    setCreating(false);
+    setCollections((prev) => [...prev, item]);
+    resetForm();
+    setView('list');
   }
+
+  function handleAdd() {
+    if (!canAdd) return;
+    onAdd(selected.map((c) => c.name));
+  }
+
+  const pillLabelColor = (enabled: boolean) => (enabled ? '#fff' : '#B5B0AA');
+  const pillBg = (enabled: boolean) => (enabled ? ACCENT : '#EFEDEA');
 
   return (
     <BottomSheet visible={visible} onClose={handleClose}>
-      {isSaved ? (
-        <>
-          <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(16), paddingBottom: normalize(12) }}>
-            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(18), color: '#000', letterSpacing: -0.35 }}>
-              즐겨찾기
+      {view === 'list' ? (
+        <View>
+          <View style={{ paddingHorizontal: normalize(24), paddingBottom: normalize(6) }}>
+            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(18), letterSpacing: -0.35, color: '#1F1E1D' }}>
+              즐겨찾기에 추가
             </Text>
           </View>
-          <View style={{ paddingHorizontal: GRID_PADDING, paddingBottom: normalize(16) }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(12), marginBottom: normalize(20) }}>
-              <View style={{ width: normalize(56), height: normalize(56), borderRadius: normalize(12), backgroundColor: '#F5F5F7' }} />
-              <View>
-                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: normalizeFontSize(15), color: '#000' }}>{spotName}</Text>
-                <Text allowFontScaling={false} style={{ fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.4)', marginTop: normalize(2) }}>
-                  {`${savedCollectionName}에 저장됨`}
-                </Text>
+
+          <ScrollView style={{ maxHeight: SCROLL_MAX }} contentContainerStyle={{ paddingHorizontal: normalize(16), paddingTop: normalize(8), paddingBottom: normalize(4), gap: normalize(4) }}>
+            {collections.map((c) => (
+              <CollectionRow key={c.id} item={c} onToggle={() => toggle(c.id)} />
+            ))}
+
+            <Pressable onPress={() => setView('create')} style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(14), paddingVertical: normalize(13), paddingHorizontal: normalize(14), borderRadius: normalize(16) }}>
+              <View style={{ width: normalize(46), height: normalize(46), borderRadius: normalize(13), borderWidth: 1.5, borderColor: '#C9C4BE', borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center' }}>
+                <IconPlus size={normalize(22)} color="#8B8680" strokeWidth={2} />
               </View>
-            </View>
-            <View style={{ gap: normalize(8) }}>
-              <Pressable onPress={onViewFavorites} style={{ height: normalize(48), borderRadius: normalize(24), backgroundColor: '#F5F5F7', alignItems: 'center', justifyContent: 'center' }}>
-                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: normalizeFontSize(14), color: '#000' }}>즐겨찾기 보기</Text>
-              </Pressable>
-              <Pressable onPress={onRemove} style={{ height: normalize(48), borderRadius: normalize(24), backgroundColor: '#F5F5F7', alignItems: 'center', justifyContent: 'center' }}>
-                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: normalizeFontSize(14), color: '#E31B59' }}>즐겨찾기 제거</Text>
-              </Pressable>
-            </View>
-          </View>
-        </>
-      ) : creating ? (
-        <>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(4), paddingHorizontal: GRID_PADDING, paddingTop: normalize(16), paddingBottom: normalize(12) }}>
-            <Pressable onPress={() => setCreating(false)} hitSlop={8} style={{ width: normalize(32), height: normalize(32), alignItems: 'center', justifyContent: 'center', marginLeft: normalize(-6) }}>
-              <IconChevronLeft size={normalize(18)} color="#000" strokeWidth={2} />
+              <Text allowFontScaling={false} style={{ flex: 1, fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(14), color: '#37352F' }}>새 컬렉션 만들기</Text>
+              <IconChevronRight size={normalize(20)} color="#C4BFB9" strokeWidth={2} />
             </Pressable>
-            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(18), color: '#000', letterSpacing: -0.35 }}>
+          </ScrollView>
+
+          <View style={{ paddingHorizontal: normalize(20), paddingTop: normalize(12), paddingBottom: normalize(12), borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.05)' }}>
+            <Pressable onPress={handleAdd} disabled={!canAdd} style={{ height: normalize(54), borderRadius: normalize(27), alignItems: 'center', justifyContent: 'center', backgroundColor: pillBg(canAdd) }}>
+              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(15), color: pillLabelColor(canAdd) }}>
+                {canAdd ? `${selected.length}개 컬렉션에 추가` : '컬렉션을 선택하세요'}
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+      ) : (
+        <View>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(10), paddingHorizontal: normalize(20), paddingBottom: normalize(8) }}>
+            <Pressable onPress={() => { resetForm(); setView('list'); }} hitSlop={8} style={{ padding: normalize(4) }}>
+              <IconChevronLeft size={normalize(24)} color="#37352F" strokeWidth={2} />
+            </Pressable>
+            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(18), letterSpacing: -0.35, color: '#1F1E1D' }}>
               새 컬렉션 만들기
             </Text>
           </View>
-          <View style={{ paddingHorizontal: GRID_PADDING }}>
-            <TextInput
-              value={newName}
-              onChangeText={setNewName}
-              placeholder="컬렉션 이름"
-              placeholderTextColor="rgba(0,0,0,0.3)"
-              autoFocus
-              style={{
-                height: normalize(48),
-                borderRadius: normalize(12),
-                backgroundColor: '#F5F5F7',
-                paddingHorizontal: normalize(14),
-                fontSize: normalizeFontSize(15),
-                color: '#000',
-                marginBottom: normalize(20),
-              }}
-            />
-            <Text allowFontScaling={false} style={{ fontSize: normalizeFontSize(13), color: 'rgba(0,0,0,0.45)', marginBottom: normalize(10) }}>
-              색상 선택
-            </Text>
-            <View style={{ flexDirection: 'row', gap: normalize(12), marginBottom: normalize(24) }}>
-              {COLLECTION_COLOR_PALETTE.map((swatch) => {
-                const isSelected = newColor === swatch.color;
+
+          <ScrollView style={{ maxHeight: SCROLL_MAX }} contentContainerStyle={{ paddingHorizontal: normalize(24), paddingTop: normalize(8), paddingBottom: normalize(8) }}>
+            {/* 이름 + 실시간 미리보기 타일 */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(12), backgroundColor: '#F5F5F7', borderRadius: normalize(14), paddingVertical: normalize(10), paddingRight: normalize(14), paddingLeft: normalize(10), marginTop: normalize(4) }}>
+              <View style={{ width: normalize(48), height: normalize(48), borderRadius: normalize(13), backgroundColor: cur.t, alignItems: 'center', justifyContent: 'center' }}>
+                <CollectionIcon name={iconKey} size={normalize(24)} color={cur.s} />
+              </View>
+              <TextInput
+                value={name}
+                onChangeText={setName}
+                placeholder="컬렉션 이름"
+                placeholderTextColor="#A39E98"
+                maxLength={MAX_CONTENT_LEN}
+                allowFontScaling={false}
+                style={{ flex: 1, minWidth: 0, paddingVertical: normalize(8), fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(15), color: '#1F1E1D' }}
+              />
+            </View>
+
+            {/* 색상 선택 */}
+            <Text allowFontScaling={false} style={{ marginTop: normalize(22), fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(13), color: '#8B8680' }}>색상 선택</Text>
+            <View style={{ flexDirection: 'row', gap: normalize(14), marginTop: normalize(12) }}>
+              {COLOR_KEYS.map((k) => {
+                const p = PAL[k];
+                const sel = k === colorKey;
                 return (
                   <Pressable
-                    key={swatch.color}
-                    onPress={() => setNewColor(swatch.color)}
-                    style={{
-                      width: normalize(44),
-                      height: normalize(44),
-                      borderRadius: normalize(22),
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      borderWidth: isSelected ? 2 : 0,
-                      borderColor: swatch.color,
-                    }}
+                    key={k}
+                    onPress={() => setColorKey(k)}
+                    style={{ width: normalize(54), height: normalize(54), borderRadius: normalize(27), backgroundColor: p.t, alignItems: 'center', justifyContent: 'center', borderWidth: 2.5, borderColor: sel ? p.s : 'transparent' }}
                   >
-                    <View
-                      style={{
-                        width: normalize(34),
-                        height: normalize(34),
-                        borderRadius: normalize(17),
-                        backgroundColor: swatch.bg,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      {isSelected && <IconCheck size={normalize(16)} color={swatch.color} strokeWidth={2.5} />}
-                    </View>
+                    {sel && <IconCheck size={normalize(20)} color={p.s} strokeWidth={3} />}
                   </Pressable>
                 );
               })}
             </View>
-          </View>
-          <View style={{ paddingHorizontal: GRID_PADDING, paddingBottom: normalize(12) }}>
-            <Pressable
-              onPress={handleCreateCollection}
-              disabled={!newName.trim()}
-              style={{
-                width: '100%',
-                height: normalize(52),
-                borderRadius: BUTTON_RADIUS,
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: newName.trim() ? '#E31B59' : 'rgba(0,0,0,0.08)',
-              }}
-            >
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(16), color: newName.trim() ? '#fff' : 'rgba(0,0,0,0.25)' }}>
-                만들기
-              </Text>
-            </Pressable>
-          </View>
-        </>
-      ) : (
-        <>
-          <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(16), paddingBottom: normalize(12) }}>
-            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(18), color: '#000', letterSpacing: -0.35 }}>
-              즐겨찾기에 추가
-            </Text>
-          </View>
-          <View style={{ paddingHorizontal: GRID_PADDING }}>
-            {collections.map((collection) => {
-              const Icon = COLLECTION_ICONS[collection.id] ?? DEFAULT_COLLECTION_ICON;
-              const isSelected = selectedId === collection.id;
-              return (
-                <Pressable
-                  key={collection.id}
-                  onPress={() => setSelectedId(collection.id)}
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: normalize(12),
-                    padding: normalize(12),
-                    borderRadius: normalize(14),
-                    backgroundColor: isSelected ? 'rgba(227,27,89,0.04)' : 'transparent',
-                    marginBottom: normalize(4),
-                  }}
-                >
-                  <View style={{ width: normalize(40), height: normalize(40), borderRadius: normalize(12), backgroundColor: collection.iconBg, alignItems: 'center', justifyContent: 'center' }}>
-                    <Icon size={normalize(20)} color={collection.iconColor} strokeWidth={2} />
-                  </View>
-                  <View style={{ flex: 1 }}>
-                    <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: normalizeFontSize(14), color: '#000' }}>{collection.name}</Text>
-                    <Text allowFontScaling={false} style={{ fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.4)', marginTop: normalize(1) }}>{`스팟 ${collection.count}개`}</Text>
-                  </View>
-                  <View
-                    style={{
-                      width: normalize(22),
-                      height: normalize(22),
-                      borderRadius: normalize(11),
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      backgroundColor: isSelected ? '#E31B59' : 'transparent',
-                      borderWidth: isSelected ? 0 : 1.2,
-                      borderColor: 'rgba(0,0,0,0.15)',
-                    }}
+
+            {/* 아이콘 선택 */}
+            <Text allowFontScaling={false} style={{ marginTop: normalize(24), fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(13), color: '#8B8680' }}>아이콘 선택</Text>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: normalize(12), marginTop: normalize(12) }}>
+              {ICON_SET.map((nm) => {
+                const sel = nm === iconKey;
+                return (
+                  <Pressable
+                    key={nm}
+                    onPress={() => setIconKey(nm)}
+                    style={{ width: '22%', height: normalize(56), borderRadius: normalize(15), alignItems: 'center', justifyContent: 'center', backgroundColor: sel ? cur.t : '#F3F1EF', borderWidth: 1.5, borderColor: sel ? cur.s : 'transparent' }}
                   >
-                    {isSelected && <IconCheck size={normalize(11)} color="#fff" strokeWidth={2.5} />}
-                  </View>
-                </Pressable>
-              );
-            })}
-            {collections.length < MAX_COLLECTIONS ? (
-              <Pressable onPress={() => setCreating(true)} style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(8), paddingVertical: normalize(14) }}>
-                <IconPlus size={normalize(18)} color="rgba(0,0,0,0.6)" strokeWidth={2} />
-                <Text allowFontScaling={false} style={{ fontSize: normalizeFontSize(14), color: 'rgba(0,0,0,0.6)' }}>새 컬렉션 만들기</Text>
-              </Pressable>
-            ) : (
-              <Text allowFontScaling={false} style={{ fontSize: normalizeFontSize(13), color: 'rgba(0,0,0,0.35)', paddingVertical: normalize(14) }}>
-                {`컬렉션은 최대 ${MAX_COLLECTIONS}개까지 만들 수 있어요`}
-              </Text>
-            )}
-          </View>
-          <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(8), paddingBottom: normalize(12) }}>
-            <Pressable onPress={handleConfirm} style={{ width: '100%', height: normalize(52), borderRadius: BUTTON_RADIUS, backgroundColor: '#E31B59', alignItems: 'center', justifyContent: 'center' }}>
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(16), color: '#fff' }}>추가하기</Text>
+                    <CollectionIcon name={nm} size={normalize(24)} color={sel ? cur.s : '#A39E98'} />
+                  </Pressable>
+                );
+              })}
+            </View>
+          </ScrollView>
+
+          <View style={{ paddingHorizontal: normalize(20), paddingTop: normalize(12), paddingBottom: normalize(12), borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.05)' }}>
+            <Pressable onPress={handleCreate} disabled={!canCreate} style={{ height: normalize(54), borderRadius: normalize(27), alignItems: 'center', justifyContent: 'center', backgroundColor: pillBg(canCreate) }}>
+              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(15), color: pillLabelColor(canCreate) }}>만들기</Text>
             </Pressable>
           </View>
-        </>
+        </View>
       )}
     </BottomSheet>
   );

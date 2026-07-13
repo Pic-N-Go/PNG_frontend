@@ -46,7 +46,6 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
   const [chatInputFocused, setChatInputFocused] = useState(false);
 
   const [isBookmarked, setIsBookmarked] = useState(false);
-  const [savedCollectionName, setSavedCollectionName] = useState('내 즐겨찾기');
 
   const [saveSheetVisible, setSaveSheetVisible] = useState(false);
   const [naviSheetVisible, setNaviSheetVisible] = useState(false);
@@ -237,23 +236,10 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
       <BookmarkSheet
         visible={bookmarkSheetVisible}
         onClose={() => setBookmarkSheetVisible(false)}
-        isSaved={isBookmarked}
-        spotName={spot.name}
-        savedCollectionName={savedCollectionName}
-        onConfirm={(_id, name) => {
-          setIsBookmarked(true);
-          setSavedCollectionName(name);
+        onAdd={(names) => {
+          setIsBookmarked(names.length > 0);
           setBookmarkSheetVisible(false);
-          showToast(`${name}에 저장됐어요`);
-        }}
-        onRemove={() => {
-          setIsBookmarked(false);
-          setBookmarkSheetVisible(false);
-          showToast('즐겨찾기에서 제거됐어요');
-        }}
-        onViewFavorites={() => {
-          setBookmarkSheetVisible(false);
-          // TODO: MyPageStack 즐겨찾기 화면 연결 (스코프 밖)
+          showToast(names.length === 1 ? `${names[0]}에 저장됐어요` : `${names.length}개 컬렉션에 저장됐어요`);
         }}
       />
 

@@ -155,14 +155,6 @@ export interface TravelPlanOption {
 
 export type NaviAppId = 'kakao' | 'naver' | 'apple';
 
-export interface BookmarkCollection {
-  id: string;
-  name: string;
-  count: number;
-  iconBg: string;
-  iconColor: string;
-}
-
 // ── API DTO (서버 응답 원형) ──────────────────────
 // 스펙: docs/ai/specs/feature/spot-detail-screen/spot-detail-api.md
 
