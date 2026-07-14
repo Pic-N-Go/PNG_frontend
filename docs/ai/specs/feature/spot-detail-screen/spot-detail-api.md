@@ -68,6 +68,7 @@ Base URL: `http://localhost:8080` (`EXPO_PUBLIC_API_URL`). 체크리스트는 `A
 | 체크리스트 조회 | `GET /spots/{id}/checklist` | O | `defaultItems` + `userItems` |
 | 체크리스트 추가 | `POST /spots/{id}/checklist` | O | body `{content}`, 최대 10·20자, `201` |
 | 체크리스트 삭제 | `DELETE /spots/{id}/checklist/{itemId}` | O | userItem만, `204` |
+| 기본 항목 숨김 | `DELETE /spots/{id}/checklist/default/{defaultItemId}` | O | defaultItem 숨김, 멱등, `204` |
 | 포토제닉 | `GET /spots/{id}/photogenic-score?date=&time=` | X | `date`(yyyy-MM-dd)·`time`(HH:mm) 선택 파라미터. 5팩터 + 골든아워 카운트다운 |
 
 **응답 → 뷰 모델 매핑**
@@ -78,7 +79,7 @@ Base URL: `http://localhost:8080` (`EXPO_PUBLIC_API_URL`). 체크리스트는 `A
   - cells: **주차장**(`parking`), 휠체어(`wheelchairAccess`), 유모차(`strollerAccess`), 반려동물(`petFriendly`), 지하철(`subwayAccess`), 문의(`infocenter`) — 값이 "가능/있음"이면 `green`, 아니면 `default`
 - 리뷰: `distribution`(카운트) → percent 변환, `nickname` → 이름·이니셜(첫 글자)·아바타색(클라 생성), `timeSlot`(SUNRISE/DAY/SUNSET/NIGHT) → 배지 라벨(일출/낮/일몰/야간), **`timeSlot === null`이면 배지 미표시**, `equipmentInfo`→장비, `photos`→사진 URL
 - 정렬: 최신순→`LATEST`, 별점 높은순→`RATING_HIGH`, 별점 낮은순→`RATING_LOW`
-- 체크리스트: `defaultItems`(`id: null` → 삭제 불가) + `userItems`(숫자 `id` → 삭제 가능), 삭제는 **`id !== null`인 항목만**, 체크 토글은 **클라 로컬 상태**(서버 토글 API 없음)
+- 체크리스트: `defaultItems`(`defaultItemId`) + `userItems`(숫자 `id`), **사용자 항목은 삭제**(`DELETE .../checklist/{itemId}`)·**기본 항목은 숨김**(`DELETE .../checklist/default/{defaultItemId}`), 체크 토글은 **클라 로컬 상태**(서버 토글 API 없음)
 - 포토제닉 → `PhotogenicScoreData`:
   - `score`/`grade` 그대로, `maxScore = 80`(총점 만점), 링 진행 = score/80
   - 팩터 5개: `weather`(만점30)·`fineDust→dust`(20)·`ozone`(10, **신규 키**)·`season`(15)·`goldenHour`(5). 각 `value = label`, `barPercent = score / 팩터만점 × 100`, 색/아이콘은 팩터키별 클라 고정
@@ -120,7 +121,7 @@ Base URL: `http://localhost:8080` (`EXPO_PUBLIC_API_URL`). 체크리스트는 `A
 
 ## 11) 결정 사항 (확정)
 
-1. **체크리스트 = 자유 입력** — 프리셋 칩(`MOCK_CHECKLIST_OPTIONS`) 제거. 서버 `defaultItems`를 기본 추천으로 표시 + 사용자는 텍스트 입력으로 자유 추가(최대 10·20자) + userItem(`id !== null`) 삭제. 개인 데이터라 자유 입력 리스크 낮음.
+1. **체크리스트 = 자유 입력** — 프리셋 칩(`MOCK_CHECKLIST_OPTIONS`) 제거. 서버 `defaultItems`를 기본 추천으로 표시 + 사용자는 텍스트 입력으로 자유 추가(최대 10·20자) + **사용자 항목 삭제(`id`)** + **기본 항목 숨김(`defaultItemId`, `DELETE .../default/{defaultItemId}`)**. 개인 데이터라 자유 입력 리스크 낮음.
 2. **badge = 조건부 렌더** — `badge === true`일 때만 "관광공사 인증" 배지 표시. 현재는 전량 관광공사 데이터라 항상 표시되지만, 향후 사용자 스팟(`false`) 대비.
 3. **리뷰 시간대 배지 = 색 구분 없음** — 라벨만 교체, 현행 회색 단색 유지. `timeSlot === null`이면 미표시.
 4. **포토제닉 = 실 API 연동(2차)** — API 팀이 date/time 재조회 + 골든아워 카운트다운 필드를 제공해 언블록. `maxScore=80`, `ozone` 팩터 신규 추가, 골든아워 콜아웃은 `minutesUntilStart`/`startTime` null 규칙대로 "진행 중/오늘 종료/N분 후" 분기. 날짜 옵션은 오늘~+2일 동적 생성.

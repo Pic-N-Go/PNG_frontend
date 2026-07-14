@@ -83,10 +83,11 @@
   - `src/components/spot/ChecklistSection.tsx`
   - `src/screens/spot/SpotDetailScreen.tsx`
 - 변경 내용:
-  - **API 모델 기준 재구성(확정)**: `defaultItems`(id null) + `userItems`(숫자 id) 표시, 자유 텍스트 입력으로 추가(최대 10·20자), **`id !== null`인 항목만 삭제**, 체크 토글은 로컬 상태
+  - **API 모델 기준 재구성(확정)**: `defaultItems`(`defaultItemId`) + `userItems`(숫자 `id`) 표시, 자유 텍스트 입력으로 추가(최대 10·20자), 체크 토글은 로컬 상태
+  - **삭제/숨김 규칙**: 사용자 항목은 `id`로 삭제(`DELETE .../checklist/{itemId}`), **기본 항목은 `defaultItemId`로 숨김**(`DELETE .../checklist/default/{defaultItemId}`)
   - `MOCK_CHECKLIST_OPTIONS`(프리셋 칩) 제거
-  - `useChecklist`/`useAddChecklistItem`/`useDeleteChecklistItem` 연결, 미인증 시 안내
-- 완료 조건: 추가/삭제가 서버 반영 + 재조회
+  - `useChecklist`/`useAddChecklistItem`/`useDeleteChecklistItem`/`useHideDefaultChecklistItem` 연결, 미인증 시 안내
+- 완료 조건: 추가/삭제/기본 항목 숨김이 서버 반영 + 재조회
 - 검증 방법: `tsc`/`lint`
 
 ### Task 7 — 리뷰 탭 연동

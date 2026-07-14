@@ -92,25 +92,24 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
     },
   });
 
-  function BackButton() {
-    return (
-      <View style={{ paddingTop: insets.top, paddingHorizontal: normalize(12), paddingBottom: normalize(6) }}>
-        <Pressable
-          onPress={() => navigation.goBack()}
-          hitSlop={8}
-          style={{ width: normalize(36), height: normalize(36), alignItems: 'center', justifyContent: 'center' }}
-        >
-          <IconChevronLeft size={normalize(20)} color="#000" strokeWidth={2} />
-        </Pressable>
-      </View>
-    );
-  }
+  // ponytail: 컴포넌트 내부 컴포넌트 선언은 리렌더마다 재마운트 → 헬퍼 함수로
+  const renderBackButton = () => (
+    <View style={{ paddingTop: insets.top, paddingHorizontal: normalize(12), paddingBottom: normalize(6) }}>
+      <Pressable
+        onPress={() => navigation.goBack()}
+        hitSlop={8}
+        style={{ width: normalize(36), height: normalize(36), alignItems: 'center', justifyContent: 'center' }}
+      >
+        <IconChevronLeft size={normalize(20)} color="#000" strokeWidth={2} />
+      </Pressable>
+    </View>
+  );
 
   // ── 로딩 / 에러 게이트 ──
   if (isLoading || !spot || !convenience) {
     return (
       <View style={{ flex: 1, backgroundColor: '#fff' }}>
-        <BackButton />
+        {renderBackButton()}
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
           {isError ? (
             <View style={{ alignItems: 'center', gap: normalize(12), paddingHorizontal: GRID_PADDING }}>
@@ -139,7 +138,7 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
       {activeTab === 'chat' ? (
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
-          <BackButton />
+          {renderBackButton()}
           {!chatInputFocused && <SpotInfoHeader spot={spot} />}
           <SpotTabBar activeTab={activeTab} onChange={handleTabChange} />
           <View style={{ flex: 1, paddingBottom: insets.bottom }}>

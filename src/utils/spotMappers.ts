@@ -162,7 +162,7 @@ export function mapSpotDetail(dto: SpotDetailResponse): { info: SpotDetailInfo; 
 
 // "2026-06-15" / "2026-06-16T10:30:00" → "2026.06.15"
 function formatReviewDate(dto: ReviewDTO): string {
-  return (dto.visitedAt ?? dto.createdAt).slice(0, 10).replace(/-/g, '.');
+  return (dto.visitedAt || dto.createdAt).slice(0, 10).replace(/-/g, '.');
 }
 
 export function mapReview(dto: ReviewDTO): Review {

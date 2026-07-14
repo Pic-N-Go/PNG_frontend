@@ -96,7 +96,7 @@ export default function ConvenienceInfoSection({ info }: Props) {
   const scheduleCollapsible = groups.length > 1;
   const textCollapsible = !info.schedule && (info.scheduleText?.split('\n').length ?? 0) > 3;
   // 문의 텍스트에서 첫 전화번호 토큰만 추출 (예: "강남메디컬투어센터 1661-2230" → 16612230). 없으면 발신 불가.
-  const telHref = info.phone?.match(/[\d-]{7,}/)?.[0]?.replace(/[^0-9]/g, '') || undefined;
+  const telHref = info.phone?.replace(/\s+/g, '').match(/[\d-]{7,}/)?.[0]?.replace(/[^0-9]/g, '') || undefined;
 
   return (
     <View style={{ paddingHorizontal: GRID_PADDING }}>
@@ -199,6 +199,7 @@ export default function ConvenienceInfoSection({ info }: Props) {
           onPress={() => {
             if (telHref) Linking.openURL(`tel:${telHref}`).catch(() => {});
           }}
+          disabled={!telHref}
           android_ripple={{ color: 'rgba(0,0,0,0.05)' }}
           style={{
             flexDirection: 'row',
@@ -224,7 +225,7 @@ export default function ConvenienceInfoSection({ info }: Props) {
               {info.phone}
             </Text>
           </View>
-          <ChevronRight size={normalize(20)} color="#C4BFB9" />
+          {telHref ? <ChevronRight size={normalize(20)} color="#C4BFB9" /> : null}
         </Pressable>
       ) : null}
     </View>
