@@ -16,7 +16,7 @@ const MOCK_SPOTS = [
   { id: 4, name: '에버랜드 장미원', loc: '경기 용인시', score: 92, tags: ['꽃', '테마파크'], bg: '#4a235a' }
 ];
 
-const WEATHER_OPTIONS = ['맑음', '흐림', '비', '눈', '안개', '뇌우'];
+const WEATHER_OPTIONS = ['맑음', '흐림', '비', '눈']; // API 지원 값만 포함 (CLEAR/CLOUDY/RAINY/SNOWY)
 const DUST_OPTIONS = ['좋음', '보통 이하', '상관 없음'];
 const TIME_OPTIONS = ['새벽', '일출', '오전', '오후', '일몰', '야간'];
 

@@ -1,12 +1,13 @@
 import { WeatherCondition, TimeCondition, AirQualityCondition, WishlistSettingResponse } from '@/api/wishlist';
 
-// Weather
-export const WEATHER_API_TO_UI: Record<WeatherCondition, string> = {
+// Weather — NONE은 "날씨 조건 없음"을 의미하므로 UI에 표시하지 않음
+// '안개', '뇌우'는 백엔드 미지원 값이므로 매핑 제외
+export const WEATHER_API_TO_UI: Partial<Record<WeatherCondition, string>> = {
   CLEAR: '맑음',
   CLOUDY: '흐림',
   RAINY: '비',
   SNOWY: '눈',
-  NONE: '안개', // Mapped based on generic options, adjust if backend has FOG
+  // NONE: 조건 없음 → UI에 표시 안 함
 };
 
 export const WEATHER_UI_TO_API: Record<string, WeatherCondition> = {
@@ -14,8 +15,6 @@ export const WEATHER_UI_TO_API: Record<string, WeatherCondition> = {
   흐림: 'CLOUDY',
   비: 'RAINY',
   눈: 'SNOWY',
-  안개: 'NONE',
-  뇌우: 'NONE', // Fallback
 };
 
 // Time
@@ -113,7 +112,7 @@ export const mapWishlistToUI = (data: WishlistSettingResponse) => {
     statusText,
     conditions,
     forecast,
-    notifText: data.isAlertEnabled ? (data.memo || '설정한 조건에 맞춰 알림 설정됨') : null,
+    notifText: data.isAlertEnabled ? '설정한 조건에 맞춰 알림 설정됨' : null,
     thumbnails,
   };
 };
