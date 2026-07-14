@@ -78,7 +78,8 @@ export default function WishlistSettingScreen({ navigation, route }: any) {
       setSelectedTimes(initData.timeConditions?.map(t => TIME_API_TO_UI[t] || t) || []);
       setSelectedDust(DUST_API_TO_UI[initData.airQualityCondition] || '좋음');
       setNotifEnabled(initData.isAlertEnabled);
-      setNotifTiming(initData.alertTimingDays === 1 ? '1일 전' : `${initData.alertTimingDays}일 전`);
+      const timingMap: Record<number, string> = { 0: '당일', 1: '1일 전', 3: '3일 전' };
+      setNotifTiming(timingMap[initData.alertTimingDays] || '1일 전');
       setDndStart(initData.dndStartTime ? initData.dndStartTime.slice(0, 5) : '22:00');
       setDndEnd(initData.dndEndTime ? initData.dndEndTime.slice(0, 5) : '07:00');
       setMemo(initData.memo || '');
