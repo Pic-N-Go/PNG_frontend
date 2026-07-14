@@ -72,7 +72,8 @@
     .segmented{display:flex;background:rgba(0,0,0,0.05);border-radius:10px;padding:2px;gap:2px}
     .segmented__btn{flex:1;height:28px;border-radius:8px;border:none;font-family:var(--font-family);font-size: var(--font-sm);cursor:pointer;background:transparent;color:rgba(0,0,0,0.35);transition:all 0.15s}
     .segmented__btn.active{background:#fff;font-weight:600;color:#000;box-shadow:0 1px 2px rgba(0,0,0,0.08)}
-    .time-picker-trigger{display:flex;align-items:center;gap:4px;padding:0 10px;height:28px;background:rgba(0,0,0,0.04);border-radius:8px;border:none;cursor:pointer;font-family:var(--font-family);font-size:12px;color:rgba(0,0,0,0.45)}
+    .notif-footnote{font-size: var(--font-xs);color:var(--color-text-tertiary);padding:14px 0 0;line-height:1.6}
+    .notif-footnote a{color:var(--color-accent);font-weight:600;text-decoration:none}
 
     /* ── 예보 ── */
     .forecast-card{background:var(--color-surface);border-radius:16px;padding:14px 10px}
@@ -145,9 +146,6 @@
     .sheet-header__title{font-size:20px;font-weight:600;letter-spacing:-0.3px}
     .sheet-close{width:32px;height:32px;border-radius:50%;background:rgba(0,0,0,0.05);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.15s}
     .sheet-close:hover{background:rgba(0,0,0,0.09)}
-    .time-adj-btn{width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,0.05);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.15s;flex-shrink:0}
-    .time-adj-btn:hover{background:rgba(0,0,0,0.09)}
-    .time-adj-btn:active{background:rgba(0,0,0,0.13)}
     .sheet-search-wrap{padding:0 20px 12px;flex-shrink:0}
     .sheet-search{display:flex;align-items:center;gap:10px;background:var(--color-surface);border-radius:12px;padding:0 14px;height:46px}
     .sheet-search input{flex:1;border:none;background:transparent;outline:none;font-family:var(--font-family);font-size: var(--font-md);color:var(--color-text-primary)}
@@ -295,11 +293,8 @@
             <button class="segmented__btn" data-seg="3일 전">3일 전</button>
           </div>
         </div>
-        <div class="notif-row">
-          <p class="notif-row__label" style="font-size: var(--font-base)">방해 금지 시간</p>
-          <button class="time-picker-trigger"><span id="tp-trigger-label">22:00 ~ 07:00</span> <svg width="8" height="8" viewBox="0 0 24 24" stroke="rgba(0,0,0,0.2)"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/></svg></button>
-        </div>
       </div>
+      <p class="notif-footnote">방해 금지 시간은 <a href="../mypage/setting.html">설정 › 방해 금지</a>에서 모든 알림에 공통 적용돼요.</p>
     </div>
 
     <div class="divider"></div>
@@ -390,47 +385,6 @@
     </div>
   </div>
   <button class="sheet-all-search" id="btn-all-search">전체 스팟에서 검색 →</button>
-</div>
-
-<!-- 방해금지 시간 피커 시트 -->
-<div class="bottom-sheet" id="time-picker-sheet">
-  <div class="sheet-handle-wrap"><div class="sheet-handle"></div></div>
-  <div class="sheet-header">
-    <span class="sheet-header__title">방해 금지 시간</span>
-    <button class="sheet-close" id="time-sheet-close">
-      <svg width="14" height="14" viewBox="0 0 24 24" stroke="rgba(0,0,0,0.4)"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></svg>
-    </button>
-  </div>
-  <div style="padding:0 20px 28px;display:flex;flex-direction:column;gap:12px">
-    <p style="font-size:var(--font-sm);color:var(--color-text-tertiary);margin-bottom:4px">설정한 시간 동안 알림을 보내지 않아요</p>
-    <!-- 시작 시간 -->
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--color-surface);border-radius:14px">
-      <span style="font-size:var(--font-sm);color:rgba(0,0,0,0.45);font-weight:500">시작</span>
-      <div style="display:flex;align-items:center;gap:16px">
-        <button class="time-adj-btn" data-target="start" data-dir="-1">
-          <svg width="18" height="18" viewBox="0 0 24 24" stroke="rgba(0,0,0,0.35)"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l14 0"/></svg>
-        </button>
-        <span id="tp-start" style="font-size:20px;font-weight:600;letter-spacing:-0.5px;min-width:54px;text-align:center">22:00</span>
-        <button class="time-adj-btn" data-target="start" data-dir="1">
-          <svg width="18" height="18" viewBox="0 0 24 24" stroke="rgba(0,0,0,0.35)"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5l0 14"/><path d="M5 12l14 0"/></svg>
-        </button>
-      </div>
-    </div>
-    <!-- 종료 시간 -->
-    <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;background:var(--color-surface);border-radius:14px">
-      <span style="font-size:var(--font-sm);color:rgba(0,0,0,0.45);font-weight:500">종료</span>
-      <div style="display:flex;align-items:center;gap:16px">
-        <button class="time-adj-btn" data-target="end" data-dir="-1">
-          <svg width="18" height="18" viewBox="0 0 24 24" stroke="rgba(0,0,0,0.35)"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l14 0"/></svg>
-        </button>
-        <span id="tp-end" style="font-size:20px;font-weight:600;letter-spacing:-0.5px;min-width:54px;text-align:center">07:00</span>
-        <button class="time-adj-btn" data-target="end" data-dir="1">
-          <svg width="18" height="18" viewBox="0 0 24 24" stroke="rgba(0,0,0,0.35)"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5l0 14"/><path d="M5 12l14 0"/></svg>
-        </button>
-      </div>
-    </div>
-    <button onclick="confirmTimePicker()" style="margin-top:8px;width:100%;height:52px;border-radius:26px;background:var(--color-accent);border:none;font-family:var(--font-family);font-size:16px;font-weight:500;color:#fff;cursor:pointer;transition:background 0.15s" onmouseover="this.style.background='var(--color-accent-hover)'" onmouseout="this.style.background='var(--color-accent)'">확인</button>
-  </div>
 </div>
 
 <!-- 저장하지 않고 나가기 모달 -->
@@ -550,7 +504,6 @@
   dim.addEventListener('click', () => {
     closeSheet();
     closeDeleteModal();
-    closeTimePicker();
   });
 
   /* 스팟 선택 */
@@ -607,36 +560,6 @@
   }
   function confirmDelete() {
     location.href = './wishlist.html';
-  }
-
-  /* 방해금지 시간 피커 */
-  let tpStart = 22, tpEnd = 7;
-  const tpSheet = document.getElementById('time-picker-sheet');
-  const openTimePicker = () => { tpSheet.classList.add('active'); dim.classList.add('active'); };
-  const closeTimePicker = () => { tpSheet.classList.remove('active'); dim.classList.remove('active'); };
-  document.querySelector('.time-picker-trigger').addEventListener('click', openTimePicker);
-  document.getElementById('time-sheet-close').addEventListener('click', closeTimePicker);
-
-  document.querySelectorAll('.time-adj-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const target = btn.dataset.target;
-      const dir = parseInt(btn.dataset.dir);
-      if (target === 'start') {
-        tpStart = (tpStart + dir + 24) % 24;
-        document.getElementById('tp-start').textContent = String(tpStart).padStart(2,'0') + ':00';
-      } else {
-        tpEnd = (tpEnd + dir + 24) % 24;
-        document.getElementById('tp-end').textContent = String(tpEnd).padStart(2,'0') + ':00';
-      }
-    });
-  });
-
-  function confirmTimePicker() {
-    const s = String(tpStart).padStart(2,'0') + ':00';
-    const e = String(tpEnd).padStart(2,'0') + ':00';
-    document.getElementById('tp-trigger-label').textContent = s + ' ~ ' + e;
-    closeTimePicker();
-    markDirty();
   }
 </script>
 </div>

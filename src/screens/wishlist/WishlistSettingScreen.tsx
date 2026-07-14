@@ -4,7 +4,7 @@ import { CommonActions } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FONT_SM, BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { IconChevronLeft, IconTrash, IconX, IconSearch, IconCheck, IconAlertCircle, IconSun, IconCloud, IconCloudRain, IconCloudSnow, IconCloudFog, IconCloudStorm, IconMinus, IconPlus } from '@tabler/icons-react-native';
+import { IconChevronLeft, IconTrash, IconX, IconSearch, IconCheck, IconAlertCircle, IconSun, IconCloud, IconCloudRain, IconCloudSnow, IconCloudFog, IconCloudStorm } from '@tabler/icons-react-native';
 import BottomSheet from '@/components/common/BottomSheet';
 
 const MOCK_SPOTS = [
@@ -59,8 +59,6 @@ export default function WishlistSettingScreen({ navigation, route }: any) {
   const [selectedTimes, setSelectedTimes] = useState<string[]>(initTime.length ? initTime : ['일몰', '야간']);
   const [notifEnabled, setNotifEnabled] = useState(init ? !!init.notifText : true);
   const [notifTiming, setNotifTiming] = useState('1일 전');
-  const [dndStart, setDndStart] = useState('22:00');
-  const [dndEnd, setDndEnd] = useState('07:00');
   const [memo, setMemo] = useState(init ? '' : '야간 개장 때 한복 입고 찍어보고 싶다.\n맑은 날이어야 조명이 잘 나올 것 같음.');
   const [selectedSpot, setSelectedSpot] = useState(initSpot);
 
@@ -78,17 +76,8 @@ export default function WishlistSettingScreen({ navigation, route }: any) {
     }
   }, [route.params?.newSpot, navigation]);
 
-  const adjustTime = (time: string, delta: number) => {
-    const [h, m] = time.split(':').map(Number);
-    let newH = h + delta;
-    if (newH < 0) newH = 23;
-    if (newH > 23) newH = 0;
-    return `${newH.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}`;
-  };
-
   // Modals / Sheets
   const [spotSheetVisible, setSpotSheetVisible] = useState(false);
-  const [timeSheetVisible, setTimeSheetVisible] = useState(false);
   const [unsavedModalVisible, setUnsavedModalVisible] = useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
 
@@ -304,14 +293,20 @@ export default function WishlistSettingScreen({ navigation, route }: any) {
                 })}
               </View>
             </View>
-            <View className="flex-row items-center justify-between" style={{ paddingVertical: normalize(14), paddingHorizontal: normalize(16) }}>
-              <Text className="text-black" style={{ fontSize: normalizeFontSize(16) }}>방해 금지 시간</Text>
-              <TouchableOpacity onPress={() => setTimeSheetVisible(true)} className="flex-row items-center bg-black/5 rounded-lg" style={{ height: normalize(28), paddingHorizontal: normalize(10) }}>
-                <Text className="text-black/45 mr-1" style={{ fontSize: normalizeFontSize(12) }}>{dndStart} ~ {dndEnd}</Text>
-                <IconChevronLeft size={normalize(12)} color="rgba(0,0,0,0.2)" style={{ transform: [{ rotate: '-90deg' }] }} />
-              </TouchableOpacity>
-            </View>
           </View>
+          <Text className="text-black/35 mt-2" style={{ fontSize: normalizeFontSize(12), lineHeight: normalize(18) }}>
+            방해 금지 시간은{' '}
+            <Text
+              className="font-semibold"
+              style={{ color: '#E31B59' }}
+              onPress={() => {
+                // TODO: 마이페이지 탭 > 설정 화면으로 이동
+              }}
+            >
+              설정 › 방해 금지
+            </Text>
+            에서 모든 알림에 공통 적용돼요.
+          </Text>
         </View>
         <View className="w-full bg-black/5 mb-7" style={{ height: normalize(1) }} />
 
@@ -493,46 +488,6 @@ export default function WishlistSettingScreen({ navigation, route }: any) {
             navigation.push('Map', { source: 'wishlist-change' });
           }} className="items-center py-2">
             <Text className="font-medium text-[#E31B59]" style={{ fontSize: normalizeFontSize(14) }}>전체 스팟에서 검색 →</Text>
-          </TouchableOpacity>
-        </View>
-      </BottomSheet>
-
-      {/* Time Picker Sheet */}
-      <BottomSheet visible={timeSheetVisible} onClose={() => setTimeSheetVisible(false)}>
-        <View className="flex-row items-center justify-between px-5 pb-3 mb-3">
-          <Text className="font-semibold text-black" style={{ fontSize: normalizeFontSize(20) }}>방해 금지 시간</Text>
-          <TouchableOpacity onPress={() => setTimeSheetVisible(false)} className="bg-black/5 items-center justify-center rounded-full" style={{ width: normalize(32), height: normalize(32) }}>
-            <IconX size={normalize(14)} color="rgba(0,0,0,0.4)" />
-          </TouchableOpacity>
-        </View>
-        <View className="px-5 gap-3">
-          <Text className="text-black/40 mb-1" style={{ fontSize: FONT_SM }}>설정한 시간 동안 알림을 보내지 않아요</Text>
-          <View className="flex-row items-center justify-between bg-[#f5f5f7] rounded-2xl" style={{ padding: normalize(14) }}>
-            <Text className="font-medium text-black/45" style={{ fontSize: FONT_SM }}>시작</Text>
-            <View className="flex-row items-center">
-              <TouchableOpacity onPress={() => { setDndStart(adjustTime(dndStart, -1)); markDirty(); }} className="bg-black/5 items-center justify-center rounded-full" style={{ width: normalize(32), height: normalize(32) }}>
-                <IconMinus size={normalize(16)} color="rgba(0,0,0,0.3)" />
-              </TouchableOpacity>
-              <Text className="font-semibold text-black mx-3" style={{ fontSize: normalizeFontSize(20), width: normalize(64), textAlign: 'center' }}>{dndStart}</Text>
-              <TouchableOpacity onPress={() => { setDndStart(adjustTime(dndStart, 1)); markDirty(); }} className="bg-black/5 items-center justify-center rounded-full" style={{ width: normalize(32), height: normalize(32) }}>
-                <IconPlus size={normalize(16)} color="rgba(0,0,0,0.3)" />
-              </TouchableOpacity>
-            </View>
-          </View>
-          <View className="flex-row items-center justify-between bg-[#f5f5f7] rounded-2xl" style={{ padding: normalize(14) }}>
-            <Text className="font-medium text-black/45" style={{ fontSize: FONT_SM }}>종료</Text>
-            <View className="flex-row items-center">
-              <TouchableOpacity onPress={() => { setDndEnd(adjustTime(dndEnd, -1)); markDirty(); }} className="bg-black/5 items-center justify-center rounded-full" style={{ width: normalize(32), height: normalize(32) }}>
-                <IconMinus size={normalize(16)} color="rgba(0,0,0,0.3)" />
-              </TouchableOpacity>
-              <Text className="font-semibold text-black mx-3" style={{ fontSize: normalizeFontSize(20), width: normalize(64), textAlign: 'center' }}>{dndEnd}</Text>
-              <TouchableOpacity onPress={() => { setDndEnd(adjustTime(dndEnd, 1)); markDirty(); }} className="bg-black/5 items-center justify-center rounded-full" style={{ width: normalize(32), height: normalize(32) }}>
-                <IconPlus size={normalize(16)} color="rgba(0,0,0,0.3)" />
-              </TouchableOpacity>
-            </View>
-          </View>
-          <TouchableOpacity onPress={() => { setTimeSheetVisible(false); markDirty(); }} className="bg-[#E31B59] items-center justify-center mt-2 mb-2" style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}>
-            <Text className="font-medium text-white" style={{ fontSize: normalizeFontSize(16) }}>확인</Text>
           </TouchableOpacity>
         </View>
       </BottomSheet>

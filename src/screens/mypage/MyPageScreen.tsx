@@ -11,7 +11,7 @@ export default function MyPageScreen({ navigation }: any) {
         프로필(MY) 탭 임시 화면
       </Text>
       
-      <TouchableOpacity 
+      <TouchableOpacity
         className="bg-[#E31B59] items-center justify-center"
         style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}
         onPress={() => navigation.navigate('Wishlist')}
