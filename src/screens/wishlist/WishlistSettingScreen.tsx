@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, TextInput, Switch, KeyboardAvoidingView, Platform, Pressable } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, TextInput, Switch, KeyboardAvoidingView, Platform, Pressable, ActivityIndicator } from 'react-native';
 
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FONT_SM, BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING } from '@/constants/layout';
@@ -52,7 +52,7 @@ const getWeatherIcon = (w: string, selected: boolean) => {
 export default function WishlistSettingScreen({ navigation, route }: any) {
   const existingSpotId = route.params?.id;
   const { useWishlistDetailQuery, useUpdateWishlistMutation, useDeleteWishlistMutation } = useWishlist();
-  const { data: initData } = useWishlistDetailQuery(existingSpotId);
+  const { data: initData, isLoading } = useWishlistDetailQuery(existingSpotId);
 
   const [selectedSpot, setSelectedSpot] = useState(MOCK_SPOTS[0]);
   const [selectedWeathers, setSelectedWeathers] = useState<string[]>(['맑음']);
@@ -191,6 +191,15 @@ export default function WishlistSettingScreen({ navigation, route }: any) {
     setSelectedTimes(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t]);
     markDirty();
   };
+
+  if (existingSpotId && isLoading) {
+    return (
+      <SafeAreaView className="flex-1 bg-white items-center justify-center" edges={['top', 'left', 'right', 'bottom']}>
+        <ActivityIndicator size="large" color="#E31B59" />
+        <Text className="text-black/40 mt-3" style={{ fontSize: normalizeFontSize(14) }}>설정을 불러오는 중입니다...</Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right', 'bottom']}>
