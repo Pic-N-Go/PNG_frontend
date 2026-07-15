@@ -428,7 +428,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
         });
         clearSpots();
       }
-    }, [selectedSpots, currentDay, data, planId])
+    }, [selectedSpots, currentDay, data, planId, addSpotMutation, clearSpots])
   );
 
   const reorderSpots = (spots: any[]) => {

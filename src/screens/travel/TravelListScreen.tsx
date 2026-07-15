@@ -6,7 +6,7 @@ import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { IconPlus, IconChevronRight, IconCalendarEvent, IconMapPin, IconClock, IconRoute, IconZoomPan } from '@tabler/icons-react-native';
 import { useQuery } from '@tanstack/react-query';
 import { useFocusEffect } from '@react-navigation/native';
-import { coursesApi, Course } from '@/api/courses';
+import { coursesApi } from '@/api/courses';
 
 const TABS = [
   { id: 'all', label: '전체' },
