@@ -13,7 +13,7 @@ import ThemeSheet from './components/sheets/ThemeSheet';
 import SocialSheet from './components/sheets/SocialSheet';
 import VersionSheet from './components/sheets/VersionSheet';
 import { LogoutModal } from './components/sheets/SettingModals';
-import { getMessaging, hasPermission, AuthorizationStatus } from '@react-native-firebase/messaging';
+import { getMessaging, AuthorizationStatus } from '@react-native-firebase/messaging';
 
 import {
   IconChevronLeft, IconChevronRight, IconUser, IconMail, IconLock,
@@ -87,7 +87,7 @@ export default function SettingScreen() {
   React.useEffect(() => {
     async function checkPushPermission() {
       const messaging = getMessaging();
-      const authStatus = await hasPermission(messaging);
+      const authStatus = await messaging.hasPermission();
       const enabled =
         authStatus === AuthorizationStatus.AUTHORIZED ||
         authStatus === AuthorizationStatus.PROVISIONAL;
@@ -103,7 +103,7 @@ export default function SettingScreen() {
     // 2. 권한 거부 상태에서 켜려고 할 때 경고창 띄우기
     if (!toggles[key]) {
       const messaging = getMessaging();
-      const authStatus = await hasPermission(messaging);
+      const authStatus = await messaging.hasPermission();
       const enabled =
         authStatus === AuthorizationStatus.AUTHORIZED ||
         authStatus === AuthorizationStatus.PROVISIONAL;
