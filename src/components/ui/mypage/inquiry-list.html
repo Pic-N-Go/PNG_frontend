@@ -37,10 +37,22 @@
     .inquiry-badge--answered{background:#e0f0dc;color:#5a9855}
     .inquiry-badge--pending{background:var(--color-surface);color:var(--color-text-tertiary)}
     .inquiry-card__time{font-size: var(--font-xs);color:var(--color-text-tertiary);margin-left:auto}
+    /* unread dot(우상단)과 시간 텍스트 겹침 방지 */
+    .inquiry-card:has(.inquiry-card__dot) .inquiry-card__time{margin-right:16px}
     .inquiry-card__title{font-size: var(--font-md);font-weight:600;letter-spacing:-0.3px;margin-top:10px}
     .inquiry-card__preview{font-size: var(--font-sm);color:#555;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .inquiry-card__answer{margin-top:12px;padding-top:12px;border-top:0.5px solid var(--color-border-light);font-size: var(--font-sm);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .inquiry-card__answer b{color:var(--color-text-tertiary);font-weight:400}
+
+    /* ── 빈 상태 ── */
+    .empty-state{display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:80px 40px 0}
+    .empty-state__icon{width:64px;height:64px;border-radius:50%;background:var(--color-surface);display:flex;align-items:center;justify-content:center;margin-bottom:20px}
+    .empty-state__title{font-size: var(--font-md);font-weight:600;letter-spacing:-0.3px}
+    .empty-state__desc{font-size: var(--font-sm);color:var(--color-text-tertiary);margin-top:8px;line-height:1.5}
+    .empty-state__cta{margin-top:24px;padding:13px 24px;border-radius:9999px;border:none;background:var(--color-accent);color:#fff;font-family:var(--font-family);font-size: var(--font-sm);font-weight:600;cursor:pointer;transition:opacity 0.15s}
+    .empty-state__cta:hover{opacity:0.88}
+    /* 필터 결과 0건 (데이터는 있음) — 무데이터 empty와 구분, CTA 없음 */
+    .filter-empty{display:none;text-align:center;color:var(--color-text-tertiary);font-size: var(--font-sm);padding:60px 40px 0}
   </style>
 </head>
 <body>
@@ -105,6 +117,19 @@
       <p class="inquiry-card__preview">카카오 계정 연결을 해제하고 싶어요.</p>
       <div class="inquiry-card__answer"><b>답변 · </b>설정 > 연결된 소셜 계정에서 해제하실 수 있어요.</div>
     </div>
+
+    <!-- 필터 결과 0건 (데이터는 있음) -->
+    <p class="filter-empty" id="filterEmpty">해당하는 문의가 없어요</p>
+
+    <!-- 무데이터 빈 상태 (문의 자체가 없음) -->
+    <div class="empty-state" id="emptyState">
+      <div class="empty-state__icon">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-tertiary)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M8 9h8"/><path d="M8 13h6"/><path d="M18 4a3 3 0 0 1 3 3v8a3 3 0 0 1 -3 3h-5l-5 3v-3h-2a3 3 0 0 1 -3 -3v-8a3 3 0 0 1 3 -3h12z"/></svg>
+      </div>
+      <p class="empty-state__title">아직 문의한 내역이 없어요</p>
+      <p class="empty-state__desc">궁금한 점이나 불편한 점이 있다면<br>언제든 편하게 문의해 주세요.</p>
+      <button class="empty-state__cta" onclick="location.href='./inquiry-write.html'">새 문의 작성하기</button>
+    </div>
   </div>
 
 </div>
@@ -124,9 +149,17 @@
   function setFilter(el, key) {
     document.querySelectorAll('.filter-pill').forEach(function(p) { p.classList.remove('active'); });
     el.classList.add('active');
-    document.querySelectorAll('.inquiry-card').forEach(function(card) {
-      card.style.display = (key === 'all' || card.dataset.status === key) ? '' : 'none';
+    var cards = document.querySelectorAll('.inquiry-card');
+    var anyVisible = false;
+    cards.forEach(function(card) {
+      var show = (key === 'all' || card.dataset.status === key);
+      card.style.display = show ? '' : 'none';
+      if (show) anyVisible = true;
     });
+    // 무데이터(문의 0건)와 필터 결과 0건을 구분해 노출
+    var noData = cards.length === 0;
+    document.getElementById('emptyState').style.display = noData ? 'flex' : 'none';
+    document.getElementById('filterEmpty').style.display = (!noData && !anyVisible) ? 'block' : 'none';
   }
 </script>
 </body>
