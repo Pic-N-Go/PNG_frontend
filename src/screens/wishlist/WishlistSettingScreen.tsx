@@ -132,15 +132,16 @@ export default function WishlistSettingScreen({ navigation, route }: any) {
   const deleteMutation = useDeleteWishlistMutation();
 
   const handleSave = () => {
+    if (updateMutation.isPending) return;
     const data = {
       memo,
       weatherConditions: selectedWeathers.map(w => WEATHER_UI_TO_API[w] || 'CLEAR'),
       timeConditions: selectedTimes.map(t => TIME_UI_TO_API[t] || 'NONE'),
       airQualityCondition: DUST_UI_TO_API[selectedDust] || 'GOOD',
       isAlertEnabled: notifEnabled,
-      alertTimingDays: parseInt(notifTiming.replace(/[^0-9]/g, ''), 10) || 1,
-      dndStartTime: `${dndStart}:00`,
-      dndEndTime: `${dndEnd}:00`,
+      alertTimingDays: notifTiming === '당일' ? 0 : notifTiming === '3일 전' ? 3 : 1,
+      dndStartTime: dndStart + ':00',
+      dndEndTime: dndEnd + ':00',
     };
 
     updateMutation.mutate(
@@ -154,6 +155,20 @@ export default function WishlistSettingScreen({ navigation, route }: any) {
         },
       }
     );
+  };
+
+  const handleDeleteConfirm = () => {
+    if (deleteMutation.isPending) return;
+    setDeleteModalVisible(false);
+    if (!existingSpotId) return;
+    deleteMutation.mutate(existingSpotId, {
+      onSuccess: () => {
+        setIsDirty(false);
+        setTimeout(() => {
+          navigation.goBack();
+        }, 50);
+      },
+    });
   };
 
   const markDirty = () => setIsDirty(true);
@@ -427,25 +442,9 @@ export default function WishlistSettingScreen({ navigation, route }: any) {
         <View className="px-5 pb-5 pt-2">
           <Text className="font-semibold text-black mb-2" style={{ fontSize: normalizeFontSize(20) }}>위시리스트를 삭제할까요?</Text>
           <Text className="text-black/45 leading-relaxed mb-6" style={{ fontSize: normalizeFontSize(16) }}>{selectedSpot.name} 위시리스트가 삭제돼요. 삭제 후에는 복구할 수 없어요.</Text>
-          {(() => {
-            const handleDeleteConfirm = () => {
-              setDeleteModalVisible(false);
-              if (!existingSpotId) return;
-              deleteMutation.mutate(existingSpotId, {
-                onSuccess: () => {
-                  setIsDirty(false);
-                  setTimeout(() => {
-                    navigation.goBack();
-                  }, 50);
-                }
-              });
-            };
-            return (
-              <TouchableOpacity onPress={handleDeleteConfirm} className="bg-[#ff453a]/10 items-center justify-center mb-2.5" style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}>
+          <TouchableOpacity onPress={handleDeleteConfirm} className="bg-[#ff453a]/10 items-center justify-center mb-2.5" style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}>
                 <Text className="font-medium text-[#ff453a]" style={{ fontSize: normalizeFontSize(16) }}>삭제하기</Text>
               </TouchableOpacity>
-            );
-          })()}
           <TouchableOpacity onPress={() => setDeleteModalVisible(false)} className="bg-[#f5f5f7] items-center justify-center" style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}>
             <Text className="font-medium text-black/50" style={{ fontSize: normalizeFontSize(16) }}>취소</Text>
           </TouchableOpacity>
