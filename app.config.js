@@ -23,12 +23,14 @@ module.exports = {
     ios: {
       supportsTablet: false,
       bundleIdentifier: 'com.picngo.app',
+      googleServicesFile: './GoogleService-Info.plist',
       infoPlist: {
         KAKAO_APP_KEY: process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY,
       },
     },
     android: {
       package: 'com.picngo.app',
+      googleServicesFile: './google-services.json',
       adaptiveIcon: {
         foregroundImage: './assets/images/logo/logo_2.png',
         backgroundColor: '#ffffff',
@@ -61,6 +63,8 @@ module.exports = {
         },
       ],
       '@react-native-community/datetimepicker',
+      '@react-native-firebase/app',
+      '@react-native-firebase/messaging',
     ],
   },
 };
