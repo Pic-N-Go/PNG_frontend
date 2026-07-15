@@ -31,6 +31,7 @@ module.exports = {
     android: {
       package: 'com.picngo.app',
       googleServicesFile: './google-services.json',
+      permissions: ['android.permission.POST_NOTIFICATIONS'],
       adaptiveIcon: {
         foregroundImage: './assets/images/logo/logo_2.png',
         backgroundColor: '#ffffff',

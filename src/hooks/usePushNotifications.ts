@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import messaging from '@react-native-firebase/messaging';
+import { Platform, PermissionsAndroid } from 'react-native';
+import { getMessaging, requestPermission, getToken, onTokenRefresh, AuthorizationStatus } from '@react-native-firebase/messaging';
 import { useMutation } from '@tanstack/react-query';
 import { notificationsApi } from '@/api/notifications';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -19,17 +20,31 @@ export const usePushNotifications = () => {
   });
 
   useEffect(() => {
+    const messaging = getMessaging();
+
     async function requestPermissionAndGetToken() {
       try {
-        const authStatus = await messaging().requestPermission();
-        const enabled =
-          authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-          authStatus === messaging.AuthorizationStatus.PROVISIONAL;
+        let enabled = false;
+
+        if (Platform.OS === 'android') {
+          if (Platform.Version >= 33) {
+            const granted = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
+            enabled = granted === PermissionsAndroid.RESULTS.GRANTED;
+          } else {
+            // 안드로이드 12 이하 기기는 기본적으로 허용됨
+            enabled = true;
+          }
+        } else {
+          const authStatus = await requestPermission(messaging);
+          enabled =
+            authStatus === AuthorizationStatus.AUTHORIZED ||
+            authStatus === AuthorizationStatus.PROVISIONAL;
+        }
 
         if (enabled) {
           console.log('Notification permission granted.');
           // getToken returns the FCM token
-          const token = await messaging().getToken();
+          const token = await getToken(messaging);
           setFcmToken(token);
         } else {
           console.log('Notification permission denied.');
@@ -42,7 +57,7 @@ export const usePushNotifications = () => {
     requestPermissionAndGetToken();
 
     // Listen for token refresh
-    const unsubscribe = messaging().onTokenRefresh((token) => {
+    const unsubscribe = onTokenRefresh(messaging, (token) => {
       setFcmToken(token);
     });
 
