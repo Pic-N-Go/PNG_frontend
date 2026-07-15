@@ -13,6 +13,7 @@ import ThemeSheet from './components/sheets/ThemeSheet';
 import SocialSheet from './components/sheets/SocialSheet';
 import VersionSheet from './components/sheets/VersionSheet';
 import { LogoutModal } from './components/sheets/SettingModals';
+import { getMessaging, hasPermission, AuthorizationStatus } from '@react-native-firebase/messaging';
 
 import {
   IconChevronLeft, IconChevronRight, IconUser, IconMail, IconLock,
@@ -82,7 +83,37 @@ export default function SettingScreen() {
   const closeSheet = () => setActiveSheet(null);
   const openSheet = (sheetName: string) => setActiveSheet(sheetName);
 
-  const handleToggle = (key: keyof typeof toggles) => {
+  // 1. 컴포넌트 마운트 시 권한 상태 확인 후 토글 덮어쓰기
+  React.useEffect(() => {
+    async function checkPushPermission() {
+      const messaging = getMessaging();
+      const authStatus = await hasPermission(messaging);
+      const enabled =
+        authStatus === AuthorizationStatus.AUTHORIZED ||
+        authStatus === AuthorizationStatus.PROVISIONAL;
+      
+      if (!enabled) {
+        setToggles({ wishlist: false, goldenHour: false, community: false });
+      }
+    }
+    checkPushPermission();
+  }, []);
+
+  const handleToggle = async (key: keyof typeof toggles) => {
+    // 2. 권한 거부 상태에서 켜려고 할 때 경고창 띄우기
+    if (!toggles[key]) {
+      const messaging = getMessaging();
+      const authStatus = await hasPermission(messaging);
+      const enabled =
+        authStatus === AuthorizationStatus.AUTHORIZED ||
+        authStatus === AuthorizationStatus.PROVISIONAL;
+      
+      if (!enabled) {
+        Alert.alert('알림', '시스템 설정에서 앱의 알림 권한을 허용해주세요.');
+        return;
+      }
+    }
+    
     setToggles(prev => ({ ...prev, [key]: !prev[key] }));
   };
 

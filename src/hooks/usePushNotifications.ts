@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Platform, PermissionsAndroid } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getMessaging, requestPermission, getToken, onTokenRefresh, AuthorizationStatus } from '@react-native-firebase/messaging';
 import { useMutation } from '@tanstack/react-query';
 import { notificationsApi } from '@/api/notifications';
@@ -28,8 +29,16 @@ export const usePushNotifications = () => {
 
         if (Platform.OS === 'android') {
           if (Platform.Version >= 33) {
-            const granted = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
-            enabled = granted === PermissionsAndroid.RESULTS.GRANTED;
+            const hasPermission = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
+            const hasAsked = await AsyncStorage.getItem('hasAskedPushPermission');
+            
+            if (!hasPermission && !hasAsked) {
+              await AsyncStorage.setItem('hasAskedPushPermission', 'true');
+              const granted = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
+              enabled = granted === PermissionsAndroid.RESULTS.GRANTED;
+            } else {
+              enabled = hasPermission;
+            }
           } else {
             // 안드로이드 12 이하 기기는 기본적으로 허용됨
             enabled = true;

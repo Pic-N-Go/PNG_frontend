@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@expo-google-fonts/fugaz-one": "^0.4.1",
+    "@react-native-async-storage/async-storage": "^3.1.1",
     "@react-native-community/datetimepicker": "8.4.4",
     "@react-native-firebase/app": "^25.1.0",
     "@react-native-firebase/messaging": "^25.1.0",
