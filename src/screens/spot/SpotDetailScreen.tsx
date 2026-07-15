@@ -172,7 +172,14 @@ export default function SpotDetailScreen({ navigation }: Props) {
                 <SpotWishlistBanner
                   onPress={() => {
                     // @ts-ignore
-                    navigation.navigate('Wishlist');
+                    navigation.navigate('WishlistSetting', { 
+                      newSpot: { 
+                        id: MOCK_SPOT.id,
+                        name: MOCK_SPOT.name, 
+                        loc: MOCK_SPOT.address.split(' ').slice(0, 2).join(' '), 
+                        score: MOCK_PHOTOGENIC_SCORE.score,
+                      } 
+                    });
                   }}
                 />
                 <View style={{ height: normalize(24) }} />

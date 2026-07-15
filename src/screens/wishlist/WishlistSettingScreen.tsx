@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, TextInput, Switch, KeyboardAvoidingView, Platform, Pressable } from 'react-native';
-import { CommonActions } from '@react-navigation/native';
+import { View, Text, TouchableOpacity, ScrollView, TextInput, Switch, KeyboardAvoidingView, Platform, Pressable, ActivityIndicator } from 'react-native';
+
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FONT_SM, BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
+import { useWishlist } from '@/hooks/useWishlist';
+import { WEATHER_API_TO_UI, WEATHER_UI_TO_API, TIME_API_TO_UI, TIME_UI_TO_API, DUST_API_TO_UI, DUST_UI_TO_API } from '@/utils/wishlistMapper';
 import { IconChevronLeft, IconTrash, IconX, IconSearch, IconCheck, IconAlertCircle, IconSun, IconCloud, IconCloudRain, IconCloudSnow, IconCloudFog, IconCloudStorm, IconMinus, IconPlus } from '@tabler/icons-react-native';
 import BottomSheet from '@/components/common/BottomSheet';
 
@@ -14,7 +16,7 @@ const MOCK_SPOTS = [
   { id: 4, name: '에버랜드 장미원', loc: '경기 용인시', score: 92, tags: ['꽃', '테마파크'], bg: '#4a235a' }
 ];
 
-const WEATHER_OPTIONS = ['맑음', '흐림', '비', '눈', '안개', '뇌우'];
+const WEATHER_OPTIONS = ['맑음', '흐림', '비', '눈']; // API 지원 값만 포함 (CLEAR/CLOUDY/RAINY/SNOWY)
 const DUST_OPTIONS = ['좋음', '보통 이하', '상관 없음'];
 const TIME_OPTIONS = ['새벽', '일출', '오전', '오후', '일몰', '야간'];
 
@@ -48,21 +50,41 @@ const getWeatherIcon = (w: string, selected: boolean) => {
 };
 
 export default function WishlistSettingScreen({ navigation, route }: any) {
-  const init = route.params?.wishlist;
-  const initWeather = init ? init.conditions.filter((c:any) => c.type === 'weather' && c.active).map((c:any) => c.text) : ['맑음'];
-  const initDust = init ? (init.conditions.find((c:any) => c.type === 'dust' && c.active)?.text.replace('미세먼지 ', '') || '좋음') : '좋음';
-  const initTime = init ? init.conditions.filter((c:any) => c.type === 'time' && c.active).map((c:any) => c.text) : ['일몰', '야간'];
-  const initSpot = init ? { ...MOCK_SPOTS[0], id: init.id, name: init.title, loc: init.loc.split(' · ')[0] } : MOCK_SPOTS[0];
+  const existingSpotId = route.params?.id;
+  const { useWishlistDetailQuery, useUpdateWishlistMutation, useDeleteWishlistMutation } = useWishlist();
+  const { data: initData, isLoading } = useWishlistDetailQuery(existingSpotId);
 
-  const [selectedWeathers, setSelectedWeathers] = useState<string[]>(initWeather.length ? initWeather : ['맑음']);
-  const [selectedDust, setSelectedDust] = useState(initDust);
-  const [selectedTimes, setSelectedTimes] = useState<string[]>(initTime.length ? initTime : ['일몰', '야간']);
-  const [notifEnabled, setNotifEnabled] = useState(init ? !!init.notifText : true);
+  const [selectedSpot, setSelectedSpot] = useState(MOCK_SPOTS[0]);
+  const [selectedWeathers, setSelectedWeathers] = useState<string[]>(['맑음']);
+  const [selectedDust, setSelectedDust] = useState('좋음');
+  const [selectedTimes, setSelectedTimes] = useState<string[]>(['일몰', '야간']);
+  const [notifEnabled, setNotifEnabled] = useState(true);
   const [notifTiming, setNotifTiming] = useState('1일 전');
   const [dndStart, setDndStart] = useState('22:00');
   const [dndEnd, setDndEnd] = useState('07:00');
-  const [memo, setMemo] = useState(init ? '' : '야간 개장 때 한복 입고 찍어보고 싶다.\n맑은 날이어야 조명이 잘 나올 것 같음.');
-  const [selectedSpot, setSelectedSpot] = useState(initSpot);
+  const [memo, setMemo] = useState('');
+
+  useEffect(() => {
+    if (initData) {
+      setSelectedSpot({
+        id: initData.spotId,
+        name: initData.spotName,
+        loc: initData.address || '',
+        score: initData.photogenicScore || 0,
+        tags: initData.tags || [],
+        bg: '#2c3e50', // Fallback color
+      });
+      setSelectedWeathers(initData.weatherConditions?.map(w => WEATHER_API_TO_UI[w] || w) || []);
+      setSelectedTimes(initData.timeConditions?.map(t => TIME_API_TO_UI[t] || t) || []);
+      setSelectedDust(DUST_API_TO_UI[initData.airQualityCondition] || '좋음');
+      setNotifEnabled(initData.isAlertEnabled);
+      const timingMap: Record<number, string> = { 0: '당일', 1: '1일 전', 3: '3일 전' };
+      setNotifTiming(timingMap[initData.alertTimingDays] || '1일 전');
+      setDndStart(initData.dndStartTime ? initData.dndStartTime.slice(0, 5) : '22:00');
+      setDndEnd(initData.dndEndTime ? initData.dndEndTime.slice(0, 5) : '07:00');
+      setMemo(initData.memo || '');
+    }
+  }, [initData]);
 
   useEffect(() => {
     if (route.params?.newSpot) {
@@ -106,6 +128,49 @@ export default function WishlistSettingScreen({ navigation, route }: any) {
     return unsubscribe;
   }, [navigation, isDirty]);
 
+  const updateMutation = useUpdateWishlistMutation();
+  const deleteMutation = useDeleteWishlistMutation();
+
+  const handleSave = () => {
+    if (updateMutation.isPending) return;
+    const data = {
+      memo,
+      weatherConditions: selectedWeathers.map(w => WEATHER_UI_TO_API[w] || 'CLEAR'),
+      timeConditions: selectedTimes.map(t => TIME_UI_TO_API[t] || 'NONE'),
+      airQualityCondition: DUST_UI_TO_API[selectedDust] || 'GOOD',
+      isAlertEnabled: notifEnabled,
+      alertTimingDays: notifTiming === '당일' ? 0 : notifTiming === '3일 전' ? 3 : 1,
+      dndStartTime: dndStart + ':00',
+      dndEndTime: dndEnd + ':00',
+    };
+
+    updateMutation.mutate(
+      { spotId: selectedSpot.id, data },
+      {
+        onSuccess: () => {
+          setIsDirty(false);
+          setTimeout(() => {
+            navigation.goBack();
+          }, 50);
+        },
+      }
+    );
+  };
+
+  const handleDeleteConfirm = () => {
+    if (deleteMutation.isPending) return;
+    setDeleteModalVisible(false);
+    if (!existingSpotId) return;
+    deleteMutation.mutate(existingSpotId, {
+      onSuccess: () => {
+        setIsDirty(false);
+        setTimeout(() => {
+          navigation.goBack();
+        }, 50);
+      },
+    });
+  };
+
   const markDirty = () => setIsDirty(true);
 
   const handleBack = () => {
@@ -117,49 +182,6 @@ export default function WishlistSettingScreen({ navigation, route }: any) {
     }
   };
 
-  const handleSave = () => {
-    const newWishlist = {
-      id: route.params?.id || Date.now(),
-      title: selectedSpot.name,
-      loc: `${selectedSpot.loc} · 포토제닉 ${selectedSpot.score}점`,
-      status: 'wait',
-      statusText: '대기 중',
-      conditions: [
-        ...selectedWeathers.map(w => ({ type: 'weather', text: w, active: false })),
-        ...selectedTimes.map(t => ({ type: 'time', text: t, active: false })),
-        { type: 'dust', text: `미세먼지 ${selectedDust}`, active: false }
-      ],
-      forecast: [
-        { day: '오늘', status: 'overcast', hit: false },
-        { day: '내일', status: 'clear', hit: true },
-        { day: '+2', status: 'partly-cloudy', hit: false },
-        { day: '+3', status: 'clear', hit: true },
-        { day: '+4', status: 'rain', hit: false },
-        { day: '+5', status: 'partly-cloudy', hit: false },
-        { day: '+6', status: 'clear', hit: false },
-      ],
-      notifText: notifEnabled ? '설정한 조건에 맞춰 대기 중' : null,
-      thumbnails: ['#1a1530', '#232526', '#2a2020'],
-    };
-
-    setIsDirty(false);
-    setTimeout(() => {
-      const state = navigation.getState();
-      if (state && state.routes.length > 1) {
-        const prevRoute = state.routes[state.routes.length - 2];
-        if (prevRoute.name === 'Wishlist') {
-          navigation.dispatch({
-            ...CommonActions.setParams({ newWishlist }),
-            source: prevRoute.key,
-          });
-          navigation.goBack();
-          return;
-        }
-      }
-      navigation.navigate('Wishlist', { newWishlist }, { merge: true });
-    }, 10);
-  };
-
   const toggleWeather = (w: string) => {
     setSelectedWeathers(prev => prev.includes(w) ? prev.filter(x => x !== w) : [...prev, w]);
     markDirty();
@@ -169,6 +191,15 @@ export default function WishlistSettingScreen({ navigation, route }: any) {
     setSelectedTimes(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t]);
     markDirty();
   };
+
+  if (existingSpotId && isLoading) {
+    return (
+      <SafeAreaView className="flex-1 bg-white items-center justify-center" edges={['top', 'left', 'right', 'bottom']}>
+        <ActivityIndicator size="large" color="#E31B59" />
+        <Text className="text-black/40 mt-3" style={{ fontSize: normalizeFontSize(14) }}>설정을 불러오는 중입니다...</Text>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right', 'bottom']}>
@@ -420,16 +451,9 @@ export default function WishlistSettingScreen({ navigation, route }: any) {
         <View className="px-5 pb-5 pt-2">
           <Text className="font-semibold text-black mb-2" style={{ fontSize: normalizeFontSize(20) }}>위시리스트를 삭제할까요?</Text>
           <Text className="text-black/45 leading-relaxed mb-6" style={{ fontSize: normalizeFontSize(16) }}>{selectedSpot.name} 위시리스트가 삭제돼요. 삭제 후에는 복구할 수 없어요.</Text>
-          <TouchableOpacity onPress={() => {
-            setDeleteModalVisible(false);
-            if (init?.id) {
-              navigation.navigate('Wishlist', { deletedId: init.id }, { merge: true });
-            } else {
-              navigation.goBack();
-            }
-          }} className="bg-[#ff453a]/10 items-center justify-center mb-2.5" style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}>
-            <Text className="font-medium text-[#ff453a]" style={{ fontSize: normalizeFontSize(16) }}>삭제하기</Text>
-          </TouchableOpacity>
+          <TouchableOpacity onPress={handleDeleteConfirm} className="bg-[#ff453a]/10 items-center justify-center mb-2.5" style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}>
+                <Text className="font-medium text-[#ff453a]" style={{ fontSize: normalizeFontSize(16) }}>삭제하기</Text>
+              </TouchableOpacity>
           <TouchableOpacity onPress={() => setDeleteModalVisible(false)} className="bg-[#f5f5f7] items-center justify-center" style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}>
             <Text className="font-medium text-black/50" style={{ fontSize: normalizeFontSize(16) }}>취소</Text>
           </TouchableOpacity>
