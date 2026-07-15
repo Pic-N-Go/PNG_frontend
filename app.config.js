@@ -60,6 +60,9 @@ module.exports = {
         {
           android: {
             extraMavenRepos: ['https://devrepo.kakao.com/nexus/content/groups/public/'],
+            packagingOptions: {
+              pickFirst: ['lib/**/libc++_shared.so']
+            }
           },
         },
       ],
