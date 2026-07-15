@@ -75,11 +75,13 @@ export const mapWishlistToUI = (data: WishlistSettingResponse) => {
   }
 
   const conditions = [
-    ...(data.weatherConditions || []).map((w) => ({
-      type: 'weather',
-      text: WEATHER_API_TO_UI[w] || w,
-      active: true,
-    })),
+    ...(data.weatherConditions || [])
+      .filter((w) => !!WEATHER_API_TO_UI[w])
+      .map((w) => ({
+        type: 'weather',
+        text: WEATHER_API_TO_UI[w] as string,
+        active: true,
+      })),
     ...(data.timeConditions || []).map((t) => ({
       type: 'time',
       text: TIME_API_TO_UI[t] || t,
