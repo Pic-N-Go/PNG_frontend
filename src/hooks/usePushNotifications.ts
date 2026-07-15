@@ -28,7 +28,7 @@ export const usePushNotifications = () => {
         let enabled = false;
 
         if (Platform.OS === 'android') {
-          if (Platform.Version >= 33) {
+          if (Number(Platform.Version) >= 33) {
             const hasPermission = await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
             const hasAsked = await AsyncStorage.getItem('hasAskedPushPermission');
             
