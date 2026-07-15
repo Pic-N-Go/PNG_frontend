@@ -4,70 +4,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { FONT_SM, FONT_2XL, BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING, CARD_RADIUS } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { IconPlus, IconChevronRight, IconCalendarEvent, IconMapPin, IconClock, IconRoute, IconZoomPan } from '@tabler/icons-react-native';
-const dummyPlans = [
-  {
-    id: 1,
-    title: '부산 1박 2일',
-    date: '2026.05.17 ~ 05.18',
-    duration: '1박 2일',
-    spots: 3,
-    estimatedTime: '예상 12시간',
-    distance: '142km',
-    status: 'active',
-    statusText: '진행 중',
-    progressText: 'DAY 1 진행 중 · 다음 스팟: 해동용궁사',
-    thumbnails: [
-      'https://images.unsplash.com/photo-1598514982205-f36b96d1e8dd?q=80&w=200&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1616850478052-a5e2f7ef3bd9?q=80&w=200&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1598858546197-2b73bc36ed58?q=80&w=200&auto=format&fit=crop',
-    ],
-  },
-  {
-    id: 2,
-    title: '서울 야경 투어',
-    date: '2026.05.28',
-    duration: '당일치기',
-    spots: 5,
-    estimatedTime: '예상 4시간',
-    distance: '12km',
-    status: 'upcoming',
-    statusText: 'D-5',
-    progressText: null,
-    thumbnails: [
-      'https://images.unsplash.com/photo-1538485399081-7191377e8241?q=80&w=200&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1610311756586-81e8eb9f3152?q=80&w=200&auto=format&fit=crop',
-      'https://images.unsplash.com/photo-1582236968962-d2f1f58b9cf6?q=80&w=200&auto=format&fit=crop',
-    ],
-  },
-  {
-    id: 3,
-    title: '제주도 힐링 코스',
-    date: '2026.04.10 ~ 04.12',
-    duration: '2박 3일',
-    spots: 12,
-    estimatedTime: '예상 32시간',
-    distance: '320km',
-    status: 'past',
-    statusText: '완료',
-    progressText: null,
-    thumbnails: [
-      'https://images.unsplash.com/photo-1600758208050-a35f99478f68?q=80&w=200&auto=format&fit=crop',
-    ],
-  },
-  {
-    id: 4,
-    title: '경주 역사 탐방',
-    date: '2026.03.01',
-    duration: '당일치기',
-    spots: 4,
-    estimatedTime: '예상 6시간',
-    distance: '45km',
-    status: 'past',
-    statusText: '완료',
-    progressText: null,
-    thumbnails: [],
-  },
-];
+import { useQuery } from '@tanstack/react-query';
+import { useFocusEffect } from '@react-navigation/native';
+import { coursesApi } from '@/api/courses';
 
 const TABS = [
   { id: 'all', label: '전체' },
@@ -76,12 +15,73 @@ const TABS = [
   { id: 'past', label: '지난 출사' },
 ];
 
+function getCourseStatus(startDate: string, endDate: string) {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const start = new Date(startDate);
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(endDate);
+  end.setHours(0, 0, 0, 0);
+
+  if (today > end) {
+    return { status: 'past', statusText: '완료' };
+  } else if (today >= start && today <= end) {
+    return { status: 'active', statusText: '진행 중' };
+  } else {
+    const diffTime = start.getTime() - today.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return { status: 'upcoming', statusText: `D-${diffDays}` };
+  }
+}
+
+function getCourseDuration(startDate: string, endDate: string) {
+  const start = new Date(startDate);
+  start.setHours(0, 0, 0, 0);
+  const end = new Date(endDate);
+  end.setHours(0, 0, 0, 0);
+  const diffTime = end.getTime() - start.getTime();
+  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+  if (diffDays === 0) return '당일치기';
+  return `${diffDays}박 ${diffDays + 1}일`;
+}
+
 export default function TravelListScreen({ navigation }: any) {
   const [activeTab, setActiveTab] = useState('all');
   const scrollY = useRef(new Animated.Value(0)).current;
 
-  // 더미 데이터를 탭에 맞게 필터링
-  const filteredPlans = dummyPlans.filter((plan) => {
+  const { data: courses = [], refetch } = useQuery({
+    queryKey: ['courses'],
+    queryFn: coursesApi.getCourses,
+  });
+
+  useFocusEffect(
+    React.useCallback(() => {
+      refetch();
+    }, [refetch])
+  );
+
+  const plans = courses.map((course) => {
+    const { status, statusText } = getCourseStatus(course.startDate, course.endDate);
+    const dateFormatted = `${course.startDate.replace(/-/g, '.')} ~ ${course.endDate.substring(5).replace(/-/g, '.')}`;
+    const durationFormatted = getCourseDuration(course.startDate, course.endDate);
+    
+    return {
+      id: course.id,
+      title: course.title,
+      date: dateFormatted,
+      duration: durationFormatted,
+      spots: course.spots?.length ?? 0,
+      estimatedTime: '-',
+      distance: '-',
+      status,
+      statusText,
+      progressText: null,
+      thumbnails: [] as string[],
+    };
+  });
+
+  // API 데이터를 탭에 맞게 필터링
+  const filteredPlans = plans.filter((plan) => {
     if (activeTab === 'all') return true;
     return plan.status === activeTab;
   });
@@ -159,8 +159,8 @@ export default function TravelListScreen({ navigation }: any) {
                 const isActive = activeTab === tab.id;
                 const count =
                   tab.id === 'all'
-                    ? dummyPlans.length
-                    : dummyPlans.filter((p) => p.status === tab.id).length;
+                    ? plans.length
+                    : plans.filter((p) => p.status === tab.id).length;
 
                 return (
                   <TouchableOpacity
