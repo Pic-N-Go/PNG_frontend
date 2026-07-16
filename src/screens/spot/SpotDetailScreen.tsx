@@ -182,7 +182,7 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
                       newSpot: {
                         id: spot.id,
                         name: spot.name,
-                        loc: spot.address.split(' ').slice(0, 2).join(' '),
+                        loc: spot.address?.split(' ').slice(0, 2).join(' ') ?? '',
                         score: photogenic?.score ?? 0,
                       }
                     });
