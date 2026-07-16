@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, ScrollView, Pressable, Switch } from 'react-native';
+import { View, Text, ScrollView, Pressable, Switch, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -9,7 +9,7 @@ import {
   IconBell, IconSun, IconMessageCircle,
   IconMoon, IconCurrentLocation, IconBan,
   IconMessage2Question, IconInfoCircle, IconLogout, IconTrash,
-  IconX, IconCheck,
+  IconX, IconCheck, IconRefresh,
 } from '@tabler/icons-react-native';
 import BottomSheet from '@/components/common/BottomSheet';
 import { MyPageStackParamList } from '@/navigation/stacks/MyPageStack';
@@ -30,6 +30,7 @@ export default function SettingScreen({ navigation }: Props) {
   const { unreadCount } = useInquiries();
   const [dndTimeSheetVisible, setDndTimeSheetVisible] = React.useState(false);
   const [dndRepeatSheetVisible, setDndRepeatSheetVisible] = React.useState(false);
+  const [versionSheetVisible, setVersionSheetVisible] = React.useState(false);
 
   const handlePress = (key: string) => {
     // TODO: profile/email/password/themes/social/location/block/faq-*/version/logout/delete-account 내비게이션 연결
@@ -55,7 +56,7 @@ export default function SettingScreen({ navigation }: Props) {
         <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: SPACING_LG }}>
           <SectionLabel text="계정" />
           <Card>
-            <SettingRow icon={IconUser} label="프로필 편집" desc="이미지, 닉네임, 소개 수정" chevron onPress={() => handlePress('profile')} />
+            <SettingRow icon={IconUser} label="프로필 편집" desc="이미지, 닉네임, 소개 수정" chevron onPress={() => navigation.navigate('ProfileEdit')} />
             <SettingRow icon={IconMail} label="이메일 변경" desc="sunset_jk@gmail.com" chevron onPress={() => handlePress('email')} />
             <SettingRow icon={IconLock} label="비밀번호 변경" chevron onPress={() => handlePress('password')} />
             <SettingRow icon={IconAdjustmentsHorizontal} iconBg="#fde3ec" iconColor={BRAND} label="관심 테마" desc="홈 피드 및 추천에 반영" chevron onPress={() => handlePress('themes')} />
@@ -114,18 +115,13 @@ export default function SettingScreen({ navigation }: Props) {
           </Card>
         </View>
 
-        {/* ── 자주 묻는 질문 (v2: 헤더 카드 제거, 섹션 라벨로) ── */}
+        {/* ── 자주 묻는 질문 (v3: 전체 보기를 섹션 헤더 우측 링크로 이동) ── */}
         <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: SPACING_LG }}>
-          <SectionLabel text="자주 묻는 질문" />
+          <SectionLabel text="자주 묻는 질문" actionLabel="전체 보기" onActionPress={() => navigation.navigate('FAQ')} />
           <Card>
-            <SettingRow label="포토제닉 점수는 어떻게 계산되나요?" chevron onPress={() => handlePress('faq-detail-1')} />
-            <SettingRow label="위시리스트 알림이 오지 않아요." chevron onPress={() => handlePress('faq-detail-2')} />
-            <SettingRow label="게시물이나 댓글을 신고하려면?" chevron onPress={() => handlePress('faq-detail-3')} />
-            <SettingRow
-              label="FAQ 전체 보기"
-              right={<Text style={{ fontSize: FONT_SM, color: BRAND, fontWeight: '600', marginRight: normalize(6) }}>더 보기</Text>}
-              chevron onPress={() => handlePress('faq-all')}
-            />
+            <SettingRow label="포토제닉 점수는 어떻게 계산되나요?" chevron onPress={() => navigation.navigate('FAQ')} />
+            <SettingRow label="위시리스트 알림이 오지 않아요." chevron onPress={() => navigation.navigate('FAQ')} />
+            <SettingRow label="게시물이나 댓글을 신고하려면?" chevron onPress={() => navigation.navigate('FAQ')} />
           </Card>
         </View>
 
@@ -150,7 +146,7 @@ export default function SettingScreen({ navigation }: Props) {
         <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: SPACING_LG, paddingBottom: SPACING_LG }}>
           <SectionLabel text="기타" />
           <Card>
-            <SettingRow icon={IconInfoCircle} iconBg={NEUTRAL_ICON_BG} iconColor={NEUTRAL_ICON_FG} label="버전 정보" desc="v1.0.0 (최신)" chevron onPress={() => handlePress('version')} />
+            <SettingRow icon={IconInfoCircle} iconBg={NEUTRAL_ICON_BG} iconColor={NEUTRAL_ICON_FG} label="버전 정보" desc="v1.0.0 (최신)" chevron onPress={() => setVersionSheetVisible(true)} />
             <SettingRow icon={IconLogout} iconBg={NEUTRAL_ICON_BG} iconColor={NEUTRAL_ICON_FG} label="로그아웃" chevron onPress={() => handlePress('logout')} />
             <SettingRow
               icon={IconTrash} iconBg="rgba(255,69,58,0.08)" iconColor={DANGER}
@@ -174,23 +170,37 @@ export default function SettingScreen({ navigation }: Props) {
         initial={{ preset: settings.dnd.repeatPreset, days: settings.dnd.repeatDays }}
         onConfirm={({ preset, days }) => setDndRepeat(preset, days)}
       />
+      <VersionInfoSheet
+        visible={versionSheetVisible}
+        onClose={() => setVersionSheetVisible(false)}
+        onOpenDoc={(route) => {
+          setVersionSheetVisible(false);
+          navigation.navigate(route);
+        }}
+      />
     </SafeAreaView>
   );
 }
 
 /* ---------- primitives ---------- */
 
-function SectionLabel({ text }: { text: string }) {
+function SectionLabel({ text, actionLabel, onActionPress }: { text: string; actionLabel?: string; onActionPress?: () => void }) {
+  const labelStyle = {
+    fontSize: FONT_XS, fontWeight: '600' as const,
+    color: 'rgba(0,0,0,0.3)', letterSpacing: 0.4,
+  };
+  if (!actionLabel) {
+    return <Text style={{ ...labelStyle, marginBottom: normalize(8) }}>{text}</Text>;
+  }
+  // 섹션 헤더 우측 "전체 보기 ›" 링크 (iOS 설정·App Store 표준 패턴)
   return (
-    <Text
-      style={{
-        fontSize: FONT_XS, fontWeight: '600',
-        color: 'rgba(0,0,0,0.3)', letterSpacing: 0.4,
-        marginBottom: normalize(8),
-      }}
-    >
-      {text}
-    </Text>
+    <View className="flex-row items-center justify-between" style={{ marginBottom: normalize(8) }}>
+      <Text style={labelStyle}>{text}</Text>
+      <Pressable onPress={onActionPress} hitSlop={8} className="flex-row items-center" style={{ paddingVertical: normalize(2), paddingLeft: normalize(8) }}>
+        <Text style={{ fontSize: FONT_SM, fontWeight: '500', color: 'rgba(0,0,0,0.48)' }}>{actionLabel}</Text>
+        <IconChevronRight size={normalize(14)} color="rgba(0,0,0,0.28)" strokeWidth={2} />
+      </Pressable>
+    </View>
   );
 }
 
@@ -547,5 +557,82 @@ function DndRepeatSheet({ visible, onClose, initial, onConfirm }: DndRepeatSheet
         </Pressable>
       </View>
     </BottomSheet>
+  );
+}
+
+/* ---------- 버전 정보 시트 (앱 메타 카드 + 약관·정책 카드, 그랩 핸들만) ---------- */
+
+type DocRoute = 'TermsOfService' | 'PrivacyPolicy' | 'OpenSourceLicenses';
+
+function VersionInfoSheet({ visible, onClose, onOpenDoc }: { visible: boolean; onClose: () => void; onOpenDoc: (route: DocRoute) => void }) {
+  const checkUpdate = () => {
+    // TODO: 실서비스 — 스토어 최신 버전과 비교 후 구버전이면 스토어 딥링크(itms-apps:// / market://). codepush 사용 시 여기서 check.
+    Alert.alert('업데이트 확인', '최신 버전을 사용 중이에요.');
+  };
+
+  return (
+    <BottomSheet visible={visible} onClose={onClose}>
+      <View style={{ paddingHorizontal: normalize(20), paddingBottom: normalize(8) }}>
+        <Text className="font-semibold text-black" style={{ fontSize: FONT_XL, letterSpacing: -0.3, marginBottom: normalize(18) }}>버전 정보</Text>
+
+        {/* 그룹 1: 앱 메타 */}
+        <View className="bg-[#f5f5f7]" style={{ borderRadius: normalize(14), paddingHorizontal: normalize(16) }}>
+          <VersionRow label="앱 버전" value="v1.0.0" />
+          <VersionRow label="업데이트 상태" status />
+          <VersionRow label="출시일" value="2026.05.01" />
+          <VersionRow label="개발사" value="多多益Shot" last />
+        </View>
+
+        {/* 업데이트 확인 */}
+        <View className="items-center" style={{ paddingTop: normalize(14), paddingBottom: normalize(4) }}>
+          <Pressable onPress={checkUpdate} hitSlop={8} className="flex-row items-center" style={{ gap: normalize(6), paddingVertical: normalize(6), paddingHorizontal: normalize(12) }}>
+            <IconRefresh size={normalize(14)} color="rgba(0,0,0,0.5)" strokeWidth={2} />
+            <Text style={{ fontSize: FONT_SM, fontWeight: '500', color: 'rgba(0,0,0,0.55)' }}>업데이트 확인</Text>
+          </Pressable>
+        </View>
+
+        {/* 그룹 2: 약관 및 정책 */}
+        <View style={{ marginTop: normalize(12) }}>
+          <Text style={{ fontSize: FONT_XS, fontWeight: '500', color: 'rgba(0,0,0,0.4)', paddingHorizontal: normalize(12), paddingBottom: normalize(6) }}>약관 및 정책</Text>
+          <View className="overflow-hidden border border-black/5 bg-white" style={{ borderRadius: normalize(14) }}>
+            <DocRow label="이용약관" onPress={() => onOpenDoc('TermsOfService')} />
+            <DocRow label="개인정보처리방침" onPress={() => onOpenDoc('PrivacyPolicy')} divider />
+            <DocRow label="오픈소스 라이선스" onPress={() => onOpenDoc('OpenSourceLicenses')} divider />
+          </View>
+        </View>
+      </View>
+    </BottomSheet>
+  );
+}
+
+function VersionRow({ label, value, status, last }: { label: string; value?: string; status?: boolean; last?: boolean }) {
+  return (
+    <View
+      className="flex-row items-center justify-between"
+      style={{ paddingVertical: normalize(14), borderBottomWidth: last ? 0 : 1, borderBottomColor: 'rgba(0,0,0,0.06)' }}
+    >
+      <Text style={{ fontSize: FONT_MD, color: 'rgba(0,0,0,0.55)' }}>{label}</Text>
+      {status ? (
+        <View className="flex-row items-center" style={{ gap: normalize(6) }}>
+          <View style={{ width: normalize(6), height: normalize(6), borderRadius: normalize(3), backgroundColor: '#22a05a' }} />
+          <Text className="font-semibold" style={{ fontSize: FONT_SM, color: '#22a05a' }}>최신 버전</Text>
+        </View>
+      ) : (
+        <Text className="font-semibold text-black" style={{ fontSize: FONT_SM }}>{value}</Text>
+      )}
+    </View>
+  );
+}
+
+function DocRow({ label, onPress, divider }: { label: string; onPress: () => void; divider?: boolean }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      className="flex-row items-center justify-between"
+      style={{ paddingVertical: normalize(14), paddingHorizontal: normalize(16), borderTopWidth: divider ? 1 : 0, borderTopColor: 'rgba(0,0,0,0.06)' }}
+    >
+      <Text className="font-medium text-black" style={{ fontSize: FONT_MD }}>{label}</Text>
+      <IconChevronRight size={normalize(16)} color="rgba(0,0,0,0.35)" strokeWidth={2} />
+    </Pressable>
   );
 }
