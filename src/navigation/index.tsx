@@ -8,6 +8,7 @@ import WishlistScreen from '@/screens/wishlist/WishlistScreen';
 import WishlistSettingScreen from '@/screens/wishlist/WishlistSettingScreen';
 import MapScreen from '@/screens/home/MapScreen';
 import { useAuthStore } from '@/store/useAuthStore';
+import { usePushNotifications } from '@/hooks/usePushNotifications';
 
 export type RootStackParamList = {
   Main: undefined;
@@ -22,6 +23,9 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 export default function RootNavigator() {
   const isLoggedIn = useAuthStore((s) => !!s.accessToken);
   const [hydrated, setHydrated] = React.useState(false);
+
+  // 푸시 알림 초기화 및 토큰 갱신 훅 호출
+  usePushNotifications();
 
   React.useEffect(() => {
     const unsub = useAuthStore.persist.onFinishHydration(() => setHydrated(true));

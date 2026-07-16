@@ -28,7 +28,7 @@ export type EmailVerificationResponse = {
   verificationCode: string | null;
 };
 
-const TIMEOUT_MS = 10_000;
+const TIMEOUT_MS = 30_000;
 
 // 백엔드가 응답한 에러(ErrorResponse.message)만 이 타입으로 던져짐 — 네트워크 단절/타임아웃 등
 // fetch 자체 실패는 일반 Error/DOMException이라 구분되고, 사용자에게 영어 원문 대신 한글 기본 메시지를 보여줄 수 있음.
