@@ -5,7 +5,7 @@ const globals = require("globals");
 module.exports = defineConfig([
   ...expoConfig,
   {
-    ignores: ["dist/*"],
+    ignores: ["dist/*", ".claude/**"],
   },
   {
     files: ["scripts/**/*.js"],
