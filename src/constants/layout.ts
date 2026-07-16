@@ -26,6 +26,7 @@ export const ICON_MD = normalize(22);
 export const ICON_LG = normalize(28);
 
 // ── 폰트 크기 ────────────────────────────────
+export const FONT_2XS = normalizeFontSize(10); // 배지·태그 전용
 export const FONT_XS = normalizeFontSize(11);
 export const FONT_SM = normalizeFontSize(13);
 export const FONT_MD = normalizeFontSize(15);

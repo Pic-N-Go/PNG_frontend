@@ -15,8 +15,8 @@ import BottomSheet from '@/components/common/BottomSheet';
 import { MyPageStackParamList } from '@/navigation/stacks/MyPageStack';
 import { useNotificationSettings, DndRepeatPreset } from '@/hooks/useNotificationSettings';
 import { useInquiries } from '@/hooks/useInquiries';
-import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { FONT_MD, FONT_LG, FONT_XL, GRID_PADDING, SPACING_LG, SPACING_SM, CARD_RADIUS, BUTTON_HEIGHT, BUTTON_RADIUS } from '@/constants/layout';
+import { normalize } from '@/utils/normalize';
+import { FONT_2XS, FONT_XS, FONT_SM, FONT_MD, FONT_LG, FONT_XL, GRID_PADDING, SPACING_LG, SPACING_SM, CARD_RADIUS, BUTTON_HEIGHT, BUTTON_RADIUS } from '@/constants/layout';
 
 type Props = NativeStackScreenProps<MyPageStackParamList, 'Setting'>;
 
@@ -85,7 +85,7 @@ export default function SettingScreen({ navigation }: Props) {
             <SettingRow
               indent
               label="시간"
-              right={<Text style={{ fontSize: normalizeFontSize(13), color: 'rgba(0,0,0,0.35)', marginRight: normalize(6) }}>{settings.dnd.start} ~ {settings.dnd.end}</Text>}
+              right={<Text style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.35)', marginRight: normalize(6) }}>{settings.dnd.start} ~ {settings.dnd.end}</Text>}
               chevron onPress={() => setDndTimeSheetVisible(true)}
             />
             <SettingRow
@@ -95,7 +95,7 @@ export default function SettingScreen({ navigation }: Props) {
               chevron onPress={() => setDndRepeatSheetVisible(true)}
             />
           </Card>
-          <Text style={{ fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.35)', marginTop: normalize(8), lineHeight: normalize(18) }}>
+          <Text style={{ fontSize: FONT_XS, color: 'rgba(0,0,0,0.35)', marginTop: normalize(8), lineHeight: normalize(18) }}>
             이 시간에는 위시리스트·골든아워·커뮤니티 알림이 모두 오지 않아요.
           </Text>
         </View>
@@ -107,7 +107,7 @@ export default function SettingScreen({ navigation }: Props) {
             <SettingRow
               icon={IconCurrentLocation} iconBg="#e0f0dc" iconColor="#5a9855"
               label="위치 권한" desc="앱 사용 중 허용"
-              right={<Text style={{ fontSize: normalizeFontSize(13), color: 'rgba(0,0,0,0.35)', marginRight: normalize(6) }}>허용됨</Text>}
+              right={<Text style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.35)', marginRight: normalize(6) }}>허용됨</Text>}
               chevron onPress={() => handlePress('location')}
             />
             <SettingRow icon={IconBan} label="차단 목록" desc="차단한 사용자 관리" chevron onPress={() => handlePress('block')} />
@@ -123,7 +123,7 @@ export default function SettingScreen({ navigation }: Props) {
             <SettingRow label="게시물이나 댓글을 신고하려면?" chevron onPress={() => handlePress('faq-detail-3')} />
             <SettingRow
               label="FAQ 전체 보기"
-              right={<Text style={{ fontSize: normalizeFontSize(13), color: BRAND, fontWeight: '600', marginRight: normalize(6) }}>더 보기</Text>}
+              right={<Text style={{ fontSize: FONT_SM, color: BRAND, fontWeight: '600', marginRight: normalize(6) }}>더 보기</Text>}
               chevron onPress={() => handlePress('faq-all')}
             />
           </Card>
@@ -138,7 +138,7 @@ export default function SettingScreen({ navigation }: Props) {
               label="1:1 문의" desc="평균 응답 시간 24시간 이내"
               right={unreadCount > 0 ? (
                 <View className="items-center justify-center rounded-full bg-[#E31B59]" style={{ height: normalize(20), paddingHorizontal: normalize(8), marginRight: normalize(6) }}>
-                  <Text className="font-semibold text-white" style={{ fontSize: normalizeFontSize(11) }}>{unreadCount}</Text>
+                  <Text className="font-semibold text-white" style={{ fontSize: FONT_2XS }}>{unreadCount}</Text>
                 </View>
               ) : undefined}
               chevron onPress={() => navigation.navigate('Inquiry')}
@@ -184,7 +184,7 @@ function SectionLabel({ text }: { text: string }) {
   return (
     <Text
       style={{
-        fontSize: normalizeFontSize(12), fontWeight: '600',
+        fontSize: FONT_XS, fontWeight: '600',
         color: 'rgba(0,0,0,0.3)', letterSpacing: 0.4,
         marginBottom: normalize(8),
       }}
@@ -251,7 +251,7 @@ function SettingRow({
           </Text>
         )}
         {desc && (
-          <Text className="mt-0.5" style={{ fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.38)' }}>
+          <Text className="mt-0.5" style={{ fontSize: FONT_XS, color: 'rgba(0,0,0,0.38)' }}>
             {desc}
           </Text>
         )}
@@ -328,7 +328,7 @@ function DndTimeSheet({ visible, onClose, initial, onConfirm }: DndTimeSheetProp
         </Pressable>
       </View>
 
-      <Text style={{ paddingHorizontal: normalize(20), fontSize: normalizeFontSize(11), color: '#8a8a8e' }}>
+      <Text style={{ paddingHorizontal: normalize(20), fontSize: FONT_XS, color: '#8a8a8e' }}>
         설정한 시간 동안 알림을 보내지 않아요
       </Text>
 
@@ -340,11 +340,11 @@ function DndTimeSheet({ visible, onClose, initial, onConfirm }: DndTimeSheetProp
 
       <View className="items-center" style={{ marginTop: normalize(14), paddingHorizontal: normalize(20) }}>
         {crossMidnight && (
-          <Text style={{ fontSize: normalizeFontSize(13), color: BRAND, fontWeight: '500' }}>
+          <Text style={{ fontSize: FONT_SM, color: BRAND, fontWeight: '500' }}>
             자정을 넘어 다음 날 {end}까지
           </Text>
         )}
-        <Text style={{ fontSize: normalizeFontSize(11), color: '#8a8a8e', marginTop: crossMidnight ? normalize(4) : 0 }}>
+        <Text style={{ fontSize: FONT_XS, color: '#8a8a8e', marginTop: crossMidnight ? normalize(4) : 0 }}>
           총 {formatDuration(totalMin)} 동안 알림이 꺼져요
         </Text>
       </View>
@@ -367,7 +367,7 @@ function TimeRow({ label, value, onChange }: { label: string; value: string; onC
   return (
     <View className="flex-row items-center" style={{ paddingHorizontal: normalize(20), paddingVertical: normalize(14) }}>
       <View style={{ flex: 1 }}>
-        <Text style={{ fontSize: normalizeFontSize(11), color: '#8a8a8e' }}>{label}</Text>
+        <Text style={{ fontSize: FONT_XS, color: '#8a8a8e' }}>{label}</Text>
       </View>
       <View className="flex-row items-center" style={{ gap: normalize(8) }}>
         <Wheel items={HOURS} value={h} onChange={(v) => onChange(`${v}:${m}`)} />
@@ -515,7 +515,7 @@ function DndRepeatSheet({ visible, onClose, initial, onConfirm }: DndRepeatSheet
 
       {preset === 'custom' && (
         <View className="bg-[#f5f5f7]" style={{ marginHorizontal: normalize(20), marginTop: normalize(12), borderRadius: normalize(16), padding: normalize(16) }}>
-          <Text style={{ fontSize: normalizeFontSize(11), color: '#8a8a8e', marginBottom: normalize(12) }}>알림을 끌 요일을 선택하세요</Text>
+          <Text style={{ fontSize: FONT_XS, color: '#8a8a8e', marginBottom: normalize(12) }}>알림을 끌 요일을 선택하세요</Text>
           <View className="flex-row justify-between">
             {DOW.map((d, i) => {
               const on = days.includes(i);
@@ -526,13 +526,13 @@ function DndRepeatSheet({ visible, onClose, initial, onConfirm }: DndRepeatSheet
                   className="items-center justify-center rounded-full"
                   style={{ width: normalize(36), height: normalize(36), backgroundColor: on ? BRAND : '#fff', borderWidth: on ? 0 : 1, borderColor: 'rgba(0,0,0,0.08)' }}
                 >
-                  <Text style={{ fontSize: normalizeFontSize(13), fontWeight: '600', color: on ? '#fff' : '#111111' }}>{d}</Text>
+                  <Text style={{ fontSize: FONT_SM, fontWeight: '600', color: on ? '#fff' : '#111111' }}>{d}</Text>
                 </Pressable>
               );
             })}
           </View>
           {days.length === 0 && (
-            <Text style={{ fontSize: normalizeFontSize(11), color: BRAND, marginTop: normalize(10) }}>최소 1개 요일을 선택해 주세요</Text>
+            <Text style={{ fontSize: FONT_XS, color: BRAND, marginTop: normalize(10) }}>최소 1개 요일을 선택해 주세요</Text>
           )}
         </View>
       )}
