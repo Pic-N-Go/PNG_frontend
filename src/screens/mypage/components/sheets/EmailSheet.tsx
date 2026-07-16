@@ -1,0 +1,86 @@
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity } from 'react-native';
+import BottomSheet from '@/components/common/BottomSheet';
+import { IconX } from '@tabler/icons-react-native';
+import { normalize, normalizeFontSize } from '@/utils/normalize';
+import { FONT_MD, BUTTON_HEIGHT, BUTTON_RADIUS } from '@/constants/layout';
+
+interface EmailSheetProps {
+  visible: boolean;
+  onClose: () => void;
+  onSendAuth: (email: string, pw: string) => void;
+}
+
+export default function EmailSheet({ visible, onClose, onSendAuth }: EmailSheetProps) {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  return (
+    <BottomSheet visible={visible} onClose={onClose}>
+      <View style={{ paddingHorizontal: normalize(20) }}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: normalize(16) }}>
+          <Text className="font-semibold text-black tracking-tight" style={{ fontSize: normalizeFontSize(20) }}>
+            이메일 변경
+          </Text>
+          <TouchableOpacity onPress={onClose} style={{ padding: normalize(4) }}>
+            <IconX size={normalize(24)} color="rgba(0,0,0,0.4)" strokeWidth={2} />
+          </TouchableOpacity>
+        </View>
+
+        <View style={{ marginBottom: normalize(14) }}>
+          <Text className="font-medium tracking-tight mb-1.5" style={{ fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.4)' }}>
+            새 이메일
+          </Text>
+          <TextInput
+            placeholder="새 이메일 주소 입력"
+            placeholderTextColor="rgba(0,0,0,0.25)"
+            value={email}
+            onChangeText={setEmail}
+            style={{
+              height: BUTTON_HEIGHT,
+              borderRadius: normalize(12),
+              backgroundColor: '#f8f8f9',
+              paddingHorizontal: normalize(14),
+              fontSize: FONT_MD,
+              color: '#000',
+            }}
+          />
+        </View>
+
+        <View style={{ marginBottom: normalize(14) }}>
+          <Text className="font-medium tracking-tight mb-1.5" style={{ fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.4)' }}>
+            비밀번호 확인
+          </Text>
+          <TextInput
+            placeholder="현재 비밀번호 입력"
+            placeholderTextColor="rgba(0,0,0,0.25)"
+            secureTextEntry
+            value={password}
+            onChangeText={setPassword}
+            style={{
+              height: BUTTON_HEIGHT,
+              borderRadius: normalize(12),
+              backgroundColor: '#f8f8f9',
+              paddingHorizontal: normalize(14),
+              fontSize: FONT_MD,
+              color: '#000',
+            }}
+          />
+        </View>
+
+        <Text className="tracking-tight mt-1" style={{ fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.35)', lineHeight: normalize(18) }}>
+          변경 후 새 이메일로 인증 메일이 발송돼요.
+        </Text>
+
+        <TouchableOpacity
+          onPress={() => onSendAuth(email, password)}
+          className="w-full items-center justify-center bg-[#E31B59] mt-3"
+          style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}
+        >
+          <Text className="font-medium text-white tracking-tight" style={{ fontSize: FONT_MD }}>
+            인증 메일 발송
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </BottomSheet>
+  );
+}

@@ -63,3 +63,8 @@ android/app/debug.keystore
 # AI
 .cursor
 docs/ai/doc-sync-reports/
+
+# Firebase (API 키 포함 — 절대 원격에 올리지 않음)
+google-services.json
+GoogleService-Info.plist
+android/app/google-services.json

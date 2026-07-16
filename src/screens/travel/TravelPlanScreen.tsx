@@ -1,5 +1,9 @@
-import React, { useState, useRef } from "react";
-import { View, Text, TouchableOpacity, ScrollView, Alert } from "react-native";
+import React, { useState, useRef, useEffect } from "react";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { useFocusEffect } from "@react-navigation/native";
+import { View, Text, TouchableOpacity, ScrollView, Alert, ActionSheetIOS, Platform } from "react-native";
+import { coursesApi } from "@/api/courses";
+import { useTravelStore } from "@/store/useTravelStore";
 import { useAnimatedRef } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { SvgUri } from "react-native-svg";
@@ -255,11 +259,68 @@ const MOCK_DATA: Record<string, any> = {
   },
 };
 
-export default function TravelPlanScreen({ navigation }: any) {
+function mapCourseToData(course: any) {
+  const result: Record<string, any> = {};
+  if (!course) return MOCK_DATA;
+  
+  const start = new Date(course.startDate);
+  const end = new Date(course.endDate);
+  const diffDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+  
+  for (let i = 1; i <= diffDays; i++) {
+    const curDate = new Date(start.getTime() + (i - 1) * 24 * 60 * 60 * 1000);
+    const dateStr = `${curDate.getMonth() + 1}월 ${curDate.getDate()}일`;
+    
+    const daySpots = (course.spots || [])
+      .filter((s: any) => s.dayNumber === i)
+      .sort((a: any, b: any) => a.sequenceOrder - b.sequenceOrder)
+      .map((s: any) => {
+        const mockSpot = Object.values(MOCK_DATA).flatMap((d: any) => d.spots).find((ms: any) => ms.id === String(s.spotId)) || {};
+        return {
+          id: String(s.id),
+          realSpotId: s.spotId,
+          name: mockSpot.name || `스팟 ${s.spotId}`,
+          loc: mockSpot.loc || "위치 정보 없음",
+          time: mockSpot.time || "10:00 ~ 11:00",
+          dur: mockSpot.dur || "1시간",
+          score: mockSpot.score || "-",
+          scoreColor: mockSpot.scoreColor || "#999",
+          bg: mockSpot.bg || "#ccc",
+          lat: mockSpot.lat || 35.1531696,
+          lng: mockSpot.lng || 129.118666,
+        };
+      });
+
+    result[String(i)] = {
+      date: dateStr,
+      tip: "새로운 출사 계획입니다. 일정을 추가해보세요.",
+      checklist: COMMON_CHECKLIST,
+      spots: daySpots,
+      transports: {},
+    };
+  }
+  return result;
+}
+
+export default function TravelPlanScreen({ navigation, route }: any) {
+  const { planId } = route?.params || {};
   const [currentDay, setCurrentDay] = useState<string>("1");
   const [isEditMode, setIsEditMode] = useState(false);
   const [isDepartModalVisible, setIsDepartModalVisible] = useState(false);
-  const [data, setData] = useState(MOCK_DATA);
+  const [data, setData] = useState<Record<string, any>>(MOCK_DATA);
+
+  const { data: course, refetch } = useQuery({
+    queryKey: ['course', planId],
+    queryFn: () => coursesApi.getCourse(Number(planId)),
+    enabled: !!planId,
+  });
+
+  useEffect(() => {
+    if (course) {
+      setData(mapCourseToData(course));
+    }
+  }, [course]);
+
   const [selectedSpotId, setSelectedSpotId] = useState<string | null>(null);
 
   const scrollRef = useAnimatedRef<ScrollView>();
@@ -329,11 +390,55 @@ export default function TravelPlanScreen({ navigation }: any) {
     );
   };
 
+  const reorderMutation = useMutation({
+    mutationFn: (spotIds: number[]) => coursesApi.reorderSpots(Number(planId), spotIds),
+  });
+
+  const removeSpotMutation = useMutation({
+    mutationFn: (spotId: number) => coursesApi.removeSpotFromCourse(Number(planId), spotId),
+  });
+
+  const deleteCourseMutation = useMutation({
+    mutationFn: () => coursesApi.deleteCourse(Number(planId)),
+    onSuccess: () => {
+      navigation.goBack();
+    },
+  });
+
+  const addSpotMutation = useMutation({
+    mutationFn: (spotData: { spotId: number; dayNumber: number; sequenceOrder: number }) => 
+      coursesApi.addSpotToCourse(Number(planId), spotData),
+    onSuccess: () => refetch(),
+  });
+
+  const { selectedSpots, clearSpots } = useTravelStore();
+
+  useFocusEffect(
+    React.useCallback(() => {
+      if (selectedSpots.length > 0 && planId) {
+        const dayNum = parseInt(currentDay, 10);
+        const spotsLen = data[currentDay]?.spots?.length || 0;
+        
+        selectedSpots.forEach((spot, idx) => {
+          addSpotMutation.mutate({
+            spotId: Number(spot.id),
+            dayNumber: dayNum,
+            sequenceOrder: spotsLen + idx + 1,
+          });
+        });
+        clearSpots();
+      }
+    }, [selectedSpots, currentDay, data, planId, addSpotMutation, clearSpots])
+  );
+
   const reorderSpots = (spots: any[]) => {
     setData((prev) => ({
       ...prev,
       [currentDay]: { ...prev[currentDay], spots },
     }));
+    if (planId) {
+      reorderMutation.mutate(spots.map(s => Number(s.id)));
+    }
   };
 
   const removeSpot = (spotId: string) => {
@@ -349,6 +454,35 @@ export default function TravelPlanScreen({ navigation }: any) {
         },
       };
     });
+    if (planId) {
+      removeSpotMutation.mutate(Number(spotId));
+    }
+  };
+
+  const handleMorePress = () => {
+    if (Platform.OS === 'ios') {
+      ActionSheetIOS.showActionSheetWithOptions(
+        {
+          options: ['취소', '코스 삭제'],
+          destructiveButtonIndex: 1,
+          cancelButtonIndex: 0,
+        },
+        (buttonIndex) => {
+          if (buttonIndex === 1 && planId) {
+            deleteCourseMutation.mutate();
+          }
+        }
+      );
+    } else {
+      Alert.alert(
+        '코스 삭제',
+        '정말로 이 코스를 삭제하시겠습니까?',
+        [
+          { text: '취소', style: 'cancel' },
+          { text: '삭제', style: 'destructive', onPress: () => planId && deleteCourseMutation.mutate() }
+        ]
+      );
+    }
   };
 
   const renderKakaoMapHTML = (
@@ -851,10 +985,10 @@ export default function TravelPlanScreen({ navigation }: any) {
             className="text-[16px] font-semibold tracking-[-0.35px]"
             numberOfLines={1}
           >
-            부산 1박 2일
+            {course?.title || "출사 계획"}
           </Text>
           <Text className="text-[11px] text-black/40 tracking-[-0.1px] mt-[1px]">
-            2026.05.17 (토) ~ 05.18 (일)
+            {course ? `${course.startDate.replace(/-/g, '.')} ~ ${course.endDate.replace(/-/g, '.')}` : "날짜 미정"}
           </Text>
         </View>
         <View className="flex-row gap-1">
@@ -864,7 +998,10 @@ export default function TravelPlanScreen({ navigation }: any) {
           <TouchableOpacity className="w-8 h-8 rounded-full bg-black/5 items-center justify-center">
             <IconMap size={18} color="rgba(0,0,0,0.6)" />
           </TouchableOpacity>
-          <TouchableOpacity className="w-8 h-8 rounded-full bg-black/5 items-center justify-center">
+          <TouchableOpacity 
+            onPress={handleMorePress}
+            className="w-8 h-8 rounded-full bg-black/5 items-center justify-center"
+          >
             <IconDots size={18} color="rgba(0,0,0,0.6)" />
           </TouchableOpacity>
         </View>
