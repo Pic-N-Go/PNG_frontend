@@ -20,7 +20,7 @@ import SaveToPlanSheet from '@/components/spot/SaveToPlanSheet';
 import NaviSheet from '@/components/spot/NaviSheet';
 import ShareSheet from '@/components/spot/ShareSheet';
 import BookmarkSheet from '@/components/spot/BookmarkSheet';
-import { useBookmarkCollections, useSpotDetail } from '@/hooks/useSpot';
+import { useBookmarkCollections, useSpotDetail, useSpotPhotogenicScore } from '@/hooks/useSpot';
 import { BUTTON_RADIUS, GRID_PADDING, TAB_BAR_HEIGHT } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 
@@ -39,6 +39,7 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
   const { data: detail, isLoading, isError, refetch } = useSpotDetail(spotId);
   const spot = detail?.info;
   const convenience = detail?.convenience;
+  const { data: photogenic } = useSpotPhotogenicScore(spotId);
 
   const [activeTab, setActiveTab] = useState<SpotTabKey>('info');
   const [photoLoadSignal, setPhotoLoadSignal] = useState(0);
@@ -178,12 +179,12 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
                   onPress={() => {
                     // @ts-ignore
                     navigation.navigate('WishlistSetting', { 
-                      newSpot: { 
-                        id: MOCK_SPOT.id,
-                        name: MOCK_SPOT.name, 
-                        loc: MOCK_SPOT.address.split(' ').slice(0, 2).join(' '), 
-                        score: MOCK_PHOTOGENIC_SCORE.score,
-                      } 
+                      newSpot: {
+                        id: spot.id,
+                        name: spot.name,
+                        loc: spot.address?.split(' ').slice(0, 2).join(' ') ?? '',
+                        score: photogenic?.score ?? 0,
+                      }
                     });
                   }}
                 />
