@@ -63,3 +63,4 @@ android/app/debug.keystore
 # AI
 .cursor
 docs/ai/doc-sync-reports/
+.claude/design
