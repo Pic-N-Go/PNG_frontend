@@ -13,22 +13,24 @@ interface Props {
 export default function SpotInfoHeader({ spot }: Props) {
   return (
     <View style={{ paddingHorizontal: GRID_PADDING, paddingVertical: normalize(20) }}>
-      <View
-        style={{
-          alignSelf: 'flex-start',
-          height: normalize(24),
-          paddingHorizontal: normalize(10),
-          borderRadius: normalize(6),
-          backgroundColor: 'rgba(227,27,89,0.08)',
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginBottom: normalize(12),
-        }}
-      >
-        <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, color: '#E31B59', letterSpacing: 0.3 }}>
-          {spot.badge}
-        </Text>
-      </View>
+      {spot.badge && (
+        <View
+          style={{
+            alignSelf: 'flex-start',
+            height: normalize(24),
+            paddingHorizontal: normalize(10),
+            borderRadius: normalize(6),
+            backgroundColor: 'rgba(227,27,89,0.08)',
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: normalize(12),
+          }}
+        >
+          <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, color: '#E31B59', letterSpacing: 0.3 }}>
+            {spot.badge}
+          </Text>
+        </View>
+      )}
 
       <Text
         allowFontScaling={false}
