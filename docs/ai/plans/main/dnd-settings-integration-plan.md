@@ -4,7 +4,7 @@
 
 - 스펙 문서: `docs/ai/specs/main/dnd-settings-integration.md`
 - 관련 목업: `src/components/ui/mypage/setting.html`, `src/components/ui/wishlist/wishlist-setting.html`
-- 완료 목표: `SettingScreen`(실구현, DND 시트 인라인 포함), `WishlistSettingScreen`(DND 제거), `useNotificationSettings`(신규 훅), `ContactScreen`(신규), 라우팅 연결, `tsc`/`lint` 통과
+- 완료 목표: `SettingScreen`(실구현, DND 시트 인라인 포함), `WishlistSettingScreen`(DND 제거), `useNotificationSettings`(신규 훅), `Inquiry`/`InquiryDetail`/`ComposeInquiry`(신규, 1:1 문의 목록/상세/작성 플로우), 라우팅 연결, `tsc`/`lint` 통과
 
 ## 2) 구현 전략
 
@@ -55,7 +55,7 @@
   - 알림 카드(위시리스트/골든아워/커뮤니티 알림 토글) — `useNotificationSettings`(Task 1) 사용
   - 개인정보 및 보안 카드(위치 권한/차단 목록)
   - FAQ: 헤더 카드 없이 "자주 묻는 질문" 섹션 라벨만 (v2 변경사항)
-  - 문의: 카드 안 폼 제거, "1:1 문의" 한 줄 행 → `onPress`에서 `navigation.navigate('Contact')` (Task 6과 연동)
+  - 문의: 카드 안 폼 제거, "1:1 문의" 한 줄 행 → `onPress`에서 `navigation.navigate('Inquiry')` (Task 6과 연동)
   - 기타 섹션: 버전 정보 + 로그아웃 + 회원 탈퇴 한 카드로 통합, 회원 탈퇴 행은 기존 `#ff453a` 사용(신규 토큰 없음)
   - 고객센터 아이콘: warm gray 톤(`#eef0f2` / `#615d59`) 통일
   - 전부 `className` + `normalize()`/`normalizeFontSize()`로 작성 (참고 파일 인라인 style 포팅 금지)
@@ -92,17 +92,22 @@
 - 완료 조건: "반복" 행 탭 → 시트 오픈 → 프리셋/요일 선택 → 저장 → 행 라벨 갱신까지 동작. 요일 0개면 저장 차단.
 - 검증 방법: `pnpm exec tsc --noEmit`. 시뮬레이터에서 프리셋 전환, 요일 0개 경고, 저장 후 라벨 확인.
 
-### Task 6 — `ContactScreen.tsx` 신규 + 라우팅 연결
+### Task 6 — `Inquiry`/`InquiryDetail`/`ComposeInquiry` 신규 + 라우팅 연결
 
 - 대상 파일:
-  - `src/screens/mypage/ContactScreen.tsx` (신규)
+  - `src/screens/mypage/InquiryListScreen.tsx` (신규)
+  - `src/screens/mypage/InquiryDetailScreen.tsx` (신규)
+  - `src/screens/mypage/ComposeInquiryScreen.tsx` (신규)
+  - `src/hooks/useInquiries.ts` (신규)
   - `src/navigation/stacks/MyPageStack.tsx`
 - 변경 내용:
-  - `ContactScreen`: 상단 nav(뒤로 + "1:1 문의"), 평균 응답시간 안내 배너, 문의 유형 선택 행(타입 선택 시트는 Out of Scope — `onOpenTypeSheet` prop 자리만 유지), 문의 내용(500자 카운터), 하단 CTA(유형+내용 모두 있어야 활성). `className` + `normalize()`로 작성.
-  - `MyPageStackParamList`에 `Contact: undefined` 추가, `<Stack.Screen name="Contact" component={ContactScreen} />` 등록
-  - `SettingScreen`의 `onPress('contact')` → `navigation.navigate('Contact')`
+  - `InquiryListScreen`: 상단 nav(뒤로 + "1:1 문의"), 상태별 필터 pill(전체/답변 완료/답변 대기), 문의 카드 목록, 우측 상단 작성 진입 버튼
+  - `InquiryDetailScreen`: 문의 원문 + 답변 스레드 표시
+  - `ComposeInquiryScreen`: 문의 유형 선택 행(타입 선택 시트는 Out of Scope — `onOpenTypeSheet` prop 자리만 유지), 문의 내용(500자 카운터), 하단 CTA(유형+내용 모두 있어야 활성). `className` + `normalize()`로 작성.
+  - `MyPageStackParamList`에 `Inquiry: undefined`, `InquiryDetail: { id: string }`, `ComposeInquiry: undefined` 추가, 각 `<Stack.Screen>` 등록
+  - `SettingScreen`의 `onPress('contact')` → `navigation.navigate('Inquiry')`
   - (검증 전용, 커밋 전 되돌림) `MyPageScreen.tsx`에 임시로 `onPress={() => navigation.navigate('Setting')}` 버튼을 하나 추가해 `SettingScreen`에 실기기로 도달 — PR에는 포함하지 않음
-- 완료 조건: `Setting` → "1:1 문의" 탭 → `Contact` 화면까지 네비게이션 스택으로 정상 진입/뒤로가기 가능. `ContactScreen`은 유형+내용 모두 있어야 "문의 보내기" 활성화.
+- 완료 조건: `Setting` → "1:1 문의" 탭 → `Inquiry` 목록 화면까지 네비게이션 스택으로 정상 진입/뒤로가기 가능. `ComposeInquiryScreen`은 유형+내용 모두 있어야 "문의 보내기" 활성화.
 - 검증 방법: 시뮬레이터 수동 확인 + `pnpm exec tsc --noEmit` (타입 파라미터 리스트 일치 확인).
 
 ## 4) 검증 체크포인트
@@ -116,7 +121,7 @@
 
 ## 5) 롤백 계획
 
-- 영향 파일: `src/hooks/useNotificationSettings.ts`(신규), `src/screens/mypage/SettingScreen.tsx`, `src/screens/mypage/ContactScreen.tsx`(신규), `src/screens/wishlist/WishlistSettingScreen.tsx`, `src/navigation/stacks/MyPageStack.tsx`, `src/components/common/BottomSheet.tsx`(옵션 prop 추가, 기존 호출부 영향 없음)
+- 영향 파일: `src/hooks/useNotificationSettings.ts`(신규), `src/hooks/useInquiries.ts`(신규), `src/screens/mypage/SettingScreen.tsx`, `src/screens/mypage/InquiryListScreen.tsx`/`InquiryDetailScreen.tsx`/`ComposeInquiryScreen.tsx`(신규), `src/screens/wishlist/WishlistSettingScreen.tsx`, `src/navigation/stacks/MyPageStack.tsx`, `src/components/common/BottomSheet.tsx`(옵션 prop 추가, 기존 호출부 영향 없음)
 - 되돌림 방법: 신규 파일은 삭제, 수정 파일(`WishlistSettingScreen.tsx`, `MyPageStack.tsx`, `BottomSheet.tsx`)은 `git checkout` 또는 PR revert. `BottomSheet.tsx`는 옵션 prop 추가라 되돌려도 다른 화면에 영향 없음. 로컬 state만 사용하므로 서버/DB 영향 없음.
 - 데이터 영향: 없음 (영속화된 데이터 없음, 앱 재시작 시 초기값으로 리셋)
 
@@ -125,7 +130,7 @@
 - PR 제목(컨벤션): `feat: 방해 금지 설정 전역 통합 및 환경설정 화면 v2 구현`
 - 변경 요약(3줄 이내):
   1. 위시리스트 스팟별 방해 금지 시간 설정을 마이페이지 환경설정의 전역 "방해 금지" 섹션으로 통합 (시간 휠 피커 + 반복 프리셋/요일 시트, `SettingScreen` 내 인라인 구현)
-  2. `SettingScreen`을 처음 구현하고(v2 리뷰 반영: FAQ 위계 정리, 1:1 문의 화면 분리, 기타 카드 통합), `ContactScreen` 신규 추가 및 라우팅 연결
+  2. `SettingScreen`을 처음 구현하고(v2 리뷰 반영: FAQ 위계 정리, 1:1 문의 화면 분리, 기타 카드 통합), `Inquiry`/`InquiryDetail`/`ComposeInquiry` 신규 추가 및 라우팅 연결
   3. `useNotificationSettings` 훅 신규 (로컬 state, API 연동은 후속 라운드)
 - 리뷰 요청 포인트:
   - 방해 금지 상태가 로컬 state뿐이라 앱 재시작 시 초기화되는 게 이번 PR 범위에서 허용되는지

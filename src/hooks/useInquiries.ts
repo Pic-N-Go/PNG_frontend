@@ -1,5 +1,5 @@
 // TODO: 백엔드 문의 API 스펙 확정 후 TanStack Query(useQuery/useMutation)로 교체
-import { useState } from 'react';
+import { create } from 'zustand';
 
 export type InquiryStatus = 'pending' | 'answered';
 
@@ -72,14 +72,17 @@ function nextId(inquiries: Inquiry[]) {
   return String(max + 1);
 }
 
-export function useInquiries(initial: Inquiry[] = DEFAULT_INQUIRIES) {
-  const [inquiries, setInquiries] = useState<Inquiry[]>(initial);
+interface InquiryStore {
+  inquiries: Inquiry[];
+  addInquiry: (category: string, message: string) => void;
+  markRead: (id: string) => void;
+}
 
-  const unreadCount = inquiries.filter((i) => i.status === 'answered' && i.unread).length;
-
-  const addInquiry = (category: string, message: string) => {
+const useInquiryStore = create<InquiryStore>((set, get) => ({
+  inquiries: DEFAULT_INQUIRIES,
+  addInquiry: (category, message) => {
     const newInquiry: Inquiry = {
-      id: nextId(inquiries),
+      id: nextId(get().inquiries),
       category,
       title: category,
       preview: message,
@@ -89,13 +92,19 @@ export function useInquiries(initial: Inquiry[] = DEFAULT_INQUIRIES) {
       my: { text: message, timeText: '방금' },
       replies: [],
     };
-    setInquiries((prev) => [newInquiry, ...prev]);
-  };
+    set((state) => ({ inquiries: [newInquiry, ...state.inquiries] }));
+  },
+  markRead: (id) => set((state) => ({
+    inquiries: state.inquiries.map((i) => (i.id === id ? { ...i, unread: false } : i)),
+  })),
+}));
 
-  const markRead = (id: string) => {
-    setInquiries((prev) => prev.map((i) => (i.id === id ? { ...i, unread: false } : i)));
-  };
+export function useInquiries() {
+  const inquiries = useInquiryStore((s) => s.inquiries);
+  const addInquiry = useInquiryStore((s) => s.addInquiry);
+  const markRead = useInquiryStore((s) => s.markRead);
 
+  const unreadCount = inquiries.filter((i) => i.status === 'answered' && i.unread).length;
   const getById = (id: string) => inquiries.find((i) => i.id === id);
 
   return { inquiries, unreadCount, addInquiry, markRead, getById };

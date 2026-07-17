@@ -314,11 +314,13 @@ interface DndTimeSheetProps {
 function DndTimeSheet({ visible, onClose, initial, onConfirm }: DndTimeSheetProps) {
   const [start, setStart] = React.useState(initial.start);
   const [end, setEnd] = React.useState(initial.end);
+  const [openId, setOpenId] = React.useState(0);
 
   React.useEffect(() => {
     if (visible) {
       setStart(initial.start);
       setEnd(initial.end);
+      setOpenId((id) => id + 1);
     }
   }, [visible, initial.start, initial.end]);
 
@@ -343,12 +345,12 @@ function DndTimeSheet({ visible, onClose, initial, onConfirm }: DndTimeSheetProp
       </Text>
 
       <View className="overflow-hidden bg-[#f5f5f7]" style={{ marginHorizontal: normalize(20), marginTop: normalize(16), borderRadius: normalize(16) }}>
-        <TimeRow label="시작" value={start} onChange={setStart} />
+        <TimeRow key={`start-${openId}`} label="시작" value={start} onChange={setStart} />
         <View className="bg-black/5" style={{ height: 1, marginHorizontal: normalize(20) }} />
-        <TimeRow label="종료" value={end} onChange={setEnd} />
+        <TimeRow key={`end-${openId}`} label="종료" value={end} onChange={setEnd} />
       </View>
 
-      <View className="items-center" style={{ marginTop: normalize(14), paddingHorizontal: normalize(20) }}>
+      <View style={{ marginTop: normalize(14), paddingHorizontal: normalize(20) }}>
         {crossMidnight && (
           <Text style={{ fontSize: FONT_SM, color: BRAND, fontWeight: '500' }}>
             자정을 넘어 다음 날 {end}까지
@@ -594,7 +596,7 @@ function VersionInfoSheet({ visible, onClose, onOpenDoc }: { visible: boolean; o
         {/* 그룹 2: 약관 및 정책 */}
         <View style={{ marginTop: normalize(12) }}>
           <Text style={{ fontSize: FONT_XS, fontWeight: '500', color: 'rgba(0,0,0,0.4)', paddingHorizontal: normalize(12), paddingBottom: normalize(6) }}>약관 및 정책</Text>
-          <View className="overflow-hidden border border-black/5 bg-white" style={{ borderRadius: normalize(14) }}>
+          <View className="overflow-hidden bg-[#f5f5f7]" style={{ borderRadius: normalize(14) }}>
             <DocRow label="이용약관" onPress={() => onOpenDoc('TermsOfService')} />
             <DocRow label="개인정보처리방침" onPress={() => onOpenDoc('PrivacyPolicy')} divider />
             <DocRow label="오픈소스 라이선스" onPress={() => onOpenDoc('OpenSourceLicenses')} divider />

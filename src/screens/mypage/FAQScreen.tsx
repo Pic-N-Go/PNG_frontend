@@ -130,7 +130,7 @@ export default function FAQScreen({ navigation }: Props) {
               <Pressable
                 key={c.id}
                 onPress={() => setCategory(c.id)}
-                className={active ? 'items-center justify-center' : 'items-center justify-center'}
+                className="items-center justify-center"
                 style={{
                   height: normalize(34), paddingHorizontal: normalize(14), borderRadius: normalize(9999),
                   backgroundColor: active ? BRAND : '#fff',

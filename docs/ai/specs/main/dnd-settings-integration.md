@@ -21,8 +21,8 @@
   - `DndTimeSheet`, `DndRepeatSheet`는 **`SettingScreen.tsx` 파일 하단에 인라인 컴포넌트로 정의** (별도 디렉터리/파일 신설 없음 — 결정 3)
   - `DndTimeSheet`는 **v2 디자인**(`방해금지 시간 시트.native.jsx (v2)`)으로 구현 — 아래 5) UI/UX 요구사항 참고
   - `src/hooks/useNotificationSettings.ts` 신규 — 내부는 `useState`로만 구현, API 연동 지점에 TODO 코멘트 (결정 2)
-  - `src/screens/mypage/ContactScreen.tsx` 신규 (1:1 문의 — 카드 내 인라인 폼에서 별도 화면으로 분리)
-  - `src/navigation/stacks/MyPageStack.tsx`에 `Contact` 라우트 추가, `SettingScreen`의 `onPress('contact')` → `navigation.navigate('Contact')` 연결
+  - `src/screens/mypage/InquiryListScreen.tsx`/`InquiryDetailScreen.tsx`/`ComposeInquiryScreen.tsx` 신규 (1:1 문의 — 카드 내 인라인 폼에서 목록/상세/작성 화면으로 분리)
+  - `src/navigation/stacks/MyPageStack.tsx`에 `Inquiry`/`InquiryDetail`/`ComposeInquiry` 라우트 추가, `SettingScreen`의 `onPress('contact')` → `navigation.navigate('Inquiry')` 연결
   - 회원 탈퇴 행은 기존 `#ff453a`(에러/danger 톤) 그대로 사용 — 신규 컬러 토큰 추가 없음 (결정 1)
   - 모든 신규/변경 컴포넌트는 NativeWind `className` + `normalize()`/`normalizeFontSize()` 조합으로 작성 (프로젝트 실제 컨벤션)
 - 제외(Out of Scope):
@@ -48,7 +48,7 @@
   - Then: "방해 금지 시간" 행은 더 이상 없고, 카드 아래 "방해 금지 시간은 설정 › 방해 금지에서 모든 알림에 공통 적용돼요" 안내 문구만 보인다.
 - 시나리오 D — 1:1 문의:
   - Given: 사용자가 환경설정 › 문의 섹션의 "1:1 문의" 행을 탭한다.
-  - When: `ContactScreen`으로 이동한다.
+  - When: `InquiryListScreen`으로 이동해 새 문의 작성을 선택하면 `ComposeInquiryScreen`으로 이동한다.
   - Then: 문의 유형 선택 + 문의 내용(500자) 입력 후 "문의 보내기"가 활성화된다 (유형+내용 모두 있어야 활성).
 
 ## 5) UI/UX 요구사항
@@ -60,7 +60,7 @@
 - 화면 전환 규칙:
   - `SettingScreen` "시간" 행 탭 → `DndTimeSheet`(인라인 컴포넌트) 오픈, `@/components/common/BottomSheet` 사용
   - `SettingScreen` "반복" 행 탭 → `DndRepeatSheet`(인라인 컴포넌트) 오픈
-  - `SettingScreen` "1:1 문의" 행 탭 → `navigation.navigate('Contact')`
+  - `SettingScreen` "1:1 문의" 행 탭 → `navigation.navigate('Inquiry')`
   - 그 외 행(`profile`, `email`, `password`, `themes`, `social`, `location`, `block`, `faq-*`, `version`, `logout`, `delete-account`)은 이번 스펙에서 실제 네비게이션 로직을 새로 만들지 않음 — 기존 `WishlistSettingScreen`처럼 handler 자리만 마련
 - 빈 상태/에러 상태: `DndSection`은 `state` prop(`normal`/`empty`/`unavailable`/`loading`)에 따라 다르게 렌더링 (원본 스펙 그대로 유지)
 - 로딩 상태: `state === 'loading'`일 때 카드 자리에 스피너
@@ -100,8 +100,8 @@
 - [ ] AC2: `WishlistSettingScreen`에 방해 금지 시간 행/시트/로컬 state가 없다. 대신 안내 문구가 있다.
 - [ ] AC3: `DndTimeSheet`(v2, 위아래 행 레이아웃)에서 시작/종료 시간을 바꾸면 자정 교차 시 강조 문구 + 항상 총 소요 시간 문구가 뜨고(시작=종료면 24시간), 저장 시 "시간" 행 라벨이 갱신된다.
 - [ ] AC4: `DndRepeatSheet`에서 "사용자 지정" 선택 후 요일 0개면 저장이 막히고, 1개 이상이면 라벨이 요일 조합(예: "화·목") 또는 프리셋 라벨로 갱신된다.
-- [ ] AC5: `ContactScreen`은 문의 유형 + 내용이 모두 있어야 "문의 보내기"가 활성화된다.
-- [ ] AC6: `MyPageStack`에서 `Contact` 라우트로 정상 진입 가능하다.
+- [ ] AC5: `ComposeInquiryScreen`은 문의 유형 + 내용이 모두 있어야 "문의 보내기"가 활성화된다.
+- [ ] AC6: `MyPageStack`에서 `Inquiry`/`InquiryDetail`/`ComposeInquiry` 라우트로 정상 진입 가능하다.
 - [ ] AC7: `useNotificationSettings.ts`가 존재하고 `SettingScreen`이 이를 사용한다. 내부는 `useState`뿐이고 API 연동 지점에 TODO 코멘트가 있다.
 - [ ] AC8: 신규 컬러 토큰이 추가되지 않았고, 회원 탈퇴 행은 기존 `#ff453a`를 사용한다.
 - [ ] AC9: `pnpm exec tsc --noEmit`, `pnpm lint` 통과.
@@ -123,7 +123,7 @@
 남은 미결 사항:
 
 - `SettingScreen` 진입 경로 부재: `MyPageScreen`이 아직 임시 화면이라 실기기/시뮬레이터에서 `Setting` 화면에 도달할 UI 진입점이 없다. → Plan에서 임시 검증용 버튼(커밋 전 되돌림)으로 처리.
-- **HTML 목업과의 동기화**: `src/components/ui/mypage/setting.html`의 방해 금지 시간 시트는 v1 레이아웃(시작/종료 좌우 2컬럼, 중앙 정렬 헤더)으로 남아있다. 이번 라운드는 RN(`DndTimeSheet`)만 v2로 구현하고, HTML 목업은 사용자가 별도로 요청하면 그때 맞춘다(현재는 업데이트 요청 없음).
+- **HTML 목업과의 동기화**: `src/components/ui/mypage/setting.html`의 방해 금지 시간 시트는 v2 레이아웃(한 카드에 시작/종료를 위아래로 쌓은 행, 좌측 정렬 헤더)으로 갱신 완료됐다 (Section 1 "갱신 완료" 상태 참고).
 
 ---
 

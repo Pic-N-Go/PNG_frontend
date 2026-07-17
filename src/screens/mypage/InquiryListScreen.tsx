@@ -14,7 +14,7 @@ const BRAND = '#E31B59';
 const SUB = '#8a8a8e';
 const OK_BG = '#e0f0dc';
 const OK_TXT = '#5a9855';
-const BADGE_BG = '#f5f5f7';
+const BADGE_BG = '#ffffff';
 const BADGE_TXT = '#8a8a8e';
 
 type FilterKey = 'all' | 'answered' | 'pending';
@@ -92,11 +92,10 @@ function InquiryCard({ item, onPress }: { item: Inquiry; onPress: () => void }) 
   return (
     <Pressable
       onPress={onPress}
-      className="bg-white border border-black/10 relative"
+      className="bg-[#f5f5f7] relative"
       style={{
         marginHorizontal: normalize(20), marginBottom: normalize(12),
         borderRadius: normalize(16), padding: normalize(16),
-        shadowColor: '#000', shadowOpacity: 0.03, shadowRadius: 4, shadowOffset: { width: 0, height: 1 }, elevation: 1,
       }}
     >
       {item.unread && (
