@@ -39,6 +39,12 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
 export type SpotInCourse = {
   id: number;
   spotId: number;
+  spotName?: string;
+  latitude?: number;
+  longitude?: number;
+  category?: string;
+  thumbnailUrl?: string;
+  photogenicScore?: number;
   dayNumber: number;
   sequenceOrder: number;
   memo: string;
@@ -93,24 +99,14 @@ export const coursesApi = {
     return fetchWithAuth(`/courses/${id}`, { method: 'DELETE' });
   },
 
-  // 6. 코스에 명소 추가
-  addSpotToCourse: (id: number, data: { spotId: number; dayNumber: number; sequenceOrder: number; memo?: string }): Promise<SpotInCourse> => {
-    return fetchWithAuth(`/courses/${id}/spots`, {
-      method: 'POST',
-      body: JSON.stringify(data),
-    });
-  },
-
-  // 7. 코스에서 명소 제거
-  removeSpotFromCourse: (id: number, spotId: number): Promise<void> => {
-    return fetchWithAuth(`/courses/${id}/spots/${spotId}`, { method: 'DELETE' });
-  },
-
-  // 8. 명소 순서 변경
-  reorderSpots: (id: number, spotIds: number[]): Promise<void> => {
-    return fetchWithAuth(`/courses/${id}/spots/order`, {
+  // 6. 코스 스팟 일괄 동기화 (추가/삭제/순서변경)
+  syncSpots: (id: number, data: {
+    dayNumber: number,
+    spots: { courseSpotId?: number, spotId: number, dayNumber: number, sequenceOrder: number, memo?: string }[]
+  }): Promise<void> => {
+    return fetchWithAuth(`/courses/${id}/spots/sync`, {
       method: 'PUT',
-      body: JSON.stringify({ spotIds }),
+      body: JSON.stringify(data),
     });
   },
 

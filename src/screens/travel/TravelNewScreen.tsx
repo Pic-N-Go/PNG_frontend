@@ -152,16 +152,17 @@ export default function TravelNewScreen() {
       const promises = [];
       for (const [dayStr, spots] of Object.entries(daySpots)) {
         const dayNumber = parseInt(dayStr, 10);
-        for (let i = 0; i < spots.length; i++) {
-          promises.push(
-            coursesApi.addSpotToCourse(course.id, {
-              spotId: Number(spots[i].id),
+        promises.push(
+          coursesApi.syncSpots(course.id, {
+            dayNumber,
+            spots: spots.map((spot, i) => ({
+              spotId: Number(spot.id),
               dayNumber,
               sequenceOrder: i + 1,
               memo: '',
-            })
-          );
-        }
+            }))
+          })
+        );
       }
       await Promise.all(promises);
       return course;

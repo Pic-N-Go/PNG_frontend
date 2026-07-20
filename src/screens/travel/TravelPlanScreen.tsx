@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useFocusEffect } from "@react-navigation/native";
-import { View, Text, TouchableOpacity, ScrollView, Alert, TextInput } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, Alert, TextInput, Image } from "react-native";
 import { coursesApi } from "@/api/courses";
 import { useTravelStore } from "@/store/useTravelStore";
 import { useAnimatedRef } from "react-native-reanimated";
@@ -29,6 +29,7 @@ import {
 import NaviSheet from "@/components/spot/NaviSheet";
 import CourseMoreSheet from "@/components/travel/CourseMoreSheet";
 import CourseShareSheet from "@/components/travel/CourseShareSheet";
+import { getDistanceFromLatLonInKm } from "@/utils/distance";
 import { FONT_XS, FONT_SM } from "@/constants/layout";
 
 const KAKAO_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_API_KEY;
@@ -267,19 +268,19 @@ function mapCourseToData(course: any) {
       .filter((s: any) => s.dayNumber === i)
       .sort((a: any, b: any) => a.sequenceOrder - b.sequenceOrder)
       .map((s: any) => {
-        const mockSpot = Object.values(MOCK_DATA).flatMap((d: any) => d.spots).find((ms: any) => ms.id === String(s.spotId)) || {};
         return {
           id: String(s.id),
           realSpotId: s.spotId,
-          name: mockSpot.name || `스팟 ${s.spotId}`,
-          loc: mockSpot.loc || "위치 정보 없음",
-          time: mockSpot.time || "10:00 ~ 11:00",
-          dur: mockSpot.dur || "1시간",
-          score: mockSpot.score || "-",
-          scoreColor: mockSpot.scoreColor || "#999",
-          bg: mockSpot.bg || "#ccc",
-          lat: mockSpot.lat || 35.1531696,
-          lng: mockSpot.lng || 129.118666,
+          name: s.spotName || `스팟 ${s.spotId}`,
+          loc: s.category || "위치 정보 없음",
+          time: "10:00 ~ 11:00", // TODO: Add real time schedule fields
+          dur: "1시간", // TODO: Add real duration
+          score: s.photogenicScore ? `${s.photogenicScore}점` : "-",
+          scoreColor: s.photogenicScore && s.photogenicScore > 90 ? "#e31b59" : s.photogenicScore && s.photogenicScore > 80 ? "#ff9f0a" : "#34c759",
+          bg: "#2c6e91", // Default background color
+          lat: s.latitude || 35.1531696,
+          lng: s.longitude || 129.118666,
+          photo: s.thumbnailUrl || '',
           travelTimeMinutes: s.travelTimeMinutes,
         };
       });
@@ -353,6 +354,35 @@ export default function TravelPlanScreen({ navigation, route }: any) {
 
   const currentData = data[currentDay];
 
+  const { totalDistance, totalDurationFormatted } = React.useMemo(() => {
+    if (!currentData || !currentData.spots) return { totalDistance: 0, totalDurationFormatted: "0분" };
+    let distance = 0;
+    let durationMins = 0;
+    
+    // Each spot defaults to 60 mins stay
+    durationMins += currentData.spots.length * 60;
+    
+    for (let i = 0; i < currentData.spots.length; i++) {
+      const current = currentData.spots[i];
+      if (i < currentData.spots.length - 1) {
+        const next = currentData.spots[i + 1];
+        if (current.lat && current.lng && next.lat && next.lng) {
+          distance += getDistanceFromLatLonInKm(current.lat, current.lng, next.lat, next.lng);
+        }
+        if (current.travelTimeMinutes) {
+          durationMins += current.travelTimeMinutes;
+        } else {
+          durationMins += 20;
+        }
+      }
+    }
+    
+    const h = Math.floor(durationMins / 60);
+    const m = durationMins % 60;
+    const durStr = h > 0 ? (m > 0 ? `${h}시간 ${m}분` : `${h}시간`) : `${m}분`;
+    return { totalDistance: Math.round(distance), totalDurationFormatted: durStr };
+  }, [currentData]);
+
   const handleMapMessage = (event: any) => {
     try {
       const parsed = JSON.parse(event.nativeEvent.data);
@@ -418,12 +448,12 @@ export default function TravelPlanScreen({ navigation, route }: any) {
     onSuccess: () => refetch(),
   });
 
-  const reorderMutation = useMutation({
-    mutationFn: (spotIds: number[]) => coursesApi.reorderSpots(Number(planId), spotIds),
-  });
-
-  const removeSpotMutation = useMutation({
-    mutationFn: (spotId: number) => coursesApi.removeSpotFromCourse(Number(planId), spotId),
+  const syncSpotsMutation = useMutation({
+    mutationFn: (data: {
+      dayNumber: number,
+      spots: { courseSpotId?: number, spotId: number, dayNumber: number, sequenceOrder: number, memo?: string }[]
+    }) => coursesApi.syncSpots(Number(planId), data),
+    onSuccess: () => refetch(),
   });
 
   const deleteCourseMutation = useMutation({
@@ -433,11 +463,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
     },
   });
 
-  const addSpotMutation = useMutation({
-    mutationFn: (spotData: { spotId: number; dayNumber: number; sequenceOrder: number }) => 
-      coursesApi.addSpotToCourse(Number(planId), spotData),
-    onSuccess: () => refetch(),
-  });
+
 
   const handleMorePress = () => {
     setIsMoreSheetVisible(true);
@@ -449,18 +475,42 @@ export default function TravelPlanScreen({ navigation, route }: any) {
     React.useCallback(() => {
       if (selectedSpots.length > 0 && planId) {
         const dayNum = parseInt(currentDay, 10);
-        const spotsLen = data[currentDay]?.spots?.length || 0;
         
-        selectedSpots.forEach((spot, idx) => {
-          addSpotMutation.mutate({
-            spotId: Number(spot.id),
-            dayNumber: dayNum,
-            sequenceOrder: spotsLen + idx + 1,
-          });
-        });
+        const spotsToAdd = [...selectedSpots];
         clearSpots();
+        
+        const currentSpots = data[currentDay]?.spots || [];
+        const newSpots = [
+          ...currentSpots,
+          ...spotsToAdd.map((spot: any, idx) => ({
+            id: `new_${Date.now()}_${idx}`, // 임시 ID
+            realSpotId: spot.id,
+            name: spot.title || spot.name || `스팟 ${spot.id}`,
+            loc: spot.category || "기타",
+            bg: "#ccc",
+            lat: spot.latitude || spot.mapY || spot.lat,
+            lng: spot.longitude || spot.mapX || spot.lng,
+            photo: spot.imageUrl || spot.firstimage || spot.photo || '',
+            travelTimeMinutes: null,
+          }))
+        ];
+        
+        setData((prev) => ({
+          ...prev,
+          [currentDay]: { ...prev[currentDay], spots: newSpots },
+        }));
+
+        syncSpotsMutation.mutate({
+          dayNumber: dayNum,
+          spots: newSpots.map((s, index) => ({
+            courseSpotId: String(s.id).startsWith("new") ? undefined : Number(s.id),
+            spotId: Number(s.realSpotId),
+            dayNumber: dayNum,
+            sequenceOrder: index + 1,
+          }))
+        });
       }
-    }, [selectedSpots, currentDay, data, planId, addSpotMutation, clearSpots])
+    }, [selectedSpots, currentDay, data, planId, syncSpotsMutation, clearSpots])
   );
 
   const reorderSpots = (spots: any[]) => {
@@ -469,15 +519,24 @@ export default function TravelPlanScreen({ navigation, route }: any) {
       [currentDay]: { ...prev[currentDay], spots },
     }));
     if (planId) {
-      reorderMutation.mutate(spots.map(s => Number(s.id)));
+      syncSpotsMutation.mutate({
+        dayNumber: parseInt(currentDay, 10),
+        spots: spots.map((s, index) => ({
+          courseSpotId: String(s.id).startsWith("new") ? undefined : Number(s.id),
+          spotId: Number(s.realSpotId),
+          dayNumber: parseInt(currentDay, 10),
+          sequenceOrder: index + 1,
+        }))
+      });
     }
   };
 
   const removeSpot = (spotId: string) => {
     delete rowHeights.current[spotId];
+    let newSpots: any[] = [];
     setData((prev) => {
       const dayData = prev[currentDay];
-      const newSpots = dayData.spots.filter((s: any) => s.id !== spotId);
+      newSpots = dayData.spots.filter((s: any) => s.id !== spotId);
       return {
         ...prev,
         [currentDay]: {
@@ -487,7 +546,15 @@ export default function TravelPlanScreen({ navigation, route }: any) {
       };
     });
     if (planId) {
-      removeSpotMutation.mutate(Number(spotId));
+      syncSpotsMutation.mutate({
+        dayNumber: parseInt(currentDay, 10),
+        spots: newSpots.map((s, index) => ({
+          courseSpotId: String(s.id).startsWith("new") ? undefined : Number(s.id),
+          spotId: Number(s.realSpotId),
+          dayNumber: parseInt(currentDay, 10),
+          sequenceOrder: index + 1,
+        }))
+      });
     }
   };
 
@@ -671,14 +738,14 @@ export default function TravelPlanScreen({ navigation, route }: any) {
               <View className="rounded-lg bg-[#e31b59]/10 items-center justify-center mb-1" style={{ width: normalize(28), height: normalize(28) }}>
                 <IconRoad size={normalize(14)} color="#e31b59" />
               </View>
-              <Text className="font-semibold text-black tracking-tight" style={{ fontSize: normalizeFontSize(14) }}>142km</Text>
+              <Text className="font-semibold text-black tracking-tight" style={{ fontSize: normalizeFontSize(14) }}>{totalDistance}km</Text>
               <Text className="text-black/30 tracking-tight" style={{ fontSize: normalizeFontSize(12) }}>총 이동거리</Text>
             </View>
             <View className="flex-1 items-start">
               <View className="rounded-lg bg-[#e31b59]/10 items-center justify-center mb-1" style={{ width: normalize(28), height: normalize(28) }}>
                 <IconClock size={normalize(14)} color="#e31b59" />
               </View>
-              <Text className="font-semibold text-black tracking-tight" style={{ fontSize: normalizeFontSize(14) }}>12시간</Text>
+              <Text className="font-semibold text-black tracking-tight" style={{ fontSize: normalizeFontSize(14) }}>{totalDurationFormatted}</Text>
               <Text className="text-black/30 tracking-tight" style={{ fontSize: normalizeFontSize(12) }}>예상 소요</Text>
             </View>
           </View>
@@ -907,10 +974,18 @@ export default function TravelPlanScreen({ navigation, route }: any) {
                 <IconTrash size={12} color="rgba(227,27,89,0.9)" />
               </TouchableOpacity>
             )}
-            <View
-              className="w-[72px] h-[72px] rounded-xl shrink-0"
-              style={{ backgroundColor: item.bg }}
-            />
+            {item.photo ? (
+              <Image
+                source={{ uri: item.photo }}
+                className="w-[72px] h-[72px] rounded-xl shrink-0 bg-[#e8e8ed]"
+                resizeMode="cover"
+              />
+            ) : (
+              <View
+                className="w-[72px] h-[72px] rounded-xl shrink-0"
+                style={{ backgroundColor: item.bg }}
+              />
+            )}
             <View
               className={`flex-1 justify-center ${isEditMode ? "pr-10" : "pr-4"}`}
             >
