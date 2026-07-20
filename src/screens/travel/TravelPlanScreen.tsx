@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useFocusEffect } from "@react-navigation/native";
-import { View, Text, TouchableOpacity, ScrollView, Alert, ActionSheetIOS, Platform } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, Alert, TextInput } from "react-native";
 import { coursesApi } from "@/api/courses";
 import { useTravelStore } from "@/store/useTravelStore";
 import { useAnimatedRef } from "react-native-reanimated";
@@ -13,7 +13,6 @@ import { normalize, normalizeFontSize } from "@/utils/normalize";
 import {
   IconChevronLeft,
   IconShare,
-  IconMap,
   IconDots,
   IconClock,
   IconCar,
@@ -28,6 +27,8 @@ import {
   IconInfoCircle,
 } from "@tabler/icons-react-native";
 import NaviSheet from "@/components/spot/NaviSheet";
+import CourseMoreSheet from "@/components/travel/CourseMoreSheet";
+import CourseShareSheet from "@/components/travel/CourseShareSheet";
 import { FONT_XS, FONT_SM } from "@/constants/layout";
 
 const KAKAO_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_API_KEY;
@@ -44,15 +45,6 @@ const DAY_COLOR_PALETTE = [
 ];
 const getDayColor = (day: string) =>
   DAY_COLOR_PALETTE[(parseInt(day, 10) - 1) % DAY_COLOR_PALETTE.length];
-const COMMON_CHECKLIST = [
-  "삼각대",
-  "광각렌즈 (16-35mm)",
-  "ND 필터",
-  "보조배터리",
-  "편한 신발",
-  "드론",
-  "편광 필터",
-];
 
 const MOCK_DATA: Record<string, any> = {
   "1": {
@@ -288,15 +280,34 @@ function mapCourseToData(course: any) {
           bg: mockSpot.bg || "#ccc",
           lat: mockSpot.lat || 35.1531696,
           lng: mockSpot.lng || 129.118666,
+          travelTimeMinutes: s.travelTimeMinutes,
         };
       });
 
+    const transports: Record<string, any> = {};
+    for (let j = 0; j < daySpots.length - 1; j++) {
+      const current = daySpots[j];
+      const next = daySpots[j + 1];
+      if (next.travelTimeMinutes != null) {
+        transports[`${current.id}__${next.id}`] = {
+          type: "car",
+          label: `차량 ${next.travelTimeMinutes}분`,
+        };
+      } else {
+        // Fallback or mock if not provided
+        transports[`${current.id}__${next.id}`] = {
+          type: "car",
+          label: `차량 20분`,
+        };
+      }
+    }
+
     result[String(i)] = {
       date: dateStr,
-      tip: "새로운 출사 계획입니다. 일정을 추가해보세요.",
-      checklist: COMMON_CHECKLIST,
+      tip: null,
+      checklist: [], // Replaced by course.checklists in UI
       spots: daySpots,
-      transports: {},
+      transports,
     };
   }
   return result;
@@ -307,11 +318,19 @@ export default function TravelPlanScreen({ navigation, route }: any) {
   const [currentDay, setCurrentDay] = useState<string>("1");
   const [isEditMode, setIsEditMode] = useState(false);
   const [isDepartModalVisible, setIsDepartModalVisible] = useState(false);
+  const [isMoreSheetVisible, setIsMoreSheetVisible] = useState(false);
+  const [isShareSheetVisible, setShareSheetVisible] = useState(false);
   const [data, setData] = useState<Record<string, any>>(MOCK_DATA);
 
   const { data: course, refetch } = useQuery({
     queryKey: ['course', planId],
     queryFn: () => coursesApi.getCourse(Number(planId)),
+    enabled: !!planId,
+  });
+
+  const { data: weatherData } = useQuery({
+    queryKey: ['courseWeather', planId],
+    queryFn: () => coursesApi.getCourseWeather(Number(planId)),
     enabled: !!planId,
   });
 
@@ -330,7 +349,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
   // 대신 각 행의 측정된 높이(height)를 모아 앞선 행들의 높이를 더해 오프셋을 직접 계산한다.
   const rowHeights = useRef<{ [key: string]: number }>({});
 
-  const [checkedItems, setCheckedItems] = useState<string[]>([]);
+  const [newChecklistText, setNewChecklistText] = useState("");
 
   const currentData = data[currentDay];
 
@@ -384,11 +403,20 @@ export default function TravelPlanScreen({ navigation, route }: any) {
     }
   };
 
-  const toggleChecklist = (item: string) => {
-    setCheckedItems((prev) =>
-      prev.includes(item) ? prev.filter((i) => i !== item) : [...prev, item],
-    );
-  };
+  const toggleChecklistMutation = useMutation({
+    mutationFn: (checklistId: number) => coursesApi.toggleChecklist(Number(planId), checklistId),
+    onSuccess: () => refetch(),
+  });
+
+  const addChecklistMutation = useMutation({
+    mutationFn: (content: string) => coursesApi.addChecklist(Number(planId), content),
+    onSuccess: () => refetch(),
+  });
+
+  const deleteChecklistMutation = useMutation({
+    mutationFn: (checklistId: number) => coursesApi.deleteChecklist(Number(planId), checklistId),
+    onSuccess: () => refetch(),
+  });
 
   const reorderMutation = useMutation({
     mutationFn: (spotIds: number[]) => coursesApi.reorderSpots(Number(planId), spotIds),
@@ -410,6 +438,10 @@ export default function TravelPlanScreen({ navigation, route }: any) {
       coursesApi.addSpotToCourse(Number(planId), spotData),
     onSuccess: () => refetch(),
   });
+
+  const handleMorePress = () => {
+    setIsMoreSheetVisible(true);
+  };
 
   const { selectedSpots, clearSpots } = useTravelStore();
 
@@ -459,31 +491,6 @@ export default function TravelPlanScreen({ navigation, route }: any) {
     }
   };
 
-  const handleMorePress = () => {
-    if (Platform.OS === 'ios') {
-      ActionSheetIOS.showActionSheetWithOptions(
-        {
-          options: ['취소', '코스 삭제'],
-          destructiveButtonIndex: 1,
-          cancelButtonIndex: 0,
-        },
-        (buttonIndex) => {
-          if (buttonIndex === 1 && planId) {
-            deleteCourseMutation.mutate();
-          }
-        }
-      );
-    } else {
-      Alert.alert(
-        '코스 삭제',
-        '정말로 이 코스를 삭제하시겠습니까?',
-        [
-          { text: '취소', style: 'cancel' },
-          { text: '삭제', style: 'destructive', onPress: () => planId && deleteCourseMutation.mutate() }
-        ]
-      );
-    }
-  };
 
   const renderKakaoMapHTML = (
     showAllDays = true,
@@ -699,8 +706,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
 
   );
 
-  // Memoize the weather row to prevent SvgUri flickering when checklist state updates
-  const hasWeather = parseInt(currentDay) <= 2; // 목업에서 1, 2일차만 날씨 제공 시뮬레이션
+  const currentWeather = weatherData?.find((w: any) => w.dayNumber === parseInt(currentDay, 10));
 
   const weatherRow = React.useMemo(
     () => (
@@ -708,48 +714,26 @@ export default function TravelPlanScreen({ navigation, route }: any) {
         <Text className="text-[18px] font-semibold text-black tracking-[-0.3px] mb-5">
           DAY {currentDay} 날씨
         </Text>
-        {hasWeather ? (
-          <View className="flex-row gap-2">
-            <View className="flex-1 bg-[#f5f5f7] rounded-2xl p-3 relative">
-              <Text className="text-[12px] text-black/35 mb-1.5">오전</Text>
-              <Text className="text-[20px] font-semibold text-black mb-0.5">
-                18°
-              </Text>
-              <Text className="text-[12px] text-black/35">맑음</Text>
-              <View className="absolute right-3 top-[50%] -translate-y-2.5">
-                <SvgUri
-                  width="24"
-                  height="24"
-                  uri="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/clear-day.svg"
-                />
-              </View>
+        {currentWeather && currentWeather.weatherStatus !== "알 수 없음" ? (
+          <View className="bg-[#f5f5f7] rounded-2xl p-4 flex-row items-center">
+            <View className="w-12 h-12 rounded-xl bg-white items-center justify-center mr-4">
+              <SvgUri
+                width="32"
+                height="32"
+                uri={
+                  currentWeather.weatherStatus.includes("맑음") 
+                    ? "https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/clear-day.svg"
+                    : currentWeather.weatherStatus.includes("구름")
+                    ? "https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/partly-cloudy-day.svg"
+                    : "https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/rain.svg"
+                }
+              />
             </View>
-            <View className="flex-1 bg-[#f5f5f7] rounded-2xl p-3 relative">
-              <Text className="text-[12px] text-black/35 mb-1.5">오후</Text>
-              <Text className="text-[20px] font-semibold text-black mb-0.5">
-                24°
-              </Text>
-              <Text className="text-[12px] text-black/35">구름 조금</Text>
-              <View className="absolute right-3 top-[50%] -translate-y-2.5">
-                <SvgUri
-                  width="24"
-                  height="24"
-                  uri="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/partly-cloudy-day.svg"
-                />
-              </View>
-            </View>
-            <View className="flex-1 bg-[#f5f5f7] rounded-2xl p-3 relative">
-              <Text className="text-[12px] text-black/35 mb-1.5">저녁</Text>
-              <Text className="text-[20px] font-semibold text-black mb-0.5">
-                20°
-              </Text>
-              <Text className="text-[12px] text-black/35">맑음</Text>
-              <View className="absolute right-3 top-[50%] -translate-y-2.5">
-                <SvgUri
-                  width="24"
-                  height="24"
-                  uri="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/clear-night.svg"
-                />
+            <View className="flex-1">
+              <Text className="text-[14px] text-black/50 mb-0.5">{currentWeather.targetSpotName} 기준</Text>
+              <View className="flex-row items-baseline gap-1">
+                <Text className="text-[22px] font-semibold text-black">{currentWeather.temperature}°C</Text>
+                <Text className="text-[15px] font-medium text-black/70">{currentWeather.weatherStatus}</Text>
               </View>
             </View>
           </View>
@@ -770,7 +754,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
         )}
       </View>
     ),
-    [currentDay, hasWeather],
+    [currentDay, currentWeather],
   );
 
   const renderFooter = () => (
@@ -790,7 +774,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
 
       {/* Tip Banner */}
       <View className="flex-row gap-3 p-4 bg-[#f5f5f7] rounded-2xl mt-4 items-center">
-        {currentData.tip ? (
+        {currentWeather && currentWeather.sunsetTime ? (
           <>
             <View className="w-8 h-8 rounded-lg bg-[#e31b59]/10 items-center justify-center shrink-0">
               <IconInfoCircle size={16} color="#e31b59" />
@@ -800,7 +784,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
                 오늘의 촬영 팁
               </Text>
               <Text className="text-[12px] text-black/50 leading-relaxed">
-                {currentData.tip}
+                {currentWeather.targetSpotName} 일몰 시간 {currentWeather.sunsetTime} · 골든아워 {currentWeather.goldenHourEvening}
               </Text>
             </View>
           </>
@@ -825,37 +809,58 @@ export default function TravelPlanScreen({ navigation, route }: any) {
       {/* Weather Row */}
       {weatherRow}
 
-
       {/* Checklist */}
-      {COMMON_CHECKLIST.length > 0 && (
-        <View className="mt-8">
-          <Text className="text-[18px] font-semibold text-black tracking-[-0.3px] mb-5">
-            촬영 체크리스트
-          </Text>
-          <View className="flex-row flex-wrap gap-2">
-            {COMMON_CHECKLIST.map((item, idx) => {
-              const isChecked = checkedItems.includes(item);
-              return (
-                <TouchableOpacity
-                  key={idx}
-                  activeOpacity={0.7}
-                  onPress={() => toggleChecklist(item)}
-                  className={`flex-row items-center gap-1.5 px-3 py-2 rounded-full border border-black/5 ${isChecked ? "bg-[#e31b59]/10" : "bg-[#f5f5f7]"}`}
+      <View className="mt-8">
+        <Text className="text-[18px] font-semibold text-black tracking-[-0.3px] mb-5">
+          촬영 체크리스트
+        </Text>
+        <View className="flex-row flex-wrap gap-2 mb-3">
+          {(course?.checklists || []).map((item: any) => {
+            const isChecked = item.isChecked;
+            return (
+              <TouchableOpacity
+                key={item.id}
+                activeOpacity={0.7}
+                onPress={() => toggleChecklistMutation.mutate(item.id)}
+                onLongPress={() => {
+                  Alert.alert("삭제", "이 항목을 삭제하시겠습니까?", [
+                    { text: "취소", style: "cancel" },
+                    { text: "삭제", style: "destructive", onPress: () => deleteChecklistMutation.mutate(item.id) }
+                  ]);
+                }}
+                className={`flex-row items-center gap-1.5 px-3 py-2 rounded-full border border-black/5 ${isChecked ? "bg-[#e31b59]/10" : "bg-[#f5f5f7]"}`}
+              >
+                <View
+                  className={`w-1.5 h-1.5 rounded-full ${isChecked ? "bg-[#e31b59]" : "bg-black/15"}`}
+                />
+                <Text
+                  className={`text-[13px] tracking-[-0.2px] ${isChecked ? "text-[#e31b59]" : "text-black"}`}
+                  style={{ textDecorationLine: isChecked ? "line-through" : "none" }}
                 >
-                  <View
-                    className={`w-1.5 h-1.5 rounded-full ${isChecked ? "bg-[#e31b59]" : "bg-black/15"}`}
-                  />
-                  <Text
-                    className={`text-[13px] tracking-[-0.2px] ${isChecked ? "text-[#e31b59]" : "text-black"}`}
-                  >
-                    {item}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
+                  {item.content}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
-      )}
+        <View className="flex-row items-center bg-[#f5f5f7] rounded-full px-4 h-10 border border-black/5">
+          <TextInput
+            placeholder="준비물 추가..."
+            placeholderTextColor="rgba(0,0,0,0.3)"
+            value={newChecklistText}
+            onChangeText={setNewChecklistText}
+            onSubmitEditing={() => {
+              if (newChecklistText.trim()) {
+                addChecklistMutation.mutate(newChecklistText.trim());
+                setNewChecklistText("");
+              }
+            }}
+            returnKeyType="done"
+            className="flex-1 text-[13px] text-black tracking-[-0.2px] h-full"
+            style={{ paddingVertical: 0 }}
+          />
+        </View>
+      </View>
     </View>
   );
 
@@ -992,11 +997,11 @@ export default function TravelPlanScreen({ navigation, route }: any) {
           </Text>
         </View>
         <View className="flex-row gap-1">
-          <TouchableOpacity className="w-8 h-8 rounded-full bg-black/5 items-center justify-center">
+          <TouchableOpacity 
+            onPress={() => setShareSheetVisible(true)}
+            className="w-8 h-8 rounded-full bg-black/5 items-center justify-center"
+          >
             <IconShare size={18} color="rgba(0,0,0,0.6)" />
-          </TouchableOpacity>
-          <TouchableOpacity className="w-8 h-8 rounded-full bg-black/5 items-center justify-center">
-            <IconMap size={18} color="rgba(0,0,0,0.6)" />
           </TouchableOpacity>
           <TouchableOpacity 
             onPress={handleMorePress}
@@ -1106,6 +1111,48 @@ export default function TravelPlanScreen({ navigation, route }: any) {
         spotName={currentData?.spots?.[0]?.name || ""}
         address={currentData?.spots?.[0]?.loc || ""}
         onLaunched={(msg) => Alert.alert("안내", msg)}
+      />
+
+      <CourseMoreSheet
+        visible={isMoreSheetVisible}
+        onClose={() => setIsMoreSheetVisible(false)}
+        courseName={course?.title || "출사 계획"}
+        courseDateStr={course ? `${course.startDate.replace(/-/g, '.')} ~ ${course.endDate.replace(/-/g, '.')}` : "날짜 미정"}
+        onEditName={() => {
+          if (planId && course) {
+            navigation.navigate('TravelNew', {
+              editMode: true,
+              courseId: planId,
+              initialTitle: course.title,
+              initialStartDate: course.startDate,
+              initialEndDate: course.endDate
+            });
+          }
+        }}
+        onDuplicate={() => Alert.alert('알림', '복제 기능은 준비중입니다.')}
+        onInvite={() => Alert.alert('알림', '공동 편집자 초대 기능은 준비중입니다.')}
+        onAddToCalendar={() => Alert.alert('알림', '캘린더 추가 기능은 준비중입니다.')}
+        onDelete={() => {
+          Alert.alert(
+            '이 계획 전체 삭제',
+            '정말 삭제하시겠습니까? 되돌릴 수 없어요.',
+            [
+              { text: '취소', style: 'cancel' },
+              { text: '삭제', style: 'destructive', onPress: () => deleteCourseMutation.mutate() }
+            ]
+          );
+        }}
+      />
+
+      <CourseShareSheet
+        visible={isShareSheetVisible}
+        onClose={() => setShareSheetVisible(false)}
+        courseName={course?.title || "출사 계획"}
+        spotCount={(course?.spots || []).length}
+        onCopyLink={() => Alert.alert('알림', '링크가 복사되었습니다.')}
+        onSaveImage={() => Alert.alert('알림', '이미지로 저장 기능은 준비중입니다.')}
+        onExportPdf={() => Alert.alert('알림', 'PDF로 내보내기 기능은 준비중입니다.')}
+        onShareSocial={(platform) => Alert.alert('알림', `${platform} 공유 기능은 준비중입니다.`)}
       />
     </SafeAreaView>
   );

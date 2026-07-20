@@ -179,10 +179,10 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
                     // @ts-ignore
                     navigation.navigate('WishlistSetting', { 
                       newSpot: { 
-                        id: MOCK_SPOT.id,
-                        name: MOCK_SPOT.name, 
-                        loc: MOCK_SPOT.address.split(' ').slice(0, 2).join(' '), 
-                        score: MOCK_PHOTOGENIC_SCORE.score,
+                        id: spot.id,
+                        name: spot.name, 
+                        loc: spot.address ? spot.address.split(' ').slice(0, 2).join(' ') : '', 
+                        score: 0, // TODO: 실 score 연동 (spot 도메인)
                       } 
                     });
                   }}

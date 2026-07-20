@@ -113,4 +113,50 @@ export const coursesApi = {
       body: JSON.stringify({ spotIds }),
     });
   },
+
+  // 9. 체크리스트 항목 추가
+  addChecklist: (id: number, content: string): Promise<CourseChecklist> => {
+    return fetchWithAuth(`/courses/${id}/checklists`, {
+      method: 'POST',
+      body: JSON.stringify({ content }),
+    });
+  },
+
+  // 10. 체크리스트 상태 토글
+  toggleChecklist: (id: number, checklistId: number): Promise<CourseChecklist> => {
+    return fetchWithAuth(`/courses/${id}/checklists/${checklistId}`, {
+      method: 'PUT',
+    });
+  },
+
+  // 11. 체크리스트 내용 수정
+  updateChecklist: (id: number, checklistId: number, content: string): Promise<CourseChecklist> => {
+    return fetchWithAuth(`/courses/${id}/checklists/${checklistId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ content }),
+    });
+  },
+
+  // 12. 체크리스트 삭제
+  deleteChecklist: (id: number, checklistId: number): Promise<void> => {
+    return fetchWithAuth(`/courses/${id}/checklists/${checklistId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  // 13. 날씨 정보 조회
+  getCourseWeather: (id: number): Promise<CourseWeather[]> => {
+    return fetchWithAuth(`/courses/${id}/weather`, { method: 'GET' });
+  },
+};
+
+export type CourseWeather = {
+  dayNumber: number;
+  date: string;
+  targetSpotId: number;
+  targetSpotName: string;
+  weatherStatus: string;
+  temperature: number | null;
+  sunsetTime: string;
+  goldenHourEvening: string;
 };

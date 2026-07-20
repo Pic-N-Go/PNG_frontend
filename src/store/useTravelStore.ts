@@ -4,6 +4,8 @@ export type Spot = {
   id: string;
   name: string;
   loc: string;
+  lat: number;
+  lng: number;
   tags: string[];
   score: string;
   photo: string;

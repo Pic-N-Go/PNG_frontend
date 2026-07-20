@@ -4,6 +4,7 @@ import { WebView } from 'react-native-webview';
 import { IconChevronLeft, IconSearch, IconAdjustmentsHorizontal, IconFocus2, IconX } from '@tabler/icons-react-native';
 import { useNavigation, useRoute, useFocusEffect, CommonActions } from '@react-navigation/native';
 import { useTravelStore, Spot } from '@/store/useTravelStore';
+import { useSpots } from '@/hooks/useSpot';
 import SpotPopup from '@/components/travel/SpotPopup';
 import BottomSheet from '@/components/common/BottomSheet';
 import FilterBottomSheet, { FilterState, EMPTY_FILTER } from '@/components/home/FilterBottomSheet';
@@ -15,13 +16,7 @@ const KAKAO_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_API_KEY;
 
 
 
-const DEFAULT_SPOTS = [
-  { id: '1', name: '광안리 해수욕장', lat: 35.1532, lng: 129.1186, tags: ['바다', '야경'], score: 87, loc: '부산 수영구', photo: 'https://images.unsplash.com/photo-1598514982205-f36b96d1e8dd?q=80&w=400&auto=format&fit=crop' },
-  { id: '2', name: '경복궁', lat: 37.5796, lng: 126.9770, tags: ['역사', '고궁', '한옥'], score: 91, loc: '서울 종로구', photo: 'https://images.unsplash.com/photo-1538485399081-7191377e8241?q=80&w=400&auto=format&fit=crop' },
-  { id: '3', name: '제주 사려니숲길', lat: 33.4000, lng: 126.6000, tags: ['숲', '안개'], score: 78, loc: '제주 제주시', photo: 'https://images.unsplash.com/photo-1600758208050-a35f99478f68?q=80&w=400&auto=format&fit=crop' },
-  { id: '4', name: '남산 서울타워', lat: 37.5512, lng: 126.9882, tags: ['야경', '랜드마크'], score: 86, loc: '서울 용산구', photo: 'https://images.unsplash.com/photo-1610311756586-81e8eb9f3152?q=80&w=400&auto=format&fit=crop' },
-  { id: '5', name: '전주 한옥마을', lat: 35.8147, lng: 127.1526, tags: ['한옥', '먹거리'], score: 85, loc: '전북 전주시', photo: 'https://images.unsplash.com/photo-1582236968962-d2f1f58b9cf6?q=80&w=400&auto=format&fit=crop' },
-];
+const DEFAULT_SPOTS: any[] = []; // Not used anymore, fetching from API
 
 const CATEGORIES = [
   { id: 'all', label: '전체' },
@@ -51,6 +46,25 @@ export default function MapScreen() {
   const [filterVisible, setFilterVisible] = useState(false);
   const [detailFilter, setDetailFilter] = useState<FilterState>(EMPTY_FILTER);
   const [currentPlanDay, setCurrentPlanDay] = useState<string>(route.params?.initialDay || '1');
+
+  const { data: spotsPage } = useSpots();
+
+  const apiSpots = useMemo(() => {
+    console.log('[DEBUG] spotsPage from API:', spotsPage);
+    if (!spotsPage?.content) return [];
+    const mapped = spotsPage.content.map(spot => ({
+      id: String(spot.id),
+      name: spot.name,
+      lat: spot.latitude,
+      lng: spot.longitude,
+      tags: [spot.category],
+      score: spot.photogenicScore,
+      loc: spot.address,
+      photo: spot.thumbnailUrl || spot.imageUrl || ''
+    }));
+    console.log('[DEBUG] mapped apiSpots:', mapped);
+    return mapped;
+  }, [spotsPage]);
 
   const isSelected = activeSpot ? selectedSpots.some(s => s.id === activeSpot.id) : false;
 
@@ -158,8 +172,8 @@ export default function MapScreen() {
     if (mode === 'plan-view' && route.params?.planData) {
       return route.params.planData[currentPlanDay]?.spots || [];
     }
-    return route.params?.spots || DEFAULT_SPOTS;
-  }, [mode, route.params?.spots, route.params?.planData, currentPlanDay]);
+    return route.params?.spots || apiSpots;
+  }, [mode, route.params?.spots, route.params?.planData, currentPlanDay, apiSpots]);
 
   const filteredSpots = useMemo(() => {
     return baseSpots.filter((spot: any) => {
@@ -203,7 +217,7 @@ export default function MapScreen() {
   const HTML = useMemo(() => {
     const initialSpots = (mode === 'plan-view' && route.params?.planData)
       ? (route.params.planData[route.params.initialDay || '1']?.spots || [])
-      : (route.params?.spots || null);
+      : (route.params?.spots || apiSpots);
     const isCourseView = mode === 'plan-view' || !!route.params?.spots;
 
     return `
@@ -255,17 +269,8 @@ export default function MapScreen() {
         if (pendingMapClose) { clearTimeout(pendingMapClose); pendingMapClose = null; }
       }
 
-      var defaultSpots = [
-        { id: '1', name: '광안리 해수욕장', lat: 35.1532, lng: 129.1186, tags: ['바다', '야경'], score: '4.8', loc: '부산 수영구', photo: 'https://images.unsplash.com/photo-1598514982205-f36b96d1e8dd?q=80&w=400&auto=format&fit=crop' },
-        { id: '2', name: '경복궁', lat: 37.5796, lng: 126.9770, tags: ['역사', '고궁'], score: '4.9', loc: '서울 종로구', photo: 'https://images.unsplash.com/photo-1538485399081-7191377e8241?q=80&w=400&auto=format&fit=crop' },
-        { id: '3', name: '제주 사려니숲길', lat: 33.4000, lng: 126.6000, tags: ['숲', '안개'], score: '4.7', loc: '제주 제주시', photo: 'https://images.unsplash.com/photo-1600758208050-a35f99478f68?q=80&w=400&auto=format&fit=crop' },
-        { id: '4', name: '남산 서울타워', lat: 37.5512, lng: 126.9882, tags: ['야경', '랜드마크'], score: '4.7', loc: '서울 용산구', photo: 'https://images.unsplash.com/photo-1610311756586-81e8eb9f3152?q=80&w=400&auto=format&fit=crop' },
-        { id: '5', name: '전주 한옥마을', lat: 35.8147, lng: 127.1526, tags: ['한옥', '먹거리'], score: '4.6', loc: '전북 전주시', photo: 'https://images.unsplash.com/photo-1582236968962-d2f1f58b9cf6?q=80&w=400&auto=format&fit=crop' },
-      ];
-      
-      var injectedSpots = ${JSON.stringify(initialSpots).replace(/</g, '\\u003c')};
+      var spots = ${JSON.stringify(initialSpots).replace(/</g, '\\u003c')};
       var isCourseView = ${isCourseView};
-      var spots = injectedSpots || defaultSpots;
 
       var bounds = new kakao.maps.LatLngBounds();
       var activeOverlays = [];
