@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useFocusEffect } from "@react-navigation/native";
-import { View, Text, TouchableOpacity, ScrollView, Alert, TextInput, Image } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, Alert, TextInput, Image, KeyboardAvoidingView, Platform } from "react-native";
 import { coursesApi } from "@/api/courses";
 import { useTravelStore } from "@/store/useTravelStore";
 import { useAnimatedRef } from "react-native-reanimated";
@@ -336,10 +336,9 @@ function mapCourseToData(course: any) {
           label: `차량 ${next.travelTimeMinutes}분`,
         };
       } else {
-        // Fallback or mock if not provided
         transports[`${current.id}__${next.id}`] = {
           type: "car",
-          label: `차량 20분`,
+          label: `-`,
         };
       }
     }
@@ -392,6 +391,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
   const rowHeights = useRef<{ [key: string]: number }>({});
 
   const [newChecklistText, setNewChecklistText] = useState("");
+  const [isChecklistModalVisible, setIsChecklistModalVisible] = useState(false);
 
   const currentData = data[currentDay];
 
@@ -410,10 +410,10 @@ export default function TravelPlanScreen({ navigation, route }: any) {
         if (current.lat && current.lng && next.lat && next.lng) {
           distance += getDistanceFromLatLonInKm(current.lat, current.lng, next.lat, next.lng);
         }
-        if (current.travelTimeMinutes) {
-          durationMins += current.travelTimeMinutes;
+        if (next.travelTimeMinutes != null) {
+          durationMins += next.travelTimeMinutes;
         } else {
-          durationMins += 20;
+          durationMins += 30;
         }
       }
     }
@@ -812,13 +812,18 @@ export default function TravelPlanScreen({ navigation, route }: any) {
   const currentWeather = weatherData?.find((w: any) => w.dayNumber === parseInt(currentDay, 10));
   console.log("DEBUG: currentWeather ->", JSON.stringify(currentWeather, null, 2));
 
+  const hasValidWeather = currentWeather && 
+    (currentWeather.morning?.weatherStatus !== "데이터 없음" ||
+     currentWeather.afternoon?.weatherStatus !== "데이터 없음" ||
+     currentWeather.evening?.weatherStatus !== "데이터 없음");
+
   const weatherRow = React.useMemo(
     () => (
       <View className="mt-5">
         <Text className="text-[18px] font-semibold text-black tracking-[-0.3px] mb-5">
           DAY {currentDay} 날씨
         </Text>
-        {currentWeather ? (
+        {hasValidWeather ? (
           <View className="flex-row gap-2">
             {currentWeather.morning && <WeatherCell period="오전" data={currentWeather.morning} />}
             {currentWeather.afternoon && <WeatherCell period="오후" data={currentWeather.afternoon} />}
@@ -934,23 +939,13 @@ export default function TravelPlanScreen({ navigation, route }: any) {
             );
           })}
         </View>
-        <View className="flex-row items-center bg-[#f5f5f7] rounded-full px-4 h-10 border border-black/5">
-          <TextInput
-            placeholder="준비물 추가..."
-            placeholderTextColor="rgba(0,0,0,0.3)"
-            value={newChecklistText}
-            onChangeText={setNewChecklistText}
-            onSubmitEditing={() => {
-              if (newChecklistText.trim()) {
-                addChecklistMutation.mutate(newChecklistText.trim());
-                setNewChecklistText("");
-              }
-            }}
-            returnKeyType="done"
-            className="flex-1 text-[13px] text-black tracking-[-0.2px] h-full"
-            style={{ paddingVertical: 0 }}
-          />
-        </View>
+        <TouchableOpacity 
+          activeOpacity={0.7}
+          onPress={() => setIsChecklistModalVisible(true)}
+          className="flex-row items-center bg-[#f5f5f7] rounded-full px-4 h-10 border border-black/5"
+        >
+          <Text className="text-black/30 text-[13px] tracking-[-0.2px]">준비물 추가...</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -1076,6 +1071,10 @@ export default function TravelPlanScreen({ navigation, route }: any) {
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
+      <KeyboardAvoidingView 
+        style={{ flex: 1 }} 
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
       {/* Sticky Navbar */}
       <View className="h-[52px] flex-row items-center px-3.5 border-b-[0.5px] border-black/5 z-50 bg-white">
         <TouchableOpacity
@@ -1253,6 +1252,42 @@ export default function TravelPlanScreen({ navigation, route }: any) {
         onExportPdf={() => Alert.alert('알림', 'PDF로 내보내기 기능은 준비중입니다.')}
         onShareSocial={(platform) => Alert.alert('알림', `${platform} 공유 기능은 준비중입니다.`)}
       />
+
+      {isChecklistModalVisible && (
+        <View className="absolute inset-0 z-[100] bg-black/40 justify-center items-center">
+          <TouchableOpacity 
+            className="absolute inset-0" 
+            activeOpacity={1} 
+            onPress={() => setIsChecklistModalVisible(false)} 
+          />
+          <KeyboardAvoidingView 
+            behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
+            className="w-full px-5"
+          >
+            <View className="bg-white rounded-2xl p-4 shadow-lg">
+              <Text className="text-[16px] font-bold mb-3 tracking-[-0.3px] text-black">준비물 추가</Text>
+              <TextInput
+                autoFocus
+                placeholder="어떤 준비물이 필요한가요?"
+                placeholderTextColor="rgba(0,0,0,0.3)"
+                value={newChecklistText}
+                onChangeText={setNewChecklistText}
+                onSubmitEditing={() => {
+                  if (newChecklistText.trim()) {
+                    addChecklistMutation.mutate(newChecklistText.trim());
+                    setNewChecklistText("");
+                  }
+                  setIsChecklistModalVisible(false);
+                }}
+                className="bg-[#f5f5f7] rounded-xl px-4 h-12 text-[15px] tracking-[-0.2px] text-black"
+                returnKeyType="done"
+              />
+            </View>
+          </KeyboardAvoidingView>
+        </View>
+      )}
+
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
