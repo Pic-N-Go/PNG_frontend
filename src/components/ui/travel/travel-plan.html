@@ -825,7 +825,7 @@
       .action-row__body { flex: 1; min-width: 0; }
       .action-row__title { display: block; font-size: var(--font-md); font-weight: 500; color: #000; }
       .action-row__sub { display: block; font-size: var(--font-xs); color: var(--color-text-secondary); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-      .action-row__right { font-size: var(--font-sm); font-weight: 600; color: #f59e0b; flex-shrink: 0; }
+      .action-row__right { font-size: var(--font-sm); font-weight: 600; color: var(--color-accent); flex-shrink: 0; }
       .badge-beta { padding: 3px 8px; border-radius: 999px; background: #000; font-size: var(--font-2xs); font-weight: 600; color: #fff; flex-shrink: 0; }
       .action-chevron { color: var(--color-text-tertiary); flex-shrink: 0; }
 
@@ -1290,7 +1290,7 @@
             </button>
             <!-- OS 시스템 공유 시트: RN에서 Share.share({title, message, url}) 호출 (목업은 토스트로 대체) -->
             <button class="share-app" onclick="showToast('시스템 공유 시트를 열어요')">
-              <span class="share-app__icon">
+              <span class="share-app__icon" style="background:rgba(0,0,0,0.06)">
                 <svg width="22" height="22" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/><path d="M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/><path d="M19 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/></svg>
               </span>
               <span class="share-app__label">더보기</span>

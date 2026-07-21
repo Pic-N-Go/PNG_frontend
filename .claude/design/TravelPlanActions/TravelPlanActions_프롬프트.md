@@ -24,6 +24,7 @@
 | 2xl | 28 | 저장 이미지 메인 타이틀 |
 
 ## 팔레트
+
 | 이름 | 값 | 용도 |
 | --- | --- | --- |
 | brand | `#e31b59` | 마이페이지 계열 · 저장 이미지 로고/타이틀 강조 · destructive |
@@ -34,6 +35,7 @@
 
 ## 1. TravelPlanShareSheet
 ### Props
+
 | 이름 | 타입 | 설명 |
 | --- | --- | --- |
 | visible | boolean | 시트 표시 |
@@ -49,6 +51,7 @@
 
 ## 2. TravelPlanMoreSheet
 ### Props
+
 | 이름 | 타입 |
 | --- | --- |
 | visible | boolean |
@@ -122,7 +125,6 @@ const onSaveImage = async () => {
 
 ## 의존성
 - `react-native`
-- `@react-navigation/native` (더보기 시트만)
 - `@tabler/icons-react-native` — `IconChevronRight`, `IconLink`, `IconPhoto`, `IconFileText`, `IconPencil`, `IconCopy`, `IconUsers`, `IconCalendar`, `IconTrash`
 - `react-native-view-shot` — 이미지 캡처
 - `@react-native-community/cameraroll` — 갤러리 저장 (또는 Expo `MediaLibrary`)
@@ -137,4 +139,3 @@ const onSaveImage = async () => {
 - 저장 이미지 1:1 (인스타 피드) / PDF 포맷 추가
 - 저장 이미지 렌더링 옵션 시트 (지도만 · 일정만 · 통합)
 - 공동 편집자 초대 시트 (이메일/카톡)
-- 이름 변경 인풋 다이얼로그

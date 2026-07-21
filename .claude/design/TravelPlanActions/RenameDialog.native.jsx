@@ -5,7 +5,7 @@
 // - 키보드 오픈 시 KeyboardAvoidingView(padding) 로 다이얼로그 위로 밀림
 // - 폰트 토큰: 17(다이얼로그 타이틀) / 15(인풋·버튼) / 13(설명) / 11(카운터)
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -46,12 +46,7 @@ export default function RenameDialog({ visible, initialName = '', onClose, onSub
   const inputRef = useRef(null);
 
   useEffect(() => {
-    if (visible) {
-      setValue(initialName);
-      // 다음 tick 에 자동 포커스 (모달 마운트 후)
-      const t = setTimeout(() => inputRef.current?.focus?.(), 80);
-      return () => clearTimeout(t);
-    }
+    if (visible) setValue(initialName);
   }, [visible, initialName]);
 
   const trimmed = value.trim();
@@ -81,7 +76,7 @@ export default function RenameDialog({ visible, initialName = '', onClose, onSub
   }, [onClose]);
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={handleCancel} statusBarTranslucent>
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={handleCancel} statusBarTranslucent onShow={() => inputRef.current?.focus?.()}>
       <Pressable style={{ flex: 1, backgroundColor: C.scrim }} onPress={handleCancel}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -102,7 +97,7 @@ export default function RenameDialog({ visible, initialName = '', onClose, onSub
           }}>
             {/* header */}
             <View style={{ alignItems: 'center' }}>
-              <Text style={{ fontSize: F.lg, fontWeight: '700', color: C.text1 }}>이름 변경</Text>
+              <Text style={{ fontSize: F.lg, fontWeight: '600', color: C.text1 }}>이름 변경</Text>
               <Text style={{ fontSize: F.sm, color: C.text2, marginTop: normalize(6) }}>
                 여행 계획의 이름을 입력해 주세요
               </Text>
@@ -210,7 +205,7 @@ export default function RenameDialog({ visible, initialName = '', onClose, onSub
                   opacity: !canSave ? 0.4 : pressed ? 0.85 : 1,
                 })}
               >
-                <Text style={{ fontSize: F.md, fontWeight: '700', color: '#fff' }}>저장</Text>
+                <Text style={{ fontSize: F.md, fontWeight: '600', color: '#fff' }}>저장</Text>
               </Pressable>
             </View>
           </Pressable>

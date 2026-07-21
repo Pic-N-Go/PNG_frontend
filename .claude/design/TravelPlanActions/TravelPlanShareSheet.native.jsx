@@ -16,7 +16,6 @@ import {
   PanResponder,
   Share,
   Clipboard,
-  Platform,
   Linking,
 } from 'react-native';
 import {
@@ -29,7 +28,7 @@ import { normalize } from '@/utils/normalize';
 const C = {
   bg: '#ffffff',
   card: '#f5f5f7',
-  brand: '#f59e0b',
+  brand: '#e31b59',
   text1: '#000000',
   text2: 'rgba(0,0,0,0.55)',
   text3: 'rgba(0,0,0,0.35)',
@@ -49,7 +48,8 @@ const F = {
 
 const APPS = [
   { key: 'kakao', label: '카카오톡', bg: '#fee500', scheme: 'kakaotalk://' },
-  { key: 'instagram', label: '인스타 스토리', bg: null, scheme: 'instagram://story-camera' },
+  // 프로덕션: 인스타 멀티스톱 그라디언트 (expo-linear-gradient). 참고 시안은 단색 플레이스홀더
+  { key: 'instagram', label: '인스타 스토리', bg: '#c13584', scheme: 'instagram://story-camera' },
   { key: 'facebook', label: '페이스북', bg: '#0064e0', scheme: 'fb://' },
   { key: 'twitter', label: 'X (트위터)', bg: '#1da1f2', scheme: 'twitter://' },
   { key: 'more', label: '더보기', bg: 'rgba(0,0,0,0.06)', scheme: null },
@@ -99,7 +99,11 @@ export default function TravelPlanShareSheet({ visible, onClose, plan }) {
       }
       try {
         const supported = scheme ? await Linking.canOpenURL(scheme) : false;
-        if (supported) Linking.openURL(scheme);
+        if (supported) { Linking.openURL(scheme); return; }
+      } catch {}
+      // 앱 미설치 등으로 딥링크 실패 시 시스템 공유 시트로 폴백 (탭이 dead-end 되지 않도록)
+      try {
+        await Share.share({ title: plan?.name, message: `${plan?.name} — ${shareUrl}`, url: shareUrl });
       } catch {}
     },
     [plan, shareUrl],
@@ -129,7 +133,7 @@ export default function TravelPlanShareSheet({ visible, onClose, plan }) {
           </View>
 
           <View style={{ paddingTop: normalize(2), paddingBottom: normalize(4) }}>
-            <Text style={{ fontSize: F.xl, fontWeight: '700', letterSpacing: -0.2 }}>공유하기</Text>
+            <Text style={{ fontSize: F.xl, fontWeight: '600', letterSpacing: -0.2 }}>공유하기</Text>
             <Text style={{ fontSize: F.xs, color: C.text2, marginTop: normalize(6) }}>
               {plan?.name ?? '여행 계획'} · 포토스팟 {plan?.spotCount ?? 0}곳
             </Text>
@@ -138,7 +142,7 @@ export default function TravelPlanShareSheet({ visible, onClose, plan }) {
           {/* app shortcuts */}
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingVertical: normalize(20), gap: normalize(16) }}>
             {APPS.map((a) => (
-              <Pressable key={a.key} onPress={() => onAppTap(a.key, a.scheme)} style={({ pressed }) => ({ width: normalize(64), alignItems: 'center', opacity: pressed ? 0.6 : 1 })}>
+              <Pressable key={a.key} onPress={() => onAppTap(a.key, a.scheme)} hitSlop={8} style={({ pressed }) => ({ width: normalize(64), alignItems: 'center', opacity: pressed ? 0.6 : 1 })}>
                 <View style={{ width: normalize(56), height: normalize(56), borderRadius: normalize(16), backgroundColor: a.bg, alignItems: 'center', justifyContent: 'center' }} />
                 <Text style={{ marginTop: normalize(8), fontSize: F.xs, color: 'rgba(0,0,0,0.7)', textAlign: 'center' }}>{a.label}</Text>
               </Pressable>
@@ -147,7 +151,7 @@ export default function TravelPlanShareSheet({ visible, onClose, plan }) {
 
           {/* action list */}
           <View style={{ backgroundColor: C.card, borderRadius: normalize(14) }}>
-            <Pressable onPress={onCopyLink} style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}>
+            <Pressable onPress={onCopyLink} hitSlop={8} style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}>
               <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: normalize(14), paddingHorizontal: normalize(16), borderBottomWidth: 1, borderBottomColor: C.divider }}>
                 <View style={{ width: normalize(36), height: normalize(36), borderRadius: normalize(10), backgroundColor: C.iconBg, alignItems: 'center', justifyContent: 'center', marginRight: normalize(14) }}>
                   <IconLink size={normalize(18)} color="rgba(0,0,0,0.7)" strokeWidth={2} />
@@ -160,7 +164,7 @@ export default function TravelPlanShareSheet({ visible, onClose, plan }) {
               </View>
             </Pressable>
 
-            <Pressable onPress={() => plan?.onSaveImage?.()} style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}>
+            <Pressable onPress={() => plan?.onSaveImage?.()} hitSlop={8} style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}>
               <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: normalize(14), paddingHorizontal: normalize(16), borderBottomWidth: 1, borderBottomColor: C.divider }}>
                 <View style={{ width: normalize(36), height: normalize(36), borderRadius: normalize(10), backgroundColor: C.iconBg, alignItems: 'center', justifyContent: 'center', marginRight: normalize(14) }}>
                   <IconPhoto size={normalize(18)} color="rgba(0,0,0,0.7)" strokeWidth={2} />
@@ -172,7 +176,7 @@ export default function TravelPlanShareSheet({ visible, onClose, plan }) {
               </View>
             </Pressable>
 
-            <Pressable onPress={() => plan?.onExportPdf?.()} style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}>
+            <Pressable onPress={() => plan?.onExportPdf?.()} hitSlop={8} style={({ pressed }) => ({ opacity: pressed ? 0.6 : 1 })}>
               <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: normalize(14), paddingHorizontal: normalize(16) }}>
                 <View style={{ width: normalize(36), height: normalize(36), borderRadius: normalize(10), backgroundColor: C.iconBg, alignItems: 'center', justifyContent: 'center', marginRight: normalize(14) }}>
                   <IconFileText size={normalize(18)} color="rgba(0,0,0,0.7)" strokeWidth={2} />

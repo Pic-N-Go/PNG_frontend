@@ -6,7 +6,7 @@
 // - 폰트 토큰: 22(제목) / 15(row 제목) / 13(우측 값) / 11(캡션)
 // - 인라인 style + @tabler/icons + normalize
 
-import React, { useCallback, useMemo, useRef, useEffect, useState } from 'react';
+import React, { useCallback, useMemo, useRef, useEffect } from 'react';
 import {
   View,
   Text,
@@ -17,7 +17,6 @@ import {
   PanResponder,
   Alert,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import {
   IconChevronRight,
   IconPencil,
@@ -81,7 +80,6 @@ function Row({ icon, label, subLabel, onPress, badge, chevron = true, showDivide
 }
 
 export default function TravelPlanMoreSheet({ visible, onClose, plan, onRename, onDuplicate, onInvite, onAddToCalendar, onDelete }) {
-  const navigation = useNavigation();
   const { height: SCREEN_H } = Dimensions.get('window');
   const translateY = useRef(new Animated.Value(SCREEN_H)).current;
 
@@ -147,7 +145,7 @@ export default function TravelPlanMoreSheet({ visible, onClose, plan, onRename, 
           </View>
 
           <View style={{ paddingTop: normalize(2), paddingBottom: normalize(4) }}>
-            <Text style={{ fontSize: F.xl, fontWeight: '700', letterSpacing: -0.2 }}>더보기</Text>
+            <Text style={{ fontSize: F.xl, fontWeight: '600', letterSpacing: -0.2 }}>더보기</Text>
             <Text style={{ fontSize: F.xs, color: C.text2, marginTop: normalize(6) }}>{plan?.name ?? '여행 계획'}</Text>
           </View>
 

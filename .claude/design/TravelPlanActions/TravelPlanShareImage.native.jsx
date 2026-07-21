@@ -43,7 +43,7 @@ function DayBadge({ day }) {
   const bg = day === 2 ? C.day2 : C.day1;
   return (
     <View style={{ height: normalize(20), paddingHorizontal: normalize(7), borderRadius: normalize(6), backgroundColor: bg, alignItems: 'center', justifyContent: 'center' }}>
-      <Text style={{ fontSize: F['2xs'], fontWeight: '700', color: '#fff', letterSpacing: 0.2 }}>{`D${day ?? 1}`}</Text>
+      <Text style={{ fontSize: F['2xs'], fontWeight: '600', color: '#fff', letterSpacing: 0.2 }}>{`D${day ?? 1}`}</Text>
     </View>
   );
 }
@@ -51,7 +51,7 @@ function DayBadge({ day }) {
 function StatCell({ value, label }) {
   return (
     <View style={{ flex: 1, alignItems: 'center' }}>
-      <Text style={{ fontSize: F.md, fontWeight: '700', color: C.text1 }}>{value}</Text>
+      <Text style={{ fontSize: F.md, fontWeight: '600', color: C.text1 }}>{value}</Text>
       <Text style={{ fontSize: F.xs, color: C.text2, marginTop: normalize(2) }}>{label}</Text>
     </View>
   );
@@ -78,7 +78,7 @@ const TravelPlanShareImage = forwardRef(({ plan }, ref) => {
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <View style={{ width: normalize(28), height: normalize(28), borderRadius: normalize(8), backgroundColor: C.brand, marginRight: normalize(8) }} />
-          <Text style={{ fontSize: F.sm, fontWeight: '700' }}>PNG</Text>
+          <Text style={{ fontSize: F.sm, fontWeight: '600' }}>PNG</Text>
         </View>
         <Text style={{ fontSize: F.xs, color: C.text3, letterSpacing: 0.4 }}>MY TRAVEL PLAN</Text>
       </View>
@@ -88,7 +88,7 @@ const TravelPlanShareImage = forwardRef(({ plan }, ref) => {
         <Text style={{ fontSize: F.xs, fontWeight: '600', color: C.day1, letterSpacing: 1 }}>
           {(plan?.days ?? 2) >= 2 ? 'DAY 1 · DAY 2' : 'DAY 1'}
         </Text>
-        <Text style={{ fontSize: F['2xl'], fontWeight: '700', letterSpacing: -0.5, marginTop: normalize(4), lineHeight: normalize(32) }}>
+        <Text style={{ fontSize: F['2xl'], fontWeight: '600', letterSpacing: -0.5, marginTop: normalize(4), lineHeight: normalize(32) }}>
           {plan?.name ?? '여행 계획'}
         </Text>
         <Text style={{ fontSize: F.sm, color: C.text2, marginTop: normalize(6) }}>{plan?.dateRange ?? ''}</Text>
