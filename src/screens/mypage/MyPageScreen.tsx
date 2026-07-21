@@ -18,7 +18,7 @@ export default function MyPageScreen({ navigation }: any) {
         contentContainerStyle={{ flexGrow: 1 }}
       >
         <ProfileHeader />
-        
+
         <View style={{ paddingTop: normalize(28) }}>
           <PhotoMapPreview />
           <RecentAlbums />

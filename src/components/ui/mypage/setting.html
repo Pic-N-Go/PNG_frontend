@@ -63,11 +63,38 @@
         padding: var(--space-lg) 20px 0;
       }
       .section-label {
-        font-size: 12px;
+        font-size: var(--font-xs);
         font-weight: 600;
         color: rgba(0, 0, 0, 0.3);
         letter-spacing: 0.4px;
         margin-bottom: 8px;
+      }
+      /* 섹션 헤더 우측 "전체 보기 ›" 링크 (iOS 설정·App Store 표준 패턴) */
+      .section-label--row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .section-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 2px;
+        padding: 2px 0 2px 8px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-family: var(--font-family);
+        font-size: var(--font-sm);
+        font-weight: 500;
+        letter-spacing: -0.2px;
+        color: var(--color-text-secondary);
+        transition: color 0.15s;
+      }
+      .section-link:hover {
+        color: var(--color-text-primary);
+      }
+      .section-link__chev {
+        color: var(--color-text-tertiary);
       }
 
       /* ── 설정 카드 ── */
@@ -119,6 +146,12 @@
       .setting-row__icon--pink {
         background: rgba(227, 27, 89, 0.08);
       }
+      .setting-row__icon--purple {
+        background: #e8e4f5;
+      }
+      .setting-row__icon--warm-gray {
+        background: #eef0f2;
+      }
       .setting-row__body {
         flex: 1;
         min-width: 0;
@@ -130,7 +163,7 @@
         letter-spacing: -0.15px;
       }
       .setting-row__desc {
-        font-size: 12px;
+        font-size: var(--font-xs);
         color: rgba(0, 0, 0, 0.38);
         margin-top: 1px;
       }
@@ -152,7 +185,7 @@
         padding: 0 8px;
         border-radius: 10px;
         background: var(--color-accent);
-        font-size: var(--font-xs);
+        font-size: var(--font-2xs);
         font-weight: 600;
         color: #fff;
         display: flex;
@@ -199,125 +232,185 @@
         transform: translateX(18px);
       }
 
-      /* ── FAQ 아코디언 ── */
-      .faq-item {
-        border-top: 0.5px solid rgba(0, 0, 0, 0.05);
-      }
-      .faq-item:first-child {
-        border-top: none;
-      }
-      .faq-q {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 14px 16px;
-        cursor: pointer;
-        transition: background 0.15s;
-      }
-      .faq-q:hover {
-        background: rgba(0, 0, 0, 0.02);
-      }
-      .faq-q__text {
-        font-size: var(--font-base);
-        font-weight: 500;
-        color: var(--color-text-primary);
-        letter-spacing: -0.15px;
-        flex: 1;
-      }
-      .faq-q__arrow {
-        transition: transform 0.2s;
-        color: rgba(0, 0, 0, 0.25);
-        flex-shrink: 0;
-      }
-      .faq-item.is-open .faq-q__arrow {
-        transform: rotate(90deg);
-      }
-      .faq-a {
-        display: none;
-        padding: 0 var(--space-md) 14px;
-        font-size: var(--font-sm);
-        color: rgba(0, 0, 0, 0.5);
-        line-height: 1.6;
-        letter-spacing: -0.1px;
-      }
-      .faq-item.is-open .faq-a {
-        display: block;
+      .dnd-footnote {
+        font-size: var(--font-xs);
+        color: rgba(0, 0, 0, 0.35);
+        margin-top: 8px;
+        line-height: 1.5;
       }
 
-      /* ── 1:1 문의 폼 ── */
-      .inquiry-form {
-        padding: 0 20px 24px;
-      }
-      .inquiry-form__field {
-        margin-bottom: 12px;
-      }
-      .inquiry-form__label {
-        font-size: 12px;
-        font-weight: 500;
-        color: rgba(0, 0, 0, 0.4);
-        margin-bottom: 6px;
-      }
-      .inquiry-form__select {
-        width: 100%;
-        height: 46px;
-        border-radius: 12px;
-        border: none;
-        background: var(--color-surface);
-        padding: 0 14px;
-        font-family: var(--font-family);
-        font-size: var(--font-base);
-        color: var(--color-text-primary);
-        outline: none;
-        appearance: none;
-        cursor: pointer;
-      }
-      .inquiry-form__textarea {
-        width: 100%;
-        height: 120px;
-        border-radius: 12px;
-        border: none;
-        background: var(--color-surface);
-        padding: 12px 14px;
-        font-family: var(--font-family);
-        font-size: var(--font-base);
-        color: var(--color-text-primary);
-        resize: none;
-        line-height: 1.5;
-        outline: none;
-        transition: box-shadow 0.2s;
-      }
-      .inquiry-form__textarea:focus {
-        box-shadow: 0 0 0 1.5px var(--color-accent);
-        background: #fff;
-      }
-      .inquiry-form__textarea::placeholder {
-        color: rgba(0, 0, 0, 0.25);
-      }
-      .inquiry-form__count {
-        text-align: right;
+      /* ── 방해 금지 시간 휠 피커 ── */
+      .dnd-time-helper {
         font-size: var(--font-xs);
-        color: rgba(0, 0, 0, 0.25);
+        color: var(--color-text-tertiary);
+        margin-bottom: 14px;
+      }
+      .time-card {
+        background: var(--color-surface);
+        border-radius: 16px;
+        overflow: hidden;
+      }
+      .time-row {
+        display: flex;
+        align-items: center;
+        padding: 14px 20px;
+      }
+      .time-row-divider {
+        height: 1px;
+        background: var(--color-border-light);
+        margin: 0 20px;
+      }
+      .time-row__label {
+        flex: 1;
+        font-size: var(--font-xs);
+        color: var(--color-text-tertiary);
+      }
+      .time-row__wheels {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .wheel-sep {
+        font-size: var(--font-lg);
+        font-weight: 600;
+        color: var(--color-text-primary);
+      }
+      .wheel-wrap {
+        position: relative;
+        height: 120px;
+        width: 48px;
+        overflow: hidden;
+      }
+      .wheel-scroll {
+        height: 100%;
+        width: 100%;
+        overflow-y: scroll;
+        scroll-snap-type: y mandatory;
+        -webkit-overflow-scrolling: touch;
+      }
+      .wheel-highlight {
+        position: absolute;
+        top: 40px;
+        left: 0;
+        right: 0;
+        height: 40px;
+        background: rgba(0, 0, 0, 0.04);
+        border-radius: 8px;
+        pointer-events: none;
+      }
+      .wheel-fade {
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 40px;
+        pointer-events: none;
+      }
+      .wheel-fade--top {
+        top: 0;
+        background: linear-gradient(to bottom, #f5f5f7, rgba(245, 245, 247, 0));
+      }
+      .wheel-fade--bottom {
+        bottom: 0;
+        background: linear-gradient(to top, #f5f5f7, rgba(245, 245, 247, 0));
+      }
+      .wheel-pad {
+        height: 40px;
+      }
+      .wheel-item {
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: var(--font-md);
+        color: #c7c7cc;
+        scroll-snap-align: center;
+      }
+      .wheel-item.active {
+        font-size: var(--font-lg);
+        font-weight: 600;
+        color: var(--color-text-primary);
+      }
+      .dnd-time-note {
+        margin-top: 14px;
+      }
+      .dnd-time-note__cross {
+        font-size: var(--font-sm);
+        font-weight: 500;
+        color: var(--color-accent);
+      }
+      .dnd-time-note__duration {
+        font-size: var(--font-xs);
+        color: var(--color-text-tertiary);
         margin-top: 4px;
       }
-      .inquiry-submit {
-        width: 100%;
-        height: 52px;
-        border-radius: 26px;
-        border: none;
-        background: var(--color-accent);
-        font-family: var(--font-family);
+
+      /* ── 방해 금지 반복 시트 ── */
+      .repeat-card {
+        background: var(--color-surface);
+        border-radius: 16px;
+        overflow: hidden;
+      }
+      .repeat-row {
+        display: flex;
+        align-items: center;
+        padding: 14px 16px;
+        min-height: 56px;
+        cursor: pointer;
+      }
+      .repeat-row + .repeat-row {
+        border-top: 0.5px solid rgba(0, 0, 0, 0.05);
+      }
+      .repeat-row__label {
+        flex: 1;
         font-size: var(--font-md);
         font-weight: 500;
-        color: #fff;
+        color: var(--color-text-primary);
+      }
+      .repeat-row__check {
+        color: var(--color-accent);
+        display: none;
+      }
+      .repeat-row.is-selected .repeat-row__check {
+        display: flex;
+      }
+      .dow-grid {
+        margin-top: 12px;
+        background: var(--color-surface);
+        border-radius: 16px;
+        padding: 16px;
+      }
+      .dow-grid__hint {
+        font-size: var(--font-xs);
+        color: var(--color-text-tertiary);
+        margin-bottom: 12px;
+      }
+      .dow-grid__row {
+        display: flex;
+        justify-content: space-between;
+      }
+      .dow-chip {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #fff;
+        border: 1px solid var(--color-border);
+        font-size: var(--font-sm);
+        font-weight: 600;
+        color: var(--color-text-primary);
         cursor: pointer;
-        transition: opacity 0.15s;
-        margin-top: 4px;
       }
-      .inquiry-submit:hover {
-        opacity: 0.88;
+      .dow-chip.selected {
+        background: var(--color-accent);
+        border-color: var(--color-accent);
+        color: #fff;
       }
-      .inquiry-submit:active {
-        transform: scale(0.98);
+      .dow-grid__warn {
+        font-size: var(--font-xs);
+        color: var(--color-accent);
+        margin-top: 10px;
       }
 
       /* ── 버전 정보 ── */
@@ -339,7 +432,7 @@
 
       /* ── 회원 탈퇴 row ── */
       .setting-row--danger .setting-row__label {
-        color: var(--color-error);
+        color: #ff453a;
       }
       .setting-row--danger .setting-row__icon {
         background: rgba(255, 69, 58, 0.08);
@@ -392,7 +485,7 @@
         padding: 8px 20px 16px;
       }
       .sheet-header__title {
-        font-size: 20px;
+        font-size: var(--font-xl);
         font-weight: 600;
         letter-spacing: -0.3px;
       }
@@ -415,7 +508,7 @@
         margin-bottom: 14px;
       }
       .sheet-field__label {
-        font-size: 12px;
+        font-size: var(--font-xs);
         font-weight: 500;
         color: rgba(0, 0, 0, 0.4);
         margin-bottom: 6px;
@@ -442,7 +535,7 @@
         font-size: var(--font-base);
       }
       .sheet-hint {
-        font-size: 12px;
+        font-size: var(--font-xs);
         color: rgba(0, 0, 0, 0.35);
         margin-top: 6px;
         line-height: 1.5;
@@ -491,15 +584,14 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 16px;
       }
       .social-row__name {
-        font-size: var(--font-base);
+        font-size: var(--font-md);
         font-weight: 500;
         color: #000;
       }
       .social-row__status {
-        font-size: 12px;
+        font-size: var(--font-xs);
         color: rgba(0, 0, 0, 0.35);
         margin-top: 1px;
       }
@@ -522,23 +614,108 @@
         background: rgba(227, 27, 89, 0.08);
         color: #e31b59;
       }
-      /* 버전 상세 */
+      /* ── 버전 정보 시트 (v2: 앱 메타 카드 / 약관·정책 카드 2그룹) ── */
+      /* 그룹 1: 앱 메타 회색 카드 */
+      .version-card {
+        background: var(--color-surface);
+        border-radius: 14px;
+        padding: 0 16px;
+      }
       .version-info-row {
         display: flex;
+        align-items: center;
         justify-content: space-between;
-        padding: 10px 0;
-        border-bottom: 0.5px solid rgba(0, 0, 0, 0.05);
-        font-size: var(--font-base);
+        padding: 14px 0;
+        border-bottom: 1px solid var(--color-border-light);
       }
       .version-info-row:last-child {
         border-bottom: none;
       }
       .version-info-row__label {
-        color: rgba(0, 0, 0, 0.45);
+        font-size: var(--font-md);
+        color: rgba(0, 0, 0, 0.55);
       }
       .version-info-row__val {
+        font-size: var(--font-sm);
+        font-weight: 600;
+        color: #000;
+      }
+      .version-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-size: var(--font-sm);
+        font-weight: 600;
+        color: #22a05a; /* WCAG AA on #f5f5f7 */
+      }
+      .version-status__dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #22a05a;
+      }
+      /* 업데이트 확인 텍스트 버튼 */
+      .version-update-wrap {
+        display: flex;
+        justify-content: center;
+        padding: 14px 0 4px;
+      }
+      .version-update-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 12px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-family: var(--font-family);
+        font-size: var(--font-sm);
+        font-weight: 500;
+        color: rgba(0, 0, 0, 0.55);
+      }
+      .version-update-btn svg {
+        color: rgba(0, 0, 0, 0.5);
+      }
+      /* 그룹 2: 약관 및 정책 */
+      .version-docs {
+        margin-top: 12px;
+      }
+      .version-docs__label {
+        font-size: var(--font-xs);
+        font-weight: 500;
+        color: rgba(0, 0, 0, 0.4);
+        padding: 0 12px 6px;
+      }
+      .version-docs__card {
+        background: var(--color-surface);
+        border-radius: 14px;
+        overflow: hidden;
+      }
+      .version-doc-row {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 16px;
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-family: var(--font-family);
+        transition: background 0.15s;
+      }
+      .version-doc-row:hover {
+        background: rgba(0, 0, 0, 0.02);
+      }
+      .version-doc-row + .version-doc-row {
+        border-top: 1px solid var(--color-border-light);
+      }
+      .version-doc-row__label {
+        font-size: var(--font-md);
         font-weight: 500;
         color: #000;
+      }
+      .version-doc-row__chev {
+        color: rgba(0, 0, 0, 0.35);
       }
 
       /* ── 탈퇴 확인 모달 ── */
@@ -561,7 +738,7 @@
         padding: 28px 24px 40px;
       }
       .modal__title {
-        font-size: 20px;
+        font-size: var(--font-xl);
         font-weight: 600;
         color: #000;
         letter-spacing: -0.3px;
@@ -588,7 +765,7 @@
       }
       .modal__btn--delete {
         background: rgba(255, 69, 58, 0.1);
-        color: var(--color-error);
+        color: #ff453a;
       }
       .modal__btn--delete:hover {
         background: rgba(255, 69, 58, 0.16);
@@ -797,6 +974,64 @@
         </div>
       </div>
 
+      <!-- ── 방해 금지 ── -->
+      <div class="section-group">
+        <div class="section-label">방해 금지</div>
+        <div class="setting-card">
+          <div class="setting-row" style="cursor: default">
+            <div class="setting-row__icon setting-row__icon--purple">
+              <svg width="16" height="16" viewBox="0 0 24 24" stroke="#6b5aa8"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 3h.393a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.454"/></svg>
+            </div>
+            <div class="setting-row__body">
+              <div class="setting-row__label">방해 금지 모드</div>
+              <div class="setting-row__desc">모든 알림을 일시 중단해요</div>
+            </div>
+            <label class="toggle"
+              ><input type="checkbox" id="dndToggle" checked /><span
+                class="toggle__track"
+              ></span
+            ></label>
+          </div>
+          <div class="setting-row" onclick="openSheet('dndTimeSheet')">
+            <div class="setting-row__icon" style="visibility: hidden"></div>
+            <div class="setting-row__body">
+              <div class="setting-row__label" style="font-weight: 500">시간</div>
+            </div>
+            <div class="setting-row__right">
+              <span class="setting-row__value" id="dndTimeLabel">22:00 ~ 07:00</span>
+              <svg
+                class="setting-row__arrow"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/>
+              </svg>
+            </div>
+          </div>
+          <div class="setting-row" onclick="openSheet('dndRepeatSheet')">
+            <div class="setting-row__icon" style="visibility: hidden"></div>
+            <div class="setting-row__body">
+              <div class="setting-row__label" style="font-weight: 500">반복</div>
+              <div class="setting-row__desc" id="dndRepeatLabel">매일</div>
+            </div>
+            <div class="setting-row__right">
+              <svg
+                class="setting-row__arrow"
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/>
+              </svg>
+            </div>
+          </div>
+        </div>
+        <p class="dnd-footnote">이 시간에는 위시리스트·골든아워·커뮤니티 알림이 모두 오지 않아요.</p>
+      </div>
+
       <!-- ── 개인정보 ── -->
       <div class="section-group">
         <div class="section-label">개인정보 및 보안</div>
@@ -846,171 +1081,88 @@
       </div>
 
       <!-- ── 고객센터 ── -->
+      <!-- ── 자주 묻는 질문 (v3: 전체 보기를 섹션 헤더 우측 링크로 이동) ── -->
       <div class="section-group">
-        <div class="section-label">고객센터</div>
-
-        <!-- FAQ -->
-        <div class="setting-card" style="margin-bottom: 8px">
-          <div class="setting-row" style="cursor: default">
-            <div class="setting-row__icon setting-row__icon--blue">
-              <svg width="16" height="16" viewBox="0 0 24 24" stroke="#3b82f6"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M12 17l0 .01"/><path d="M12 13.5a1.5 1.5 0 0 1 1 -1.5a2.6 2.6 0 1 0 -3 -4"/></svg>
-            </div>
+        <div class="section-label section-label--row">
+          <span>자주 묻는 질문</span>
+          <button class="section-link" onclick="location.href='./faq.html'" aria-label="FAQ 전체 보기">
+            전체 보기
+            <svg class="section-link__chev" width="14" height="14" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/></svg>
+          </button>
+        </div>
+        <div class="setting-card">
+          <div class="setting-row" onclick="location.href='./faq.html'">
             <div class="setting-row__body">
-              <div class="setting-row__label">자주 묻는 질문</div>
+              <div class="setting-row__label">포토제닉 점수는 어떻게 계산되나요?</div>
+            </div>
+            <div class="setting-row__right">
+              <svg class="setting-row__arrow" width="14" height="14" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/></svg>
             </div>
           </div>
-          <!-- FAQ 아코디언 -->
-          <div class="faq-item" id="faq1">
-            <div class="faq-q" onclick="toggleFaq('faq1')">
-              <span class="faq-q__text"
-                >포토제닉 점수는 어떻게 계산되나요?</span
-              >
-              <svg
-                class="faq-q__arrow"
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/>
-              </svg>
+          <div class="setting-row" onclick="location.href='./faq.html'">
+            <div class="setting-row__body">
+              <div class="setting-row__label">위시리스트 알림이 오지 않아요.</div>
             </div>
-            <div class="faq-a">
-              포토제닉 점수는 촬영 시간대, 날씨 조건, 스팟 방문 빈도, 커뮤니티
-              반응(좋아요·저장 수) 등을 종합해 산출돼요. 골든아워에 맑은 날 찍은
-              사진일수록 높은 점수를 받을 수 있어요.
+            <div class="setting-row__right">
+              <svg class="setting-row__arrow" width="14" height="14" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/></svg>
             </div>
           </div>
-          <div class="faq-item" id="faq2">
-            <div class="faq-q" onclick="toggleFaq('faq2')">
-              <span class="faq-q__text">위시리스트 알림이 오지 않아요.</span>
-              <svg
-                class="faq-q__arrow"
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/>
-              </svg>
+          <div class="setting-row" onclick="location.href='./faq.html'">
+            <div class="setting-row__body">
+              <div class="setting-row__label">게시물이나 댓글을 신고하려면?</div>
             </div>
-            <div class="faq-a">
-              설정 → 알림에서 위시리스트 알림이 켜져 있는지 확인해주세요. 기기
-              설정에서 PNG 앱의 알림 권한도 허용되어 있어야 해요. 그래도 오지
-              않는다면 1:1 문의로 연락해주세요.
-            </div>
-          </div>
-          <div class="faq-item" id="faq4">
-            <div class="faq-q" onclick="toggleFaq('faq4')">
-              <span class="faq-q__text">게시물이나 댓글을 신고하려면?</span>
-              <svg
-                class="faq-q__arrow"
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/>
-              </svg>
-            </div>
-            <div class="faq-a">
-              게시물 또는 댓글 우측 상단의 ··· 버튼을 탭하면 신고 옵션이
-              나타나요. 신고 접수 후 24시간 이내 검토해드려요.
+            <div class="setting-row__right">
+              <svg class="setting-row__arrow" width="14" height="14" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/></svg>
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- 1:1 문의 -->
-        <div class="setting-card" style="margin-bottom: 8px">
-          <div class="setting-row" style="cursor: default">
-            <div class="setting-row__icon setting-row__icon--pink">
-              <svg width="16" height="16" viewBox="0 0 24 24" stroke="#e31b59"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M8 9h8"/><path d="M8 13h6"/><path d="M18 4a3 3 0 0 1 3 3v8a3 3 0 0 1 -3 3h-5l-5 3v-3h-2a3 3 0 0 1 -3 -3v-8a3 3 0 0 1 3 -3h12z"/></svg>
+      <!-- ── 문의 (v2: 폼 제거, 한 줄 행 → 문의 내역 리스트로 이동) ── -->
+      <div class="section-group">
+        <div class="section-label">문의</div>
+        <div class="setting-card">
+          <div class="setting-row" onclick="location.href='./inquiry-list.html'">
+            <div class="setting-row__icon setting-row__icon--warm-gray">
+              <svg width="16" height="16" viewBox="0 0 24 24" stroke="#615d59"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M8 9h8"/><path d="M8 13h6"/><path d="M18 4a3 3 0 0 1 3 3v8a3 3 0 0 1 -3 3h-5l-5 3v-3h-2a3 3 0 0 1 -3 -3v-8a3 3 0 0 1 3 -3h12z"/></svg>
             </div>
             <div class="setting-row__body">
               <div class="setting-row__label">1:1 문의</div>
               <div class="setting-row__desc">평균 응답 시간 24시간 이내</div>
             </div>
-          </div>
-          <!-- 문의 폼 -->
-          <div class="inquiry-form">
-            <div class="inquiry-form__field">
-              <div class="inquiry-form__label">문의 유형</div>
-              <select class="inquiry-form__select">
-                <option>유형을 선택해주세요</option>
-                <option>스팟/지도 문의</option>
-                <option>계정/로그인 문의</option>
-                <option>알림 문의</option>
-                <option>커뮤니티 문의</option>
-                <option>결제/구독 문의</option>
-                <option>버그 신고</option>
-                <option>기타</option>
-              </select>
+            <div class="setting-row__right">
+              <span class="setting-row__badge" id="inquiryUnreadBadge">1</span>
+              <svg class="setting-row__arrow" width="14" height="14" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/></svg>
             </div>
-            <div class="inquiry-form__field">
-              <div class="inquiry-form__label">문의 내용</div>
-              <textarea
-                class="inquiry-form__textarea"
-                id="inquiryText"
-                maxlength="500"
-                placeholder="문의 내용을 자세히 적어주세요"
-                oninput="updateCount()"
-              ></textarea>
-              <div class="inquiry-form__count">
-                <span id="inquiryCount">0</span>/500
-              </div>
-            </div>
-            <button class="inquiry-submit" onclick="submitInquiry()">
-              문의 보내기
-            </button>
           </div>
         </div>
+      </div>
 
-        <!-- 버전 정보 -->
+      <!-- ── 기타 (v2: 버전+로그아웃+회원탈퇴 한 카드로) ── -->
+      <div class="section-group" style="padding-bottom: var(--space-xl)">
+        <div class="section-label">기타</div>
         <div class="setting-card">
           <div class="setting-row" onclick="openSheet('versionSheet')">
-            <div class="setting-row__icon setting-row__icon--gray">
-              <svg width="16" height="16" viewBox="0 0 24 24" stroke="rgba(0,0,0,0.4)"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"/><path d="M12 9h.01"/><path d="M11 12h1v4h1"/></svg>
+            <div class="setting-row__icon setting-row__icon--warm-gray">
+              <svg width="16" height="16" viewBox="0 0 24 24" stroke="#615d59"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"/><path d="M12 9h.01"/><path d="M11 12h1v4h1"/></svg>
             </div>
             <div class="setting-row__body">
               <div class="setting-row__label">버전 정보</div>
               <div class="setting-row__desc">v1.0.0 (최신)</div>
             </div>
             <div class="setting-row__right">
-              <svg
-                class="setting-row__arrow"
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/>
-              </svg>
+              <svg class="setting-row__arrow" width="14" height="14" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/></svg>
             </div>
           </div>
-        </div>
-      </div>
-
-      <!-- ── 기타 ── -->
-      <div class="section-group" style="padding-bottom: var(--space-xl)">
-        <div class="section-label">기타</div>
-        <div class="setting-card">
           <div class="setting-row" onclick="openLogoutModal()">
-            <div class="setting-row__icon setting-row__icon--gray">
-              <svg width="16" height="16" viewBox="0 0 24 24" stroke="rgba(0,0,0,0.4)"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2"/><path d="M9 12h12l-3 -3"/><path d="M18 15l3 -3"/></svg>
+            <div class="setting-row__icon setting-row__icon--warm-gray">
+              <svg width="16" height="16" viewBox="0 0 24 24" stroke="#615d59"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14 8v-2a2 2 0 0 0 -2 -2h-7a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h7a2 2 0 0 0 2 -2v-2"/><path d="M9 12h12l-3 -3"/><path d="M18 15l3 -3"/></svg>
             </div>
             <div class="setting-row__body">
               <div class="setting-row__label">로그아웃</div>
             </div>
             <div class="setting-row__right">
-              <svg
-                class="setting-row__arrow"
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-              >
-                <path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/>
-              </svg>
+              <svg class="setting-row__arrow" width="14" height="14" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/></svg>
             </div>
           </div>
           <div
@@ -1191,7 +1343,7 @@
               padding: 0 10px;
               border-radius: 12px;
               background: rgba(52, 199, 89, 0.1);
-              font-size: 12px;
+              font-size: var(--font-2xs);
               font-weight: 500;
               color: #34c759;
               display: inline-flex;
@@ -1271,59 +1423,161 @@
       </div>
     </div>
 
-    <!-- 버전 정보 시트 -->
-    <div class="bottom-sheet" id="versionSheet">
+    <!-- 방해 금지 시간 시트 -->
+    <div class="bottom-sheet" id="dndTimeSheet">
       <div class="sheet-handle-wrap"><div class="sheet-handle"></div></div>
       <div class="sheet-header">
-        <span class="sheet-header__title">버전 정보</span>
+        <span class="sheet-header__title">방해 금지 시간</span>
         <button class="sheet-close" onclick="closeAllSheets()">
           <svg width="14" height="14" viewBox="0 0 24 24" stroke="rgba(0,0,0,0.4)"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></svg>
         </button>
       </div>
+      <div class="sheet-body" style="padding-bottom: 4px">
+        <p class="dnd-time-helper">설정한 시간 동안 알림을 보내지 않아요</p>
+        <div class="time-card">
+          <div class="time-row">
+            <span class="time-row__label">시작</span>
+            <div class="time-row__wheels">
+              <div class="wheel-wrap">
+                <div class="wheel-scroll" id="dndWheelStartH"></div>
+                <div class="wheel-highlight"></div>
+                <div class="wheel-fade wheel-fade--top"></div>
+                <div class="wheel-fade wheel-fade--bottom"></div>
+              </div>
+              <span class="wheel-sep">:</span>
+              <div class="wheel-wrap">
+                <div class="wheel-scroll" id="dndWheelStartM"></div>
+                <div class="wheel-highlight"></div>
+                <div class="wheel-fade wheel-fade--top"></div>
+                <div class="wheel-fade wheel-fade--bottom"></div>
+              </div>
+            </div>
+          </div>
+          <div class="time-row-divider"></div>
+          <div class="time-row">
+            <span class="time-row__label">종료</span>
+            <div class="time-row__wheels">
+              <div class="wheel-wrap">
+                <div class="wheel-scroll" id="dndWheelEndH"></div>
+                <div class="wheel-highlight"></div>
+                <div class="wheel-fade wheel-fade--top"></div>
+                <div class="wheel-fade wheel-fade--bottom"></div>
+              </div>
+              <span class="wheel-sep">:</span>
+              <div class="wheel-wrap">
+                <div class="wheel-scroll" id="dndWheelEndM"></div>
+                <div class="wheel-highlight"></div>
+                <div class="wheel-fade wheel-fade--top"></div>
+                <div class="wheel-fade wheel-fade--bottom"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="dnd-time-note">
+          <p class="dnd-time-note__cross" id="dndTimeNoteCross" style="display: none">자정을 넘어 다음 날 07:00까지</p>
+          <p class="dnd-time-note__duration" id="dndTimeNoteDuration">총 9시간 동안 알림이 꺼져요</p>
+        </div>
+        <button class="sheet-submit" onclick="confirmDndTime()">저장</button>
+      </div>
+    </div>
+
+    <!-- 방해 금지 반복 시트 -->
+    <div class="bottom-sheet" id="dndRepeatSheet">
+      <div class="sheet-handle-wrap"><div class="sheet-handle"></div></div>
+      <div class="sheet-header">
+        <span class="sheet-header__title">반복</span>
+        <button class="sheet-close" onclick="closeAllSheets()">
+          <svg width="14" height="14" viewBox="0 0 24 24" stroke="rgba(0,0,0,0.4)"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></svg>
+        </button>
+      </div>
+      <div class="sheet-body" style="padding-bottom: 4px">
+        <div class="repeat-card" id="dndRepeatCard">
+          <div class="repeat-row is-selected" data-preset="daily">
+            <span class="repeat-row__label">매일</span>
+            <svg class="repeat-row__check" width="18" height="18" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10"/></svg>
+          </div>
+          <div class="repeat-row" data-preset="weekday">
+            <span class="repeat-row__label">평일 (월~금)</span>
+            <svg class="repeat-row__check" width="18" height="18" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10"/></svg>
+          </div>
+          <div class="repeat-row" data-preset="weekend">
+            <span class="repeat-row__label">주말 (토·일)</span>
+            <svg class="repeat-row__check" width="18" height="18" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10"/></svg>
+          </div>
+          <div class="repeat-row" data-preset="custom">
+            <span class="repeat-row__label">사용자 지정</span>
+            <svg class="repeat-row__check" width="18" height="18" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10"/></svg>
+          </div>
+        </div>
+        <div class="dow-grid" id="dndDowGrid" style="display: none">
+          <p class="dow-grid__hint">알림을 끌 요일을 선택하세요</p>
+          <div class="dow-grid__row" id="dndDowRow">
+            <button class="dow-chip" data-day="0">일</button>
+            <button class="dow-chip" data-day="1">월</button>
+            <button class="dow-chip" data-day="2">화</button>
+            <button class="dow-chip" data-day="3">수</button>
+            <button class="dow-chip" data-day="4">목</button>
+            <button class="dow-chip" data-day="5">금</button>
+            <button class="dow-chip" data-day="6">토</button>
+          </div>
+          <p class="dow-grid__warn" id="dndDowWarn" style="display: none">최소 1개 요일을 선택해 주세요</p>
+        </div>
+        <button class="sheet-submit" id="dndRepeatSave" onclick="confirmDndRepeat()">저장</button>
+      </div>
+    </div>
+
+    <!-- 버전 정보 시트 (v2: 앱 메타 카드 / 약관·정책 카드 2그룹, 그랩 핸들만·X 제거) -->
+    <div class="bottom-sheet" id="versionSheet">
+      <div class="sheet-handle-wrap"><div class="sheet-handle"></div></div>
+      <div class="sheet-header">
+        <span class="sheet-header__title">버전 정보</span>
+      </div>
       <div class="sheet-body">
-        <div class="version-info-row">
-          <span class="version-info-row__label">앱 버전</span
-          ><span class="version-info-row__val">v1.0.0</span>
+        <!-- 그룹 1: 앱 메타 -->
+        <div class="version-card">
+          <div class="version-info-row">
+            <span class="version-info-row__label">앱 버전</span>
+            <span class="version-info-row__val">v1.0.0</span>
+          </div>
+          <div class="version-info-row">
+            <span class="version-info-row__label">업데이트 상태</span>
+            <span class="version-status"><span class="version-status__dot"></span>최신 버전</span>
+          </div>
+          <div class="version-info-row">
+            <span class="version-info-row__label">출시일</span>
+            <span class="version-info-row__val">2026.05.01</span>
+          </div>
+          <div class="version-info-row">
+            <span class="version-info-row__label">개발사</span>
+            <span class="version-info-row__val">多多益Shot</span>
+          </div>
         </div>
-        <div class="version-info-row">
-          <span class="version-info-row__label">업데이트 상태</span
-          ><span
-            class="version-info-row__val"
-            style="color: var(--color-success)"
-            >최신 버전</span
-          >
+
+        <!-- 업데이트 확인 -->
+        <div class="version-update-wrap">
+          <button class="version-update-btn" onclick="showToast('최신 버전을 사용 중이에요 ✓')">
+            <svg width="14" height="14" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M20 11a8.1 8.1 0 0 0 -15.5 -2m-.5 -4v4h4"/><path d="M4 13a8.1 8.1 0 0 0 15.5 2m.5 4v-4h-4"/></svg>
+            업데이트 확인
+          </button>
         </div>
-        <div class="version-info-row">
-          <span class="version-info-row__label">출시일</span
-          ><span class="version-info-row__val">2026.05.01</span>
-        </div>
-        <div class="version-info-row">
-          <span class="version-info-row__label">개발사</span
-          ><span class="version-info-row__val">多多益Shot</span>
-        </div>
-        <div class="version-info-row">
-          <span class="version-info-row__label">이용약관</span
-          ><span
-            class="version-info-row__val"
-            style="color: #e31b59; cursor: pointer"
-            >보기 →</span
-          >
-        </div>
-        <div class="version-info-row">
-          <span class="version-info-row__label">개인정보처리방침</span
-          ><span
-            class="version-info-row__val"
-            style="color: #e31b59; cursor: pointer"
-            >보기 →</span
-          >
-        </div>
-        <div class="version-info-row">
-          <span class="version-info-row__label">오픈소스 라이선스</span
-          ><span
-            class="version-info-row__val"
-            style="color: #e31b59; cursor: pointer"
-            >보기 →</span
-          >
+
+        <!-- 그룹 2: 약관 및 정책 -->
+        <div class="version-docs">
+          <div class="version-docs__label">약관 및 정책</div>
+          <div class="version-docs__card">
+            <button class="version-doc-row" onclick="location.href='./terms.html'">
+              <span class="version-doc-row__label">이용약관</span>
+              <svg class="version-doc-row__chev" width="16" height="16" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/></svg>
+            </button>
+            <button class="version-doc-row" onclick="location.href='./privacy.html'">
+              <span class="version-doc-row__label">개인정보처리방침</span>
+              <svg class="version-doc-row__chev" width="16" height="16" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/></svg>
+            </button>
+            <button class="version-doc-row" onclick="location.href='./licenses.html'">
+              <span class="version-doc-row__label">오픈소스 라이선스</span>
+              <svg class="version-doc-row__chev" width="16" height="16" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/></svg>
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -1382,38 +1636,147 @@
     <div class="toast" id="toast"></div>
 
     <script>
-      /* FAQ 아코디언 */
-      function toggleFaq(id) {
-        const item = document.getElementById(id);
-        const isOpen = item.classList.contains("is-open");
-        document
-          .querySelectorAll(".faq-item")
-          .forEach((i) => i.classList.remove("is-open"));
-        if (!isOpen) item.classList.add("is-open");
+      /* 방해 금지 시간 (휠 피커) */
+      const DND_HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"));
+      const DND_MINUTES = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, "0"));
+      const ITEM_H = 40;
+      const dndTime = { start: { h: "22", m: "00" }, end: { h: "07", m: "00" } };
+
+      function buildWheel(el, items, initialValue, onChange) {
+        el.appendChild(Object.assign(document.createElement("div"), { className: "wheel-pad" }));
+        items.forEach((v) => {
+          const item = document.createElement("div");
+          item.className = "wheel-item";
+          item.textContent = v;
+          item.dataset.val = v;
+          el.appendChild(item);
+        });
+        el.appendChild(Object.assign(document.createElement("div"), { className: "wheel-pad" }));
+
+        function setActive(val) {
+          el.querySelectorAll(".wheel-item").forEach((it) => it.classList.toggle("active", it.dataset.val === val));
+        }
+        function scrollToVal(val, smooth) {
+          const idx = items.indexOf(val);
+          el.scrollTo({ top: idx * ITEM_H, behavior: smooth ? "smooth" : "instant" });
+          setActive(val);
+        }
+        scrollToVal(initialValue, false);
+
+        let debounce;
+        el.addEventListener("scroll", () => {
+          clearTimeout(debounce);
+          debounce = setTimeout(() => {
+            const idx = Math.round(el.scrollTop / ITEM_H);
+            const clamped = Math.max(0, Math.min(items.length - 1, idx));
+            const val = items[clamped];
+            scrollToVal(val, true);
+            onChange(val);
+          }, 120);
+        });
       }
 
-      /* 문의 글자 수 */
-      function updateCount() {
-        const len = document.getElementById("inquiryText").value.length;
-        document.getElementById("inquiryCount").textContent = len;
+      function timeToMin(t) {
+        const [h, m] = t.split(":").map(Number);
+        return h * 60 + m;
+      }
+      function dndDuration(s, e) {
+        let d = timeToMin(e) - timeToMin(s);
+        if (d <= 0) d += 24 * 60;
+        const h = Math.floor(d / 60), m = d % 60;
+        if (h && m) return `${h}시간 ${m}분`;
+        if (h) return `${h}시간`;
+        return `${m}분`;
+      }
+      function updateDndNote() {
+        const s = `${dndTime.start.h}:${dndTime.start.m}`;
+        const e = `${dndTime.end.h}:${dndTime.end.m}`;
+        const cross = timeToMin(e) <= timeToMin(s);
+        const crossEl = document.getElementById("dndTimeNoteCross");
+        const durationEl = document.getElementById("dndTimeNoteDuration");
+        crossEl.style.display = cross ? "block" : "none";
+        crossEl.textContent = `자정을 넘어 다음 날 ${e}까지`;
+        durationEl.textContent = `총 ${dndDuration(s, e)} 동안 알림이 꺼져요`;
       }
 
-      /* 문의 전송 */
-      function submitInquiry() {
-        const select = document.querySelector(".inquiry-form__select");
-        if (select.selectedIndex === 0) {
-          showToast("문의 유형을 선택해주세요");
-          return;
-        }
-        const text = document.getElementById("inquiryText").value.trim();
-        if (!text) {
-          showToast("문의 내용을 입력해주세요");
-          return;
-        }
-        document.getElementById("inquiryText").value = "";
-        document.getElementById("inquiryCount").textContent = "0";
-        select.selectedIndex = 0;
-        showToast("문의가 접수됐어요 ✓");
+      buildWheel(document.getElementById("dndWheelStartH"), DND_HOURS, dndTime.start.h, (v) => { dndTime.start.h = v; updateDndNote(); });
+      buildWheel(document.getElementById("dndWheelStartM"), DND_MINUTES, dndTime.start.m, (v) => { dndTime.start.m = v; updateDndNote(); });
+      buildWheel(document.getElementById("dndWheelEndH"), DND_HOURS, dndTime.end.h, (v) => { dndTime.end.h = v; updateDndNote(); });
+      buildWheel(document.getElementById("dndWheelEndM"), DND_MINUTES, dndTime.end.m, (v) => { dndTime.end.m = v; updateDndNote(); });
+      updateDndNote();
+
+      function confirmDndTime() {
+        const s = `${dndTime.start.h}:${dndTime.start.m}`;
+        const e = `${dndTime.end.h}:${dndTime.end.m}`;
+        document.getElementById("dndTimeLabel").textContent = `${s} ~ ${e}`;
+        closeAllSheets();
+      }
+
+      /* 방해 금지 반복 */
+      const DND_PRESETS = {
+        daily: { label: "매일", days: [0, 1, 2, 3, 4, 5, 6] },
+        weekday: { label: "평일 (월~금)", days: [1, 2, 3, 4, 5] },
+        weekend: { label: "주말 (토·일)", days: [0, 6] },
+        custom: { label: "사용자 지정", days: null },
+      };
+      const DND_DOW = ["일", "월", "화", "수", "목", "금", "토"];
+      const dndRepeat = { preset: "daily", days: [0, 1, 2, 3, 4, 5, 6] };
+
+      function syncRepeatUI() {
+        document.querySelectorAll("#dndRepeatCard .repeat-row").forEach((r) => r.classList.toggle("is-selected", r.dataset.preset === dndRepeat.preset));
+        document.getElementById("dndDowGrid").style.display = dndRepeat.preset === "custom" ? "block" : "none";
+        document.querySelectorAll(".dow-chip").forEach((chip) => chip.classList.toggle("selected", dndRepeat.days.includes(Number(chip.dataset.day))));
+        updateDndRepeatSave();
+      }
+
+      document.querySelectorAll("#dndRepeatCard .repeat-row").forEach((row) => {
+        row.addEventListener("click", () => {
+          const preset = row.dataset.preset;
+          dndRepeat.preset = preset;
+          if (DND_PRESETS[preset].days) dndRepeat.days = DND_PRESETS[preset].days;
+          syncRepeatUI();
+        });
+      });
+
+      document.querySelectorAll(".dow-chip").forEach((chip) => {
+        chip.addEventListener("click", () => {
+          const day = Number(chip.dataset.day);
+          const set = new Set(dndRepeat.days);
+          set.has(day) ? set.delete(day) : set.add(day);
+          const next = Array.from(set).sort();
+          if (next.length === 7) {
+            // 요일 7개 전부 선택 = "매일"과 동일 → 프리셋으로 정규화 (매일 프리셋과 중복 방지)
+            dndRepeat.preset = "daily";
+            dndRepeat.days = [0, 1, 2, 3, 4, 5, 6];
+          } else {
+            dndRepeat.preset = "custom";
+            dndRepeat.days = next;
+          }
+          syncRepeatUI();
+        });
+      });
+
+      function updateDndRepeatSave() {
+        const warn = document.getElementById("dndDowWarn");
+        const canSave = dndRepeat.preset !== "custom" || dndRepeat.days.length > 0;
+        if (dndRepeat.preset === "custom") warn.style.display = dndRepeat.days.length === 0 ? "block" : "none";
+        else warn.style.display = "none";
+        const btn = document.getElementById("dndRepeatSave");
+        btn.disabled = !canSave;
+        btn.style.opacity = canSave ? "1" : "0.4";
+      }
+
+      function dndLabelFromDays(days) {
+        if (!days.length) return "없음";
+        if (days.length === 7) return "매일";
+        return days.map((d) => DND_DOW[d]).join("·");
+      }
+
+      function confirmDndRepeat() {
+        if (dndRepeat.preset === "custom" && dndRepeat.days.length === 0) return;
+        const label = dndRepeat.preset === "custom" ? dndLabelFromDays(dndRepeat.days) : DND_PRESETS[dndRepeat.preset].label;
+        document.getElementById("dndRepeatLabel").textContent = label;
+        closeAllSheets();
       }
 
       /* 관심 테마 */

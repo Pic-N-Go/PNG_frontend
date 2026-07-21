@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>PNG - 문의 내역</title>
+  <link rel="stylesheet" href="../common/fonts.css">
+  <link rel="stylesheet" href="../common/common.css">
+  <style>
+    .phone-frame{width:100%;background:var(--color-bg);position:relative;overflow:hidden;display:flex;flex-direction:column;height:100dvh}
+    .scroll-area{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding-bottom:var(--space-lg)}
+
+    /* ── 상태바 ── */
+    .status-bar{height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;background:var(--color-bg);flex-shrink:0;position:relative;z-index:30}
+    .status-bar__time{font-size: var(--font-md);font-weight:600;color:#000;letter-spacing:-0.3px}
+    .dynamic-island{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:106px;height:28px;background:#000;border-radius:14px}
+    .status-bar__icons{display:flex;align-items:center;gap:6px}
+    .status-bar__icons svg{height:12px;fill:#000}
+
+    /* ── 네비 ── */
+    .nav{height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;flex-shrink:0}
+    .nav__btn{width:40px;height:40px;border-radius:50%;background:none;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.15s}
+    .nav__btn:hover{background:rgba(0,0,0,0.05)}
+    .nav__title{font-size: var(--font-lg);font-weight:600;letter-spacing:-0.3px}
+
+    /* ── 필터 pill ── */
+    .filter-row{display:flex;gap:8px;padding:8px 20px 12px;flex-shrink:0}
+    .filter-pill{padding:7px 14px;border-radius:9999px;border:1px solid rgba(0,0,0,0.05);background:var(--color-surface);font-family:var(--font-family);font-size: var(--font-sm);font-weight:500;color:#555;cursor:pointer;transition:all 0.15s}
+    .filter-pill.active{background:var(--color-accent);color:#fff;font-weight:600;border-color:transparent}
+
+    /* ── 문의 카드 ── */
+    .inquiry-card{margin:0 20px 12px;background:#fff;border:1px solid rgba(0,0,0,0.08);border-radius:16px;padding:16px;position:relative;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,0.03);transition:background 0.15s}
+    .inquiry-card:hover{background:rgba(0,0,0,0.01)}
+    .inquiry-card__dot{position:absolute;top:16px;right:16px;width:8px;height:8px;border-radius:50%;background:var(--color-accent)}
+    .inquiry-card__top{display:flex;align-items:center;gap:8px}
+    .inquiry-badge{padding:4px 8px;border-radius:6px;font-size: var(--font-xs);font-weight:600}
+    .inquiry-badge--answered{background:#e0f0dc;color:#5a9855}
+    .inquiry-badge--pending{background:var(--color-surface);color:var(--color-text-tertiary)}
+    .inquiry-card__time{font-size: var(--font-xs);color:var(--color-text-tertiary);margin-left:auto}
+    /* unread dot(우상단)과 시간 텍스트 겹침 방지 */
+    .inquiry-card:has(.inquiry-card__dot) .inquiry-card__time{margin-right:16px}
+    .inquiry-card__title{font-size: var(--font-md);font-weight:600;letter-spacing:-0.3px;margin-top:10px}
+    .inquiry-card__preview{font-size: var(--font-sm);color:#555;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .inquiry-card__answer{margin-top:12px;padding-top:12px;border-top:0.5px solid var(--color-border-light);font-size: var(--font-sm);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .inquiry-card__answer b{color:var(--color-text-tertiary);font-weight:400}
+
+    /* ── 빈 상태 ── */
+    .empty-state{display:none;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:80px 40px 0}
+    .empty-state__icon{width:64px;height:64px;border-radius:50%;background:var(--color-surface);display:flex;align-items:center;justify-content:center;margin-bottom:20px}
+    .empty-state__title{font-size: var(--font-md);font-weight:600;letter-spacing:-0.3px}
+    .empty-state__desc{font-size: var(--font-sm);color:var(--color-text-tertiary);margin-top:8px;line-height:1.5}
+    .empty-state__cta{margin-top:24px;padding:13px 24px;border-radius:9999px;border:none;background:var(--color-accent);color:#fff;font-family:var(--font-family);font-size: var(--font-sm);font-weight:600;cursor:pointer;transition:opacity 0.15s}
+    .empty-state__cta:hover{opacity:0.88}
+    /* 필터 결과 0건 (데이터는 있음) — 무데이터 empty와 구분, CTA 없음 */
+    .filter-empty{display:none;text-align:center;color:var(--color-text-tertiary);font-size: var(--font-sm);padding:60px 40px 0}
+  </style>
+</head>
+<body>
+<div class="phone-frame">
+
+  <!-- 상태바 -->
+  <div class="status-bar">
+    <span class="status-bar__time" id="status-time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="status-bar__icons">
+      <svg viewBox="0 0 18 12"><rect x="0" y="9" width="3" height="3" rx=".75"/><rect x="4.5" y="6" width="3" height="6" rx=".75"/><rect x="9" y="3" width="3" height="9" rx=".75"/><rect x="13.5" y="0" width="3" height="12" rx=".75"/></svg>
+      <svg viewBox="0 0 16 14" fill="none" stroke="#000" stroke-width="1.3" stroke-linecap="round"><path d="M5 10.5A4 4 0 0 1 11 10.5"/><path d="M2.5 7A8 8 0 0 1 13.5 7"/><circle cx="8" cy="13" r="1.2" fill="#000" stroke="none"/></svg>
+      <svg viewBox="0 0 28 14" fill="none"><rect x="0" y="0" width="25" height="12" rx="3.5" stroke="rgba(0,0,0,.35)" stroke-width="1"/><rect x="1.5" y="1.5" width="20" height="9" rx="2" fill="#000"/><rect x="25.5" y="4" width="2" height="4" rx="1" fill="rgba(0,0,0,.4)"/></svg>
+    </div>
+  </div>
+
+  <!-- 네비 -->
+  <div class="nav">
+    <button class="nav__btn" onclick="history.back()" aria-label="뒤로가기">
+      <svg width="20" height="20" viewBox="0 0 24 24" stroke="#111"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M15 6l-6 6l6 6"/></svg>
+    </button>
+    <span class="nav__title">1:1 문의</span>
+    <button class="nav__btn" onclick="location.href='./inquiry-write.html'" aria-label="새 문의 작성">
+      <svg width="22" height="22" viewBox="0 0 24 24" stroke="var(--color-accent)" stroke-width="2"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5l0 14"/><path d="M5 12l14 0"/></svg>
+    </button>
+  </div>
+
+  <!-- 필터 pill -->
+  <div class="filter-row">
+    <button class="filter-pill active" data-filter="all" onclick="setFilter(this,'all')">전체 3</button>
+    <button class="filter-pill" data-filter="answered" onclick="setFilter(this,'answered')">답변 완료 2</button>
+    <button class="filter-pill" data-filter="pending" onclick="setFilter(this,'pending')">답변 대기 1</button>
+  </div>
+
+  <div class="scroll-area">
+    <div class="inquiry-card" data-status="answered" onclick="location.href='./inquiry-detail.html'">
+      <div class="inquiry-card__dot"></div>
+      <div class="inquiry-card__top">
+        <span class="inquiry-badge inquiry-badge--answered">답변 완료</span>
+        <span class="inquiry-card__time">2일 전</span>
+      </div>
+      <p class="inquiry-card__title">위시리스트 알림 관련 문의</p>
+      <p class="inquiry-card__preview">방해 금지 시간을 스팟마다 따로 설정해야 하나요?</p>
+      <div class="inquiry-card__answer"><b>답변 · </b>이제 환경설정에서 한 번에 관리하실 수 있어요.</div>
+    </div>
+
+    <div class="inquiry-card" data-status="pending" onclick="location.href='./inquiry-detail.html'">
+      <div class="inquiry-card__top">
+        <span class="inquiry-badge inquiry-badge--pending">답변 대기</span>
+        <span class="inquiry-card__time">어제</span>
+      </div>
+      <p class="inquiry-card__title">스팟 상세 화면 로딩 오류</p>
+      <p class="inquiry-card__preview">스팟 상세 화면에서 사진이 안 불러와져요.</p>
+    </div>
+
+    <div class="inquiry-card" data-status="answered" onclick="location.href='./inquiry-detail.html'">
+      <div class="inquiry-card__top">
+        <span class="inquiry-badge inquiry-badge--answered">답변 완료</span>
+        <span class="inquiry-card__time">1주 전</span>
+      </div>
+      <p class="inquiry-card__title">카카오 계정 연결 해제 문의</p>
+      <p class="inquiry-card__preview">카카오 계정 연결을 해제하고 싶어요.</p>
+      <div class="inquiry-card__answer"><b>답변 · </b>설정 > 연결된 소셜 계정에서 해제하실 수 있어요.</div>
+    </div>
+
+    <!-- 필터 결과 0건 (데이터는 있음) -->
+    <p class="filter-empty" id="filterEmpty">해당하는 문의가 없어요</p>
+
+    <!-- 무데이터 빈 상태 (문의 자체가 없음) -->
+    <div class="empty-state" id="emptyState">
+      <div class="empty-state__icon">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--color-text-tertiary)" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M8 9h8"/><path d="M8 13h6"/><path d="M18 4a3 3 0 0 1 3 3v8a3 3 0 0 1 -3 3h-5l-5 3v-3h-2a3 3 0 0 1 -3 -3v-8a3 3 0 0 1 3 -3h12z"/></svg>
+      </div>
+      <p class="empty-state__title">아직 문의한 내역이 없어요</p>
+      <p class="empty-state__desc">궁금한 점이나 불편한 점이 있다면<br>언제든 편하게 문의해 주세요.</p>
+      <button class="empty-state__cta" onclick="location.href='./inquiry-write.html'">새 문의 작성하기</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    function updateTime() {
+      var now = new Date();
+      var h = now.getHours(), m = now.getMinutes();
+      var el = document.getElementById('status-time');
+      if (el) el.textContent = h + ':' + (m < 10 ? '0' + m : m);
+    }
+    updateTime();
+    setInterval(updateTime, 10000);
+  })();
+
+  function setFilter(el, key) {
+    document.querySelectorAll('.filter-pill').forEach(function(p) { p.classList.remove('active'); });
+    el.classList.add('active');
+    var cards = document.querySelectorAll('.inquiry-card');
+    var anyVisible = false;
+    cards.forEach(function(card) {
+      var show = (key === 'all' || card.dataset.status === key);
+      card.style.display = show ? '' : 'none';
+      if (show) anyVisible = true;
+    });
+    // 무데이터(문의 0건)와 필터 결과 0건을 구분해 노출
+    var noData = cards.length === 0;
+    document.getElementById('emptyState').style.display = noData ? 'flex' : 'none';
+    document.getElementById('filterEmpty').style.display = (!noData && !anyVisible) ? 'block' : 'none';
+  }
+</script>
+</body>
+</html>

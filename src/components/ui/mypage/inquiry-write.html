@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>PNG - 1:1 문의 작성</title>
+  <link rel="stylesheet" href="../common/fonts.css">
+  <link rel="stylesheet" href="../common/common.css">
+  <style>
+    .phone-frame{width:100%;background:var(--color-bg);position:relative;overflow:hidden;display:flex;flex-direction:column;height:100dvh}
+    .scroll-area{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;padding-bottom:120px}
+
+    /* ── 상태바 ── */
+    .status-bar{height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;background:var(--color-bg);flex-shrink:0;position:relative;z-index:30}
+    .status-bar__time{font-size: var(--font-md);font-weight:600;color:#000;letter-spacing:-0.3px}
+    .dynamic-island{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:106px;height:28px;background:#000;border-radius:14px}
+    .status-bar__icons{display:flex;align-items:center;gap:6px}
+    .status-bar__icons svg{height:12px;fill:#000}
+
+    /* ── 네비 ── */
+    .nav{height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;flex-shrink:0}
+    .nav__btn{width:36px;height:36px;border-radius:50%;background:none;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.15s}
+    .nav__btn:hover{background:rgba(0,0,0,0.05)}
+    .nav__title{font-size: var(--font-lg);font-weight:600;letter-spacing:-0.3px}
+
+    /* ── 안내 배너 ── */
+    .banner{margin:8px 20px 0;padding:14px;background:var(--color-surface);border-radius:12px;display:flex;align-items:center;gap:10px}
+    .banner p{font-size: var(--font-xs);color:var(--color-text-tertiary);line-height:1.5}
+
+    /* ── 필드 ── */
+    .field-label{display:flex;align-items:center;gap:4px;padding:20px 20px 8px}
+    .field-label span{font-size: var(--font-sm);color:var(--color-text-tertiary)}
+    .field-label .req{color:var(--color-accent)}
+    .type-trigger{margin:0 20px;display:flex;align-items:center;background:var(--color-surface);border-radius:12px;padding:0 16px;height:52px;border:none;width:calc(100% - 40px);cursor:pointer;font-family:var(--font-family)}
+    .type-trigger__label{flex:1;text-align:left;font-size: var(--font-md);color:#c7c7cc}
+    .type-trigger__label.selected{color:var(--color-text-primary);font-weight:500}
+    .content-box{margin:0 20px;background:var(--color-surface);border-radius:12px;padding:14px}
+    .content-box textarea{width:100%;min-height:160px;border:none;background:transparent;outline:none;resize:none;font-family:var(--font-family);font-size: var(--font-md);color:var(--color-text-primary);line-height:1.55}
+    .content-box textarea::placeholder{color:#c7c7cc}
+    .content-box__count{text-align:right;font-size: var(--font-xs);color:var(--color-text-tertiary);margin-top:8px}
+
+    /* ── CTA ── */
+    .cta-bar{position:absolute;left:20px;right:20px;bottom:24px}
+    .cta-btn{width:100%;height:52px;border-radius:26px;border:none;font-family:var(--font-family);font-size: var(--font-md);font-weight:600;cursor:pointer;background:var(--color-surface);color:#c7c7cc;transition:all 0.15s}
+    .cta-btn.enabled{background:var(--color-accent);color:#fff}
+
+    /* ── 문의 유형 시트 ── */
+    .sheet-dim{position:absolute;inset:0;background:rgba(0,0,0,0.4);z-index:200;opacity:0;pointer-events:none;transition:opacity 0.25s}
+    .sheet-dim.active{opacity:1;pointer-events:all}
+    .bottom-sheet{position:absolute;bottom:0;left:0;width:100%;background:#fff;border-radius:20px 20px 0 0;z-index:201;padding-bottom:28px;transform:translateY(100%);transition:transform 0.32s cubic-bezier(0.32,0.72,0,1)}
+    .bottom-sheet.active{transform:translateY(0)}
+    .sheet-handle-wrap{padding:12px 0 4px;display:flex;justify-content:center}
+    .sheet-handle{width:36px;height:5px;border-radius:2.5px;background:rgba(0,0,0,0.1)}
+    .sheet-title{font-size:18px;font-weight:600;letter-spacing:-0.35px;padding:16px 20px 12px}
+    .type-option{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;cursor:pointer}
+    .type-option__label{font-size: var(--font-md);color:var(--color-text-primary)}
+    .type-option.selected .type-option__label{color:var(--color-accent);font-weight:600}
+    .type-option__check{display:none;color:var(--color-accent)}
+    .type-option.selected .type-option__check{display:block}
+  </style>
+</head>
+<body>
+<div class="phone-frame">
+
+  <!-- 상태바 -->
+  <div class="status-bar">
+    <span class="status-bar__time" id="status-time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="status-bar__icons">
+      <svg viewBox="0 0 18 12"><rect x="0" y="9" width="3" height="3" rx=".75"/><rect x="4.5" y="6" width="3" height="6" rx=".75"/><rect x="9" y="3" width="3" height="9" rx=".75"/><rect x="13.5" y="0" width="3" height="12" rx=".75"/></svg>
+      <svg viewBox="0 0 16 14" fill="none" stroke="#000" stroke-width="1.3" stroke-linecap="round"><path d="M5 10.5A4 4 0 0 1 11 10.5"/><path d="M2.5 7A8 8 0 0 1 13.5 7"/><circle cx="8" cy="13" r="1.2" fill="#000" stroke="none"/></svg>
+      <svg viewBox="0 0 28 14" fill="none"><rect x="0" y="0" width="25" height="12" rx="3.5" stroke="rgba(0,0,0,.35)" stroke-width="1"/><rect x="1.5" y="1.5" width="20" height="9" rx="2" fill="#000"/><rect x="25.5" y="4" width="2" height="4" rx="1" fill="rgba(0,0,0,.4)"/></svg>
+    </div>
+  </div>
+
+  <!-- 네비 -->
+  <div class="nav">
+    <button class="nav__btn" onclick="history.back()" aria-label="뒤로가기">
+      <svg width="20" height="20" viewBox="0 0 24 24" stroke="rgba(0,0,0,0.7)"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M15 6l-6 6l6 6"/></svg>
+    </button>
+    <span class="nav__title">1:1 문의</span>
+    <div style="width:36px"></div>
+  </div>
+
+  <div class="scroll-area">
+
+    <!-- 안내 배너 (v2: 이메일 → 리스트 확인) -->
+    <div class="banner">
+      <svg width="18" height="18" viewBox="0 0 24 24" stroke="var(--color-text-tertiary)"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 12a9 9 0 1 0 18 0a9 9 0 1 0 -18 0"/><path d="M12 7v5l3 3"/></svg>
+      <p>평균 응답 시간 24시간 이내. 답변은 리스트에서 확인할 수 있어요.</p>
+    </div>
+
+    <!-- 문의 유형 -->
+    <div class="field-label"><span>문의 유형</span><span class="req">*</span></div>
+    <button class="type-trigger" onclick="openTypeSheet()">
+      <span class="type-trigger__label" id="typeTriggerLabel">유형을 선택해주세요</span>
+      <svg width="18" height="18" viewBox="0 0 24 24" stroke="rgba(0,0,0,0.35)"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/></svg>
+    </button>
+
+    <!-- 문의 내용 -->
+    <div class="field-label"><span>문의 내용</span><span class="req">*</span></div>
+    <div class="content-box">
+      <textarea id="inquiryText" maxlength="500" placeholder="문의 내용을 자세히 적어주세요" oninput="updateCta()"></textarea>
+      <div class="content-box__count"><span id="inquiryCount">0</span>/500</div>
+    </div>
+
+  </div>
+
+  <!-- CTA -->
+  <div class="cta-bar">
+    <button class="cta-btn" id="submitBtn" onclick="submitInquiry()">문의 보내기</button>
+  </div>
+
+  <!-- 딤 -->
+  <div class="sheet-dim" id="sheetDim" onclick="closeTypeSheet()"></div>
+
+  <!-- 문의 유형 시트 -->
+  <div class="bottom-sheet" id="typeSheet">
+    <div class="sheet-handle-wrap"><div class="sheet-handle"></div></div>
+    <div class="sheet-title">문의 유형</div>
+    <div id="typeOptionList">
+      <div class="type-option" data-type="기능 문의" onclick="selectType(this)">
+        <span class="type-option__label">기능 문의</span>
+        <svg class="type-option__check" width="18" height="18" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10"/></svg>
+      </div>
+      <div class="type-option" data-type="결제/환불" onclick="selectType(this)">
+        <span class="type-option__label">결제/환불</span>
+        <svg class="type-option__check" width="18" height="18" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10"/></svg>
+      </div>
+      <div class="type-option" data-type="앱 오류 신고" onclick="selectType(this)">
+        <span class="type-option__label">앱 오류 신고</span>
+        <svg class="type-option__check" width="18" height="18" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10"/></svg>
+      </div>
+      <div class="type-option" data-type="계정" onclick="selectType(this)">
+        <span class="type-option__label">계정</span>
+        <svg class="type-option__check" width="18" height="18" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10"/></svg>
+      </div>
+      <div class="type-option" data-type="기타" onclick="selectType(this)">
+        <span class="type-option__label">기타</span>
+        <svg class="type-option__check" width="18" height="18" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10"/></svg>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  (function() {
+    function updateTime() {
+      var now = new Date();
+      var h = now.getHours(), m = now.getMinutes();
+      var el = document.getElementById('status-time');
+      if (el) el.textContent = h + ':' + (m < 10 ? '0' + m : m);
+    }
+    updateTime();
+    setInterval(updateTime, 10000);
+  })();
+
+  let selectedType = '';
+
+  function openTypeSheet() {
+    document.getElementById('sheetDim').classList.add('active');
+    document.getElementById('typeSheet').classList.add('active');
+  }
+  function closeTypeSheet() {
+    document.getElementById('sheetDim').classList.remove('active');
+    document.getElementById('typeSheet').classList.remove('active');
+  }
+
+  function selectType(el) {
+    selectedType = el.dataset.type;
+    document.querySelectorAll('.type-option').forEach(function(o) { o.classList.remove('selected'); });
+    el.classList.add('selected');
+    const label = document.getElementById('typeTriggerLabel');
+    label.textContent = selectedType;
+    label.classList.add('selected');
+    closeTypeSheet();
+    updateCta();
+  }
+
+  function updateCta() {
+    const len = document.getElementById('inquiryText').value.length;
+    document.getElementById('inquiryCount').textContent = len;
+    const canSend = !!selectedType && len > 0;
+    document.getElementById('submitBtn').classList.toggle('enabled', canSend);
+  }
+
+  function submitInquiry() {
+    const len = document.getElementById('inquiryText').value.trim().length;
+    if (!selectedType || len === 0) return;
+    location.href = './inquiry-list.html';
+  }
+</script>
+</body>
+</html>

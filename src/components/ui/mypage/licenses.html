@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>PNG - 오픈소스 라이선스</title>
+  <link rel="stylesheet" href="../common/fonts.css">
+  <link rel="stylesheet" href="../common/common.css">
+  <style>
+    .phone-frame{width:100%;background:var(--color-bg);position:relative;overflow:hidden;display:flex;flex-direction:column;height:100dvh}
+
+    /* 상태바 */
+    .status-bar{height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;background:var(--color-bg);flex-shrink:0;position:relative;z-index:30}
+    .status-bar__time{font-size:var(--font-md);font-weight:600;color:#000;letter-spacing:-0.3px}
+    .dynamic-island{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:106px;height:28px;background:#000;border-radius:14px}
+    .status-bar__icons{display:flex;align-items:center;gap:6px}
+    .status-bar__icons svg{height:12px;fill:#000}
+
+    /* 네비 */
+    .nav{height:52px;display:flex;align-items:center;padding:0 12px;flex-shrink:0;border-bottom:1px solid var(--color-border-light)}
+    .nav__btn{width:40px;height:40px;border-radius:50%;background:none;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:background 0.15s}
+    .nav__btn:hover{background:rgba(0,0,0,0.05)}
+    .nav__title{flex:1;text-align:center;margin-right:40px;font-size:var(--font-lg);font-weight:600;letter-spacing:-0.3px}
+
+    /* 검색 */
+    .lic-search-wrap{padding:12px 24px 8px;flex-shrink:0}
+    .lic-search{display:flex;align-items:center;gap:8px;height:40px;padding:0 14px;background:var(--color-surface);border-radius:12px}
+    .lic-search input{flex:1;border:none;background:none;outline:none;font-family:var(--font-family);font-size:var(--font-sm);color:var(--color-text-primary)}
+    .lic-search input::placeholder{color:var(--color-text-secondary)}
+
+    /* 카운트 */
+    .lic-count{padding:6px 24px 10px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0}
+    .lic-count span{font-size:var(--font-xs);color:var(--color-text-secondary)}
+
+    /* 리스트 */
+    .lic-list{flex:1;min-height:0;overflow-y:auto;padding:0 24px 24px}
+    .lic-row{padding:14px 4px;border-bottom:1px solid var(--color-border-light);display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .lic-row:last-child{border-bottom:none}
+    .lic-row__info{display:flex;flex-direction:column;gap:2px;min-width:0}
+    .lic-row__name{font-size:var(--font-md);font-weight:600}
+    .lic-row__sub{font-size:var(--font-xs);color:var(--color-text-secondary)}
+    .lic-row__badge{font-size:var(--font-sm);font-weight:600;color:rgba(0,0,0,0.7);background:var(--color-surface);padding:4px 10px;border-radius:9999px;flex-shrink:0}
+    .lic-more{font-size:var(--font-xs);color:var(--color-text-tertiary);padding:16px 0 0;text-align:center}
+    .lic-empty{display:none;text-align:center;color:var(--color-text-tertiary);font-size:var(--font-sm);padding:60px 40px 0}
+  </style>
+</head>
+<body>
+<div class="phone-frame">
+
+  <div class="status-bar">
+    <span class="status-bar__time" id="status-time">9:41</span>
+    <div class="dynamic-island"></div>
+    <div class="status-bar__icons">
+      <svg viewBox="0 0 18 12"><rect x="0" y="9" width="3" height="3" rx=".75"/><rect x="4.5" y="6" width="3" height="6" rx=".75"/><rect x="9" y="3" width="3" height="9" rx=".75"/><rect x="13.5" y="0" width="3" height="12" rx=".75"/></svg>
+      <svg viewBox="0 0 16 14" fill="none" stroke="#000" stroke-width="1.3" stroke-linecap="round"><path d="M5 10.5A4 4 0 0 1 11 10.5"/><path d="M2.5 7A8 8 0 0 1 13.5 7"/><circle cx="8" cy="13" r="1.2" fill="#000" stroke="none"/></svg>
+      <svg viewBox="0 0 28 14" fill="none"><rect x="0" y="0" width="25" height="12" rx="3.5" stroke="rgba(0,0,0,.35)" stroke-width="1"/><rect x="1.5" y="1.5" width="20" height="9" rx="2" fill="#000"/><rect x="25.5" y="4" width="2" height="4" rx="1" fill="rgba(0,0,0,.4)"/></svg>
+    </div>
+  </div>
+
+  <div class="nav">
+    <button class="nav__btn" onclick="history.back()" aria-label="뒤로가기">
+      <svg width="22" height="22" viewBox="0 0 24 24" stroke="#000" stroke-width="2"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M15 6l-6 6l6 6"/></svg>
+    </button>
+    <span class="nav__title">오픈소스 라이선스</span>
+  </div>
+
+  <div class="lic-search-wrap">
+    <label class="lic-search">
+      <svg width="16" height="16" viewBox="0 0 24 24" stroke="var(--color-text-secondary)" stroke-width="2"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 10m-7 0a7 7 0 1 0 14 0a7 7 0 1 0 -14 0"/><path d="M21 21l-6 -6"/></svg>
+      <input type="text" id="licSearch" placeholder="라이브러리 검색" oninput="filterLic()">
+    </label>
+  </div>
+
+  <div class="lic-count">
+    <span id="licCount">총 42개 라이브러리</span>
+    <span>이름순 ↓</span>
+  </div>
+
+  <div class="lic-list" id="licList">
+    <div class="lic-row">
+      <div class="lic-row__info"><span class="lic-row__name">react-native</span><span class="lic-row__sub">Meta Platforms, Inc. · 0.74.1</span></div>
+      <span class="lic-row__badge">MIT</span>
+    </div>
+    <div class="lic-row">
+      <div class="lic-row__info"><span class="lic-row__name">@react-navigation/native</span><span class="lic-row__sub">React Navigation · 6.1.17</span></div>
+      <span class="lic-row__badge">MIT</span>
+    </div>
+    <div class="lic-row">
+      <div class="lic-row__info"><span class="lic-row__name">@tabler/icons-react-native</span><span class="lic-row__sub">Paweł Kuna · 3.5.0</span></div>
+      <span class="lic-row__badge">MIT</span>
+    </div>
+    <div class="lic-row">
+      <div class="lic-row__info"><span class="lic-row__name">react-native-maps</span><span class="lic-row__sub">react-native-maps · 1.14.0</span></div>
+      <span class="lic-row__badge">MIT</span>
+    </div>
+    <div class="lic-row">
+      <div class="lic-row__info"><span class="lic-row__name">react-native-reanimated</span><span class="lic-row__sub">Software Mansion · 3.10.0</span></div>
+      <span class="lic-row__badge">MIT</span>
+    </div>
+    <div class="lic-row">
+      <div class="lic-row__info"><span class="lic-row__name">pretendard</span><span class="lic-row__sub">orioncactus · 1.3.9</span></div>
+      <span class="lic-row__badge">OFL-1.1</span>
+    </div>
+    <div class="lic-row">
+      <div class="lic-row__info"><span class="lic-row__name">axios</span><span class="lic-row__sub">Matt Zabriskie · 1.7.2</span></div>
+      <span class="lic-row__badge">MIT</span>
+    </div>
+    <div class="lic-row">
+      <div class="lic-row__info"><span class="lic-row__name">zustand</span><span class="lic-row__sub">Poimandres · 4.5.2</span></div>
+      <span class="lic-row__badge">MIT</span>
+    </div>
+    <div class="lic-more" id="licMore">— 이하 34개 —</div>
+  </div>
+  <p class="lic-empty" id="licEmpty">검색 결과가 없어요</p>
+
+</div>
+
+<script>
+  (function(){function t(){var n=new Date(),h=n.getHours(),m=n.getMinutes(),e=document.getElementById('status-time');if(e)e.textContent=h+':'+(m<10?'0'+m:m);}t();setInterval(t,10000);})();
+
+  function filterLic(){
+    var q=document.getElementById('licSearch').value.trim().toLowerCase();
+    var rows=document.querySelectorAll('#licList .lic-row');
+    var shown=0;
+    rows.forEach(function(r){
+      var name=r.querySelector('.lic-row__name').textContent.toLowerCase();
+      var show=!q||name.indexOf(q)!==-1;
+      r.style.display=show?'':'none';
+      if(show)shown++;
+    });
+    // 검색 중에는 "이하 34개" 안내와 전체 카운트 숨김
+    document.getElementById('licMore').style.display=q?'none':'';
+    document.getElementById('licCount').textContent=q?('검색 결과 '+shown+'개'):'총 42개 라이브러리';
+    document.getElementById('licEmpty').style.display=(q&&shown===0)?'block':'none';
+  }
+</script>
+</body>
+</html>
