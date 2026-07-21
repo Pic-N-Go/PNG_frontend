@@ -47,6 +47,47 @@ const DAY_COLOR_PALETTE = [
 const getDayColor = (day: string) =>
   DAY_COLOR_PALETTE[(parseInt(day, 10) - 1) % DAY_COLOR_PALETTE.length];
 
+const getSunsetAndGoldenHour = (isoString?: string) => {
+  if (!isoString) return { sunset: "정보 없음", golden: "정보 없음" };
+  try {
+    const d = new Date(isoString);
+    if (isNaN(d.getTime())) return { sunset: isoString, golden: "정보 없음" };
+    
+    const formatTime = (date: Date) => {
+      const h = date.getHours().toString().padStart(2, '0');
+      const m = date.getMinutes().toString().padStart(2, '0');
+      return `${h}:${m}`;
+    };
+
+    const sunsetStr = formatTime(d);
+    const start = new Date(d.getTime() - 20 * 60000);
+    const end = new Date(d.getTime() + 20 * 60000);
+    const goldenStr = `${formatTime(start)}~${formatTime(end)}`;
+
+    return { sunset: sunsetStr, golden: goldenStr };
+  } catch (e) {
+    return { sunset: isoString, golden: "정보 없음" };
+  }
+};
+
+const getWeatherIcon = (status: string | undefined) => {
+  if (!status) return "https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/clear-day.svg";
+  if (status.includes("맑음") || status.includes("CLEAR")) return "https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/clear-day.svg";
+  if (status.includes("구름") || status.includes("CLOUDY")) return "https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/partly-cloudy-day.svg";
+  return "https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/rain.svg"; // default
+};
+
+const WeatherCell = ({ period, data }: { period: string; data: { weatherStatus: string; temperature: number | null } }) => (
+  <View className="flex-1 py-3 px-[14px] bg-[#f5f5f7] rounded-xl relative">
+    <Text className="text-[11px] text-black/35 mb-1.5">{period}</Text>
+    <Text className="text-[20px] font-semibold text-black mb-0.5">{data.temperature ?? '-'}°</Text>
+    <Text className="text-[11px] text-black/40">{data.weatherStatus}</Text>
+    <View className="absolute right-3 top-1/2 -translate-y-1/2 opacity-80" style={{ transform: [{ translateY: -10 }] }}>
+      <SvgUri width="20" height="20" uri={getWeatherIcon(data.weatherStatus)} />
+    </View>
+  </View>
+);
+
 const MOCK_DATA: Record<string, any> = {
   "1": {
     date: "5월 17일 토요일",
@@ -450,7 +491,6 @@ export default function TravelPlanScreen({ navigation, route }: any) {
 
   const syncSpotsMutation = useMutation({
     mutationFn: (data: {
-      dayNumber: number,
       spots: { courseSpotId?: number, spotId: number, dayNumber: number, sequenceOrder: number, memo?: string }[]
     }) => coursesApi.syncSpots(Number(planId), data),
     onSuccess: () => refetch(),
@@ -467,6 +507,18 @@ export default function TravelPlanScreen({ navigation, route }: any) {
 
   const handleMorePress = () => {
     setIsMoreSheetVisible(true);
+  };
+
+  const buildAllSpotsPayload = (currentData: typeof data) => {
+    return Object.entries(currentData).flatMap(([dayStr, dayData]) => {
+      const dNum = parseInt(dayStr, 10);
+      return dayData.spots.map((s: any, index: number) => ({
+        courseSpotId: String(s.id).startsWith("new") ? undefined : Number(s.id),
+        spotId: Number(s.realSpotId),
+        dayNumber: dNum,
+        sequenceOrder: index + 1,
+      }));
+    });
   };
 
   const { selectedSpots, clearSpots } = useTravelStore();
@@ -495,65 +547,49 @@ export default function TravelPlanScreen({ navigation, route }: any) {
           }))
         ];
         
-        setData((prev) => ({
-          ...prev,
-          [currentDay]: { ...prev[currentDay], spots: newSpots },
-        }));
+        const newData = {
+          ...data,
+          [currentDay]: { ...data[currentDay], spots: newSpots },
+        };
+        setData(newData);
 
         syncSpotsMutation.mutate({
-          dayNumber: dayNum,
-          spots: newSpots.map((s, index) => ({
-            courseSpotId: String(s.id).startsWith("new") ? undefined : Number(s.id),
-            spotId: Number(s.realSpotId),
-            dayNumber: dayNum,
-            sequenceOrder: index + 1,
-          }))
+          spots: buildAllSpotsPayload(newData)
         });
       }
     }, [selectedSpots, currentDay, data, planId, syncSpotsMutation, clearSpots])
   );
 
   const reorderSpots = (spots: any[]) => {
-    setData((prev) => ({
-      ...prev,
-      [currentDay]: { ...prev[currentDay], spots },
-    }));
+    const newData = {
+      ...data,
+      [currentDay]: { ...data[currentDay], spots },
+    };
+    setData(newData);
     if (planId) {
       syncSpotsMutation.mutate({
-        dayNumber: parseInt(currentDay, 10),
-        spots: spots.map((s, index) => ({
-          courseSpotId: String(s.id).startsWith("new") ? undefined : Number(s.id),
-          spotId: Number(s.realSpotId),
-          dayNumber: parseInt(currentDay, 10),
-          sequenceOrder: index + 1,
-        }))
+        spots: buildAllSpotsPayload(newData)
       });
     }
   };
 
   const removeSpot = (spotId: string) => {
     delete rowHeights.current[spotId];
-    let newSpots: any[] = [];
-    setData((prev) => {
-      const dayData = prev[currentDay];
-      newSpots = dayData.spots.filter((s: any) => s.id !== spotId);
-      return {
-        ...prev,
-        [currentDay]: {
-          ...dayData,
-          spots: newSpots,
-        },
-      };
-    });
+    
+    const dayData = data[currentDay];
+    const newSpots = dayData.spots.filter((s: any) => s.id !== spotId);
+    const newData = {
+      ...data,
+      [currentDay]: {
+        ...dayData,
+        spots: newSpots,
+      },
+    };
+    setData(newData);
+    
     if (planId) {
       syncSpotsMutation.mutate({
-        dayNumber: parseInt(currentDay, 10),
-        spots: newSpots.map((s, index) => ({
-          courseSpotId: String(s.id).startsWith("new") ? undefined : Number(s.id),
-          spotId: Number(s.realSpotId),
-          dayNumber: parseInt(currentDay, 10),
-          sequenceOrder: index + 1,
-        }))
+        spots: buildAllSpotsPayload(newData)
       });
     }
   };
@@ -774,6 +810,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
   );
 
   const currentWeather = weatherData?.find((w: any) => w.dayNumber === parseInt(currentDay, 10));
+  console.log("DEBUG: currentWeather ->", JSON.stringify(currentWeather, null, 2));
 
   const weatherRow = React.useMemo(
     () => (
@@ -781,28 +818,11 @@ export default function TravelPlanScreen({ navigation, route }: any) {
         <Text className="text-[18px] font-semibold text-black tracking-[-0.3px] mb-5">
           DAY {currentDay} 날씨
         </Text>
-        {currentWeather && currentWeather.weatherStatus !== "알 수 없음" ? (
-          <View className="bg-[#f5f5f7] rounded-2xl p-4 flex-row items-center">
-            <View className="w-12 h-12 rounded-xl bg-white items-center justify-center mr-4">
-              <SvgUri
-                width="32"
-                height="32"
-                uri={
-                  currentWeather.weatherStatus.includes("맑음") 
-                    ? "https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/clear-day.svg"
-                    : currentWeather.weatherStatus.includes("구름")
-                    ? "https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/partly-cloudy-day.svg"
-                    : "https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/rain.svg"
-                }
-              />
-            </View>
-            <View className="flex-1">
-              <Text className="text-[14px] text-black/50 mb-0.5">{currentWeather.targetSpotName} 기준</Text>
-              <View className="flex-row items-baseline gap-1">
-                <Text className="text-[22px] font-semibold text-black">{currentWeather.temperature}°C</Text>
-                <Text className="text-[15px] font-medium text-black/70">{currentWeather.weatherStatus}</Text>
-              </View>
-            </View>
+        {currentWeather ? (
+          <View className="flex-row gap-2">
+            {currentWeather.morning && <WeatherCell period="오전" data={currentWeather.morning} />}
+            {currentWeather.afternoon && <WeatherCell period="오후" data={currentWeather.afternoon} />}
+            {currentWeather.evening && <WeatherCell period="저녁" data={currentWeather.evening} />}
           </View>
         ) : (
           <View className="bg-[#f5f5f7] rounded-2xl p-6 items-center justify-center">
@@ -821,7 +841,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
         )}
       </View>
     ),
-    [currentDay, currentWeather],
+    [currentDay, currentWeather]
   );
 
   const renderFooter = () => (
@@ -851,7 +871,11 @@ export default function TravelPlanScreen({ navigation, route }: any) {
                 오늘의 촬영 팁
               </Text>
               <Text className="text-[12px] text-black/50 leading-relaxed">
-                {currentWeather.targetSpotName} 일몰 시간 {currentWeather.sunsetTime} · 골든아워 {currentWeather.goldenHourEvening}
+                {(() => {
+                  const { sunset, golden } = getSunsetAndGoldenHour(currentWeather.sunsetTime);
+                  const fineDust = currentWeather.fineDustStatus ? `미세먼지 ${currentWeather.fineDustStatus} · ` : '';
+                  return `${currentWeather.targetSpotName} 일몰 시간 ${sunset} · 골든아워 ${golden}\n${fineDust}일몰 포인트로 이동 추천`;
+                })()}
               </Text>
             </View>
           </>

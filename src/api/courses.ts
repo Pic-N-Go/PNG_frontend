@@ -99,9 +99,8 @@ export const coursesApi = {
     return fetchWithAuth(`/courses/${id}`, { method: 'DELETE' });
   },
 
-  // 6. 코스 스팟 일괄 동기화 (추가/삭제/순서변경)
+  // 6. 코스 스팟 일괄 동기화 (전체 스팟)
   syncSpots: (id: number, data: {
-    dayNumber: number,
     spots: { courseSpotId?: number, spotId: number, dayNumber: number, sequenceOrder: number, memo?: string }[]
   }): Promise<void> => {
     return fetchWithAuth(`/courses/${id}/spots/sync`, {
@@ -146,13 +145,20 @@ export const coursesApi = {
   },
 };
 
+export type WeatherPeriod = {
+  weatherStatus: string;
+  temperature: number | null;
+};
+
 export type CourseWeather = {
   dayNumber: number;
   date: string;
   targetSpotId: number;
   targetSpotName: string;
-  weatherStatus: string;
-  temperature: number | null;
+  morning: WeatherPeriod;
+  afternoon: WeatherPeriod;
+  evening: WeatherPeriod;
   sunsetTime: string;
   goldenHourEvening: string;
+  fineDustStatus?: string;
 };

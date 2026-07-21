@@ -150,21 +150,17 @@ export default function TravelNewScreen() {
 
       // 2. 스팟 추가
       const promises = [];
-      for (const [dayStr, spots] of Object.entries(daySpots)) {
+      const allSpots = Object.entries(daySpots).flatMap(([dayStr, spots]) => {
         const dayNumber = parseInt(dayStr, 10);
-        promises.push(
-          coursesApi.syncSpots(course.id, {
-            dayNumber,
-            spots: spots.map((spot, i) => ({
-              spotId: Number(spot.id),
-              dayNumber,
-              sequenceOrder: i + 1,
-              memo: '',
-            }))
-          })
-        );
-      }
-      await Promise.all(promises);
+        return spots.map((spot: any, i: number) => ({
+          spotId: Number(spot.id),
+          dayNumber,
+          sequenceOrder: i + 1,
+          memo: '',
+        }));
+      });
+
+      await coursesApi.syncSpots(course.id, { spots: allSpots });
       return course;
     },
     onSuccess: () => {
