@@ -129,22 +129,24 @@ src/
 |---|---|---|
 | 패딩 · 마진 · gap | `className` | `className="px-7 gap-2"` |
 | 폰트 크기 (스케일 내) | `layout.ts` 상수 (`FONT_*`) | `style={{ fontSize: FONT_LG }}` |
-| 폰트 크기 (스케일 외, 12px 등) | `normalizeFontSize(n)` 인라인 | `style={{ fontSize: normalizeFontSize(12) }}` |
+| 폰트 크기 (14px, 상수 없음) | `normalizeFontSize(14)` 인라인 | `style={{ fontSize: normalizeFontSize(14) }}` |
 | 버튼·인풋 높이 | `layout.ts` 상수 | `style={{ height: BUTTON_HEIGHT }}` |
 | border-radius (pill·card) | `layout.ts` 상수 | `style={{ borderRadius: BUTTON_RADIUS }}` |
 | 아이콘 크기 | `layout.ts` 상수 또는 `normalize(n)` 인라인 | `size={ICON_MD}` 또는 `size={normalize(24)}` |
 | `width: 100%` / `flex: 1` | `className` | `className="w-full flex-1"` |
 
-> **`FONT_*` 상수 전체 목록** (목업 px → 상수명):  
-> `11px → FONT_XS` / `13px → FONT_SM` / `15px → FONT_MD` / `17px → FONT_LG` / `22px → FONT_XL` / `28px → FONT_2XL`  
-> 이 외의 크기(12, 14, 16, 20px 등)는 `normalizeFontSize(n)` 인라인으로 처리합니다.
+> **`FONT_*` 상수 전체 목록** (토큰 px → 상수명):  
+> `10px → FONT_2XS` / `11px → FONT_XS` / `13px → FONT_SM` / `15px → FONT_MD` / `17px → FONT_LG` / `22px → FONT_XL` / `28px → FONT_2XL`  
+> `14px`(`--font-base`)만 상수가 없어 `normalizeFontSize(14)` 인라인으로 처리합니다.  
+> **폰트는 8개 토큰(`10 · 11 · 13 · 14 · 15 · 17 · 22 · 28px`) 안에서만 사용합니다. 사이값(`9 · 12 · 16 · 18 · 20px` 등)은 금지** — `12px`는 `11` 또는 `13`으로 맞추세요.
 
 > **raw 픽셀 사용 금지**: `fontSize: 12`, `height: 52` 등 raw 숫자를 직접 쓰지 않습니다.
 
 #### normalizeFontSize 사용 기준
 
-- **`FONT_*` 상수로 커버되는 크기** (11·13·15·17·22·28px): 반드시 상수 사용
-- **그 외 크기** (12·14·16·20px 등): `normalizeFontSize(n)` 인라인 사용
+- **`FONT_*` 상수로 커버되는 크기** (10·11·13·15·17·22·28px): 반드시 상수 사용
+- **`14px`(`--font-base`)**: 상수 미정의 → `normalizeFontSize(14)` 인라인
+- **사이값(9·12·16·18·20px 등)**: 사용 금지 — 8개 토큰 안에서만 고름 (`12` → `11` 또는 `13`)
 - **폰트 외 레이아웃 크기** (높이, radius, 아이콘 등): `normalize(n)` 사용 (`normalizeFontSize` 아님)
 - **로고·히어로 타이틀 등 핵심 브랜드 요소**: `normalizeFontSize` 또는 `normalize` 적용 권장
 
@@ -159,9 +161,9 @@ src/
   </Text>
 </TouchableOpacity>
 
-// ✅ 스케일 외 폰트 크기
-<Text style={{ fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.4)' }}>
-  레이블
+// ✅ 상수 없는 토큰(14px)
+<Text style={{ fontSize: normalizeFontSize(14), color: 'rgba(0,0,0,0.4)' }}>
+  본문
 </Text>
 
 // ✅ 아이콘 크기
@@ -333,7 +335,7 @@ HTML 목업 파일을 보면서 아래 순서로 구현합니다.
 |---|---|---|
 | `padding: 28px` / `gap: 16px` | `className="px-7 gap-4"` | Tailwind flex 레이아웃이 남은 공간을 자동으로 분배 |
 | `font-size: 17px` (스케일 내) | `FONT_LG` | 기기 너비에 따라 폰트 크기 비례 조정 필요 |
-| `font-size: 12px` (스케일 외) | `normalizeFontSize(12)` | 상수 없음, 직접 스케일링 |
+| `font-size: 14px` (상수 없음) | `normalizeFontSize(14)` | `--font-base`, 상수 미정의 (12·16·20px 등 사이값은 금지) |
 | `height: 52px` (버튼·인풋) | `BUTTON_HEIGHT` / `INPUT_HEIGHT` | 360dp에서 비율 유지 |
 | `border-radius: 26px` | `BUTTON_RADIUS` | 높이 상수와 함께 비례 유지 |
 | `width: 100%` / `flex: 1` | `className="w-full"` / `className="flex-1"` | 비율 기반, 스케일링 불필요 |

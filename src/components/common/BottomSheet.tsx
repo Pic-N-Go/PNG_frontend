@@ -8,11 +8,13 @@ interface Props {
   visible: boolean;
   onClose: () => void;
   children: React.ReactNode;
+  dimOpacity?: number;
 }
 
 const MAX_HEIGHT = Dimensions.get('window').height * 0.8;
+const DEFAULT_DIM_OPACITY = 0.4;
 
-export default function BottomSheet({ visible, onClose, children }: Props) {
+export default function BottomSheet({ visible, onClose, children, dimOpacity = DEFAULT_DIM_OPACITY }: Props) {
   const insets = useSafeAreaInsets();
 
   const panY = useRef(new Animated.Value(0)).current;
@@ -68,7 +70,7 @@ export default function BottomSheet({ visible, onClose, children }: Props) {
   return (
     <Modal visible={visible} transparent animationType="fade" statusBarTranslucent onRequestClose={handleClose}>
       <Pressable
-        style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', justifyContent: 'flex-end' }}
+        style={{ flex: 1, backgroundColor: `rgba(0,0,0,${dimOpacity})`, justifyContent: 'flex-end' }}
         onPress={handleClose}
       >
         <Animated.View style={{ transform: [{ translateY: panY }] }}>

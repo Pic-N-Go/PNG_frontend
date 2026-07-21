@@ -35,23 +35,34 @@
     .form-textarea:focus{box-shadow:0 0 0 1.5px var(--color-accent);background:#fff}
     .form-textarea::placeholder{color:rgba(0,0,0,0.25)}
     .form-count{text-align:right;font-size: var(--font-xs);color:rgba(0,0,0,0.25);margin-top:4px}
-    .form-hint{font-size:12px;color:rgba(0,0,0,0.35);margin-top:6px;letter-spacing:-0.1px}
 
-    /* 닉네임 중복확인 */
-    .form-input-row{display:flex;gap:8px}
+    /* 상태 헬퍼 (idle/available/taken/invalid) */
+    .helper{font-size:12px;color:#8a8a8e;margin-top:8px;letter-spacing:-0.1px}
+    .helper.ok{color:#5a9855;display:flex;align-items:center;gap:4px}
+    .helper.err{color:#ff453a}
+    .helper .ok-icon{width:14px;height:14px;flex-shrink:0}
+
+    /* @ prefix 필드 (핸들) */
+    .form-input--prefix{display:flex;align-items:center;padding:0 var(--space-md)}
+    .form-input--prefix .input-prefix{color:#8a8a8e;font-weight:500;margin-right:2px}
+    .form-input--prefix .input-bare{flex:1;height:100%;border:none;background:none;outline:none;font-family:var(--font-family);font-size:var(--font-md);color:#000}
+
+    /* 닉네임/핸들 중복확인 */
+    .form-input-row{display:flex;gap:8px;align-items:stretch}
     .form-input-row .form-input{flex:1}
-    .check-btn{height:50px;padding:0 var(--space-md);border-radius:12px;border:none;background:rgba(227,27,89,0.08);font-family:var(--font-family);font-size: var(--font-sm);font-weight:500;color:var(--color-accent);cursor:pointer;white-space:nowrap;transition:background 0.15s;flex-shrink:0}
-    .check-btn:hover{background:rgba(227,27,89,0.14)}
-    .check-btn.is-ok{background:rgba(52,199,89,0.1);color:var(--color-success)}
+    .check-btn{padding:0 var(--space-md);border-radius:12px;border:none;background:var(--color-surface);font-family:var(--font-family);font-size: var(--font-sm);font-weight:500;color:#111;cursor:pointer;white-space:nowrap;transition:opacity 0.15s;flex-shrink:0}
+    .check-btn:hover{opacity:0.7}
+    .check-btn:disabled{opacity:0.5;cursor:default}
 
     /* 구분선 */
     .divider{height:0.5px;background:rgba(0,0,0,0.06);margin:var(--space-lg) 0}
 
     /* ── 하단 저장 버튼 ── */
     .cta-bar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width: 100%;padding:12px 20px 28px;background:linear-gradient(to top,#fff 80%,transparent);z-index:30}
-    .save-btn{width:100%;height:52px;border-radius:var(--radius-btn);border:none;background:var(--color-accent);font-family:var(--font-family);font-size:16px;font-weight:500;color:#fff;cursor:pointer;transition:opacity 0.15s}
+    .save-btn{width:100%;height:52px;border-radius:var(--radius-btn);border:none;background:var(--color-accent);font-family:var(--font-family);font-size:16px;font-weight:600;color:#fff;cursor:pointer;transition:opacity 0.15s}
     .save-btn:hover{opacity:0.88}
     .save-btn:active{transform:scale(0.98)}
+    .save-btn:disabled{background:var(--color-surface);color:#c7c7cc;cursor:default;transform:none}
 
     /* 토스트 */
     .toast{position:fixed;bottom:96px;left:50%;transform:translateX(-50%) translateY(20px);height:44px;padding:0 20px;border-radius:22px;background:rgba(0,0,0,0.75);display:flex;align-items:center;gap:8px;font-size: var(--font-base);font-weight:500;color:#fff;z-index:200;opacity:0;transition:all 0.3s;pointer-events:none;white-space:nowrap}
@@ -93,25 +104,31 @@
     <div class="form-group">
       <div class="form-label">닉네임</div>
       <div class="form-input-row">
-        <input class="form-input" id="nicknameInput" type="text" value="사진가_준혁" maxlength="12" oninput="resetNicknameCheck()">
-        <button class="check-btn" id="checkBtn" onclick="checkNickname()">중복확인</button>
+        <input class="form-input" id="nickInput" type="text" value="사진가_준혁" maxlength="12" oninput="onFieldInput('nick')">
+        <button class="check-btn" id="nickCheckBtn" onclick="checkField('nick')">중복 확인</button>
       </div>
-      <div class="form-hint">한글/영문/숫자 2~12자, 특수문자 불가</div>
+      <div class="helper" id="nickHelper">한글/영문/숫자 2~12자, 특수문자 불가</div>
     </div>
 
     <!-- 핸들 -->
     <div class="form-group">
       <div class="form-label">핸들 (고유 ID)</div>
-      <input class="form-input" type="text" value="@sunset_jk" placeholder="@아이디">
-      <div class="form-hint">영문·숫자·언더바만 사용 가능, 변경 후 30일 이내 재변경 불가</div>
+      <div class="form-input-row">
+        <div class="form-input form-input--prefix">
+          <span class="input-prefix">@</span>
+          <input class="input-bare" id="handleInput" type="text" value="sunset_jk" oninput="onFieldInput('handle')">
+        </div>
+        <button class="check-btn" id="handleCheckBtn" onclick="checkField('handle')">중복 확인</button>
+      </div>
+      <div class="helper" id="handleHelper">영문·숫자·언더바만 사용 가능, 변경 후 30일 이내 재변경 불가</div>
     </div>
 
     <div class="divider"></div>
 
-    <!-- 바이오 -->
+    <!-- 자기소개 -->
     <div class="form-group">
-      <div class="form-label">한 줄 소개</div>
-      <textarea class="form-textarea" id="bioText" maxlength="100" placeholder="나를 소개해보세요" oninput="updateBioCount()">야경과 바다를 사랑하는 아마추어 사진가</textarea>
+      <div class="form-label">자기소개</div>
+      <textarea class="form-textarea" id="bioText" maxlength="100" placeholder="나를 표현하는 한 줄을 적어주세요" oninput="onFieldInput('bio')">야경과 바다를 사랑하는 아마추어 사진가</textarea>
       <div class="form-count"><span id="bioCount">20</span>/100</div>
     </div>
 
@@ -119,7 +136,7 @@
 
   <!-- 저장 버튼 -->
   <div class="cta-bar">
-    <button class="save-btn" onclick="saveProfile()">저장하기</button>
+    <button class="save-btn" id="saveBtn" onclick="saveProfile()" disabled>저장</button>
   </div>
 
 </div>
@@ -128,43 +145,103 @@
 <div class="toast" id="toast"></div>
 
 <script>
+  const BIO_MAX = 100;
+  const original = { nick: '사진가_준혁', handle: 'sunset_jk', bio: '야경과 바다를 사랑하는 아마추어 사진가' };
+  // status: idle | checking | available | taken | invalid
+  const status = { nick: 'idle', handle: 'idle' };
+
+  const HELP = {
+    nick: {
+      idle: '한글/영문/숫자 2~12자, 특수문자 불가',
+      available: '사용 가능한 닉네임이에요',
+      taken: '이미 사용 중인 닉네임이에요',
+      invalid: '사용할 수 없는 닉네임이에요',
+    },
+    handle: {
+      idle: '영문·숫자·언더바만 사용 가능, 변경 후 30일 이내 재변경 불가',
+      available: '사용 가능한 핸들이에요',
+      taken: '이미 사용 중인 핸들이에요',
+      invalid: '사용할 수 없는 핸들이에요',
+    },
+  };
+  const OK_ICON = '<svg class="ok-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5l10 -10"/></svg>';
+
+  const el = (id) => document.getElementById(id);
+  const val = (field) => el(field === 'nick' ? 'nickInput' : field === 'handle' ? 'handleInput' : 'bioText').value;
+
+  function renderHelper(field) {
+    const h = el(field + 'Helper');
+    const s = status[field];
+    h.className = 'helper' + (s === 'available' ? ' ok' : (s === 'taken' || s === 'invalid') ? ' err' : '');
+    if (s === 'checking') { h.textContent = '확인 중…'; return; }
+    const msg = HELP[field][s] || HELP[field].idle;
+    h.innerHTML = (s === 'available' ? OK_ICON : '') + msg;
+  }
+
+  /* 입력 시 해당 필드 확인 상태 리셋 */
+  function onFieldInput(field) {
+    if (field === 'bio') { updateBioCount(); updateSave(); return; }
+    status[field] = 'idle';
+    renderHelper(field);
+    updateSave();
+  }
+
+  /* 중복 확인 (mock — API 확정 시 교체) */
+  function checkField(field) {
+    if (!val(field)) return;
+    status[field] = 'checking';
+    renderHelper(field);
+    el(field + 'CheckBtn').disabled = true;
+    setTimeout(() => {
+      status[field] = 'available'; // ponytail: mock 항상 available, 실제 API 연동 시 교체
+      renderHelper(field);
+      el(field + 'CheckBtn').disabled = false;
+      updateSave();
+    }, 400);
+  }
+
+  /* 저장 활성 규칙: 변경 있고, 변경된 필드는 available, 자기소개 100자 이하 */
+  function updateSave() {
+    const nickDirty = val('nick') !== original.nick;
+    const handleDirty = val('handle') !== original.handle;
+    const bioDirty = val('bio') !== original.bio;
+    let can = nickDirty || handleDirty || bioDirty;
+    if (nickDirty && status.nick !== 'available') can = false;
+    if (handleDirty && status.handle !== 'available') can = false;
+    if (val('bio').length > BIO_MAX) can = false;
+    el('saveBtn').disabled = !can;
+  }
+
   /* 아바타 변경 (더미) */
   function changeAvatar() {
     showToast('앨범에서 사진을 선택해주세요');
   }
 
-  /* 닉네임 중복확인 */
-  function checkNickname() {
-    const btn = document.getElementById('checkBtn');
-    btn.textContent = '사용 가능 ✓';
-    btn.classList.add('is-ok');
-    showToast('사용 가능한 닉네임이에요');
-  }
-  function resetNicknameCheck() {
-    const btn = document.getElementById('checkBtn');
-    btn.textContent = '중복확인';
-    btn.classList.remove('is-ok');
-  }
-
-  /* 바이오 글자 수 */
+  /* 자기소개 글자 수 */
   function updateBioCount() {
-    document.getElementById('bioCount').textContent = document.getElementById('bioText').value.length;
+    el('bioCount').textContent = el('bioText').value.length;
   }
-  updateBioCount();
 
-  /* 저장 */
+  /* 저장 — 핸들 변경 시 확인 다이얼로그 */
   function saveProfile() {
-    showToast('프로필이 저장됐어요 ✓');
-    setTimeout(() => location.href = './mypage.html', 1200);
+    if (el('saveBtn').disabled) return;
+    if (val('handle') !== original.handle) {
+      if (!confirm('핸들을 변경할까요?\n변경 후 30일 이내에는 다시 바꿀 수 없어요.')) return;
+    }
+    showToast('프로필이 저장됐어요');
+    setTimeout(() => location.href = './setting.html', 1200);
   }
 
   /* 토스트 */
   function showToast(msg) {
-    const t = document.getElementById('toast');
+    const t = el('toast');
     t.textContent = msg;
     t.classList.add('is-visible');
     setTimeout(() => t.classList.remove('is-visible'), 2400);
   }
+
+  updateBioCount();
+  updateSave();
 </script>
 </body>
 </html>
