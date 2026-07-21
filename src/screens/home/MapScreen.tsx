@@ -215,7 +215,7 @@ export default function MapScreen() {
   const HTML = useMemo(() => {
     const initialSpots = (mode === 'plan-view' && route.params?.planData)
       ? (route.params.planData[route.params.initialDay || '1']?.spots || [])
-      : (route.params?.spots || apiSpots);
+      : (route.params?.spots || []);
     const isCourseView = mode === 'plan-view' || !!route.params?.spots;
 
     return `
@@ -359,7 +359,7 @@ export default function MapScreen() {
 </body>
 </html>
   `;
-  }, [route.params?.spots, route.params?.planData, route.params?.initialDay, mode, apiSpots]);
+  }, [route.params?.spots, route.params?.planData, route.params?.initialDay, mode]);
 
   // source 객체도 HTML 문자열이 바뀔 때만 새로 만들어 WebView가 재로딩되지 않게 한다.
   const mapSource = useMemo(() => ({ html: HTML }), [HTML]);
