@@ -54,7 +54,11 @@ interface ReviewQuery {
 }
 
 export const spotApi = {
-  getSpots: () => request<PageSpotResponse>('/spots?category=ETC&size=50'),
+  getSpots: (params: { category?: string; size?: number; page?: number } = {}) => {
+    const { category = 'ETC', size = 50, page = 0 } = params;
+    const categoryQuery = category === 'ALL' ? '' : `category=${category}&`;
+    return request<PageSpotResponse>(`/spots?${categoryQuery}size=${size}&page=${page}`);
+  },
 
   getDetail: (id: string | number) => request<SpotDetailResponse>(`/spots/${id}`),
 
