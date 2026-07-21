@@ -71,10 +71,11 @@ const getSunsetAndGoldenHour = (isoString?: string) => {
 };
 
 const getWeatherIcon = (status: string | undefined) => {
-  if (!status) return "https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/clear-day.svg";
+  if (!status || status.includes("데이터 없음")) return "https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/partly-cloudy-day.svg";
   if (status.includes("맑음") || status.includes("CLEAR")) return "https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/clear-day.svg";
-  if (status.includes("구름") || status.includes("CLOUDY")) return "https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/partly-cloudy-day.svg";
-  return "https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/rain.svg"; // default
+  if (status.includes("구름") || status.includes("흐림") || status.includes("CLOUDY")) return "https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/partly-cloudy-day.svg";
+  if (status.includes("비") || status.includes("눈") || status.includes("RAIN") || status.includes("SNOW")) return "https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/rain.svg";
+  return "https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/partly-cloudy-day.svg"; // default
 };
 
 const WeatherCell = ({ period, data }: { period: string; data: { weatherStatus: string; temperature: number | null } }) => (
@@ -513,7 +514,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
     return Object.entries(currentData).flatMap(([dayStr, dayData]) => {
       const dNum = parseInt(dayStr, 10);
       return dayData.spots.map((s: any, index: number) => ({
-        courseSpotId: String(s.id).startsWith("new") ? undefined : Number(s.id),
+        courseSpotId: (String(s.id).startsWith("new") || isNaN(Number(s.id))) ? undefined : Number(s.id),
         spotId: Number(s.realSpotId),
         dayNumber: dNum,
         sequenceOrder: index + 1,
@@ -1262,7 +1263,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
             onPress={() => setIsChecklistModalVisible(false)} 
           />
           <KeyboardAvoidingView 
-            behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
             className="w-full"
             style={{ paddingHorizontal: CONTENT_PADDING }}
           >
