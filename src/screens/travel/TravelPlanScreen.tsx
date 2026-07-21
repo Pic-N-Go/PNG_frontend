@@ -30,7 +30,7 @@ import NaviSheet from "@/components/spot/NaviSheet";
 import CourseMoreSheet from "@/components/travel/CourseMoreSheet";
 import CourseShareSheet from "@/components/travel/CourseShareSheet";
 import { getDistanceFromLatLonInKm } from "@/utils/distance";
-import { FONT_XS, FONT_SM } from "@/constants/layout";
+import { FONT_XS, FONT_SM, CONTENT_PADDING, BUTTON_HEIGHT, HEADER_HEIGHT } from "@/constants/layout";
 
 const KAKAO_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_API_KEY;
 
@@ -79,9 +79,9 @@ const getWeatherIcon = (status: string | undefined) => {
 
 const WeatherCell = ({ period, data }: { period: string; data: { weatherStatus: string; temperature: number | null } }) => (
   <View className="flex-1 py-3 px-[14px] bg-[#f5f5f7] rounded-xl relative">
-    <Text className="text-[11px] text-black/35 mb-1.5">{period}</Text>
-    <Text className="text-[20px] font-semibold text-black mb-0.5">{data.temperature ?? '-'}°</Text>
-    <Text className="text-[11px] text-black/40">{data.weatherStatus}</Text>
+    <Text className="text-black/35 mb-1.5" style={{ fontSize: normalizeFontSize(11) }}>{period}</Text>
+    <Text className="font-semibold text-black mb-0.5" style={{ fontSize: normalizeFontSize(20) }}>{data.temperature ?? '-'}°</Text>
+    <Text className="text-black/40" style={{ fontSize: normalizeFontSize(11) }}>{data.weatherStatus}</Text>
     <View className="absolute right-3 top-1/2 -translate-y-1/2 opacity-80" style={{ transform: [{ translateY: -10 }] }}>
       <SvgUri width="20" height="20" uri={getWeatherIcon(data.weatherStatus)} />
     </View>
@@ -760,7 +760,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
           </TouchableOpacity>
         </View>
 
-        <View className="px-5 pt-6 pb-0">
+        <View className="pt-6 pb-0" style={{ paddingHorizontal: CONTENT_PADDING }}>
           {/* Summary Card */}
           <View className="bg-[#f5f5f7] p-4 rounded-2xl mb-5 flex-row">
             <View className="flex-1 items-start">
@@ -810,7 +810,6 @@ export default function TravelPlanScreen({ navigation, route }: any) {
   );
 
   const currentWeather = weatherData?.find((w: any) => w.dayNumber === parseInt(currentDay, 10));
-  console.log("DEBUG: currentWeather ->", JSON.stringify(currentWeather, null, 2));
 
   const hasValidWeather = currentWeather && 
     (currentWeather.morning?.weatherStatus !== "데이터 없음" ||
@@ -820,7 +819,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
   const weatherRow = React.useMemo(
     () => (
       <View className="mt-5">
-        <Text className="text-[18px] font-semibold text-black tracking-[-0.3px] mb-5">
+        <Text className="font-semibold text-black tracking-[-0.3px] mb-5" style={{ fontSize: normalizeFontSize(18) }}>
           DAY {currentDay} 날씨
         </Text>
         {hasValidWeather ? (
@@ -834,12 +833,12 @@ export default function TravelPlanScreen({ navigation, route }: any) {
             <IconWand
               size={32}
               color="rgba(0,0,0,0.3)"
-              style={{ marginBottom: 8 }}
+              style={{ marginBottom: normalize(8) }}
             />
-            <Text className="text-[15px] font-semibold text-black/70 mb-0.5">
+            <Text className="font-semibold text-black/70 mb-0.5" style={{ fontSize: normalizeFontSize(15) }}>
               날씨 요정도 아직 모른대요
             </Text>
-            <Text className="text-[13px] text-black/40">
+            <Text className="text-black/40" style={{ fontSize: normalizeFontSize(13) }}>
               어떤 날씨든 완벽한 여행이 될 거예요!
             </Text>
           </View>
@@ -850,19 +849,19 @@ export default function TravelPlanScreen({ navigation, route }: any) {
   );
 
   const renderFooter = () => (
-    <View className="px-5 pb-12 pt-4">
+    <View className="pb-12 pt-4" style={{ paddingHorizontal: CONTENT_PADDING }}>
       {isEditMode && (
         <TouchableOpacity
           onPress={() => navigation.navigate("Map", { source: "plan" })}
           className="h-12 border-[1px] border-dashed border-black/10 rounded-2xl items-center justify-center mb-6 mt-2 flex-row"
         >
-          <Text className="text-[15px] text-black/25 font-medium">
+          <Text className="text-black/25 font-medium" style={{ fontSize: normalizeFontSize(15) }}>
             + 스팟 추가하기
           </Text>
         </TouchableOpacity>
       )}
 
-      <View className="h-[1px] bg-black/5" />
+      <View className="bg-black/5" style={{ height: normalize(1) }} />
 
       {/* Tip Banner */}
       <View className="flex-row gap-3 p-4 bg-[#f5f5f7] rounded-2xl mt-4 items-center">
@@ -872,10 +871,10 @@ export default function TravelPlanScreen({ navigation, route }: any) {
               <IconInfoCircle size={16} color="#e31b59" />
             </View>
             <View className="flex-1">
-              <Text className="text-[14px] font-semibold text-black tracking-[-0.15px] mb-0.5">
+              <Text className="font-semibold text-black tracking-[-0.15px] mb-0.5" style={{ fontSize: normalizeFontSize(14) }}>
                 오늘의 촬영 팁
               </Text>
-              <Text className="text-[12px] text-black/50 leading-relaxed">
+              <Text className="text-black/50 leading-relaxed" style={{ fontSize: normalizeFontSize(12) }}>
                 {(() => {
                   const { sunset, golden } = getSunsetAndGoldenHour(currentWeather.sunsetTime);
                   const fineDust = currentWeather.fineDustStatus ? `미세먼지 ${currentWeather.fineDustStatus} · ` : '';
@@ -890,10 +889,10 @@ export default function TravelPlanScreen({ navigation, route }: any) {
               <IconCamera size={16} color="#e31b59" />
             </View>
             <View className="flex-1">
-              <Text className="text-[14px] font-semibold text-black tracking-[-0.15px] mb-0.5">
+              <Text className="font-semibold text-black tracking-[-0.15px] mb-0.5" style={{ fontSize: normalizeFontSize(14) }}>
                 자유로운 셔터 찬스
               </Text>
-              <Text className="text-[12px] text-black/50 leading-relaxed">
+              <Text className="text-black/50 leading-relaxed" style={{ fontSize: normalizeFontSize(12) }}>
                 계획에 얽매이지 말고 발길 닿는 대로, 마음 가는 대로 셔터를
                 눌러보세요!
               </Text>
@@ -907,7 +906,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
 
       {/* Checklist */}
       <View className="mt-8">
-        <Text className="text-[18px] font-semibold text-black tracking-[-0.3px] mb-5">
+        <Text className="font-semibold text-black tracking-[-0.3px] mb-5" style={{ fontSize: normalizeFontSize(18) }}>
           촬영 체크리스트
         </Text>
         <View className="flex-row flex-wrap gap-2 mb-3">
@@ -930,8 +929,8 @@ export default function TravelPlanScreen({ navigation, route }: any) {
                   className={`w-1.5 h-1.5 rounded-full ${isChecked ? "bg-[#e31b59]" : "bg-black/15"}`}
                 />
                 <Text
-                  className={`text-[13px] tracking-[-0.2px] ${isChecked ? "text-[#e31b59]" : "text-black"}`}
-                  style={{ textDecorationLine: isChecked ? "line-through" : "none" }}
+                  className={`tracking-[-0.2px] ${isChecked ? "text-[#e31b59]" : "text-black"}`}
+                  style={{ fontSize: normalizeFontSize(13), textDecorationLine: isChecked ? "line-through" : "none" }}
                 >
                   {item.content}
                 </Text>
@@ -944,7 +943,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
           onPress={() => setIsChecklistModalVisible(true)}
           className="flex-row items-center bg-[#f5f5f7] rounded-full px-4 h-10 border border-black/5"
         >
-          <Text className="text-black/30 text-[13px] tracking-[-0.2px]">준비물 추가...</Text>
+          <Text className="text-black/30 tracking-[-0.2px]" style={{ fontSize: normalizeFontSize(13) }}>준비물 추가...</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -961,7 +960,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
 
     return (
       <View
-        className="px-5 relative pt-1"
+        className="relative pt-1" style={{ paddingHorizontal: CONTENT_PADDING }}
         onLayout={(e) => {
           rowHeights.current[item.id] = e.nativeEvent.layout.height;
         }}
@@ -981,7 +980,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
             ]}
           >
             <View className="absolute -top-2 -left-2 w-6 h-6 rounded-full items-center justify-center z-20 shadow-sm bg-black">
-              <Text className="text-[10px] font-semibold text-white">
+              <Text className="font-semibold text-white" style={{ fontSize: normalizeFontSize(10) }}>
                 {idx + 1}
               </Text>
             </View>
@@ -996,13 +995,14 @@ export default function TravelPlanScreen({ navigation, route }: any) {
             {item.photo ? (
               <Image
                 source={{ uri: item.photo }}
-                className="w-[72px] h-[72px] rounded-xl shrink-0 bg-[#e8e8ed]"
+                className="rounded-xl shrink-0 bg-[#e8e8ed]"
+                style={{ width: normalize(72), height: normalize(72) }}
                 resizeMode="cover"
               />
             ) : (
               <View
-                className="w-[72px] h-[72px] rounded-xl shrink-0"
-                style={{ backgroundColor: item.bg }}
+                className="rounded-xl shrink-0"
+                style={{ width: normalize(72), height: normalize(72),  backgroundColor: item.bg }}
               />
             )}
             <View
@@ -1010,7 +1010,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
             >
               <View className="flex-row items-center justify-between mb-1">
                 <Text
-                  className="text-[16px] font-semibold text-black tracking-[-0.2px]"
+                  className="font-semibold text-black tracking-[-0.2px]" style={{ fontSize: normalizeFontSize(16) }}
                   numberOfLines={1}
                 >
                   {item.name}
@@ -1019,15 +1019,15 @@ export default function TravelPlanScreen({ navigation, route }: any) {
                   className="px-2.5 h-6 rounded-full items-center justify-center"
                   style={{ backgroundColor: item.scoreColor }}
                 >
-                  <Text className="text-[12px] font-semibold text-white">
+                  <Text className="font-semibold text-white" style={{ fontSize: normalizeFontSize(12) }}>
                     {item.score}
                   </Text>
                 </View>
               </View>
-              <Text className="text-[12px] text-black/40 mb-2">{item.loc}</Text>
+              <Text className="text-black/40 mb-2" style={{ fontSize: normalizeFontSize(12) }}>{item.loc}</Text>
               <View className="flex-row items-center gap-1.5">
                 <IconClock size={12} color="rgba(0,0,0,0.3)" />
-                <Text className="text-[12px] text-black/50">
+                <Text className="text-black/50" style={{ fontSize: normalizeFontSize(12) }}>
                   {item.time} <Text className="text-black/25">{item.dur}</Text>
                 </Text>
               </View>
@@ -1059,7 +1059,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
               ) : (
                 <IconWalk size={14} color="rgba(0,0,0,0.3)" />
               )}
-              <Text className="text-[12px] text-black/45">
+              <Text className="text-black/45" style={{ fontSize: normalizeFontSize(12) }}>
                 {transport.label}
               </Text>
             </View>
@@ -1076,7 +1076,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
       {/* Sticky Navbar */}
-      <View className="h-[52px] flex-row items-center px-3.5 border-b-[0.5px] border-black/5 z-50 bg-white">
+      <View className="flex-row items-center px-3.5 border-b-[0.5px] border-black/5 z-50 bg-white" style={{ height: HEADER_HEIGHT }}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           className="w-8 h-8 rounded-full bg-black/5 items-center justify-center shrink-0"
@@ -1085,12 +1085,12 @@ export default function TravelPlanScreen({ navigation, route }: any) {
         </TouchableOpacity>
         <View className="flex-1 mx-3">
           <Text
-            className="text-[16px] font-semibold tracking-[-0.35px]"
+            className="font-semibold tracking-[-0.35px]" style={{ fontSize: normalizeFontSize(16) }}
             numberOfLines={1}
           >
             {course?.title || "출사 계획"}
           </Text>
-          <Text className="text-[11px] text-black/40 tracking-[-0.1px] mt-[1px]">
+          <Text className="text-black/40 tracking-[-0.1px] mt-[1px]" style={{ fontSize: normalizeFontSize(11) }}>
             {course ? `${course.startDate.replace(/-/g, '.')} ~ ${course.endDate.replace(/-/g, '.')}` : "날짜 미정"}
           </Text>
         </View>
@@ -1122,14 +1122,14 @@ export default function TravelPlanScreen({ navigation, route }: any) {
         >
           {renderHeader()}
           <View className="bg-white">
-            <View className="flex-row items-center justify-between px-5 mb-4">
-              <Text className="text-[18px] font-semibold text-black tracking-[-0.3px]">
+            <View className="flex-row items-center justify-between mb-4" style={{ paddingHorizontal: CONTENT_PADDING }}>
+              <Text className="font-semibold text-black tracking-[-0.3px]" style={{ fontSize: normalizeFontSize(18) }}>
                 타임라인
               </Text>
             </View>
 
             {isEditMode && (
-              <View className="px-5 mb-4">
+              <View className="mb-4" style={{ paddingHorizontal: CONTENT_PADDING }}>
                 <View className="bg-transparent border border-black/5 rounded-xl py-3 px-4 items-center">
                   <Text
                     style={{
@@ -1150,7 +1150,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
 
         {currentData.spots.length === 0 ? (
           <View className="items-center justify-center py-10 bg-white">
-            <Text className="text-[14px] text-black/40">
+            <Text className="text-black/40" style={{ fontSize: normalizeFontSize(14) }}>
               등록된 스팟이 없습니다.
             </Text>
           </View>
@@ -1175,9 +1175,10 @@ export default function TravelPlanScreen({ navigation, route }: any) {
         {isEditMode ? (
           <TouchableOpacity
             onPress={() => setIsEditMode(false)}
-            className="flex-1 h-[52px] rounded-full bg-[#e31b59] items-center justify-center"
+            className="flex-1 rounded-full bg-[#e31b59] items-center justify-center"
+            style={{ height: BUTTON_HEIGHT }}
           >
-            <Text className="text-[16px] font-medium text-white">
+            <Text className="font-medium text-white" style={{ fontSize: normalizeFontSize(16) }}>
               편집 완료
             </Text>
           </TouchableOpacity>
@@ -1185,17 +1186,19 @@ export default function TravelPlanScreen({ navigation, route }: any) {
           <>
             <TouchableOpacity
               onPress={() => setIsEditMode(true)}
-              className="flex-1 h-[52px] rounded-full bg-[#f5f5f7] items-center justify-center"
+              className="flex-1 rounded-full bg-[#f5f5f7] items-center justify-center"
+              style={{ height: BUTTON_HEIGHT }}
             >
-              <Text className="text-[16px] font-medium text-black">
+              <Text className="font-medium text-black" style={{ fontSize: normalizeFontSize(16) }}>
                 코스 편집
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => setIsDepartModalVisible(true)}
-              className="flex-1 h-[52px] rounded-full bg-[#e31b59] items-center justify-center"
+              className="flex-1 rounded-full bg-[#e31b59] items-center justify-center"
+              style={{ height: BUTTON_HEIGHT }}
             >
-              <Text className="text-[16px] font-medium text-white">
+              <Text className="font-medium text-white" style={{ fontSize: normalizeFontSize(16) }}>
                 바로 출발
               </Text>
             </TouchableOpacity>
@@ -1262,10 +1265,11 @@ export default function TravelPlanScreen({ navigation, route }: any) {
           />
           <KeyboardAvoidingView 
             behavior={Platform.OS === 'ios' ? 'padding' : 'padding'}
-            className="w-full px-5"
+            className="w-full"
+            style={{ paddingHorizontal: CONTENT_PADDING }}
           >
             <View className="bg-white rounded-2xl p-4 shadow-lg">
-              <Text className="text-[16px] font-bold mb-3 tracking-[-0.3px] text-black">준비물 추가</Text>
+              <Text className="font-bold mb-3 tracking-[-0.3px] text-black" style={{ fontSize: normalizeFontSize(16) }}>준비물 추가</Text>
               <TextInput
                 autoFocus
                 placeholder="어떤 준비물이 필요한가요?"
@@ -1279,7 +1283,8 @@ export default function TravelPlanScreen({ navigation, route }: any) {
                   }
                   setIsChecklistModalVisible(false);
                 }}
-                className="bg-[#f5f5f7] rounded-xl px-4 h-12 text-[15px] tracking-[-0.2px] text-black"
+                className="bg-[#f5f5f7] rounded-xl px-4 tracking-[-0.2px] text-black"
+                style={{ height: normalize(48), fontSize: normalizeFontSize(15) }}
                 returnKeyType="done"
               />
             </View>
