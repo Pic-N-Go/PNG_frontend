@@ -263,3 +263,10 @@ export interface PhotogenicScoreResponse {
   season: PhotogenicFactorDTO;
   goldenHour: PhotogenicGoldenHourDTO;
 }
+
+export interface PageSpotResponse {
+  content: any[];
+  totalElements: number;
+  totalPages: number;
+  number: number;
+}

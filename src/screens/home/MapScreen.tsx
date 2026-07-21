@@ -52,7 +52,7 @@ export default function MapScreen() {
   const apiSpots = useMemo(() => {
     console.log('[DEBUG] spotsPage from API:', spotsPage);
     if (!spotsPage?.content) return [];
-    const mapped = spotsPage.content.map(spot => ({
+    const mapped = spotsPage.content.map((spot: any) => ({
       id: String(spot.id),
       name: spot.name,
       lat: spot.latitude,
