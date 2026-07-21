@@ -61,9 +61,9 @@
   "spot/spot-change.html": { "uiStatus": "미시작", "apiStatus": "미시작", "date": "", "note": "" },
   "spot/spot-detail.html": {
     "uiStatus": "완료",
-    "apiStatus": "미시작",
-    "date": "2026-07-06",
-    "note": "채팅 등 API 연동은 별도 진행 예정"
+    "apiStatus": "진행중",
+    "date": "2026-07-12",
+    "note": "상세·편의·체크리스트·리뷰조회·포토제닉 연동 완료 / 사진·채팅·북마크·리뷰작성 미연동"
   },
   "spot/spot-list.html": { "uiStatus": "미시작", "apiStatus": "미시작", "date": "", "note": "" },
   "spot/spot-register.html": { "uiStatus": "미시작", "apiStatus": "미시작", "date": "", "note": "" },

@@ -1,4 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { useMutation } from '@tanstack/react-query';
+import { coursesApi } from '@/api/courses';
 import {
   View,
   Text,
@@ -129,10 +131,51 @@ export default function TravelNewScreen() {
     markDirty();
   };
 
+  const createCourseMutation = useMutation({
+    mutationFn: async () => {
+      if (!startDate || !endDate || !tripName.trim()) {
+        throw new Error('이름과 날짜를 모두 입력해주세요.');
+      }
+
+      // 1. 코스 생성
+      const course = await coursesApi.createCourse({
+        title: tripName.trim(),
+        startDate: startDate.toISOString().split('T')[0],
+        endDate: endDate.toISOString().split('T')[0],
+      });
+
+      // 2. 스팟 추가
+      const promises = [];
+      for (const [dayStr, spots] of Object.entries(daySpots)) {
+        const dayNumber = parseInt(dayStr, 10);
+        for (let i = 0; i < spots.length; i++) {
+          promises.push(
+            coursesApi.addSpotToCourse(course.id, {
+              spotId: Number(spots[i].id),
+              dayNumber,
+              sequenceOrder: i + 1,
+              memo: '',
+            })
+          );
+        }
+      }
+      await Promise.all(promises);
+      return course;
+    },
+    onSuccess: () => {
+      navigation.goBack();
+    },
+    onError: (err: any) => {
+      showToast(err.message || '코스 생성에 실패했어요.');
+    },
+  });
+
   const handleSave = () => {
-    // API 연동 (추후 구현)
-    // navigation.navigate('TravelPlan', { planId: 'dummy-123' });
-    navigation.goBack(); // 임시 동작
+    if (!startDate || !endDate || !tripName.trim()) {
+      showToast('이름과 날짜를 모두 입력해주세요.');
+      return;
+    }
+    createCourseMutation.mutate();
   };
 
   // -- Day Management --

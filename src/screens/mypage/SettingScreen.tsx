@@ -11,10 +11,12 @@ import {
   IconMessage2Question, IconInfoCircle, IconLogout, IconTrash,
   IconX, IconCheck, IconRefresh,
 } from '@tabler/icons-react-native';
+import { getMessaging, AuthorizationStatus } from '@react-native-firebase/messaging';
 import BottomSheet from '@/components/common/BottomSheet';
 import { MyPageStackParamList } from '@/navigation/stacks/MyPageStack';
 import { useNotificationSettings, DndRepeatPreset } from '@/hooks/useNotificationSettings';
 import { useInquiries } from '@/hooks/useInquiries';
+import { useAuthStore } from '@/store/useAuthStore';
 import { normalize } from '@/utils/normalize';
 import { FONT_2XS, FONT_XS, FONT_SM, FONT_MD, FONT_LG, FONT_XL, GRID_PADDING, SPACING_LG, SPACING_SM, CARD_RADIUS, BUTTON_HEIGHT, BUTTON_RADIUS } from '@/constants/layout';
 
@@ -28,12 +30,48 @@ const NEUTRAL_ICON_FG = '#615d59';
 export default function SettingScreen({ navigation }: Props) {
   const { settings, setWishlist, setGolden, setCommunity, setDndEnabled, setDndTime, setDndRepeat } = useNotificationSettings();
   const { unreadCount } = useInquiries();
+  const clearAuth = useAuthStore((s) => s.clearAuth);
   const [dndTimeSheetVisible, setDndTimeSheetVisible] = React.useState(false);
   const [dndRepeatSheetVisible, setDndRepeatSheetVisible] = React.useState(false);
   const [versionSheetVisible, setVersionSheetVisible] = React.useState(false);
 
+  const isPushEnabled = async () => {
+    const authStatus = await getMessaging().hasPermission();
+    return (
+      authStatus === AuthorizationStatus.AUTHORIZED ||
+      authStatus === AuthorizationStatus.PROVISIONAL
+    );
+  };
+
+  // 마운트 시 시스템 푸시 권한이 없으면 알림 토글을 모두 끔
+  React.useEffect(() => {
+    (async () => {
+      if (!(await isPushEnabled())) {
+        setWishlist(false);
+        setGolden(false);
+        setCommunity(false);
+      }
+    })();
+  }, []);
+
+  // 알림 토글: 켤 때만 시스템 권한 확인, 없으면 안내 후 중단
+  const toggleNotif = async (value: boolean, apply: (v: boolean) => void) => {
+    if (value && !(await isPushEnabled())) {
+      Alert.alert('알림', '시스템 설정에서 앱의 알림 권한을 허용해주세요.');
+      return;
+    }
+    apply(value);
+  };
+
+  const handleLogout = () => {
+    Alert.alert('로그아웃', '로그아웃 하시겠어요?', [
+      { text: '취소', style: 'cancel' },
+      { text: '로그아웃', style: 'destructive', onPress: () => clearAuth() },
+    ]);
+  };
+
   const handlePress = (key: string) => {
-    // TODO: profile/email/password/themes/social/location/block/faq-*/version/logout/delete-account 내비게이션 연결
+    // TODO: email/password/themes/social/location/block/delete-account 내비게이션 연결
     void key;
   };
 
@@ -68,9 +106,9 @@ export default function SettingScreen({ navigation }: Props) {
         <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: SPACING_LG }}>
           <SectionLabel text="알림" />
           <Card>
-            <SettingRow icon={IconBell} iconBg="#fde3ec" iconColor={BRAND} label="위시리스트 알림" desc="조건 충족 시 알림" toggle toggleValue={settings.wishlist} onToggle={setWishlist} />
-            <SettingRow icon={IconSun} iconBg="#fdecd0" iconColor="#d99334" label="골든아워 알림" desc="일출·일몰 30분 전" toggle toggleValue={settings.golden} onToggle={setGolden} />
-            <SettingRow icon={IconMessageCircle} iconBg="#e0e7ff" iconColor="#5b6dff" label="커뮤니티 알림" desc="좋아요, 댓글, 팔로우" toggle toggleValue={settings.community} onToggle={setCommunity} />
+            <SettingRow icon={IconBell} iconBg="#fde3ec" iconColor={BRAND} label="위시리스트 알림" desc="조건 충족 시 알림" toggle toggleValue={settings.wishlist} onToggle={(v) => toggleNotif(v, setWishlist)} />
+            <SettingRow icon={IconSun} iconBg="#fdecd0" iconColor="#d99334" label="골든아워 알림" desc="일출·일몰 30분 전" toggle toggleValue={settings.golden} onToggle={(v) => toggleNotif(v, setGolden)} />
+            <SettingRow icon={IconMessageCircle} iconBg="#e0e7ff" iconColor="#5b6dff" label="커뮤니티 알림" desc="좋아요, 댓글, 팔로우" toggle toggleValue={settings.community} onToggle={(v) => toggleNotif(v, setCommunity)} />
           </Card>
         </View>
 
@@ -147,7 +185,7 @@ export default function SettingScreen({ navigation }: Props) {
           <SectionLabel text="기타" />
           <Card>
             <SettingRow icon={IconInfoCircle} iconBg={NEUTRAL_ICON_BG} iconColor={NEUTRAL_ICON_FG} label="버전 정보" desc="v1.0.0 (최신)" chevron onPress={() => setVersionSheetVisible(true)} />
-            <SettingRow icon={IconLogout} iconBg={NEUTRAL_ICON_BG} iconColor={NEUTRAL_ICON_FG} label="로그아웃" chevron onPress={() => handlePress('logout')} />
+            <SettingRow icon={IconLogout} iconBg={NEUTRAL_ICON_BG} iconColor={NEUTRAL_ICON_FG} label="로그아웃" chevron onPress={handleLogout} />
             <SettingRow
               icon={IconTrash} iconBg="rgba(255,69,58,0.08)" iconColor={DANGER}
               label="회원 탈퇴" labelColor={DANGER}

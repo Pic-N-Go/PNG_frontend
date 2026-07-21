@@ -12,6 +12,10 @@ import TermsOfServiceScreen from '@/screens/mypage/TermsOfServiceScreen';
 import PrivacyPolicyScreen from '@/screens/mypage/PrivacyPolicyScreen';
 import OpenSourceLicensesScreen from '@/screens/mypage/OpenSourceLicensesScreen';
 import ProfileEditScreen from '@/screens/mypage/ProfileEditScreen';
+import FollowScreen from '@/screens/mypage/FollowScreen';
+import MyPhotosScreen from '@/screens/mypage/MyPhotosScreen';
+import MyReviewsScreen from '@/screens/mypage/MyReviewsScreen';
+import PhotoMapScreen from '@/screens/mypage/PhotoMapScreen';
 
 export type MyPageStackParamList = {
   MyPage: undefined;
@@ -26,6 +30,10 @@ export type MyPageStackParamList = {
   TermsOfService: undefined;
   PrivacyPolicy: undefined;
   OpenSourceLicenses: undefined;
+  Follow: { initialTab: 'followers' | 'following' };
+  MyPhotos: undefined;
+  MyReviews: undefined;
+  PhotoMap: undefined;
 };
 
 const Stack = createNativeStackNavigator<MyPageStackParamList>();
@@ -45,6 +53,10 @@ export default function MyPageStack() {
       <Stack.Screen name="PrivacyPolicy" component={PrivacyPolicyScreen} />
       <Stack.Screen name="OpenSourceLicenses" component={OpenSourceLicensesScreen} />
       <Stack.Screen name="ProfileEdit" component={ProfileEditScreen} />
+      <Stack.Screen name="Follow" component={FollowScreen} />
+      <Stack.Screen name="MyPhotos" component={MyPhotosScreen} />
+      <Stack.Screen name="MyReviews" component={MyReviewsScreen} />
+      <Stack.Screen name="PhotoMap" component={PhotoMapScreen} />
     </Stack.Navigator>
   );
 }

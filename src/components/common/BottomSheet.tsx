@@ -81,7 +81,7 @@ export default function BottomSheet({ visible, onClose, children, dimOpacity = D
                 borderTopLeftRadius: BOTTOM_SHEET_RADIUS,
                 borderTopRightRadius: BOTTOM_SHEET_RADIUS,
                 maxHeight: MAX_HEIGHT,
-                paddingBottom: insets.bottom,
+                paddingBottom: Math.max(insets.bottom, normalize(24)),
               }}
             >
               <View 

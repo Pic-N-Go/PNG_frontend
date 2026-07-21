@@ -1,104 +1,233 @@
-import React from 'react';
-import { Text, View } from 'react-native';
-import { IconCar } from '@tabler/icons-react-native';
-import Skeleton from '@/components/common/Skeleton';
-import { FONT_SM, GRID_PADDING } from '@/constants/layout';
+import React, { useState } from 'react';
+import { Linking, Platform, Pressable, Text, View } from 'react-native';
+import {
+  Accessibility,
+  Baby,
+  CalendarOff,
+  ChevronDown,
+  ChevronRight,
+  ChevronUp,
+  Clock,
+  Dog,
+  Info,
+  Phone,
+  SquareParking,
+  TrainFront,
+} from 'lucide-react-native';
+import { GRID_PADDING } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import type { ConvenienceInfo } from '@/types/spot';
+import type { ConvenienceInfo, FacilityChipData, FacilityKey, FacilityStatus } from '@/types/spot';
 
-export const MOCK_CONVENIENCE_INFO: ConvenienceInfo = {
-  transport: [
-    { icon: 'parking', main: '500m 이내 무료 주차장 2곳', sub: '수영구 공영주차장 · 광안리해변 주차장' },
-    { icon: 'car', main: '현재 위치에서 차로 18분', sub: '지하철 광안역 도보 10분' },
-  ],
-  cells: [
-    { label: '화장실', value: '있음', variant: 'green' },
-    { label: '휠체어 접근', value: '가능', variant: 'green' },
-    { label: '유모차', value: '가능', variant: 'green' },
-    { label: '반려동물', value: '가능', variant: 'green' },
-    { label: '지하철', value: '도보 10분', variant: 'default' },
-    { label: '문의 전화', value: '051-123-4567', variant: 'default' },
-  ],
+const ACCENT = '#E31B59'; // 앱 브랜드 핑크 (디자인 핸드오프의 #F5335F 대신 프로젝트 토큰 사용)
+
+const C = {
+  text: '#1F1E1D',
+  textRow: '#37352F',
+  label: '#8B8680',
+  labelMuted: '#A39E98',
+  muted: '#B5B0AA',
+  green: '#16A34A',
+  cardBorder: 'rgba(0,0,0,0.07)',
+  divider: 'rgba(0,0,0,0.045)',
 };
 
-const CELL_COLOR: Record<ConvenienceInfo['cells'][number]['variant'], string> = {
-  green: '#34C759',
-  orange: '#FF9F0A',
-  default: '#000',
+type IconCmp = React.ComponentType<{ size?: number; color?: string; strokeWidth?: number }>;
+
+const FACILITY_ICON: Record<FacilityKey, IconCmp> = {
+  parking: SquareParking,
+  wheel: Accessibility,
+  stroller: Baby,
+  pet: Dog,
+  subway: TrainFront,
+  holiday: CalendarOff,
 };
+
+const STATUS_ICON_BG: Record<FacilityStatus, string> = { good: '#E7F6EC', neutral: '#F1EFED', missing: '#EDEBE8', accent: '#FDEBEF' };
+const STATUS_ICON_COLOR: Record<FacilityStatus, string> = { good: C.green, neutral: '#615D59', missing: C.muted, accent: ACCENT };
+const STATUS_VALUE_COLOR: Record<FacilityStatus, string> = { good: C.green, neutral: C.text, missing: C.muted, accent: C.text };
+
+const cardShadow = (Platform.select({
+  ios: { shadowColor: '#000', shadowOpacity: 0.04, shadowRadius: 8, shadowOffset: { width: 0, height: 3 } },
+  android: { elevation: 1 },
+}) ?? {}) as object;
+
+function FacilityChip({ chip }: { chip: FacilityChipData }) {
+  const { key, label, value, status } = chip;
+  const Icon = FACILITY_ICON[key];
+  const present = status !== 'missing';
+  return (
+    <View
+      style={{
+        width: '48%',
+        flexGrow: 1,
+        borderRadius: normalize(14),
+        padding: normalize(13),
+        gap: normalize(11),
+        borderWidth: 1,
+        ...(present
+          ? { backgroundColor: '#fff', borderColor: C.cardBorder, ...cardShadow }
+          : { backgroundColor: '#F7F6F4', borderColor: 'rgba(0,0,0,0.04)' }),
+      }}
+    >
+      <View style={{ width: normalize(34), height: normalize(34), borderRadius: normalize(9), backgroundColor: STATUS_ICON_BG[status], alignItems: 'center', justifyContent: 'center' }}>
+        <Icon size={normalize(19)} color={STATUS_ICON_COLOR[status]} />
+      </View>
+      <View>
+        <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: normalizeFontSize(12.5), color: present ? C.label : C.labelMuted, marginBottom: normalize(3) }}>
+          {label}
+        </Text>
+        <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(present ? 16 : 14), color: STATUS_VALUE_COLOR[status] }}>
+          {value}
+        </Text>
+      </View>
+    </View>
+  );
+}
 
 interface Props {
   info: ConvenienceInfo;
-  loading?: boolean;
 }
 
-export default function ConvenienceInfoSection({ info, loading = false }: Props) {
+export default function ConvenienceInfoSection({ info }: Props) {
+  const [hoursOpen, setHoursOpen] = useState(false);
+
+  const groups = info.schedule ?? [];
+  const visibleGroups = hoursOpen ? groups : groups.slice(0, 1);
+  const scheduleCollapsible = groups.length > 1;
+  const textCollapsible = !info.schedule && (info.scheduleText?.split('\n').length ?? 0) > 3;
+  // 문의 텍스트에서 첫 전화번호 토큰만 추출 (예: "강남메디컬투어센터 1661-2230" → 16612230). 없으면 발신 불가.
+  const telHref = info.phone?.replace(/\s+/g, '').match(/[\d-]{7,}/)?.[0]?.replace(/[^0-9]/g, '') || undefined;
+
   return (
     <View style={{ paddingHorizontal: GRID_PADDING }}>
-      <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(20), color: '#000', letterSpacing: -0.3, marginBottom: normalize(14) }}>
+      <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(20), color: C.text, letterSpacing: -0.4, marginBottom: normalize(16) }}>
         편의 정보
       </Text>
 
-      <View style={{ borderRadius: normalize(14), backgroundColor: '#F5F5F7', overflow: 'hidden', marginBottom: normalize(12) }}>
-        {info.transport.map((item, idx) => (
-          <View
-            key={item.main}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: normalize(12),
-              paddingHorizontal: normalize(16),
-              paddingVertical: normalize(14),
-              borderTopWidth: idx > 0 ? 0.5 : 0,
-              borderTopColor: 'rgba(0,0,0,0.04)',
-            }}
-          >
-            {item.icon === 'parking' ? (
-              <View style={{ width: normalize(28), height: normalize(28), borderRadius: normalize(8), backgroundColor: 'rgba(52,199,89,0.1)', alignItems: 'center', justifyContent: 'center' }}>
-                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(11), color: '#34c759' }}>P</Text>
-              </View>
-            ) : (
-              <View style={{ width: normalize(28), height: normalize(28), borderRadius: normalize(8), backgroundColor: '#E8F3FF', alignItems: 'center', justifyContent: 'center' }}>
-                <IconCar size={normalize(16)} color="#007aff" strokeWidth={2} />
-              </View>
-            )}
-            <View style={{ flex: 1, gap: normalize(4) }}>
-              {loading ? (
-                <>
-                  <Skeleton width="80%" height={normalize(13)} borderRadius={normalize(4)} />
-                  <Skeleton width="60%" height={normalize(11)} borderRadius={normalize(4)} />
-                </>
-              ) : (
-                <>
-                  <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: '#000', letterSpacing: -0.15 }}>
-                    {item.main}
-                  </Text>
-                  <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.35)' }}>
-                    {item.sub}
-                  </Text>
-                </>
-              )}
-            </View>
-          </View>
+      {/* 편의 항목 그리드 (2열) */}
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: normalize(10) }}>
+        {info.facilities.map((f) => (
+          <FacilityChip key={f.key} chip={f} />
         ))}
       </View>
 
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: normalize(8) }}>
-        {info.cells.map((cell) => (
-          <View key={cell.label} style={{ flexBasis: '31%', flexGrow: 1, padding: normalize(14), borderRadius: normalize(12), backgroundColor: '#F5F5F7' }}>
-            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(11), color: 'rgba(0,0,0,0.35)', marginBottom: normalize(4) }}>
-              {cell.label}
-            </Text>
-            {loading ? (
-              <Skeleton width="70%" height={normalize(15)} borderRadius={normalize(4)} />
-            ) : (
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: normalizeFontSize(13), color: CELL_COLOR[cell.variant] }}>
-                {cell.value}
-              </Text>
-            )}
+      {/* 이용시간 */}
+      <View style={{ marginTop: normalize(12), backgroundColor: '#fff', borderWidth: 1, borderColor: C.cardBorder, borderRadius: normalize(16), paddingHorizontal: normalize(16), paddingTop: normalize(18), paddingBottom: normalize(8), ...cardShadow }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(8), marginBottom: normalize(14) }}>
+          <View style={{ width: normalize(26), height: normalize(26), borderRadius: normalize(7), backgroundColor: '#F1EFED', alignItems: 'center', justifyContent: 'center' }}>
+            <Clock size={normalize(15)} color="#615D59" />
           </View>
-        ))}
+          <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(14), color: C.text }}>
+            이용시간
+          </Text>
+        </View>
+
+        {info.schedule ? (
+          <>
+            {visibleGroups.map((group, gi) => (
+              <View key={`${gi}-${group.title}`} style={{ marginBottom: normalize(14) }}>
+                {group.title ? (
+                  <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(11.5), letterSpacing: 0.3, color: C.labelMuted, marginBottom: normalize(7) }}>
+                    {group.title}
+                  </Text>
+                ) : null}
+                {group.rows.map((r, i) => {
+                  if ('note' in r) {
+                    return (
+                      <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(6), backgroundColor: '#FDEBEF', borderRadius: normalize(8), paddingVertical: normalize(8), paddingHorizontal: normalize(10), marginVertical: normalize(4) }}>
+                        <Info size={normalize(14)} color={ACCENT} />
+                        <Text allowFontScaling={false} style={{ flex: 1, fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(12.5), lineHeight: normalizeFontSize(12.5) * 1.45, color: '#9A3355' }}>
+                          {r.note}
+                        </Text>
+                      </View>
+                    );
+                  }
+                  const next = group.rows[i + 1];
+                  const noBorder = i === group.rows.length - 1 || (next != null && 'note' in next);
+                  if ('value' in r) {
+                    return (
+                      <View key={i} style={{ paddingVertical: normalize(6), borderBottomWidth: noBorder ? 0 : 1, borderBottomColor: C.divider }}>
+                        <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(15), color: C.textRow, lineHeight: normalizeFontSize(15) * 1.4 }}>
+                          {r.value}
+                        </Text>
+                      </View>
+                    );
+                  }
+                  return (
+                    <View
+                      key={i}
+                      style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', paddingVertical: normalize(6), borderBottomWidth: noBorder ? 0 : 1, borderBottomColor: C.divider }}
+                    >
+                      <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(15), color: C.textRow }}>
+                        {r.name}
+                      </Text>
+                      <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(15), color: C.text, fontVariant: ['tabular-nums'] }}>
+                        {r.time}
+                      </Text>
+                    </View>
+                  );
+                })}
+              </View>
+            ))}
+          </>
+        ) : (
+          <Text
+            allowFontScaling={false}
+            numberOfLines={textCollapsible && !hoursOpen ? 3 : undefined}
+            style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(14), lineHeight: normalizeFontSize(14) * 1.5, color: info.scheduleText ? C.textRow : C.muted, marginBottom: normalize(10) }}
+          >
+            {info.scheduleText ?? '미제공'}
+          </Text>
+        )}
+
+        {(scheduleCollapsible || textCollapsible) && (
+          <Pressable
+            onPress={() => setHoursOpen((o) => !o)}
+            style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: normalize(4), paddingVertical: normalize(12), borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.05)', marginTop: normalize(4) }}
+          >
+            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(14), color: ACCENT }}>
+              {hoursOpen ? '접기' : '펼치기'}
+            </Text>
+            {hoursOpen ? <ChevronUp size={normalize(16)} color={ACCENT} /> : <ChevronDown size={normalize(16)} color={ACCENT} />}
+          </Pressable>
+        )}
       </View>
+
+      {/* 문의 */}
+      {info.phone ? (
+        <Pressable
+          onPress={() => {
+            if (telHref) Linking.openURL(`tel:${telHref}`).catch(() => {});
+          }}
+          disabled={!telHref}
+          android_ripple={{ color: 'rgba(0,0,0,0.05)' }}
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: normalize(12),
+            marginTop: normalize(12),
+            backgroundColor: '#fff',
+            borderWidth: 1,
+            borderColor: C.cardBorder,
+            borderRadius: normalize(16),
+            padding: normalize(15),
+            ...cardShadow,
+          }}
+        >
+          <View style={{ width: normalize(40), height: normalize(40), borderRadius: normalize(11), backgroundColor: '#FDEBEF', alignItems: 'center', justifyContent: 'center' }}>
+            <Phone size={normalize(19)} color={ACCENT} />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: normalizeFontSize(12.5), color: C.label, marginBottom: normalize(3) }}>
+              문의
+            </Text>
+            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(15.5), color: C.text, letterSpacing: 0.1 }}>
+              {info.phone}
+            </Text>
+          </View>
+          {telHref ? <ChevronRight size={normalize(20)} color="#C4BFB9" /> : null}
+        </Pressable>
+      ) : null}
     </View>
   );
 }

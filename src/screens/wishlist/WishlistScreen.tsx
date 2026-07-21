@@ -1,104 +1,21 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Modal, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FONT_SM, BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING, CARD_RADIUS } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { IconChevronLeft, IconBell, IconChevronRight, IconMapPin, IconCircleCheck, IconCheck, IconChevronDown } from '@tabler/icons-react-native';
 
-const dummyWishlists = [
-  {
-    id: 1,
-    title: '경복궁 야간개장',
-    loc: '서울 종로구 · 포토제닉 91점',
-    status: 'soon',
-    statusText: '내일 충족 예상',
-    conditions: [
-      { type: 'weather', text: '맑음', active: true },
-      { type: 'weather', text: '뇌우', active: false },
-      { type: 'time', text: '야간', active: true },
-      { type: 'dust', text: '미세먼지 좋음', active: false },
-    ],
-    forecast: [
-      { day: '오늘', status: 'overcast', hit: false },
-      { day: '내일', status: 'clear', hit: true },
-      { day: '+2', status: 'partly-cloudy', hit: false },
-      { day: '+3', status: 'clear', hit: true },
-      { day: '+4', status: 'rain', hit: false },
-      { day: '+5', status: 'partly-cloudy', hit: false },
-      { day: '+6', status: 'clear', hit: false },
-    ],
-    notifText: '내일(5/19) 조건 충족 예상 · 알림 설정됨',
-    thumbnails: ['#1a1530', '#232526', '#2a2020'],
-  },
-  {
-    id: 2,
-    title: '광안리 해수욕장',
-    loc: '부산 수영구 · 포토제닉 87점',
-    status: 'wait',
-    statusText: '대기 중',
-    conditions: [
-      { type: 'weather', text: '맑음', active: false },
-      { type: 'time', text: '일출', active: false },
-      { type: 'dust', text: '미세먼지 좋음', active: false },
-    ],
-    forecast: [
-      { day: '오늘', status: 'overcast', hit: false },
-      { day: '내일', status: 'partly-cloudy', hit: false },
-      { day: '+2', status: 'rain', hit: false },
-      { day: '+3', status: 'rain', hit: false },
-      { day: '+4', status: 'partly-cloudy', hit: false },
-      { day: '+5', status: 'overcast', hit: false },
-      { day: '+6', status: 'clear', hit: false },
-    ],
-    notifText: null,
-    thumbnails: ['#0f2027', '#2c5364', '#1a3a4a'],
-  },
-  {
-    id: 3,
-    title: '에버랜드 장미원',
-    loc: '경기 용인시 · 포토제닉 92점',
-    status: 'hit',
-    statusText: '오늘 충족',
-    conditions: [
-      { type: 'weather', text: '맑음', active: true },
-      { type: 'other', text: '개화율 90%+', active: true },
-      { type: 'dust', text: '미세먼지 좋음', active: true },
-    ],
-    forecast: [
-      { day: '오늘', status: 'clear', hit: true },
-      { day: '내일', status: 'clear', hit: false },
-      { day: '+2', status: 'partly-cloudy', hit: false },
-      { day: '+3', status: 'rain', hit: false },
-      { day: '+4', status: 'rain', hit: false },
-      { day: '+5', status: 'partly-cloudy', hit: false },
-      { day: '+6', status: 'clear', hit: false },
-    ],
-    notifText: '오늘 바로 출발하기 좋아요 · 포토제닉 92점',
-    thumbnails: ['#3a0a1a', '#4a0a2a', '#2a0010'],
-  }
-];
+import { useWishlist } from '@/hooks/useWishlist';
+import { mapWishlistToUI } from '@/utils/wishlistMapper';
 
 export default function WishlistScreen({ navigation, route }: any) {
-  const [wishlists, setWishlists] = useState(dummyWishlists);
+  const { useWishlistsQuery } = useWishlist();
+  const { data: apiWishlists, isLoading } = useWishlistsQuery();
+  
+  const wishlists = apiWishlists ? apiWishlists.map(mapWishlistToUI) : [];
+
   const [sortType, setSortType] = useState('최신순');
   const [sortModalVisible, setSortModalVisible] = useState(false);
-
-  useEffect(() => {
-    if (route.params?.newWishlist) {
-      setWishlists(prev => {
-        const exists = prev.find(w => w.id === route.params.newWishlist.id);
-        if (exists) {
-          return prev.map(w => w.id === route.params.newWishlist.id ? route.params.newWishlist : w);
-        }
-        return [route.params.newWishlist, ...prev];
-      });
-      navigation.setParams({ newWishlist: undefined });
-    }
-    if (route.params?.deletedId) {
-      setWishlists(prev => prev.filter(w => w.id !== route.params.deletedId));
-      navigation.setParams({ deletedId: undefined });
-    }
-  }, [route.params?.newWishlist, route.params?.deletedId, navigation]);
 
   const sortedWishlists = [...wishlists].sort((a, b) => {
     if (sortType === '이름순') return a.title.localeCompare(b.title);
@@ -147,7 +64,11 @@ export default function WishlistScreen({ navigation, route }: any) {
           </View>
         </View>
 
-        {wishlists.length === 0 ? (
+        {isLoading ? (
+          <View className="flex-1 items-center justify-center" style={{ marginTop: normalize(40) }}>
+            <Text className="text-black/40" style={{ fontSize: FONT_SM }}>목록을 불러오는 중입니다...</Text>
+          </View>
+        ) : wishlists.length === 0 ? (
           /* Empty State */
           <View className="items-center justify-center" style={{ paddingVertical: normalize(64), paddingHorizontal: normalize(40) }}>
             <View className="items-center justify-center rounded-2xl bg-[#f5f5f7] mb-2" style={{ width: normalize(64), height: normalize(64) }}>
