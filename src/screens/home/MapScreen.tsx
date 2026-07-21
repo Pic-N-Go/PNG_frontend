@@ -16,7 +16,7 @@ const KAKAO_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_API_KEY;
 
 
 
-const DEFAULT_SPOTS: any[] = []; // Not used anymore, fetching from API
+
 
 const CATEGORIES = [
   { id: 'all', label: '전체' },
@@ -212,7 +212,7 @@ export default function MapScreen() {
         }
       `);
     }
-  }, [filteredSpots]);
+  }, [filteredSpots, apiSpots]);
   const HTML = useMemo(() => {
     const initialSpots = (mode === 'plan-view' && route.params?.planData)
       ? (route.params.planData[route.params.initialDay || '1']?.spots || [])
@@ -360,7 +360,7 @@ export default function MapScreen() {
 </body>
 </html>
   `;
-  }, [route.params?.spots, route.params?.planData, route.params?.initialDay, mode]);
+  }, [route.params?.spots, route.params?.planData, route.params?.initialDay, mode, apiSpots]);
 
   // source 객체도 HTML 문자열이 바뀔 때만 새로 만들어 WebView가 재로딩되지 않게 한다.
   const mapSource = useMemo(() => ({ html: HTML }), [HTML]);

@@ -65,7 +65,7 @@ const getSunsetAndGoldenHour = (isoString?: string) => {
     const goldenStr = `${formatTime(start)}~${formatTime(end)}`;
 
     return { sunset: sunsetStr, golden: goldenStr };
-  } catch (e) {
+  } catch {
     return { sunset: isoString, golden: "정보 없음" };
   }
 };
@@ -509,7 +509,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
     setIsMoreSheetVisible(true);
   };
 
-  const buildAllSpotsPayload = (currentData: typeof data) => {
+  const buildAllSpotsPayload = React.useCallback((currentData: typeof data) => {
     return Object.entries(currentData).flatMap(([dayStr, dayData]) => {
       const dNum = parseInt(dayStr, 10);
       return dayData.spots.map((s: any, index: number) => ({
@@ -519,14 +519,13 @@ export default function TravelPlanScreen({ navigation, route }: any) {
         sequenceOrder: index + 1,
       }));
     });
-  };
+  }, []);
 
   const { selectedSpots, clearSpots } = useTravelStore();
 
   useFocusEffect(
     React.useCallback(() => {
       if (selectedSpots.length > 0 && planId) {
-        const dayNum = parseInt(currentDay, 10);
         
         const spotsToAdd = [...selectedSpots];
         clearSpots();
@@ -557,7 +556,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
           spots: buildAllSpotsPayload(newData)
         });
       }
-    }, [selectedSpots, currentDay, data, planId, syncSpotsMutation, clearSpots])
+    }, [selectedSpots, currentDay, data, planId, syncSpotsMutation, clearSpots, buildAllSpotsPayload])
   );
 
   const reorderSpots = (spots: any[]) => {
@@ -845,7 +844,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
         )}
       </View>
     ),
-    [currentDay, currentWeather]
+    [currentDay, currentWeather, hasValidWeather]
   );
 
   const renderFooter = () => (

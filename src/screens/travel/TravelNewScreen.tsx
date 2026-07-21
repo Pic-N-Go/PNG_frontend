@@ -149,7 +149,6 @@ export default function TravelNewScreen() {
       });
 
       // 2. 스팟 추가
-      const promises = [];
       const allSpots = Object.entries(daySpots).flatMap(([dayStr, spots]) => {
         const dayNumber = parseInt(dayStr, 10);
         return spots.map((spot: any, i: number) => ({
