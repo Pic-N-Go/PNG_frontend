@@ -39,12 +39,8 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
 export type SpotInCourse = {
   id: number;
   spotId: number;
-  spotName?: string;
-  latitude?: number;
-  longitude?: number;
-  category?: string;
-  thumbnailUrl?: string;
-  photogenicScore?: number;
+  // UI properties like spotName, latitude, longitude, category, thumbnailUrl, photogenicScore 
+  // should be explicitly hydrated from a spot lookup or extended backend response.
   dayNumber: number;
   sequenceOrder: number;
   memo: string;
@@ -140,8 +136,18 @@ export const coursesApi = {
   },
 
   // 13. 날씨 정보 조회
-  getCourseWeather: (id: number): Promise<CourseWeather[]> => {
-    return fetchWithAuth(`/courses/${id}/weather`, { method: 'GET' });
+  getCourseWeather: async (id: number): Promise<CourseWeather[]> => {
+    const data = await fetchWithAuth(`/courses/${id}/weather`, { method: 'GET' });
+    // Map the flat API payload to the nested representation required by the UI
+    return (data as any[]).map(item => {
+      if (item.morning) return item as CourseWeather;
+      return {
+        ...item,
+        morning: { weatherStatus: item.weatherStatus, temperature: item.temperature },
+        afternoon: { weatherStatus: item.weatherStatus, temperature: item.temperature },
+        evening: { weatherStatus: item.weatherStatus, temperature: item.temperature }
+      } as CourseWeather;
+    });
   },
 };
 
