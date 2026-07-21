@@ -15,7 +15,6 @@ interface CourseMoreSheetProps {
   visible: boolean;
   onClose: () => void;
   courseName: string;
-  courseDateStr: string;
   onEditName: () => void;
   onDuplicate: () => void;
   onInvite: () => void;
@@ -27,7 +26,6 @@ export default function CourseMoreSheet({
   visible,
   onClose,
   courseName,
-  courseDateStr,
   onEditName,
   onDuplicate,
   onInvite,

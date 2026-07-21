@@ -1217,7 +1217,6 @@ export default function TravelPlanScreen({ navigation, route }: any) {
         visible={isMoreSheetVisible}
         onClose={() => setIsMoreSheetVisible(false)}
         courseName={course?.title || "출사 계획"}
-        courseDateStr={course ? `${course.startDate.replace(/-/g, '.')} ~ ${course.endDate.replace(/-/g, '.')}` : "날짜 미정"}
         onEditName={() => {
           if (planId && course) {
             navigation.navigate('TravelNew', {

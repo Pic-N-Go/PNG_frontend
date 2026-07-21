@@ -61,7 +61,6 @@ export default function MapScreen() {
       loc: spot.address,
       photo: spot.thumbnailUrl || spot.imageUrl || ''
     }));
-    console.log('[DEBUG] mapped apiSpots:', mapped);
     return mapped;
   }, [spotsPage]);
 
