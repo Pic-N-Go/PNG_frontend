@@ -1267,8 +1267,8 @@ export default function TravelPlanScreen({ navigation, route }: any) {
             className="w-full"
             style={{ paddingHorizontal: CONTENT_PADDING }}
           >
-            <View className="bg-white rounded-2xl p-4 shadow-lg">
-              <Text className="font-bold mb-3 tracking-[-0.3px] text-black" style={{ fontSize: normalizeFontSize(16) }}>준비물 추가</Text>
+            <View className="bg-white rounded-2xl p-4">
+              <Text className="font-semibold mb-3 tracking-[-0.3px] text-black" style={{ fontSize: normalizeFontSize(16) }}>준비물 추가</Text>
               <TextInput
                 autoFocus
                 placeholder="어떤 준비물이 필요한가요?"
