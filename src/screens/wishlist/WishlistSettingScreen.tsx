@@ -6,7 +6,7 @@ import { FONT_SM, BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING } from '@/consta
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { useWishlist } from '@/hooks/useWishlist';
 import { WEATHER_API_TO_UI, WEATHER_UI_TO_API, TIME_API_TO_UI, TIME_UI_TO_API, DUST_API_TO_UI, DUST_UI_TO_API } from '@/utils/wishlistMapper';
-import { IconChevronLeft, IconTrash, IconX, IconSearch, IconCheck, IconAlertCircle, IconSun, IconCloud, IconCloudRain, IconCloudSnow, IconCloudFog, IconCloudStorm, IconMinus, IconPlus } from '@tabler/icons-react-native';
+import { IconChevronLeft, IconTrash, IconX, IconSearch, IconCheck, IconAlertCircle, IconSun, IconCloud, IconCloudRain, IconCloudSnow, IconCloudFog, IconCloudStorm } from '@tabler/icons-react-native';
 import BottomSheet from '@/components/common/BottomSheet';
 
 const MOCK_SPOTS = [
@@ -449,8 +449,8 @@ export default function WishlistSettingScreen({ navigation, route }: any) {
           <Text className="font-semibold text-black mb-2" style={{ fontSize: normalizeFontSize(20) }}>위시리스트를 삭제할까요?</Text>
           <Text className="text-black/45 leading-relaxed mb-6" style={{ fontSize: normalizeFontSize(16) }}>{selectedSpot.name} 위시리스트가 삭제돼요. 삭제 후에는 복구할 수 없어요.</Text>
           <TouchableOpacity onPress={handleDeleteConfirm} className="bg-[#ff453a]/10 items-center justify-center mb-2.5" style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}>
-                <Text className="font-medium text-[#ff453a]" style={{ fontSize: normalizeFontSize(16) }}>삭제하기</Text>
-              </TouchableOpacity>
+            <Text className="font-medium text-[#ff453a]" style={{ fontSize: normalizeFontSize(16) }}>삭제하기</Text>
+          </TouchableOpacity>
           <TouchableOpacity onPress={() => setDeleteModalVisible(false)} className="bg-[#f5f5f7] items-center justify-center" style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}>
             <Text className="font-medium text-black/50" style={{ fontSize: normalizeFontSize(16) }}>취소</Text>
           </TouchableOpacity>

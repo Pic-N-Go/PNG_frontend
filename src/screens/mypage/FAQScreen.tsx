@@ -17,7 +17,6 @@ type Props = NativeStackScreenProps<MyPageStackParamList, 'FAQ'>;
 const BRAND = '#E31B59';
 const TEXT2 = 'rgba(0,0,0,0.48)';
 const TEXT3 = 'rgba(0,0,0,0.28)';
-const CARD = '#f5f5f7';
 const DIVIDER = 'rgba(0,0,0,0.06)';
 const CHIP_BORDER = 'rgba(0,0,0,0.08)';
 

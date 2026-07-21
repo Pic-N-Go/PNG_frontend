@@ -5,7 +5,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { IconChevronLeft, IconUpload, IconExternalLink } from '@tabler/icons-react-native';
 import { MyPageStackParamList } from '@/navigation/stacks/MyPageStack';
 import { normalize } from '@/utils/normalize';
-import { FONT_XS, FONT_SM, FONT_MD, FONT_LG, CONTENT_PADDING } from '@/constants/layout';
+import { FONT_XS, FONT_SM, FONT_MD, FONT_LG } from '@/constants/layout';
 
 type Props = NativeStackScreenProps<MyPageStackParamList, 'TermsOfService'>;
 

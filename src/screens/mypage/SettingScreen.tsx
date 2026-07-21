@@ -35,13 +35,13 @@ export default function SettingScreen({ navigation }: Props) {
   const [dndRepeatSheetVisible, setDndRepeatSheetVisible] = React.useState(false);
   const [versionSheetVisible, setVersionSheetVisible] = React.useState(false);
 
-  const isPushEnabled = async () => {
+  const isPushEnabled = React.useCallback(async () => {
     const authStatus = await getMessaging().hasPermission();
     return (
       authStatus === AuthorizationStatus.AUTHORIZED ||
       authStatus === AuthorizationStatus.PROVISIONAL
     );
-  };
+  }, []);
 
   // 마운트 시 시스템 푸시 권한이 없으면 알림 토글을 모두 끔
   React.useEffect(() => {
@@ -52,7 +52,7 @@ export default function SettingScreen({ navigation }: Props) {
         setCommunity(false);
       }
     })();
-  }, []);
+  }, [isPushEnabled, setWishlist, setGolden, setCommunity]);
 
   // 알림 토글: 켤 때만 시스템 권한 확인, 없으면 안내 후 중단
   const toggleNotif = async (value: boolean, apply: (v: boolean) => void) => {
