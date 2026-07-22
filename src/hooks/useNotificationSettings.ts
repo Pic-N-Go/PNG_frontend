@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback, useRef, useEffect } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { notificationsApi, NotificationSettingUpdateRequest } from '@/api/notifications';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -42,6 +42,11 @@ export function useNotificationSettings(initial?: Partial<NotificationSettings>)
     dnd: { ...DEFAULT_SETTINGS.dnd, ...initial?.dnd },
   });
 
+  const latestSettingsRef = useRef(settings);
+  useEffect(() => {
+    latestSettingsRef.current = settings;
+  }, [settings]);
+
   const updateApiMutation = useMutation({
     mutationFn: (data: NotificationSettingUpdateRequest) => {
       if (!accessToken) return Promise.resolve();
@@ -49,52 +54,73 @@ export function useNotificationSettings(initial?: Partial<NotificationSettings>)
     },
   });
 
-  const syncSettingsToApi = (newSettings: NotificationSettings) => {
-    const isAllPushEnabled = newSettings.wishlist || newSettings.golden || newSettings.community;
-    updateApiMutation.mutate({
-      isAllPushEnabled,
-      dndStartTime: newSettings.dnd.enabled ? newSettings.dnd.start : '',
-      dndEndTime: newSettings.dnd.enabled ? newSettings.dnd.end : '',
-    });
-  };
+  const syncTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const setWishlist = (value: boolean) =>
-    setSettings((prev) => {
-      const updated = { ...prev, wishlist: value };
-      syncSettingsToApi(updated);
-      return updated;
-    });
+  const syncSettingsToApi = useCallback((newSettings: NotificationSettings) => {
+    if (syncTimerRef.current) {
+      clearTimeout(syncTimerRef.current);
+    }
+    syncTimerRef.current = setTimeout(() => {
+      const isAllPushEnabled = newSettings.wishlist || newSettings.golden || newSettings.community;
+      updateApiMutation.mutate({
+        isAllPushEnabled,
+        dndStartTime: newSettings.dnd.enabled ? newSettings.dnd.start : '',
+        dndEndTime: newSettings.dnd.enabled ? newSettings.dnd.end : '',
+      });
+    }, 300);
+  }, [accessToken, updateApiMutation]);
 
-  const setGolden = (value: boolean) =>
-    setSettings((prev) => {
-      const updated = { ...prev, golden: value };
-      syncSettingsToApi(updated);
-      return updated;
-    });
+  useEffect(() => {
+    return () => {
+      if (syncTimerRef.current) {
+        clearTimeout(syncTimerRef.current);
+      }
+    };
+  }, []);
 
-  const setCommunity = (value: boolean) =>
-    setSettings((prev) => {
-      const updated = { ...prev, community: value };
-      syncSettingsToApi(updated);
-      return updated;
-    });
+  const setWishlist = useCallback((value: boolean) => {
+    const next = { ...latestSettingsRef.current, wishlist: value };
+    setSettings(next);
+    syncSettingsToApi(next);
+  }, [syncSettingsToApi]);
 
-  const setDndEnabled = (value: boolean) =>
-    setSettings((prev) => {
-      const updated = { ...prev, dnd: { ...prev.dnd, enabled: value } };
-      syncSettingsToApi(updated);
-      return updated;
-    });
+  const setGolden = useCallback((value: boolean) => {
+    const next = { ...latestSettingsRef.current, golden: value };
+    setSettings(next);
+    syncSettingsToApi(next);
+  }, [syncSettingsToApi]);
 
-  const setDndTime = (start: string, end: string) =>
-    setSettings((prev) => {
-      const updated = { ...prev, dnd: { ...prev.dnd, start, end } };
-      syncSettingsToApi(updated);
-      return updated;
-    });
+  const setCommunity = useCallback((value: boolean) => {
+    const next = { ...latestSettingsRef.current, community: value };
+    setSettings(next);
+    syncSettingsToApi(next);
+  }, [syncSettingsToApi]);
 
-  const setDndRepeat = (preset: DndRepeatPreset, days: number[]) =>
-    setSettings((prev) => ({ ...prev, dnd: { ...prev.dnd, repeatPreset: preset, repeatDays: days } }));
+  const setDndEnabled = useCallback((value: boolean) => {
+    const next = {
+      ...latestSettingsRef.current,
+      dnd: { ...latestSettingsRef.current.dnd, enabled: value },
+    };
+    setSettings(next);
+    syncSettingsToApi(next);
+  }, [syncSettingsToApi]);
+
+  const setDndTime = useCallback((start: string, end: string) => {
+    const next = {
+      ...latestSettingsRef.current,
+      dnd: { ...latestSettingsRef.current.dnd, start, end },
+    };
+    setSettings(next);
+    syncSettingsToApi(next);
+  }, [syncSettingsToApi]);
+
+  const setDndRepeat = useCallback((preset: DndRepeatPreset, days: number[]) => {
+    const next = {
+      ...latestSettingsRef.current,
+      dnd: { ...latestSettingsRef.current.dnd, repeatPreset: preset, repeatDays: days },
+    };
+    setSettings(next);
+  }, []);
 
   return {
     settings,
