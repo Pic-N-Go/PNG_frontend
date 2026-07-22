@@ -3,7 +3,7 @@ import { Platform, PermissionsAndroid } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getMessaging, requestPermission, getToken, onTokenRefresh, AuthorizationStatus } from '@react-native-firebase/messaging';
 import { useMutation } from '@tanstack/react-query';
-import { notificationsApi } from '@/api/notifications';
+import { notificationApi } from '@/api/notification';
 import { useAuthStore } from '@/store/useAuthStore';
 
 export const usePushNotifications = () => {
@@ -11,7 +11,7 @@ export const usePushNotifications = () => {
   const accessToken = useAuthStore((state) => state.accessToken);
 
   const { mutate: sendTokenToServer } = useMutation({
-    mutationFn: (token: string) => notificationsApi.postToken(token, accessToken!),
+    mutationFn: (token: string) => notificationApi.postToken(token, accessToken!),
     onSuccess: () => {
       console.log('FCM token successfully registered with the server.');
     },

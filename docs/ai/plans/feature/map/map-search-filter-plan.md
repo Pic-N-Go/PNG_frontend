@@ -3,6 +3,7 @@
 ## 1) 입력 스펙
 
 - 스펙 문서: `docs/ai/specs/feature/map/map-search-filter.md`
+- 관련 도메인: `search`, `spot`
 - 관련 목업: `src/components/ui/home/map.html`, `src/components/ui/home/home.html`
 - 완료 목표: 목업 시안과 일치하는 검색/필터 컴포넌트 개선, FilterBottomSheet 모달 연동, 줌 인/아웃 컨트롤 및 내 위치 탐색 버튼 WebView 연동 구현
 
