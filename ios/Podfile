@@ -22,6 +22,7 @@ prepare_react_native_project!
 
 target 'PNG' do
   use_expo_modules!
+  use_modular_headers!
 
   if ENV['EXPO_USE_COMMUNITY_AUTOLINKING'] == '1'
     config_command = ['node', '-e', "process.argv=['', '', 'config'];require('@react-native-community/cli').run()"];
@@ -59,5 +60,19 @@ target 'PNG' do
       :mac_catalyst_enabled => false,
       :ccache_enabled => ccache_enabled?(podfile_properties),
     )
+
+    # ponytail: some pods (Alamofire, PromisesObjC 등) ship resource-bundle
+    # targets pinned to old deployment targets (iOS 9/10). Newer Xcode
+    # eventually turns that mismatch warning into a hard build error, so
+    # floor every pod target to the app's own deployment target.
+    deployment_target = podfile_properties['ios.deploymentTarget'] || '15.1'
+    installer.pods_project.targets.each do |target|
+      target.build_configurations.each do |config|
+        current_target = config.build_settings['IPHONEOS_DEPLOYMENT_TARGET']
+        if current_target.nil? || Gem::Version.new(current_target) < Gem::Version.new(deployment_target)
+          config.build_settings['IPHONEOS_DEPLOYMENT_TARGET'] = deployment_target
+        end
+      end
+    end
   end
 end
