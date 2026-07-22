@@ -715,6 +715,7 @@
                   "photos": {
                     "type": "array",
                     "description": "리뷰 사진 목록, 최대 10장",
+                    "maxItems": 10,
                     "items": {
                       "type": "string",
                       "format": "binary"
@@ -2301,9 +2302,9 @@
     "/courses/{id}/spots/sync": {
       "put": {
         "tags": [
-          "Course"
+          "코스 (Course)"
         ],
-        "summary": "Sync course spots",
+        "summary": "코스 스팟 일괄 동기화",
         "operationId": "syncCourseSpots",
         "parameters": [
           {
@@ -2317,6 +2318,7 @@
           }
         ],
         "requestBody": {
+          "required": true,
           "content": {
             "application/json": {
               "schema": {

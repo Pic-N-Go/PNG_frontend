@@ -9,7 +9,7 @@ import {
 } from '@tabler/icons-react-native';
 import BottomSheet from '@/components/common/BottomSheet';
 import { normalizeFontSize } from '@/utils/normalize';
-import { GRID_PADDING } from '@/constants/layout';
+import { CONTENT_PADDING, GRID_PADDING } from '@/constants/layout';
 
 interface CourseMoreSheetProps {
   visible: boolean;
@@ -34,7 +34,7 @@ export default function CourseMoreSheet({
 }: CourseMoreSheetProps) {
   return (
     <BottomSheet visible={visible} onClose={onClose}>
-      <View className="pt-[12px] pb-[16px]" style={{ paddingHorizontal: GRID_PADDING }}>
+      <View className="pt-[12px] pb-[16px]" style={{ paddingHorizontal: CONTENT_PADDING }}>
         <View className="w-10 h-1 bg-[#E0E0E0] rounded-sm self-center mb-[20px]" />
         <Text className="font-semibold text-black tracking-[-0.5px] mb-1" style={{ fontSize: normalizeFontSize(20) }}>더보기</Text>
         <Text className="font-normal text-[#666] tracking-[-0.3px]" style={{ fontSize: normalizeFontSize(13) }}>{courseName}</Text>

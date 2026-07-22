@@ -138,8 +138,9 @@ export const coursesApi = {
   // 13. 날씨 정보 조회
   getCourseWeather: async (id: number): Promise<CourseWeather[]> => {
     const data = await fetchWithAuth(`/courses/${id}/weather`, { method: 'GET' });
+    const list = Array.isArray(data) ? data : [];
     // Map the flat API payload to the nested representation required by the UI
-    return (data as any[]).map(item => {
+    return list.map(item => {
       if (item.morning) return item as CourseWeather;
       return {
         ...item,

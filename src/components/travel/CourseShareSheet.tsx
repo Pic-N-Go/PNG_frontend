@@ -12,7 +12,7 @@ import {
 } from '@tabler/icons-react-native';
 import BottomSheet from '@/components/common/BottomSheet';
 import { normalizeFontSize } from '@/utils/normalize';
-import { GRID_PADDING } from '@/constants/layout';
+import { CONTENT_PADDING, GRID_PADDING } from '@/constants/layout';
 
 interface CourseShareSheetProps {
   visible: boolean;
@@ -37,45 +37,45 @@ export default function CourseShareSheet({
 }: CourseShareSheetProps) {
   return (
     <BottomSheet visible={visible} onClose={onClose}>
-      <View className="pt-[12px] pb-[16px]" style={{ paddingHorizontal: GRID_PADDING }}>
+      <View className="pt-[12px] pb-[16px]" style={{ paddingHorizontal: CONTENT_PADDING }}>
         <View className="w-10 h-1 bg-[#E0E0E0] rounded-sm self-center mb-[20px]" />
         <Text className="font-semibold text-black tracking-[-0.5px] mb-1" style={{ fontSize: normalizeFontSize(20) }}>공유하기</Text>
         <Text className="font-normal text-[#666] tracking-[-0.3px]" style={{ fontSize: normalizeFontSize(13) }}>{courseName} · 포토스팟 {spotCount}곳</Text>
       </View>
 
       <View className="pb-[20px] border-b border-[#F0F0F0] mb-[16px]">
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: GRID_PADDING }}>
-          <TouchableOpacity className="items-center mr-5" onPress={() => { onClose(); onShareSocial('kakao'); }}>
-            <View className="w-[60px] h-[60px] rounded-[20px] items-center justify-center mb-2 bg-[#FEE500]">
-              <IconMessageCircle size={28} color="#381E1F" strokeWidth={1.5} />
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ paddingHorizontal: CONTENT_PADDING }}>
+          <TouchableOpacity className="items-start mr-5" onPress={() => { onClose(); onShareSocial('kakao'); }}>
+            <View className="w-[60px] h-[60px] rounded-[20px] items-center justify-center mb-2 bg-[#E31B59]">
+              <IconMessageCircle size={28} color="#FFF" strokeWidth={1.5} />
             </View>
             <Text className="font-normal text-[#333]" style={{ fontSize: normalizeFontSize(11) }}>카카오톡</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity className="items-center mr-5" onPress={() => { onClose(); onShareSocial('instagram'); }}>
-            <View className="w-[60px] h-[60px] rounded-[20px] items-center justify-center mb-2 bg-[#E1306C]">
+          <TouchableOpacity className="items-start mr-5" onPress={() => { onClose(); onShareSocial('instagram'); }}>
+            <View className="w-[60px] h-[60px] rounded-[20px] items-center justify-center mb-2 bg-[#E31B59]">
               <IconBrandInstagram size={28} color="#FFF" strokeWidth={1.5} />
             </View>
             <Text className="font-normal text-[#333]" style={{ fontSize: normalizeFontSize(11) }}>인스타 스토리</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity className="items-center mr-5" onPress={() => { onClose(); onShareSocial('facebook'); }}>
-            <View className="w-[60px] h-[60px] rounded-[20px] items-center justify-center mb-2 bg-[#1877F2]">
+          <TouchableOpacity className="items-start mr-5" onPress={() => { onClose(); onShareSocial('facebook'); }}>
+            <View className="w-[60px] h-[60px] rounded-[20px] items-center justify-center mb-2 bg-[#E31B59]">
               <IconBrandFacebook size={28} color="#FFF" strokeWidth={1.5} />
             </View>
             <Text className="font-normal text-[#333]" style={{ fontSize: normalizeFontSize(11) }}>페이스북</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity className="items-center mr-5" onPress={() => { onClose(); onShareSocial('x'); }}>
-            <View className="w-[60px] h-[60px] rounded-[20px] items-center justify-center mb-2 bg-[#1DA1F2]">
+          <TouchableOpacity className="items-start mr-5" onPress={() => { onClose(); onShareSocial('x'); }}>
+            <View className="w-[60px] h-[60px] rounded-[20px] items-center justify-center mb-2 bg-[#E31B59]">
               <IconBrandX size={28} color="#FFF" strokeWidth={1.5} />
             </View>
             <Text className="font-normal text-[#333]" style={{ fontSize: normalizeFontSize(11) }}>X (트위터)</Text>
           </TouchableOpacity>
           
-          <TouchableOpacity className="items-center mr-5" onPress={() => { onClose(); onShareSocial('more'); }}>
-            <View className="w-[60px] h-[60px] rounded-[20px] items-center justify-center mb-2 bg-[#F0F0F0]">
-              <IconDotsCircleHorizontal size={28} color="#666" strokeWidth={1.5} />
+          <TouchableOpacity className="items-start mr-5" onPress={() => { onClose(); onShareSocial('more'); }}>
+            <View className="w-[60px] h-[60px] rounded-[20px] items-center justify-center mb-2 bg-[#E31B59]">
+              <IconDotsCircleHorizontal size={28} color="#FFF" strokeWidth={1.5} />
             </View>
             <Text className="font-normal text-[#333]" style={{ fontSize: normalizeFontSize(11) }}>더보기</Text>
           </TouchableOpacity>
