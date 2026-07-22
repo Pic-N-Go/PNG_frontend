@@ -50,6 +50,13 @@ function subCategory(folder, base) {
     'mypage/my-photos':            '내 사진',
     'mypage/my-reviews':           '내 리뷰',
     'mypage/setting':              '설정',
+    'mypage/inquiry-list':         '1:1 문의 목록',
+    'mypage/inquiry-detail':       '1:1 문의 상세',
+    'mypage/inquiry-write':        '1:1 문의 작성',
+    'mypage/faq':                  '자주 묻는 질문',
+    'mypage/terms':                '이용약관',
+    'mypage/privacy':              '개인정보 처리방침',
+    'mypage/licenses':             '오픈소스 라이선스',
     'spot/spot-list':              '목록',
     'spot/spot-detail':            '상세',
     'spot/spot-change':            '수정',
@@ -69,19 +76,24 @@ const ASSIGNEE = {
   'auth/login':                '박예은',
   'auth/signup':               '박예은',
   'auth/oauth-onboarding':     '박예은',
-  'community/community-feed':  '박예은',
-  'community/community-post':  '이예인',
-  'community/community-write': '이예인',
+  'community/community-feed':  '소영재',
+  'community/community-post':  '소영재',
+  'community/community-write': '소영재',
   'home/home':                 '박예은',
   'home/map':                  '박예은',
   'mypage/follow':             '이예인',
-  'mypage/my-photos':          '이예인',
-  'mypage/my-reviews':         '이예인',
-  'mypage/mypage':             '이예인',
+  'mypage/my-photos':          '모정민',
+  'mypage/my-reviews':         '모정민',
+  'mypage/mypage':             '모정민',
+  'mypage/faq':                '박예은',
+  'mypage/terms':              '박예은',
+  'mypage/privacy':            '박예은',
+  'mypage/licenses':           '박예은',
   'mypage/notification':       '모정민',
-  'mypage/photo-map':          '이예인',
-  'mypage/profile-edit':       '이예인',
-  'mypage/setting':            '소영재',
+  'mypage/photo-map':          '모정민',
+  'mypage/profile-edit':       '모정민',
+  'mypage/setting':            '전체',
+  'spot/photo-detail':         '소영재',
   'spot/review-write':         '박예은',
   'spot/spot-change':          '모정민',
   'spot/spot-detail':          '박예은',
@@ -90,7 +102,7 @@ const ASSIGNEE = {
   'travel/travel-list':        '모정민',
   'travel/travel-new':         '모정민',
   'travel/travel-plan':        '모정민',
-  'wishlist/wishlist':         '이예인',
+  'wishlist/wishlist':         '모정민',
   'wishlist/wishlist-setting': '모정민',
 };
 
@@ -154,7 +166,7 @@ function escapeHtml(s) {
     ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 }
 
-function rowHtml(r, i) {
+function rowHtml(r) {
   const typeBadge = r.type === 'MODAL'
     ? `<span class="badge badge--modal">MODAL</span>`
     : `<span class="badge badge--page">PAGE</span>`;
