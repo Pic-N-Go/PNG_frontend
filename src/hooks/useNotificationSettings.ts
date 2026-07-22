@@ -68,7 +68,7 @@ export function useNotificationSettings(initial?: Partial<NotificationSettings>)
         dndEndTime: newSettings.dnd.enabled ? newSettings.dnd.end : '',
       });
     }, 300);
-  }, [accessToken, updateApiMutation]);
+  }, [updateApiMutation]);
 
   useEffect(() => {
     return () => {
