@@ -1,5 +1,7 @@
-// TODO: 백엔드 DND 엔드포인트 스펙 확정 후 TanStack Query(useQuery/useMutation)로 교체
 import { useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
+import { notificationsApi, NotificationSettingUpdateRequest } from '@/api/notifications';
+import { useAuthStore } from '@/store/useAuthStore';
 
 export type DndRepeatPreset = 'daily' | 'weekday' | 'weekend' | 'custom';
 
@@ -32,26 +34,64 @@ const DEFAULT_SETTINGS: NotificationSettings = {
 };
 
 export function useNotificationSettings(initial?: Partial<NotificationSettings>) {
+  const accessToken = useAuthStore((state) => state.accessToken);
+
   const [settings, setSettings] = useState<NotificationSettings>({
     ...DEFAULT_SETTINGS,
     ...initial,
     dnd: { ...DEFAULT_SETTINGS.dnd, ...initial?.dnd },
   });
 
+  const updateApiMutation = useMutation({
+    mutationFn: (data: NotificationSettingUpdateRequest) => {
+      if (!accessToken) return Promise.resolve();
+      return notificationsApi.updateSettings(data, accessToken);
+    },
+  });
+
+  const syncSettingsToApi = (newSettings: NotificationSettings) => {
+    const isAllPushEnabled = newSettings.wishlist || newSettings.golden || newSettings.community;
+    updateApiMutation.mutate({
+      isAllPushEnabled,
+      dndStartTime: newSettings.dnd.enabled ? newSettings.dnd.start : '',
+      dndEndTime: newSettings.dnd.enabled ? newSettings.dnd.end : '',
+    });
+  };
+
   const setWishlist = (value: boolean) =>
-    setSettings((prev) => ({ ...prev, wishlist: value }));
+    setSettings((prev) => {
+      const updated = { ...prev, wishlist: value };
+      syncSettingsToApi(updated);
+      return updated;
+    });
 
   const setGolden = (value: boolean) =>
-    setSettings((prev) => ({ ...prev, golden: value }));
+    setSettings((prev) => {
+      const updated = { ...prev, golden: value };
+      syncSettingsToApi(updated);
+      return updated;
+    });
 
   const setCommunity = (value: boolean) =>
-    setSettings((prev) => ({ ...prev, community: value }));
+    setSettings((prev) => {
+      const updated = { ...prev, community: value };
+      syncSettingsToApi(updated);
+      return updated;
+    });
 
   const setDndEnabled = (value: boolean) =>
-    setSettings((prev) => ({ ...prev, dnd: { ...prev.dnd, enabled: value } }));
+    setSettings((prev) => {
+      const updated = { ...prev, dnd: { ...prev.dnd, enabled: value } };
+      syncSettingsToApi(updated);
+      return updated;
+    });
 
   const setDndTime = (start: string, end: string) =>
-    setSettings((prev) => ({ ...prev, dnd: { ...prev.dnd, start, end } }));
+    setSettings((prev) => {
+      const updated = { ...prev, dnd: { ...prev.dnd, start, end } };
+      syncSettingsToApi(updated);
+      return updated;
+    });
 
   const setDndRepeat = (preset: DndRepeatPreset, days: number[]) =>
     setSettings((prev) => ({ ...prev, dnd: { ...prev.dnd, repeatPreset: preset, repeatDays: days } }));
@@ -64,5 +104,6 @@ export function useNotificationSettings(initial?: Partial<NotificationSettings>)
     setDndEnabled,
     setDndTime,
     setDndRepeat,
+    isUpdating: updateApiMutation.isPending,
   };
 }
