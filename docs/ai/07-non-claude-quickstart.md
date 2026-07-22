@@ -143,7 +143,7 @@ API 연동은 아직 안 했으면 apiStatus는 미시작으로 유지해줘.
 
 4. **PR 제목/본문 초안 작성** — 커밋 완료 후 아래 프롬프트로 요청
 
-```
+```text
 .github/pull_request_template.md 를 읽고 같은 섹션 구조로 PR 제목/본문 초안을 작성해줘.
 - 해당 없는 섹션(예: UI 변경 없으면 스크린샷)은 빈 칸으로 남기지 말고 섹션째로 삭제해줘.
 - 불확실한 정보(테스트 결과, CI 통과 여부 등)는 TODO: 로 표시해줘.
@@ -152,11 +152,12 @@ API 연동은 아직 안 했으면 apiStatus는 미시작으로 유지해줘.
 
 5. **승인 후 PR 생성** — 사용하는 AI가 셸 명령을 실행할 수 있다면(Codex 등) 아래처럼 이어서 요청, 아니라면 아래 명령을 직접 터미널에 실행
 
-```
+```text
 승인했으니 이제 진행해줘.
-필요하면 git push -u origin <branch> 로 브랜치를 올리고,
-gh pr create --title "<위에서 승인한 제목>" --body "<위에서 승인한 본문>" --base main --head <branch>
-로 PR을 생성해줘.
+필요하면 git push -u origin "<branch>" 로 브랜치를 올리고,
+승인한 본문을 파일(예: pr-body.md)로 저장한 뒤
+gh pr create --title "<위에서 승인한 제목>" --body-file pr-body.md --base main --head "<branch>"
+로 PR을 생성해줘. (본문에 백틱·따옴표가 있어도 안전하도록 --body 대신 --body-file 사용)
 ```
 
 ---

@@ -92,7 +92,7 @@ UI 기능이면 추가로: `docs/guide/dev/ui-publishing.md`
 2. Clarifying Questions에 답변
 3. 생성된 `spec`/`plan` 확인 → 승인하면 **구현 → 커밋 → PR까지 자동으로 이어집니다**
 
-사용자 확인 게이트는 5곳뿐입니다.
+주요 사용자 확인 게이트는 다음과 같습니다(작업 내용에 따라 filelist 매핑 확인, tsc/lint 반복 실패 등 조건부 게이트가 추가될 수 있습니다).
 - spec/plan 검토 후 구현 시작 여부
 - plan 외 파일 변경 발생 시
 - 커밋 메시지 확인
