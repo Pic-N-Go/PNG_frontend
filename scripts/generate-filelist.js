@@ -89,7 +89,7 @@ const ASSIGNEE = {
   'mypage/terms':              '박예은',
   'mypage/privacy':            '박예은',
   'mypage/licenses':           '박예은',
-  'mypage/notification':       '모정민',
+  'mypage/notification':       '박예은',
   'mypage/photo-map':          '모정민',
   'mypage/profile-edit':       '모정민',
   'mypage/setting':            '전체',
