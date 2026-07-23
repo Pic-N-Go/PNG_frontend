@@ -61,16 +61,15 @@ export function useNotificationSettings(initial?: Partial<NotificationSettings>)
     return timeStr.length === 5 ? `${timeStr}:00` : timeStr;
   };
 
-  const syncSettingsToApi = useCallback((newSettings: NotificationSettings) => {
+  const syncSettingsToApi = useCallback((isAllPushEnabled: boolean, dnd: DndSettings) => {
     if (syncTimerRef.current) {
       clearTimeout(syncTimerRef.current);
     }
     syncTimerRef.current = setTimeout(() => {
-      const isAllPushEnabled = newSettings.wishlist || newSettings.golden || newSettings.community;
       updateApiMutation.mutate({
         isAllPushEnabled,
-        dndStartTime: newSettings.dnd.enabled ? formatLocalTime(newSettings.dnd.start) : undefined,
-        dndEndTime: newSettings.dnd.enabled ? formatLocalTime(newSettings.dnd.end) : undefined,
+        dndStartTime: dnd.enabled ? formatLocalTime(dnd.start) : undefined,
+        dndEndTime: dnd.enabled ? formatLocalTime(dnd.end) : undefined,
       });
     }, 300);
   }, [updateApiMutation]);
@@ -84,21 +83,21 @@ export function useNotificationSettings(initial?: Partial<NotificationSettings>)
   }, []);
 
   const setWishlist = useCallback((value: boolean) => {
-    const next = { ...latestSettingsRef.current, wishlist: value };
+    const next = { ...latestSettingsRef.current, wishlist: value, golden: value, community: value };
     setSettings(next);
-    syncSettingsToApi(next);
+    syncSettingsToApi(value, next.dnd);
   }, [syncSettingsToApi]);
 
   const setGolden = useCallback((value: boolean) => {
-    const next = { ...latestSettingsRef.current, golden: value };
+    const next = { ...latestSettingsRef.current, wishlist: value, golden: value, community: value };
     setSettings(next);
-    syncSettingsToApi(next);
+    syncSettingsToApi(value, next.dnd);
   }, [syncSettingsToApi]);
 
   const setCommunity = useCallback((value: boolean) => {
-    const next = { ...latestSettingsRef.current, community: value };
+    const next = { ...latestSettingsRef.current, wishlist: value, golden: value, community: value };
     setSettings(next);
-    syncSettingsToApi(next);
+    syncSettingsToApi(value, next.dnd);
   }, [syncSettingsToApi]);
 
   const setDndEnabled = useCallback((value: boolean) => {
@@ -107,7 +106,8 @@ export function useNotificationSettings(initial?: Partial<NotificationSettings>)
       dnd: { ...latestSettingsRef.current.dnd, enabled: value },
     };
     setSettings(next);
-    syncSettingsToApi(next);
+    const isAllPushEnabled = next.wishlist || next.golden || next.community;
+    syncSettingsToApi(isAllPushEnabled, next.dnd);
   }, [syncSettingsToApi]);
 
   const setDndTime = useCallback((start: string, end: string) => {
@@ -116,7 +116,8 @@ export function useNotificationSettings(initial?: Partial<NotificationSettings>)
       dnd: { ...latestSettingsRef.current.dnd, start, end },
     };
     setSettings(next);
-    syncSettingsToApi(next);
+    const isAllPushEnabled = next.wishlist || next.golden || next.community;
+    syncSettingsToApi(isAllPushEnabled, next.dnd);
   }, [syncSettingsToApi]);
 
   const setDndRepeat = useCallback((preset: DndRepeatPreset, days: number[]) => {
