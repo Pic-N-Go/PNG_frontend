@@ -124,7 +124,7 @@ export default function NotificationScreen({ navigation }: Props) {
       if (link.includes('wishlist')) {
         navigation.navigate('Wishlist' as any);
       } else if (link.includes('map')) {
-        navigation.navigate('Map', {});
+        (navigation as any).navigate('Map', {});
       }
     }
   };
