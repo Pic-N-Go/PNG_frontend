@@ -56,6 +56,11 @@ export function useNotificationSettings(initial?: Partial<NotificationSettings>)
 
   const syncTimerRef = useRef<NodeJS.Timeout | null>(null);
 
+  const formatLocalTime = (timeStr?: string) => {
+    if (!timeStr) return undefined;
+    return timeStr.length === 5 ? `${timeStr}:00` : timeStr;
+  };
+
   const syncSettingsToApi = useCallback((newSettings: NotificationSettings) => {
     if (syncTimerRef.current) {
       clearTimeout(syncTimerRef.current);
@@ -64,8 +69,8 @@ export function useNotificationSettings(initial?: Partial<NotificationSettings>)
       const isAllPushEnabled = newSettings.wishlist || newSettings.golden || newSettings.community;
       updateApiMutation.mutate({
         isAllPushEnabled,
-        dndStartTime: newSettings.dnd.enabled ? newSettings.dnd.start : '',
-        dndEndTime: newSettings.dnd.enabled ? newSettings.dnd.end : '',
+        dndStartTime: newSettings.dnd.enabled ? formatLocalTime(newSettings.dnd.start) : undefined,
+        dndEndTime: newSettings.dnd.enabled ? formatLocalTime(newSettings.dnd.end) : undefined,
       });
     }, 300);
   }, [updateApiMutation]);
