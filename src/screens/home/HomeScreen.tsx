@@ -17,7 +17,7 @@ import PopularSpotsSection from '@/components/home/PopularSpotsSection';
 import CalendarSection from '@/components/home/CalendarSection';
 import WishlistBanner from '@/components/home/WishlistBanner';
 import FilterBottomSheet from '@/components/home/FilterBottomSheet';
-import { useNotificationStore, selectHasUnread } from '@/store/useNotificationStore';
+import { useNotification } from '@/hooks/useNotification';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'Home'>;
 
@@ -26,7 +26,10 @@ export default function HomeScreen({ navigation }: Props) {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [activeFilterCount, setActiveFilterCount] = useState(0);
   const [filterVisible, setFilterVisible] = useState(false);
-  const hasUnread = useNotificationStore(selectHasUnread);
+
+  const { useNotificationsQuery } = useNotification();
+  const { data: notifications = [] } = useNotificationsQuery();
+  const hasUnread = notifications.some((item) => !item.isRead);
 
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
