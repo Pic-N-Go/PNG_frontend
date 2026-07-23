@@ -2,7 +2,7 @@
 
 ## 1) 입력 스펙
 
-- 스펙 문서: `docs/ai/specs/auth-component-props-fix.md`
+- 스펙 문서: `docs/ai/specs/feature/auth-ui-publishing-parity/auth-component-props-fix.md`
 - 관련 목업: 없음
 - 완료 목표: 3개 파일 수정 + tsc/lint 통과
 

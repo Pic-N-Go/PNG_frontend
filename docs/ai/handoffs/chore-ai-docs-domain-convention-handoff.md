@@ -4,7 +4,7 @@
 
 ## 1) Feature Summary
 
-`docs/ai/specs`·`docs/ai/plans`의 브랜치 폴더 컨벤션을 실제 브랜치 네이밍(`.github/CONVENTIONS.md`)에 맞게 정리하고, 스펙/플랜에 도메인별 조회가 가능한 `관련 도메인` 메타 필드를 도입했습니다. 정리 과정에서 발견한 미사용·오네이밍 API 파일(`src/api/notification.ts`)도 함께 정리했습니다.
+`docs/ai/specs`·`docs/ai/plans`의 브랜치 폴더 컨벤션을 실제 브랜치 네이밍(`.github/CONVENTIONS.md`)에 맞게 정리하고, 스펙/플랜에 도메인별 조회가 가능한 `관련 도메인` 메타 필드를 도입했습니다. 정리 과정에서 중복·오네이밍 API 파일을 통일했습니다 — 미사용 복수형 스텁 `src/api/notifications.ts`를 삭제하고, 실제 사용 중인 단수형 `src/api/notification.ts`(`src/hooks/usePushNotifications.ts`에서 소비)만 남겼습니다.
 
 ## 2) Scope Snapshot
 
@@ -20,7 +20,7 @@
 
 **변경 파일 (`git diff --stat main HEAD`)**
 
-```
+```text
 32 files changed, 67 insertions(+), 46 deletions(-)
 docs/ai/01-feature-spec-template.md, 02-implementation-plan-template.md, 03-pr-review-checklist.md
 docs/ai/specs/README.md, docs/ai/plans/README.md

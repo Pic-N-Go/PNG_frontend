@@ -1,6 +1,6 @@
 # 기능 스펙 템플릿
 
-아래 템플릿을 복사해서 `docs/ai/specs/<feature-name>.md`로 저장해 사용합니다.
+아래 템플릿을 복사해서 `docs/ai/specs/<branch>/<feature-name>.md`로 저장해 사용합니다.
 
 ---
 

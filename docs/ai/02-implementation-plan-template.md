@@ -1,6 +1,6 @@
 # 구현 계획 템플릿
 
-아래 템플릿을 복사해서 `docs/ai/plans/<feature-name>-plan.md`로 저장해 사용합니다.
+아래 템플릿을 복사해서 `docs/ai/plans/<branch>/<feature-name>-plan.md`로 저장해 사용합니다.
 
 ---
 
