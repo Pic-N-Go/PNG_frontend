@@ -159,6 +159,7 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
             scrollY={scrollY}
             photoTotal={HERO_PLACEHOLDER_PAGES}
             isBookmarked={isBookmarked}
+            imageUrl={spot.imageUrl}
             onBack={() => navigation.goBack()}
             onShare={() => setShareSheetVisible(true)}
             onBookmark={() => setBookmarkSheetVisible(true)}

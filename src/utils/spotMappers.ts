@@ -148,6 +148,7 @@ export function mapSpotDetail(dto: SpotDetailResponse): { info: SpotDetailInfo; 
     info: {
       id: String(dto.id),
       badge: dto.badge ? '관광공사 인증' : null,
+      imageUrl: dto.imageUrl,
       name: dto.name,
       address: dto.address,
       rating: dto.stats.avgRating,

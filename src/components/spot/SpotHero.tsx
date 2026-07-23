@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Dimensions, NativeScrollEvent, NativeSyntheticEvent, Pressable, ScrollView, Text, View } from 'react-native';
+import { Dimensions, Image, NativeScrollEvent, NativeSyntheticEvent, Pressable, ScrollView, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Polygon } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -31,6 +31,7 @@ interface Props {
   scrollY: SharedValue<number>;
   photoTotal: number;
   isBookmarked: boolean;
+  imageUrl?: string | null;
   onBack: () => void;
   onShare: () => void;
   onBookmark: () => void;
@@ -40,12 +41,15 @@ export default function SpotHero({
   scrollY,
   photoTotal,
   isBookmarked,
+  imageUrl,
   onBack,
   onShare,
   onBookmark,
 }: Props) {
   const insets = useSafeAreaInsets();
   const [currentPhoto, setCurrentPhoto] = useState(0);
+  // 대표 이미지(단일)가 있으면 그것을 히어로로. 없으면 기존 placeholder 그라디언트.
+  const hasImage = !!imageUrl;
   const swipeable = photoTotal >= 2;
 
   const heroStyle = useAnimatedStyle(() => ({
@@ -63,7 +67,14 @@ export default function SpotHero({
 
   return (
     <Animated.View style={[{ height: HERO_HEIGHT, overflow: 'hidden' }, heroStyle]}>
-      {swipeable ? (
+      {hasImage ? (
+        <Image
+          source={{ uri: imageUrl! }}
+          style={{ width: SCREEN_WIDTH, height: HERO_HEIGHT, backgroundColor: '#203a43' }}
+          resizeMode="cover"
+          accessibilityLabel="스팟 대표 이미지"
+        />
+      ) : swipeable ? (
         <ScrollView
           horizontal
           pagingEnabled
@@ -158,8 +169,8 @@ export default function SpotHero({
         </View>
       </View>
 
-      {/* 카운터 — 사진 2장 이상일 때만 */}
-      {swipeable && (
+      {/* 카운터 — placeholder 스와이프일 때만 (대표 이미지 단일이면 숨김) */}
+      {swipeable && !hasImage && (
         <View
           style={{
             position: 'absolute',

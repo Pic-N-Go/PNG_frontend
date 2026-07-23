@@ -33,6 +33,7 @@ export interface CategoryItem {
 export interface SpotDetailInfo {
   id: string;
   badge: string | null;
+  imageUrl: string | null;
   name: string;
   address: string;
   rating: number;
