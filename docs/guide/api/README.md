@@ -7,6 +7,7 @@
 | 파일 | 용도 |
 |---|---|
 | `auth-api.md` | 인증 API 명세 (로그인·회원가입·토큰) |
+| `auth-integration.md` | 인증 API 연동 현황 (화면별 완료/미연동, 백엔드 협의 필요 사항) |
 | `photo-upload-spec.md` | 사진 업로드 스펙 (형식·크기·EXIF 처리) |
 
 ## 포함 기준

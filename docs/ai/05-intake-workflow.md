@@ -33,8 +33,8 @@
 1. 누락 정보를 확인하는 질문 5~8개 생성
 2. 모호한 요구를 명시적 조건으로 변환
 3. 범위(In Scope / Out of Scope) 제안
-4. `docs/ai/specs/<feature-name>.md` 초안 생성
-5. `docs/ai/plans/<feature-name>-plan.md` 초안 생성
+4. `docs/ai/specs/<branch>/<feature-name>.md` 초안 생성
+5. `docs/ai/plans/<branch>/<feature-name>-plan.md` 초안 생성
 6. 구현 시작 전 승인 요청
 
 > Intake 단계에서는 코드를 수정하지 않습니다.

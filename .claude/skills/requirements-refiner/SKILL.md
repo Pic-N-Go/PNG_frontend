@@ -22,8 +22,8 @@
    - 수용 기준(AC) 3개 이상
    - 오픈 이슈/결정 필요 항목
 4. 아래 산출물을 생성/갱신한다.
-   - `docs/ai/specs/<feature-name>.md`
-   - `docs/ai/plans/<feature-name>-plan.md`
+   - `docs/ai/specs/<branch>/<feature-name>.md`
+   - `docs/ai/plans/<branch>/<feature-name>-plan.md`
 
 ## 필수 참고 문서
 

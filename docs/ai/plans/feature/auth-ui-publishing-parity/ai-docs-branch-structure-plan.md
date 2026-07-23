@@ -17,7 +17,7 @@
 ### Task 1 — 기존 plans·specs 파일 git mv
 
 - 대상: `docs/ai/plans/*.md` (README 제외), `docs/ai/specs/*.md` (README 제외)
-- 변경 내용:
+- 변경 내용: (※ 아래는 당시 실행 기록이며 `feat/`는 이후 `feature/`로 재편됨 — 최신 컨벤션은 `docs/ai/specs/README.md` 참고)
   - `mkdir -p docs/ai/plans/feat/auth-ui-publishing-parity`
   - `mkdir -p docs/ai/specs/feat/auth-ui-publishing-parity`
   - 각 파일 `git mv` → 하위 폴더로 이동

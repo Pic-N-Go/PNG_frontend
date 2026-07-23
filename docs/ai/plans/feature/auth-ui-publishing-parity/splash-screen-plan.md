@@ -2,7 +2,8 @@
 
 ## 1) 입력 스펙
 
-- 스펙 문서: `docs/ai/specs/splash-screen.md`
+- 스펙 문서: `docs/ai/specs/feature/auth-ui-publishing-parity/splash-screen.md`
+- 관련 도메인: `auth`
 - 관련 목업: `src/components/ui/auth/login.html` (`#splash-screen` 블록)
 - 완료 목표: Splash 화면 → 2.5초 로딩 → 페이드아웃 → Login 전환
 

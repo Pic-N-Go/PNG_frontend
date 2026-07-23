@@ -1,6 +1,6 @@
 # 기능 스펙 템플릿
 
-아래 템플릿을 복사해서 `docs/ai/specs/<feature-name>.md`로 저장해 사용합니다.
+아래 템플릿을 복사해서 `docs/ai/specs/<branch>/<feature-name>.md`로 저장해 사용합니다.
 
 ---
 
@@ -9,6 +9,7 @@
 - 기능명:
 - 담당자: (예: `@yeni` 또는 `홍길동`)
 - 관련 이슈: (예: `#123`, 없으면 `없음`)
+- 관련 도메인 (필수): **실제 구현이 있는** `src/api/` 파일명 기준 (예: `auth`/`spot`/`courses`/`community`/`mypage`/`search`/`wishlist`/`notification` — `travel.ts`는 빈 스텁이므로 여행 코스 관련은 `courses` 사용), 복수 가능, 코드 도메인과 무관하면 `common`, 해당 없으면 `없음`
 - 대상 플랫폼: iOS / Android
 
 ## 2) 문제와 목표

@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useMutation } from '@tanstack/react-query';
-import { notificationsApi, NotificationSettingUpdateRequest } from '@/api/notifications';
+import { notificationApi, NotificationSettingUpdateRequest } from '@/api/notification';
 import { useAuthStore } from '@/store/useAuthStore';
 
 export type DndRepeatPreset = 'daily' | 'weekday' | 'weekend' | 'custom';
@@ -50,7 +50,7 @@ export function useNotificationSettings(initial?: Partial<NotificationSettings>)
   const updateApiMutation = useMutation({
     mutationFn: (data: NotificationSettingUpdateRequest) => {
       if (!accessToken) return Promise.resolve();
-      return notificationsApi.updateSettings(data, accessToken);
+      return notificationApi.updateSettings(data, accessToken);
     },
   });
 

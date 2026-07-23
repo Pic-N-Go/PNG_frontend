@@ -1,6 +1,6 @@
 # Task Executor Skill
 
-`docs/ai/plans/<feature-name>-plan.md`의 Task Breakdown을 단일 기준으로 삼아 코드를 step-by-step으로 구현하는 스킬입니다.
+`docs/ai/plans/<branch>/<feature-name>-plan.md`의 Task Breakdown을 단일 기준으로 삼아 코드를 step-by-step으로 구현하는 스킬입니다.
 
 ## 목적
 
@@ -10,8 +10,8 @@
 
 ## 입력
 
-- `docs/ai/plans/<feature-name>-plan.md` (Task Breakdown 기준 — 필수)
-- `docs/ai/specs/<feature-name>.md` (설계 맥락 강화용)
+- `docs/ai/plans/<branch>/<feature-name>-plan.md` (Task Breakdown 기준 — 필수)
+- `docs/ai/specs/<branch>/<feature-name>.md` (설계 맥락 강화용)
 - `CLAUDE.md` (구현 규칙: NativeWind, @/ alias, 타입 정의 등)
 
 ## 동작 규칙

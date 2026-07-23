@@ -2,7 +2,8 @@
 
 ## 1) 입력 스펙
 
-- 스펙 문서: `docs/ai/specs/feature-home-screen/home-screen.md`
+- 스펙 문서: `docs/ai/specs/feature/home-screen/home-screen.md`
+- 관련 도메인: `spot`, `search`
 - 관련 목업: `src/components/ui/home/home.html`
 - 완료 목표: 홈 화면 전 섹션 RN 구현 + SearchResultScreen 완성, tsc/lint 통과
 

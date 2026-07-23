@@ -74,14 +74,14 @@
 - [ ] **Step 2: .env.example에 카카오 키 항목 추가**
 
 `.env.example`에 아래 줄 추가:
-```
+```text
 EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY=
 ```
 
 - [ ] **Step 3: .env에 실제 키 값 입력**
 
 `.env` 파일에 아래 줄 추가 (커밋하지 않음):
-```
+```text
 EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY=<YOUR_KAKAO_NATIVE_APP_KEY>
 ```
 
@@ -101,7 +101,9 @@ git commit -m "chore: add bundle identifier and kakao env key placeholder"
 - Create: `android/` (자동 생성)
 
 **Interfaces:**
-- Produces: `ios/PNG/Info.plist`, `ios/PNG/AppDelegate.mm` — 다음 태스크에서 수정할 파일들
+- Produces: `ios/PNG/Info.plist`, `ios/PNG/AppDelegate.swift` — 다음 태스크에서 수정할 파일들
+
+> ⚠️ 최신 Expo prebuild는 Objective-C(`AppDelegate.mm`)가 아니라 **Swift(`AppDelegate.swift`)** 를 생성합니다(현재 저장소도 `ios/PNG/AppDelegate.swift`). Task 4의 네이티브 핸들러는 Swift로 작성해야 하며, 아래 Objective-C 스니펫은 **동작 레퍼런스**입니다 — 실제 반영 시 `RNKakaoLogins`의 Swift API로 변환하고 라이브러리 README로 최종 확인하세요.
 
 - [ ] **Step 1: prebuild 실행**
 
@@ -173,7 +175,7 @@ git commit -m "chore: install @react-native-seoul/kakao-login"
 
 **Files:**
 - Modify: `ios/PNG/Info.plist`
-- Modify: `ios/PNG/AppDelegate.mm`
+- Modify: `ios/PNG/AppDelegate.swift` (Objective-C `.mm`이 아님 — 아래 스니펫은 Swift로 변환해 반영)
 
 **Interfaces:**
 - Consumes: 카카오 네이티브 앱 키 `<YOUR_KAKAO_NATIVE_APP_KEY>`
@@ -201,9 +203,11 @@ git commit -m "chore: install @react-native-seoul/kakao-login"
 </array>
 ```
 
-- [ ] **Step 2: AppDelegate.mm에 카카오 SDK 핸들러 추가**
+- [ ] **Step 2: AppDelegate.swift에 카카오 SDK 핸들러 추가**
 
-`ios/PNG/AppDelegate.mm` 상단 import 아래에 추가:
+> 아래는 Objective-C 레퍼런스입니다. `AppDelegate.swift`에서는 `RNKakaoLogins`의 Swift API(`RNKakaoLogins.isKakaoTalkLoginUrl(url)` / `RNKakaoLogins.handleOpenUrl(url)`)로 옮기고, `application(_:open:options:)` 델리게이트 메서드에 구현하세요. 정확한 시그니처는 라이브러리 README로 확인.
+
+`AppDelegate` 상단 import 아래에 추가:
 
 ```objc
 #import <RNKakaoLogins.h>
@@ -309,11 +313,11 @@ pnpm ios
 
 로그인 화면에서 카카오 버튼 탭 → 카카오톡 앱이 열리거나 카카오 계정 입력 웹뷰가 뜨면 성공.
 
-- [ ] **Step 3: 콘솔에서 토큰 확인**
+- [ ] **Step 3: 콘솔에서 로그인 성공 확인**
 
-로그인 완료 후 Metro 콘솔(터미널)에 아래 로그가 출력되어야 함:
-```
-[kakao] accessToken: <토큰값>
+로그인 완료 후 Metro 콘솔(터미널)에 성공 로그가 출력되어야 함. 액세스 토큰은 베어러 자격증명이므로 전체 값을 로그로 남기지 말 것(공유 터미널·캡처·스크린샷 노출 위험). 성공 여부만 확인하거나, 부득이하면 마지막 4자리 등 마스킹된 일부만 남긴다:
+```text
+[kakao] 로그인 성공 (accessToken 확보)
 ```
 
 - [ ] **Step 4: 에러 없으면 최종 커밋 및 푸시**

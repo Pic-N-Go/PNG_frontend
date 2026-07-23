@@ -2,7 +2,7 @@
 
 ## 1) 입력 스펙
 
-- 스펙 문서: `docs/ai/specs/auth-style-normalize.md`
+- 스펙 문서: `docs/ai/specs/feature/auth-ui-publishing-parity/auth-style-normalize.md`
 - 리뷰 문서: `docs/ai/review-responsive-style-fixes.md`
 - 관련 상수: `src/constants/layout.ts`, `src/utils/normalize.ts`
 - 완료 목표: auth 5개 파일의 raw 픽셀 수치를 layout 상수/normalize로 전면 교체

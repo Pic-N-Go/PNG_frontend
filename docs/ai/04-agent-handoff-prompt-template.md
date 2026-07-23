@@ -11,8 +11,8 @@
 
 반드시 아래 문서를 먼저 읽고 그 규칙을 지켜서 구현해줘:
 - docs/ai/00-context.md
-- docs/ai/specs/<feature-name>.md
-- docs/ai/plans/<feature-name>-plan.md
+- docs/ai/specs/<branch>/<feature-name>.md
+- docs/ai/plans/<branch>/<feature-name>-plan.md
 - docs/guide/dev/ui-publishing.md (필요 시)
 
 요청 작업:
