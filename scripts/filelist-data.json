@@ -67,14 +67,14 @@
   },
   "spot/spot-list.html": { "uiStatus": "미시작", "apiStatus": "미시작", "date": "", "note": "" },
   "spot/spot-register.html": { "uiStatus": "미시작", "apiStatus": "미시작", "date": "", "note": "" },
-  "travel/travel-list.html": { "uiStatus": "미시작", "apiStatus": "미시작", "date": "", "note": "빈 상태: ?empty=1" },
-  "travel/travel-new.html": { "uiStatus": "미시작", "apiStatus": "미시작", "date": "", "note": "" },
-  "travel/travel-plan.html": { "uiStatus": "미시작", "apiStatus": "미시작", "date": "", "note": "" },
+  "travel/travel-list.html": { "uiStatus": "완료", "apiStatus": "완료", "date": "2026-07-22", "note": "빈 상태: ?empty=1" },
+  "travel/travel-new.html": { "uiStatus": "완료", "apiStatus": "완료", "date": "2026-07-22", "note": "" },
+  "travel/travel-plan.html": { "uiStatus": "완료", "apiStatus": "완료", "date": "2026-07-22", "note": "" },
   "wishlist/wishlist-setting.html": {
-    "uiStatus": "미시작",
-    "apiStatus": "미시작",
-    "date": "",
+    "uiStatus": "완료",
+    "apiStatus": "완료",
+    "date": "2026-07-22",
     "note": ""
   },
-  "wishlist/wishlist.html": { "uiStatus": "미시작", "apiStatus": "미시작", "date": "", "note": "빈 상태: ?empty=1" }
+  "wishlist/wishlist.html": { "uiStatus": "완료", "apiStatus": "완료", "date": "2026-07-22", "note": "빈 상태: ?empty=1" }
 }

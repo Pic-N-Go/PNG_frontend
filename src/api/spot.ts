@@ -9,6 +9,7 @@ import type {
   ReviewListResponse,
   ReviewSortApi,
   SpotDetailResponse,
+  PageSpotResponse,
 } from '@/types/spot';
 
 const BASE = process.env.EXPO_PUBLIC_API_URL ?? '';
@@ -53,6 +54,12 @@ interface ReviewQuery {
 }
 
 export const spotApi = {
+  getSpots: (params: { category?: string; size?: number; page?: number } = {}) => {
+    const { category, size = 50, page = 0 } = params;
+    const categoryQuery = (category && category !== 'ALL') ? `category=${category}&` : '';
+    return request<PageSpotResponse>(`/spots?${categoryQuery}size=${size}&page=${page}`);
+  },
+
   getDetail: (id: string | number) => request<SpotDetailResponse>(`/spots/${id}`),
 
   getReviews: (id: string | number, { sort = 'LATEST', page = 0, size = 20 }: ReviewQuery = {}) =>

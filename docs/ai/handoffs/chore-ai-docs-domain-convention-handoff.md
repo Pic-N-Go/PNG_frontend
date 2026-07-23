@@ -4,7 +4,7 @@
 
 ## 1) Feature Summary
 
-`docs/ai/specs`·`docs/ai/plans`의 브랜치 폴더 컨벤션을 실제 브랜치 네이밍(`.github/CONVENTIONS.md`)에 맞게 정리하고, 스펙/플랜에 도메인별 조회가 가능한 `관련 도메인` 메타 필드를 도입했습니다. 정리 과정에서 중복·오네이밍 API 파일을 통일했습니다 — 미사용 복수형 스텁 `src/api/notifications.ts`를 삭제하고, 실제 사용 중인 단수형 `src/api/notification.ts`(`src/hooks/usePushNotifications.ts`에서 소비)만 남겼습니다.
+`docs/ai/specs`·`docs/ai/plans`의 브랜치 폴더 컨벤션을 실제 브랜치 네이밍(`.github/CONVENTIONS.md`)에 맞게 정리하고, 스펙/플랜에 도메인별 조회가 가능한 `관련 도메인` 메타 필드를 도입했습니다. 정리 과정에서 중복·오네이밍 API 파일을 통일했습니다 — 빈 스텁이던 단수형 `src/api/notification.ts`와 실제 구현이 있던 복수형 `src/api/notifications.ts`가 공존했는데, 코드베이스 단수형 관례(`auth.ts`·`spot.ts` 등)에 맞춰 구현을 `notification.ts`로 통합하고 `notifications.ts`를 제거했습니다. 소비 훅(`usePushNotifications`·`useNotificationSettings`)을 단수형으로 재지정했고, 이후 main에서 복수형에 추가된 마이페이지 알림설정 `updateSettings`(PUT `/notifications/settings`)도 머지 과정에서 단수형으로 이관했습니다.
 
 ## 2) Scope Snapshot
 

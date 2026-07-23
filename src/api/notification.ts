@@ -22,6 +22,12 @@ async function fetchWithTimeout(url: string, options: RequestInit) {
   }
 }
 
+export interface NotificationSettingUpdateRequest {
+  isAllPushEnabled: boolean;
+  dndStartTime?: string;
+  dndEndTime?: string;
+}
+
 export const notificationApi = {
   postToken: async (token: string, accessToken: string): Promise<void> => {
     await fetchWithTimeout(`${BASE}/notifications/token`, {
@@ -31,6 +37,17 @@ export const notificationApi = {
         Authorization: `Bearer ${accessToken}`,
       },
       body: JSON.stringify({ token }),
+    });
+  },
+
+  updateSettings: async (data: NotificationSettingUpdateRequest, accessToken: string): Promise<void> => {
+    await fetchWithTimeout(`${BASE}/notifications/settings`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify(data),
     });
   },
 };

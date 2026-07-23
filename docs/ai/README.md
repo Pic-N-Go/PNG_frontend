@@ -46,8 +46,8 @@
 
 ### Claude Code 사용자 전용
 
-3. `/png-intake` 하나로 **구현 → 커밋 → PR 초안**까지 자동 체인 실행
-   - spec/plan 승인 후 별도 명령 없이 끝까지 이어집니다
+3. `/png-intake` 하나로 **구현 → 커밋 → PR**까지 자동 체인 실행
+   - spec/plan 승인 후 별도 명령 없이 끝까지 이어지며, PR 생성 직전에는 별도로 승인을 받습니다
    - 중간 이탈 후 재시작: `/png-implement <feature-name>` → `/png-commit` → `/png-pr` 순으로 개별 실행
 4. (선택) `/png-test-case`로 변경사항 기반 테스트 케이스 생성
 5. (선택) `/png-qa`로 QA 세션 운영 (create → update → finalize)
@@ -90,13 +90,14 @@ UI 기능이면 추가로: `docs/guide/dev/ui-publishing.md`
 
 1. `/png-intake` 입력 후 기능을 자연어로 설명
 2. Clarifying Questions에 답변
-3. 생성된 `spec`/`plan` 확인 → 승인하면 **구현 → 커밋 → PR 초안까지 자동으로 이어집니다**
+3. 생성된 `spec`/`plan` 확인 → 승인하면 **구현 → 커밋 → PR까지 자동으로 이어집니다**
 
-사용자 확인 게이트는 4곳뿐입니다.
+주요 사용자 확인 게이트는 다음과 같습니다(작업 내용에 따라 filelist 매핑 확인, tsc/lint 반복 실패 등 조건부 게이트가 추가될 수 있습니다).
 - spec/plan 검토 후 구현 시작 여부
 - plan 외 파일 변경 발생 시
 - 커밋 메시지 확인
 - doc-sync Required 항목 발견 시
+- PR 생성 직전 제목/본문 승인
 
 추가 커맨드:
 
@@ -121,7 +122,7 @@ UI 기능이면 추가로: `docs/guide/dev/ui-publishing.md`
 - `/png-doc-sync`: 변경 파일 기준으로 업데이트 필요 문서 점검 및 승인 후 자동 수정
   - 커맨드 파일: `.claude/commands/png-doc-sync.md`
   - 스킬 파일: `.claude/skills/doc-sync-checker/SKILL.md`
-- `/png-pr`: PR 제목/본문 초안 파일 생성 (자동 PR 생성 없음)
+- `/png-pr`: PR 제목/본문 초안 작성 후 사용자 승인 시 현재 브랜치에 자동으로 PR 생성 (보류 시에만 초안 파일 저장)
   - 실행 시 `doc-sync-checker` 매핑 규칙으로 Required 누락 항목을 사용자 승인 후 수정, 이후 초안 생성
   - 커맨드 파일: `.claude/commands/png-pr.md`
   - 스킬 파일: `.claude/skills/pr-draft-writer/SKILL.md`

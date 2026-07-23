@@ -18,6 +18,13 @@ export function useSpotDetail(id: string) {
   });
 }
 
+export function useSpots() {
+  return useQuery({
+    queryKey: ['spots', 'list'],
+    queryFn: () => spotApi.getSpots(),
+  });
+}
+
 export function useSpotReviews(id: string, sort: ReviewSortApi) {
   return useQuery({
     queryKey: ['spot', id, 'reviews', sort],

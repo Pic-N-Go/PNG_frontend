@@ -38,7 +38,7 @@
 6. 구현 시작 전 승인 요청
 
 > Intake 단계에서는 코드를 수정하지 않습니다.
-> Claude Code 사용자는 `/png-intake`로 Intake 이후 구현·커밋·PR 초안까지 자동으로 이어서 실행합니다. 이 문서는 Intake 단계의 산출물 기준만 정의합니다.
+> Claude Code 사용자는 `/png-intake`로 Intake 이후 구현·커밋·PR까지 자동으로 이어서 실행합니다(PR 생성 직전 승인 필요). 이 문서는 Intake 단계의 산출물 기준만 정의합니다.
 
 ---
 
