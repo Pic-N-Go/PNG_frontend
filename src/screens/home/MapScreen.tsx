@@ -5,6 +5,7 @@ import { IconChevronLeft, IconSearch, IconAdjustmentsHorizontal, IconFocus2, Ico
 import { useNavigation, useRoute, useFocusEffect, CommonActions } from '@react-navigation/native';
 import { useTravelStore, Spot } from '@/store/useTravelStore';
 import { useSpots } from '@/hooks/useSpot';
+import type { SpotResponse } from '@/types/spot';
 import SpotPopup from '@/components/travel/SpotPopup';
 import BottomSheet from '@/components/common/BottomSheet';
 import FilterBottomSheet, { FilterState, EMPTY_FILTER } from '@/components/home/FilterBottomSheet';
@@ -51,12 +52,12 @@ export default function MapScreen() {
 
   const apiSpots = useMemo(() => {
     if (!spotsPage?.content) return [];
-    const mapped = spotsPage.content.map((spot: any) => ({
+    const mapped = spotsPage.content.map((spot: SpotResponse) => ({
       id: String(spot.id),
       name: spot.name,
       lat: spot.latitude,
       lng: spot.longitude,
-      tags: [spot.category],
+      tags: spot.categories ?? [],
       score: spot.photogenicScore,
       loc: spot.address,
       photo: spot.thumbnailUrl || spot.imageUrl || ''

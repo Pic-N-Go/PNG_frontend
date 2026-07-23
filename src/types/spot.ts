@@ -193,7 +193,7 @@ export interface SpotDetailResponse {
   imageUrl: string | null;
   latitude: number;
   longitude: number;
-  category: string;
+  categories: string[];
   overview: string;
   tags: string[];
   convenience: ConvenienceDTO;
@@ -265,8 +265,28 @@ export interface PhotogenicScoreResponse {
   goldenHour: PhotogenicGoldenHourDTO;
 }
 
+// 백엔드 SpotResponse DTO — /spots 목록·검색·인기 응답 아이템
+export interface SpotResponse {
+  id: number;
+  name: string;
+  address: string;
+  zipcode: string | null;
+  overview: string | null;
+  latitude: number;
+  longitude: number;
+  categories: string[];
+  source: string;
+  badge: boolean;
+  imageUrl: string | null;
+  thumbnailUrl: string | null;
+  bookmarkCount: number;
+  reviewCount: number;
+  photogenicScore: number;
+  reviewAverage: number;
+}
+
 export interface PageSpotResponse {
-  content: any[];
+  content: SpotResponse[];
   totalElements: number;
   totalPages: number;
   number: number;

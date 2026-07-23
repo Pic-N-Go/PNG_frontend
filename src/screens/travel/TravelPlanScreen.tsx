@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useFocusEffect } from "@react-navigation/native";
 import { View, Text, TouchableOpacity, ScrollView, Alert, TextInput, Image, KeyboardAvoidingView, Platform } from "react-native";
-import { coursesApi } from "@/api/courses";
+import { coursesApi, type SpotInCourse } from "@/api/courses";
 import { useTravelStore } from "@/store/useTravelStore";
 import { useAnimatedRef } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -307,14 +307,14 @@ function mapCourseToData(course: any) {
     const dateStr = `${curDate.getMonth() + 1}월 ${curDate.getDate()}일`;
     
     const daySpots = (course.spots || [])
-      .filter((s: any) => s.dayNumber === i)
-      .sort((a: any, b: any) => a.sequenceOrder - b.sequenceOrder)
-      .map((s: any) => {
+      .filter((s: SpotInCourse) => s.dayNumber === i)
+      .sort((a: SpotInCourse, b: SpotInCourse) => a.sequenceOrder - b.sequenceOrder)
+      .map((s: SpotInCourse) => {
         return {
           id: String(s.id),
           realSpotId: s.spotId,
           name: s.spotName || `스팟 ${s.spotId}`,
-          loc: s.category || "위치 정보 없음",
+          loc: s.categories?.[0] || "위치 정보 없음",
           time: "10:00 ~ 11:00", // TODO: Add real time schedule fields
           dur: "1시간", // TODO: Add real duration
           score: s.photogenicScore ? `${s.photogenicScore}점` : "-",
@@ -538,7 +538,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
             id: `new_${Date.now()}_${idx}`, // 임시 ID
             realSpotId: spot.id,
             name: spot.title || spot.name || `스팟 ${spot.id}`,
-            loc: spot.category || "기타",
+            loc: spot.categories?.[0] || "기타",
             bg: "#ccc",
             lat: spot.latitude || spot.mapY || spot.lat,
             lng: spot.longitude || spot.mapX || spot.lng,

@@ -36,15 +36,20 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
   }
 }
 
+// 백엔드 CourseSpotResponse DTO. 실제 스팟 정보를 함께 내려줌 (actualSpot 없으면 null)
 export type SpotInCourse = {
   id: number;
   spotId: number;
-  // UI properties like spotName, latitude, longitude, category, thumbnailUrl, photogenicScore 
-  // should be explicitly hydrated from a spot lookup or extended backend response.
+  spotName: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  categories: string[] | null;
+  thumbnailUrl: string | null;
+  photogenicScore: number | null;
   dayNumber: number;
   sequenceOrder: number;
-  memo: string;
-  travelTimeMinutes: number;
+  memo: string | null;
+  travelTimeMinutes: number | null;
 };
 
 export type CourseChecklist = {
