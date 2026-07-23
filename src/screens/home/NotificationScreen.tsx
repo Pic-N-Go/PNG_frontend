@@ -118,15 +118,8 @@ export default function NotificationScreen({ navigation }: Props) {
       markRead(item.id);
     }
 
-    // 2. 딥링크 이동 처리
-    if (item.deepLink) {
-      const link = item.deepLink;
-      if (link.includes('wishlist')) {
-        navigation.navigate('Wishlist' as any);
-      } else if (link.includes('map')) {
-        (navigation as any).navigate('Map', {});
-      }
-    }
+    // TODO: 딥링크 화면 이동 추후 스펙 확정 시 반영 예정
+    // if (item.deepLink) { ... }
   };
 
   return (
