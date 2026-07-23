@@ -451,6 +451,32 @@ export default function NotificationScreen({ navigation }: Props) {
             </View>
           ))
         )}
+
+        {/* 하단 안내 멘트 */}
+        {groups.length > 0 && (
+          <View style={{ marginTop: normalize(16) }}>
+            <View
+              style={{
+                height: 0.5,
+                backgroundColor: 'rgba(0,0,0,0.06)',
+                marginHorizontal: GRID_PADDING,
+              }}
+            />
+            <View style={{ alignItems: 'center', paddingVertical: normalize(20) }}>
+              <Text
+                allowFontScaling={false}
+                style={{
+                  fontFamily: 'Pretendard-Regular',
+                  fontSize: FONT_XS,
+                  color: 'rgba(0,0,0,0.3)',
+                  letterSpacing: -0.1,
+                }}
+              >
+                7일 전 알림까지 확인할 수 있어요
+              </Text>
+            </View>
+          </View>
+        )}
       </ScrollView>
     </View>
   );
