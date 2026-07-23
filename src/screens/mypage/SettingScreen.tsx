@@ -429,7 +429,19 @@ function TimeRow({ label, value, onChange }: { label: string; value: string; onC
 }
 
 function Wheel({ items, value, onChange }: { items: string[]; value: string; onChange: (v: string) => void }) {
+  const scrollRef = React.useRef<ScrollView>(null);
   const idx = Math.max(0, items.indexOf(value));
+
+  const handleScrollEnd = (e: any) => {
+    const y = e.nativeEvent.contentOffset.y;
+    const i = Math.round(y / ITEM_H);
+    const validIndex = Math.max(0, Math.min(items.length - 1, i));
+    const v = items[validIndex];
+    if (v && v !== value) {
+      onChange(v);
+    }
+  };
+
   return (
     <View style={{ width: normalize(56), height: WHEEL_VISIBLE_HEIGHT, overflow: 'hidden', position: 'relative' }}>
       <View
@@ -437,25 +449,30 @@ function Wheel({ items, value, onChange }: { items: string[]; value: string; onC
         style={{ position: 'absolute', top: ITEM_H, left: 0, right: 0, height: ITEM_H, backgroundColor: 'rgba(0,0,0,0.05)', borderRadius: normalize(8) }}
       />
       <ScrollView
+        ref={scrollRef}
         showsVerticalScrollIndicator={false}
         snapToInterval={ITEM_H}
         decelerationRate="fast"
         contentOffset={{ x: 0, y: idx * ITEM_H }}
-        onMomentumScrollEnd={(e) => {
-          const i = Math.round(e.nativeEvent.contentOffset.y / ITEM_H);
-          const v = items[Math.max(0, Math.min(items.length - 1, i))];
-          if (v && v !== value) onChange(v);
-        }}
+        onMomentumScrollEnd={handleScrollEnd}
+        onScrollEndDrag={handleScrollEnd}
         contentContainerStyle={{ paddingVertical: ITEM_H }}
       >
-        {items.map((it) => {
+        {items.map((it, itemIdx) => {
           const active = it === value;
           return (
-            <View key={it} style={{ height: ITEM_H, alignItems: 'center', justifyContent: 'center' }}>
+            <Pressable
+              key={it}
+              onPress={() => {
+                onChange(it);
+                scrollRef.current?.scrollTo({ y: itemIdx * ITEM_H, animated: true });
+              }}
+              style={{ height: ITEM_H, alignItems: 'center', justifyContent: 'center' }}
+            >
               <Text style={{ fontSize: active ? FONT_XL : FONT_MD, fontWeight: active ? '600' : '400', color: active ? '#111111' : '#c7c7cc' }}>
                 {it}
               </Text>
-            </View>
+            </Pressable>
           );
         })}
       </ScrollView>
