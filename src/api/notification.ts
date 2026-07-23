@@ -22,6 +22,16 @@ async function fetchWithTimeout(url: string, options: RequestInit) {
   }
 }
 
+export interface NotificationItem {
+  id: number;
+  type: string;
+  title: string;
+  content: string;
+  isRead: boolean;
+  deepLink?: string;
+  createdAt: string;
+}
+
 export interface NotificationSettingUpdateRequest {
   isAllPushEnabled: boolean;
   dndStartTime?: string;
@@ -50,4 +60,33 @@ export const notificationApi = {
       body: JSON.stringify(data),
     });
   },
+
+  getNotifications: async (accessToken: string): Promise<NotificationItem[]> => {
+    const res = await fetchWithTimeout(`${BASE}/notifications`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    return res.json();
+  },
+
+  markRead: async (id: number, accessToken: string): Promise<void> => {
+    await fetchWithTimeout(`${BASE}/notifications/${id}/read`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+  },
+
+  markAllRead: async (accessToken: string): Promise<void> => {
+    await fetchWithTimeout(`${BASE}/notifications/read-all`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+  },
 };
+
