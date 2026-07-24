@@ -13,6 +13,7 @@ module.exports = {
       backgroundColor: '#E31B59',
     },
     scheme: [
+      'png',
       process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY
         ? `kakao${process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY}`
         : null,
