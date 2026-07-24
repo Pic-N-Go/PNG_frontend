@@ -118,8 +118,13 @@ export default function NotificationScreen({ navigation }: Props) {
       markRead(item.id);
     }
 
-    // TODO: 딥링크 화면 이동 추후 스펙 확정 시 반영 예정
-    // if (item.deepLink) { ... }
+    // 2. spotId가 포함되어 수신된 알림의 경우 해당 스팟 상세 페이지로 이동
+    if (item.spotId !== undefined && item.spotId !== null) {
+      (navigation as any).navigate('SpotStack', {
+        screen: 'SpotDetail',
+        params: { spotId: String(item.spotId) },
+      });
+    }
   };
 
   return (

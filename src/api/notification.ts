@@ -29,6 +29,7 @@ export interface NotificationItem {
   content: string;
   isRead: boolean;
   deepLink?: string;
+  spotId?: number | string;
   createdAt: string;
 }
 
