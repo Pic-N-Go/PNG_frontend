@@ -32,8 +32,18 @@ export interface NotificationItem {
   createdAt: string;
 }
 
+export interface NotificationSettingResponse {
+  isWishlistPushEnabled: boolean;
+  isGoldenHourPushEnabled: boolean;
+  isCommunityPushEnabled: boolean;
+  dndStartTime?: string | null;
+  dndEndTime?: string | null;
+}
+
 export interface NotificationSettingUpdateRequest {
-  isAllPushEnabled: boolean;
+  isWishlistPushEnabled: boolean;
+  isGoldenHourPushEnabled: boolean;
+  isCommunityPushEnabled: boolean;
   dndStartTime?: string;
   dndEndTime?: string;
 }
@@ -48,6 +58,16 @@ export const notificationApi = {
       },
       body: JSON.stringify({ token }),
     });
+  },
+
+  getSettings: async (accessToken: string): Promise<NotificationSettingResponse> => {
+    const res = await fetchWithTimeout(`${BASE}/notifications/settings`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    return res.json();
   },
 
   updateSettings: async (data: NotificationSettingUpdateRequest, accessToken: string): Promise<void> => {

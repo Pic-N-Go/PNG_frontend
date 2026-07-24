@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { useMutation } from '@tanstack/react-query';
-import { notificationApi, NotificationSettingUpdateRequest } from '@/api/notification';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { notificationApi, NotificationSettingUpdateRequest, NotificationSettingResponse } from '@/api/notification';
 import { useAuthStore } from '@/store/useAuthStore';
 
 export type DndRepeatPreset = 'daily' | 'weekday' | 'weekend' | 'custom';
@@ -23,7 +23,7 @@ export interface NotificationSettings {
 const DEFAULT_SETTINGS: NotificationSettings = {
   wishlist: true,
   golden: true,
-  community: false,
+  community: true,
   dnd: {
     enabled: true,
     start: '22:00',
@@ -31,6 +31,11 @@ const DEFAULT_SETTINGS: NotificationSettings = {
     repeatPreset: 'daily',
     repeatDays: [0, 1, 2, 3, 4, 5, 6],
   },
+};
+
+const parseLocalTime = (timeStr?: string | null) => {
+  if (!timeStr) return undefined;
+  return timeStr.substring(0, 5);
 };
 
 export function useNotificationSettings(initial?: Partial<NotificationSettings>) {
@@ -47,6 +52,32 @@ export function useNotificationSettings(initial?: Partial<NotificationSettings>)
     latestSettingsRef.current = settings;
   }, [settings]);
 
+  // 1. GET /notifications/settings 수신 설정 데이터 조회 (Hydration)
+  const { data: serverSettings } = useQuery<NotificationSettingResponse>({
+    queryKey: ['notificationSettings'],
+    queryFn: () => notificationApi.getSettings(accessToken!),
+    enabled: !!accessToken,
+  });
+
+  useEffect(() => {
+    if (serverSettings) {
+      const hasDnd = !!(serverSettings.dndStartTime && serverSettings.dndEndTime);
+      setSettings((prev) => ({
+        ...prev,
+        wishlist: serverSettings.isWishlistPushEnabled ?? prev.wishlist,
+        golden: serverSettings.isGoldenHourPushEnabled ?? prev.golden,
+        community: serverSettings.isCommunityPushEnabled ?? prev.community,
+        dnd: {
+          ...prev.dnd,
+          enabled: hasDnd,
+          start: parseLocalTime(serverSettings.dndStartTime) ?? prev.dnd.start,
+          end: parseLocalTime(serverSettings.dndEndTime) ?? prev.dnd.end,
+        },
+      }));
+    }
+  }, [serverSettings]);
+
+  // 2. PUT /notifications/settings 수신 설정 동기화
   const updateApiMutation = useMutation({
     mutationFn: (data: NotificationSettingUpdateRequest) => {
       if (!accessToken) return Promise.resolve();
@@ -61,15 +92,17 @@ export function useNotificationSettings(initial?: Partial<NotificationSettings>)
     return timeStr.length === 5 ? `${timeStr}:00` : timeStr;
   };
 
-  const syncSettingsToApi = useCallback((isAllPushEnabled: boolean, dnd: DndSettings) => {
+  const syncSettingsToApi = useCallback((newSettings: NotificationSettings) => {
     if (syncTimerRef.current) {
       clearTimeout(syncTimerRef.current);
     }
     syncTimerRef.current = setTimeout(() => {
       updateApiMutation.mutate({
-        isAllPushEnabled,
-        dndStartTime: dnd.enabled ? formatLocalTime(dnd.start) : undefined,
-        dndEndTime: dnd.enabled ? formatLocalTime(dnd.end) : undefined,
+        isWishlistPushEnabled: newSettings.wishlist,
+        isGoldenHourPushEnabled: newSettings.golden,
+        isCommunityPushEnabled: newSettings.community,
+        dndStartTime: newSettings.dnd.enabled ? formatLocalTime(newSettings.dnd.start) : undefined,
+        dndEndTime: newSettings.dnd.enabled ? formatLocalTime(newSettings.dnd.end) : undefined,
       });
     }, 300);
   }, [updateApiMutation]);
@@ -82,22 +115,23 @@ export function useNotificationSettings(initial?: Partial<NotificationSettings>)
     };
   }, []);
 
+  // 3. 독립 토글 업데이트 함수
   const setWishlist = useCallback((value: boolean) => {
-    const next = { ...latestSettingsRef.current, wishlist: value, golden: value, community: value };
+    const next = { ...latestSettingsRef.current, wishlist: value };
     setSettings(next);
-    syncSettingsToApi(value, next.dnd);
+    syncSettingsToApi(next);
   }, [syncSettingsToApi]);
 
   const setGolden = useCallback((value: boolean) => {
-    const next = { ...latestSettingsRef.current, wishlist: value, golden: value, community: value };
+    const next = { ...latestSettingsRef.current, golden: value };
     setSettings(next);
-    syncSettingsToApi(value, next.dnd);
+    syncSettingsToApi(next);
   }, [syncSettingsToApi]);
 
   const setCommunity = useCallback((value: boolean) => {
-    const next = { ...latestSettingsRef.current, wishlist: value, golden: value, community: value };
+    const next = { ...latestSettingsRef.current, community: value };
     setSettings(next);
-    syncSettingsToApi(value, next.dnd);
+    syncSettingsToApi(next);
   }, [syncSettingsToApi]);
 
   const setDndEnabled = useCallback((value: boolean) => {
@@ -106,8 +140,7 @@ export function useNotificationSettings(initial?: Partial<NotificationSettings>)
       dnd: { ...latestSettingsRef.current.dnd, enabled: value },
     };
     setSettings(next);
-    const isAllPushEnabled = next.wishlist || next.golden || next.community;
-    syncSettingsToApi(isAllPushEnabled, next.dnd);
+    syncSettingsToApi(next);
   }, [syncSettingsToApi]);
 
   const setDndTime = useCallback((start: string, end: string) => {
@@ -116,8 +149,7 @@ export function useNotificationSettings(initial?: Partial<NotificationSettings>)
       dnd: { ...latestSettingsRef.current.dnd, start, end },
     };
     setSettings(next);
-    const isAllPushEnabled = next.wishlist || next.golden || next.community;
-    syncSettingsToApi(isAllPushEnabled, next.dnd);
+    syncSettingsToApi(next);
   }, [syncSettingsToApi]);
 
   const setDndRepeat = useCallback((preset: DndRepeatPreset, days: number[]) => {
