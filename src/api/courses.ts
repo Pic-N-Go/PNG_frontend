@@ -39,6 +39,8 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
 export type SpotInCourse = {
   id: number;
   spotId: number;
+  // UI properties like spotName, latitude, longitude, category, thumbnailUrl, photogenicScore 
+  // should be explicitly hydrated from a spot lookup or extended backend response.
   dayNumber: number;
   sequenceOrder: number;
   memo: string;
@@ -93,24 +95,77 @@ export const coursesApi = {
     return fetchWithAuth(`/courses/${id}`, { method: 'DELETE' });
   },
 
-  // 6. 코스에 명소 추가
-  addSpotToCourse: (id: number, data: { spotId: number; dayNumber: number; sequenceOrder: number; memo?: string }): Promise<SpotInCourse> => {
-    return fetchWithAuth(`/courses/${id}/spots`, {
-      method: 'POST',
+  // 6. 코스 스팟 일괄 동기화 (전체 스팟)
+  syncSpots: (id: number, data: {
+    spots: { courseSpotId?: number, spotId: number, dayNumber: number, sequenceOrder: number, memo?: string }[]
+  }): Promise<void> => {
+    return fetchWithAuth(`/courses/${id}/spots/sync`, {
+      method: 'PUT',
       body: JSON.stringify(data),
     });
   },
 
-  // 7. 코스에서 명소 제거
-  removeSpotFromCourse: (id: number, spotId: number): Promise<void> => {
-    return fetchWithAuth(`/courses/${id}/spots/${spotId}`, { method: 'DELETE' });
-  },
-
-  // 8. 명소 순서 변경
-  reorderSpots: (id: number, spotIds: number[]): Promise<void> => {
-    return fetchWithAuth(`/courses/${id}/spots/order`, {
-      method: 'PUT',
-      body: JSON.stringify({ spotIds }),
+  // 9. 체크리스트 항목 추가
+  addChecklist: (id: number, content: string): Promise<CourseChecklist> => {
+    return fetchWithAuth(`/courses/${id}/checklists`, {
+      method: 'POST',
+      body: JSON.stringify({ content }),
     });
   },
+
+  // 10. 체크리스트 상태 토글
+  toggleChecklist: (id: number, checklistId: number): Promise<CourseChecklist> => {
+    return fetchWithAuth(`/courses/${id}/checklists/${checklistId}`, {
+      method: 'PUT',
+    });
+  },
+
+  // 11. 체크리스트 내용 수정
+  updateChecklist: (id: number, checklistId: number, content: string): Promise<CourseChecklist> => {
+    return fetchWithAuth(`/courses/${id}/checklists/${checklistId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ content }),
+    });
+  },
+
+  // 12. 체크리스트 삭제
+  deleteChecklist: (id: number, checklistId: number): Promise<void> => {
+    return fetchWithAuth(`/courses/${id}/checklists/${checklistId}`, {
+      method: 'DELETE',
+    });
+  },
+
+  // 13. 날씨 정보 조회
+  getCourseWeather: async (id: number): Promise<CourseWeather[]> => {
+    const data = await fetchWithAuth(`/courses/${id}/weather`, { method: 'GET' });
+    const list = Array.isArray(data) ? data : [];
+    // Map the flat API payload to the nested representation required by the UI
+    return list.map(item => {
+      if (item.morning) return item as CourseWeather;
+      return {
+        ...item,
+        morning: { weatherStatus: item.weatherStatus, temperature: item.temperature },
+        afternoon: { weatherStatus: item.weatherStatus, temperature: item.temperature },
+        evening: { weatherStatus: item.weatherStatus, temperature: item.temperature }
+      } as CourseWeather;
+    });
+  },
+};
+
+export type WeatherPeriod = {
+  weatherStatus: string;
+  temperature: number | null;
+};
+
+export type CourseWeather = {
+  dayNumber: number;
+  date: string;
+  targetSpotId: number;
+  targetSpotName: string;
+  morning: WeatherPeriod;
+  afternoon: WeatherPeriod;
+  evening: WeatherPeriod;
+  sunsetTime: string;
+  goldenHourEvening: string;
+  fineDustStatus?: string;
 };

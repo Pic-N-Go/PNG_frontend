@@ -3,6 +3,7 @@
 ## 1) 입력 스펙
 
 - 스펙 문서: `docs/ai/specs/main/inquiry-thread-flow.md`
+- 관련 도메인: `mypage`
 - 관련 참고: `useNotificationSettings.ts`(훅 작성 관례), `OptionSheet.tsx`(select-sheet 재사용), 이전 라운드 `dnd-settings-integration-plan.md`
 - 완료 목표: `useInquiries` 훅 + `InquiryListScreen`/`InquiryDetailScreen`/`ComposeInquiryScreen` 3개 화면 + 라우팅 교체 + `ContactScreen` 삭제, `tsc`/`lint` 통과
 

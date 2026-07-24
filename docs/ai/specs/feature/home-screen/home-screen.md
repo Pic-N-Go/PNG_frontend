@@ -5,6 +5,7 @@
 - 기능명: 홈 화면 React Native 구현
 - 담당자: @lucy
 - 관련 이슈: 없음
+- 관련 도메인: `spot`, `search`
 - 대상 플랫폼: iOS / Android
 
 ## 2) 문제와 목표

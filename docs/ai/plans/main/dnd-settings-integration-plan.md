@@ -3,6 +3,7 @@
 ## 1) 입력 스펙
 
 - 스펙 문서: `docs/ai/specs/main/dnd-settings-integration.md`
+- 관련 도메인: `mypage`, `wishlist`
 - 관련 목업: `src/components/ui/mypage/setting.html`, `src/components/ui/wishlist/wishlist-setting.html`
 - 완료 목표: `SettingScreen`(실구현, DND 시트 인라인 포함), `WishlistSettingScreen`(DND 제거), `useNotificationSettings`(신규 훅), `Inquiry`/`InquiryDetail`/`ComposeInquiry`(신규, 1:1 문의 목록/상세/작성 플로우), 라우팅 연결, `tsc`/`lint` 통과
 

@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useFocusEffect } from "@react-navigation/native";
-import { View, Text, TouchableOpacity, ScrollView, Alert, ActionSheetIOS, Platform } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, Alert, TextInput, Image, KeyboardAvoidingView, Platform } from "react-native";
 import { coursesApi } from "@/api/courses";
 import { useTravelStore } from "@/store/useTravelStore";
 import { useAnimatedRef } from "react-native-reanimated";
@@ -13,7 +13,6 @@ import { normalize, normalizeFontSize } from "@/utils/normalize";
 import {
   IconChevronLeft,
   IconShare,
-  IconMap,
   IconDots,
   IconClock,
   IconCar,
@@ -28,7 +27,10 @@ import {
   IconInfoCircle,
 } from "@tabler/icons-react-native";
 import NaviSheet from "@/components/spot/NaviSheet";
-import { FONT_XS, FONT_SM } from "@/constants/layout";
+import CourseMoreSheet from "@/components/travel/CourseMoreSheet";
+import CourseShareSheet from "@/components/travel/CourseShareSheet";
+import { getDistanceFromLatLonInKm } from "@/utils/distance";
+import { FONT_XS, FONT_SM, CONTENT_PADDING, BUTTON_HEIGHT, HEADER_HEIGHT } from "@/constants/layout";
 
 const KAKAO_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_API_KEY;
 
@@ -44,15 +46,48 @@ const DAY_COLOR_PALETTE = [
 ];
 const getDayColor = (day: string) =>
   DAY_COLOR_PALETTE[(parseInt(day, 10) - 1) % DAY_COLOR_PALETTE.length];
-const COMMON_CHECKLIST = [
-  "삼각대",
-  "광각렌즈 (16-35mm)",
-  "ND 필터",
-  "보조배터리",
-  "편한 신발",
-  "드론",
-  "편광 필터",
-];
+
+const getSunsetAndGoldenHour = (isoString?: string) => {
+  if (!isoString) return { sunset: "정보 없음", golden: "정보 없음" };
+  try {
+    const d = new Date(isoString);
+    if (isNaN(d.getTime())) return { sunset: isoString, golden: "정보 없음" };
+    
+    const formatTime = (date: Date) => {
+      const h = date.getHours().toString().padStart(2, '0');
+      const m = date.getMinutes().toString().padStart(2, '0');
+      return `${h}:${m}`;
+    };
+
+    const sunsetStr = formatTime(d);
+    const start = new Date(d.getTime() - 20 * 60000);
+    const end = new Date(d.getTime() + 20 * 60000);
+    const goldenStr = `${formatTime(start)}~${formatTime(end)}`;
+
+    return { sunset: sunsetStr, golden: goldenStr };
+  } catch {
+    return { sunset: isoString, golden: "정보 없음" };
+  }
+};
+
+const getWeatherIcon = (status: string | undefined) => {
+  if (!status || status.includes("데이터 없음")) return "https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/partly-cloudy-day.svg";
+  if (status.includes("맑음") || status.includes("CLEAR")) return "https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/clear-day.svg";
+  if (status.includes("구름") || status.includes("흐림") || status.includes("CLOUDY")) return "https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/partly-cloudy-day.svg";
+  if (status.includes("비") || status.includes("눈") || status.includes("RAIN") || status.includes("SNOW")) return "https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/rain.svg";
+  return "https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/partly-cloudy-day.svg"; // default
+};
+
+const WeatherCell = ({ period, data }: { period: string; data: { weatherStatus: string; temperature: number | null } }) => (
+  <View className="flex-1 py-3 px-[14px] bg-[#f5f5f7] rounded-xl relative">
+    <Text className="text-black/35 mb-1.5" style={{ fontSize: normalizeFontSize(11) }}>{period}</Text>
+    <Text className="font-semibold text-black mb-0.5" style={{ fontSize: normalizeFontSize(20) }}>{data.temperature ?? '-'}°</Text>
+    <Text className="text-black/40" style={{ fontSize: normalizeFontSize(11) }}>{data.weatherStatus}</Text>
+    <View className="absolute right-3 top-1/2 -translate-y-1/2 opacity-80" style={{ transform: [{ translateY: -10 }] }}>
+      <SvgUri width="20" height="20" uri={getWeatherIcon(data.weatherStatus)} />
+    </View>
+  </View>
+);
 
 const MOCK_DATA: Record<string, any> = {
   "1": {
@@ -275,28 +310,46 @@ function mapCourseToData(course: any) {
       .filter((s: any) => s.dayNumber === i)
       .sort((a: any, b: any) => a.sequenceOrder - b.sequenceOrder)
       .map((s: any) => {
-        const mockSpot = Object.values(MOCK_DATA).flatMap((d: any) => d.spots).find((ms: any) => ms.id === String(s.spotId)) || {};
         return {
           id: String(s.id),
           realSpotId: s.spotId,
-          name: mockSpot.name || `스팟 ${s.spotId}`,
-          loc: mockSpot.loc || "위치 정보 없음",
-          time: mockSpot.time || "10:00 ~ 11:00",
-          dur: mockSpot.dur || "1시간",
-          score: mockSpot.score || "-",
-          scoreColor: mockSpot.scoreColor || "#999",
-          bg: mockSpot.bg || "#ccc",
-          lat: mockSpot.lat || 35.1531696,
-          lng: mockSpot.lng || 129.118666,
+          name: s.spotName || `스팟 ${s.spotId}`,
+          loc: s.category || "위치 정보 없음",
+          time: "10:00 ~ 11:00", // TODO: Add real time schedule fields
+          dur: "1시간", // TODO: Add real duration
+          score: s.photogenicScore ? `${s.photogenicScore}점` : "-",
+          scoreColor: s.photogenicScore && s.photogenicScore > 90 ? "#e31b59" : s.photogenicScore && s.photogenicScore > 80 ? "#ff9f0a" : "#34c759",
+          bg: "#2c6e91", // Default background color
+          lat: s.latitude || 35.1531696,
+          lng: s.longitude || 129.118666,
+          photo: s.thumbnailUrl || '',
+          travelTimeMinutes: s.travelTimeMinutes,
         };
       });
 
+    const transports: Record<string, any> = {};
+    for (let j = 0; j < daySpots.length - 1; j++) {
+      const current = daySpots[j];
+      const next = daySpots[j + 1];
+      if (next.travelTimeMinutes != null) {
+        transports[`${current.id}__${next.id}`] = {
+          type: "car",
+          label: `차량 ${next.travelTimeMinutes}분`,
+        };
+      } else {
+        transports[`${current.id}__${next.id}`] = {
+          type: "car",
+          label: `-`,
+        };
+      }
+    }
+
     result[String(i)] = {
       date: dateStr,
-      tip: "새로운 출사 계획입니다. 일정을 추가해보세요.",
-      checklist: COMMON_CHECKLIST,
+      tip: null,
+      checklist: [], // Replaced by course.checklists in UI
       spots: daySpots,
-      transports: {},
+      transports,
     };
   }
   return result;
@@ -307,11 +360,19 @@ export default function TravelPlanScreen({ navigation, route }: any) {
   const [currentDay, setCurrentDay] = useState<string>("1");
   const [isEditMode, setIsEditMode] = useState(false);
   const [isDepartModalVisible, setIsDepartModalVisible] = useState(false);
+  const [isMoreSheetVisible, setIsMoreSheetVisible] = useState(false);
+  const [isShareSheetVisible, setShareSheetVisible] = useState(false);
   const [data, setData] = useState<Record<string, any>>(MOCK_DATA);
 
   const { data: course, refetch } = useQuery({
     queryKey: ['course', planId],
     queryFn: () => coursesApi.getCourse(Number(planId)),
+    enabled: !!planId,
+  });
+
+  const { data: weatherData } = useQuery({
+    queryKey: ['courseWeather', planId],
+    queryFn: () => coursesApi.getCourseWeather(Number(planId)),
     enabled: !!planId,
   });
 
@@ -330,9 +391,39 @@ export default function TravelPlanScreen({ navigation, route }: any) {
   // 대신 각 행의 측정된 높이(height)를 모아 앞선 행들의 높이를 더해 오프셋을 직접 계산한다.
   const rowHeights = useRef<{ [key: string]: number }>({});
 
-  const [checkedItems, setCheckedItems] = useState<string[]>([]);
+  const [newChecklistText, setNewChecklistText] = useState("");
+  const [isChecklistModalVisible, setIsChecklistModalVisible] = useState(false);
 
   const currentData = data[currentDay];
+
+  const { totalDistance, totalDurationFormatted } = React.useMemo(() => {
+    if (!currentData || !currentData.spots) return { totalDistance: 0, totalDurationFormatted: "0분" };
+    let distance = 0;
+    let durationMins = 0;
+    
+    // Each spot defaults to 60 mins stay
+    durationMins += currentData.spots.length * 60;
+    
+    for (let i = 0; i < currentData.spots.length; i++) {
+      const current = currentData.spots[i];
+      if (i < currentData.spots.length - 1) {
+        const next = currentData.spots[i + 1];
+        if (current.lat && current.lng && next.lat && next.lng) {
+          distance += getDistanceFromLatLonInKm(current.lat, current.lng, next.lat, next.lng);
+        }
+        if (next.travelTimeMinutes != null) {
+          durationMins += next.travelTimeMinutes;
+        } else {
+          durationMins += 30;
+        }
+      }
+    }
+    
+    const h = Math.floor(durationMins / 60);
+    const m = durationMins % 60;
+    const durStr = h > 0 ? (m > 0 ? `${h}시간 ${m}분` : `${h}시간`) : `${m}분`;
+    return { totalDistance: Math.round(distance), totalDurationFormatted: durStr };
+  }, [currentData]);
 
   const handleMapMessage = (event: any) => {
     try {
@@ -384,18 +475,26 @@ export default function TravelPlanScreen({ navigation, route }: any) {
     }
   };
 
-  const toggleChecklist = (item: string) => {
-    setCheckedItems((prev) =>
-      prev.includes(item) ? prev.filter((i) => i !== item) : [...prev, item],
-    );
-  };
-
-  const reorderMutation = useMutation({
-    mutationFn: (spotIds: number[]) => coursesApi.reorderSpots(Number(planId), spotIds),
+  const toggleChecklistMutation = useMutation({
+    mutationFn: (checklistId: number) => coursesApi.toggleChecklist(Number(planId), checklistId),
+    onSuccess: () => refetch(),
   });
 
-  const removeSpotMutation = useMutation({
-    mutationFn: (spotId: number) => coursesApi.removeSpotFromCourse(Number(planId), spotId),
+  const addChecklistMutation = useMutation({
+    mutationFn: (content: string) => coursesApi.addChecklist(Number(planId), content),
+    onSuccess: () => refetch(),
+  });
+
+  const deleteChecklistMutation = useMutation({
+    mutationFn: (checklistId: number) => coursesApi.deleteChecklist(Number(planId), checklistId),
+    onSuccess: () => refetch(),
+  });
+
+  const syncSpotsMutation = useMutation({
+    mutationFn: (data: {
+      spots: { courseSpotId?: number, spotId: number, dayNumber: number, sequenceOrder: number, memo?: string }[]
+    }) => coursesApi.syncSpots(Number(planId), data),
+    onSuccess: () => refetch(),
   });
 
   const deleteCourseMutation = useMutation({
@@ -405,85 +504,96 @@ export default function TravelPlanScreen({ navigation, route }: any) {
     },
   });
 
-  const addSpotMutation = useMutation({
-    mutationFn: (spotData: { spotId: number; dayNumber: number; sequenceOrder: number }) => 
-      coursesApi.addSpotToCourse(Number(planId), spotData),
-    onSuccess: () => refetch(),
-  });
+
+
+  const handleMorePress = () => {
+    setIsMoreSheetVisible(true);
+  };
+
+  const buildAllSpotsPayload = React.useCallback((currentData: typeof data) => {
+    return Object.entries(currentData).flatMap(([dayStr, dayData]) => {
+      const dNum = parseInt(dayStr, 10);
+      return dayData.spots.map((s: any, index: number) => ({
+        courseSpotId: (String(s.id).startsWith("new") || isNaN(Number(s.id))) ? undefined : Number(s.id),
+        spotId: Number(s.realSpotId),
+        dayNumber: dNum,
+        sequenceOrder: index + 1,
+      }));
+    });
+  }, []);
 
   const { selectedSpots, clearSpots } = useTravelStore();
 
   useFocusEffect(
     React.useCallback(() => {
       if (selectedSpots.length > 0 && planId) {
-        const dayNum = parseInt(currentDay, 10);
-        const spotsLen = data[currentDay]?.spots?.length || 0;
         
-        selectedSpots.forEach((spot, idx) => {
-          addSpotMutation.mutate({
-            spotId: Number(spot.id),
-            dayNumber: dayNum,
-            sequenceOrder: spotsLen + idx + 1,
-          });
-        });
+        const spotsToAdd = [...selectedSpots];
         clearSpots();
+        
+        const currentSpots = data[currentDay]?.spots || [];
+        const newSpots = [
+          ...currentSpots,
+          ...spotsToAdd.map((spot: any, idx) => ({
+            id: `new_${Date.now()}_${idx}`, // 임시 ID
+            realSpotId: spot.id,
+            name: spot.title || spot.name || `스팟 ${spot.id}`,
+            loc: spot.category || "기타",
+            bg: "#ccc",
+            lat: spot.latitude || spot.mapY || spot.lat,
+            lng: spot.longitude || spot.mapX || spot.lng,
+            photo: spot.imageUrl || spot.firstimage || spot.photo || '',
+            travelTimeMinutes: null,
+          }))
+        ];
+        
+        const newData = {
+          ...data,
+          [currentDay]: { ...data[currentDay], spots: newSpots },
+        };
+        setData(newData);
+
+        syncSpotsMutation.mutate({
+          spots: buildAllSpotsPayload(newData)
+        });
       }
-    }, [selectedSpots, currentDay, data, planId, addSpotMutation, clearSpots])
+    }, [selectedSpots, currentDay, data, planId, syncSpotsMutation, clearSpots, buildAllSpotsPayload])
   );
 
   const reorderSpots = (spots: any[]) => {
-    setData((prev) => ({
-      ...prev,
-      [currentDay]: { ...prev[currentDay], spots },
-    }));
+    const newData = {
+      ...data,
+      [currentDay]: { ...data[currentDay], spots },
+    };
+    setData(newData);
     if (planId) {
-      reorderMutation.mutate(spots.map(s => Number(s.id)));
+      syncSpotsMutation.mutate({
+        spots: buildAllSpotsPayload(newData)
+      });
     }
   };
 
   const removeSpot = (spotId: string) => {
     delete rowHeights.current[spotId];
-    setData((prev) => {
-      const dayData = prev[currentDay];
-      const newSpots = dayData.spots.filter((s: any) => s.id !== spotId);
-      return {
-        ...prev,
-        [currentDay]: {
-          ...dayData,
-          spots: newSpots,
-        },
-      };
-    });
+    
+    const dayData = data[currentDay];
+    const newSpots = dayData.spots.filter((s: any) => s.id !== spotId);
+    const newData = {
+      ...data,
+      [currentDay]: {
+        ...dayData,
+        spots: newSpots,
+      },
+    };
+    setData(newData);
+    
     if (planId) {
-      removeSpotMutation.mutate(Number(spotId));
+      syncSpotsMutation.mutate({
+        spots: buildAllSpotsPayload(newData)
+      });
     }
   };
 
-  const handleMorePress = () => {
-    if (Platform.OS === 'ios') {
-      ActionSheetIOS.showActionSheetWithOptions(
-        {
-          options: ['취소', '코스 삭제'],
-          destructiveButtonIndex: 1,
-          cancelButtonIndex: 0,
-        },
-        (buttonIndex) => {
-          if (buttonIndex === 1 && planId) {
-            deleteCourseMutation.mutate();
-          }
-        }
-      );
-    } else {
-      Alert.alert(
-        '코스 삭제',
-        '정말로 이 코스를 삭제하시겠습니까?',
-        [
-          { text: '취소', style: 'cancel' },
-          { text: '삭제', style: 'destructive', onPress: () => planId && deleteCourseMutation.mutate() }
-        ]
-      );
-    }
-  };
 
   const renderKakaoMapHTML = (
     showAllDays = true,
@@ -650,7 +760,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
           </TouchableOpacity>
         </View>
 
-        <View className="px-5 pt-6 pb-0">
+        <View className="pt-6 pb-0" style={{ paddingHorizontal: CONTENT_PADDING }}>
           {/* Summary Card */}
           <View className="bg-[#f5f5f7] p-4 rounded-2xl mb-5 flex-row">
             <View className="flex-1 items-start">
@@ -664,14 +774,14 @@ export default function TravelPlanScreen({ navigation, route }: any) {
               <View className="rounded-lg bg-[#e31b59]/10 items-center justify-center mb-1" style={{ width: normalize(28), height: normalize(28) }}>
                 <IconRoad size={normalize(14)} color="#e31b59" />
               </View>
-              <Text className="font-semibold text-black tracking-tight" style={{ fontSize: normalizeFontSize(14) }}>142km</Text>
+              <Text className="font-semibold text-black tracking-tight" style={{ fontSize: normalizeFontSize(14) }}>{totalDistance}km</Text>
               <Text className="text-black/30 tracking-tight" style={{ fontSize: normalizeFontSize(12) }}>총 이동거리</Text>
             </View>
             <View className="flex-1 items-start">
               <View className="rounded-lg bg-[#e31b59]/10 items-center justify-center mb-1" style={{ width: normalize(28), height: normalize(28) }}>
                 <IconClock size={normalize(14)} color="#e31b59" />
               </View>
-              <Text className="font-semibold text-black tracking-tight" style={{ fontSize: normalizeFontSize(14) }}>12시간</Text>
+              <Text className="font-semibold text-black tracking-tight" style={{ fontSize: normalizeFontSize(14) }}>{totalDurationFormatted}</Text>
               <Text className="text-black/30 tracking-tight" style={{ fontSize: normalizeFontSize(12) }}>예상 소요</Text>
             </View>
           </View>
@@ -699,108 +809,77 @@ export default function TravelPlanScreen({ navigation, route }: any) {
 
   );
 
-  // Memoize the weather row to prevent SvgUri flickering when checklist state updates
-  const hasWeather = parseInt(currentDay) <= 2; // 목업에서 1, 2일차만 날씨 제공 시뮬레이션
+  const currentWeather = weatherData?.find((w: any) => w.dayNumber === parseInt(currentDay, 10));
+
+  const hasValidWeather = currentWeather && 
+    (currentWeather.morning?.weatherStatus !== "데이터 없음" ||
+     currentWeather.afternoon?.weatherStatus !== "데이터 없음" ||
+     currentWeather.evening?.weatherStatus !== "데이터 없음");
 
   const weatherRow = React.useMemo(
     () => (
       <View className="mt-5">
-        <Text className="text-[18px] font-semibold text-black tracking-[-0.3px] mb-5">
+        <Text className="font-semibold text-black tracking-[-0.3px] mb-5" style={{ fontSize: normalizeFontSize(18) }}>
           DAY {currentDay} 날씨
         </Text>
-        {hasWeather ? (
+        {hasValidWeather ? (
           <View className="flex-row gap-2">
-            <View className="flex-1 bg-[#f5f5f7] rounded-2xl p-3 relative">
-              <Text className="text-[12px] text-black/35 mb-1.5">오전</Text>
-              <Text className="text-[20px] font-semibold text-black mb-0.5">
-                18°
-              </Text>
-              <Text className="text-[12px] text-black/35">맑음</Text>
-              <View className="absolute right-3 top-[50%] -translate-y-2.5">
-                <SvgUri
-                  width="24"
-                  height="24"
-                  uri="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/clear-day.svg"
-                />
-              </View>
-            </View>
-            <View className="flex-1 bg-[#f5f5f7] rounded-2xl p-3 relative">
-              <Text className="text-[12px] text-black/35 mb-1.5">오후</Text>
-              <Text className="text-[20px] font-semibold text-black mb-0.5">
-                24°
-              </Text>
-              <Text className="text-[12px] text-black/35">구름 조금</Text>
-              <View className="absolute right-3 top-[50%] -translate-y-2.5">
-                <SvgUri
-                  width="24"
-                  height="24"
-                  uri="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/partly-cloudy-day.svg"
-                />
-              </View>
-            </View>
-            <View className="flex-1 bg-[#f5f5f7] rounded-2xl p-3 relative">
-              <Text className="text-[12px] text-black/35 mb-1.5">저녁</Text>
-              <Text className="text-[20px] font-semibold text-black mb-0.5">
-                20°
-              </Text>
-              <Text className="text-[12px] text-black/35">맑음</Text>
-              <View className="absolute right-3 top-[50%] -translate-y-2.5">
-                <SvgUri
-                  width="24"
-                  height="24"
-                  uri="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/clear-night.svg"
-                />
-              </View>
-            </View>
+            {currentWeather.morning && <WeatherCell period="오전" data={currentWeather.morning} />}
+            {currentWeather.afternoon && <WeatherCell period="오후" data={currentWeather.afternoon} />}
+            {currentWeather.evening && <WeatherCell period="저녁" data={currentWeather.evening} />}
           </View>
         ) : (
           <View className="bg-[#f5f5f7] rounded-2xl p-6 items-center justify-center">
             <IconWand
               size={32}
               color="rgba(0,0,0,0.3)"
-              style={{ marginBottom: 8 }}
+              style={{ marginBottom: normalize(8) }}
             />
-            <Text className="text-[15px] font-semibold text-black/70 mb-0.5">
+            <Text className="font-semibold text-black/70 mb-0.5" style={{ fontSize: normalizeFontSize(15) }}>
               날씨 요정도 아직 모른대요
             </Text>
-            <Text className="text-[13px] text-black/40">
+            <Text className="text-black/40" style={{ fontSize: normalizeFontSize(13) }}>
               어떤 날씨든 완벽한 여행이 될 거예요!
             </Text>
           </View>
         )}
       </View>
     ),
-    [currentDay, hasWeather],
+    [currentDay, currentWeather, hasValidWeather]
   );
 
   const renderFooter = () => (
-    <View className="px-5 pb-12 pt-4">
+    <View className="pb-12 pt-4" style={{ paddingHorizontal: CONTENT_PADDING }}>
       {isEditMode && (
         <TouchableOpacity
           onPress={() => navigation.navigate("Map", { source: "plan" })}
           className="h-12 border-[1px] border-dashed border-black/10 rounded-2xl items-center justify-center mb-6 mt-2 flex-row"
         >
-          <Text className="text-[15px] text-black/25 font-medium">
+          <Text className="text-black/25 font-medium" style={{ fontSize: normalizeFontSize(15) }}>
             + 스팟 추가하기
           </Text>
         </TouchableOpacity>
       )}
 
-      <View className="h-[1px] bg-black/5" />
+      <View className="bg-black/5" style={{ height: normalize(1) }} />
 
       {/* Tip Banner */}
       <View className="flex-row gap-3 p-4 bg-[#f5f5f7] rounded-2xl mt-4 items-center">
-        {currentData.tip ? (
+        {currentWeather && currentWeather.sunsetTime ? (
           <>
             <View className="w-8 h-8 rounded-lg bg-[#e31b59]/10 items-center justify-center shrink-0">
               <IconInfoCircle size={16} color="#e31b59" />
             </View>
             <View className="flex-1">
-              <Text className="text-[14px] font-semibold text-black tracking-[-0.15px] mb-0.5">
+              <Text className="font-semibold text-black tracking-[-0.15px] mb-0.5" style={{ fontSize: normalizeFontSize(14) }}>
                 오늘의 촬영 팁
               </Text>
-              <Text className="text-[12px] text-black/50 leading-relaxed">
-                {currentData.tip}
+              <Text className="text-black/50 leading-relaxed" style={{ fontSize: normalizeFontSize(12) }}>
+                {(() => {
+                  const { sunset, golden } = getSunsetAndGoldenHour(currentWeather.sunsetTime);
+                  const fineDust = currentWeather.fineDustStatus ? `미세먼지 ${currentWeather.fineDustStatus} · ` : '';
+                  return `${currentWeather.targetSpotName} 일몰 시간 ${sunset} · 골든아워 ${golden}\n${fineDust}일몰 포인트로 이동 추천`;
+                })()}
               </Text>
             </View>
           </>
@@ -810,10 +889,10 @@ export default function TravelPlanScreen({ navigation, route }: any) {
               <IconCamera size={16} color="#e31b59" />
             </View>
             <View className="flex-1">
-              <Text className="text-[14px] font-semibold text-black tracking-[-0.15px] mb-0.5">
+              <Text className="font-semibold text-black tracking-[-0.15px] mb-0.5" style={{ fontSize: normalizeFontSize(14) }}>
                 자유로운 셔터 찬스
               </Text>
-              <Text className="text-[12px] text-black/50 leading-relaxed">
+              <Text className="text-black/50 leading-relaxed" style={{ fontSize: normalizeFontSize(12) }}>
                 계획에 얽매이지 말고 발길 닿는 대로, 마음 가는 대로 셔터를
                 눌러보세요!
               </Text>
@@ -825,37 +904,48 @@ export default function TravelPlanScreen({ navigation, route }: any) {
       {/* Weather Row */}
       {weatherRow}
 
-
       {/* Checklist */}
-      {COMMON_CHECKLIST.length > 0 && (
-        <View className="mt-8">
-          <Text className="text-[18px] font-semibold text-black tracking-[-0.3px] mb-5">
-            촬영 체크리스트
-          </Text>
-          <View className="flex-row flex-wrap gap-2">
-            {COMMON_CHECKLIST.map((item, idx) => {
-              const isChecked = checkedItems.includes(item);
-              return (
-                <TouchableOpacity
-                  key={idx}
-                  activeOpacity={0.7}
-                  onPress={() => toggleChecklist(item)}
-                  className={`flex-row items-center gap-1.5 px-3 py-2 rounded-full border border-black/5 ${isChecked ? "bg-[#e31b59]/10" : "bg-[#f5f5f7]"}`}
+      <View className="mt-8">
+        <Text className="font-semibold text-black tracking-[-0.3px] mb-5" style={{ fontSize: normalizeFontSize(18) }}>
+          촬영 체크리스트
+        </Text>
+        <View className="flex-row flex-wrap gap-2 mb-3">
+          {(course?.checklists || []).map((item: any) => {
+            const isChecked = item.isChecked;
+            return (
+              <TouchableOpacity
+                key={item.id}
+                activeOpacity={0.7}
+                onPress={() => toggleChecklistMutation.mutate(item.id)}
+                onLongPress={() => {
+                  Alert.alert("삭제", "이 항목을 삭제하시겠습니까?", [
+                    { text: "취소", style: "cancel" },
+                    { text: "삭제", style: "destructive", onPress: () => deleteChecklistMutation.mutate(item.id) }
+                  ]);
+                }}
+                className={`flex-row items-center gap-1.5 px-3 py-2 rounded-full border border-black/5 ${isChecked ? "bg-[#e31b59]/10" : "bg-[#f5f5f7]"}`}
+              >
+                <View
+                  className={`w-1.5 h-1.5 rounded-full ${isChecked ? "bg-[#e31b59]" : "bg-black/15"}`}
+                />
+                <Text
+                  className={`tracking-[-0.2px] ${isChecked ? "text-[#e31b59]" : "text-black"}`}
+                  style={{ fontSize: normalizeFontSize(13), textDecorationLine: isChecked ? "line-through" : "none" }}
                 >
-                  <View
-                    className={`w-1.5 h-1.5 rounded-full ${isChecked ? "bg-[#e31b59]" : "bg-black/15"}`}
-                  />
-                  <Text
-                    className={`text-[13px] tracking-[-0.2px] ${isChecked ? "text-[#e31b59]" : "text-black"}`}
-                  >
-                    {item}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
+                  {item.content}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
-      )}
+        <TouchableOpacity 
+          activeOpacity={0.7}
+          onPress={() => setIsChecklistModalVisible(true)}
+          className="flex-row items-center bg-[#f5f5f7] rounded-full px-4 h-10 border border-black/5"
+        >
+          <Text className="text-black/30 tracking-[-0.2px]" style={{ fontSize: normalizeFontSize(13) }}>준비물 추가...</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 
@@ -870,7 +960,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
 
     return (
       <View
-        className="px-5 relative pt-1"
+        className="relative pt-1" style={{ paddingHorizontal: CONTENT_PADDING }}
         onLayout={(e) => {
           rowHeights.current[item.id] = e.nativeEvent.layout.height;
         }}
@@ -890,7 +980,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
             ]}
           >
             <View className="absolute -top-2 -left-2 w-6 h-6 rounded-full items-center justify-center z-20 shadow-sm bg-black">
-              <Text className="text-[10px] font-semibold text-white">
+              <Text className="font-semibold text-white" style={{ fontSize: normalizeFontSize(10) }}>
                 {idx + 1}
               </Text>
             </View>
@@ -902,16 +992,25 @@ export default function TravelPlanScreen({ navigation, route }: any) {
                 <IconTrash size={12} color="rgba(227,27,89,0.9)" />
               </TouchableOpacity>
             )}
-            <View
-              className="w-[72px] h-[72px] rounded-xl shrink-0"
-              style={{ backgroundColor: item.bg }}
-            />
+            {item.photo ? (
+              <Image
+                source={{ uri: item.photo }}
+                className="rounded-xl shrink-0 bg-[#e8e8ed]"
+                style={{ width: normalize(72), height: normalize(72) }}
+                resizeMode="cover"
+              />
+            ) : (
+              <View
+                className="rounded-xl shrink-0"
+                style={{ width: normalize(72), height: normalize(72),  backgroundColor: item.bg }}
+              />
+            )}
             <View
               className={`flex-1 justify-center ${isEditMode ? "pr-10" : "pr-4"}`}
             >
               <View className="flex-row items-center justify-between mb-1">
                 <Text
-                  className="text-[16px] font-semibold text-black tracking-[-0.2px]"
+                  className="font-semibold text-black tracking-[-0.2px]" style={{ fontSize: normalizeFontSize(16) }}
                   numberOfLines={1}
                 >
                   {item.name}
@@ -920,15 +1019,15 @@ export default function TravelPlanScreen({ navigation, route }: any) {
                   className="px-2.5 h-6 rounded-full items-center justify-center"
                   style={{ backgroundColor: item.scoreColor }}
                 >
-                  <Text className="text-[12px] font-semibold text-white">
+                  <Text className="font-semibold text-white" style={{ fontSize: normalizeFontSize(12) }}>
                     {item.score}
                   </Text>
                 </View>
               </View>
-              <Text className="text-[12px] text-black/40 mb-2">{item.loc}</Text>
+              <Text className="text-black/40 mb-2" style={{ fontSize: normalizeFontSize(12) }}>{item.loc}</Text>
               <View className="flex-row items-center gap-1.5">
                 <IconClock size={12} color="rgba(0,0,0,0.3)" />
-                <Text className="text-[12px] text-black/50">
+                <Text className="text-black/50" style={{ fontSize: normalizeFontSize(12) }}>
                   {item.time} <Text className="text-black/25">{item.dur}</Text>
                 </Text>
               </View>
@@ -960,7 +1059,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
               ) : (
                 <IconWalk size={14} color="rgba(0,0,0,0.3)" />
               )}
-              <Text className="text-[12px] text-black/45">
+              <Text className="text-black/45" style={{ fontSize: normalizeFontSize(12) }}>
                 {transport.label}
               </Text>
             </View>
@@ -972,8 +1071,12 @@ export default function TravelPlanScreen({ navigation, route }: any) {
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={["top"]}>
+      <KeyboardAvoidingView 
+        style={{ flex: 1 }} 
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+      >
       {/* Sticky Navbar */}
-      <View className="h-[52px] flex-row items-center px-3.5 border-b-[0.5px] border-black/5 z-50 bg-white">
+      <View className="flex-row items-center px-3.5 border-b-[0.5px] border-black/5 z-50 bg-white" style={{ height: HEADER_HEIGHT }}>
         <TouchableOpacity
           onPress={() => navigation.goBack()}
           className="w-8 h-8 rounded-full bg-black/5 items-center justify-center shrink-0"
@@ -982,21 +1085,21 @@ export default function TravelPlanScreen({ navigation, route }: any) {
         </TouchableOpacity>
         <View className="flex-1 mx-3">
           <Text
-            className="text-[16px] font-semibold tracking-[-0.35px]"
+            className="font-semibold tracking-[-0.35px]" style={{ fontSize: normalizeFontSize(16) }}
             numberOfLines={1}
           >
             {course?.title || "출사 계획"}
           </Text>
-          <Text className="text-[11px] text-black/40 tracking-[-0.1px] mt-[1px]">
+          <Text className="text-black/40 tracking-[-0.1px] mt-[1px]" style={{ fontSize: normalizeFontSize(11) }}>
             {course ? `${course.startDate.replace(/-/g, '.')} ~ ${course.endDate.replace(/-/g, '.')}` : "날짜 미정"}
           </Text>
         </View>
         <View className="flex-row gap-1">
-          <TouchableOpacity className="w-8 h-8 rounded-full bg-black/5 items-center justify-center">
+          <TouchableOpacity 
+            onPress={() => setShareSheetVisible(true)}
+            className="w-8 h-8 rounded-full bg-black/5 items-center justify-center"
+          >
             <IconShare size={18} color="rgba(0,0,0,0.6)" />
-          </TouchableOpacity>
-          <TouchableOpacity className="w-8 h-8 rounded-full bg-black/5 items-center justify-center">
-            <IconMap size={18} color="rgba(0,0,0,0.6)" />
           </TouchableOpacity>
           <TouchableOpacity 
             onPress={handleMorePress}
@@ -1019,14 +1122,14 @@ export default function TravelPlanScreen({ navigation, route }: any) {
         >
           {renderHeader()}
           <View className="bg-white">
-            <View className="flex-row items-center justify-between px-5 mb-4">
-              <Text className="text-[18px] font-semibold text-black tracking-[-0.3px]">
+            <View className="flex-row items-center justify-between mb-4" style={{ paddingHorizontal: CONTENT_PADDING }}>
+              <Text className="font-semibold text-black tracking-[-0.3px]" style={{ fontSize: normalizeFontSize(18) }}>
                 타임라인
               </Text>
             </View>
 
             {isEditMode && (
-              <View className="px-5 mb-4">
+              <View className="mb-4" style={{ paddingHorizontal: CONTENT_PADDING }}>
                 <View className="bg-transparent border border-black/5 rounded-xl py-3 px-4 items-center">
                   <Text
                     style={{
@@ -1047,7 +1150,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
 
         {currentData.spots.length === 0 ? (
           <View className="items-center justify-center py-10 bg-white">
-            <Text className="text-[14px] text-black/40">
+            <Text className="text-black/40" style={{ fontSize: normalizeFontSize(14) }}>
               등록된 스팟이 없습니다.
             </Text>
           </View>
@@ -1072,9 +1175,10 @@ export default function TravelPlanScreen({ navigation, route }: any) {
         {isEditMode ? (
           <TouchableOpacity
             onPress={() => setIsEditMode(false)}
-            className="flex-1 h-[52px] rounded-full bg-[#e31b59] items-center justify-center"
+            className="flex-1 rounded-full bg-[#e31b59] items-center justify-center"
+            style={{ height: BUTTON_HEIGHT }}
           >
-            <Text className="text-[16px] font-medium text-white">
+            <Text className="font-medium text-white" style={{ fontSize: normalizeFontSize(16) }}>
               편집 완료
             </Text>
           </TouchableOpacity>
@@ -1082,17 +1186,19 @@ export default function TravelPlanScreen({ navigation, route }: any) {
           <>
             <TouchableOpacity
               onPress={() => setIsEditMode(true)}
-              className="flex-1 h-[52px] rounded-full bg-[#f5f5f7] items-center justify-center"
+              className="flex-1 rounded-full bg-[#f5f5f7] items-center justify-center"
+              style={{ height: BUTTON_HEIGHT }}
             >
-              <Text className="text-[16px] font-medium text-black">
+              <Text className="font-medium text-black" style={{ fontSize: normalizeFontSize(16) }}>
                 코스 편집
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => setIsDepartModalVisible(true)}
-              className="flex-1 h-[52px] rounded-full bg-[#e31b59] items-center justify-center"
+              className="flex-1 rounded-full bg-[#e31b59] items-center justify-center"
+              style={{ height: BUTTON_HEIGHT }}
             >
-              <Text className="text-[16px] font-medium text-white">
+              <Text className="font-medium text-white" style={{ fontSize: normalizeFontSize(16) }}>
                 바로 출발
               </Text>
             </TouchableOpacity>
@@ -1107,6 +1213,85 @@ export default function TravelPlanScreen({ navigation, route }: any) {
         address={currentData?.spots?.[0]?.loc || ""}
         onLaunched={(msg) => Alert.alert("안내", msg)}
       />
+
+      <CourseMoreSheet
+        visible={isMoreSheetVisible}
+        onClose={() => setIsMoreSheetVisible(false)}
+        courseName={course?.title || "출사 계획"}
+        onEditName={() => {
+          if (planId && course) {
+            navigation.navigate('TravelNew', {
+              editMode: true,
+              courseId: planId,
+              initialTitle: course.title,
+              initialStartDate: course.startDate,
+              initialEndDate: course.endDate
+            });
+          }
+        }}
+        onDuplicate={() => Alert.alert('알림', '복제 기능은 준비중입니다.')}
+        onInvite={() => Alert.alert('알림', '공동 편집자 초대 기능은 준비중입니다.')}
+        onAddToCalendar={() => Alert.alert('알림', '캘린더 추가 기능은 준비중입니다.')}
+        onDelete={() => {
+          Alert.alert(
+            '이 계획 전체 삭제',
+            '정말 삭제하시겠습니까? 되돌릴 수 없어요.',
+            [
+              { text: '취소', style: 'cancel' },
+              { text: '삭제', style: 'destructive', onPress: () => deleteCourseMutation.mutate() }
+            ]
+          );
+        }}
+      />
+
+      <CourseShareSheet
+        visible={isShareSheetVisible}
+        onClose={() => setShareSheetVisible(false)}
+        courseName={course?.title || "출사 계획"}
+        spotCount={(course?.spots || []).length}
+        onCopyLink={() => Alert.alert('알림', '링크가 복사되었습니다.')}
+        onSaveImage={() => Alert.alert('알림', '이미지로 저장 기능은 준비중입니다.')}
+        onExportPdf={() => Alert.alert('알림', 'PDF로 내보내기 기능은 준비중입니다.')}
+        onShareSocial={(platform) => Alert.alert('알림', `${platform} 공유 기능은 준비중입니다.`)}
+      />
+
+      {isChecklistModalVisible && (
+        <View className="absolute inset-0 z-[100] bg-black/40 justify-center items-center">
+          <TouchableOpacity 
+            className="absolute inset-0" 
+            activeOpacity={1} 
+            onPress={() => setIsChecklistModalVisible(false)} 
+          />
+          <KeyboardAvoidingView 
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            className="w-full"
+            style={{ paddingHorizontal: CONTENT_PADDING }}
+          >
+            <View className="bg-white rounded-2xl p-4">
+              <Text className="font-semibold mb-3 tracking-[-0.3px] text-black" style={{ fontSize: normalizeFontSize(16) }}>준비물 추가</Text>
+              <TextInput
+                autoFocus
+                placeholder="어떤 준비물이 필요한가요?"
+                placeholderTextColor="rgba(0,0,0,0.3)"
+                value={newChecklistText}
+                onChangeText={setNewChecklistText}
+                onSubmitEditing={() => {
+                  if (newChecklistText.trim()) {
+                    addChecklistMutation.mutate(newChecklistText.trim());
+                    setNewChecklistText("");
+                  }
+                  setIsChecklistModalVisible(false);
+                }}
+                className="bg-[#f5f5f7] rounded-xl px-4 tracking-[-0.2px] text-black"
+                style={{ height: normalize(48), fontSize: normalizeFontSize(15) }}
+                returnKeyType="done"
+              />
+            </View>
+          </KeyboardAvoidingView>
+        </View>
+      )}
+
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

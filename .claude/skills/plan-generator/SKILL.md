@@ -9,7 +9,7 @@
 
 ## 입력
 
-- 스펙 문서 경로 (`docs/ai/specs/<feature-name>.md`)
+- 스펙 문서 경로 (`docs/ai/specs/<branch>/<feature-name>.md`)
 - 필요 시 참고 목업/화면 경로
 
 ## 동작 규칙
@@ -37,4 +37,4 @@
 4) Verification Plan  
 5) Risks & Rollback  
 6) PR 구성 (제목 컨벤션 / 변경 요약 / 리뷰 포인트)  
-7) Plan File Path (`docs/ai/plans/<feature-name>-plan.md`)
+7) Plan File Path (`docs/ai/plans/<branch>/<feature-name>-plan.md`)

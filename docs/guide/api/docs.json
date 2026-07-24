@@ -1,0 +1,3908 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "PicNGo API 명세서",
+    "description": "PicNGo 프로젝트의 백엔드 API 명세서입니다.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:8080",
+      "description": "Generated server url"
+    }
+  ],
+  "tags": [
+    {
+      "name": "외부 API 연동 (External)",
+      "description": "길찾기, 기상청, 일출/일몰 외부 API 통신 컨트롤러"
+    },
+    {
+      "name": "리뷰 (Review)",
+      "description": "리뷰 수정/삭제 API"
+    },
+    {
+      "name": "인증 (Auth)",
+      "description": "회원가입, 로그인, 소셜 로그인, 이메일 인증 API"
+    },
+    {
+      "name": "사용자 (User)",
+      "description": "사용자 정보 조회 API"
+    },
+    {
+      "name": "알림 (Notification)",
+      "description": "알림 내역 조회 및 수신 설정 API"
+    },
+    {
+      "name": "코스 (Course)",
+      "description": "코스 생성, 조회 및 코스 내 방문 장소 관리 API"
+    },
+    {
+      "name": "스팟 (Spot)",
+      "description": "스팟 관련 (목록, 검색, 지도, 상세, 리뷰 등) API"
+    },
+    {
+      "name": "위시리스트 (Wishlist)",
+      "description": "사용자 찜(위시리스트) 폴더 및 장소 관리 API"
+    }
+  ],
+  "paths": {
+    "/wishlist/{spotId}": {
+      "get": {
+        "tags": [
+          "위시리스트 (Wishlist)"
+        ],
+        "summary": "위시리스트 상세 설정 조회",
+        "description": "특정 스팟의 위시리스트 알림 설정을 조회합니다.",
+        "operationId": "getWishlistDetail",
+        "parameters": [
+          {
+            "name": "spotId",
+            "in": "path",
+            "description": "스팟 ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/WishlistSettingResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "위시리스트 (Wishlist)"
+        ],
+        "summary": "위시리스트 설정 저장 (추가/수정)",
+        "description": "특정 스팟의 위시리스트 설정을 저장합니다. 기존에 없으면 새로 생성하고, 있으면 덮어씁니다.",
+        "operationId": "updateWishlistSettings",
+        "parameters": [
+          {
+            "name": "spotId",
+            "in": "path",
+            "description": "스팟 ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WishlistSettingUpdateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/WishlistSettingResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "위시리스트 (Wishlist)"
+        ],
+        "summary": "위시리스트에서 장소 제거",
+        "description": "특정 스팟을 위시리스트에서 완전히 삭제합니다.",
+        "operationId": "deleteWishlist",
+        "parameters": [
+          {
+            "name": "spotId",
+            "in": "path",
+            "description": "스팟 ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/reviews/{id}": {
+      "put": {
+        "tags": [
+          "리뷰 (Review)"
+        ],
+        "summary": "리뷰 수정",
+        "description": "본인 리뷰만 수정할 수 있습니다.",
+        "operationId": "updateReview",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "리뷰 ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "리뷰 (Review)"
+        ],
+        "summary": "리뷰 삭제",
+        "description": "본인 리뷰만 삭제할 수 있습니다.",
+        "operationId": "deleteReview",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "리뷰 ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/notifications/{id}/read": {
+      "put": {
+        "tags": [
+          "알림 (Notification)"
+        ],
+        "summary": "알림 단건 읽음 처리",
+        "description": "특정 알림을 읽음 상태로 변경합니다.",
+        "operationId": "markAsRead",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "알림 ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/notifications/settings": {
+      "put": {
+        "tags": [
+          "알림 (Notification)"
+        ],
+        "summary": "알림 수신 설정 변경",
+        "description": "푸시 알림 수신 여부 및 방해금지 시간(DND)을 변경합니다.",
+        "operationId": "updateSettings",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NotificationSettingUpdateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/notifications/read-all": {
+      "put": {
+        "tags": [
+          "알림 (Notification)"
+        ],
+        "summary": "모든 알림 읽음 처리",
+        "description": "사용자의 안 읽은 모든 알림을 읽음 상태로 변경합니다.",
+        "operationId": "markAllAsRead",
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/courses/{id}": {
+      "get": {
+        "tags": [
+          "코스 (Course)"
+        ],
+        "summary": "코스 상세 조회",
+        "description": "특정 코스의 상세 정보와 포함된 명소 목록을 조회합니다.",
+        "operationId": "getCourseDetail",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "코스 ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourseDetailResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "코스 (Course)"
+        ],
+        "summary": "코스 정보 수정",
+        "description": "코스의 이름이나 설명을 수정합니다.",
+        "operationId": "updateCourse",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CourseCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourseResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "코스 (Course)"
+        ],
+        "summary": "코스 삭제",
+        "description": "특정 코스를 삭제합니다.",
+        "operationId": "deleteCourse",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/courses/{id}/spots/order": {
+      "put": {
+        "tags": [
+          "코스 (Course)"
+        ],
+        "summary": "명소 순서 변경",
+        "description": "코스 내 명소들의 방문 순서를 변경하고 길찾기 데이터를 재계산합니다.",
+        "operationId": "updateSpotOrder",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CourseSpotOrderUpdateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/courses/{id}/checklists/{checklistId}": {
+      "put": {
+        "tags": [
+          "코스 (Course)"
+        ],
+        "summary": "코스 체크리스트 완료 토글",
+        "description": "코스 체크리스트 항목의 완료 여부를 토글합니다.",
+        "operationId": "toggleCourseChecklist",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "checklistId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourseChecklistResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "코스 (Course)"
+        ],
+        "summary": "코스 체크리스트 삭제",
+        "description": "코스 체크리스트 항목을 삭제합니다.",
+        "operationId": "deleteCourseChecklist",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "checklistId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "코스 (Course)"
+        ],
+        "summary": "코스 체크리스트 내용 수정",
+        "description": "코스 체크리스트 항목의 내용을 수정합니다.",
+        "operationId": "updateCourseChecklist",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "checklistId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CourseChecklistRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourseChecklistResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tour-api/sync": {
+      "post": {
+        "tags": [
+          "외부 API 연동 (External)"
+        ],
+        "summary": "한국관광공사 특정 지역 스팟 동기화",
+        "description": "TourAPI에서 특정 지역 관광지 전체를 페이지 순환하여 DB에 저장합니다. areaCode: 1=서울, 6=부산, 39=제주 등",
+        "operationId": "syncSpots",
+        "parameters": [
+          {
+            "name": "areaCode",
+            "in": "query",
+            "description": "지역 코드 (1=서울, 2=인천, 3=대전, 4=대구, 5=광주, 6=부산, 7=울산, 8=세종, 31=경기, 32=강원, 33=충북, 34=충남, 35=경북, 36=경남, 37=전북, 38=전남, 39=제주)",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "startPage",
+            "in": "query",
+            "description": "시작 페이지 (분할 sync 시 사용, 미입력 시 전체)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          {
+            "name": "endPage",
+            "in": "query",
+            "description": "끝 페이지 (분할 sync 시 사용, 미입력 시 전체)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tour-api/sync/all": {
+      "post": {
+        "tags": [
+          "외부 API 연동 (External)"
+        ],
+        "summary": "한국관광공사 전체 지역 스팟 동기화",
+        "description": "전국 17개 지역 관광지 데이터를 totalCount 기반 페이지 순환으로 전부 가져옵니다. 최초 1회 실행용.\n\n⚠️ 주의: 스팟 수만큼 detailCommon API를 추가 호출하므로 완료까지 상당한 시간이 소요됩니다.\n중간 업데이트가 필요하거나 특정 지역만 갱신할 경우 POST /tour-api/sync (areaCode 지정)를 사용하세요.",
+        "operationId": "syncAll",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/spots/{id}/reviews": {
+      "get": {
+        "tags": [
+          "스팟 (Spot)"
+        ],
+        "summary": "리뷰 목록 조회",
+        "description": "스팟의 리뷰 목록과 요약 정보를 반환합니다. sort: LATEST(기본) | RATING_HIGH | RATING_LOW",
+        "operationId": "getReviews",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "스팟 ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "정렬 기준",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "LATEST"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "페이지 번호 (0부터)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "description": "페이지 크기",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewListResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "스팟 (Spot)"
+        ],
+        "summary": "리뷰 작성",
+        "description": "스팟에 리뷰를 작성합니다. 사진은 최대 10장까지 함께 업로드할 수 있습니다.",
+        "operationId": "createReview",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "스팟 ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "request": {
+                    "$ref": "#/components/schemas/ReviewRequest"
+                  },
+                  "photos": {
+                    "type": "array",
+                    "description": "리뷰 사진 목록, 최대 10장",
+                    "maxItems": 10,
+                    "items": {
+                      "type": "string",
+                      "format": "binary"
+                    }
+                  }
+                },
+                "required": [
+                  "request"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReviewResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/spots/{id}/checklist": {
+      "get": {
+        "tags": [
+          "스팟 (Spot)"
+        ],
+        "summary": "촬영 체크리스트 조회",
+        "description": "시스템 기본 항목(cat3 기반) + 사용자 추가 항목을 반환합니다.",
+        "operationId": "getChecklist",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "스팟 ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChecklistResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "스팟 (Spot)"
+        ],
+        "summary": "체크리스트 항목 추가",
+        "description": "사용자가 체크리스트 항목을 추가합니다. 최대 10개, 내용 20자 이하.",
+        "operationId": "addChecklistItem",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "스팟 ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChecklistRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChecklistItemDto"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/spots/{id}/bookmark": {
+      "post": {
+        "tags": [
+          "스팟 (Spot)"
+        ],
+        "summary": "북마크 토글",
+        "description": "북마크를 추가하거나 취소합니다. isBookmarked: true면 추가됨, false면 취소됨.",
+        "operationId": "toggleBookmark",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "스팟 ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/BookmarkResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/notifications/token": {
+      "post": {
+        "tags": [
+          "알림 (Notification)"
+        ],
+        "summary": "FCM 토큰 등록/갱신",
+        "description": "푸시 알림 수신을 위한 기기 토큰을 저장합니다.",
+        "operationId": "updateFcmToken",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FcmTokenRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/courses": {
+      "get": {
+        "tags": [
+          "코스 (Course)"
+        ],
+        "summary": "전체 코스 목록 조회",
+        "description": "사용자가 생성하거나 접근 가능한 코스 목록을 반환합니다.",
+        "operationId": "getCourses",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CourseResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "코스 (Course)"
+        ],
+        "summary": "새 코스 생성",
+        "description": "새로운 사진 코스를 생성합니다.",
+        "operationId": "createCourse",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CourseCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourseResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/courses/{id}/spots": {
+      "post": {
+        "tags": [
+          "코스 (Course)"
+        ],
+        "summary": "코스에 명소 추가",
+        "description": "코스에 새로운 명소를 추가하고, 길찾기 소요시간을 갱신합니다.",
+        "operationId": "addCourseSpot",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CourseSpotAddRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourseSpotResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/courses/{id}/checklists": {
+      "post": {
+        "tags": [
+          "코스 (Course)"
+        ],
+        "summary": "코스 체크리스트 추가",
+        "description": "코스에 새로운 체크리스트 항목을 추가합니다.",
+        "operationId": "addCourseChecklist",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CourseChecklistRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/CourseChecklistResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "tags": [
+          "인증 (Auth)"
+        ],
+        "summary": "일반 회원가입",
+        "description": "이메일 인증이 완료된 사용자 정보를 바탕으로 일반 회원을 생성하고 액세스 토큰을 반환합니다.",
+        "operationId": "signUp",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SignUpRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/password/reset": {
+      "post": {
+        "tags": [
+          "인증 (Auth)"
+        ],
+        "summary": "비밀번호 재설정",
+        "description": "이메일과 인증 코드, 새 비밀번호를 검증하여 비밀번호를 변경합니다.",
+        "operationId": "resetPassword",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordResetRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/auth/password/reset/code": {
+      "post": {
+        "tags": [
+          "인증 (Auth)"
+        ],
+        "summary": "비밀번호 재설정 인증 코드 발송",
+        "description": "가입된 이메일로 비밀번호 재설정 인증 코드를 발송합니다.",
+        "operationId": "sendPasswordResetCode",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PasswordResetCodeRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmailVerificationResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": [
+          "인증 (Auth)"
+        ],
+        "summary": "일반 로그인",
+        "description": "이메일과 비밀번호로 일반 회원을 인증하고 액세스 토큰을 반환합니다.",
+        "operationId": "login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/login/social": {
+      "post": {
+        "tags": [
+          "인증 (Auth)"
+        ],
+        "summary": "카카오 로그인",
+        "description": "카카오 SDK에서 발급받은 accessToken으로 사용자를 인증하고, 가입 이력이 없으면 소셜 회원을 생성한 뒤 서비스 액세스 토큰을 반환합니다.",
+        "operationId": "loginWithKakao",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/KakaoLoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/email/verify": {
+      "post": {
+        "tags": [
+          "인증 (Auth)"
+        ],
+        "summary": "이메일 인증 코드 발송",
+        "description": "아직 가입되지 않은 이메일 주소로 인증 코드를 발송합니다.",
+        "operationId": "sendEmailVerificationCode",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmailVerificationRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmailVerificationResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/email/confirm": {
+      "post": {
+        "tags": [
+          "인증 (Auth)"
+        ],
+        "summary": "이메일 인증 코드 확인",
+        "description": "사용자가 입력한 인증 코드를 확인하고 이메일 인증 완료 상태로 처리합니다.",
+        "operationId": "confirmEmailVerificationCode",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EmailConfirmRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/EmailVerificationResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/me/spot-categories": {
+      "patch": {
+        "tags": [
+          "사용자 (User)"
+        ],
+        "summary": "내 관심테마 수정",
+        "description": "현재 인증된 사용자의 관심 테마를 수정합니다.",
+        "operationId": "updateSpotCategories",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UserSpotCategoryUpdateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/wishlist": {
+      "get": {
+        "tags": [
+          "위시리스트 (Wishlist)"
+        ],
+        "summary": "내 위시리스트 목록 조회",
+        "description": "사용자가 위시리스트에 담은 모든 스팟 목록과 설정을 조회합니다.",
+        "operationId": "getWishlists",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WishlistSettingResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/weather": {
+      "get": {
+        "tags": [
+          "외부 API 연동 (External)"
+        ],
+        "summary": "단기 날씨 예보 조회",
+        "description": "특정 좌표의 단기 날씨 예보를 조회합니다.",
+        "operationId": "getWeather",
+        "parameters": [
+          {
+            "name": "lat",
+            "in": "query",
+            "description": "위도",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            },
+            "example": 37.5665
+          },
+          {
+            "name": "lng",
+            "in": "query",
+            "description": "경도",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            },
+            "example": 126.978
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "description": "기준일 (yyyyMMdd)",
+            "required": false,
+            "schema": {
+              "type": "string"
+            },
+            "example": 20231026
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WeatherForecastResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/me": {
+      "get": {
+        "tags": [
+          "사용자 (User)"
+        ],
+        "summary": "내 정보 조회",
+        "description": "현재 인증된 사용자의 기본 정보를 조회합니다.",
+        "operationId": "me",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/spots": {
+      "get": {
+        "tags": [
+          "스팟 (Spot)"
+        ],
+        "summary": "스팟 목록 조회",
+        "description": "승인된 스팟 목록을 카테고리, 정렬, 페이지 조건에 따라 조회합니다.",
+        "operationId": "getSpots",
+        "parameters": [
+          {
+            "name": "category",
+            "in": "query",
+            "description": "스팟 카테고리",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sort",
+            "in": "query",
+            "description": "정렬 기준: latest, popular, score",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "latest"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "페이지 번호",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "description": "페이지 크기",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageSpotResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/spots/{id}": {
+      "get": {
+        "tags": [
+          "스팟 (Spot)"
+        ],
+        "summary": "스팟 상세 조회",
+        "description": "스팟 ID로 상세 정보를 조회합니다. 태그, 편의정보, 체크리스트, 통계, 북마크 여부를 포함합니다.",
+        "operationId": "getSpotDetail",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "스팟 ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpotDetailResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/spots/{id}/summary": {
+      "get": {
+        "tags": [
+          "스팟 (Spot)"
+        ],
+        "summary": "스팟 요약 카드 조회",
+        "description": "지도 핀 선택 시 하단 요약 카드에 표시할 스팟 정보를 조회합니다.",
+        "operationId": "getSpotSummary",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "스팟 ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpotSummaryResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/spots/{id}/photos": {
+      "get": {
+        "tags": [
+          "스팟 (Spot)"
+        ],
+        "summary": "스팟 사진 목록 조회",
+        "description": "한국관광공사 TourAPI에서 스팟 공식 사진 목록을 실시간 조회합니다. 사용자 등록 스팟은 빈 배열 반환.",
+        "operationId": "getSpotPhotos",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "스팟 ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpotPhotoResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/spots/{id}/photogenic-score": {
+      "get": {
+        "tags": [
+          "스팟 (Spot)"
+        ],
+        "summary": "포토제닉 지수 조회",
+        "description": "날씨·미세먼지·시즌·골든아워 기반 포토제닉 점수를 반환합니다.",
+        "operationId": "getPhotogenicScore",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "스팟 ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PhotogenicResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/spots/{id}/golden-hour": {
+      "get": {
+        "tags": [
+          "외부 API 연동 (External)"
+        ],
+        "summary": "명소 골든아워 조회",
+        "description": "특정 명소의 일출/일몰 시간을 가져와 골든아워(사진 찍기 좋은 시간)를 계산합니다.",
+        "operationId": "getSpotGoldenHour",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "명소 ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "date",
+            "in": "query",
+            "description": "조회 날짜 (yyyy-MM-dd)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/GoldenHourResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/spots/search": {
+      "get": {
+        "tags": [
+          "스팟 (Spot)"
+        ],
+        "summary": "스팟 검색",
+        "description": "검색어를 기준으로 스팟 이름, 주소, 개요를 검색합니다.",
+        "operationId": "searchSpots",
+        "parameters": [
+          {
+            "name": "keyword",
+            "in": "query",
+            "description": "검색어",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "description": "스팟 카테고리",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "페이지 번호",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "description": "페이지 크기",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/PageSpotResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/spots/recommended": {
+      "get": {
+        "tags": [
+          "스팟 (Spot)"
+        ],
+        "summary": "추천 스팟 조회",
+        "description": "리뷰+북마크 합산 인기 스팟 중 랜덤으로 반환합니다. limit 기본값 10, 최대 20.",
+        "operationId": "getRecommendedSpots",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "결과 수 (최대 20)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RecommendedSpotResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/spots/popular": {
+      "get": {
+        "tags": [
+          "스팟 (Spot)"
+        ],
+        "summary": "인기 스팟 조회",
+        "description": "북마크 수와 리뷰 수를 기준으로 인기 스팟 목록을 조회합니다.",
+        "operationId": "getPopularSpots",
+        "parameters": [
+          {
+            "name": "category",
+            "in": "query",
+            "description": "스팟 카테고리",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "description": "조회할 개수",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 10
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SpotResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/spots/nearby": {
+      "get": {
+        "tags": [
+          "스팟 (Spot)"
+        ],
+        "summary": "주변 스팟 조회",
+        "description": "현재 위치 기준 반경 내 스팟을 거리 순으로 반환합니다. radiusKm 기본값 5.0, limit 기본값 20.",
+        "operationId": "getNearbySpots",
+        "parameters": [
+          {
+            "name": "lat",
+            "in": "query",
+            "description": "위도",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "lng",
+            "in": "query",
+            "description": "경도",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "radiusKm",
+            "in": "query",
+            "description": "반경 (km)",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "format": "double",
+              "default": 5
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "최대 결과 수",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NearbySpotResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/spots/map": {
+      "get": {
+        "tags": [
+          "스팟 (Spot)"
+        ],
+        "summary": "지도 영역 내 스팟 핀 조회",
+        "description": "현재 지도 화면의 남서/북동 좌표 범위 안에 있는 스팟 핀 목록을 조회합니다.",
+        "operationId": "getMapSpots",
+        "parameters": [
+          {
+            "name": "southWestLat",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double",
+              "maximum": 90,
+              "minimum": -90
+            }
+          },
+          {
+            "name": "southWestLng",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double",
+              "maximum": 180,
+              "minimum": -180
+            }
+          },
+          {
+            "name": "northEastLat",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double",
+              "maximum": 90,
+              "minimum": -90
+            }
+          },
+          {
+            "name": "northEastLng",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double",
+              "maximum": 180,
+              "minimum": -180
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "description": "반환할 최대 핀 개수 (기본값 100, 최대 200)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "maximum": 200,
+              "minimum": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SpotMapResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/notifications": {
+      "get": {
+        "tags": [
+          "알림 (Notification)"
+        ],
+        "summary": "알림 목록 조회",
+        "description": "로그인한 사용자의 알림 목록을 반환합니다.",
+        "operationId": "getNotifications",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NotificationResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/directions": {
+      "get": {
+        "tags": [
+          "외부 API 연동 (External)"
+        ],
+        "summary": "길찾기 (이동시간/거리)",
+        "description": "카카오모빌리티 API를 이용하여 출발지에서 목적지까지의 자동차 예상 소요 시간과 거리를 조회합니다.",
+        "operationId": "getDirections",
+        "parameters": [
+          {
+            "name": "startLat",
+            "in": "query",
+            "description": "출발지 위도",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "startLng",
+            "in": "query",
+            "description": "출발지 경도",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "goalLat",
+            "in": "query",
+            "description": "목적지 위도",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          },
+          {
+            "name": "goalLng",
+            "in": "query",
+            "description": "목적지 경도",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/DirectionsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/courses/{id}/weather": {
+      "get": {
+        "tags": [
+          "코스 (Course)"
+        ],
+        "summary": "코스 날씨 조회",
+        "description": "코스의 방문 일차별 대상 스팟의 기상청 날씨와 일출/일몰 정보를 반환합니다.",
+        "operationId": "getCourseWeather",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CourseWeatherResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/chats/{spotId}/preview": {
+      "get": {
+        "tags": [
+          "chat-rest-controller"
+        ],
+        "summary": "채팅 미리보기 조회",
+        "description": "스팟 채팅방의 최근 메시지 3개를 조회합니다.",
+        "operationId": "getPreviewMessages",
+        "parameters": [
+          {
+            "name": "spotId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChatMessageResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/chats/{spotId}/participants": {
+      "get": {
+        "tags": [
+          "chat-rest-controller"
+        ],
+        "summary": "채팅 참여자 목록 조회",
+        "description": "스팟 채팅방에 현재 참여 중인 사용자 목록을 조회합니다.",
+        "operationId": "getParticipants",
+        "parameters": [
+          {
+            "name": "spotId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChatParticipantResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/chats/{spotId}/participants/count": {
+      "get": {
+        "tags": [
+          "chat-rest-controller"
+        ],
+        "summary": "채팅 참여 인원 조회",
+        "description": "스팟 채팅방에 현재 참여 중인 사용자 수를 조회합니다.",
+        "operationId": "getParticipantCount",
+        "parameters": [
+          {
+            "name": "spotId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int64"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/chats/{spotId}/messages": {
+      "get": {
+        "tags": [
+          "chat-rest-controller"
+        ],
+        "summary": "채팅 메시지 조회",
+        "description": "스팟 채팅방의 최근 메시지 목록을 조회합니다.",
+        "operationId": "getMessages",
+        "parameters": [
+          {
+            "name": "spotId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChatMessageResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/nickname/check": {
+      "get": {
+        "tags": [
+          "인증 (Auth)"
+        ],
+        "summary": "닉네임 중복 확인",
+        "description": "요청한 닉네임을 사용할 수 있는지 확인합니다.",
+        "operationId": "checkNickname",
+        "parameters": [
+          {
+            "name": "value",
+            "in": "query",
+            "description": "중복 확인할 닉네임",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/NicknameCheckResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/spots/{id}/checklist/{itemId}": {
+      "delete": {
+        "tags": [
+          "스팟 (Spot)"
+        ],
+        "summary": "체크리스트 항목 삭제",
+        "description": "사용자가 직접 추가한 항목만 삭제 가능합니다.",
+        "operationId": "deleteChecklistItem",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "스팟 ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "itemId",
+            "in": "path",
+            "description": "항목 ID",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/courses/{id}/spots/{spotId}": {
+      "delete": {
+        "tags": [
+          "코스 (Course)"
+        ],
+        "summary": "코스에서 명소 제거",
+        "description": "코스에 포함된 명소를 제거하고 길찾기 소요시간을 재계산합니다.",
+        "operationId": "removeCourseSpot",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          {
+            "name": "spotId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/courses/{id}/spots/sync": {
+      "put": {
+        "tags": [
+          "코스 (Course)"
+        ],
+        "summary": "코스 스팟 일괄 동기화",
+        "operationId": "syncCourseSpots",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "spots": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "courseSpotId": {
+                          "type": "integer",
+                          "format": "int64"
+                        },
+                        "spotId": {
+                          "type": "integer",
+                          "format": "int64"
+                        },
+                        "dayNumber": {
+                          "type": "integer",
+                          "format": "int32"
+                        },
+                        "sequenceOrder": {
+                          "type": "integer",
+                          "format": "int32"
+                        },
+                        "memo": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "WishlistSettingUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "memo": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 0
+          },
+          "weatherConditions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "CLEAR",
+                "CLOUDY",
+                "RAINY",
+                "SNOWY",
+                "NONE"
+              ]
+            },
+            "uniqueItems": true
+          },
+          "timeConditions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "SUNRISE",
+                "SUNSET",
+                "DAWN",
+                "MORNING",
+                "AFTERNOON",
+                "NIGHT",
+                "NONE"
+              ]
+            },
+            "uniqueItems": true
+          },
+          "airQualityCondition": {
+            "type": "string",
+            "enum": [
+              "GOOD",
+              "NORMAL_OR_BETTER",
+              "NONE"
+            ]
+          },
+          "isAlertEnabled": {
+            "type": "boolean"
+          },
+          "alertTimingDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "dndStartTime": {
+            "type": "string"
+          },
+          "dndEndTime": {
+            "type": "string"
+          }
+        }
+      },
+      "ExpectedMatchDayDto": {
+        "type": "object",
+        "properties": {
+          "dayLabel": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string"
+          },
+          "weatherStatus": {
+            "type": "string"
+          },
+          "isMatched": {
+            "type": "boolean"
+          }
+        }
+      },
+      "WishlistSettingResponse": {
+        "type": "object",
+        "properties": {
+          "spotId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "spotName": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "photogenicScore": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "memo": {
+            "type": "string"
+          },
+          "weatherConditions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "CLEAR",
+                "CLOUDY",
+                "RAINY",
+                "SNOWY",
+                "NONE"
+              ]
+            },
+            "uniqueItems": true
+          },
+          "timeConditions": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "SUNRISE",
+                "SUNSET",
+                "DAWN",
+                "MORNING",
+                "AFTERNOON",
+                "NIGHT",
+                "NONE"
+              ]
+            },
+            "uniqueItems": true
+          },
+          "airQualityCondition": {
+            "type": "string",
+            "enum": [
+              "GOOD",
+              "NORMAL_OR_BETTER",
+              "NONE"
+            ]
+          },
+          "isAlertEnabled": {
+            "type": "boolean"
+          },
+          "alertTimingDays": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "dndStartTime": {
+            "type": "string"
+          },
+          "dndEndTime": {
+            "type": "string"
+          },
+          "expectedMatchDays": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ExpectedMatchDayDto"
+            }
+          }
+        }
+      },
+      "ReviewRequest": {
+        "type": "object",
+        "properties": {
+          "rating": {
+            "type": "integer",
+            "format": "int32",
+            "maximum": 5,
+            "minimum": 1
+          },
+          "content": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 20
+          },
+          "timePeriod": {
+            "type": "string",
+            "enum": [
+              "SUNRISE",
+              "DAYTIME",
+              "SUNSET",
+              "NIGHT"
+            ]
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 5,
+            "minItems": 0
+          },
+          "equipmentInfo": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 5,
+            "minItems": 0
+          },
+          "visitedAt": {
+            "type": "string",
+            "format": "date"
+          }
+        },
+        "required": [
+          "content",
+          "rating",
+          "timePeriod",
+          "visitedAt"
+        ]
+      },
+      "ReviewResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "userId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "rating": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "content": {
+            "type": "string"
+          },
+          "equipmentInfo": {
+            "type": "string"
+          },
+          "timePeriod": {
+            "type": "string",
+            "enum": [
+              "SUNRISE",
+              "DAYTIME",
+              "SUNSET",
+              "NIGHT"
+            ]
+          },
+          "photos": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "visitedAt": {
+            "type": "string",
+            "format": "date"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "NotificationSettingUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "isAllPushEnabled": {
+            "type": "boolean"
+          },
+          "dndStartTime": {
+            "type": "string"
+          },
+          "dndEndTime": {
+            "type": "string"
+          }
+        }
+      },
+      "CourseCreateRequest": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
+      "CourseResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "title": {
+            "type": "string"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CourseSpotOrderUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "spotIds": {
+            "type": "array",
+            "items": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        }
+      },
+      "CourseChecklistResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "content": {
+            "type": "string"
+          },
+          "isChecked": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ChecklistRequest": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string",
+            "maxLength": 20,
+            "minLength": 0
+          }
+        },
+        "required": [
+          "content"
+        ]
+      },
+      "ChecklistItemDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "content": {
+            "type": "string"
+          }
+        }
+      },
+      "BookmarkResponse": {
+        "type": "object",
+        "properties": {
+          "isBookmarked": {
+            "type": "boolean"
+          }
+        }
+      },
+      "FcmTokenRequest": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string"
+          }
+        }
+      },
+      "CourseSpotAddRequest": {
+        "type": "object",
+        "properties": {
+          "spotId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "dayNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sequenceOrder": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "memo": {
+            "type": "string"
+          }
+        }
+      },
+      "CourseSpotResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "spotId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "dayNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sequenceOrder": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "memo": {
+            "type": "string"
+          },
+          "travelTimeMinutes": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "CourseChecklistRequest": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 0
+          }
+        },
+        "required": [
+          "content"
+        ]
+      },
+      "SignUpRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "minLength": 1
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 8
+          },
+          "nickname": {
+            "type": "string",
+            "maxLength": 50,
+            "minLength": 0
+          },
+          "spotCategories": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "PARK",
+                "CAFE",
+                "BEACH",
+                "MOUNTAIN",
+                "CITY",
+                "NIGHT_VIEW",
+                "HANOK",
+                "FESTIVAL",
+                "FLOWER",
+                "FOREST",
+                "PORTRAIT",
+                "PET",
+                "SUNRISE_SUNSET",
+                "MILKY_WAY",
+                "ETC"
+              ]
+            },
+            "uniqueItems": true
+          }
+        },
+        "required": [
+          "email",
+          "nickname",
+          "password"
+        ]
+      },
+      "TokenResponse": {
+        "type": "object",
+        "properties": {
+          "tokenType": {
+            "type": "string"
+          },
+          "accessToken": {
+            "type": "string"
+          },
+          "expiresIn": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserResponse"
+          }
+        }
+      },
+      "UserResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "email": {
+            "type": "string"
+          },
+          "nickname": {
+            "type": "string"
+          },
+          "profileImageUrl": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "USER",
+              "ADMIN"
+            ]
+          },
+          "provider": {
+            "type": "string",
+            "enum": [
+              "LOCAL",
+              "KAKAO"
+            ]
+          },
+          "spotCategories": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "PARK",
+                "CAFE",
+                "BEACH",
+                "MOUNTAIN",
+                "CITY",
+                "NIGHT_VIEW",
+                "HANOK",
+                "FESTIVAL",
+                "FLOWER",
+                "FOREST",
+                "PORTRAIT",
+                "PET",
+                "SUNRISE_SUNSET",
+                "MILKY_WAY",
+                "ETC"
+              ]
+            },
+            "uniqueItems": true
+          }
+        }
+      },
+      "PasswordResetRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "minLength": 1
+          },
+          "code": {
+            "type": "string",
+            "minLength": 1
+          },
+          "newPassword": {
+            "type": "string",
+            "maxLength": 64,
+            "minLength": 8
+          }
+        },
+        "required": [
+          "code",
+          "email",
+          "newPassword"
+        ]
+      },
+      "PasswordResetCodeRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "EmailVerificationResponse": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string"
+          },
+          "verified": {
+            "type": "boolean"
+          },
+          "expiresIn": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "verificationCode": {
+            "type": "string"
+          }
+        }
+      },
+      "LoginRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "minLength": 1
+          },
+          "password": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ]
+      },
+      "KakaoLoginRequest": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "accessToken"
+        ]
+      },
+      "EmailVerificationRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "email"
+        ]
+      },
+      "EmailConfirmRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "minLength": 1
+          },
+          "code": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "code",
+          "email"
+        ]
+      },
+      "UserSpotCategoryUpdateRequest": {
+        "type": "object",
+        "properties": {
+          "spotCategories": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "PARK",
+                "CAFE",
+                "BEACH",
+                "MOUNTAIN",
+                "CITY",
+                "NIGHT_VIEW",
+                "HANOK",
+                "FESTIVAL",
+                "FLOWER",
+                "FOREST",
+                "PORTRAIT",
+                "PET",
+                "SUNRISE_SUNSET",
+                "MILKY_WAY",
+                "ETC"
+              ]
+            },
+            "uniqueItems": true
+          }
+        }
+      },
+      "WeatherForecastResponse": {
+        "type": "object",
+        "properties": {
+          "date": {
+            "type": "string"
+          },
+          "time": {
+            "type": "string"
+          },
+          "weatherStatus": {
+            "type": "string"
+          },
+          "temperature": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "PageSpotResponse": {
+        "type": "object",
+        "properties": {
+          "totalElements": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "content": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SpotResponse"
+            }
+          },
+          "number": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sort": {
+            "$ref": "#/components/schemas/SortObject"
+          },
+          "first": {
+            "type": "boolean"
+          },
+          "last": {
+            "type": "boolean"
+          },
+          "numberOfElements": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageable": {
+            "$ref": "#/components/schemas/PageableObject"
+          },
+          "empty": {
+            "type": "boolean"
+          }
+        }
+      },
+      "PageableObject": {
+        "type": "object",
+        "properties": {
+          "offset": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "sort": {
+            "$ref": "#/components/schemas/SortObject"
+          },
+          "pageNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "paged": {
+            "type": "boolean"
+          },
+          "unpaged": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SortObject": {
+        "type": "object",
+        "properties": {
+          "empty": {
+            "type": "boolean"
+          },
+          "sorted": {
+            "type": "boolean"
+          },
+          "unsorted": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SpotResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "name": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "zipcode": {
+            "type": "string"
+          },
+          "overview": {
+            "type": "string"
+          },
+          "latitude": {
+            "type": "number",
+            "format": "double"
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "PARK",
+              "CAFE",
+              "BEACH",
+              "MOUNTAIN",
+              "CITY",
+              "NIGHT_VIEW",
+              "HANOK",
+              "FESTIVAL",
+              "FLOWER",
+              "FOREST",
+              "PORTRAIT",
+              "PET",
+              "SUNRISE_SUNSET",
+              "MILKY_WAY",
+              "ETC"
+            ]
+          },
+          "source": {
+            "type": "string",
+            "enum": [
+              "TOUR_API",
+              "USER"
+            ]
+          },
+          "badge": {
+            "type": "boolean"
+          },
+          "imageUrl": {
+            "type": "string"
+          },
+          "thumbnailUrl": {
+            "type": "string"
+          },
+          "bookmarkCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "reviewCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "photogenicScore": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "reviewAverage": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "ConvenienceInfo": {
+        "type": "object",
+        "properties": {
+          "parking": {
+            "type": "string"
+          },
+          "wheelchairAccess": {
+            "type": "string"
+          },
+          "strollerAccess": {
+            "type": "string"
+          },
+          "petFriendly": {
+            "type": "string"
+          },
+          "subwayAccess": {
+            "type": "string"
+          },
+          "usetime": {
+            "type": "string"
+          },
+          "restdate": {
+            "type": "string"
+          },
+          "infocenter": {
+            "type": "string"
+          }
+        }
+      },
+      "SpotDetailResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "name": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "badge": {
+            "type": "boolean"
+          },
+          "imageUrl": {
+            "type": "string"
+          },
+          "latitude": {
+            "type": "number",
+            "format": "double"
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double"
+          },
+          "category": {
+            "type": "string"
+          },
+          "overview": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "convenience": {
+            "$ref": "#/components/schemas/ConvenienceInfo"
+          },
+          "stats": {
+            "$ref": "#/components/schemas/StatsInfo"
+          },
+          "checklist": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "isBookmarked": {
+            "type": "boolean"
+          }
+        }
+      },
+      "StatsInfo": {
+        "type": "object",
+        "properties": {
+          "avgRating": {
+            "type": "number",
+            "format": "double"
+          },
+          "reviewCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "photoCount": {
+            "type": "integer",
+            "format": "int64"
+          }
+        }
+      },
+      "SpotSummaryResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "name": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "PARK",
+              "CAFE",
+              "BEACH",
+              "MOUNTAIN",
+              "CITY",
+              "NIGHT_VIEW",
+              "HANOK",
+              "FESTIVAL",
+              "FLOWER",
+              "FOREST",
+              "PORTRAIT",
+              "PET",
+              "SUNRISE_SUNSET",
+              "MILKY_WAY",
+              "ETC"
+            ]
+          },
+          "latitude": {
+            "type": "number",
+            "format": "double"
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double"
+          },
+          "thumbnailUrl": {
+            "type": "string"
+          },
+          "photogenicScore": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "reviewAverage": {
+            "type": "number",
+            "format": "double"
+          },
+          "bookmarkCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "badge": {
+            "type": "boolean"
+          }
+        }
+      },
+      "PageInfo": {
+        "type": "object",
+        "properties": {
+          "content": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReviewInfo"
+            }
+          },
+          "totalElements": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "totalPages": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "number": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "ReviewInfo": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "userId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "nickname": {
+            "type": "string"
+          },
+          "rating": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "content": {
+            "type": "string"
+          },
+          "equipmentInfo": {
+            "type": "string"
+          },
+          "timePeriod": {
+            "type": "string",
+            "enum": [
+              "SUNRISE",
+              "DAYTIME",
+              "SUNSET",
+              "NIGHT"
+            ]
+          },
+          "photos": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "visitedAt": {
+            "type": "string",
+            "format": "date"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ReviewListResponse": {
+        "type": "object",
+        "properties": {
+          "summary": {
+            "$ref": "#/components/schemas/SummaryInfo"
+          },
+          "reviews": {
+            "$ref": "#/components/schemas/PageInfo"
+          }
+        }
+      },
+      "SummaryInfo": {
+        "type": "object",
+        "properties": {
+          "avgRating": {
+            "type": "number",
+            "format": "double"
+          },
+          "totalCount": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "distribution": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer",
+              "format": "int64"
+            }
+          }
+        }
+      },
+      "PhotoInfo": {
+        "type": "object",
+        "properties": {
+          "originUrl": {
+            "type": "string"
+          },
+          "thumbnailUrl": {
+            "type": "string"
+          },
+          "imgName": {
+            "type": "string"
+          }
+        }
+      },
+      "SpotPhotoResponse": {
+        "type": "object",
+        "properties": {
+          "spotId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "photos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PhotoInfo"
+            }
+          }
+        }
+      },
+      "FactorInfo": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string"
+          },
+          "score": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "PhotogenicResponse": {
+        "type": "object",
+        "properties": {
+          "score": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "grade": {
+            "type": "string"
+          },
+          "weather": {
+            "$ref": "#/components/schemas/FactorInfo"
+          },
+          "fineDust": {
+            "$ref": "#/components/schemas/FactorInfo"
+          },
+          "ozone": {
+            "$ref": "#/components/schemas/FactorInfo"
+          },
+          "season": {
+            "$ref": "#/components/schemas/FactorInfo"
+          },
+          "goldenHour": {
+            "$ref": "#/components/schemas/FactorInfo"
+          }
+        }
+      },
+      "GoldenHourResponse": {
+        "type": "object",
+        "properties": {
+          "sunriseTime": {
+            "type": "string"
+          },
+          "sunsetTime": {
+            "type": "string"
+          },
+          "goldenHourMorning": {
+            "type": "string"
+          },
+          "goldenHourEvening": {
+            "type": "string"
+          }
+        }
+      },
+      "ChecklistResponse": {
+        "type": "object",
+        "properties": {
+          "defaultItems": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChecklistItemDto"
+            }
+          },
+          "userItems": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ChecklistItemDto"
+            }
+          }
+        }
+      },
+      "RecommendedSpotResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "name": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "thumbnailUrl": {
+            "type": "string"
+          },
+          "badge": {
+            "type": "boolean"
+          },
+          "latitude": {
+            "type": "number",
+            "format": "double"
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double"
+          },
+          "reviewCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "bookmarkCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "NearbySpotResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "name": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "thumbnailUrl": {
+            "type": "string"
+          },
+          "badge": {
+            "type": "boolean"
+          },
+          "latitude": {
+            "type": "number",
+            "format": "double"
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double"
+          },
+          "distanceKm": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "SpotMapResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "name": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "latitude": {
+            "type": "number",
+            "format": "double"
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double"
+          },
+          "thumbnailUrl": {
+            "type": "string"
+          },
+          "photogenicScore": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "badge": {
+            "type": "boolean"
+          }
+        }
+      },
+      "NotificationResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "type": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "isRead": {
+            "type": "boolean"
+          },
+          "deepLink": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "DirectionsResponse": {
+        "type": "object",
+        "properties": {
+          "travelTimeMinutes": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "travelDistanceMeters": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "CourseDetailResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "title": {
+            "type": "string"
+          },
+          "startDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "endDate": {
+            "type": "string",
+            "format": "date"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "spots": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CourseSpotResponse"
+            }
+          },
+          "checklists": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CourseChecklistResponse"
+            }
+          }
+        }
+      },
+      "CourseWeatherResponse": {
+        "type": "object",
+        "properties": {
+          "dayNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "date": {
+            "type": "string",
+            "format": "date"
+          },
+          "targetSpotId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "targetSpotName": {
+            "type": "string"
+          },
+          "weatherStatus": {
+            "type": "string"
+          },
+          "temperature": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sunsetTime": {
+            "type": "string"
+          },
+          "goldenHourEvening": {
+            "type": "string"
+          }
+        }
+      },
+      "ChatMessageResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "senderId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "senderNickname": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "TEXT",
+              "IMAGE",
+              "SYSTEM"
+            ]
+          },
+          "content": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ChatParticipantResponse": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "nickname": {
+            "type": "string"
+          }
+        }
+      },
+      "NicknameCheckResponse": {
+        "type": "object",
+        "properties": {
+          "nickname": {
+            "type": "string"
+          },
+          "available": {
+            "type": "boolean"
+          }
+        }
+      }
+    }
+  }
+}

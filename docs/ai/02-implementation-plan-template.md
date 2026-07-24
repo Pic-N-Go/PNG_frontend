@@ -1,12 +1,13 @@
 # 구현 계획 템플릿
 
-아래 템플릿을 복사해서 `docs/ai/plans/<feature-name>-plan.md`로 저장해 사용합니다.
+아래 템플릿을 복사해서 `docs/ai/plans/<branch>/<feature-name>-plan.md`로 저장해 사용합니다.
 
 ---
 
 ## 1) 입력 스펙
 
 - 스펙 문서: `docs/ai/specs/...`
+- 관련 도메인 (필수): **실제 구현이 있는** `src/api/` 파일명 기준 (예: `auth`/`spot`/`courses`/`community`/`mypage`/`search`/`wishlist`/`notification` — `travel.ts`는 빈 스텁이므로 여행 코스 관련은 `courses` 사용), 복수 가능, 코드 도메인과 무관하면 `common`, 해당 없으면 `없음`
 - 관련 목업: `src/components/ui/...`
 - 완료 목표:
 

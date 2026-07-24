@@ -2,7 +2,7 @@
 
 ## 1) 입력 스펙
 
-- 스펙 문서: `docs/ai/specs/auth-quality-fix.md`
+- 스펙 문서: `docs/ai/specs/feature/auth-ui-publishing-parity/auth-quality-fix.md`
 - 관련 목업: 없음
 - 완료 목표: 3개 코드 품질 이슈 수정 + tsc/lint 통과
 

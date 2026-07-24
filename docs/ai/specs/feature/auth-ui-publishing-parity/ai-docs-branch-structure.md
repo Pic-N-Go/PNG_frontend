@@ -16,7 +16,7 @@
 ## 3) 범위
 
 - 포함(In Scope):
-  - 기존 plans·specs `.md` 파일(README 제외) → `<dir>/feat/auth-ui-publishing-parity/` 로 `git mv`
+  - 기존 plans·specs `.md` 파일(README 제외) → `<dir>/feature/auth-ui-publishing-parity/` 로 `git mv`
   - 7개 커맨드 파일 경로 패턴 수정 (`git branch --show-current` 기반)
   - `allowed-tools`에 `Bash(git branch:*)` / `Bash(mkdir:*)` 필요 시 추가
   - `docs/ai/plans/README.md`, `docs/ai/specs/README.md` 한 줄 추가
@@ -28,7 +28,7 @@
 
 ## 4) 수용 기준 (Acceptance Criteria)
 
-- [ ] AC1: 기존 plans·specs 파일 10+10개가 `feat/auth-ui-publishing-parity/` 하위로 이동됨 (git 이력 보존)
+- [ ] AC1: 기존 plans·specs 파일 10+10개가 `feature/auth-ui-publishing-parity/` 하위로 이동됨 (git 이력 보존)
 - [ ] AC2: 7개 커맨드 파일이 `docs/ai/specs/<branch>/`, `docs/ai/plans/<branch>/` 경로를 사용
 - [ ] AC3: 커맨드 파일이 `git branch --show-current`로 브랜치명을 동적으로 구함
 - [ ] AC4: README 2개에 브랜치 기반 구조 안내 추가

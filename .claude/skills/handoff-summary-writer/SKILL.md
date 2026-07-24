@@ -9,8 +9,8 @@
 
 ## 입력
 
-- spec 문서 (`docs/ai/specs/<feature-name>.md`)
-- plan 문서 (`docs/ai/plans/<feature-name>-plan.md`)
+- spec 문서 (`docs/ai/specs/<branch>/<feature-name>.md`)
+- plan 문서 (`docs/ai/plans/<branch>/<feature-name>-plan.md`)
 - `git diff --stat HEAD` (변경 파일 목록 + 1줄 통계)
 - `git log --oneline` (최근 커밋 이력)
 - 사용자 제공 완료/잔여 태스크·리스크 정보

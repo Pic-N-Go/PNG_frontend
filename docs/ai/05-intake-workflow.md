@@ -33,12 +33,12 @@
 1. 누락 정보를 확인하는 질문 5~8개 생성
 2. 모호한 요구를 명시적 조건으로 변환
 3. 범위(In Scope / Out of Scope) 제안
-4. `docs/ai/specs/<feature-name>.md` 초안 생성
-5. `docs/ai/plans/<feature-name>-plan.md` 초안 생성
+4. `docs/ai/specs/<branch>/<feature-name>.md` 초안 생성
+5. `docs/ai/plans/<branch>/<feature-name>-plan.md` 초안 생성
 6. 구현 시작 전 승인 요청
 
 > Intake 단계에서는 코드를 수정하지 않습니다.
-> Claude Code 사용자는 `/png-intake`로 Intake 이후 구현·커밋·PR 초안까지 자동으로 이어서 실행합니다. 이 문서는 Intake 단계의 산출물 기준만 정의합니다.
+> Claude Code 사용자는 `/png-intake`로 Intake 이후 구현·커밋·PR까지 자동으로 이어서 실행합니다(PR 생성 직전 승인 필요). 이 문서는 Intake 단계의 산출물 기준만 정의합니다.
 
 ---
 

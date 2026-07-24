@@ -12,8 +12,8 @@
   - `docs/ai/01-feature-spec-template.md`
   - `docs/ai/02-implementation-plan-template.md`
 - [ ] Intake 결과 산출물 경로가 일관적인가
-  - `docs/ai/specs/<feature-name>.md`
-  - `docs/ai/plans/<feature-name>-plan.md`
+  - `docs/ai/specs/<branch>/<feature-name>.md`
+  - `docs/ai/plans/<branch>/<feature-name>-plan.md`
 - [ ] 존재하지 않는 파일 경로를 참조하는 문서가 없는가
 - [ ] `/png-handoff`가 spec/plan 두 문서 모두 존재할 때만 실행하고, 없으면 즉시 중단하는지
 - [ ] `/png-handoff-clean`이 `docs/ai/handoffs/` 외부 경로를 거부하는지

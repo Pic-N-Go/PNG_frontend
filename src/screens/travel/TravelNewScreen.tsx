@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { coursesApi } from '@/api/courses';
 import {
   View,
@@ -12,7 +12,7 @@ import {
 
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native';
 import {
   IconChevronLeft,
   IconCalendarEvent,
@@ -37,13 +37,17 @@ const MAX_TRIP_DAYS = 15;
 export default function TravelNewScreen() {
   const navigation = useNavigation<any>();
 
+  const route = useRoute<any>();
+  const editMode = route.params?.editMode || false;
+  const courseId = route.params?.courseId;
+
   // --- State ---
   const [isDirty, setIsDirty] = useState(false);
-  const [tripName, setTripName] = useState('');
+  const [tripName, setTripName] = useState(route.params?.initialTitle || '');
 
   // Dates
-  const [startDate, setStartDate] = useState<Date | null>(null);
-  const [endDate, setEndDate] = useState<Date | null>(null);
+  const [startDate, setStartDate] = useState<Date | null>(route.params?.initialStartDate ? new Date(route.params.initialStartDate) : null);
+  const [endDate, setEndDate] = useState<Date | null>(route.params?.initialEndDate ? new Date(route.params.initialEndDate) : null);
   const [selectedChip, setSelectedChip] = useState<ChipType | null>(null);
 
   const [toastVisible, setToastVisible] = useState(false);
@@ -145,21 +149,17 @@ export default function TravelNewScreen() {
       });
 
       // 2. 스팟 추가
-      const promises = [];
-      for (const [dayStr, spots] of Object.entries(daySpots)) {
+      const allSpots = Object.entries(daySpots).flatMap(([dayStr, spots]) => {
         const dayNumber = parseInt(dayStr, 10);
-        for (let i = 0; i < spots.length; i++) {
-          promises.push(
-            coursesApi.addSpotToCourse(course.id, {
-              spotId: Number(spots[i].id),
-              dayNumber,
-              sequenceOrder: i + 1,
-              memo: '',
-            })
-          );
-        }
-      }
-      await Promise.all(promises);
+        return spots.map((spot: any, i: number) => ({
+          spotId: Number(spot.id),
+          dayNumber,
+          sequenceOrder: i + 1,
+          memo: '',
+        }));
+      });
+
+      await coursesApi.syncSpots(course.id, { spots: allSpots });
       return course;
     },
     onSuccess: () => {
@@ -170,12 +170,38 @@ export default function TravelNewScreen() {
     },
   });
 
+  const queryClient = useQueryClient();
+
+  const updateCourseMutation = useMutation({
+    mutationFn: (data: { title: string; startDate: string; endDate: string }) =>
+      coursesApi.updateCourse(courseId, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['courses'] });
+      queryClient.invalidateQueries({ queryKey: ['course', courseId] });
+      navigation.goBack();
+    },
+    onError: (err: any) => {
+      showToast(err.message || '코스 수정에 실패했어요.');
+    },
+  });
+
   const handleSave = () => {
     if (!startDate || !endDate || !tripName.trim()) {
       showToast('이름과 날짜를 모두 입력해주세요.');
       return;
     }
-    createCourseMutation.mutate();
+    const sDate = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}-${String(startDate.getDate()).padStart(2, '0')}`;
+    const eDate = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, '0')}-${String(endDate.getDate()).padStart(2, '0')}`;
+
+    if (editMode) {
+      updateCourseMutation.mutate({
+        title: tripName,
+        startDate: sDate,
+        endDate: eDate,
+      });
+    } else {
+      createCourseMutation.mutate();
+    }
   };
 
   // -- Day Management --
@@ -372,8 +398,10 @@ export default function TravelNewScreen() {
 
         <View className="h-[0.5px] bg-gray-200 mt-7" />
 
-        {/* 데이 탭 */}
-        <View className="pt-5 px-[28px]">
+        {!editMode && (
+          <View>
+            {/* 데이 탭 */}
+            <View className="pt-5 px-[28px]">
           <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-row mb-2">
             {Array.from({ length: daysCount }).map((_, i) => {
               const dayNum = i + 1;
@@ -471,11 +499,13 @@ export default function TravelNewScreen() {
             )}
           </View>
         </View>
+          </View>
+        )}
       </ScrollView>
 
       {/* 하단 CTA */}
       <View className="flex-row px-[28px] py-5 border-t border-gray-100 bg-white">
-        {activeDay > 1 && (
+        {!editMode && activeDay > 1 && (
           <TouchableOpacity 
             onPress={deleteCurrentDay}
             className="flex-1 h-[52px] rounded-full bg-[#f5f5f7] items-center justify-center mr-3"
