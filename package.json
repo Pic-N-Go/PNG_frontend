@@ -7,7 +7,7 @@
   },
   "scripts": {
     "start": "expo start",
-    "start:a": "adb reverse tcp:8081 tcp:8081 && adb reverse tcp:8080 tcp:8080 && expo start",
+    "start:a": "adb reverse tcp:8081 tcp:8081 && adb reverse tcp:8080 tcp:8080 && expo start --localhost --dev-client",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
@@ -49,6 +49,7 @@
     "zustand": "^5.0.13"
   },
   "devDependencies": {
+    "@babel/helper-define-polyfill-provider": "^1.0.0",
     "@types/react": "~19.1.17",
     "babel-plugin-module-resolver": "^5.0.3",
     "eslint": "^9.39.4",

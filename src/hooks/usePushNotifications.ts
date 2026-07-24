@@ -1,14 +1,24 @@
 import { useEffect, useState } from 'react';
 import { Platform, PermissionsAndroid } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getMessaging, requestPermission, getToken, onTokenRefresh, AuthorizationStatus } from '@react-native-firebase/messaging';
-import { useMutation } from '@tanstack/react-query';
+import { 
+  getMessaging, 
+  requestPermission, 
+  getToken, 
+  onTokenRefresh, 
+  onMessage,
+  onNotificationOpenedApp,
+  getInitialNotification,
+  AuthorizationStatus 
+} from '@react-native-firebase/messaging';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { notificationApi } from '@/api/notification';
 import { useAuthStore } from '@/store/useAuthStore';
 
-export const usePushNotifications = () => {
+export const usePushNotifications = (onDeepLinkNav?: (deepLink: string) => void) => {
   const [fcmToken, setFcmToken] = useState<string | null>(null);
   const accessToken = useAuthStore((state) => state.accessToken);
+  const queryClient = useQueryClient();
 
   const { mutate: sendTokenToServer } = useMutation({
     mutationFn: (token: string) => notificationApi.postToken(token, accessToken!),
@@ -65,13 +75,44 @@ export const usePushNotifications = () => {
 
     requestPermissionAndGetToken();
 
-    // Listen for token refresh
-    const unsubscribe = onTokenRefresh(messaging, (token) => {
+    // 1. FCM 토큰 갱신 리스너
+    const unsubscribeTokenRefresh = onTokenRefresh(messaging, (token) => {
       setFcmToken(token);
     });
 
-    return unsubscribe;
-  }, []);
+    // 2. 포그라운드 알림 수신 시
+    const unsubscribeForegroundMessage = onMessage(messaging, async (remoteMessage) => {
+      console.log('Foreground Push Received:', remoteMessage);
+      // 포그라운드 수신 시 알림 쿼리 무효화 (알림 목록 자동 최신화)
+      queryClient.invalidateQueries({ queryKey: ['notifications'] });
+    });
+
+    // 3. 백그라운드 상태에서 상단 알림 터치 시
+    const unsubscribeNotificationOpened = onNotificationOpenedApp(messaging, (remoteMessage) => {
+      console.log('Notification Opened App from background:', remoteMessage);
+      const deepLink = remoteMessage.data?.deepLink || remoteMessage.data?.link;
+      if (deepLink && typeof deepLink === 'string' && onDeepLinkNav) {
+        onDeepLinkNav(deepLink);
+      }
+    });
+
+    // 4. 완전 종료 상태에서 상단 알림 터치로 앱 실행 시
+    getInitialNotification(messaging).then((remoteMessage) => {
+      if (remoteMessage) {
+        console.log('Notification Opened App from quit state:', remoteMessage);
+        const deepLink = remoteMessage.data?.deepLink || remoteMessage.data?.link;
+        if (deepLink && typeof deepLink === 'string' && onDeepLinkNav) {
+          onDeepLinkNav(deepLink);
+        }
+      }
+    });
+
+    return () => {
+      unsubscribeTokenRefresh();
+      unsubscribeForegroundMessage();
+      unsubscribeNotificationOpened();
+    };
+  }, [queryClient, onDeepLinkNav]);
 
   useEffect(() => {
     // If we have an FCM token and the user is logged in, send the token to the backend
