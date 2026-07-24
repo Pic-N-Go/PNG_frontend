@@ -9,13 +9,19 @@ export const useNotification = () => {
   const useNotificationsQuery = () =>
     useQuery<NotificationItem[]>({
       queryKey: ['notifications'],
-      queryFn: () => notificationApi.getNotifications(accessToken!),
+      queryFn: () => {
+        if (!accessToken) return Promise.resolve([]);
+        return notificationApi.getNotifications(accessToken);
+      },
       enabled: !!accessToken,
     });
 
   const useMarkReadMutation = () =>
     useMutation({
-      mutationFn: (id: number) => notificationApi.markRead(id, accessToken!),
+      mutationFn: (id: number) => {
+        if (!accessToken) return Promise.reject(new Error('AccessToken missing'));
+        return notificationApi.markRead(id, accessToken);
+      },
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['notifications'] });
       },
@@ -23,7 +29,10 @@ export const useNotification = () => {
 
   const useMarkAllReadMutation = () =>
     useMutation({
-      mutationFn: () => notificationApi.markAllRead(accessToken!),
+      mutationFn: () => {
+        if (!accessToken) return Promise.reject(new Error('AccessToken missing'));
+        return notificationApi.markAllRead(accessToken);
+      },
       onSuccess: () => {
         queryClient.invalidateQueries({ queryKey: ['notifications'] });
       },
