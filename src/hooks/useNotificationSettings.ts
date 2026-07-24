@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { Alert } from 'react-native';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { notificationApi, NotificationSettingUpdateRequest, NotificationSettingResponse } from '@/api/notification';
 import { useAuthStore } from '@/store/useAuthStore';
 
@@ -40,6 +41,7 @@ const parseLocalTime = (timeStr?: string | null) => {
 
 export function useNotificationSettings(initial?: Partial<NotificationSettings>) {
   const accessToken = useAuthStore((state) => state.accessToken);
+  const queryClient = useQueryClient();
 
   const [settings, setSettings] = useState<NotificationSettings>({
     ...DEFAULT_SETTINGS,
@@ -48,6 +50,8 @@ export function useNotificationSettings(initial?: Partial<NotificationSettings>)
   });
 
   const latestSettingsRef = useRef(settings);
+  const previousSettingsRef = useRef(settings);
+
   useEffect(() => {
     latestSettingsRef.current = settings;
   }, [settings]);
@@ -86,6 +90,24 @@ export function useNotificationSettings(initial?: Partial<NotificationSettings>)
       if (!accessToken) return Promise.resolve();
       return notificationApi.updateSettings(data, accessToken);
     },
+    onMutate: () => {
+      // API 전송 실패 시 롤백용 스냅샷 저장
+      return { previousSettings: previousSettingsRef.current };
+    },
+    onError: (_err, _variables, context) => {
+      // 동기화 실패 시 이전 UI 설정 상태로 자동 Rollback
+      if (context?.previousSettings) {
+        setSettings(context.previousSettings);
+        latestSettingsRef.current = context.previousSettings;
+      }
+      Alert.alert(
+        '설정 저장 실패',
+        '네트워크 오류로 알림 수신 설정 변경에 실패했습니다. 이전 설정으로 되돌아갑니다.'
+      );
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ['notificationSettings'] });
+    },
   });
 
   const syncTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -99,6 +121,9 @@ export function useNotificationSettings(initial?: Partial<NotificationSettings>)
     if (syncTimerRef.current) {
       clearTimeout(syncTimerRef.current);
     }
+    // 전송 시도 직전 현재 안정 상태 스냅샷 백업
+    previousSettingsRef.current = latestSettingsRef.current;
+
     syncTimerRef.current = setTimeout(() => {
       updateApiMutation.mutate({
         isWishlistPushEnabled: newSettings.wishlist,
