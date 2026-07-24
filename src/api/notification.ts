@@ -36,6 +36,7 @@ export interface NotificationSettingResponse {
   isWishlistPushEnabled: boolean;
   isGoldenHourPushEnabled: boolean;
   isCommunityPushEnabled: boolean;
+  isDndEnabled?: boolean;
   dndStartTime?: string | null;
   dndEndTime?: string | null;
 }
@@ -44,6 +45,7 @@ export interface NotificationSettingUpdateRequest {
   isWishlistPushEnabled: boolean;
   isGoldenHourPushEnabled: boolean;
   isCommunityPushEnabled: boolean;
+  isDndEnabled: boolean;
   dndStartTime?: string;
   dndEndTime?: string;
 }

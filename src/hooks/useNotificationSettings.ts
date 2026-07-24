@@ -61,7 +61,7 @@ export function useNotificationSettings(initial?: Partial<NotificationSettings>)
 
   useEffect(() => {
     if (serverSettings) {
-      const hasDnd = !!(serverSettings.dndStartTime && serverSettings.dndEndTime);
+      const hasDnd = serverSettings.isDndEnabled ?? !!(serverSettings.dndStartTime && serverSettings.dndEndTime);
       setSettings((prev) => ({
         ...prev,
         wishlist: serverSettings.isWishlistPushEnabled ?? prev.wishlist,
@@ -101,6 +101,7 @@ export function useNotificationSettings(initial?: Partial<NotificationSettings>)
         isWishlistPushEnabled: newSettings.wishlist,
         isGoldenHourPushEnabled: newSettings.golden,
         isCommunityPushEnabled: newSettings.community,
+        isDndEnabled: newSettings.dnd.enabled,
         dndStartTime: newSettings.dnd.enabled ? formatLocalTime(newSettings.dnd.start) : undefined,
         dndEndTime: newSettings.dnd.enabled ? formatLocalTime(newSettings.dnd.end) : undefined,
       });
