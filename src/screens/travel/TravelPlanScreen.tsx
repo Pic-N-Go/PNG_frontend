@@ -1211,6 +1211,21 @@ export default function TravelPlanScreen({ navigation, route }: any) {
         onClose={() => setIsDepartModalVisible(false)}
         spotName={currentData?.spots?.[0]?.name || ""}
         address={currentData?.spots?.[0]?.loc || ""}
+        spots={(currentData?.spots || []).map((s: any) => {
+          const parseNum = (val: any) => {
+            if (typeof val === "number" && !isNaN(val)) return val;
+            if (typeof val === "string") {
+              const p = parseFloat(val);
+              if (!isNaN(p)) return p;
+            }
+            return 0;
+          };
+          return {
+            name: s.name || s.spotName || "스팟",
+            latitude: parseNum(s.lat ?? s.latitude ?? s.y ?? s.mapY),
+            longitude: parseNum(s.lng ?? s.longitude ?? s.x ?? s.mapX),
+          };
+        })}
         onLaunched={(msg) => Alert.alert("안내", msg)}
       />
 
