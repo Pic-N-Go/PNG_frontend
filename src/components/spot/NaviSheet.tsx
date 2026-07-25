@@ -6,6 +6,9 @@ import BottomSheet from '@/components/common/BottomSheet';
 import { BUTTON_RADIUS, GRID_PADDING } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import type { NaviAppId } from '@/types/spot';
+import { openKakaoNavi, SpotLocation } from '@/utils/kakaoNavi';
+import { openNaverMap } from '@/utils/naverMap';
+import { openAppleMap } from '@/utils/appleMap';
 
 const NAVI_APPS: { id: NaviAppId; label: string; bg: string }[] = [
   { id: 'kakao', label: '카카오맵', bg: '#FEE500' },
@@ -42,10 +45,11 @@ interface Props {
   onClose: () => void;
   spotName: string;
   address: string;
+  spots?: SpotLocation[];
   onLaunched: (message: string) => void;
 }
 
-export default function NaviSheet({ visible, onClose, spotName, address, onLaunched }: Props) {
+export default function NaviSheet({ visible, onClose, spotName, address, spots, onLaunched }: Props) {
   const [selectedApp, setSelectedApp] = useState<NaviAppId | null>(null);
 
   function handleClose() {
@@ -56,8 +60,21 @@ export default function NaviSheet({ visible, onClose, spotName, address, onLaunc
   function handleLaunch() {
     const app = NAVI_APPS.find((a) => a.id === selectedApp);
     if (!app) return;
-    onLaunched(`${app.label}으로 안내를 시작합니다`);
+
+    const targetSpots = spots && spots.length > 0 ? spots : [{ name: spotName, latitude: 0, longitude: 0 }];
+
+    if (selectedApp === 'kakao') {
+      openKakaoNavi(targetSpots);
+    } else if (selectedApp === 'naver') {
+      openNaverMap(targetSpots);
+    } else if (selectedApp === 'apple') {
+      openAppleMap(targetSpots);
+    } else {
+      onLaunched(`${app.label}으로 안내를 시작합니다`);
+    }
+
     setSelectedApp(null);
+    onClose();
   }
 
   return (
