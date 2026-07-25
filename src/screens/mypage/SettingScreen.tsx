@@ -18,7 +18,7 @@ import { useNotificationSettings, DndRepeatPreset } from '@/hooks/useNotificatio
 import { useInquiries } from '@/hooks/useInquiries';
 import { useAuthStore } from '@/store/useAuthStore';
 import { normalize } from '@/utils/normalize';
-import { FONT_2XS, FONT_XS, FONT_SM, FONT_MD, FONT_LG, FONT_XL, GRID_PADDING, SPACING_LG, SPACING_SM, CARD_RADIUS, BUTTON_HEIGHT, BUTTON_RADIUS } from '@/constants/layout';
+import { FONT_2XS, FONT_XS, FONT_SM, FONT_MD, FONT_LG, FONT_XL, GRID_PADDING, SPACING_LG, SPACING_SM, CARD_RADIUS, BUTTON_HEIGHT, BUTTON_RADIUS, WHEEL_WIDTH, WHEEL_ITEM_HEIGHT, WHEEL_VISIBLE_HEIGHT, WHEEL_SELECTION_RADIUS } from '@/constants/layout';
 
 type Props = NativeStackScreenProps<MyPageStackParamList, 'Setting'>;
 
@@ -318,8 +318,6 @@ function SettingRow({
 
 /* ---------- 방해 금지 시간 시트 (v2: 위아래 행 + 휠 피커) ---------- */
 
-const ITEM_H = normalize(40);
-const WHEEL_VISIBLE_HEIGHT = ITEM_H * 3;
 const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
 const MINUTES = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, '0'));
 
@@ -434,7 +432,7 @@ function Wheel({ items, value, onChange }: { items: string[]; value: string; onC
 
   const handleScrollEnd = (e: any) => {
     const y = e.nativeEvent.contentOffset.y;
-    const i = Math.round(y / ITEM_H);
+    const i = Math.round(y / WHEEL_ITEM_HEIGHT);
     const validIndex = Math.max(0, Math.min(items.length - 1, i));
     const v = items[validIndex];
     if (v && v !== value) {
@@ -443,20 +441,21 @@ function Wheel({ items, value, onChange }: { items: string[]; value: string; onC
   };
 
   return (
-    <View style={{ width: normalize(56), height: WHEEL_VISIBLE_HEIGHT, overflow: 'hidden', position: 'relative' }}>
+    <View className="relative overflow-hidden" style={{ width: WHEEL_WIDTH, height: WHEEL_VISIBLE_HEIGHT }}>
       <View
         pointerEvents="none"
-        style={{ position: 'absolute', top: ITEM_H, left: 0, right: 0, height: ITEM_H, backgroundColor: 'rgba(0,0,0,0.05)', borderRadius: normalize(8) }}
+        className="absolute left-0 right-0 bg-black/5"
+        style={{ top: WHEEL_ITEM_HEIGHT, height: WHEEL_ITEM_HEIGHT, borderRadius: WHEEL_SELECTION_RADIUS }}
       />
       <ScrollView
         ref={scrollRef}
         showsVerticalScrollIndicator={false}
-        snapToInterval={ITEM_H}
+        snapToInterval={WHEEL_ITEM_HEIGHT}
         decelerationRate="fast"
-        contentOffset={{ x: 0, y: idx * ITEM_H }}
+        contentOffset={{ x: 0, y: idx * WHEEL_ITEM_HEIGHT }}
         onMomentumScrollEnd={handleScrollEnd}
         onScrollEndDrag={handleScrollEnd}
-        contentContainerStyle={{ paddingVertical: ITEM_H }}
+        contentContainerStyle={{ paddingVertical: WHEEL_ITEM_HEIGHT }}
       >
         {items.map((it, itemIdx) => {
           const active = it === value;
@@ -465,9 +464,10 @@ function Wheel({ items, value, onChange }: { items: string[]; value: string; onC
               key={it}
               onPress={() => {
                 onChange(it);
-                scrollRef.current?.scrollTo({ y: itemIdx * ITEM_H, animated: true });
+                scrollRef.current?.scrollTo({ y: itemIdx * WHEEL_ITEM_HEIGHT, animated: true });
               }}
-              style={{ height: ITEM_H, alignItems: 'center', justifyContent: 'center' }}
+              className="items-center justify-center"
+              style={{ height: WHEEL_ITEM_HEIGHT }}
             >
               <Text style={{ fontSize: active ? FONT_XL : FONT_MD, fontWeight: active ? '600' : '400', color: active ? '#111111' : '#c7c7cc' }}>
                 {it}
@@ -476,8 +476,8 @@ function Wheel({ items, value, onChange }: { items: string[]; value: string; onC
           );
         })}
       </ScrollView>
-      <LinearGradient pointerEvents="none" colors={['#f5f5f7', 'rgba(245,245,247,0)']} style={{ position: 'absolute', left: 0, right: 0, top: 0, height: ITEM_H }} />
-      <LinearGradient pointerEvents="none" colors={['rgba(245,245,247,0)', '#f5f5f7']} style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: ITEM_H }} />
+      <LinearGradient pointerEvents="none" colors={['#f5f5f7', 'rgba(245,245,247,0)']} className="absolute left-0 right-0 top-0" style={{ height: WHEEL_ITEM_HEIGHT }} />
+      <LinearGradient pointerEvents="none" colors={['rgba(245,245,247,0)', '#f5f5f7']} className="absolute left-0 right-0 bottom-0" style={{ height: WHEEL_ITEM_HEIGHT }} />
     </View>
   );
 }

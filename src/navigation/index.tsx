@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavigationContainer, type NavigatorScreenParams } from '@react-navigation/native';
+import { NavigationContainer, createNavigationContainerRef, type NavigatorScreenParams } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AuthStack from './AuthStack';
 import MainTab from './MainTab';
@@ -18,14 +18,27 @@ export type RootStackParamList = {
   Map: { source?: string; newSpot?: any };
 };
 
+export const navigationRef = createNavigationContainerRef<RootStackParamList>();
+
+function handleDeepLinkNav(deepLink: string) {
+  if (!navigationRef.isReady()) return;
+  const spotIdMatch = deepLink.match(/(?:spotId=|\/spot\/|^)(\d+)/);
+  if (spotIdMatch && spotIdMatch[1]) {
+    (navigationRef as any).navigate('SpotStack', {
+      screen: 'SpotDetail',
+      params: { spotId: spotIdMatch[1] },
+    });
+  }
+}
+
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function RootNavigator() {
   const isLoggedIn = useAuthStore((s) => !!s.accessToken);
   const [hydrated, setHydrated] = React.useState(false);
 
-  // 푸시 알림 초기화 및 토큰 갱신 훅 호출
-  usePushNotifications();
+  // 푸시 알림 초기화 및 토큰 갱신 훅 호출 (딥링크 이동 콜백 연결)
+  usePushNotifications(handleDeepLinkNav);
 
   React.useEffect(() => {
     const unsub = useAuthStore.persist.onFinishHydration(() => setHydrated(true));
@@ -36,7 +49,7 @@ export default function RootNavigator() {
   if (!hydrated) return null;
 
   return (
-    <NavigationContainer>
+    <NavigationContainer ref={navigationRef}>
       {isLoggedIn ? (
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           <Stack.Screen name="Main" component={MainTab} />

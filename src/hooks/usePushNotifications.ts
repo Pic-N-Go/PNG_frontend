@@ -87,23 +87,25 @@ export const usePushNotifications = (onDeepLinkNav?: (deepLink: string) => void)
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
     });
 
+    const handleDeepLinkMessage = (remoteMessage: any) => {
+      if (!remoteMessage || !onDeepLinkNav) return;
+      const deepLink = remoteMessage.data?.deepLink || remoteMessage.data?.link || remoteMessage.data?.spotId;
+      if (deepLink && (typeof deepLink === 'string' || typeof deepLink === 'number')) {
+        onDeepLinkNav(String(deepLink));
+      }
+    };
+
     // 3. 백그라운드 상태에서 상단 알림 터치 시
     const unsubscribeNotificationOpened = onNotificationOpenedApp(messaging, (remoteMessage) => {
       console.log('Notification Opened App from background:', remoteMessage);
-      const deepLink = remoteMessage.data?.deepLink || remoteMessage.data?.link;
-      if (deepLink && typeof deepLink === 'string' && onDeepLinkNav) {
-        onDeepLinkNav(deepLink);
-      }
+      handleDeepLinkMessage(remoteMessage);
     });
 
     // 4. 완전 종료 상태에서 상단 알림 터치로 앱 실행 시
     getInitialNotification(messaging).then((remoteMessage) => {
       if (remoteMessage) {
         console.log('Notification Opened App from quit state:', remoteMessage);
-        const deepLink = remoteMessage.data?.deepLink || remoteMessage.data?.link;
-        if (deepLink && typeof deepLink === 'string' && onDeepLinkNav) {
-          onDeepLinkNav(deepLink);
-        }
+        handleDeepLinkMessage(remoteMessage);
       }
     });
 
