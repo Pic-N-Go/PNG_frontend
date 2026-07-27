@@ -671,6 +671,9 @@ export default function TravelPlanScreen({ navigation, route }: any) {
       <html>
         <head>
           <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+          <!-- baseUrl을 https로 주면 카카오 SDK가 내부 라이브러리를 https로 받는다(iOS ATS 통과).
+               단 Referer가 붙으면 미등록 도메인이라 401이 되므로 no-referrer로 억제한다. -->
+          <meta name="referrer" content="no-referrer">
           <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_KEY}&autoload=false"></script>
           <style>
             html, body { margin: 0; padding: 0; width: 100%; height: 100%; }
@@ -745,7 +748,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
         {/* Map Area */}
         <View className="bg-[#e8e8ed] overflow-hidden relative" style={{ height: normalize(210) }}>
           <WebView
-            source={{ html: interactiveMapHtml }}
+            source={{ html: interactiveMapHtml, baseUrl: 'https://localhost' }}
             onMessage={handleMapMessage}
             style={{ width: '100%', height: '100%', backgroundColor: 'transparent' }}
             scrollEnabled={false}
