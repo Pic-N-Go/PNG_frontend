@@ -687,8 +687,8 @@
         margin-top: 1px;
       }
 
-      /* ── Gallery Sort ── */
-      .gallery-sort {
+      /* ── Feed Sort (게시글 · 갤러리 공용) ── */
+      .feed-sort {
         display: flex;
         align-items: center;
         gap: 3px;
@@ -708,8 +708,9 @@
       .gallery-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
+        grid-auto-flow: row dense;
         gap: 3px;
-        padding: 0 20px;
+        padding: 0 20px 20px;
       }
       .gallery-grid__cell {
         position: relative;
@@ -798,7 +799,7 @@
               <button class="segment__btn" onclick="switchView('gallery', this)">갤러리</button>
               <button class="segment__btn" onclick="switchView('contest', this)">콘테스트</button>
             </div>
-            <button class="gallery-sort" id="gallery-sort" style="display: none">
+            <button class="feed-sort" id="feed-sort">
               인기
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg>
             </button>
@@ -1130,8 +1131,9 @@
         el.parentElement.querySelectorAll('.segment__btn').forEach((b) => {
           b.classList.toggle('is-active', b === el);
         });
-        const sortBtn = document.getElementById('gallery-sort');
-        if (sortBtn) sortBtn.style.display = view === 'gallery' ? 'flex' : 'none';
+        // 정렬 버튼은 게시글·갤러리 공용, 콘테스트에서만 숨김 (원본 2a·2f 有 / 2g·2h·2i 無)
+        const sortBtn = document.getElementById('feed-sort');
+        if (sortBtn) sortBtn.style.display = view === 'contest' ? 'none' : 'flex';
       }
 
       /* ── 게시글 카드 → 상세 이동 (내부 버튼 클릭은 제외) ── */

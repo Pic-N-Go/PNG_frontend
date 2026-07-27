@@ -946,8 +946,9 @@ Task 1의 `<script>` 블록에 이어 붙인다.
       .gallery-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
+        grid-auto-flow: row dense; /* 원본 2f 74행 — 없으면 2×2 셀 앞에 빈 칸이 생긴다 */
         gap: 3px;
-        padding: 0 20px;
+        padding: 0 20px 20px;
       }
       .gallery-grid__cell {
         position: relative;
