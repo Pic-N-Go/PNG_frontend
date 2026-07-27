@@ -58,7 +58,7 @@ export function useNotificationSettings(initial?: Partial<NotificationSettings>)
 
   // 1. GET /notifications/settings 수신 설정 데이터 조회 (Hydration)
   const { data: serverSettings } = useQuery<NotificationSettingResponse>({
-    queryKey: ['notificationSettings'],
+    queryKey: ['notificationSettings', accessToken],
     queryFn: () => {
       if (!accessToken) return Promise.reject(new Error('AccessToken missing'));
       return notificationApi.getSettings(accessToken);
@@ -106,7 +106,7 @@ export function useNotificationSettings(initial?: Partial<NotificationSettings>)
       );
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['notificationSettings'] });
+      queryClient.invalidateQueries({ queryKey: ['notificationSettings', accessToken] });
     },
   });
 

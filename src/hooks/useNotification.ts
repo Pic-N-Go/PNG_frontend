@@ -8,7 +8,7 @@ export const useNotification = () => {
 
   const useNotificationsQuery = () =>
     useQuery<NotificationItem[]>({
-      queryKey: ['notifications'],
+      queryKey: ['notifications', accessToken],
       queryFn: () => {
         if (!accessToken) return Promise.resolve([]);
         return notificationApi.getNotifications(accessToken);
@@ -23,7 +23,7 @@ export const useNotification = () => {
         return notificationApi.markRead(id, accessToken);
       },
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['notifications'] });
+        queryClient.invalidateQueries({ queryKey: ['notifications', accessToken] });
       },
     });
 
@@ -34,7 +34,7 @@ export const useNotification = () => {
         return notificationApi.markAllRead(accessToken);
       },
       onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['notifications'] });
+        queryClient.invalidateQueries({ queryKey: ['notifications', accessToken] });
       },
     });
 
