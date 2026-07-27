@@ -66,23 +66,7 @@ export function useNotificationSettings(initial?: Partial<NotificationSettings>)
     enabled: !!accessToken,
   });
 
-  useEffect(() => {
-    if (serverSettings) {
-      const hasDnd = serverSettings.isDndEnabled ?? !!(serverSettings.dndStartTime && serverSettings.dndEndTime);
-      setSettings((prev) => ({
-        ...prev,
-        wishlist: serverSettings.isWishlistPushEnabled ?? prev.wishlist,
-        golden: serverSettings.isGoldenHourPushEnabled ?? prev.golden,
-        community: serverSettings.isCommunityPushEnabled ?? prev.community,
-        dnd: {
-          ...prev.dnd,
-          enabled: hasDnd,
-          start: parseLocalTime(serverSettings.dndStartTime) ?? prev.dnd.start,
-          end: parseLocalTime(serverSettings.dndEndTime) ?? prev.dnd.end,
-        },
-      }));
-    }
-  }, [serverSettings]);
+  const syncTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // 2. PUT /notifications/settings 수신 설정 동기화
   const updateApiMutation = useMutation({
@@ -110,7 +94,24 @@ export function useNotificationSettings(initial?: Partial<NotificationSettings>)
     },
   });
 
-  const syncTimerRef = useRef<NodeJS.Timeout | null>(null);
+  useEffect(() => {
+    // 동기화 타이머 대기 중이거나 API 요청 중일 때는 하이드레이션 스킵
+    if (serverSettings && !syncTimerRef.current && !updateApiMutation.isPending) {
+      const hasDnd = serverSettings.isDndEnabled ?? !!(serverSettings.dndStartTime && serverSettings.dndEndTime);
+      setSettings((prev) => ({
+        ...prev,
+        wishlist: serverSettings.isWishlistPushEnabled ?? prev.wishlist,
+        golden: serverSettings.isGoldenHourPushEnabled ?? prev.golden,
+        community: serverSettings.isCommunityPushEnabled ?? prev.community,
+        dnd: {
+          ...prev.dnd,
+          enabled: hasDnd,
+          start: parseLocalTime(serverSettings.dndStartTime) ?? prev.dnd.start,
+          end: parseLocalTime(serverSettings.dndEndTime) ?? prev.dnd.end,
+        },
+      }));
+    }
+  }, [serverSettings, updateApiMutation.isPending]);
 
   const formatLocalTime = (timeStr?: string) => {
     if (!timeStr) return undefined;
@@ -118,13 +119,15 @@ export function useNotificationSettings(initial?: Partial<NotificationSettings>)
   };
 
   const syncSettingsToApi = useCallback((newSettings: NotificationSettings) => {
-    if (syncTimerRef.current) {
+    // 첫 디바운스 시작 시점(타이머가 아직 없는 상태)에서만 롤백 스냅샷 캡처
+    if (!syncTimerRef.current) {
+      previousSettingsRef.current = latestSettingsRef.current;
+    } else {
       clearTimeout(syncTimerRef.current);
     }
-    // 전송 시도 직전 현재 안정 상태 스냅샷 백업
-    previousSettingsRef.current = latestSettingsRef.current;
 
     syncTimerRef.current = setTimeout(() => {
+      syncTimerRef.current = null;
       updateApiMutation.mutate({
         isWishlistPushEnabled: newSettings.wishlist,
         isGoldenHourPushEnabled: newSettings.golden,

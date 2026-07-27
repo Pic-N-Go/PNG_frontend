@@ -62,13 +62,20 @@ function formatRelativeTime(dateString: string): string {
   return `${month}월 ${day}일`;
 }
 
+function toLocalDateKey(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
+}
+
 function groupNotificationsByDate(items: NotificationItem[]) {
   const now = new Date();
-  const todayStr = now.toISOString().split('T')[0];
+  const todayStr = toLocalDateKey(now);
 
   const yesterday = new Date(now);
   yesterday.setDate(yesterday.getDate() - 1);
-  const yesterdayStr = yesterday.toISOString().split('T')[0];
+  const yesterdayStr = toLocalDateKey(yesterday);
 
   const groups: { label: string; items: NotificationItem[] }[] = [
     { label: '오늘', items: [] },
@@ -77,7 +84,11 @@ function groupNotificationsByDate(items: NotificationItem[]) {
   ];
 
   items.forEach((item) => {
-    const itemDateStr = item.createdAt ? item.createdAt.split('T')[0] : todayStr;
+    let itemDateStr = todayStr;
+    if (item.createdAt) {
+      const parsed = new Date(item.createdAt);
+      itemDateStr = isNaN(parsed.getTime()) ? item.createdAt.split('T')[0] : toLocalDateKey(parsed);
+    }
     if (itemDateStr === todayStr) {
       groups[0].items.push(item);
     } else if (itemDateStr === yesterdayStr) {

@@ -430,6 +430,8 @@ function TimeRow({ label, value, onChange }: { label: string; value: string; onC
 
 function Wheel({ items, value, onChange }: { items: string[]; value: string; onChange: (v: string) => void }) {
   const scrollRef = React.useRef<ScrollView>(null);
+  const isMomentumRef = React.useRef(false);
+  const dragTimerRef = React.useRef<NodeJS.Timeout | null>(null);
   const idx = Math.max(0, items.indexOf(value));
 
   const handleScrollEnd = (e: any) => {
@@ -440,6 +442,33 @@ function Wheel({ items, value, onChange }: { items: string[]; value: string; onC
     if (v && v !== value) {
       onChange(v);
     }
+  };
+
+  const handleMomentumScrollBegin = () => {
+    isMomentumRef.current = true;
+    if (dragTimerRef.current) {
+      clearTimeout(dragTimerRef.current);
+      dragTimerRef.current = null;
+    }
+  };
+
+  const handleMomentumScrollEnd = (e: any) => {
+    isMomentumRef.current = false;
+    if (dragTimerRef.current) {
+      clearTimeout(dragTimerRef.current);
+      dragTimerRef.current = null;
+    }
+    handleScrollEnd(e);
+  };
+
+  const handleScrollEndDrag = (e: any) => {
+    if (dragTimerRef.current) clearTimeout(dragTimerRef.current);
+    const nativeEvent = e.nativeEvent;
+    dragTimerRef.current = setTimeout(() => {
+      if (!isMomentumRef.current) {
+        handleScrollEnd({ nativeEvent });
+      }
+    }, 100);
   };
 
   return (
@@ -454,8 +483,9 @@ function Wheel({ items, value, onChange }: { items: string[]; value: string; onC
         snapToInterval={ITEM_H}
         decelerationRate="fast"
         contentOffset={{ x: 0, y: idx * ITEM_H }}
-        onMomentumScrollEnd={handleScrollEnd}
-        onScrollEndDrag={handleScrollEnd}
+        onMomentumScrollBegin={handleMomentumScrollBegin}
+        onMomentumScrollEnd={handleMomentumScrollEnd}
+        onScrollEndDrag={handleScrollEndDrag}
         contentContainerStyle={{ paddingVertical: ITEM_H }}
       >
         {items.map((it, itemIdx) => {
