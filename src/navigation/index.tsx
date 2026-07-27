@@ -1,5 +1,9 @@
 import React from 'react';
-import { NavigationContainer, type NavigatorScreenParams } from '@react-navigation/native';
+import { 
+  NavigationContainer, 
+  createNavigationContainerRef,
+  type NavigatorScreenParams 
+} from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AuthStack from './AuthStack';
 import MainTab from './MainTab';
@@ -18,14 +22,35 @@ export type RootStackParamList = {
   Map: { source?: string; newSpot?: any };
 };
 
+export const navigationRef = createNavigationContainerRef<RootStackParamList>();
+
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export default function RootNavigator() {
   const isLoggedIn = useAuthStore((s) => !!s.accessToken);
   const [hydrated, setHydrated] = React.useState(false);
+  const [isNavReady, setIsNavReady] = React.useState(false);
+  const pendingSpotIdRef = React.useRef<string | null>(null);
 
-  // 푸시 알림 초기화 및 토큰 갱신 훅 호출
-  usePushNotifications();
+  const handleDeepLinkNav = React.useCallback((deepLink: string) => {
+    let spotId = deepLink;
+    const match = deepLink.match(/spot\/(\d+)/) || deepLink.match(/spotId=(\d+)/);
+    if (match) {
+      spotId = match[1];
+    }
+
+    if (navigationRef.isReady() && isLoggedIn) {
+      (navigationRef as any).navigate('SpotStack', {
+        screen: 'SpotDetail',
+        params: { id: spotId },
+      });
+    } else {
+      pendingSpotIdRef.current = spotId;
+    }
+  }, [isLoggedIn]);
+
+  // 푸시 알림 딥링크 핸들러 주입
+  usePushNotifications(handleDeepLinkNav);
 
   React.useEffect(() => {
     const unsub = useAuthStore.persist.onFinishHydration(() => setHydrated(true));
@@ -33,10 +58,24 @@ export default function RootNavigator() {
     return unsub;
   }, []);
 
+  React.useEffect(() => {
+    if (isNavReady && isLoggedIn && pendingSpotIdRef.current) {
+      const spotId = pendingSpotIdRef.current;
+      pendingSpotIdRef.current = null;
+      (navigationRef as any).navigate('SpotStack', {
+        screen: 'SpotDetail',
+        params: { id: spotId },
+      });
+    }
+  }, [isNavReady, isLoggedIn]);
+
   if (!hydrated) return null;
 
   return (
-    <NavigationContainer>
+    <NavigationContainer
+      ref={navigationRef}
+      onReady={() => setIsNavReady(true)}
+    >
       {isLoggedIn ? (
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           <Stack.Screen name="Main" component={MainTab} />
