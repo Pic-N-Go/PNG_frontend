@@ -1,4 +1,5 @@
 import { Linking, Alert } from 'react-native';
+import { parseValidCoordinate } from './geo';
 
 export interface SpotLocation {
   name: string;
@@ -20,22 +21,17 @@ export const openKakaoNavi = async (spots: SpotLocation[]) => {
     return;
   }
 
-  const parseCoord = (val: any): number => {
-    if (typeof val === 'number' && !isNaN(val)) return val;
-    if (typeof val === 'string') {
-      const parsed = parseFloat(val);
-      if (!isNaN(parsed)) return parsed;
+  const validSpots: SpotLocation[] = [];
+  spots.forEach((s) => {
+    const coord = parseValidCoordinate(s.latitude, s.longitude);
+    if (coord) {
+      validSpots.push({
+        name: s.name || '스팟',
+        latitude: coord.latitude,
+        longitude: coord.longitude,
+      });
     }
-    return 0;
-  };
-
-  const validSpots = spots
-    .map((s) => ({
-      name: s.name || '스팟',
-      latitude: parseCoord(s.latitude),
-      longitude: parseCoord(s.longitude),
-    }))
-    .filter((s) => s.latitude !== 0 && s.longitude !== 0);
+  });
 
   if (validSpots.length === 0) {
     Alert.alert('알림', '유효한 위치(위경도) 정보가 없습니다.');

@@ -28,6 +28,7 @@ import {
 } from "@tabler/icons-react-native";
 import NaviSheet from "@/components/spot/NaviSheet";
 import CourseMoreSheet from "@/components/travel/CourseMoreSheet";
+import { parseValidCoordinate } from "@/utils/geo";
 import CourseShareSheet from "@/components/travel/CourseShareSheet";
 import { getDistanceFromLatLonInKm } from "@/utils/distance";
 import { FONT_XS, FONT_SM, CONTENT_PADDING, BUTTON_HEIGHT, HEADER_HEIGHT } from "@/constants/layout";
@@ -1214,21 +1215,19 @@ export default function TravelPlanScreen({ navigation, route }: any) {
         onClose={() => setIsDepartModalVisible(false)}
         spotName={currentData?.spots?.[0]?.name || ""}
         address={currentData?.spots?.[0]?.loc || ""}
-        spots={(currentData?.spots || []).map((s: any) => {
-          const parseNum = (val: any) => {
-            if (typeof val === "number" && !isNaN(val)) return val;
-            if (typeof val === "string") {
-              const p = parseFloat(val);
-              if (!isNaN(p)) return p;
-            }
-            return 0;
-          };
-          return {
-            name: s.name || s.spotName || "스팟",
-            latitude: parseNum(s.lat ?? s.latitude ?? s.y ?? s.mapY),
-            longitude: parseNum(s.lng ?? s.longitude ?? s.x ?? s.mapX),
-          };
-        })}
+        spots={(currentData?.spots || [])
+          .map((s: any) => {
+            const rawLat = s.lat ?? s.latitude ?? s.y ?? s.mapY;
+            const rawLng = s.lng ?? s.longitude ?? s.x ?? s.mapX;
+            const coord = parseValidCoordinate(rawLat, rawLng);
+            if (!coord) return null;
+            return {
+              name: s.name || s.spotName || "스팟",
+              latitude: coord.latitude,
+              longitude: coord.longitude,
+            };
+          })
+          .filter(Boolean)}
         onLaunched={(msg) => Alert.alert("안내", msg)}
       />
 
