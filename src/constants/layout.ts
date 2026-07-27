@@ -44,3 +44,9 @@ export const SOCIAL_BUTTON_RADIUS = normalize(24);
 
 // ── 바텀시트 ──────────────────────────────────
 export const BOTTOM_SHEET_RADIUS = normalize(24);
+
+// ── 피커 / 휠 ─────────────────────────────────
+export const WHEEL_WIDTH = normalize(56);
+export const WHEEL_ITEM_HEIGHT = normalize(40);
+export const WHEEL_VISIBLE_HEIGHT = WHEEL_ITEM_HEIGHT * 3;
+export const WHEEL_SELECTION_RADIUS = normalize(8);
