@@ -25,7 +25,7 @@ let pendingSpotId: string | null = null;
 function navigateToSpotDetail(spotId: string) {
   (navigationRef as any).navigate('SpotStack', {
     screen: 'SpotDetail',
-    params: { spotId },
+    params: { id: spotId, spotId },
   });
 }
 

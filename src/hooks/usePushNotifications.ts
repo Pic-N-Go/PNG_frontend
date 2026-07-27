@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Platform, PermissionsAndroid } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { 
@@ -20,6 +20,11 @@ export const usePushNotifications = (onDeepLinkNav?: (deepLink: string) => void)
   const accessToken = useAuthStore((state) => state.accessToken);
   const queryClient = useQueryClient();
 
+  const onDeepLinkNavRef = useRef(onDeepLinkNav);
+  useEffect(() => {
+    onDeepLinkNavRef.current = onDeepLinkNav;
+  }, [onDeepLinkNav]);
+
   const { mutate: sendTokenToServer } = useMutation({
     mutationFn: (token: string) => notificationApi.postToken(token, accessToken!),
     onSuccess: () => {
@@ -31,6 +36,7 @@ export const usePushNotifications = (onDeepLinkNav?: (deepLink: string) => void)
   });
 
   useEffect(() => {
+    let isMounted = true;
     const messaging = getMessaging();
 
     async function requestPermissionAndGetToken() {
@@ -60,9 +66,8 @@ export const usePushNotifications = (onDeepLinkNav?: (deepLink: string) => void)
             authStatus === AuthorizationStatus.PROVISIONAL;
         }
 
-        if (enabled) {
+        if (enabled && isMounted) {
           console.log('Notification permission granted.');
-          // getToken returns the FCM token
           const token = await getToken(messaging);
           setFcmToken(token);
         } else {
@@ -77,21 +82,20 @@ export const usePushNotifications = (onDeepLinkNav?: (deepLink: string) => void)
 
     // 1. FCM 토큰 갱신 리스너
     const unsubscribeTokenRefresh = onTokenRefresh(messaging, (token) => {
-      setFcmToken(token);
+      if (isMounted) setFcmToken(token);
     });
 
     // 2. 포그라운드 알림 수신 시
     const unsubscribeForegroundMessage = onMessage(messaging, async (remoteMessage) => {
       console.log('Foreground Push Received:', remoteMessage);
-      // 포그라운드 수신 시 알림 쿼리 무효화 (알림 목록 자동 최신화)
       queryClient.invalidateQueries({ queryKey: ['notifications'] });
     });
 
     const handleDeepLinkMessage = (remoteMessage: any) => {
-      if (!remoteMessage || !onDeepLinkNav) return;
+      if (!remoteMessage || !onDeepLinkNavRef.current) return;
       const deepLink = remoteMessage.data?.deepLink || remoteMessage.data?.link || remoteMessage.data?.spotId;
       if (deepLink && (typeof deepLink === 'string' || typeof deepLink === 'number')) {
-        onDeepLinkNav(String(deepLink));
+        onDeepLinkNavRef.current(String(deepLink));
       }
     };
 
@@ -103,18 +107,19 @@ export const usePushNotifications = (onDeepLinkNav?: (deepLink: string) => void)
 
     // 4. 완전 종료 상태에서 상단 알림 터치로 앱 실행 시
     getInitialNotification(messaging).then((remoteMessage) => {
-      if (remoteMessage) {
+      if (remoteMessage && isMounted) {
         console.log('Notification Opened App from quit state:', remoteMessage);
         handleDeepLinkMessage(remoteMessage);
       }
     });
 
     return () => {
+      isMounted = false;
       unsubscribeTokenRefresh();
       unsubscribeForegroundMessage();
       unsubscribeNotificationOpened();
     };
-  }, [queryClient, onDeepLinkNav]);
+  }, [queryClient]);
 
   useEffect(() => {
     // If we have an FCM token and the user is logged in, send the token to the backend

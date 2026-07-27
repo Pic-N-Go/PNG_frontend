@@ -223,6 +223,9 @@ export default function MapScreen() {
 <html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+  <!-- baseUrl을 https로 주면 카카오 SDK가 내부 라이브러리를 https로 받는다(iOS ATS 통과).
+       단 Referer가 붙으면 미등록 도메인이라 401이 되므로 no-referrer로 억제한다. -->
+  <meta name="referrer" content="no-referrer">
   <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_KEY}&autoload=false"></script>
   <style>
     body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #e8e8ed; }
@@ -362,7 +365,7 @@ export default function MapScreen() {
   }, [route.params?.spots, route.params?.planData, route.params?.initialDay, mode]);
 
   // source 객체도 HTML 문자열이 바뀔 때만 새로 만들어 WebView가 재로딩되지 않게 한다.
-  const mapSource = useMemo(() => ({ html: HTML }), [HTML]);
+  const mapSource = useMemo(() => ({ html: HTML, baseUrl: 'https://localhost' }), [HTML]);
 
   if (!KAKAO_KEY) {
     return (

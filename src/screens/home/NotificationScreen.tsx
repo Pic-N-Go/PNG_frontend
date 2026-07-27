@@ -63,10 +63,10 @@ function formatRelativeTime(dateString: string): string {
 }
 
 function toLocalDateKey(date: Date): string {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, '0');
+  const d = String(date.getDate()).padStart(2, '0');
+  return `${y}-${m}-${d}`;
 }
 
 function groupNotificationsByDate(items: NotificationItem[]) {
@@ -86,12 +86,9 @@ function groupNotificationsByDate(items: NotificationItem[]) {
   items.forEach((item) => {
     let itemDateStr = todayStr;
     if (item.createdAt) {
-      const parsedDate = new Date(item.createdAt);
-      if (!isNaN(parsedDate.getTime())) {
-        itemDateStr = toLocalDateKey(parsedDate);
-      }
+      const parsed = new Date(item.createdAt);
+      itemDateStr = isNaN(parsed.getTime()) ? item.createdAt.split('T')[0] : toLocalDateKey(parsed);
     }
-
     if (itemDateStr === todayStr) {
       groups[0].items.push(item);
     } else if (itemDateStr === yesterdayStr) {
