@@ -66,31 +66,46 @@ export function useNotificationSettings(initial?: Partial<NotificationSettings>)
     enabled: !!accessToken,
   });
 
+  const currentTokenRef = useRef(accessToken);
+
   const syncTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  useEffect(() => {
+    currentTokenRef.current = accessToken;
+    // accessToken 변경 시 (로그아웃 / 계정 전환 등) 큐에 대기 중인 동기화 타이머 취소
+    if (syncTimerRef.current) {
+      clearTimeout(syncTimerRef.current);
+      syncTimerRef.current = null;
+    }
+  }, [accessToken]);
 
   // 2. PUT /notifications/settings 수신 설정 동기화
   const updateApiMutation = useMutation({
-    mutationFn: (data: NotificationSettingUpdateRequest) => {
-      if (!accessToken) return Promise.resolve();
-      return notificationApi.updateSettings(data, accessToken);
+    mutationFn: ({ requestToken, ...data }: NotificationSettingUpdateRequest & { requestToken?: string }) => {
+      if (!requestToken) return Promise.resolve();
+      return notificationApi.updateSettings(data, requestToken);
     },
-    onMutate: () => {
-      // API 전송 실패 시 롤백용 스냅샷 저장
-      return { previousSettings: previousSettingsRef.current };
+    onMutate: (variables) => {
+      // API 전송 실패 시 롤백용 스냅샷 및 당시 토큰 기록
+      return { previousSettings: previousSettingsRef.current, requestToken: variables.requestToken };
     },
     onError: (_err, _variables, context) => {
-      // 동기화 실패 시 이전 UI 설정 상태로 자동 Rollback
-      if (context?.previousSettings) {
-        setSettings(context.previousSettings);
-        latestSettingsRef.current = context.previousSettings;
+      // 계정 전환 없이 동일한 로그인 세션일 때만 Rollback 수행
+      if (context?.requestToken && context.requestToken === currentTokenRef.current) {
+        if (context?.previousSettings) {
+          setSettings(context.previousSettings);
+          latestSettingsRef.current = context.previousSettings;
+        }
+        Alert.alert(
+          '설정 저장 실패',
+          '네트워크 오류로 알림 수신 설정 변경에 실패했습니다. 이전 설정으로 되돌아갑니다.'
+        );
       }
-      Alert.alert(
-        '설정 저장 실패',
-        '네트워크 오류로 알림 수신 설정 변경에 실패했습니다. 이전 설정으로 되돌아갑니다.'
-      );
     },
-    onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['notificationSettings', accessToken] });
+    onSettled: (_data, _error, _variables, context) => {
+      if (context?.requestToken && context.requestToken === currentTokenRef.current) {
+        queryClient.invalidateQueries({ queryKey: ['notificationSettings', context.requestToken] });
+      }
     },
   });
 
@@ -119,6 +134,8 @@ export function useNotificationSettings(initial?: Partial<NotificationSettings>)
   };
 
   const syncSettingsToApi = useCallback((newSettings: NotificationSettings) => {
+    if (!accessToken) return;
+
     // 첫 디바운스 시작 시점(타이머가 아직 없는 상태)에서만 롤백 스냅샷 캡처
     if (!syncTimerRef.current) {
       previousSettingsRef.current = latestSettingsRef.current;
@@ -126,9 +143,12 @@ export function useNotificationSettings(initial?: Partial<NotificationSettings>)
       clearTimeout(syncTimerRef.current);
     }
 
+    const tokenForRequest = accessToken;
+
     syncTimerRef.current = setTimeout(() => {
       syncTimerRef.current = null;
       updateApiMutation.mutate({
+        requestToken: tokenForRequest,
         isWishlistPushEnabled: newSettings.wishlist,
         isGoldenHourPushEnabled: newSettings.golden,
         isCommunityPushEnabled: newSettings.community,
@@ -137,7 +157,7 @@ export function useNotificationSettings(initial?: Partial<NotificationSettings>)
         dndEndTime: newSettings.dnd.enabled ? formatLocalTime(newSettings.dnd.end) : undefined,
       });
     }, 300);
-  }, [updateApiMutation]);
+  }, [accessToken, updateApiMutation]);
 
   useEffect(() => {
     return () => {
