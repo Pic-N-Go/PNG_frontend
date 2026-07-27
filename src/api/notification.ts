@@ -22,8 +22,31 @@ async function fetchWithTimeout(url: string, options: RequestInit) {
   }
 }
 
+export interface NotificationItem {
+  id: number;
+  type: string;
+  title: string;
+  content: string;
+  isRead: boolean;
+  deepLink?: string;
+  spotId?: number | string;
+  createdAt: string;
+}
+
+export interface NotificationSettingResponse {
+  isWishlistPushEnabled: boolean;
+  isGoldenHourPushEnabled: boolean;
+  isCommunityPushEnabled: boolean;
+  isDndEnabled?: boolean;
+  dndStartTime?: string | null;
+  dndEndTime?: string | null;
+}
+
 export interface NotificationSettingUpdateRequest {
-  isAllPushEnabled: boolean;
+  isWishlistPushEnabled: boolean;
+  isGoldenHourPushEnabled: boolean;
+  isCommunityPushEnabled: boolean;
+  isDndEnabled: boolean;
   dndStartTime?: string;
   dndEndTime?: string;
 }
@@ -40,6 +63,16 @@ export const notificationApi = {
     });
   },
 
+  getSettings: async (accessToken: string): Promise<NotificationSettingResponse> => {
+    const res = await fetchWithTimeout(`${BASE}/notifications/settings`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    return res.json();
+  },
+
   updateSettings: async (data: NotificationSettingUpdateRequest, accessToken: string): Promise<void> => {
     await fetchWithTimeout(`${BASE}/notifications/settings`, {
       method: 'PUT',
@@ -50,4 +83,33 @@ export const notificationApi = {
       body: JSON.stringify(data),
     });
   },
+
+  getNotifications: async (accessToken: string): Promise<NotificationItem[]> => {
+    const res = await fetchWithTimeout(`${BASE}/notifications`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    return res.json();
+  },
+
+  markRead: async (id: number, accessToken: string): Promise<void> => {
+    await fetchWithTimeout(`${BASE}/notifications/${id}/read`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+  },
+
+  markAllRead: async (accessToken: string): Promise<void> => {
+    await fetchWithTimeout(`${BASE}/notifications/read-all`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+  },
 };
+
