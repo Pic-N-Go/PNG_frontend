@@ -189,10 +189,16 @@ export function mapReviewSummary(s: ReviewListResponse['summary']): ReviewSummar
   return { score: s.avgRating, reviewCount: total, distribution };
 }
 
-export function mapReviewList(res: ReviewListResponse): { summary: ReviewSummaryData; reviews: Review[] } {
+/**
+ * 무한 스크롤 페이지들을 화면용 단일 구조로 합친다.
+ * summary는 페이지마다 동일한 전체 집계라 첫 페이지 것만 쓴다.
+ */
+export function mapReviewPages(
+  data: { pages: ReviewListResponse[] },
+): { summary: ReviewSummaryData; reviews: Review[] } {
   return {
-    summary: mapReviewSummary(res.summary),
-    reviews: res.reviews.content.map(mapReview),
+    summary: mapReviewSummary(data.pages[0].summary),
+    reviews: data.pages.flatMap((page) => page.reviews.content.map(mapReview)),
   };
 }
 

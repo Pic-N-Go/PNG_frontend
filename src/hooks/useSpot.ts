@@ -1,11 +1,11 @@
 // 스팟 상세 화면 서버 상태 훅 (TanStack Query)
 // 스펙: docs/ai/specs/feature/spot-detail-screen/spot-detail-api.md
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ApiError } from '@/api/auth';
 import { spotApi } from '@/api/spot';
 import type { ReviewPhotoUpload } from '@/api/spot';
 import { useAuthStore } from '@/store/useAuthStore';
-import { mapPhotogenicScore, mapReviewList, mapSpotDetail } from '@/utils/spotMappers';
+import { mapPhotogenicScore, mapReviewPages, mapSpotDetail } from '@/utils/spotMappers';
 import type { ReviewCreateRequest, ReviewSortApi } from '@/types/spot';
 
 const checklistKey = (id: string) => ['spot', id, 'checklist'] as const;
@@ -26,12 +26,19 @@ export function useSpots() {
   });
 }
 
+// 리뷰 카드가 세로로 길어(본문+사진+장비) 20건이면 "더보기"가 화면 한참 아래로 밀린다.
+const REVIEW_PAGE_SIZE = 10;
+
 export function useSpotReviews(id: string, sort: ReviewSortApi) {
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: ['spot', id, 'reviews', sort],
-    queryFn: () => spotApi.getReviews(id, { sort }),
+    queryFn: ({ pageParam }) => spotApi.getReviews(id, { sort, page: pageParam, size: REVIEW_PAGE_SIZE }),
+    initialPageParam: 0,
+    // 서버가 0-based page(number)와 totalPages를 내려준다.
+    getNextPageParam: (last) =>
+      last.reviews.number + 1 < last.reviews.totalPages ? last.reviews.number + 1 : undefined,
     enabled: !!id,
-    select: mapReviewList,
+    select: mapReviewPages,
   });
 }
 
