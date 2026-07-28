@@ -10,11 +10,16 @@
     <link rel="stylesheet" href="../common/fonts.css" />
     <link rel="stylesheet" href="../common/common.css" />
     <style>
+      /* ── Phone Frame ── */
       .phone-frame {
         width: 100%;
-        min-height: 100dvh;
+        height: 100dvh;
         background: var(--color-bg);
         position: relative;
+        overflow: hidden;
+      }
+      .phone-scroll {
+        height: 100%;
         overflow-y: auto;
         overflow-x: hidden;
         padding-bottom: 76px;
@@ -57,979 +62,993 @@
         fill: #000;
       }
 
-      /* ── Nav Bar ── */
-      .nav-bar {
+      /* ── Detail Nav (콜랩스 없는 풀스크린 헤더) ── */
+      .detail-nav {
         position: sticky;
         top: 54px;
         z-index: 25;
-        height: 48px;
-        background: rgba(255, 255, 255, 0.92);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 0 8px;
-        border-bottom: 0.5px solid var(--color-border-light);
-      }
-      .nav-bar__btn {
-        width: 40px;
-        height: 40px;
-        border: none;
-        background: none;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: rgba(0, 0, 0, 0.7);
-        border-radius: 50%;
-        transition: background 0.15s;
-      }
-      .nav-bar__btn:hover {
-        background: rgba(0, 0, 0, 0.05);
-      }
-      .nav-bar__title {
-        font-size: var(--font-md);
-        font-weight: 600;
-        letter-spacing: -0.3px;
-      }
-
-      /* ── Hero Photo ── */
-      .post-photo {
-        position: relative;
-        height: 320px;
-        overflow: hidden;
-      }
-      .post-photo__bg {
-        width: 100%;
-        height: 100%;
-      }
-      .post-photo__location {
-        position: absolute;
-        bottom: 12px;
-        left: 12px;
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        height: 28px;
-        padding: 0 11px;
-        border-radius: 14px;
-        background: rgba(0, 0, 0, 0.38);
-        font-size: var(--font-xs);
-        font-weight: 500;
-        color: rgba(255, 255, 255, 0.9);
-      }
-      .post-photo__like {
-        position: absolute;
-        bottom: 12px;
-        right: 12px;
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        height: 28px;
-        padding: 0 11px;
-        border-radius: 14px;
-        background: rgba(0, 0, 0, 0.38);
-        cursor: pointer;
-        transition: background 0.2s;
-      }
-      .post-photo__like svg {
-        width: 15px;
-        height: 14px;
-      }
-      .post-photo__like span {
-        font-size: var(--font-xs);
-        font-weight: 500;
-        color: #fff;
-      }
-      .photo-expand-btn {
-        position: absolute;
-        top: 12px;
-        right: 12px;
-        width: 30px;
-        height: 30px;
-        border-radius: 8px;
-        background: rgba(0, 0, 0, 0.38);
-        backdrop-filter: blur(4px);
-        -webkit-backdrop-filter: blur(4px);
-        border: none;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #fff;
-        transition: background 0.15s;
-      }
-      .photo-expand-btn:hover {
-        background: rgba(0, 0, 0, 0.55);
-      }
-
-      /* ── Body ── */
-      .post-body {
-        padding: 14px 20px 0;
-      }
-      .post-user {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        margin-bottom: 14px;
-      }
-      .post-user__avatar {
-        width: 38px;
-        height: 38px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 11px;
-        font-weight: 600;
-        color: rgba(255, 255, 255, 0.8);
-        flex-shrink: 0;
-      }
-      .post-user__name {
-        font-size: var(--font-md);
-        font-weight: 600;
-        color: #000;
-        letter-spacing: -0.2px;
-      }
-      .post-user__time {
-        font-size: var(--font-xs);
-        color: rgba(0, 0, 0, 0.35);
-        margin-top: 1px;
-      }
-      .post-user__follow {
-        margin-left: auto;
-        height: 32px;
-        padding: 0 var(--space-md);
-        border-radius: 16px;
-        border: none;
-        background: var(--color-accent);
-        color: #fff;
-        font-family: var(--font-family);
-        font-size: var(--font-sm);
-        font-weight: 600;
-        letter-spacing: -0.2px;
-        cursor: pointer;
-        transition: background 0.15s;
-      }
-      .post-user__follow:hover {
-        background: var(--color-accent-hover);
-      }
-      .post-user__follow.is-following {
-        background: var(--color-surface);
-        color: rgba(0, 0, 0, 0.5);
-      }
-      .post-caption {
-        font-size: var(--font-md);
-        font-weight: 500;
-        color: #000;
-        letter-spacing: -0.2px;
-        line-height: 1.5;
-        margin-bottom: 14px;
-      }
-      .recipe-tags {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 6px;
-        margin-bottom: var(--space-md);
-      }
-      .recipe-tag {
-        height: 30px;
-        padding: 0 11px;
-        border-radius: 8px;
-        background: var(--color-surface);
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        font-size: var(--font-xs);
-        color: rgba(0, 0, 0, 0.5);
-      }
-      .recipe-tag svg {
-        flex-shrink: 0;
-        color: rgba(0, 0, 0, 0.25);
-      }
-      .post-footer {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding-bottom: var(--space-md);
-        border-bottom: 0.5px solid var(--color-border-light);
-      }
-      .post-footer__score {
-        display: flex;
-        align-items: center;
-        height: 30px;
-        padding: 0 11px;
-        border-radius: 8px;
-        background: rgba(227, 27, 89, 0.08);
-        font-size: var(--font-xs);
-        color: rgba(0, 0, 0, 0.4);
-      }
-      .post-footer__score strong {
-        font-size: 13px;
-        color: var(--color-accent);
-        margin-left: 4px;
-      }
-      .post-footer__actions {
-        display: flex;
-        gap: var(--space-md);
-      }
-      .post-footer__action {
-        background: none;
-        border: none;
-        cursor: pointer;
-        color: rgba(0, 0, 0, 0.3);
-        transition: color 0.2s;
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        font-size: var(--font-xs);
-        font-family: var(--font-family);
-      }
-      .post-footer__action:hover {
-        color: rgba(0, 0, 0, 0.55);
-      }
-      .post-footer__action span {
-        color: rgba(0, 0, 0, 0.35);
-      }
-
-      /* ── Comments ── */
-      .comments {
-        padding: var(--space-md) 20px 0;
-      }
-      .comments__title {
-        font-size: var(--font-sm);
-        font-weight: 600;
-        color: rgba(0, 0, 0, 0.4);
-        letter-spacing: 0.2px;
-        margin-bottom: 14px;
-      }
-      .comment {
-        display: flex;
-        gap: 10px;
-        margin-bottom: var(--space-md);
-      }
-      .comment__avatar {
-        width: 26px;
-        height: 26px;
-        border-radius: 50%;
-        background: rgba(0, 0, 0, 0.06);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 8px;
-        font-weight: 600;
-        color: rgba(0, 0, 0, 0.3);
-        flex-shrink: 0;
-        margin-top: 1px;
-      }
-      .comment__body {
-        flex: 1;
-        min-width: 0;
-      }
-      .comment__text {
-        font-size: var(--font-sm);
-        color: #000;
-        letter-spacing: -0.1px;
-        line-height: 1.45;
-      }
-      .comment__text strong {
-        font-weight: 600;
-      }
-      .comment__meta {
-        font-size: var(--font-xs);
-        color: rgba(0, 0, 0, 0.25);
-        margin-top: 4px;
-      }
-      .comments__more {
-        font-size: var(--font-sm);
-        color: rgba(0, 0, 0, 0.35);
-        cursor: pointer;
-        padding-bottom: 8px;
-      }
-
-      /* ── Comment Input (sticky bottom) ── */
-      .comment-bar {
-        position: fixed;
-        bottom: 0;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 100%;
-        max-width: 430px;
+        background: #fff;
+        height: 52px;
         display: flex;
         align-items: center;
         gap: 8px;
-        padding: 10px 16px 14px;
-        background: rgba(255, 255, 255, 0.94);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border-top: 0.5px solid var(--color-border-light);
-        z-index: 20;
+        padding: 0 20px;
+        border-bottom: 0.5px solid var(--color-border-light);
       }
-      .comment-bar__avatar {
-        width: 30px;
-        height: 30px;
-        border-radius: 50%;
-        background: var(--color-surface);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 8px;
-        font-weight: 600;
-        color: rgba(0, 0, 0, 0.3);
-        flex-shrink: 0;
-      }
-      .comment-bar__field {
-        flex: 1;
-        height: 38px;
-        background: var(--color-surface);
-        border: 1.5px solid transparent;
-        border-radius: 19px;
-        padding: 0 var(--space-md);
-        font-family: var(--font-family);
-        font-size: var(--font-sm);
-        color: var(--color-text-primary);
-        letter-spacing: -0.1px;
-        outline: none;
-        transition: border-color 0.2s, background 0.2s;
-      }
-      .comment-bar__field::placeholder {
-        color: rgba(0, 0, 0, 0.28);
-      }
-      .comment-bar__field:focus {
-        border-color: rgba(227, 27, 89, 0.35);
-        background: #fff;
-      }
-      .comment-bar__send {
-        width: 36px;
-        height: 36px;
-        border-radius: 50%;
-        background: var(--color-accent);
-        border: none;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-        opacity: 0.3;
-        transition: opacity 0.15s;
-        pointer-events: none;
-      }
-      .comment-bar__send.is-ready {
-        opacity: 1;
-        pointer-events: auto;
-      }
-
-      /* ── Photo Lightbox ── */
-      .photo-lightbox {
-        position: fixed;
-        top: 0;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 100%;
-        height: 100dvh;
-        background: rgba(0, 0, 0, 0.92);
-        z-index: 400;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.2s;
-      }
-      .photo-lightbox.is-open {
-        opacity: 1;
-        pointer-events: all;
-      }
-      .photo-lightbox__inner {
-        width: 100%;
-        aspect-ratio: 4 / 3;
-        position: relative;
-        border-radius: 12px;
-        overflow: hidden;
-      }
-      .photo-lightbox__bg {
-        width: 100%;
-        height: 100%;
-      }
-      .photo-lightbox__close {
-        position: absolute;
-        top: 14px;
-        right: 14px;
+      .detail-nav__back,
+      .detail-nav__more {
         width: 32px;
         height: 32px;
-        border-radius: 50%;
-        background: rgba(0, 0, 0, 0.5);
-        border: none;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #fff;
-        transition: background 0.15s;
-      }
-      .photo-lightbox__close:hover {
-        background: rgba(0, 0, 0, 0.75);
-      }
-      .photo-lightbox__info {
-        position: absolute;
-        top: 14px;
-        left: 14px;
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        background: rgba(0, 0, 0, 0.5);
-        border: none;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #fff;
-        transition: background 0.15s;
-      }
-      .photo-lightbox__info:hover {
-        background: rgba(0, 0, 0, 0.75);
-      }
-
-      /* ── 게시글 액션시트 (삭제하기 / 신고하기) ── */
-      .action-sheet-backdrop {
-        position: fixed;
-        inset: 0;
-        background: rgba(0, 0, 0, 0);
-        z-index: 500;
-        pointer-events: none;
-        transition: background 0.3s;
-      }
-      .action-sheet-backdrop.is-open {
-        background: rgba(0, 0, 0, 0.35);
-        pointer-events: auto;
-      }
-      .action-sheet {
-        position: fixed;
-        bottom: 0;
-        left: 50%;
-        width: 100%;
-        transform: translateX(-50%) translateY(100%);
-        z-index: 501;
-        padding: 0 8px calc(8px + env(safe-area-inset-bottom));
-        transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
-      }
-      .action-sheet.is-open {
-        transform: translateX(-50%) translateY(0);
-      }
-      .action-sheet__group {
-        background: #fff;
-        border-radius: 14px;
-        overflow: hidden;
-        margin-bottom: 8px;
-      }
-      .action-sheet__item {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        width: 100%;
-        height: 54px;
         border: none;
         background: none;
-        font-family: var(--font-family);
-        font-size: var(--font-md);
-        font-weight: 500;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         color: #000;
         cursor: pointer;
+        flex-shrink: 0;
       }
-      .action-sheet__item + .action-sheet__item {
-        border-top: 0.5px solid rgba(0, 0, 0, 0.08);
-      }
-      .action-sheet__item--destructive {
-        color: var(--color-error);
-      }
-      .action-sheet__cancel {
-        width: 100%;
-        height: 54px;
-        border: none;
-        border-radius: 14px;
-        background: #fff;
-        font-family: var(--font-family);
-        font-size: var(--font-md);
+      .detail-nav__more { margin-left: auto; }
+      .detail-nav__title {
+        font-size: var(--font-lg);
         font-weight: 600;
-        color: #000;
-        cursor: pointer;
+        letter-spacing: -0.4px;
       }
 
-      /* ── 신고 사유 선택 바텀시트 ── */
+      /* ── Bottom Sheet ── */
       .sheet-backdrop {
-        position: fixed;
+        position: absolute;
         inset: 0;
-        background: rgba(0, 0, 0, 0);
-        z-index: 500;
-        pointer-events: none;
-        transition: background 0.3s;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: 60;
+        display: none;
       }
-      .sheet-backdrop.is-open {
-        background: rgba(0, 0, 0, 0.35);
-        pointer-events: auto;
-      }
+      .sheet-backdrop.is-open { display: block; }
       .sheet {
-        position: fixed;
+        position: absolute;
         bottom: 0;
-        left: 50%;
-        transform: translateX(-50%) translateY(100%);
-        width: 100%;
+        left: 0;
+        right: 0;
         background: #fff;
-        border-radius: 20px 20px 0 0;
-        z-index: 501;
-        transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
-        overflow: hidden;
-        padding-bottom: env(safe-area-inset-bottom);
-      }
-      .sheet.is-open {
-        transform: translateX(-50%) translateY(0);
+        border-radius: 24px 24px 0 0;
+        padding: 8px 28px 32px;
       }
       .sheet__handle {
         width: 36px;
-        height: 5px;
-        border-radius: 3px;
-        background: rgba(0, 0, 0, 0.1);
-        margin: 10px auto 0;
-      }
-      .sheet__header {
-        padding: 12px 20px 4px;
+        height: 4px;
+        border-radius: 2px;
+        background: rgba(0, 0, 0, 0.15);
+        margin: 0 auto 16px;
       }
       .sheet__title {
         font-size: var(--font-lg);
         font-weight: 600;
-        color: #000;
-        letter-spacing: -0.3px;
+        letter-spacing: -0.4px;
+        margin-bottom: 16px;
       }
-      .sheet__body {
-        padding-bottom: 8px;
-      }
-      .report-reason {
-        display: block;
+      .sheet__row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        height: 52px;
+        border: none;
+        background: none;
         width: 100%;
+        font-family: var(--font-family);
+        font-size: var(--font-md);
+        letter-spacing: -0.2px;
+        color: #000;
+        cursor: pointer;
         text-align: left;
-        padding: 14px 20px;
+      }
+      .sheet__row--danger { color: var(--color-accent); }
+
+      /* ── Modal ── */
+      .modal-backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.4);
+        z-index: 70;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 0 40px;
+      }
+      .modal-backdrop.is-open { display: flex; }
+      .modal {
+        width: 100%;
+        background: #fff;
+        border-radius: 20px;
+        padding: 24px 20px 16px;
+        text-align: center;
+      }
+      .modal__title {
+        font-size: var(--font-md);
+        font-weight: 600;
+        letter-spacing: -0.3px;
+        margin-bottom: 6px;
+      }
+      .modal__body {
+        font-size: var(--font-sm);
+        color: rgba(0, 0, 0, 0.5);
+        letter-spacing: -0.2px;
+        line-height: 1.5;
+        margin-bottom: 20px;
+      }
+      .modal__actions { display: flex; gap: 8px; }
+      .modal__btn {
+        flex: 1;
+        height: 44px;
+        border: none;
+        border-radius: 22px;
+        font-family: var(--font-family);
+        font-size: var(--font-sm);
+        font-weight: 600;
+        letter-spacing: -0.2px;
+        cursor: pointer;
+      }
+      .modal__btn--cancel { background: var(--color-surface); color: rgba(0, 0, 0, 0.55); }
+      .modal__btn--confirm { background: var(--color-accent); color: #fff; }
+
+      /* ── Toast ── */
+      .toast {
+        position: absolute;
+        left: 28px;
+        right: 28px;
+        bottom: 100px;
+        z-index: 80;
+        height: 48px;
+        border-radius: 24px;
+        background: rgba(0, 0, 0, 0.85);
+        display: none;
+        align-items: center;
+        gap: 8px;
+        padding: 0 18px;
+        color: #fff;
+        font-size: var(--font-base);
+        letter-spacing: -0.2px;
+      }
+      .toast.is-open { display: flex; }
+
+      /* ── Score Badge (포토제닉) ── */
+      .score-badge {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        height: 26px;
+        padding: 0 10px;
+        border-radius: 13px;
+        background: rgba(227, 27, 89, 0.08);
+      }
+      .score-badge__label {
+        font-size: var(--font-2xs);
+        color: rgba(0, 0, 0, 0.5);
+        letter-spacing: 0.5px;
+        font-weight: 600;
+      }
+      .score-badge__value {
+        font-size: var(--font-sm);
+        color: var(--color-accent);
+        font-weight: 600;
+      }
+
+      /* ── Avatar ── */
+      .avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: rgba(255, 255, 255, 0.85);
+        font-size: var(--font-2xs);
+        font-weight: 600;
+        flex-shrink: 0;
+      }
+      .avatar--sm { width: 28px; height: 28px; }
+      .avatar--lg { width: 38px; height: 38px; font-size: var(--font-xs); }
+      .avatar--placeholder {
+        background: var(--color-surface);
+        color: rgba(0, 0, 0, 0.35);
+      }
+
+      /* ── Post Hero ── */
+      .post-hero {
+        position: relative;
+        height: 320px;
+      }
+      .post-hero__expand {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        width: 32px;
+        height: 32px;
+        border: none;
+        border-radius: 16px;
+        background: rgba(0, 0, 0, 0.35);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
+      .post-hero__pill {
+        position: absolute;
+        bottom: 14px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        height: 30px;
+        padding: 0 12px;
+        border: none;
+        border-radius: 15px;
+        background: rgba(0, 0, 0, 0.4);
+        color: #fff;
+        font-family: var(--font-family);
+        font-size: var(--font-xs);
+        font-weight: 600;
+        letter-spacing: -0.1px;
+      }
+      .post-hero__pill--place { left: 14px; }
+      .post-hero__pill--likes { right: 14px; cursor: pointer; }
+
+      /* ── 댓글 ── */
+      .comment { display: flex; gap: 10px; margin-bottom: 14px; }
+      .comment__body {
+        font-size: var(--font-sm);
+        letter-spacing: -0.15px;
+        line-height: 1.5;
+        color: #000;
+      }
+      .comment__meta {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: var(--font-xs);
+        color: rgba(0, 0, 0, 0.35);
+        margin-top: 4px;
+      }
+      .comment__reply {
+        border: none;
+        background: none;
+        padding: 0;
+        font-family: var(--font-family);
+        font-size: var(--font-xs);
+        font-weight: 600;
+        color: rgba(0, 0, 0, 0.5);
+        cursor: pointer;
+      }
+      .comment__like {
+        border: none;
+        background: none;
+        padding: 4px;
+        color: rgba(0, 0, 0, 0.3);
+        cursor: pointer;
+        flex-shrink: 0;
+      }
+
+      /* ── 댓글 입력 바 (푸시 화면이라 탭바 대신 이 바가 하단을 차지한다) ── */
+      .comment-bar {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 40;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px 16px;
+        background: rgba(255, 255, 255, 0.96);
+        border-top: 0.5px solid var(--color-border-light);
+      }
+      .comment-bar__input {
+        flex: 1;
+        height: 40px;
+        background: var(--color-surface);
+        border-radius: 20px;
+        padding: 0 16px;
+        display: flex;
+        align-items: center;
+        font-size: var(--font-sm);
+        color: rgba(0, 0, 0, 0.3);
+        letter-spacing: -0.15px;
+      }
+      .comment-bar__send {
+        width: 38px;
+        height: 38px;
+        border: none;
+        border-radius: 19px;
+        background: var(--color-accent);
+        opacity: 0.35;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        cursor: pointer;
+      }
+
+      /* ── 액션시트 내글 / 남글 분기 ── */
+      #action-sheet .action-row--mine { display: none; }
+      #action-sheet .action-row--other { display: flex; }
+      #action-sheet.is-mine .action-row--mine { display: flex; }
+      #action-sheet.is-mine .action-row--other { display: none; }
+
+      /* ── 신고 사유 행 ── */
+      .report-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        padding: 14px 0;
         border: none;
         background: none;
         font-family: var(--font-family);
         font-size: var(--font-md);
         color: #000;
+        letter-spacing: -0.2px;
+        text-align: left;
         cursor: pointer;
       }
-      .report-reason + .report-reason {
-        border-top: 0.5px solid rgba(0, 0, 0, 0.06);
-      }
-      .report-reason:active {
-        background: rgba(0, 0, 0, 0.03);
+      .report-divider {
+        height: 0.5px;
+        background: var(--color-border-light);
       }
 
-      /* ── 삭제 확인 모달 ── */
-      .confirm-overlay {
-        display: none;
-        position: fixed;
+      /* ── Photo Lightbox (layer 1) ── */
+      .lightbox {
+        position: absolute;
         inset: 0;
-        background: rgba(0, 0, 0, 0.45);
-        z-index: 510;
-        align-items: center;
+        background: #000;
+        z-index: 90;
+        display: none;
+        flex-direction: column;
         justify-content: center;
       }
-      .confirm-overlay.is-open {
-        display: flex;
-      }
-      .confirm-modal {
-        background: #fff;
-        border-radius: 20px;
-        padding: 28px 24px 20px;
-        width: 300px;
-        text-align: center;
-      }
-      .confirm-modal__title {
-        font-size: var(--font-lg);
-        font-weight: 600;
-        color: var(--color-text-primary);
-        letter-spacing: -0.3px;
-        margin-bottom: 8px;
-      }
-      .confirm-modal__desc {
-        font-size: var(--font-sm);
-        color: rgba(0, 0, 0, 0.45);
-        letter-spacing: -0.1px;
-        line-height: 1.55;
-        margin-bottom: var(--space-lg);
-      }
-      .confirm-modal__btns {
-        display: flex;
-        gap: 8px;
-      }
-      .confirm-modal__btn {
-        flex: 1;
-        height: 46px;
-        border-radius: 23px;
-        border: none;
-        font-family: var(--font-family);
-        font-size: var(--font-base);
-        font-weight: 500;
-        cursor: pointer;
-        letter-spacing: -0.1px;
-      }
-      .confirm-modal__btn--cancel {
-        background: var(--color-surface);
-        color: rgba(0, 0, 0, 0.55);
-      }
-      .confirm-modal__btn--delete {
-        background: var(--color-error);
-        color: #fff;
-      }
-
-      /* ── 토스트 ── */
-      .toast {
-        position: fixed;
-        bottom: 96px;
-        left: 50%;
-        transform: translateX(-50%) translateY(20px);
-        height: 44px;
-        padding: 0 20px;
-        border-radius: 22px;
-        background: rgba(0, 0, 0, 0.75);
+      .lightbox.is-open { display: flex; }
+      .lightbox__top {
+        position: absolute;
+        top: 60px;
+        left: 20px;
+        right: 20px;
         display: flex;
         align-items: center;
-        font-size: var(--font-base);
-        font-weight: 500;
-        color: #fff;
-        z-index: 520;
-        opacity: 0;
-        transition: all 0.3s;
-        pointer-events: none;
-        white-space: nowrap;
+        justify-content: flex-end;
+        z-index: 2;
       }
-      .toast.is-visible {
-        opacity: 1;
-        transform: translateX(-50%) translateY(0);
+      .lightbox__icon-btn {
+        width: 36px;
+        height: 36px;
+        border: none;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.15);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
+      .lightbox__photo {
+        width: 100%;
+        aspect-ratio: 3/2;
+        position: relative;
+      }
+      .lightbox__place {
+        position: absolute;
+        top: 14px;
+        left: 14px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        height: 30px;
+        padding: 0 12px;
+        border-radius: 15px;
+        background: rgba(0, 0, 0, 0.4);
+        color: #fff;
+        font-size: var(--font-xs);
+        font-weight: 600;
+        letter-spacing: -0.1px;
+      }
+      .lightbox__bottom {
+        position: absolute;
+        bottom: 40px;
+        left: 20px;
+        right: 20px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        z-index: 2;
+      }
+      .lightbox__action {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        border: none;
+        background: none;
+        padding: 0;
+        color: #fff;
+        font-family: var(--font-family);
+        font-size: var(--font-sm);
+        cursor: pointer;
+      }
+      .lightbox__hint {
+        position: absolute;
+        bottom: 96px;
+        left: 0;
+        right: 0;
+        text-align: center;
+        font-size: var(--font-xs);
+        color: rgba(255, 255, 255, 0.4);
+        letter-spacing: -0.1px;
+      }
+
+      /* ── EXIF Sheet (layer 2 — 라이트박스 위) ── */
+      .exif-layer {
+        position: absolute;
+        inset: 0;
+        z-index: 100;
+        display: none;
+        align-items: flex-end;
+      }
+      .exif-layer.is-open { display: flex; }
+      .exif-layer__backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+      }
+      .exif-layer__panel {
+        position: relative;
+        width: 100%;
+        max-height: 70%;
+        overflow-y: auto;
+        background: #fff;
+        border-radius: 24px 24px 0 0;
+        padding: 8px 28px 32px;
+      }
+      .exif-section {
+        font-size: var(--font-xs);
+        font-weight: 600;
+        color: rgba(0, 0, 0, 0.4);
+        letter-spacing: 0.4px;
+        padding: 20px 0 8px;
+      }
+      .exif-card {
+        background: var(--color-surface);
+        border-radius: 14px;
+        padding: 0 16px;
+      }
+      .exif-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 44px;
+        border-bottom: 1px solid var(--color-border);
+      }
+      .exif-row:last-child { border-bottom: none; }
+      .exif-row__label {
+        font-size: var(--font-xs);
+        color: rgba(0, 0, 0, 0.45);
+      }
+      .exif-row__value {
+        font-size: var(--font-sm);
+        color: #000;
+        letter-spacing: -0.2px;
+      }
+      .exif-gear {
+        background: var(--color-surface);
+        border-radius: 14px;
+        padding: 12px 14px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+      .exif-gear__icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        background: rgba(227, 27, 89, 0.08);
+        color: var(--color-accent);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      .exif-gear__label {
+        font-size: var(--font-2xs);
+        color: rgba(0, 0, 0, 0.4);
+        letter-spacing: 0.4px;
+        font-weight: 600;
+      }
+      .exif-gear__value {
+        font-size: var(--font-base);
+        font-weight: 600;
+        letter-spacing: -0.2px;
+        margin-top: 2px;
+      }
+      .exif-stat {
+        background: var(--color-surface);
+        border-radius: 14px;
+        padding: 12px 8px;
+        text-align: center;
+      }
+      .exif-stat__value {
+        font-size: var(--font-lg);
+        font-weight: 600;
+        letter-spacing: -0.3px;
+        margin-top: 2px;
+      }
+      .exif-map {
+        height: 120px;
+        border-radius: 12px;
+        background: var(--color-surface);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: rgba(0, 0, 0, 0.25);
+        margin-top: 12px;
       }
     </style>
   </head>
   <body>
-    <script src="../common/icons.js"></script>
     <div class="phone-frame">
-      <!-- Status Bar -->
-      <div class="status-bar">
-        <span class="status-bar__time">9:41</span>
-        <div class="dynamic-island"></div>
-        <div class="status-bar__icons">
-          <svg viewBox="0 0 18 12">
-            <rect x="0" y="9" width="3" height="3" rx=".75" />
-            <rect x="4.5" y="6" width="3" height="6" rx=".75" />
-            <rect x="9" y="3" width="3" height="9" rx=".75" />
-            <rect x="13.5" y="0" width="3" height="12" rx=".75" />
-          </svg>
-          <svg viewBox="0 0 16 14" fill="none" stroke="#000" stroke-width="1.3" stroke-linecap="round">
-            <path d="M5 10.5A4 4 0 0 1 11 10.5" />
-            <path d="M2.5 7A8 8 0 0 1 13.5 7" />
-            <circle cx="8" cy="13" r="1.2" fill="#000" stroke="none" />
-          </svg>
-          <svg viewBox="0 0 28 14">
-            <rect x="0" y="0" width="25" height="12" rx="3.5" fill="none" stroke="rgba(0,0,0,.3)" stroke-width="1" />
-            <rect x="1.5" y="1.5" width="20" height="9" rx="2" fill="#34c759" />
-          </svg>
-        </div>
-      </div>
-
-      <!-- Nav Bar -->
-      <div class="nav-bar">
-        <button class="nav-bar__btn" onclick="goBack()" aria-label="뒤로가기">
-          <svg width="18" height="18" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M15 6l-6 6l6 6"/></svg>
-        </button>
-        <span class="nav-bar__title">게시글</span>
-        <button class="nav-bar__btn" onclick="openActionSheet()" aria-label="더보기">
-          <svg width="18" height="18" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/><path d="M12 19m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/><path d="M12 5m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/></svg>
-        </button>
-      </div>
-
-      <!-- Hero Photo -->
-      <div class="post-photo">
-        <div class="post-photo__bg" style="background: linear-gradient(to bottom, #0f2027, #203a43, #4a7c8a)"></div>
-        <div class="post-photo__location">
-          <svg width="12" height="12" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 11a3 3 0 1 0 6 0a3 3 0 0 0 -6 0"/><path d="M17.657 16.657l-4.243 4.243a2 2 0 0 1 -2.827 0l-4.244 -4.243a8 8 0 1 1 11.314 0z"/></svg>
-          광안리 해수욕장
-        </div>
-        <div class="post-photo__like" onclick="toggleLike(this)">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="#ff453a" stroke="#ff453a"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M6.979 3.074a6 6 0 0 1 4.988 1.425l.037 .033l.034 -.03a6 6 0 0 1 4.733 -1.44l.246 .036a6 6 0 0 1 3.364 10.008l-.18 .185l-.048 .041l-7.45 7.379a1 1 0 0 1 -1.313 .082l-.094 -.082l-7.493 -7.422a6 6 0 0 1 .736 -9.948l.235 -.138z"/></svg>
-          <span>248</span>
-        </div>
-        <button class="photo-expand-btn" onclick="openLightbox()" aria-label="사진 확대">
-          <svg width="15" height="15" viewBox="0 0 24 24" stroke="currentColor">
-            <path d="M3 8V5a2 2 0 0 1 2-2h3" />
-            <path d="M16 3h3a2 2 0 0 1 2 2v3" />
-            <path d="M21 16v3a2 2 0 0 1-2 2h-3" />
-            <path d="M8 21H5a2 2 0 0 1-2-2v-3" />
-          </svg>
-        </button>
-      </div>
-
-      <!-- Body -->
-      <div class="post-body">
-        <div class="post-user">
-          <div class="post-user__avatar" style="background: linear-gradient(135deg, #2c5364, #4a7c8a)">JK</div>
-          <div>
-            <div class="post-user__name">sunset_jk</div>
-            <div class="post-user__time">2시간 전</div>
+      <div class="phone-scroll">
+        <!-- Status Bar -->
+        <div class="status-bar">
+          <span class="status-bar__time">9:41</span>
+          <div class="dynamic-island"></div>
+          <div class="status-bar__icons">
+            <svg viewBox="0 0 18 12">
+              <rect x="0" y="9" width="3" height="3" rx=".75" />
+              <rect x="4.5" y="6" width="3" height="6" rx=".75" />
+              <rect x="9" y="3" width="3" height="9" rx=".75" />
+              <rect x="13.5" y="0" width="3" height="12" rx=".75" />
+            </svg>
+            <svg viewBox="0 0 16 14" fill="none" stroke="#000" stroke-width="1.3" stroke-linecap="round">
+              <path d="M5 10.5A4 4 0 0 1 11 10.5" />
+              <path d="M2.5 7A8 8 0 0 1 13.5 7" />
+              <circle cx="8" cy="13" r="1.2" fill="#000" stroke="none" />
+            </svg>
+            <svg viewBox="0 0 28 14">
+              <rect x="0" y="0" width="25" height="12" rx="3.5" fill="none" stroke="rgba(0,0,0,.3)" stroke-width="1" />
+              <rect x="1.5" y="1.5" width="20" height="9" rx="2" fill="#34c759" />
+            </svg>
           </div>
-          <button class="post-user__follow" onclick="toggleFollow(this)">팔로우</button>
         </div>
 
-        <div class="post-caption">
-          새벽 5시에 일어난 보람이 있는 일출 🌅 광안대교 위로 해가 떠오르는 순간을 기다렸어요. 바람이 잔잔해서 물 반영도 깨끗하게 담겼습니다.
+        <!-- Nav -->
+        <div class="detail-nav">
+          <button class="detail-nav__back" onclick="history.back()" aria-label="뒤로가기">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+          </button>
+          <span class="detail-nav__title">게시글</span>
+          <button class="detail-nav__more" onclick="openActionSheet()" aria-label="더보기">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="currentColor">
+              <circle cx="5" cy="12" r="1.8" />
+              <circle cx="12" cy="12" r="1.8" />
+              <circle cx="19" cy="12" r="1.8" />
+            </svg>
+          </button>
         </div>
 
-        <div class="recipe-tags">
-          <div class="recipe-tag">
-            <svg width="12" height="12" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"/><path d="M12 7v5l3 3"/></svg>
-            05:30 촬영
+        <!-- 히어로 사진 -->
+        <div class="post-hero" style="background: linear-gradient(to bottom, #0f2027, #203a43, #4a7c8a)">
+          <div class="post-hero__pill post-hero__pill--place">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"></circle><path d="M12 21s-7-7.5-7-11a7 7 0 0 1 14 0c0 3.5-7 11-7 11z"></path></svg>
+            광안리 해수욕장
           </div>
-          <div class="recipe-tag">☀ 맑음</div>
-          <div class="recipe-tag">
-            <svg width="14" height="14" viewBox="0 0 24 24"><use href="#icon-lens"/></svg>
-            Sony A7IV
-          </div>
-          <div class="recipe-tag">24mm f/2.8</div>
+          <button class="post-hero__pill post-hero__pill--likes">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="#ff453a" stroke="none"><path d="M12 21s-7-4.5-7-11a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 6.5-7 11-7 11z"></path></svg>
+            248
+          </button>
+          <button class="post-hero__expand" onclick="openLightbox()" aria-label="확대">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V5a2 2 0 0 1 2-2h3"></path><path d="M16 3h3a2 2 0 0 1 2 2v3"></path><path d="M21 16v3a2 2 0 0 1-2 2h-3"></path><path d="M8 21H5a2 2 0 0 1-2-2v-3"></path></svg>
+          </button>
         </div>
 
-        <div class="post-footer">
-          <div class="post-footer__score">포토제닉 <strong>87</strong></div>
-          <div class="post-footer__actions">
-            <button class="post-footer__action">
-              <svg width="16" height="14" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 20l1.3 -3.9c-2.324 -3.437 -1.426 -7.872 2.1 -10.374c3.526 -2.501 8.59 -2.296 11.845 .48c3.255 2.777 3.695 7.266 1.029 10.501c-2.666 3.235 -7.615 4.215 -11.574 2.293l-4.7 1" /></svg>
-              <span>32</span>
+        <!-- 본문 -->
+        <div style="padding: 16px 28px 0">
+          <!-- 유저 행 -->
+          <div style="display: flex; align-items: center; gap: 11px; margin-bottom: 14px">
+            <div class="avatar avatar--lg" style="background: linear-gradient(135deg, #2c5364, #4a7c8a)">JK</div>
+            <div style="flex: 1; min-width: 0">
+              <div style="font-size: var(--font-md); font-weight: 600; letter-spacing: -0.2px">sunset_jk</div>
+              <div style="font-size: var(--font-xs); color: rgba(0, 0, 0, 0.4); margin-top: 1px">2시간 전 · 광안리 해수욕장</div>
+            </div>
+            <button style="height: 32px; padding: 0 14px; border: none; border-radius: 16px; background: var(--color-accent); color: #fff; font-family: var(--font-family); font-size: var(--font-sm); font-weight: 600; letter-spacing: -0.2px; cursor: pointer">팔로우</button>
+          </div>
+
+          <!-- 캡션 -->
+          <div style="font-size: var(--font-md); font-weight: 500; letter-spacing: -0.2px; line-height: 1.55; color: #000; margin-bottom: 14px">
+            새벽 5시에 일어난 보람이 있는 일출. 광안대교 위로 해가 떠오르는 순간을 기다렸어요. 바람이 잔잔해서 물 반영도 깨끗하게 담겼습니다.
+          </div>
+
+          <!-- 촬영 정보 -->
+          <div style="display: flex; align-items: center; gap: 8px; padding: 11px 14px; background: var(--color-surface); border-radius: 13px; margin-bottom: 14px">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,.35)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 3"></path></svg>
+            <span style="font-size: var(--font-xs); color: rgba(0, 0, 0, 0.65); letter-spacing: -0.15px">05:30</span>
+            <span style="width: 2px; height: 2px; border-radius: 50%; background: rgba(0, 0, 0, 0.15)"></span>
+            <img src="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/clear-day.svg" width="15" height="15" alt="" style="opacity: 0.9" />
+            <span style="font-size: var(--font-xs); color: rgba(0, 0, 0, 0.65); letter-spacing: -0.15px">맑음</span>
+            <span style="width: 2px; height: 2px; border-radius: 50%; background: rgba(0, 0, 0, 0.15)"></span>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,.35)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="2"></rect><circle cx="12" cy="13" r="4"></circle></svg>
+            <span style="font-size: var(--font-xs); color: rgba(0, 0, 0, 0.65); letter-spacing: -0.15px; flex: 1">Sony A7IV · 24mm f/2.8</span>
+          </div>
+
+          <!-- 액션 바 -->
+          <div style="display: flex; align-items: center; gap: 16px; padding: 4px 0 16px; border-bottom: 0.5px solid var(--color-border-light)">
+            <div class="score-badge">
+              <span class="score-badge__label">포토제닉</span>
+              <span class="score-badge__value">87</span>
+            </div>
+            <button style="display: flex; align-items: center; gap: 4px; border: none; background: none; padding: 0; color: rgba(0, 0, 0, 0.6); font-family: var(--font-family); font-size: var(--font-sm); margin-left: auto; cursor: pointer">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+              32
             </button>
-            <button class="post-footer__action" onclick="toggleBookmark(this)" aria-label="저장">
-              <svg width="14" height="14" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M18 2a1 1 0 0 1 1 1v17.056l-7 -3.5l-7 3.5v-17a2 2 0 0 1 2 -2z" /></svg>
+            <button aria-label="저장" style="border: none; background: none; padding: 0; color: rgba(0, 0, 0, 0.6); cursor: pointer">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="5" rx="2"></rect><path d="M4 9v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9"></path><path d="M10 13h4"></path></svg>
             </button>
-            <button class="post-footer__action" aria-label="공유">
-              <svg width="14" height="14" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2" /><path d="M7 9l5 -5l5 5" /><path d="M12 4l0 12" /></svg>
+            <button aria-label="공유" style="border: none; background: none; padding: 0; color: rgba(0, 0, 0, 0.6); cursor: pointer">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><path d="M16 6l-4-4-4 4"></path><path d="M12 2v13"></path></svg>
             </button>
           </div>
+
+          <!-- 댓글 -->
+          <div style="padding: 16px 0 0">
+            <div style="font-size: var(--font-sm); font-weight: 600; color: rgba(0, 0, 0, 0.45); letter-spacing: 0.2px; margin-bottom: 14px">댓글 32</div>
+
+            <div class="comment">
+              <div class="avatar avatar--sm avatar--placeholder" style="margin-top: 1px">SR</div>
+              <div style="flex: 1; min-width: 0">
+                <div class="comment__body"><strong style="font-weight: 600">sora.lens</strong> 골든아워 타이밍 딱 맞춘 거 대박이에요</div>
+                <div class="comment__meta">
+                  <span>2시간 전</span>
+                  <span>좋아요 8</span>
+                  <button class="comment__reply">답글</button>
+                </div>
+              </div>
+              <button class="comment__like" aria-label="좋아요">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7-4.5-7-11a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 6.5-7 11-7 11z"></path></svg>
+              </button>
+            </div>
+
+            <div class="comment">
+              <div class="avatar avatar--sm avatar--placeholder" style="margin-top: 1px">JW</div>
+              <div style="flex: 1; min-width: 0">
+                <div class="comment__body"><strong style="font-weight: 600">jwphoto</strong> 어떤 필터 쓰셨어요? 색감이 진짜 예쁘네요</div>
+                <div class="comment__meta">
+                  <span>1시간 전</span>
+                  <span>좋아요 4</span>
+                  <button class="comment__reply">답글</button>
+                </div>
+              </div>
+              <button class="comment__like" aria-label="좋아요">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7-4.5-7-11a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 6.5-7 11-7 11z"></path></svg>
+              </button>
+            </div>
+
+            <div class="comment">
+              <div class="avatar avatar--sm avatar--placeholder" style="margin-top: 1px">HN</div>
+              <div style="flex: 1; min-width: 0">
+                <div class="comment__body"><strong style="font-weight: 600">hana__film</strong> 저도 지난주에 갔는데 이렇게 못 찍었어요. 렌즈 뭐 쓰세요?</div>
+                <div class="comment__meta">
+                  <span>45분 전</span>
+                  <span>좋아요 2</span>
+                  <button class="comment__reply">답글</button>
+                </div>
+              </div>
+              <button class="comment__like" aria-label="좋아요">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 21s-7-4.5-7-11a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 6.5-7 11-7 11z"></path></svg>
+              </button>
+            </div>
+
+            <button style="border: none; background: none; padding: 0 0 24px; font-family: var(--font-family); font-size: var(--font-sm); color: rgba(0, 0, 0, 0.4); letter-spacing: -0.15px; cursor: pointer">댓글 29개 더보기</button>
+          </div>
         </div>
       </div>
 
-      <!-- Comments -->
-      <div class="comments" id="comments">
-        <div class="comments__title">댓글 32개</div>
-        <div class="comment">
-          <div class="comment__avatar">SR</div>
-          <div class="comment__body">
-            <div class="comment__text"><strong>sora.lens</strong> 골든아워 타이밍 딱 맞춘 거 대박이에요 😍</div>
-            <div class="comment__meta">2시간 전 · 좋아요 8개</div>
-          </div>
-        </div>
-        <div class="comment">
-          <div class="comment__avatar">JW</div>
-          <div class="comment__body">
-            <div class="comment__text"><strong>jwphoto</strong> 어떤 필터 쓰셨어요? 색감이 진짜 예쁘네요</div>
-            <div class="comment__meta">1시간 전 · 좋아요 4개</div>
-          </div>
-        </div>
-        <div class="comment">
-          <div class="comment__avatar">HN</div>
-          <div class="comment__body">
-            <div class="comment__text"><strong>hana__film</strong> 저도 지난주에 갔는데 이렇게 못 찍었어요 ㅠㅠ 렌즈 뭐 쓰세요?</div>
-            <div class="comment__meta">45분 전 · 좋아요 2개</div>
-          </div>
-        </div>
-        <div class="comments__more" id="commentsMore" onclick="loadMoreComments(this, 29)">댓글 29개 더보기</div>
-      </div>
-    </div>
-
-    <!-- Comment Input -->
-    <div class="comment-bar">
-      <div class="comment-bar__avatar">ME</div>
-      <input class="comment-bar__field" placeholder="댓글 달기..." oninput="handleCommentInput(this)" />
-      <button class="comment-bar__send" onclick="submitComment(this)" aria-label="전송">
-        <svg width="15" height="15" viewBox="0 0 24 24" stroke="#fff"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 14l11 -11"/><path d="M21 3l-6.5 18a.55 .55 0 0 1 -1 0l-3.5 -7l-7 -3.5a.55 .55 0 0 1 0 -1l18 -6.5"/></svg>
-      </button>
-    </div>
-
-    <!-- 하단 탭바(홈·지도·출사·커뮤니티·MY) 의도적으로 없음: 피드에서 push되는 게시글 상세 화면이라 탭 루트가 아님 (review-write.html, photo-detail.html과 동일한 패턴) -->
-
-    <!-- Photo Lightbox -->
-    <div class="photo-lightbox" id="photoLightbox" onclick="closeLightbox()">
-      <div class="photo-lightbox__inner">
-        <div class="photo-lightbox__bg" id="lightboxBg" style="background: linear-gradient(to bottom, #0f2027, #203a43, #4a7c8a)"></div>
-        <button class="photo-lightbox__info" onclick="event.stopPropagation(); location.href='../spot/photo-detail.html'" aria-label="사진 정보">
-          <svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 12a9 9 0 1 0 18 0a9 9 0 0 0 -18 0"/><path d="M12 9h.01"/><path d="M11 12h1v4h1"/></svg>
+      <!-- 댓글 입력 -->
+      <div class="comment-bar">
+        <div class="avatar avatar--placeholder">ME</div>
+        <div class="comment-bar__input">댓글 달기...</div>
+        <button class="comment-bar__send" aria-label="전송">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 14l11-11"></path><path d="M21 3l-6.5 18a.5.5 0 0 1-1 0l-3.5-7-7-3.5a.5.5 0 0 1 0-1z"></path></svg>
         </button>
-        <button class="photo-lightbox__close" onclick="closeLightbox()" aria-label="닫기">
-          <svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></svg>
-        </button>
       </div>
-    </div>
 
-    <!-- 게시글 액션시트: 내 글이면 삭제하기, 아니면 신고하기 -->
-    <div class="action-sheet-backdrop" id="actionSheetBackdrop" onclick="closeActionSheet()"></div>
-    <div class="action-sheet" id="actionSheet">
-      <div class="action-sheet__group">
-        <button class="action-sheet__item action-sheet__item--destructive" id="actionSheetDelete" onclick="closeActionSheet(); openDeleteConfirm();">삭제하기</button>
-        <button class="action-sheet__item" id="actionSheetReport" onclick="closeActionSheet(); openReportSheet();">신고하기</button>
+      <!-- 액션시트 (내글 / 남글 분기) -->
+      <div class="sheet-backdrop" id="action-sheet" onclick="closeSheet('action-sheet')">
+        <div class="sheet" onclick="event.stopPropagation()">
+          <div class="sheet__handle"></div>
+          <button class="sheet__row" onclick="closeSheet('action-sheet')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><path d="M16 6l-4-4-4 4"></path><path d="M12 2v13"></path></svg>
+            공유하기
+          </button>
+          <button class="sheet__row action-row--mine" onclick="closeSheet('action-sheet')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"></path></svg>
+            수정하기
+          </button>
+          <button class="sheet__row sheet__row--danger action-row--mine" onclick="openModal('delete-modal')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path></svg>
+            삭제하기
+          </button>
+          <button class="sheet__row sheet__row--danger action-row--other" onclick="openSheet('report-sheet')">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
+            신고하기
+          </button>
+        </div>
       </div>
-      <div class="action-sheet__group">
-        <button class="action-sheet__cancel" onclick="closeActionSheet()">취소</button>
-      </div>
-    </div>
 
-    <!-- 게시글 삭제 확인 모달 -->
-    <div class="confirm-overlay" id="deleteConfirmOverlay" onclick="closeDeleteConfirm()">
-      <div class="confirm-modal" onclick="event.stopPropagation()">
-        <div class="confirm-modal__title">게시글을 삭제할까요?</div>
-        <div class="confirm-modal__desc">삭제한 게시글은 복구할 수 없어요.</div>
-        <div class="confirm-modal__btns">
-          <button class="confirm-modal__btn confirm-modal__btn--cancel" onclick="closeDeleteConfirm()">취소</button>
-          <button class="confirm-modal__btn confirm-modal__btn--delete" onclick="confirmDelete()">삭제</button>
+      <!-- 삭제 확인 모달 -->
+      <div class="modal-backdrop" id="delete-modal" onclick="closeModal('delete-modal')">
+        <div class="modal" onclick="event.stopPropagation()">
+          <div style="width: 56px; height: 56px; border-radius: 50%; background: rgba(227, 27, 89, 0.1); color: var(--color-accent); display: flex; align-items: center; justify-content: center; margin: 0 auto 14px">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path></svg>
+          </div>
+          <div class="modal__title">게시글을 삭제할까요?</div>
+          <div class="modal__body">삭제한 게시글은 복구할 수 없어요.</div>
+          <div class="modal__actions">
+            <button class="modal__btn modal__btn--cancel" onclick="closeModal('delete-modal')">취소</button>
+            <button class="modal__btn modal__btn--confirm" onclick="deletePost()">삭제</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 신고 사유 시트 (행을 고르면 즉시 접수) -->
+      <div class="sheet-backdrop" id="report-sheet" onclick="closeSheet('report-sheet')">
+        <div class="sheet" onclick="event.stopPropagation()">
+          <div class="sheet__handle"></div>
+          <div class="sheet__title" style="margin-bottom: 3px">신고 사유 선택</div>
+          <div style="font-size: var(--font-xs); color: rgba(0, 0, 0, 0.4); letter-spacing: -0.1px; margin-bottom: 8px">선택 즉시 접수됩니다 · 검토 결과는 알림으로 안내</div>
+          <button class="report-row" onclick="submitReport()">
+            스팸
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,.25)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
+          </button>
+          <div class="report-divider"></div>
+          <button class="report-row" onclick="submitReport()">
+            욕설/혐오
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,.25)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
+          </button>
+          <div class="report-divider"></div>
+          <button class="report-row" onclick="submitReport()">
+            저작권 침해
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,.25)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
+          </button>
+          <div class="report-divider"></div>
+          <button class="report-row" onclick="submitReport()">
+            부적절한 콘텐츠
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,.25)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
+          </button>
+          <div class="report-divider"></div>
+          <button class="report-row" onclick="submitReport()">
+            기타
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,.25)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- 토스트 -->
+      <div class="toast" id="toast-deleted">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-accent); flex-shrink: 0"><circle cx="12" cy="12" r="10"></circle><path d="M8 12l3 3 5-6"></path></svg>
+        <span>게시글이 삭제되었어요</span>
+      </div>
+      <div class="toast" id="toast-reported">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-accent); flex-shrink: 0"><circle cx="12" cy="12" r="10"></circle><path d="M8 12l3 3 5-6"></path></svg>
+        <span>신고가 접수되었어요</span>
+      </div>
+
+      <!-- 사진 라이트박스 (layer 1) -->
+      <div class="lightbox" id="photo-lightbox">
+        <div class="lightbox__top">
+          <button class="lightbox__icon-btn" onclick="closeLightbox()" aria-label="닫기">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6l-12 12"></path><path d="M6 6l12 12"></path></svg>
+          </button>
+        </div>
+
+        <div class="lightbox__photo" style="background: linear-gradient(to bottom, #0f2027, #203a43, #4a7c8a)">
+          <div class="lightbox__place">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"></circle><path d="M12 21s-7-7.5-7-11a7 7 0 0 1 14 0c0 3.5-7 11-7 11z"></path></svg>
+            광안리 해수욕장
+          </div>
+        </div>
+
+        <div class="lightbox__hint">두 손가락 확대 · 아래로 스와이프하여 닫기</div>
+
+        <div class="lightbox__bottom">
+          <div class="avatar" style="background: linear-gradient(135deg, #2c5364, #4a7c8a)">JK</div>
+          <div style="flex: 1; min-width: 0">
+            <div style="font-size: var(--font-base); font-weight: 600; color: #fff; letter-spacing: -0.2px">@sunset_jk</div>
+            <div style="font-size: var(--font-xs); color: rgba(255, 255, 255, 0.5); margin-top: 1px; letter-spacing: -0.1px">2시간 전 · 05:30 촬영</div>
+          </div>
+          <button class="lightbox__action">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="#ff453a" stroke="none"><path d="M12 21s-7-4.5-7-11a5 5 0 0 1 9-3 5 5 0 0 1 9 3c0 6.5-7 11-7 11z"></path></svg>
+            248
+          </button>
+          <button class="lightbox__icon-btn" onclick="openExif()" aria-label="사진 정보">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 8h.01"></path><path d="M11 12h1v4h1"></path></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- 사진 정보 EXIF (layer 2 · 라이트박스 위에 겹침) -->
+      <div class="exif-layer" id="photo-exif">
+        <div class="exif-layer__backdrop" onclick="closeExif()"></div>
+        <div class="exif-layer__panel">
+          <div class="sheet__handle"></div>
+          <div style="display: flex; align-items: center; justify-content: space-between">
+            <span class="sheet__title" style="margin-bottom: 0">사진 정보</span>
+            <button aria-label="닫기" style="width: 30px; height: 30px; border: none; border-radius: 50%; background: var(--color-surface); color: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; cursor: pointer" onclick="closeExif()">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6l-12 12"></path><path d="M6 6l12 12"></path></svg>
+            </button>
+          </div>
+
+          <!-- 카메라 · 렌즈 -->
+          <div style="display: grid; gap: 8px; margin-top: 16px">
+            <div class="exif-gear">
+              <div class="exif-gear__icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="2"></rect><circle cx="12" cy="13" r="4"></circle></svg>
+              </div>
+              <div style="flex: 1; min-width: 0">
+                <div class="exif-gear__label">카메라</div>
+                <div class="exif-gear__value">Sony ILCE-7M4</div>
+              </div>
+            </div>
+            <div class="exif-gear">
+              <div class="exif-gear__icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="5"></circle><circle cx="12" cy="12" r="2"></circle></svg>
+              </div>
+              <div style="flex: 1; min-width: 0">
+                <div class="exif-gear__label">렌즈</div>
+                <div class="exif-gear__value">Sony FE 24-70mm F2.8 GM</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ISO · 조리개 · 셔터 · 초점 -->
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 6px; margin-top: 8px">
+            <div class="exif-stat">
+              <div class="exif-gear__label">ISO</div>
+              <div class="exif-stat__value">100</div>
+            </div>
+            <div class="exif-stat">
+              <div class="exif-gear__label">조리개</div>
+              <div class="exif-stat__value">f/2.8</div>
+            </div>
+            <div class="exif-stat">
+              <div class="exif-gear__label">셔터</div>
+              <div class="exif-stat__value">1/500</div>
+            </div>
+            <div class="exif-stat">
+              <div class="exif-gear__label">초점</div>
+              <div class="exif-stat__value">24<span style="font-size: var(--font-xs); color: rgba(0, 0, 0, 0.4)">mm</span></div>
+            </div>
+          </div>
+
+          <!-- 촬영 상세 -->
+          <div class="exif-section">촬영 상세</div>
+          <div class="exif-card">
+            <div class="exif-row">
+              <span class="exif-row__label">노출 모드</span>
+              <span class="exif-row__value">수동</span>
+            </div>
+            <div class="exif-row">
+              <span class="exif-row__label">측광 모드</span>
+              <span class="exif-row__value">다분할측광</span>
+            </div>
+            <div class="exif-row">
+              <span class="exif-row__label">화이트밸런스</span>
+              <span class="exif-row__value">자동</span>
+            </div>
+            <div class="exif-row">
+              <span class="exif-row__label">플래시</span>
+              <span class="exif-row__value">사용 안 함</span>
+            </div>
+            <div class="exif-row">
+              <span class="exif-row__label">35mm 환산</span>
+              <span class="exif-row__value">24mm</span>
+            </div>
+          </div>
+
+          <!-- 위치 -->
+          <div class="exif-section">위치</div>
+          <div class="exif-card">
+            <div class="exif-row">
+              <span class="exif-row__label">위도</span>
+              <span class="exif-row__value">35.153386</span>
+            </div>
+            <div class="exif-row">
+              <span class="exif-row__label">경도</span>
+              <span class="exif-row__value">129.118785</span>
+            </div>
+          </div>
+          <!-- 지도는 정적 플레이스홀더 — react-native-maps 교체는 RN 스펙 사안 -->
+          <div class="exif-map">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"></circle><path d="M12 21s-7-7.5-7-11a7 7 0 0 1 14 0c0 3.5-7 11-7 11z"></path></svg>
+          </div>
+
+          <!-- 파일 -->
+          <div class="exif-section">파일</div>
+          <div class="exif-card">
+            <div class="exif-row">
+              <span class="exif-row__label">파일명</span>
+              <span class="exif-row__value">DSC03421.JPG</span>
+            </div>
+            <div class="exif-row">
+              <span class="exif-row__label">크기</span>
+              <span class="exif-row__value">8.4 MB · 7008×4672</span>
+            </div>
+            <div class="exif-row">
+              <span class="exif-row__label">형식</span>
+              <span class="exif-row__value">JPEG · sRGB</span>
+            </div>
+            <div class="exif-row">
+              <span class="exif-row__label">수정일</span>
+              <span class="exif-row__value">2026.05.10 05:31</span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-
-    <!-- 신고 사유 선택 바텀시트 -->
-    <div class="sheet-backdrop" id="reportSheetBackdrop" onclick="closeReportSheet()"></div>
-    <div class="sheet" id="reportSheet">
-      <div class="sheet__handle"></div>
-      <div class="sheet__header">
-        <span class="sheet__title">신고 사유 선택</span>
-      </div>
-      <div class="sheet__body">
-        <button class="report-reason" onclick="submitReport('스팸')">스팸</button>
-        <button class="report-reason" onclick="submitReport('욕설/혐오')">욕설/혐오</button>
-        <button class="report-reason" onclick="submitReport('저작권 침해')">저작권 침해</button>
-        <button class="report-reason" onclick="submitReport('부적절한 콘텐츠')">부적절한 콘텐츠</button>
-        <button class="report-reason" onclick="submitReport('기타')">기타</button>
-      </div>
-    </div>
-
-    <div class="toast" id="postToast"></div>
 
     <script>
-      var isMyPost = new URLSearchParams(location.search).get('mine') === '1';
-      document.getElementById('actionSheetDelete').style.display = isMyPost ? 'flex' : 'none';
-      document.getElementById('actionSheetReport').style.display = isMyPost ? 'none' : 'flex';
+      /* ── 시트 · 모달 · 토스트 공통 ── */
+      function openSheet(id) {
+        document.getElementById(id).classList.add('is-open');
+      }
+      function closeSheet(id) {
+        document.getElementById(id).classList.remove('is-open');
+      }
+      function openModal(id) {
+        document.getElementById(id).classList.add('is-open');
+      }
+      function closeModal(id) {
+        document.getElementById(id).classList.remove('is-open');
+      }
+      const toastTimers = {};
+      function showToast(id) {
+        const t = document.getElementById(id);
+        t.classList.add('is-open');
+        clearTimeout(toastTimers[id]); // 이전 타이머가 살아 있으면 재표시된 토스트를 일찍 닫는다
+        toastTimers[id] = setTimeout(() => t.classList.remove('is-open'), 2600);
+      }
+
+      /* ── 내글 / 남글 분기 ── */
+      const isMyPost = new URLSearchParams(location.search).get('mine') === '1';
+      document.getElementById('action-sheet').classList.toggle('is-mine', isMyPost);
 
       function openActionSheet() {
-        document.getElementById('actionSheetBackdrop').classList.add('is-open');
-        document.getElementById('actionSheet').classList.add('is-open');
-      }
-      function closeActionSheet() {
-        document.getElementById('actionSheetBackdrop').classList.remove('is-open');
-        document.getElementById('actionSheet').classList.remove('is-open');
-      }
-      function openDeleteConfirm() {
-        document.getElementById('deleteConfirmOverlay').classList.add('is-open');
-      }
-      function closeDeleteConfirm() {
-        document.getElementById('deleteConfirmOverlay').classList.remove('is-open');
-      }
-      function confirmDelete() {
-        closeDeleteConfirm();
-        showToast('게시글이 삭제되었어요');
-        setTimeout(function () { location.href = '../community/community-feed.html'; }, 900);
-      }
-      function openReportSheet() {
-        document.getElementById('reportSheetBackdrop').classList.add('is-open');
-        document.getElementById('reportSheet').classList.add('is-open');
-      }
-      function closeReportSheet() {
-        document.getElementById('reportSheetBackdrop').classList.remove('is-open');
-        document.getElementById('reportSheet').classList.remove('is-open');
-      }
-      function submitReport(reason) {
-        closeReportSheet();
-        showToast('신고가 접수되었어요');
-      }
-      function showToast(message) {
-        var toast = document.getElementById('postToast');
-        toast.textContent = message;
-        toast.classList.add('is-visible');
-        setTimeout(function () { toast.classList.remove('is-visible'); }, 2200);
+        openSheet('action-sheet');
       }
 
-      function goBack() {
-        if (history.length > 1) history.back();
-        else location.href = "./community-feed.html";
+      /* ── 삭제 ── */
+      function deletePost() {
+        closeModal('delete-modal');
+        closeSheet('action-sheet');
+        showToast('toast-deleted');
       }
 
-      function toggleLike(el) {
-        var span = el.querySelector("span");
-        var n = parseInt(span.textContent, 10);
-        var liked = el.dataset.liked === "1";
-        el.dataset.liked = liked ? "0" : "1";
-        span.textContent = liked ? n - 1 : n + 1;
+      /* ── 신고 ── */
+      function submitReport() {
+        closeSheet('report-sheet');
+        closeSheet('action-sheet');
+        showToast('toast-reported');
       }
 
-      function toggleFollow(btn) {
-        var following = btn.classList.toggle("is-following");
-        btn.textContent = following ? "팔로잉" : "팔로우";
-      }
-
-      function toggleBookmark(btn) {
-        var saved = btn.dataset.saved === "1";
-        btn.dataset.saved = saved ? "0" : "1";
-        var shape = btn.querySelectorAll("path")[1];
-        shape.style.fill = saved ? "none" : "#E31B59";
-        shape.style.stroke = saved ? "currentColor" : "#E31B59";
-      }
-
+      /* ── 라이트박스 (layer 1) ── */
       function openLightbox() {
-        document.getElementById("photoLightbox").classList.add("is-open");
+        document.getElementById('photo-lightbox').classList.add('is-open');
       }
       function closeLightbox() {
-        document.getElementById("photoLightbox").classList.remove("is-open");
+        closeExif(); // EXIF가 열린 채로 닫으면 유령 레이어가 남는다
+        document.getElementById('photo-lightbox').classList.remove('is-open');
       }
 
-      function handleCommentInput(input) {
-        var btn = input.nextElementSibling;
-        btn.classList.toggle("is-ready", input.value.trim().length > 0);
+      /* ── EXIF (layer 2 · 라이트박스 위에 겹침) ── */
+      function openExif() {
+        document.getElementById('photo-exif').classList.add('is-open');
       }
-
-      function submitComment(btn) {
-        var input = btn.previousElementSibling;
-        var text = input.value.trim();
-        if (!text) return;
-        var more = document.getElementById("commentsMore");
-        var div = document.createElement("div");
-        div.className = "comment";
-        div.innerHTML =
-          '<div class="comment__avatar">ME</div>' +
-          '<div class="comment__body">' +
-          '<div class="comment__text"><strong>me</strong> ' + text + "</div>" +
-          '<div class="comment__meta">방금 전</div></div>';
-        if (more) {
-          more.parentNode.insertBefore(div, more);
-        } else {
-          document.getElementById("comments").appendChild(div);
-        }
-        input.value = "";
-        btn.classList.remove("is-ready");
-      }
-
-      function loadMoreComments(moreEl, remaining) {
-        var samples = [
-          { init: "YJ", name: "yujin.cam", text: "다음 달 저도 꼭 가볼게요!", meta: "3시간 전" },
-          { init: "MK", name: "mk_photo", text: "색감 보정 프리셋 공유해주실 수 있나요?", meta: "2시간 전 · 좋아요 5개" },
-          { init: "SH", name: "sunhee__", text: "진짜 너무 예쁘다 🌸", meta: "1시간 전 · 좋아요 11개" },
-          { init: "BR", name: "brian.jpg", text: "어떤 시간대에 가셨어요?", meta: "50분 전" },
-          { init: "EJ", name: "eunjin_lens", text: "저 이 스팟 위시리스트에 추가했어요!", meta: "20분 전 · 좋아요 2개" },
-        ];
-        var inserted = Math.min(remaining, samples.length);
-        for (var i = 0; i < inserted; i++) {
-          var c = samples[i];
-          var div = document.createElement("div");
-          div.className = "comment";
-          div.innerHTML =
-            '<div class="comment__avatar">' + c.init + "</div>" +
-            '<div class="comment__body">' +
-            '<div class="comment__text"><strong>' + c.name + "</strong> " + c.text + "</div>" +
-            '<div class="comment__meta">' + c.meta + "</div></div>";
-          moreEl.parentNode.insertBefore(div, moreEl);
-        }
-        var left = remaining - inserted;
-        if (left > 0) moreEl.textContent = "댓글 " + left + "개 더보기";
-        else moreEl.remove();
+      function closeExif() {
+        document.getElementById('photo-exif').classList.remove('is-open');
       }
     </script>
   </body>
