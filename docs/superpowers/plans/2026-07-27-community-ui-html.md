@@ -1134,7 +1134,10 @@ git commit -m "feat(community): 피드 검색 오버레이 및 갤러리 세그�
       /* ── 라이트박스 ── */
       function openLightbox(rank) {
         const lb = document.getElementById('contest-lightbox');
+        lb.dataset.rank = rank;
         lb.querySelector('.rank-badge').textContent = rank;
+        // 투표는 출품작 단위 — 다른 출품작을 열면 투표됨 상태가 따라오면 안 된다
+        lb.classList.toggle('is-voted', votedRank === Number(rank));
         lb.classList.add('is-open');
       }
       function closeLightbox() {
@@ -1143,21 +1146,27 @@ git commit -m "feat(community): 피드 검색 오버레이 및 갤러리 세그�
 
       /* ── 투표 ── */
       let remainingVotes = 3;
+      let votedRank = null; // 투표한 출품작의 랭크. null이면 미투표
 
       function requestVote() {
         const voted = document.getElementById('contest-lightbox').classList.contains('is-voted');
         openModal(voted ? 'vote-cancel-modal' : 'vote-confirm-modal');
       }
       function castVote() {
+        const lb = document.getElementById('contest-lightbox');
         closeModal('vote-confirm-modal');
-        document.getElementById('contest-lightbox').classList.add('is-voted');
+        lb.classList.add('is-voted');
+        votedRank = Number(lb.dataset.rank);
         remainingVotes -= 1;
         renderRemainingVotes();
         showToast('vote-toast');
       }
       function undoVote() {
+        if (votedRank === null) return; // 스낵바 되돌리기 연타 시 remainingVotes가 3을 넘는 것 방지
         closeModal('vote-cancel-modal');
+        document.getElementById('vote-toast').classList.remove('is-open');
         document.getElementById('contest-lightbox').classList.remove('is-voted');
+        votedRank = null;
         remainingVotes += 1;
         renderRemainingVotes();
       }
@@ -1180,10 +1189,12 @@ git commit -m "feat(community): 피드 검색 오버레이 및 갤러리 세그�
       function closeModal(id) {
         document.getElementById(id).classList.remove('is-open');
       }
+      const toastTimers = {};
       function showToast(id) {
         const t = document.getElementById(id);
         t.classList.add('is-open');
-        setTimeout(() => t.classList.remove('is-open'), 2600);
+        clearTimeout(toastTimers[id]); // 이전 타이머가 살아 있으면 재표시된 토스트를 일찍 닫는다
+        toastTimers[id] = setTimeout(() => t.classList.remove('is-open'), 2600);
       }
 ```
 
@@ -1685,10 +1696,12 @@ git commit -m "feat(community): 콘테스트 결과 상세 목업 신규 작성"
       function closeModal(id) {
         document.getElementById(id).classList.remove('is-open');
       }
+      const toastTimers = {};
       function showToast(id) {
         const t = document.getElementById(id);
         t.classList.add('is-open');
-        setTimeout(() => t.classList.remove('is-open'), 2600);
+        clearTimeout(toastTimers[id]); // 이전 타이머가 살아 있으면 재표시된 토스트를 일찍 닫는다
+        toastTimers[id] = setTimeout(() => t.classList.remove('is-open'), 2600);
       }
 
       /* ── 내글 / 남글 분기 ── */
