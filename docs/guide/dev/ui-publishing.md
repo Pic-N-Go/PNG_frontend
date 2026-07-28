@@ -25,9 +25,11 @@ src/components/ui/
     travel-plan.html          # 여행 계획 상세 (지도 헤더·일자별 스팟 타임라인)
     travel-new.html           # 새 여행 계획 만들기
   community/
-    community-feed.html       # 커뮤니티 피드 (레시피·갤러리 탭·타이틀 하단 검색바)
-    community-write.html      # 게시물 작성 (촬영 시간·날씨·카메라·렌즈·위치 바텀시트)
-    contest.html              # 주간 콘테스트 — 미퍼블리싱
+    community-feed.html       # 커뮤니티 루트 (게시글·갤러리·콘테스트 세그먼트 / 콘테스트 하위 진행중·내 출품·지난 서브탭)
+    community-post.html       # 게시글 상세 (액션시트·삭제·신고·토스트 / 사진 라이트박스 → EXIF 2중 레이어)
+    community-write.html      # 게시물 작성 (위치·촬영 정보 바텀시트)
+    contest-result.html       # 콘테스트 결과 상세 (우승작·순위·통계 / 풀스크린)
+    user-profile.html         # 다른 유저 프로필 (게시글·콘테스트·방문한 스팟 탭)
   spot/
     spot-detail.html          # 스팟 상세 (포토제닉 스코어·날씨·정보/사진/채팅 탭)
     spot-register.html        # 새 스팟 등록 (3단계 폼·장소명 필수 검증)
@@ -42,7 +44,6 @@ src/components/ui/
     setting.html              # 설정 (알림·계정·로그아웃)
     notification.html         # 알림 목록
     follow.html               # 팔로워/팔로잉 목록 — 미퍼블리싱
-    user-profile.html         # 타 유저 프로필 — 미퍼블리싱
   wishlist/
     wishlist.html             # 촬영 조건 알림 설정 목록 (날씨·골든아워·미세먼지 조건, 빈 상태 ?empty=1)
     wishlist-setting.html     # 위시리스트 상세 설정
@@ -215,10 +216,33 @@ src/components/ui/
 
 ### community/community-feed.html
 - 스크롤 콜랩스 헤더 (travel과 동일 패턴)
-- 타이틀 하단 검색바 (항상 노출, 스크롤 시 큰 타이틀만 접힘)
-- 레시피·갤러리 탭 전환
+- 세그먼트 3개: 게시글 · 갤러리 · 콘테스트 — `switchView('posts'|'gallery'|'contest', el)`
+- 검색은 헤더 아이콘 → 전체 오버레이 (대상 chips 5개 · 최근 검색), `취소`로 닫기
 - 인기순 정렬 드롭다운
+- 콘테스트 세그먼트 하위 언더라인 서브탭 3개 — `switchSubtab('active'|'mine'|'past', el)`
+  - 진행중: 히어로 배너 186px · 포디움 · 투표 확인/취소 모달 · undo 스낵바 · 라이트박스
+  - 내 출품: 컴팩트 배너 120px · 캡션 수정 시트 · 출품 취소 모달 · 출품하기 시트
+  - 지난: 2열 그리드 카드 → `contest-result.html`
 - 게시물 작성 버튼 → `community-write.html`
+- 카드 유저명 → `user-profile.html`
+- 인터랙션으로 도달 불가한 상태는 쿼리로 진입: `?empty=1` (내 출품 빈 상태)
+
+### community/community-post.html
+- 게시글 상세 — 히어로 · 유저 · 캡션 · 촬영 정보 · 포토제닉 · 댓글
+- `⋯` → 액션시트. `?mine=1`이면 내글(수정·삭제), 없으면 남글(신고)
+- 삭제 확인 모달 · 신고 사유 시트(사유 선택 즉시 접수) · 완료 토스트 2종
+- 히어로 우측 상단 확대 → 라이트박스(layer 1) → `(i)` → EXIF(layer 2, 라이트박스 위에 겹침)
+  - EXIF를 닫으면 라이트박스가 남는다. 라이트박스를 닫으면 둘 다 닫힌다
+- 하단은 탭바 대신 댓글 입력 바 (푸시 화면)
+
+### community/contest-result.html
+- 콘테스트 결과 상세 — 결과 배너 · 최종 순위 가로 스크롤 · 전체 참여작 그리드
+- 풀스크린 목적지 (시트 아님) — 스크롤이 길고 공유·딥링크 대상
+
+### community/user-profile.html
+- 다른 유저 프로필 (자기 프로필은 `mypage/mypage.html`)
+- 탭 3개: 게시글 · 콘테스트 · 방문한 스팟
+- 팔로우 버튼 토글 · 메시지 버튼은 BETA disabled
 
 ### spot/spot-detail.html
 - 탭: 정보 / 사진 / **채팅**
@@ -280,14 +304,15 @@ auth/login
             │    │    └─ spot/spot-detail
             │    └─ travel/travel-new
             ├─ community/community-feed
+            │    ├─ community/community-post
             │    ├─ community/community-write
-            │    └─ community/contest (미퍼블리싱)
+            │    ├─ community/contest-result
+            │    └─ community/user-profile
             └─ mypage/mypage
                  ├─ mypage/my-photos
                  ├─ mypage/setting
                  │    └─ mypage/profile-edit
                  ├─ mypage/notification
-                 ├─ mypage/user-profile (미퍼블리싱)
                  ├─ spot/spot-list?view=visited
                  └─ wishlist/wishlist
 ```
