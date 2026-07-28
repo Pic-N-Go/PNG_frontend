@@ -121,7 +121,7 @@ export interface Review {
   avatarInitial: string;
   avatarColor: string;
   rating: number;
-  /** 촬영 시간대 라벨(일출/낮/일몰/야간). timeSlot이 null이면 undefined → 배지 미표시 */
+  /** 촬영 시간대 라벨(일출/낮/일몰/야간). timePeriod가 null이면 undefined → 배지 미표시 */
   badge?: string;
   date: string;
   text: string;
@@ -169,7 +169,8 @@ export interface BookmarkCollectionDTO {
 // ── API DTO (서버 응답 원형) ──────────────────────
 // 스펙: docs/ai/specs/feature/spot-detail-screen/spot-detail-api.md
 
-export type ReviewTimeSlot = 'SUNRISE' | 'DAY' | 'SUNSET' | 'NIGHT';
+/** 촬영 시간대. 백엔드 TimePeriod enum과 1:1 (낮은 DAY가 아니라 DAYTIME) */
+export type TimePeriodApi = 'SUNRISE' | 'DAYTIME' | 'SUNSET' | 'NIGHT';
 export type ReviewSortApi = 'LATEST' | 'RATING_HIGH' | 'RATING_LOW';
 
 // 실데이터상 각 필드는 null·빈문자열·HTML(usetime)이 섞여 옴 → 전부 nullable
@@ -206,7 +207,7 @@ export interface ReviewDTO {
   userId: number;
   nickname: string;
   rating: number;
-  timeSlot: ReviewTimeSlot | null;
+  timePeriod: TimePeriodApi | null;
   content: string;
   equipmentInfo: string | null;
   photos: string[];

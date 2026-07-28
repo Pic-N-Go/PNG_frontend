@@ -26,8 +26,8 @@
   - `src/types/spot.ts`
 - 변경 내용:
   - API 응답 DTO 타입 추가: `SpotDetailResponse`, `ConvenienceDTO`, `ReviewListResponse`, `ReviewDTO`, `ReviewSummaryDTO`, `ChecklistResponse`, `ChecklistItemDTO`
-  - `ReviewTimeSlot = 'SUNRISE'|'DAY'|'SUNSET'|'NIGHT'`(DTO에서 `nullable`), `ReviewSortApi = 'LATEST'|'RATING_HIGH'|'RATING_LOW'`, `ChecklistItemDTO { id: number | null; content: string }`
-  - 기존 뷰모델 타입(`SpotDetailInfo`,`ConvenienceInfo`,`ReviewSummaryData`,`Review`)은 유지, 필요한 필드만 보강(예: `Review.timeSlotLabel`)
+  - `TimePeriodApi = 'SUNRISE'|'DAYTIME'|'SUNSET'|'NIGHT'`(DTO에서 `nullable`), `ReviewSortApi = 'LATEST'|'RATING_HIGH'|'RATING_LOW'`, `ChecklistItemDTO { id: number | null; content: string }`
+  - 기존 뷰모델 타입(`SpotDetailInfo`,`ConvenienceInfo`,`ReviewSummaryData`,`Review`)은 유지, 필요한 필드만 보강(예: `Review.badge` 시간대 라벨)
 - 완료 조건: DTO/뷰모델 타입 컴파일 통과
 - 검증 방법: `pnpm exec tsc --noEmit`
 
@@ -37,7 +37,7 @@
   - `src/utils/spotMappers.ts` (신규)
 - 변경 내용:
   - `mapSpotDetail(dto) → { info: SpotDetailInfo; convenience: ConvenienceInfo }` (badge 라벨, 주차장 셀, 값→variant)
-  - `mapReviewList(dto) → { summary: ReviewSummaryData; reviews: Review[] }` (분포 카운트→percent, nickname→이니셜/색, timeSlot→라벨, **timeSlot null→배지 없음**)
+  - `mapReviewList(dto) → { summary: ReviewSummaryData; reviews: Review[] }` (분포 카운트→percent, nickname→이니셜/색, timePeriod→라벨, **timePeriod null→배지 없음**)
   - `SORT_TO_API`, `TIMESLOT_LABEL` 매핑 상수
 - 완료 조건: 순수 함수, 부작용 없음
 - 검증 방법: `tsc`; `src/utils/spotMappers.test-demo` 대신 매퍼 하단 `if (__DEV__)` self-check 또는 간단 assert (프레임워크 없음)
@@ -97,7 +97,7 @@
   - `src/screens/spot/SpotDetailScreen.tsx`
 - 변경 내용:
   - `ReviewTab`에 `summary`·`reviews`·`sort`·`onSortChange`·`loading` props 추가, `MOCK_REVIEW_SUMMARY`/`MOCK_REVIEWS` 제거
-  - `useSpotReviews(id, sort)` 연결, 시간대 배지 라벨(`timeSlot null`→배지 없음), 빈 상태 처리
+  - `useSpotReviews(id, sort)` 연결, 시간대 배지 라벨(`timePeriod null`→배지 없음), 빈 상태 처리
   - 1페이지만 조회(load-more 후속 TODO)
 - 완료 조건: 정렬 변경 시 재조회·갱신
 - 검증 방법: `tsc`/`lint`
