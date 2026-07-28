@@ -940,6 +940,99 @@
         cursor: pointer;
         flex-shrink: 0;
       }
+
+      /* ── 지난 콘테스트 카드 (2열 그리드) ── */
+      .past-card {
+        border: none;
+        padding: 0;
+        border-radius: 14px;
+        overflow: hidden;
+        background: var(--color-surface);
+        font-family: var(--font-family);
+        text-align: left;
+        cursor: pointer;
+      }
+      .past-card__thumb { position: relative; aspect-ratio: 1; }
+      .past-card__mine {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        display: inline-flex;
+        align-items: center;
+        height: 22px;
+        padding: 0 8px;
+        border-radius: 11px;
+        background: var(--color-accent);
+        color: #fff;
+        font-size: var(--font-2xs);
+        font-weight: 600;
+        letter-spacing: -0.1px;
+      }
+      .past-card__body { padding: 10px 12px 12px; }
+      .past-card__title {
+        font-size: var(--font-sm);
+        font-weight: 600;
+        letter-spacing: -0.2px;
+        line-height: 1.3;
+      }
+      .past-card__winner {
+        font-size: var(--font-2xs);
+        color: rgba(0, 0, 0, 0.4);
+        margin-top: 3px;
+        letter-spacing: -0.1px;
+      }
+      .past-card__meta {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        margin-top: 8px;
+        font-size: var(--font-2xs);
+        color: rgba(0, 0, 0, 0.35);
+        letter-spacing: -0.1px;
+      }
+      .past-card__dot {
+        width: 2px;
+        height: 2px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.15);
+      }
+
+      /* ── 내 출품 (출품작 있음 / 빈 상태 분기) ── */
+      .entry-state--has,
+      .entry-state--empty { display: none; }
+      .entry-state--has.is-active,
+      .entry-state--empty.is-active { display: block; }
+
+      /* ── 출품 시트 (사진 미선택 / 선택 분기) ── */
+      #submit-sheet .submit-photo--empty { display: block; }
+      #submit-sheet .submit-photo--picked { display: none; }
+      #submit-sheet.has-photo .submit-photo--empty { display: none; }
+      #submit-sheet.has-photo .submit-photo--picked { display: block; }
+      #submit-sheet .submit-after-photo { display: none; }
+      #submit-sheet.has-photo .submit-after-photo { display: block; }
+      #submit-sheet .submit-cta {
+        width: 100%;
+        height: 52px;
+        border: none;
+        border-radius: 26px;
+        background: var(--color-surface);
+        color: rgba(0, 0, 0, 0.28);
+        font-family: var(--font-family);
+        font-size: var(--font-md);
+        font-weight: 600;
+        letter-spacing: -0.2px;
+        cursor: not-allowed;
+      }
+      #submit-sheet.has-photo .submit-cta {
+        background: var(--color-accent);
+        color: #fff;
+        cursor: pointer;
+      }
+      /* 출품 시트는 내용이 길어 시트 자체가 스크롤한다 */
+      #submit-sheet .sheet {
+        max-height: calc(100% - 40px);
+        overflow-y: auto;
+      }
     </style>
   </head>
   <body>
@@ -1317,11 +1410,196 @@
             </div>
           </div>
 
-          <!-- 내 출품 (Task 4에서 채움) -->
-          <div class="subview" data-subview="mine"></div>
+          <!-- 내 출품 -->
+          <div class="subview" data-subview="mine">
+            <!-- 컴팩트 배너 (출품 유무 공통) -->
+            <div style="padding: 16px 20px">
+              <div style="position: relative; height: 120px; border-radius: 16px; overflow: hidden; background: linear-gradient(135deg, #1a1530 0%, #2d1b4e 25%, #8b4a6b 55%, #d4856a 80%, #f0c89a 100%)">
+                <div style="position: absolute; inset: 0; padding: 16px 18px; display: flex; flex-direction: column; justify-content: space-between">
+                  <div style="display: flex; align-items: baseline; gap: 8px">
+                    <span style="font-size: var(--font-xs); font-weight: 600; letter-spacing: 1px; color: #fff; opacity: 0.85">WEEKLY</span>
+                    <span style="font-size: var(--font-lg); font-weight: 600; letter-spacing: -0.3px; color: #fff">골든아워</span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 6px">
+                    <span style="height: 22px; padding: 0 10px; border-radius: 11px; background: rgba(0, 0, 0, 0.35); color: #fff; font-size: var(--font-xs); font-weight: 600; letter-spacing: 0.3px; display: inline-flex; align-items: center">D-3</span>
+                    <span style="height: 22px; padding: 0 10px; border-radius: 11px; background: rgba(255, 255, 255, 0.2); color: #fff; font-size: var(--font-xs); display: inline-flex; align-items: center">128명 참여</span>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-          <!-- 지난 (Task 5에서 채움) -->
-          <div class="subview" data-subview="past"></div>
+            <!-- 출품작 있음 -->
+            <div class="entry-state--has is-active">
+              <div style="padding: 0 20px 20px">
+                <div style="border-radius: 20px; background: var(--color-surface); overflow: hidden">
+                  <div style="width: 100%; aspect-ratio: 4/3; background: linear-gradient(to bottom, #232526, #8e7b5a); position: relative">
+                    <div style="position: absolute; bottom: 12px; left: 12px; right: 12px; padding: 24px 4px 0; background: linear-gradient(to top, rgba(0, 0, 0, 0.55), transparent); color: rgba(255, 255, 255, 0.9); font-size: var(--font-sm); line-height: 1.5; letter-spacing: -0.15px">도심 속 황금빛 노을, 빌딩 사이로 스며드는 빛</div>
+                  </div>
+                  <div style="padding: 16px 18px 14px">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px">
+                      <div style="padding: 12px 14px; background: #fff; border-radius: 12px">
+                        <div style="font-size: var(--font-2xs); font-weight: 600; color: rgba(0, 0, 0, 0.4); letter-spacing: 0.4px">현재 순위</div>
+                        <div style="display: flex; align-items: baseline; gap: 3px; margin-top: 2px">
+                          <span style="font-size: var(--font-xl); font-weight: 600; color: var(--color-accent); letter-spacing: -0.5px; line-height: 1">4</span>
+                          <span style="font-size: var(--font-xs); color: rgba(0, 0, 0, 0.35)">위 / 128</span>
+                        </div>
+                      </div>
+                      <div style="padding: 12px 14px; background: #fff; border-radius: 12px">
+                        <div style="font-size: var(--font-2xs); font-weight: 600; color: rgba(0, 0, 0, 0.4); letter-spacing: 0.4px">받은 표</div>
+                        <div style="display: flex; align-items: baseline; gap: 3px; margin-top: 2px">
+                          <span style="font-size: var(--font-xl); font-weight: 600; color: var(--color-accent); letter-spacing: -0.5px; line-height: 1">28</span>
+                          <span style="font-size: var(--font-xs); color: rgba(0, 0, 0, 0.35)">표</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 8px; padding: 11px 12px; background: #fff; border-radius: 12px">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,.35)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="10" r="3"></circle><path d="M12 21s-7-7.5-7-11a7 7 0 0 1 14 0c0 3.5-7 11-7 11z"></path></svg>
+                      <span style="font-size: var(--font-xs); color: rgba(0, 0, 0, 0.6); letter-spacing: -0.15px">서울 종로 세운상가</span>
+                      <span style="width: 2px; height: 2px; border-radius: 50%; background: rgba(0, 0, 0, 0.15)"></span>
+                      <span style="font-size: var(--font-xs); color: rgba(0, 0, 0, 0.6); letter-spacing: -0.15px">2일 전 출품</span>
+                      <span style="margin-left: auto; height: 22px; padding: 0 10px; border-radius: 11px; background: rgba(227, 27, 89, 0.1); color: var(--color-accent); font-size: var(--font-xs); font-weight: 600; display: inline-flex; align-items: center">마감 D-3</span>
+                    </div>
+
+                    <div style="display: flex; gap: 8px; margin-top: 14px">
+                      <button style="flex: 1; height: 44px; border: none; border-radius: 22px; background: #fff; color: rgba(0, 0, 0, 0.65); font-family: var(--font-family); font-size: var(--font-sm); font-weight: 600; letter-spacing: -0.2px; display: flex; align-items: center; justify-content: center; gap: 5px; cursor: pointer" onclick="openSheet('caption-sheet')">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5z"></path></svg>
+                        캡션 수정
+                      </button>
+                      <button style="flex: 1; height: 44px; border: none; border-radius: 22px; background: #fff; color: var(--color-accent); font-family: var(--font-family); font-size: var(--font-sm); font-weight: 600; letter-spacing: -0.2px; display: flex; align-items: center; justify-content: center; gap: 5px; cursor: pointer" onclick="openModal('withdraw-modal')">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path></svg>
+                        출품 취소
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div style="padding: 0 20px 24px">
+                <div style="padding: 14px 16px; background: var(--color-surface); border-radius: 12px; font-size: var(--font-xs); color: rgba(0, 0, 0, 0.5); line-height: 1.55; letter-spacing: -0.15px">
+                  <strong style="color: #000; font-weight: 600">1위까지 39표 남음.</strong> 마감까지 3일. 팔로워에게 공유하면 표를 더 받을 수 있어요.
+                </div>
+              </div>
+            </div>
+
+            <!-- 출품작 없음 -->
+            <div class="entry-state--empty">
+              <div style="padding: 16px 20px 24px; display: flex; flex-direction: column; align-items: center; text-align: center">
+                <div style="width: 88px; height: 88px; border-radius: 20px; background: rgba(227, 27, 89, 0.08); color: var(--color-accent); display: flex; align-items: center; justify-content: center; margin-bottom: 18px">
+                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="2"></rect><circle cx="12" cy="13" r="4"></circle><path d="M9 3h6"></path></svg>
+                </div>
+                <div style="font-size: var(--font-lg); font-weight: 600; letter-spacing: -0.3px; margin-bottom: 6px">아직 출품하지 않았어요</div>
+                <div style="font-size: var(--font-sm); color: rgba(0, 0, 0, 0.5); line-height: 1.55; letter-spacing: -0.15px; max-width: 260px; margin-bottom: 22px">"골든아워" 주제에 어울리는 사진을 골라 이번 주 콘테스트에 참여해보세요.</div>
+                <button style="height: 52px; padding: 0 32px; border: none; border-radius: 26px; background: var(--color-accent); color: #fff; font-family: var(--font-family); font-size: var(--font-md); font-weight: 600; letter-spacing: -0.2px; cursor: pointer" onclick="openSheet('submit-sheet')">출품하기</button>
+                <div style="margin-top: 12px; font-size: var(--font-xs); color: rgba(0, 0, 0, 0.4); letter-spacing: -0.1px">마감까지 3일 · 지금까지 128명 참여</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 지난 -->
+          <div class="subview" data-subview="past">
+            <!-- 컴팩트 배너 -->
+            <div style="padding: 16px 20px">
+              <div style="position: relative; height: 120px; border-radius: 16px; overflow: hidden; background: linear-gradient(135deg, #1a1530 0%, #2d1b4e 25%, #8b4a6b 55%, #d4856a 80%, #f0c89a 100%)">
+                <div style="position: absolute; inset: 0; padding: 16px 18px; display: flex; flex-direction: column; justify-content: space-between">
+                  <div style="display: flex; align-items: baseline; gap: 8px">
+                    <span style="font-size: var(--font-xs); font-weight: 600; letter-spacing: 1px; color: #fff; opacity: 0.85">WEEKLY</span>
+                    <span style="font-size: var(--font-lg); font-weight: 600; letter-spacing: -0.3px; color: #fff">골든아워</span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 6px">
+                    <span style="height: 22px; padding: 0 10px; border-radius: 11px; background: rgba(0, 0, 0, 0.35); color: #fff; font-size: var(--font-xs); font-weight: 600; letter-spacing: 0.3px; display: inline-flex; align-items: center">D-3</span>
+                    <span style="height: 22px; padding: 0 10px; border-radius: 11px; background: rgba(255, 255, 255, 0.2); color: #fff; font-size: var(--font-xs); display: inline-flex; align-items: center">128명 참여</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div style="padding: 0 20px 12px; display: flex; align-items: baseline; justify-content: space-between">
+              <span style="font-size: var(--font-md); font-weight: 600; letter-spacing: -0.2px">지난 콘테스트</span>
+              <span style="font-size: var(--font-xs); color: rgba(0, 0, 0, 0.4); letter-spacing: -0.1px">총 24회</span>
+            </div>
+
+            <div style="padding: 0 20px 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px">
+              <button class="past-card" onclick="location.href = './contest-result.html'">
+                <div class="past-card__thumb" style="background: linear-gradient(to bottom, #0a1a0f, #4a8060, #a8c090)"></div>
+                <div class="past-card__body">
+                  <div class="past-card__title">숲 산책</div>
+                  <div class="past-card__winner">@forestday · 89표</div>
+                  <div class="past-card__meta">
+                    <span>3주 전</span>
+                    <span class="past-card__dot"></span>
+                    <span>참여 65</span>
+                  </div>
+                </div>
+              </button>
+              <button class="past-card" onclick="location.href = './contest-result.html'">
+                <div class="past-card__thumb" style="background: linear-gradient(to bottom, #020010, #1a1545, #4a4080)"></div>
+                <div class="past-card__body">
+                  <div class="past-card__title">밤하늘</div>
+                  <div class="past-card__winner">@nightowl · 124표</div>
+                  <div class="past-card__meta">
+                    <span>4주 전</span>
+                    <span class="past-card__dot"></span>
+                    <span>참여 142</span>
+                  </div>
+                </div>
+              </button>
+              <button class="past-card" onclick="location.href = './contest-result.html'">
+                <div class="past-card__thumb" style="background: linear-gradient(to bottom, #1a1510, #a08060)"></div>
+                <div class="past-card__body">
+                  <div class="past-card__title">골목의 낮</div>
+                  <div class="past-card__winner">@sunny.walk · 76표</div>
+                  <div class="past-card__meta">
+                    <span>5주 전</span>
+                    <span class="past-card__dot"></span>
+                    <span>참여 88</span>
+                  </div>
+                </div>
+              </button>
+              <button class="past-card" onclick="location.href = './contest-result.html'">
+                <div class="past-card__thumb" style="background: linear-gradient(to bottom, #1a0f1e, #c080a0, #f0c89a)"></div>
+                <div class="past-card__body">
+                  <div class="past-card__title">비 오는 날</div>
+                  <div class="past-card__winner">@rainy.frame · 103표</div>
+                  <div class="past-card__meta">
+                    <span>6주 전</span>
+                    <span class="past-card__dot"></span>
+                    <span>참여 118</span>
+                  </div>
+                </div>
+              </button>
+              <button class="past-card" onclick="location.href = './contest-result.html'">
+                <div class="past-card__thumb" style="background: linear-gradient(to bottom, #0f2027, #2c5364)">
+                  <div class="past-card__mine">내 작품</div>
+                </div>
+                <div class="past-card__body">
+                  <div class="past-card__title">해변의 새벽</div>
+                  <div class="past-card__winner">@me · 91표</div>
+                  <div class="past-card__meta">
+                    <span>7주 전</span>
+                    <span class="past-card__dot"></span>
+                    <span>참여 96</span>
+                  </div>
+                </div>
+              </button>
+              <button class="past-card" onclick="location.href = './contest-result.html'">
+                <div class="past-card__thumb" style="background: linear-gradient(to bottom, #2a2e35, #6a7580)"></div>
+                <div class="past-card__body">
+                  <div class="past-card__title">도시의 회색</div>
+                  <div class="past-card__winner">@grey.lens · 58표</div>
+                  <div class="past-card__meta">
+                    <span>8주 전</span>
+                    <span class="past-card__dot"></span>
+                    <span>참여 71</span>
+                  </div>
+                </div>
+              </button>
+            </div>
+
+            <div style="padding: 12px 20px 24px">
+              <button style="width: 100%; height: 44px; border: none; border-radius: 22px; background: var(--color-surface); color: #000; font-family: var(--font-family); font-size: var(--font-sm); font-weight: 600; letter-spacing: -0.2px; cursor: pointer">전체 24회 보기</button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1490,6 +1768,161 @@
         <button class="toast__undo" onclick="undoVote()">되돌리기</button>
       </div>
 
+      <!-- 캡션 수정 시트 -->
+      <div class="sheet-backdrop" id="caption-sheet" onclick="closeSheet('caption-sheet')">
+        <div class="sheet" style="padding: 8px 0 20px" onclick="event.stopPropagation()">
+          <div class="sheet__handle"></div>
+          <div style="padding: 0 20px 12px; display: flex; align-items: center; justify-content: space-between">
+            <span class="sheet__title" style="margin-bottom: 0">캡션 수정</span>
+            <button aria-label="닫기" style="width: 30px; height: 30px; border: none; border-radius: 50%; background: var(--color-surface); color: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; cursor: pointer" onclick="closeSheet('caption-sheet')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6l-12 12"></path><path d="M6 6l12 12"></path></svg>
+            </button>
+          </div>
+
+          <div style="padding: 0 20px 14px; display: flex; gap: 12px; align-items: center">
+            <div style="width: 64px; height: 64px; border-radius: 12px; background: linear-gradient(to bottom, #232526, #8e7b5a); flex-shrink: 0"></div>
+            <div style="flex: 1; min-width: 0">
+              <div style="font-size: var(--font-sm); font-weight: 600; letter-spacing: -0.2px">골든아워 · 4위</div>
+              <div style="font-size: var(--font-xs); color: rgba(0, 0, 0, 0.4); margin-top: 2px; letter-spacing: -0.1px">서울 종로 세운상가 · 2일 전 출품</div>
+            </div>
+          </div>
+
+          <div style="padding: 0 20px 6px">
+            <div style="background: var(--color-surface); border-radius: 14px; padding: 14px 16px; box-shadow: inset 0 0 0 1.5px var(--color-accent)">
+              <textarea style="width: 100%; min-height: 100px; border: none; background: none; outline: none; resize: none; font-family: var(--font-family); font-size: var(--font-base); letter-spacing: -0.2px; line-height: 1.6; color: #000">도심 속 황금빛 노을, 빌딩 사이로 스며드는 빛</textarea>
+              <div style="display: flex; justify-content: flex-end; font-size: var(--font-xs); color: rgba(0, 0, 0, 0.3); margin-top: 6px">24/500</div>
+            </div>
+            <div style="margin-top: 10px; font-size: var(--font-xs); color: rgba(0, 0, 0, 0.4); letter-spacing: -0.15px; line-height: 1.5">사진·위치·촬영정보는 출품 시점에 고정되어 수정할 수 없어요.</div>
+          </div>
+
+          <div style="padding: 16px 20px 0; display: flex; gap: 8px">
+            <button style="flex: 1; height: 52px; border: none; border-radius: 26px; background: var(--color-surface); color: rgba(0, 0, 0, 0.6); font-family: var(--font-family); font-size: var(--font-md); font-weight: 600; letter-spacing: -0.2px; cursor: pointer" onclick="closeSheet('caption-sheet')">취소</button>
+            <button style="flex: 2; height: 52px; border: none; border-radius: 26px; background: var(--color-accent); color: #fff; font-family: var(--font-family); font-size: var(--font-md); font-weight: 600; letter-spacing: -0.2px; cursor: pointer" onclick="closeSheet('caption-sheet')">저장</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 출품 취소 확인 모달 -->
+      <div class="modal-backdrop" id="withdraw-modal" onclick="closeModal('withdraw-modal')">
+        <div class="modal" onclick="event.stopPropagation()">
+          <div style="width: 56px; height: 56px; border-radius: 50%; background: rgba(227, 27, 89, 0.1); color: var(--color-accent); display: flex; align-items: center; justify-content: center; margin: 0 auto 14px">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
+          </div>
+          <div class="modal__title">출품을 취소할까요?</div>
+          <div class="modal__body">지금까지 받은 <strong style="color: #000; font-weight: 600">28표</strong>가 모두 사라지고 순위에서 제외됩니다.</div>
+          <div class="modal__actions">
+            <button class="modal__btn modal__btn--cancel" onclick="closeModal('withdraw-modal')">닫기</button>
+            <button class="modal__btn modal__btn--confirm" onclick="withdrawEntry()">출품 취소</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 출품하기 시트 (사진 미선택이 초기 상태) -->
+      <div class="sheet-backdrop" id="submit-sheet" onclick="closeSheet('submit-sheet')">
+        <div class="sheet" style="padding: 8px 0 20px" onclick="event.stopPropagation()">
+          <div class="sheet__handle"></div>
+          <div style="padding: 0 20px 8px; display: flex; align-items: center; justify-content: space-between">
+            <div>
+              <div class="sheet__title" style="margin-bottom: 0">출품하기</div>
+              <div style="font-size: var(--font-xs); color: rgba(0, 0, 0, 0.4); margin-top: 2px; letter-spacing: -0.1px">주제: 골든아워 · 마감 D-3</div>
+            </div>
+            <button aria-label="닫기" style="width: 30px; height: 30px; border: none; border-radius: 50%; background: var(--color-surface); color: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; cursor: pointer" onclick="closeSheet('submit-sheet')">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6l-12 12"></path><path d="M6 6l12 12"></path></svg>
+            </button>
+          </div>
+
+          <!-- 사진 미선택 -->
+          <div class="submit-photo--empty">
+            <div style="padding: 6px 20px 14px">
+              <button style="position: relative; width: 100%; aspect-ratio: 4/3; border-radius: 16px; background: rgba(227, 27, 89, 0.04); box-shadow: inset 0 0 0 1.5px rgba(227, 27, 89, 0.25); border: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px" onclick="selectSubmitPhoto()">
+                <div style="width: 56px; height: 56px; border-radius: 16px; background: rgba(227, 27, 89, 0.1); color: var(--color-accent); display: flex; align-items: center; justify-content: center">
+                  <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="2"></rect><circle cx="12" cy="13" r="4"></circle><path d="M9 3h6"></path></svg>
+                </div>
+                <div style="font-size: var(--font-md); font-weight: 600; color: var(--color-accent); letter-spacing: -0.2px">사진 선택</div>
+                <div style="font-size: var(--font-xs); color: rgba(0, 0, 0, 0.4); letter-spacing: -0.1px">골든아워 주제에 어울리는 사진 1장</div>
+              </button>
+            </div>
+            <div style="padding: 0 20px 14px">
+              <div style="padding: 14px; background: var(--color-surface); border-radius: 14px; font-size: var(--font-xs); color: rgba(0, 0, 0, 0.35); letter-spacing: -0.15px; line-height: 1.6; text-align: center">사진을 선택하면 촬영정보 · 위치가 자동으로 채워져요</div>
+            </div>
+          </div>
+
+          <!-- 사진 선택됨 -->
+          <div class="submit-photo--picked">
+            <div style="padding: 6px 20px 14px">
+              <div style="position: relative; width: 100%; aspect-ratio: 4/3; border-radius: 16px; overflow: hidden; background: linear-gradient(to bottom, #232526, #8e7b5a)">
+                <button style="position: absolute; bottom: 12px; right: 12px; height: 32px; padding: 0 14px; border: none; border-radius: 16px; background: rgba(0, 0, 0, 0.5); color: #fff; font-family: var(--font-family); font-size: var(--font-sm); font-weight: 600; letter-spacing: -0.1px; display: flex; align-items: center; gap: 5px; cursor: pointer">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="2"></rect><circle cx="12" cy="13" r="4"></circle></svg>
+                  사진 변경
+                </button>
+              </div>
+              <div style="margin-top: 8px; font-size: var(--font-xs); color: rgba(0, 0, 0, 0.4); letter-spacing: -0.15px; line-height: 1.5">사진에서 EXIF(촬영일시·위치·카메라·렌즈)를 자동으로 읽어와요.</div>
+            </div>
+          </div>
+
+          <!-- 사진 선택 후 나타나는 영역 -->
+          <div class="submit-after-photo">
+            <div style="padding: 0 20px 14px">
+              <div style="padding: 12px 14px; background: var(--color-surface); border-radius: 14px">
+                <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 10px">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,.4)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M8 12l3 3 5-6"></path></svg>
+                  <span style="font-size: var(--font-xs); font-weight: 600; color: rgba(0, 0, 0, 0.5); letter-spacing: 0.3px">사진에서 자동 인식</span>
+                  <span style="margin-left: auto; font-size: var(--font-2xs); color: rgba(0, 0, 0, 0.35); letter-spacing: -0.1px">각 항목 탭하여 수정</span>
+                </div>
+                <button style="display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 2px; border: none; background: none; text-align: left; cursor: pointer">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,.4)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 3"></path></svg>
+                  <span style="font-size: var(--font-xs); color: rgba(0, 0, 0, 0.45); letter-spacing: -0.1px; flex: none; width: 44px">시간</span>
+                  <span style="font-family: var(--font-family); font-size: var(--font-sm); font-weight: 500; color: #000; letter-spacing: -0.2px; flex: 1">17:42</span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,.25)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
+                </button>
+                <div style="height: 0.5px; background: rgba(0, 0, 0, 0.05); margin: 0 -6px"></div>
+                <button style="display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 2px; border: none; background: none; text-align: left; cursor: pointer">
+                  <img src="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/clear-day.svg" width="16" height="16" alt="" style="opacity: 0.9" />
+                  <span style="font-size: var(--font-xs); color: rgba(0, 0, 0, 0.45); letter-spacing: -0.1px; flex: none; width: 44px">날씨</span>
+                  <span style="font-family: var(--font-family); font-size: var(--font-sm); font-weight: 500; color: #000; letter-spacing: -0.2px; flex: 1">맑음</span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,.25)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
+                </button>
+                <div style="height: 0.5px; background: rgba(0, 0, 0, 0.05); margin: 0 -6px"></div>
+                <button style="display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 2px; border: none; background: none; text-align: left; cursor: pointer">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,.4)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="2"></rect><circle cx="12" cy="13" r="4"></circle></svg>
+                  <span style="font-size: var(--font-xs); color: rgba(0, 0, 0, 0.45); letter-spacing: -0.1px; flex: none; width: 44px">카메라</span>
+                  <span style="font-family: var(--font-family); font-size: var(--font-sm); font-weight: 500; color: #000; letter-spacing: -0.2px; flex: 1">Sony A7IV · 24mm</span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,.25)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
+                </button>
+                <div style="height: 0.5px; background: rgba(0, 0, 0, 0.05); margin: 0 -6px"></div>
+                <button style="display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 2px; border: none; background: none; text-align: left; cursor: pointer">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-accent)"><circle cx="12" cy="10" r="3"></circle><path d="M12 21s-7-7.5-7-11a7 7 0 0 1 14 0c0 3.5-7 11-7 11z"></path></svg>
+                  <span style="font-size: var(--font-xs); color: rgba(0, 0, 0, 0.45); letter-spacing: -0.1px; flex: none; width: 44px">위치</span>
+                  <span style="font-family: var(--font-family); font-size: var(--font-sm); font-weight: 500; color: #000; letter-spacing: -0.2px; flex: 1">서울 종로 세운상가</span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,.25)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
+                </button>
+              </div>
+            </div>
+
+            <div style="padding: 0 20px 14px">
+              <div style="font-size: var(--font-xs); font-weight: 600; color: rgba(0, 0, 0, 0.4); letter-spacing: 0.4px; margin-bottom: 8px; display: flex; align-items: baseline; justify-content: space-between">
+                <span>캡션 <span style="font-weight: 400; color: rgba(0, 0, 0, 0.3)">· 선택</span></span>
+                <span style="font-weight: 400; color: rgba(0, 0, 0, 0.3); letter-spacing: -0.1px">0/200</span>
+              </div>
+              <div style="padding: 12px 14px; background: var(--color-surface); border-radius: 14px">
+                <textarea placeholder="이 사진 한 줄 소개 (심사에는 영향 없음)" style="width: 100%; min-height: 64px; border: none; background: none; outline: none; resize: none; font-family: var(--font-family); font-size: var(--font-base); letter-spacing: -0.2px; line-height: 1.55; color: #000"></textarea>
+              </div>
+            </div>
+
+            <div style="padding: 0 20px 16px">
+              <div style="padding: 12px 14px; background: rgba(227, 27, 89, 0.05); border-radius: 12px; display: flex; gap: 8px; align-items: flex-start">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 1px; color: var(--color-accent)"><circle cx="12" cy="12" r="9"></circle><path d="M12 8h.01"></path><path d="M11 12h1v4h1"></path></svg>
+                <div style="font-size: var(--font-xs); color: rgba(0, 0, 0, 0.65); letter-spacing: -0.15px; line-height: 1.6">주 1회 출품 가능 · 출품 후 <strong style="color: #000; font-weight: 600">사진·위치·촬영정보는 수정 불가</strong> · 캡션만 마감 전 수정 가능 · 출품 취소 시 받은 표는 <strong style="color: #000; font-weight: 600">복구되지 않아요</strong></div>
+              </div>
+            </div>
+          </div>
+
+          <div style="padding: 0 20px">
+            <button class="submit-cta" onclick="submitEntry()">출품하기</button>
+          </div>
+        </div>
+      </div>
+
       <!-- Tab Bar -->
       <div class="tab-bar">
         <button class="tab" onclick="location.href = '../home/home.html'">
@@ -1634,6 +2067,31 @@
         clearTimeout(toastTimers[id]); // 이전 타이머가 살아 있으면 재표시된 토스트를 일찍 닫는다
         toastTimers[id] = setTimeout(() => t.classList.remove('is-open'), 2600);
       }
+
+      /* ── 내 출품 상태 ── */
+      function setEntryState(hasEntry) {
+        document.querySelector('.entry-state--has').classList.toggle('is-active', hasEntry);
+        document.querySelector('.entry-state--empty').classList.toggle('is-active', !hasEntry);
+      }
+      function withdrawEntry() {
+        closeModal('withdraw-modal');
+        setEntryState(false);
+      }
+
+      /* ── 출품 시트 사진 선택 ── */
+      function selectSubmitPhoto() {
+        document.getElementById('submit-sheet').classList.add('has-photo');
+      }
+      function submitEntry() {
+        const sheet = document.getElementById('submit-sheet');
+        if (!sheet.classList.contains('has-photo')) return; // 사진 미선택 상태의 CTA는 비활성
+        closeSheet('submit-sheet');
+        sheet.classList.remove('has-photo');
+        setEntryState(true);
+      }
+
+      /* ── ?empty=1 로 빈 상태 진입 ── */
+      setEntryState(new URLSearchParams(location.search).get('empty') !== '1');
     </script>
   </body>
 </html>

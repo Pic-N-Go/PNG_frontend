@@ -1387,42 +1387,72 @@ git commit -m "feat(community): 콘테스트 내 출품 서브탭 및 캡션·�
 
 `2i-contest-past.html`의 컴팩트 배너 + 지난 콘테스트 목록을 `<div class="subview" data-subview="past">`에 넣는다.
 
+**원본은 56px 썸네일 리스트가 아니라 2열 그리드 카드다** (`aspect-ratio:1` 썸네일 + 제목·우승자·메타). 이 Task의 이전 스니펫이 리스트를 가정했으나 소스 HTML을 기준으로 그리드로 확정한다.
+
 원본 대비 적용할 변환:
 - 배너 제목 `골든아워` `font-size:18px` → `var(--font-lg)`
 - 섹션 제목 `지난 콘테스트` `font-size:15px` → `var(--font-md)`
-- 목록 항목은 `onclick="location.href='./contest-result.html'"`
+- 카드 제목 `13px` → `var(--font-sm)`, 우승자·메타 `10px` → `var(--font-2xs)`
+- 카드는 `<button class="past-card">` + `onclick="location.href='./contest-result.html'"` (원본 `div` + `cursor:pointer`를 버튼으로 승격)
+- 5번째 카드의 `내 작품` 뱃지 유지 (accent solid)
 - 트로피 아이콘은 목록에서 제거된 상태가 원본 의도다 (phase3 README) — 추가하지 않는다
 - `#E31B59` → `var(--color-accent)`
 
 ```css
-      /* ── 지난 콘테스트 목록 ── */
-      .past-item {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding: 12px 28px;
+      /* ── 지난 콘테스트 카드 (2열 그리드) ── */
+      .past-card {
         border: none;
-        background: none;
-        width: 100%;
-        cursor: pointer;
-        text-align: left;
-      }
-      .past-item__thumb {
-        width: 56px;
-        height: 56px;
-        border-radius: 12px;
+        padding: 0;
+        border-radius: 14px;
         overflow: hidden;
-        flex-shrink: 0;
+        background: var(--color-surface);
+        font-family: var(--font-family);
+        text-align: left;
+        cursor: pointer;
       }
-      .past-item__title {
-        font-size: var(--font-md);
+      .past-card__thumb { position: relative; aspect-ratio: 1; }
+      .past-card__mine {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        display: inline-flex;
+        align-items: center;
+        height: 22px;
+        padding: 0 8px;
+        border-radius: 11px;
+        background: var(--color-accent);
+        color: #fff;
+        font-size: var(--font-2xs);
+        font-weight: 600;
+        letter-spacing: -0.1px;
+      }
+      .past-card__body { padding: 10px 12px 12px; }
+      .past-card__title {
+        font-size: var(--font-sm);
         font-weight: 600;
         letter-spacing: -0.2px;
+        line-height: 1.3;
       }
-      .past-item__meta {
-        font-size: var(--font-xs);
+      .past-card__winner {
+        font-size: var(--font-2xs);
         color: rgba(0, 0, 0, 0.4);
-        margin-top: 2px;
+        margin-top: 3px;
+        letter-spacing: -0.1px;
+      }
+      .past-card__meta {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        margin-top: 8px;
+        font-size: var(--font-2xs);
+        color: rgba(0, 0, 0, 0.35);
+        letter-spacing: -0.1px;
+      }
+      .past-card__dot {
+        width: 2px;
+        height: 2px;
+        border-radius: 50%;
+        background: rgba(0, 0, 0, 0.15);
       }
 ```
 
