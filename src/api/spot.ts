@@ -37,6 +37,8 @@ type Method = 'GET' | 'POST' | 'PUT' | 'DELETE';
 // 그대로 Alert에 노출되므로 한국어 메시지로 바꿔서 올린다.
 function toApiError(err: unknown): ApiError {
   if (err instanceof ApiError) return err;
+  // 사용자에게는 한국어 메시지를 보여주되, 원인을 잃으면 디버깅이 불가능해 dev에서는 원본을 남긴다.
+  if (__DEV__) console.warn('[api] 원본 오류:', err);
   if (err instanceof Error && err.name === 'AbortError') {
     return new ApiError('요청 시간이 초과됐어요. 잠시 후 다시 시도해 주세요.');
   }

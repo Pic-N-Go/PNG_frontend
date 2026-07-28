@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ActivityIndicator, Image, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { IconCamera, IconEdit } from '@tabler/icons-react-native';
 import Chip from '@/components/common/Chip';
 import StarRating from '@/components/common/StarRating';
@@ -125,12 +125,19 @@ export default function ReviewTab({ spotId, onWriteReview }: Props) {
                 {review.text}
               </Text>
 
+              {/* 68dp 타일 5장 + 간격이면 350dp(390 기준 콘텐츠 폭)를 넘겨 마지막 장이 잘린다.
+                  사진 첨부가 열리면서 5장이 실제로 도달 가능해졌으므로 가로 스크롤로 처리한다. */}
               {review.photos && review.photos.length > 0 ? (
-                <View style={{ flexDirection: 'row', gap: normalize(6), marginBottom: normalize(10) }}>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ gap: normalize(6) }}
+                  style={{ marginBottom: normalize(10) }}
+                >
                   {review.photos.map((uri) => (
-                    <Image key={uri} source={{ uri }} style={{ width: normalize(68), height: normalize(68), borderRadius: normalize(10), backgroundColor: '#E5E5EA' }} />
+                    <Image key={uri} source={{ uri }} resizeMode="cover" style={{ width: normalize(68), height: normalize(68), borderRadius: normalize(10), backgroundColor: '#E5E5EA' }} />
                   ))}
-                </View>
+                </ScrollView>
               ) : review.photoColors && review.photoColors.length > 0 ? (
                 <View style={{ flexDirection: 'row', gap: normalize(6), marginBottom: normalize(10) }}>
                   {review.photoColors.map((color, i) => (

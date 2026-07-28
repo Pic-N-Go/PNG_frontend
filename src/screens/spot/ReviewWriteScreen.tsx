@@ -1,18 +1,20 @@
 import React from 'react';
 import {
-  View, Text, TextInput, ScrollView, Pressable, Platform,
+  View, Text, TextInput, ScrollView, Pressable, Platform, Image,
   KeyboardAvoidingView, ActivityIndicator, Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
+import * as ImagePicker from 'expo-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 // 시간대 칩만 tabler — 목업은 meteocons 컬러 아이콘이고 대체안 확정 전까지 유지한다.
 import { IconSunrise, IconSun, IconSunset, IconMoon } from '@tabler/icons-react-native';
 // CalendarDays가 아니라 Calendar — Days 쪽은 날짜 칸을 길이 0짜리 선(h.01) + round linecap으로
 // 그려서 작은 크기에서 점 얼룩처럼 보인다. 목업 SVG와 도형이 같은 것도 Calendar 쪽.
-import { ChevronLeft, Calendar, Image as ImageIcon, Check, Camera, CircleDot } from 'lucide-react-native';
+import { ChevronLeft, Calendar, Image as ImageIcon, Check, Camera, CircleDot, X } from 'lucide-react-native';
 import { SpotStackParamList } from '@/navigation/stacks/SpotStack';
+import type { ReviewPhotoUpload } from '@/api/spot';
 import { useCreateReview, useSpotDetail } from '@/hooks/useSpot';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import {
@@ -39,6 +41,8 @@ const CONTENT_MIN = 20;
 const CONTENT_MAX = 500;
 const MAX_PHOTOS = 5;
 const MAX_EQUIPMENT = 5;
+// 서버 max-file-size와 동일. 초과분은 업로드 전에 걸러 낸다.
+const MAX_PHOTO_BYTES = 20 * 1024 * 1024;
 
 const STAR_LABELS = ['선택 안 됨', '별로예요', '아쉬워요', '괜찮아요', '좋아요', '최고예요'];
 
@@ -59,6 +63,28 @@ const EQUIPMENT = [
   { name: '70-200mm f/2.8 GM', type: '렌즈 · 망원', Icon: CircleDot },
 ];
 
+/**
+ * quality 옵션 때문에 같은 사진을 다시 고르면 매번 새 임시 파일로 재인코딩되어 uri가 달라진다.
+ * 중복 판정은 사진첩 원본을 가리키는 assetId로 해야 하고, 없을 때만 uri로 폴백한다.
+ */
+type PickedPhoto = ReviewPhotoUpload & { assetId?: string | null };
+const identityOf = (p: PickedPhoto) => p.assetId ?? p.uri;
+
+const MIME_BY_EXT: Record<string, string> = {
+  jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', heic: 'image/heic', heif: 'image/heif',
+};
+
+/**
+ * 확장자는 asset.fileName(사진첩 원본 이름)이 아니라 실제로 전송하는 파일인 asset.uri에서 뽑는다.
+ * quality 재인코딩 결과가 uri에 반영되므로, 원본이 HEIC여도 uri는 .jpg가 된다.
+ * fileName을 쓰면 내용은 JPEG인데 S3 키만 .heic로 남아 일부 기기에서 표시가 깨진다.
+ */
+const extOf = (uri: string) => {
+  const matched = /\.([a-zA-Z0-9]+)(?:[?#]|$)/.exec(uri);
+  const ext = matched?.[1].toLowerCase();
+  return ext && MIME_BY_EXT[ext] ? ext : 'jpg';
+};
+
 const toISODate = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
@@ -74,6 +100,7 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
   const [period, setPeriod] = React.useState<TimePeriodApi | null>(null);
   const [content, setContent] = React.useState('');
   const [contentFocused, setContentFocused] = React.useState(false);
+  const [photos, setPhotos] = React.useState<PickedPhoto[]>([]);
   const [equipment, setEquipment] = React.useState<string[]>([]);
 
   const trimmed = content.trim();
@@ -81,7 +108,7 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
 
   // 등록 성공으로 나가는 건 유실이 아니므로 확인창을 건너뛴다.
   const submitted = React.useRef(false);
-  const isDirty = rating > 0 || period !== null || trimmed.length > 0 || equipment.length > 0;
+  const isDirty = rating > 0 || period !== null || trimmed.length > 0 || equipment.length > 0 || photos.length > 0;
 
   React.useEffect(() => {
     // 작성 분량이 큰 화면이라 뒤로가기·스와이프·안드로이드 백키로 날리는 사고를 막는다.
@@ -103,9 +130,67 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
       return prev.length >= MAX_EQUIPMENT ? prev : [...prev, name];
     });
 
-  // TODO: 이미지 피커 연동 (현재 mock) — ProfileEditScreen.tsx와 동일 대기 상태.
-  // 슬롯을 채운 척하면 제출 시 사진이 조용히 사라진다(태그 섹션을 뺀 것과 같은 이유). 그래서 안내만 띄운다.
-  const addPhoto = () => Alert.alert('준비 중', '사진 첨부는 곧 지원될 예정이에요.');
+  // ponytail: EXIF GPS 제거는 여기서 하지 않는다. Android는 압축 후 copyExifData가 GPS 태그를
+  // 되살리고(ImagePickerConstants.EXIF_TAGS에 포함), iOS도 전사 경로에 따라 남을 수 있어
+  // 클라에서 보장할 수 없다. photo-upload-spec.md가 "저장 시 GPS 제거"를 서버 책임으로 규정하고
+  // 있으므로 백엔드 ingest에서 처리한다. 그때까지 리뷰 사진에는 촬영 위치가 포함될 수 있다.
+  const addPhoto = async () => {
+    if (photos.length >= MAX_PHOTOS) return;
+
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert('사진 접근 권한 필요', '설정에서 사진 접근을 허용해 주세요.');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsMultipleSelection: true,
+      selectionLimit: MAX_PHOTOS - photos.length,
+      quality: 0.8,
+      // iOS 기본값은 .current(전사 회피)라서 HEIC 자산이 원본 바이트째로 넘어온다
+      // (ImageUtils.swift의 `case UTType.heic: return (rawData, ".heic")` 분기 — quality가 적용되지 않는다).
+      // 서버에 변환 로직이 없어 그대로 두면 .heic가 S3에 올라가 일부 기기에서 표시가 깨진다.
+      // Compatible로 두면 시스템이 JPEG로 전사해 넘겨준다. iOS 전용 옵션.
+      preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
+    });
+    if (result.canceled) return;
+
+    const picked: PickedPhoto[] = [];
+    let tooLarge = 0;
+    result.assets.forEach((asset, idx) => {
+      if (asset.fileSize && asset.fileSize > MAX_PHOTO_BYTES) {
+        tooLarge += 1;
+        return;
+      }
+      const ext = extOf(asset.uri);
+      picked.push({
+        uri: asset.uri,
+        name: `review_${Date.now()}_${idx}.${ext}`,
+        type: MIME_BY_EXT[ext],
+        assetId: asset.assetId,
+      });
+    });
+
+    if (tooLarge > 0) {
+      Alert.alert('사진 용량 초과', `${tooLarge}장은 20MB를 넘어 제외했어요.`);
+    }
+    if (picked.length === 0) return;
+
+    // setPhotos 업데이터는 dev에서 두 번 호출될 수 있어 카운트를 그 안에서 세지 않는다.
+    const seen = new Set(photos.map(identityOf));
+    const fresh = picked.filter((p) => {
+      if (seen.has(identityOf(p))) return false;
+      seen.add(identityOf(p));
+      return true;
+    });
+    const duplicated = picked.length - fresh.length;
+
+    if (fresh.length > 0) setPhotos((prev) => [...prev, ...fresh].slice(0, MAX_PHOTOS));
+    if (duplicated > 0) Alert.alert('이미 추가한 사진', `${duplicated}장은 이미 추가되어 있어요.`);
+  };
+
+  const removePhoto = (idx: number) => setPhotos((prev) => prev.filter((_, i) => i !== idx));
 
   const onSubmit = () => {
     if (!canSubmit || period === null || createReview.isPending) return;
@@ -118,7 +203,7 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
           visitedAt: toISODate(visitedAt),
           ...(equipment.length > 0 && { equipmentInfo: equipment }),
         },
-        // TODO: photos는 자리표시 색상이라 아직 전송 대상이 아님. 피커 연동 시 ReviewPhotoUpload[]로 교체.
+        photos: photos.map(({ uri, name, type }) => ({ uri, name, type })),
       },
       {
         onSuccess: () => {
@@ -338,24 +423,43 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
 
           {/* 사진 첨부 */}
           <Section label="사진 첨부" hint={`최대 ${MAX_PHOTOS}장`}>
-            {/* 피커 연동 전이라 추가 슬롯만. 선택된 사진 타일·삭제 버튼은 피커와 함께 들어온다. */}
-            <Pressable
-              onPress={addPhoto}
-              className="items-center justify-center"
-              style={{
-                width: normalize(72), height: normalize(72), borderRadius: INPUT_RADIUS,
-                backgroundColor: SURFACE, borderWidth: 1.5, borderColor: 'rgba(0,0,0,0.12)',
-                borderStyle: 'dashed', gap: normalize(4),
-              }}
-            >
-              <ImageIcon size={normalize(22)} color={ICON_WEAK} strokeWidth={2} />
-              <Text
-                allowFontScaling={false}
-                style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_2XS, color: 'rgba(0,0,0,0.3)', letterSpacing: -0.1 }}
-              >
-                {`0/${MAX_PHOTOS}`}
-              </Text>
-            </Pressable>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: normalize(8) }}>
+              {photos.map((photo, idx) => (
+                <View
+                  key={identityOf(photo)}
+                  style={{ width: normalize(72), height: normalize(72), borderRadius: INPUT_RADIUS, overflow: 'hidden', backgroundColor: SURFACE }}
+                >
+                  <Image source={{ uri: photo.uri }} resizeMode="cover" style={{ width: '100%', height: '100%' }} />
+                  <Pressable
+                    onPress={() => removePhoto(idx)}
+                    hitSlop={6}
+                    className="items-center justify-center"
+                    style={{ position: 'absolute', top: normalize(4), right: normalize(4), width: normalize(18), height: normalize(18), borderRadius: normalize(9), backgroundColor: 'rgba(0,0,0,0.5)' }}
+                  >
+                    <X size={normalize(10)} color="#fff" strokeWidth={3} />
+                  </Pressable>
+                </View>
+              ))}
+              {photos.length < MAX_PHOTOS && (
+                <Pressable
+                  onPress={addPhoto}
+                  className="items-center justify-center"
+                  style={{
+                    width: normalize(72), height: normalize(72), borderRadius: INPUT_RADIUS,
+                    backgroundColor: SURFACE, borderWidth: 1.5, borderColor: 'rgba(0,0,0,0.12)',
+                    borderStyle: 'dashed', gap: normalize(4),
+                  }}
+                >
+                  <ImageIcon size={normalize(22)} color={ICON_WEAK} strokeWidth={2} />
+                  <Text
+                    allowFontScaling={false}
+                    style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_2XS, color: 'rgba(0,0,0,0.3)', letterSpacing: -0.1 }}
+                  >
+                    {`${photos.length}/${MAX_PHOTOS}`}
+                  </Text>
+                </Pressable>
+              )}
+            </ScrollView>
           </Section>
 
           {/* 사용 장비 */}
