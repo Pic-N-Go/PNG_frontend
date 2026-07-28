@@ -215,6 +215,32 @@ export interface ReviewDTO {
   createdAt: string;
 }
 
+/**
+ * POST /spots/{id}/reviews 의 `request` 파트 본문.
+ * 서버 검증: rating 1~5, content 20~500자, timePeriod·visitedAt 필수, equipmentInfo 최대 5개(", "로 합쳐 저장).
+ * tags(최대 5)도 스펙에 있으나 서버가 저장하지 않아 보내지 않는다.
+ */
+export interface ReviewCreateRequest {
+  rating: number;
+  content: string;
+  timePeriod: TimePeriodApi;
+  equipmentInfo?: string[];
+  visitedAt: string; // yyyy-MM-dd
+}
+
+/** POST/PUT 응답. 목록의 ReviewDTO와 달리 nickname이 없다. */
+export interface ReviewResponseDTO {
+  id: number;
+  userId: number;
+  rating: number;
+  content: string;
+  equipmentInfo: string | null;
+  timePeriod: TimePeriodApi | null;
+  photos: string[];
+  visitedAt: string | null;
+  createdAt: string;
+}
+
 export interface ReviewListResponse {
   summary: {
     avgRating: number;

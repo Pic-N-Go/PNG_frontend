@@ -3,9 +3,10 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ApiError } from '@/api/auth';
 import { spotApi } from '@/api/spot';
+import type { ReviewPhotoUpload } from '@/api/spot';
 import { useAuthStore } from '@/store/useAuthStore';
 import { mapPhotogenicScore, mapReviewList, mapSpotDetail } from '@/utils/spotMappers';
-import type { ReviewSortApi } from '@/types/spot';
+import type { ReviewCreateRequest, ReviewSortApi } from '@/types/spot';
 
 const checklistKey = (id: string) => ['spot', id, 'checklist'] as const;
 
@@ -31,6 +32,23 @@ export function useSpotReviews(id: string, sort: ReviewSortApi) {
     queryFn: () => spotApi.getReviews(id, { sort }),
     enabled: !!id,
     select: mapReviewList,
+  });
+}
+
+export function useCreateReview(id: string) {
+  const token = useAuthStore((s) => s.accessToken);
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ body, photos = [] }: { body: ReviewCreateRequest; photos?: ReviewPhotoUpload[] }) => {
+      if (!token) return Promise.reject(new ApiError('로그인이 필요합니다.'));
+      return spotApi.createReview(id, body, photos, token);
+    },
+    onSuccess: () => {
+      // 정렬별로 캐시가 갈리므로 sort까지 특정하지 않고 리뷰 목록 전체를 무효화.
+      qc.invalidateQueries({ queryKey: ['spot', id, 'reviews'] });
+      // 평점·리뷰수·사진수가 헤더에 걸려 있어 상세도 함께 갱신.
+      qc.invalidateQueries({ queryKey: ['spot', id, 'detail'] });
+    },
   });
 }
 

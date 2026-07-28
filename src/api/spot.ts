@@ -6,11 +6,20 @@ import type {
   ChecklistResponse,
   ChecklistUserItemDTO,
   PhotogenicScoreResponse,
+  ReviewCreateRequest,
   ReviewListResponse,
+  ReviewResponseDTO,
   ReviewSortApi,
   SpotDetailResponse,
   PageSpotResponse,
 } from '@/types/spot';
+
+/** RN이 파일 파트로 인식하는 최소 형태 (expo/RN 이미지 피커 결과 그대로) */
+export interface ReviewPhotoUpload {
+  uri: string;
+  name: string;
+  type: string;
+}
 
 const BASE = process.env.EXPO_PUBLIC_API_URL ?? '';
 
@@ -19,8 +28,20 @@ if (__DEV__ && !BASE) {
 }
 
 const TIMEOUT_MS = 10_000;
+// 사진 최대 5장(장당 20MB 허용)이라 일반 요청보다 넉넉하게.
+const UPLOAD_TIMEOUT_MS = 60_000;
 
 type Method = 'GET' | 'POST' | 'PUT' | 'DELETE';
+
+// fetch는 타임아웃(abort)·전송 실패를 'Aborted' / 'Network request failed' 같은 영문으로 던진다.
+// 그대로 Alert에 노출되므로 한국어 메시지로 바꿔서 올린다.
+function toApiError(err: unknown): ApiError {
+  if (err instanceof ApiError) return err;
+  if (err instanceof Error && err.name === 'AbortError') {
+    return new ApiError('요청 시간이 초과됐어요. 잠시 후 다시 시도해 주세요.');
+  }
+  return new ApiError('네트워크 연결을 확인해 주세요.');
+}
 
 async function request<T>(path: string, opts: { method?: Method; body?: unknown; token?: string } = {}): Promise<T> {
   const { method = 'GET', body, token } = opts;
@@ -42,6 +63,8 @@ async function request<T>(path: string, opts: { method?: Method; body?: unknown;
     }
     if (res.status === 204) return undefined as T;
     return (await res.json()) as T;
+  } catch (err) {
+    throw toApiError(err);
   } finally {
     clearTimeout(timer);
   }
@@ -51,6 +74,32 @@ interface ReviewQuery {
   sort?: ReviewSortApi;
   page?: number;
   size?: number;
+}
+
+/**
+ * multipart 전용 경로. request()는 Content-Type을 application/json으로 고정하므로 쓸 수 없고,
+ * FormData를 보낼 땐 boundary를 런타임이 붙이도록 Content-Type을 아예 지정하지 않아야 한다.
+ */
+async function upload<T>(path: string, form: FormData, token: string): Promise<T> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), UPLOAD_TIMEOUT_MS);
+  try {
+    const res = await fetch(`${BASE}${path}`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: form,
+      signal: controller.signal,
+    });
+    if (!res.ok) {
+      const err = (await res.json().catch(() => ({}))) as { message?: string };
+      throw new ApiError(err.message ?? `HTTP ${res.status}`);
+    }
+    return (await res.json()) as T;
+  } catch (err) {
+    throw toApiError(err);
+  } finally {
+    clearTimeout(timer);
+  }
 }
 
 export const spotApi = {
@@ -64,6 +113,16 @@ export const spotApi = {
 
   getReviews: (id: string | number, { sort = 'LATEST', page = 0, size = 20 }: ReviewQuery = {}) =>
     request<ReviewListResponse>(`/spots/${id}/reviews?sort=${sort}&page=${page}&size=${size}`),
+
+  // multipart/form-data — JSON은 `request` 파트, 사진은 `photos` 파트(서버 최대 10장).
+  createReview: (id: string | number, body: ReviewCreateRequest, photos: ReviewPhotoUpload[], token: string) => {
+    const form = new FormData();
+    // @RequestPart("request")가 파트별 Content-Type으로 컨버터를 고른다. RN FormData는 {string, type}
+    // 형태를 넘겨야 그 헤더가 붙고, JSON.stringify만 넘기면 text/plain으로 나가 415가 난다.
+    form.append('request', { string: JSON.stringify(body), type: 'application/json' } as unknown as Blob);
+    photos.forEach((photo) => form.append('photos', photo as unknown as Blob));
+    return upload<ReviewResponseDTO>(`/spots/${id}/reviews`, form, token);
+  },
 
   getChecklist: (id: string | number, token: string) =>
     request<ChecklistResponse>(`/spots/${id}/checklist`, { token }),
