@@ -6,10 +6,11 @@
   /* Colors */
   --color-bg: #ffffff;
   --color-surface: #f5f5f7;       /* 카드·인풋 배경 */
-  /* 텍스트 계층: secondary(0.48) — 설명·메타, tertiary(0.28) — 비활성·플레이스홀더 */
+  /* 텍스트 계층: secondary(0.4) — 설명·메타, tertiary(0.3) — 비활성·플레이스홀더 */
+  /* 값은 목업 실사용 최빈값 기준. 배경·보더에는 쓰지 않습니다(--color-border* 사용) */
   --color-text-primary: #000000;
-  --color-text-secondary: rgba(0, 0, 0, 0.48);
-  --color-text-tertiary: rgba(0, 0, 0, 0.28);
+  --color-text-secondary: rgba(0, 0, 0, 0.4);
+  --color-text-tertiary: rgba(0, 0, 0, 0.3);
   --color-accent: #e31b59;        /* 브랜드 핑크 — 버튼·링크·탭 활성 공통 */
   --color-accent-hover: #c91550;
   --color-accent-disabled: rgba(227, 27, 89, 0.25);

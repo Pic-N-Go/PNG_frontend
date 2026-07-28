@@ -3,6 +3,7 @@
 
 기본값은 src/components/ui/community. 확인 항목:
   - 디자인 토큰 위반 (raw font-size px, #E31B59 리터럴, font-weight 700+, width=390 등)
+  - 토큰과 값이 정확히 같은 raw 리터럴 (color/border/surface) — 중간톤 값은 허용
   - 이모지
   - 태그 균형 / button 중첩 / 중복 id
   - onclick이 부르는 함수가 같은 파일에 정의돼 있는지
@@ -19,6 +20,15 @@ VIOLATION = re.compile(
     r'|#[eE]31[bB]59|dv-card|dv-turn|pretendard.*jsdelivr|width=390|icons\.js')
 EMOJI = re.compile('[\U0001F000-\U0001FAFF☀-➿️]')
 
+# 토큰과 값이 정확히 같은 raw 리터럴 → 토큰으로 써야 함 (값이 다른 중간톤은 허용)
+TOKEN_DUPES = [
+    (re.compile(r'color:\s*rgba\(0,\s*0,\s*0,\s*0\.4\)'), '--color-text-secondary'),
+    (re.compile(r'color:\s*rgba\(0,\s*0,\s*0,\s*0\.3\)'), '--color-text-tertiary'),
+    (re.compile(r'border[a-z-]*:\s*[0-9.]+px solid rgba\(0,\s*0,\s*0,\s*0\.08\)'), '--color-border'),
+    (re.compile(r'border[a-z-]*:\s*[0-9.]+px solid rgba\(0,\s*0,\s*0,\s*0\.06\)'), '--color-border-light'),
+    (re.compile(r'background:\s*#f5f5f7\b', re.I), '--color-surface'),
+]
+
 def check(path):
     s = open(path, encoding='utf-8').read()
     d = os.path.dirname(path)
@@ -28,6 +38,9 @@ def check(path):
             errs.append(f'{i}: 토큰/규약 위반 → {line.strip()[:80]}')
         if EMOJI.search(line):
             errs.append(f'{i}: 이모지 → {line.strip()[:80]}')
+        for pat, token in TOKEN_DUPES:
+            if pat.search(line):
+                errs.append(f'{i}: 토큰과 같은 raw 값 → var({token}) 사용: {line.strip()[:70]}')
     for t in TAGS:
         o, c = len(re.findall(r'<%s\b' % t, s)), len(re.findall(r'</%s>' % t, s))
         if o != c:

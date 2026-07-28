@@ -78,7 +78,7 @@
       transition: all 0.18s;
     }
     .notif-tab.active {
-      background: var(--color-text-primary); color: #fff; /* 의도된 디자인: 필터 탭 활성 상태는 Black 사용 */
+      background: #000; color: #fff; /* 의도된 디자인: 필터 탭 활성 상태는 Black 사용 */
     }
     .notif-tab:not(.active) {
       background: var(--color-surface); color: rgba(0,0,0,0.5);
@@ -92,7 +92,7 @@
     /* 날짜 그룹 헤더 */
     .notif-group-label {
       font-size: 12px; font-weight: 600;
-      color: rgba(0,0,0,0.3); letter-spacing: 0.2px;
+      color: var(--color-text-tertiary); letter-spacing: 0.2px;
       padding: 14px 20px 6px;
       }
 
@@ -139,10 +139,10 @@
     .notif-item__label--green  { color: var(--color-success); }
     .notif-item__label--orange { color: var(--color-warning); }
     .notif-item__label--red    { color: var(--color-error); }
-    .notif-item__label--gray   { color: rgba(0,0,0,0.4); }
+    .notif-item__label--gray   { color: var(--color-text-secondary); }
 
     .notif-item__time {
-      font-size: var(--font-xs); color: rgba(0,0,0,0.28);
+      font-size: var(--font-xs); color: var(--color-text-tertiary);
       flex-shrink: 0; letter-spacing: -0.1px;
     }
     .notif-item__title {

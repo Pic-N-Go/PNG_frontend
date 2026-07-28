@@ -88,8 +88,8 @@ src/components/ui/
 | `--color-bg` | `#ffffff` | 페이지 배경 |
 | `--color-surface` | `#f5f5f7` | 카드·인풋 배경 |
 | `--color-text-primary` | `#000000` | 본문 텍스트 |
-| `--color-text-secondary` | `rgba(0,0,0,0.48)` | 보조 텍스트 (설명·메타) |
-| `--color-text-tertiary` | `rgba(0,0,0,0.28)` | 비활성·플레이스홀더 |
+| `--color-text-secondary` | `rgba(0,0,0,0.4)` | 보조 텍스트 (설명·메타) |
+| `--color-text-tertiary` | `rgba(0,0,0,0.3)` | 비활성·플레이스홀더 |
 | `--color-accent` | `#e31b59` | 브랜드 핑크 — 버튼·활성 탭·포커스 |
 | `--color-accent-hover` | `#c91550` | hover 상태 |
 | `--color-accent-disabled` | `rgba(227,27,89,0.25)` | 비활성 버튼 |
@@ -101,6 +101,15 @@ src/components/ui/
 | `--color-error` | `#ff453a` | 에러 상태 |
 | `--color-success` | `#34c759` | 성공 상태 |
 | `--color-warning` | `#ff9f0a` | 경고 상태 |
+
+> **토큰과 값이 같은 raw 리터럴은 쓰지 않습니다.** `color: rgba(0,0,0,0.4)` 대신 `var(--color-text-secondary)`,
+> `border: 0.5px solid rgba(0,0,0,0.08)` 대신 `var(--color-border)`. `scripts/check-mockups.py`가 잡습니다.
+>
+> 토큰에 없는 중간톤(`0.35 · 0.45 · 0.5 · 0.55` 등)은 그대로 써도 됩니다 — 억지로 토큰에 맞추면 디자인이 뭉갭니다.
+> 다만 같은 역할에 매번 다른 알파를 새로 고르지는 마세요. 세 계층(본문 `primary` / 보조 `secondary` / 비활성 `tertiary`)으로
+> 설명되는 텍스트는 토큰을 쓰고, 그 밖의 값은 왜 중간톤이어야 하는지 설명될 때만 씁니다.
+>
+> `--color-text-*`는 **텍스트 전용**입니다. 배경·보더에 쓰지 마세요 (`--color-surface`, `--color-border*` 사용).
 
 **스페이싱 (8px 그리드)**
 
@@ -114,10 +123,17 @@ src/components/ui/
 
 | 변수 | 값 | 용도 |
 |---|---|---|
-| `--radius-input` | `12px` | 인풋·버튼 |
-| `--radius-btn` | `26px` | 주요 CTA 버튼 (pill) |
+| `--radius-input` | `12px` | 인풋 |
+| `--radius-btn` | `26px` | 주요 CTA 버튼 (높이 52px pill) |
 | `--radius-card` | `16px` | 카드 |
-| `--radius-pill` | `17px` | 필터 칩·태그 |
+| `--radius-pill` | `17px` | 높이 34px pill |
+
+> **pill의 radius는 토큰이 아니라 높이의 절반입니다.** 높이 44px 버튼은 `22px`, 30px 칩은 `15px`.
+> 값이 우연히 `--radius-card`(16px)와 같더라도 토큰을 쓰면 안 됩니다 — 나중에 카드 반경을 조정하는 순간
+> 버튼 모양이 깨집니다. `--radius-btn`/`--radius-pill`도 각각 52px/34px 높이 전용입니다.
+>
+> 카드 반경은 실제로 `12 · 14 · 16 · 20px`이 혼용됩니다. 그중 `16px`만 토큰이 있으니,
+> 새 카드는 `var(--radius-card)`부터 검토하고 다른 값을 쓸 거면 주변 카드와 맞춥니다.
 
 **폰트 크기** — `layout.ts FONT_*`와 대응
 
@@ -143,6 +159,9 @@ src/components/ui/
 - `body { font-family: var(--font-family); }` — `--font-family`는 `fonts.css`에서 정의, `common.css`의 `body` 스타일에서 적용
 - Pretendard Variable — `font-weight` 100~600 사용 (700 이상 사용 안 함)
 - 모든 텍스트에 음수 `letter-spacing` 적용 (`-0.2px` ~ `-0.6px`)
+  - 한글 본문·메타: `--font-2xs`/`--font-xs`는 `-0.1px`, `--font-sm` 이상은 `-0.2px` ~ `-0.6px`
+  - **예외 — 대문자·마이크로 라벨은 양수 트래킹 허용** (`+0.3px` ~ `+1px`): `WEEKLY`, `D-3`, `BETA` 같은 배지, `--font-2xs`/`--font-xs` 섹션 라벨("현재 순위", "받은 표"). 좁은 글자를 벌려 라벨로 읽히게 하는 의도이며 레포 전반에서 쓰이는 확립된 패턴
+  - 한글 문장·헤딩에는 양수 트래킹을 쓰지 않습니다
 
 ### 로고 이미지
 
@@ -172,6 +191,7 @@ src/components/ui/
 
 - 활성 탭: `is-active` 클래스 → `color: var(--color-accent)`
 - `map.html`은 탭바 `position: absolute` (풀스크린 지도 위 오버레이), 나머지는 `position: fixed`
+- **탭바는 탭 루트 화면에만 둡니다.** 다른 화면에서 push로 진입하는 목적지(`community-post`, `community-write`, `contest-result`, `user-profile`, `my-photos`, `travel-plan` 등)에는 탭바를 넣지 않습니다 — RN에서 이들은 스택 내부 화면이라 탭바가 가려지고, 목업에 탭바가 있으면 잘못된 네비게이션 상태를 표시하게 됩니다
 
 ---
 
@@ -348,6 +368,22 @@ if (frame && nav) {
 }
 .sheet.is-open { transform: translateX(-50%) translateY(0); }
 ```
+
+### 토스트 · 스낵바 패턴
+
+같은 "잠깐 떴다 사라지는 알림"이지만 액션 버튼 유무로 형태가 갈립니다.
+
+| | 토스트 (`.toast`) | 스낵바 (`.snackbar`) |
+|---|---|---|
+| 용도 | 결과 통보만 ("삭제되었어요") | 되돌릴 수 있는 액션 포함 |
+| 폭 | 콘텐츠 폭 (`white-space: nowrap`), 중앙 정렬 | 풀폭 (`left/right: 28px`) |
+| 높이 / radius | 44px / 22px | 48px / 24px |
+| 배경 | `rgba(0, 0, 0, 0.75)` | `rgba(0, 0, 0, 0.75)` |
+| `pointer-events` | `none` (탭 통과) | 열렸을 때 `auto` (버튼 눌러야 함) |
+
+공통: `font-size: var(--font-base)`, `font-weight: 500`, `letter-spacing: -0.2px`, `color: #fff`,
+`opacity` + `translateY(16px)` 페이드 (`transition: opacity 0.3s, transform 0.3s`), 2.6~2.8초 후 자동 닫힘.
+표시 클래스는 파일 내 다른 오버레이(시트·모달·라이트박스)와 맞춥니다 — community는 `is-open`, mypage는 `is-visible`.
 
 ### 검색 패널 패턴 (home.html)
 

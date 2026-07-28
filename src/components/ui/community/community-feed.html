@@ -170,7 +170,7 @@
         display: flex;
         gap: 20px;
         padding: 0 28px;
-        border-bottom: 1px solid var(--color-border);
+        border-bottom: 0.5px solid var(--color-border);
       }
       .subtab__btn {
         padding: 10px 0;
@@ -180,7 +180,7 @@
         font-size: var(--font-sm);
         font-weight: 500;
         letter-spacing: -0.2px;
-        color: rgba(0, 0, 0, 0.4);
+        color: var(--color-text-secondary);
         cursor: pointer;
       }
       .subtab__btn.is-active {
@@ -307,24 +307,34 @@
       .modal__btn--confirm { background: var(--color-accent); color: #fff; }
 
       /* ── Toast ── */
-      .toast {
+      /* ── Snackbar (액션 버튼 포함 · 풀폭) ── */
+      .snackbar {
         position: absolute;
         left: 28px;
         right: 28px;
         bottom: 100px;
+        transform: translateY(16px);
         z-index: 80;
         height: 48px;
         border-radius: 24px;
-        background: rgba(0, 0, 0, 0.85);
-        display: none;
+        background: rgba(0, 0, 0, 0.75);
+        display: flex;
         align-items: center;
         gap: 8px;
         padding: 0 18px;
         color: #fff;
         font-size: var(--font-base);
+        font-weight: 500;
         letter-spacing: -0.2px;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s, transform 0.3s;
       }
-      .toast.is-open { display: flex; }
+      .snackbar.is-open {
+        opacity: 1;
+        transform: translateY(0);
+        pointer-events: auto;
+      }
 
       /* ── Score Badge (포토제닉) ── */
       .score-badge {
@@ -346,6 +356,7 @@
         font-size: var(--font-sm);
         color: var(--color-accent);
         font-weight: 600;
+        letter-spacing: -0.2px;
       }
 
       /* ── Rank Badge (콘테스트 순위) ── */
@@ -357,6 +368,7 @@
         color: #fff;
         font-size: var(--font-sm);
         font-weight: 600;
+        letter-spacing: -0.2px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -373,6 +385,7 @@
         color: rgba(255, 255, 255, 0.85);
         font-size: var(--font-2xs);
         font-weight: 600;
+        letter-spacing: -0.1px;
         flex-shrink: 0;
       }
 
@@ -403,6 +416,7 @@
         font-family: var(--font-family);
         font-size: var(--font-xs);
         font-weight: 500;
+        letter-spacing: -0.1px;
       }
       .post-card__pin { left: 12px; }
       .post-card__like { right: 12px; font-weight: 600; cursor: pointer; }
@@ -429,6 +443,7 @@
       .post-card__meta {
         font-size: var(--font-xs);
         color: rgba(0, 0, 0, 0.35);
+        letter-spacing: -0.1px;
         margin-top: 1px;
       }
       .post-card__follow {
@@ -445,7 +460,7 @@
         cursor: pointer;
       }
       .post-card__follow.is-following {
-        background: #efeeed;
+        background: var(--color-surface);
         color: rgba(0, 0, 0, 0.55);
       }
       .post-card__caption {
@@ -492,6 +507,7 @@
         color: rgba(0, 0, 0, 0.55);
         font-family: var(--font-family);
         font-size: var(--font-sm);
+        letter-spacing: -0.2px;
         cursor: pointer;
       }
       .post-card__action.is-active { color: var(--color-accent); }
@@ -560,7 +576,7 @@
         border: none;
         border-radius: 50%;
         background: rgba(0, 0, 0, 0.1);
-        color: rgba(0, 0, 0, 0.4);
+        color: var(--color-text-secondary);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -585,7 +601,7 @@
         overflow-x: auto;
       }
       .search-overlay__section {
-        padding: 8px 28px 4px;
+        padding: 8px 20px 4px;
         display: flex;
         align-items: center;
         justify-content: space-between;
@@ -593,7 +609,7 @@
       .search-overlay__section-label {
         font-size: var(--font-xs);
         font-weight: 600;
-        color: rgba(0, 0, 0, 0.4);
+        color: var(--color-text-secondary);
         letter-spacing: 0.4px;
       }
       .search-overlay__clear {
@@ -601,7 +617,8 @@
         background: none;
         font-family: var(--font-family);
         font-size: var(--font-sm);
-        color: rgba(0, 0, 0, 0.4);
+        color: var(--color-text-secondary);
+        letter-spacing: -0.2px;
         cursor: pointer;
       }
       .search-overlay__recent {
@@ -612,7 +629,7 @@
         align-items: center;
         gap: 12px;
         width: 100%;
-        padding: 11px 8px;
+        padding: 11px 0;
         border: none;
         background: none;
         cursor: pointer;
@@ -664,7 +681,7 @@
         color: var(--color-accent);
       }
       .search-overlay__popular-pill span:not(.is-top) {
-        color: rgba(0, 0, 0, 0.4);
+        color: var(--color-text-secondary);
       }
       .search-overlay__spots {
         padding: 0 20px 24px;
@@ -693,7 +710,8 @@
       }
       .search-overlay__spot-count {
         font-size: var(--font-xs);
-        color: rgba(0, 0, 0, 0.4);
+        color: var(--color-text-secondary);
+        letter-spacing: -0.1px;
         margin-top: 1px;
       }
 
@@ -800,6 +818,7 @@
       .podium-card__meta {
         font-size: var(--font-xs);
         color: rgba(255, 255, 255, 0.75);
+        letter-spacing: -0.1px;
         margin-top: 3px;
       }
       .podium-card__votes {
@@ -829,6 +848,7 @@
         color: #fff;
         font-size: var(--font-2xs);
         font-weight: 600;
+        letter-spacing: -0.1px;
         display: flex;
         align-items: center;
       }
@@ -936,7 +956,7 @@
       .lightbox.is-voted .lightbox__vote-off { display: flex; }
 
       /* ── 스낵바 되돌리기 버튼 ── */
-      .toast__undo {
+      .snackbar__undo {
         height: 32px;
         padding: 0 14px;
         border: none;
@@ -987,7 +1007,7 @@
       }
       .past-card__winner {
         font-size: var(--font-2xs);
-        color: rgba(0, 0, 0, 0.4);
+        color: var(--color-text-secondary);
         margin-top: 3px;
         letter-spacing: -0.1px;
       }
@@ -1026,7 +1046,7 @@
         border: none;
         border-radius: 26px;
         background: var(--color-surface);
-        color: rgba(0, 0, 0, 0.28);
+        color: var(--color-text-tertiary);
         font-family: var(--font-family);
         font-size: var(--font-md);
         font-weight: 600;
@@ -1304,7 +1324,7 @@
           <div class="subview is-active" data-subview="active">
             <!-- 히어로 배너 (골든아워 그라디언트) -->
             <div style="padding: 16px 20px">
-              <div style="position: relative; height: 186px; border-radius: 20px; overflow: hidden; background: linear-gradient(135deg, #1a1530 0%, #2d1b4e 25%, #8b4a6b 55%, #d4856a 80%, #f0c89a 100%)">
+              <div style="position: relative; height: 186px; border-radius: 20px; overflow: hidden; background: linear-gradient(135deg, #1a1530 0%, #2d1b4e 20%, #8b4a6b 45%, #d4856a 65%, #e8a87c 82%, #f0c89a 100%)">
                 <div style="position: absolute; inset: 0; padding: 20px; display: flex; flex-direction: column; justify-content: space-between">
                   <div>
                     <div style="display: inline-flex; align-items: center; height: 22px; padding: 0 10px; border-radius: 11px; background: rgba(255, 255, 255, 0.2); color: #fff; font-size: var(--font-2xs); font-weight: 600; letter-spacing: 1px">WEEKLY</div>
@@ -1369,7 +1389,7 @@
             <!-- 전체 출품작 -->
             <div style="padding: 20px 20px 12px; display: flex; align-items: baseline; justify-content: space-between">
               <span style="font-size: var(--font-md); font-weight: 600; letter-spacing: -0.2px">전체 출품작</span>
-              <span style="font-size: var(--font-xs); color: rgba(0, 0, 0, 0.4); letter-spacing: -0.1px">128개 작품</span>
+              <span style="font-size: var(--font-xs); color: var(--color-text-secondary); letter-spacing: -0.1px">128개 작품</span>
             </div>
 
             <div style="padding: 0 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px">
@@ -1424,7 +1444,7 @@
           <div class="subview" data-subview="mine">
             <!-- 컴팩트 배너 (출품 유무 공통) -->
             <div style="padding: 16px 20px">
-              <div style="position: relative; height: 120px; border-radius: 16px; overflow: hidden; background: linear-gradient(135deg, #1a1530 0%, #2d1b4e 25%, #8b4a6b 55%, #d4856a 80%, #f0c89a 100%)">
+              <div style="position: relative; height: 120px; border-radius: 16px; overflow: hidden; background: linear-gradient(135deg, #1a1530 0%, #2d1b4e 20%, #8b4a6b 45%, #d4856a 65%, #e8a87c 82%, #f0c89a 100%)">
                 <div style="position: absolute; inset: 0; padding: 16px 18px; display: flex; flex-direction: column; justify-content: space-between">
                   <div style="display: flex; align-items: baseline; gap: 8px">
                     <span style="font-size: var(--font-xs); font-weight: 600; letter-spacing: 1px; color: #fff; opacity: 0.85">WEEKLY</span>
@@ -1448,14 +1468,14 @@
                   <div style="padding: 16px 18px 14px">
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px">
                       <div style="padding: 12px 14px; background: #fff; border-radius: 12px">
-                        <div style="font-size: var(--font-2xs); font-weight: 600; color: rgba(0, 0, 0, 0.4); letter-spacing: 0.4px">현재 순위</div>
+                        <div style="font-size: var(--font-2xs); font-weight: 600; color: var(--color-text-secondary); letter-spacing: 0.4px">현재 순위</div>
                         <div style="display: flex; align-items: baseline; gap: 3px; margin-top: 2px">
                           <span style="font-size: var(--font-xl); font-weight: 600; color: var(--color-accent); letter-spacing: -0.5px; line-height: 1">4</span>
                           <span style="font-size: var(--font-xs); color: rgba(0, 0, 0, 0.35)">위 / 128</span>
                         </div>
                       </div>
                       <div style="padding: 12px 14px; background: #fff; border-radius: 12px">
-                        <div style="font-size: var(--font-2xs); font-weight: 600; color: rgba(0, 0, 0, 0.4); letter-spacing: 0.4px">받은 표</div>
+                        <div style="font-size: var(--font-2xs); font-weight: 600; color: var(--color-text-secondary); letter-spacing: 0.4px">받은 표</div>
                         <div style="display: flex; align-items: baseline; gap: 3px; margin-top: 2px">
                           <span style="font-size: var(--font-xl); font-weight: 600; color: var(--color-accent); letter-spacing: -0.5px; line-height: 1">28</span>
                           <span style="font-size: var(--font-xs); color: rgba(0, 0, 0, 0.35)">표</span>
@@ -1501,7 +1521,7 @@
                 <div style="font-size: var(--font-lg); font-weight: 600; letter-spacing: -0.3px; margin-bottom: 6px">아직 출품하지 않았어요</div>
                 <div style="font-size: var(--font-sm); color: rgba(0, 0, 0, 0.5); line-height: 1.55; letter-spacing: -0.15px; max-width: 260px; margin-bottom: 22px">"골든아워" 주제에 어울리는 사진을 골라 이번 주 콘테스트에 참여해보세요.</div>
                 <button style="height: 52px; padding: 0 32px; border: none; border-radius: 26px; background: var(--color-accent); color: #fff; font-family: var(--font-family); font-size: var(--font-md); font-weight: 600; letter-spacing: -0.2px; cursor: pointer" onclick="openSheet('submit-sheet')">출품하기</button>
-                <div style="margin-top: 12px; font-size: var(--font-xs); color: rgba(0, 0, 0, 0.4); letter-spacing: -0.1px">마감까지 3일 · 지금까지 128명 참여</div>
+                <div style="margin-top: 12px; font-size: var(--font-xs); color: var(--color-text-secondary); letter-spacing: -0.1px">마감까지 3일 · 지금까지 128명 참여</div>
               </div>
             </div>
           </div>
@@ -1510,7 +1530,7 @@
           <div class="subview" data-subview="past">
             <!-- 컴팩트 배너 -->
             <div style="padding: 16px 20px">
-              <div style="position: relative; height: 120px; border-radius: 16px; overflow: hidden; background: linear-gradient(135deg, #1a1530 0%, #2d1b4e 25%, #8b4a6b 55%, #d4856a 80%, #f0c89a 100%)">
+              <div style="position: relative; height: 120px; border-radius: 16px; overflow: hidden; background: linear-gradient(135deg, #1a1530 0%, #2d1b4e 20%, #8b4a6b 45%, #d4856a 65%, #e8a87c 82%, #f0c89a 100%)">
                 <div style="position: absolute; inset: 0; padding: 16px 18px; display: flex; flex-direction: column; justify-content: space-between">
                   <div style="display: flex; align-items: baseline; gap: 8px">
                     <span style="font-size: var(--font-xs); font-weight: 600; letter-spacing: 1px; color: #fff; opacity: 0.85">WEEKLY</span>
@@ -1526,7 +1546,7 @@
 
             <div style="padding: 0 20px 12px; display: flex; align-items: baseline; justify-content: space-between">
               <span style="font-size: var(--font-md); font-weight: 600; letter-spacing: -0.2px">지난 콘테스트</span>
-              <span style="font-size: var(--font-xs); color: rgba(0, 0, 0, 0.4); letter-spacing: -0.1px">총 24회</span>
+              <span style="font-size: var(--font-xs); color: var(--color-text-secondary); letter-spacing: -0.1px">총 24회</span>
             </div>
 
             <div style="padding: 0 20px 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px">
@@ -1783,10 +1803,10 @@
       </div>
 
       <!-- 투표 스낵바 (되돌리기) -->
-      <div class="toast" id="vote-toast">
+      <div class="snackbar" id="vote-toast">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-accent); flex-shrink: 0"><circle cx="12" cy="12" r="10"></circle><path d="M8 12l3 3 5-6"></path></svg>
         <span style="flex: 1">투표됨 · 남은 표 <span class="vote-remain__count">3</span>/3</span>
-        <button class="toast__undo" onclick="undoVote()">되돌리기</button>
+        <button class="snackbar__undo" onclick="undoVote()">되돌리기</button>
       </div>
 
       <!-- 캡션 수정 시트 -->
@@ -1804,16 +1824,16 @@
             <div style="width: 64px; height: 64px; border-radius: 12px; background: linear-gradient(to bottom, #232526, #8e7b5a); flex-shrink: 0"></div>
             <div style="flex: 1; min-width: 0">
               <div style="font-size: var(--font-sm); font-weight: 600; letter-spacing: -0.2px">골든아워 · 4위</div>
-              <div style="font-size: var(--font-xs); color: rgba(0, 0, 0, 0.4); margin-top: 2px; letter-spacing: -0.1px">서울 종로 세운상가 · 2일 전 출품</div>
+              <div style="font-size: var(--font-xs); color: var(--color-text-secondary); margin-top: 2px; letter-spacing: -0.1px">서울 종로 세운상가 · 2일 전 출품</div>
             </div>
           </div>
 
           <div style="padding: 0 20px 6px">
             <div style="background: var(--color-surface); border-radius: 14px; padding: 14px 16px; box-shadow: inset 0 0 0 1.5px var(--color-accent)">
               <textarea style="width: 100%; min-height: 100px; border: none; background: none; outline: none; resize: none; font-family: var(--font-family); font-size: var(--font-base); letter-spacing: -0.2px; line-height: 1.6; color: #000">도심 속 황금빛 노을, 빌딩 사이로 스며드는 빛</textarea>
-              <div style="display: flex; justify-content: flex-end; font-size: var(--font-xs); color: rgba(0, 0, 0, 0.3); margin-top: 6px">24/500</div>
+              <div style="display: flex; justify-content: flex-end; font-size: var(--font-xs); color: var(--color-text-tertiary); margin-top: 6px">24/500</div>
             </div>
-            <div style="margin-top: 10px; font-size: var(--font-xs); color: rgba(0, 0, 0, 0.4); letter-spacing: -0.15px; line-height: 1.5">사진·위치·촬영정보는 출품 시점에 고정되어 수정할 수 없어요.</div>
+            <div style="margin-top: 10px; font-size: var(--font-xs); color: var(--color-text-secondary); letter-spacing: -0.15px; line-height: 1.5">사진·위치·촬영정보는 출품 시점에 고정되어 수정할 수 없어요.</div>
           </div>
 
           <div style="padding: 16px 20px 0; display: flex; gap: 8px">
@@ -1849,7 +1869,7 @@
           <div style="padding: 0 20px 8px; display: flex; align-items: center; justify-content: space-between">
             <div>
               <div class="sheet__title" style="margin-bottom: 0">출품하기</div>
-              <div style="font-size: var(--font-xs); color: rgba(0, 0, 0, 0.4); margin-top: 2px; letter-spacing: -0.1px">주제: 골든아워 · 마감 D-3</div>
+              <div style="font-size: var(--font-xs); color: var(--color-text-secondary); margin-top: 2px; letter-spacing: -0.1px">주제: 골든아워 · 마감 D-3</div>
             </div>
             <button aria-label="닫기" style="width: 30px; height: 30px; border: none; border-radius: 50%; background: var(--color-surface); color: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; cursor: pointer" onclick="closeSheet('submit-sheet')">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6l-12 12"></path><path d="M6 6l12 12"></path></svg>
@@ -1864,7 +1884,7 @@
                   <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="2"></rect><circle cx="12" cy="13" r="4"></circle><path d="M9 3h6"></path></svg>
                 </div>
                 <div style="font-size: var(--font-md); font-weight: 600; color: var(--color-accent); letter-spacing: -0.2px">사진 선택</div>
-                <div style="font-size: var(--font-xs); color: rgba(0, 0, 0, 0.4); letter-spacing: -0.1px">골든아워 주제에 어울리는 사진 1장</div>
+                <div style="font-size: var(--font-xs); color: var(--color-text-secondary); letter-spacing: -0.1px">골든아워 주제에 어울리는 사진 1장</div>
               </button>
             </div>
             <div style="padding: 0 20px 14px">
@@ -1881,7 +1901,7 @@
                   사진 변경
                 </button>
               </div>
-              <div style="margin-top: 8px; font-size: var(--font-xs); color: rgba(0, 0, 0, 0.4); letter-spacing: -0.15px; line-height: 1.5">사진에서 EXIF(촬영일시·위치·카메라·렌즈)를 자동으로 읽어와요.</div>
+              <div style="margin-top: 8px; font-size: var(--font-xs); color: var(--color-text-secondary); letter-spacing: -0.15px; line-height: 1.5">사진에서 EXIF(촬영일시·위치·카메라·렌즈)를 자동으로 읽어와요.</div>
             </div>
           </div>
 
@@ -1925,9 +1945,9 @@
             </div>
 
             <div style="padding: 0 20px 14px">
-              <div style="font-size: var(--font-xs); font-weight: 600; color: rgba(0, 0, 0, 0.4); letter-spacing: 0.4px; margin-bottom: 8px; display: flex; align-items: baseline; justify-content: space-between">
-                <span>캡션 <span style="font-weight: 400; color: rgba(0, 0, 0, 0.3)">· 선택</span></span>
-                <span style="font-weight: 400; color: rgba(0, 0, 0, 0.3); letter-spacing: -0.1px">0/200</span>
+              <div style="font-size: var(--font-xs); font-weight: 600; color: var(--color-text-secondary); letter-spacing: 0.4px; margin-bottom: 8px; display: flex; align-items: baseline; justify-content: space-between">
+                <span>캡션 <span style="font-weight: 400; color: var(--color-text-tertiary)">· 선택</span></span>
+                <span style="font-weight: 400; color: var(--color-text-tertiary); letter-spacing: -0.1px">0/200</span>
               </div>
               <div style="padding: 12px 14px; background: var(--color-surface); border-radius: 14px">
                 <textarea placeholder="이 사진 한 줄 소개 (심사에는 영향 없음)" style="width: 100%; min-height: 64px; border: none; background: none; outline: none; resize: none; font-family: var(--font-family); font-size: var(--font-base); letter-spacing: -0.2px; line-height: 1.55; color: #000"></textarea>

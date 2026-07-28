@@ -190,25 +190,33 @@
       .modal__btn--cancel { background: var(--color-surface); color: rgba(0, 0, 0, 0.55); }
       .modal__btn--confirm { background: var(--color-accent); color: #fff; }
 
-      /* ── Toast ── */
+      /* ── Toast (텍스트 전용 · 중앙 pill) ── */
       .toast {
         position: absolute;
-        left: 28px;
-        right: 28px;
+        left: 50%;
         bottom: 100px;
+        transform: translateX(-50%) translateY(16px);
         z-index: 80;
-        height: 48px;
-        border-radius: 24px;
-        background: rgba(0, 0, 0, 0.85);
-        display: none;
+        height: 44px;
+        border-radius: 22px;
+        background: rgba(0, 0, 0, 0.75);
+        display: flex;
         align-items: center;
         gap: 8px;
-        padding: 0 18px;
+        padding: 0 20px;
         color: #fff;
         font-size: var(--font-base);
+        font-weight: 500;
         letter-spacing: -0.2px;
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s, transform 0.3s;
       }
-      .toast.is-open { display: flex; }
+      .toast.is-open {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
 
       /* ── Score Badge (포토제닉) ── */
       .score-badge {
@@ -230,6 +238,7 @@
         font-size: var(--font-sm);
         color: var(--color-accent);
         font-weight: 600;
+        letter-spacing: -0.2px;
       }
 
       /* ── Avatar ── */
@@ -306,6 +315,7 @@
         gap: 10px;
         font-size: var(--font-xs);
         color: rgba(0, 0, 0, 0.35);
+        letter-spacing: -0.1px;
         margin-top: 4px;
       }
       .comment__reply {
@@ -314,6 +324,7 @@
         padding: 0;
         font-family: var(--font-family);
         font-size: var(--font-xs);
+        letter-spacing: -0.1px;
         font-weight: 600;
         color: rgba(0, 0, 0, 0.5);
         cursor: pointer;
@@ -322,7 +333,7 @@
         border: none;
         background: none;
         padding: 4px;
-        color: rgba(0, 0, 0, 0.3);
+        color: var(--color-text-tertiary);
         cursor: pointer;
         flex-shrink: 0;
       }
@@ -337,7 +348,7 @@
         display: flex;
         align-items: center;
         gap: 8px;
-        padding: 10px 20px 16px;
+        padding: 10px 28px 16px;
         background: rgba(255, 255, 255, 0.96);
         border-top: 0.5px solid var(--color-border-light);
       }
@@ -350,7 +361,7 @@
         display: flex;
         align-items: center;
         font-size: var(--font-sm);
-        color: rgba(0, 0, 0, 0.3);
+        color: var(--color-text-tertiary);
         letter-spacing: -0.15px;
       }
       .comment-bar__send {
@@ -507,7 +518,7 @@
       .exif-section {
         font-size: var(--font-xs);
         font-weight: 600;
-        color: rgba(0, 0, 0, 0.4);
+        color: var(--color-text-secondary);
         letter-spacing: 0.4px;
         padding: 20px 0 8px;
       }
@@ -521,12 +532,13 @@
         align-items: center;
         justify-content: space-between;
         height: 44px;
-        border-bottom: 1px solid var(--color-border);
+        border-bottom: 0.5px solid var(--color-border);
       }
       .exif-row:last-child { border-bottom: none; }
       .exif-row__label {
         font-size: var(--font-xs);
         color: rgba(0, 0, 0, 0.45);
+        letter-spacing: -0.1px;
       }
       .exif-row__value {
         font-size: var(--font-sm);
@@ -554,7 +566,7 @@
       }
       .exif-gear__label {
         font-size: var(--font-2xs);
-        color: rgba(0, 0, 0, 0.4);
+        color: var(--color-text-secondary);
         letter-spacing: 0.4px;
         font-weight: 600;
       }
@@ -653,7 +665,7 @@
             <div class="avatar avatar--lg" style="background: linear-gradient(135deg, #2c5364, #4a7c8a)">JK</div>
             <div style="flex: 1; min-width: 0">
               <button style="border: none; background: none; padding: 0; display: block; text-align: left; font-family: var(--font-family); font-size: var(--font-md); font-weight: 600; letter-spacing: -0.2px; color: #000; cursor: pointer" onclick="location.href = './user-profile.html'">sunset_jk</button>
-              <div style="font-size: var(--font-xs); color: rgba(0, 0, 0, 0.4); margin-top: 1px">2시간 전 · 광안리 해수욕장</div>
+              <div style="font-size: var(--font-xs); color: var(--color-text-secondary); letter-spacing: -0.1px; margin-top: 1px">2시간 전 · 광안리 해수욕장</div>
             </div>
             <button style="height: 32px; padding: 0 14px; border: none; border-radius: 16px; background: var(--color-accent); color: #fff; font-family: var(--font-family); font-size: var(--font-sm); font-weight: 600; letter-spacing: -0.2px; cursor: pointer">팔로우</button>
           </div>
@@ -695,7 +707,7 @@
 
           <!-- 댓글 -->
           <div style="padding: 16px 0 0">
-            <div style="font-size: var(--font-sm); font-weight: 600; color: rgba(0, 0, 0, 0.45); letter-spacing: 0.2px; margin-bottom: 14px">댓글 32</div>
+            <div style="font-size: var(--font-sm); font-weight: 600; color: rgba(0, 0, 0, 0.45); letter-spacing: -0.2px; margin-bottom: 14px">댓글 32</div>
 
             <div class="comment">
               <div class="avatar avatar--sm avatar--placeholder" style="margin-top: 1px">SR</div>
@@ -742,7 +754,7 @@
               </button>
             </div>
 
-            <button style="border: none; background: none; padding: 0 0 24px; font-family: var(--font-family); font-size: var(--font-sm); color: rgba(0, 0, 0, 0.4); letter-spacing: -0.15px; cursor: pointer">댓글 29개 더보기</button>
+            <button style="border: none; background: none; padding: 0 0 24px; font-family: var(--font-family); font-size: var(--font-sm); color: var(--color-text-secondary); letter-spacing: -0.15px; cursor: pointer">댓글 29개 더보기</button>
           </div>
         </div>
       </div>
@@ -799,7 +811,7 @@
         <div class="sheet" onclick="event.stopPropagation()">
           <div class="sheet__handle"></div>
           <div class="sheet__title" style="margin-bottom: 3px">신고 사유 선택</div>
-          <div style="font-size: var(--font-xs); color: rgba(0, 0, 0, 0.4); letter-spacing: -0.1px; margin-bottom: 8px">선택 즉시 접수됩니다 · 검토 결과는 알림으로 안내</div>
+          <div style="font-size: var(--font-xs); color: var(--color-text-secondary); letter-spacing: -0.1px; margin-bottom: 8px">선택 즉시 접수됩니다 · 검토 결과는 알림으로 안내</div>
           <button class="report-row" onclick="submitReport()">
             스팸
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,.25)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
@@ -920,7 +932,7 @@
             </div>
             <div class="exif-stat">
               <div class="exif-gear__label">초점</div>
-              <div class="exif-stat__value">24<span style="font-size: var(--font-xs); color: rgba(0, 0, 0, 0.4)">mm</span></div>
+              <div class="exif-stat__value">24<span style="font-size: var(--font-xs); color: var(--color-text-secondary); letter-spacing: -0.1px">mm</span></div>
             </div>
           </div>
 

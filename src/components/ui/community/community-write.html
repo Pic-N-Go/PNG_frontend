@@ -87,9 +87,9 @@
         position: absolute;
         left: 50%;
         transform: translateX(-50%);
-        font-size: var(--font-md);
+        font-size: var(--font-lg);
         font-weight: 600;
-        letter-spacing: -0.3px;
+        letter-spacing: -0.4px;
       }
       .detail-nav__submit {
         margin-left: auto;
@@ -122,7 +122,7 @@
         right: 0;
         background: #fff;
         border-radius: 24px 24px 0 0;
-        padding: 8px 20px 20px;
+        padding: 8px 28px 32px;
         max-height: calc(100% - 40px);
         overflow-y: auto;
       }
@@ -142,7 +142,7 @@
       .sheet__label {
         font-size: var(--font-xs);
         font-weight: 600;
-        color: rgba(0, 0, 0, 0.4);
+        color: var(--color-text-secondary);
         letter-spacing: 0.3px;
         padding: 8px 0 6px;
       }
@@ -171,8 +171,9 @@
       }
       .chip__count {
         font-size: var(--font-2xs);
-        color: rgba(0, 0, 0, 0.3);
+        color: var(--color-text-tertiary);
         font-weight: 500;
+        letter-spacing: -0.1px;
       }
       .chip.is-selected .chip__count { color: rgba(227, 27, 89, 0.55); }
 
@@ -184,12 +185,12 @@
       .compose-section__label {
         font-size: var(--font-xs);
         font-weight: 600;
-        color: rgba(0, 0, 0, 0.4);
+        color: var(--color-text-secondary);
         letter-spacing: 0.4px;
       }
       .compose-section__hint {
         font-size: var(--font-2xs);
-        color: rgba(0, 0, 0, 0.28);
+        color: var(--color-text-tertiary);
         letter-spacing: -0.1px;
       }
 
@@ -208,7 +209,7 @@
       .meta-tile--editable { cursor: pointer; }
       .meta-tile__label {
         font-size: var(--font-2xs);
-        color: rgba(0, 0, 0, 0.4);
+        color: var(--color-text-secondary);
         letter-spacing: 0.3px;
         font-weight: 600;
       }
@@ -254,7 +255,8 @@
       }
       .location-row__addr {
         font-size: var(--font-xs);
-        color: rgba(0, 0, 0, 0.4);
+        color: var(--color-text-secondary);
+        letter-spacing: -0.1px;
         margin-top: 1px;
       }
 
@@ -278,7 +280,7 @@
         height: 34px;
         border-radius: 10px;
         background: var(--color-surface);
-        color: rgba(0, 0, 0, 0.3);
+        color: var(--color-text-tertiary);
         display: flex;
         align-items: center;
         justify-content: center;
@@ -297,7 +299,8 @@
       }
       .pick-row__meta {
         font-size: var(--font-xs);
-        color: rgba(0, 0, 0, 0.4);
+        color: var(--color-text-secondary);
+        letter-spacing: -0.1px;
         margin-top: 1px;
       }
 
@@ -353,14 +356,14 @@
         <!-- 사진 -->
         <div style="background: #000">
           <div style="width: 100%; aspect-ratio: 4/3; background: linear-gradient(135deg, #0f2027, #2c5364, #4a7c8a); position: relative">
-            <div style="position: absolute; bottom: 12px; right: 12px; height: 24px; padding: 0 10px; border-radius: 12px; background: rgba(0, 0, 0, 0.5); color: rgba(255, 255, 255, 0.85); font-size: var(--font-xs); font-weight: 600; display: flex; align-items: center">4:3</div>
+            <div style="position: absolute; bottom: 12px; right: 12px; height: 24px; padding: 0 10px; border-radius: 12px; background: rgba(0, 0, 0, 0.5); color: rgba(255, 255, 255, 0.85); font-size: var(--font-xs); font-weight: 600; letter-spacing: -0.1px; display: flex; align-items: center">4:3</div>
           </div>
           <div style="display: flex; gap: 2px; padding: 2px 0; background: #111; overflow-x: auto">
             <div style="width: 74px; height: 74px; flex-shrink: 0; background: rgba(255, 255, 255, 0.08); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; color: rgba(255, 255, 255, 0.4)">
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"></path></svg>
               <span style="font-size: var(--font-2xs); letter-spacing: -0.1px">추가</span>
             </div>
-            <div style="width: 74px; height: 74px; flex-shrink: 0; background: linear-gradient(135deg, #0f2027, #2c5364, #4a7c8a); box-shadow: inset 0 0 0 2.5px #fff"></div>
+            <div style="width: 74px; height: 74px; flex-shrink: 0; background: linear-gradient(135deg, #0f2027, #2c5364, #4a7c8a); box-shadow: inset 0 0 0 1.5px var(--color-accent)"></div>
             <div style="width: 74px; height: 74px; flex-shrink: 0; background: linear-gradient(135deg, #1a1a2e, #16213e, #0f3460)"></div>
             <div style="width: 74px; height: 74px; flex-shrink: 0; background: linear-gradient(135deg, #2d1b4e, #8b4a6b, #d4856a)"></div>
           </div>
@@ -371,7 +374,7 @@
           <!-- 캡션 -->
           <div style="padding: 20px 0 8px; border-bottom: 0.5px solid var(--color-border-light)">
             <textarea id="caption" style="width: 100%; min-height: 52px; border: none; background: none; outline: none; resize: none; font-family: var(--font-family); font-size: var(--font-md); font-weight: 500; letter-spacing: -0.2px; line-height: 1.55; color: #000">새벽 5시에 일어난 보람이 있는 일출</textarea>
-            <div style="display: flex; justify-content: flex-end; font-size: var(--font-xs); color: rgba(0, 0, 0, 0.25); margin-top: 6px">24/500</div>
+            <div style="display: flex; justify-content: flex-end; font-size: var(--font-xs); color: rgba(0, 0, 0, 0.25); letter-spacing: -0.1px; margin-top: 6px">24/500</div>
           </div>
 
           <!-- 위치 -->
@@ -448,7 +451,7 @@
               <button class="chip is-selected" onclick="toggleCategory(this)">일출/일몰<span class="chip__count">206</span></button>
               <button class="chip" onclick="toggleCategory(this)">꽃<span class="chip__count">183</span></button>
             </div>
-            <div style="margin-top: 10px; font-size: var(--font-xs); color: rgba(0, 0, 0, 0.4); letter-spacing: -0.15px">선택한 카테고리는 스팟 검색·필터에 사용됩니다.</div>
+            <div style="margin-top: 10px; font-size: var(--font-xs); color: var(--color-text-secondary); letter-spacing: -0.15px">선택한 카테고리는 스팟 검색·필터에 사용됩니다.</div>
           </div>
         </div>
       </div>
