@@ -171,6 +171,9 @@ export function mapReview(dto: ReviewDTO): Review {
     name: dto.nickname,
     avatarInitial: dto.nickname.trim().charAt(0) || '?',
     avatarColor: avatarColorFor(dto.nickname),
+    // iOS ATS가 평문을 막아 http URL은 로드되지 않는다. 서버가 저장 시 정규화하지만
+    // 그 이전에 쌓인 행이 남아 있을 수 있어 클라에서도 https로 올린다. 빈 문자열은 없는 것으로 처리.
+    avatarUrl: dto.profileImageUrl?.replace(/^http:/, 'https:') || undefined,
     rating: dto.rating,
     badge: dto.timePeriod ? TIME_PERIOD_LABEL[dto.timePeriod] : undefined,
     date: formatReviewDate(dto),
@@ -258,11 +261,15 @@ if (__DEV__) {
   const sum = mapReviewSummary({ avgRating: 4, totalCount: 4, distribution: { '5': 1, '4': 1, '3': 2 } });
   console.assert(sum.distribution.find((d) => d.star === 5)?.percent === 25, 'percent 계산 오류');
   console.assert(mapReviewSummary({ avgRating: 0, totalCount: 0, distribution: {} }).distribution[0].percent === 0, 'div-by-zero 처리 오류');
-  const base = { id: 1, userId: 1, nickname: '홍길동', rating: 5, content: 'x', equipmentInfo: null, photos: [], visitedAt: '2026-06-15', createdAt: '2026-06-16T10:30:00' };
+  const base = { id: 1, userId: 1, nickname: '홍길동', profileImageUrl: null, rating: 5, content: 'x', equipmentInfo: null, photos: [], visitedAt: '2026-06-15', createdAt: '2026-06-16T10:30:00' };
   console.assert(mapReview({ ...base, timePeriod: 'NIGHT' }).badge === '야간', 'timePeriod 라벨 오류');
   console.assert(mapReview({ ...base, timePeriod: 'DAYTIME' }).badge === '낮', 'timePeriod DAYTIME 라벨 오류');
   console.assert(mapReview({ ...base, timePeriod: null }).badge === undefined, 'timePeriod null 배지 오류');
   console.assert(mapReview({ ...base, timePeriod: null }).date === '2026.06.15', 'date 포맷 오류');
+  // Review.avatarUrl은 optional 계약이라 null이 새어나가면 안 된다(타입만으로는 런타임 값을 못 막음).
+  console.assert(mapReview({ ...base, timePeriod: null }).avatarUrl === undefined, 'profileImageUrl null 처리 오류');
+  console.assert(mapReview({ ...base, timePeriod: null, profileImageUrl: '' }).avatarUrl === undefined, '빈 문자열 처리 오류');
+  console.assert(mapReview({ ...base, timePeriod: null, profileImageUrl: 'http://x/a.jpg' }).avatarUrl === 'https://x/a.jpg', 'http → https 승격 오류');
 
   const pgBase = { score: 69, grade: '좋음', weather: { label: '맑음', score: 30 }, fineDust: { label: '좋음', score: 20 }, ozone: { label: '보통', score: 6 }, season: { label: '벚꽃 47%', score: 7 } };
   const active = mapPhotogenicScore({ ...pgBase, goldenHour: { label: '골든아워', score: 5, minutesUntilStart: null, startTime: null } });

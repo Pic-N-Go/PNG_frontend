@@ -120,6 +120,8 @@ export interface Review {
   name: string;
   avatarInitial: string;
   avatarColor: string;
+  /** 프로필 이미지 URL. 없으면 이니셜 아바타로 폴백 */
+  avatarUrl?: string;
   rating: number;
   /** 촬영 시간대 라벨(일출/낮/일몰/야간). timePeriod가 null이면 undefined → 배지 미표시 */
   badge?: string;
@@ -206,6 +208,8 @@ export interface ReviewDTO {
   id: number;
   userId: number;
   nickname: string;
+  /** 소셜 로그인 프로필 이미지. LOCAL 가입·이미지 미동의 유저는 null */
+  profileImageUrl: string | null;
   rating: number;
   timePeriod: TimePeriodApi | null;
   content: string;
