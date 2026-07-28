@@ -1058,9 +1058,13 @@ git commit -m "feat(community): 피드 검색 오버레이 및 갤러리 세그�
         position: absolute;
         inset: 0;
         background: #000;
-        z-index: 90;
+        /* 65 — 모달(70) 아래여야 한다. 투표 확인 모달이 라이트박스에서 열리므로
+           90이면 모달이 라이트박스 뒤에 깔려 도달 불가. 탭바(50)는 여전히 덮는다 */
+        z-index: 65;
         display: none;
         flex-direction: column;
+        justify-content: center; /* 원본 2k 38행 — 없으면 카드가 노치 아래 상단에 붙는다 */
+        padding: 0 20px;
       }
       .lightbox.is-open { display: flex; }
       .lightbox__close {
@@ -1087,7 +1091,9 @@ git commit -m "feat(community): 피드 검색 오버레이 및 갤러리 세그�
         padding: 0 20px;
         border: none;
         border-radius: 22px;
-        background: rgba(255, 255, 255, 0.15);
+        /* 원본대로 — 투표 전이 accent solid `투표하기`,
+           투표됨이 accent outline `투표 취소` (2k:76 / 2k-voted:68). 반대가 아니다 */
+        background: var(--color-accent);
         color: #fff;
         font-family: var(--font-family);
         font-size: var(--font-sm);
@@ -1096,7 +1102,9 @@ git commit -m "feat(community): 피드 검색 오버레이 및 갤러리 세그�
         cursor: pointer;
       }
       .lightbox.is-voted .lightbox__vote {
-        background: var(--color-accent);
+        background: rgba(255, 255, 255, 0.1);
+        color: var(--color-accent);
+        box-shadow: inset 0 0 0 1.5px var(--color-accent);
       }
 ```
 
@@ -1198,7 +1206,7 @@ git commit -m "feat(community): 피드 검색 오버레이 및 갤러리 세그�
 - 히어로 배너 그라디언트가 골든아워 색으로 나오는지 (`#1a1530`에서 `#f0c89a`로)
 - 서브탭 `진행중` 활성 · 언더라인이 accent인지
 - 출품작 썸네일 클릭 → 라이트박스가 열리는지
-- 라이트박스 투표 버튼 → 확인 모달 → `투표하기` → 버튼이 accent로 바뀌고 스낵바가 뜨고 남은 표 점이 하나 줄어드는지
+- 라이트박스 투표 버튼 → 확인 모달 → `투표하기` → 버튼이 accent solid에서 accent outline `투표 취소`로 바뀌고 스낵바가 뜨고 남은 표 점이 하나 줄어드는지
 - 투표된 상태에서 투표 버튼 재클릭 → 취소 모달 → `투표 취소` → 원상복구되는지
 - 스낵바가 2.6초 후 사라지는지
 
