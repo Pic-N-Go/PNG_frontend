@@ -117,6 +117,8 @@ export type ReviewSortOption = '최신순' | '별점 높은순' | '별점 낮은
 
 export interface Review {
   id: string;
+  /** 작성자 id. 로그인 유저와 비교해 수정·삭제 진입점 노출을 판단한다. */
+  userId: number;
   name: string;
   avatarInitial: string;
   avatarColor: string;
@@ -125,6 +127,9 @@ export interface Review {
   rating: number;
   /** 촬영 시간대 라벨(일출/낮/일몰/야간). timePeriod가 null이면 undefined → 배지 미표시 */
   badge?: string;
+  /** 수정 폼 프리필용 원본값. badge·date는 표시용으로 가공돼 역산이 불가능하다. */
+  timePeriod: TimePeriodApi | null;
+  visitedAtISO: string | null;
   date: string;
   text: string;
   /** 리뷰 사진 URL 목록 (API 연동). 없으면 photoColors 플레이스홀더 사용 */

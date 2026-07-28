@@ -168,6 +168,7 @@ function formatReviewDate(dto: ReviewDTO): string {
 export function mapReview(dto: ReviewDTO): Review {
   return {
     id: String(dto.id),
+    userId: dto.userId,
     name: dto.nickname,
     avatarInitial: dto.nickname.trim().charAt(0) || '?',
     avatarColor: avatarColorFor(dto.nickname),
@@ -176,6 +177,8 @@ export function mapReview(dto: ReviewDTO): Review {
     avatarUrl: dto.profileImageUrl?.replace(/^http:/, 'https:') || undefined,
     rating: dto.rating,
     badge: dto.timePeriod ? TIME_PERIOD_LABEL[dto.timePeriod] : undefined,
+    timePeriod: dto.timePeriod,
+    visitedAtISO: dto.visitedAt,
     date: formatReviewDate(dto),
     text: dto.content,
     photos: dto.photos.length > 0 ? dto.photos : undefined,

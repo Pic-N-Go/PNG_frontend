@@ -50,12 +50,39 @@ export function useCreateReview(id: string) {
       if (!token) return Promise.reject(new ApiError('로그인이 필요합니다.'));
       return spotApi.createReview(id, body, photos, token);
     },
-    onSuccess: () => {
-      // 정렬별로 캐시가 갈리므로 sort까지 특정하지 않고 리뷰 목록 전체를 무효화.
-      qc.invalidateQueries({ queryKey: ['spot', id, 'reviews'] });
-      // 평점·리뷰수·사진수가 헤더에 걸려 있어 상세도 함께 갱신.
-      qc.invalidateQueries({ queryKey: ['spot', id, 'detail'] });
+    onSuccess: () => invalidateReviewCaches(qc, id),
+  });
+}
+
+// 작성·수정·삭제가 모두 같은 캐시를 건드려 무효화 대상이 동일하다.
+function invalidateReviewCaches(qc: ReturnType<typeof useQueryClient>, id: string) {
+  // 정렬별로 캐시가 갈리므로 sort까지 특정하지 않고 리뷰 목록 전체를 무효화.
+  qc.invalidateQueries({ queryKey: ['spot', id, 'reviews'] });
+  // 평점·리뷰수·사진수가 헤더에 걸려 있어 상세도 함께 갱신.
+  qc.invalidateQueries({ queryKey: ['spot', id, 'detail'] });
+}
+
+export function useUpdateReview(id: string) {
+  const token = useAuthStore((s) => s.accessToken);
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ reviewId, body }: { reviewId: number; body: ReviewCreateRequest }) => {
+      if (!token) return Promise.reject(new ApiError('로그인이 필요합니다.'));
+      return spotApi.updateReview(reviewId, body, token);
     },
+    onSuccess: () => invalidateReviewCaches(qc, id),
+  });
+}
+
+export function useDeleteReview(id: string) {
+  const token = useAuthStore((s) => s.accessToken);
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (reviewId: number) => {
+      if (!token) return Promise.reject(new ApiError('로그인이 필요합니다.'));
+      return spotApi.deleteReview(reviewId, token);
+    },
+    onSuccess: () => invalidateReviewCaches(qc, id),
   });
 }
 

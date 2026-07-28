@@ -15,7 +15,7 @@ import { IconSunrise, IconSun, IconSunset, IconMoon } from '@tabler/icons-react-
 import { ChevronLeft, Calendar, Image as ImageIcon, Check, Camera, CircleDot, X } from 'lucide-react-native';
 import { SpotStackParamList } from '@/navigation/stacks/SpotStack';
 import type { ReviewPhotoUpload } from '@/api/spot';
-import { useCreateReview, useSpotDetail } from '@/hooks/useSpot';
+import { useCreateReview, useSpotDetail, useUpdateReview } from '@/hooks/useSpot';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import {
   FONT_2XS, FONT_XS, FONT_SM, FONT_MD, FONT_LG,
@@ -88,27 +88,57 @@ const extOf = (uri: string) => {
 const toISODate = (d: Date) =>
   `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 
+/** new Date('yyyy-MM-dd')는 UTC 자정으로 파싱돼 시간대에 따라 하루 밀린다. 로컬 날짜로 직접 만든다. */
+const fromISODate = (iso: string) => {
+  const [y, m, d] = iso.split('-').map(Number);
+  return new Date(y, m - 1, d);
+};
+
+/** 서버는 장비를 ", "로 합쳐 보관한다. 칩으로 표현 가능한 항목만 되살린다. */
+const seedEquipmentOf = (joined: string | null) => {
+  if (!joined) return [];
+  const known = new Set(EQUIPMENT.map((e) => e.name));
+  return joined.split(',').map((s) => s.trim()).filter((s) => known.has(s));
+};
+
 export default function ReviewWriteScreen({ route, navigation }: Props) {
-  const { spotId } = route.params;
+  const { spotId, edit } = route.params;
+  const isEdit = edit !== undefined;
   const { data: spot } = useSpotDetail(spotId);
   const createReview = useCreateReview(spotId);
+  const updateReview = useUpdateReview(spotId);
+  const submitting = isEdit ? updateReview.isPending : createReview.isPending;
 
   const today = React.useRef(new Date()).current;
-  const [rating, setRating] = React.useState(0);
-  const [visitedAt, setVisitedAt] = React.useState<Date>(today);
+  const [rating, setRating] = React.useState(edit?.rating ?? 0);
+  const [visitedAt, setVisitedAt] = React.useState<Date>(edit?.visitedAt ? fromISODate(edit.visitedAt) : today);
   const [showDatePicker, setShowDatePicker] = React.useState(false);
-  const [period, setPeriod] = React.useState<TimePeriodApi | null>(null);
-  const [content, setContent] = React.useState('');
+  const [period, setPeriod] = React.useState<TimePeriodApi | null>(edit?.timePeriod ?? null);
+  const [content, setContent] = React.useState(edit?.content ?? '');
   const [contentFocused, setContentFocused] = React.useState(false);
   const [photos, setPhotos] = React.useState<PickedPhoto[]>([]);
-  const [equipment, setEquipment] = React.useState<string[]>([]);
+  const [equipment, setEquipment] = React.useState<string[]>(seedEquipmentOf(edit?.equipmentInfo ?? null));
 
   const trimmed = content.trim();
   const canSubmit = rating > 0 && period !== null && trimmed.length >= CONTENT_MIN;
 
-  // 등록 성공으로 나가는 건 유실이 아니므로 확인창을 건너뛴다.
+  // 등록·수정 성공으로 나가는 건 유실이 아니므로 확인창을 건너뛴다.
   const submitted = React.useRef(false);
-  const isDirty = rating > 0 || period !== null || trimmed.length > 0 || equipment.length > 0 || photos.length > 0;
+  // 수정 모드는 폼이 채워진 상태로 시작하므로 "값이 있는지"가 아니라 "처음과 달라졌는지"로 판단한다.
+  const initial = React.useRef({
+    rating: edit?.rating ?? 0,
+    period: edit?.timePeriod ?? null,
+    content: (edit?.content ?? '').trim(),
+    visitedAt: toISODate(edit?.visitedAt ? fromISODate(edit.visitedAt) : today),
+    equipment: seedEquipmentOf(edit?.equipmentInfo ?? null).join('|'),
+  }).current;
+  const isDirty =
+    rating !== initial.rating ||
+    period !== initial.period ||
+    trimmed !== initial.content ||
+    toISODate(visitedAt) !== initial.visitedAt ||
+    equipment.join('|') !== initial.equipment ||
+    photos.length > 0;
 
   React.useEffect(() => {
     // 작성 분량이 큰 화면이라 뒤로가기·스와이프·안드로이드 백키로 날리는 사고를 막는다.
@@ -193,26 +223,32 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
   const removePhoto = (idx: number) => setPhotos((prev) => prev.filter((_, i) => i !== idx));
 
   const onSubmit = () => {
-    if (!canSubmit || period === null || createReview.isPending) return;
-    createReview.mutate(
-      {
-        body: {
-          rating,
-          content: trimmed,
-          timePeriod: period,
-          visitedAt: toISODate(visitedAt),
-          ...(equipment.length > 0 && { equipmentInfo: equipment }),
-        },
-        photos: photos.map(({ uri, name, type }) => ({ uri, name, type })),
+    if (!canSubmit || period === null || submitting) return;
+    const body = {
+      rating,
+      content: trimmed,
+      timePeriod: period,
+      visitedAt: toISODate(visitedAt),
+      ...(equipment.length > 0 && { equipmentInfo: equipment }),
+    };
+    const handlers = {
+      onSuccess: () => {
+        submitted.current = true;
+        navigation.goBack();
       },
-      {
-        onSuccess: () => {
-          submitted.current = true;
-          navigation.goBack();
-        },
-        onError: (err) => Alert.alert('등록 실패', err instanceof Error ? err.message : '잠시 후 다시 시도해 주세요.'),
-      },
-    );
+      onError: (err: unknown) =>
+        Alert.alert(
+          isEdit ? '수정 실패' : '등록 실패',
+          err instanceof Error ? err.message : '잠시 후 다시 시도해 주세요.',
+        ),
+    };
+
+    if (isEdit) {
+      // PUT은 사진을 다루지 않아 기존 사진이 그대로 유지된다. 수정 화면에서 사진 섹션을 감춘 이유.
+      updateReview.mutate({ reviewId: edit.reviewId, body }, handlers);
+      return;
+    }
+    createReview.mutate({ body, photos: photos.map(({ uri, name, type }) => ({ uri, name, type })) }, handlers);
   };
 
   let contentHint = `최소 ${CONTENT_MIN}자 이상 입력해 주세요`;
@@ -245,7 +281,7 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
           className="flex-1 text-center"
           style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_LG, color: '#000', letterSpacing: -0.3, marginRight: normalize(40) }}
         >
-          리뷰 작성
+          {isEdit ? '리뷰 수정' : '리뷰 작성'}
         </Text>
       </View>
 
@@ -421,7 +457,10 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
           {/* ponytail: 목업의 태그 섹션은 생략. 백엔드가 ReviewRequest.tags를 저장하지 않아(Review 엔티티에 필드 없음)
               지금 붙이면 사용자가 고른 값이 조용히 버려진다. 태그 저장·집계가 생기면 추가. */}
 
-          {/* 사진 첨부 */}
+          {/* 수정 모드에선 감춘다. PUT /reviews/{id}는 JSON이라 사진 파트를 받지 못하고
+              ReviewPhoto도 건드리지 않아, 여기서 사진을 고르게 하면 저장되지 않은 채 사라진다.
+              사진 교체는 삭제 후 재작성으로만 가능하다(백엔드 대응 요청 중). */}
+          {!isEdit && (
           <Section label="사진 첨부" hint={`최대 ${MAX_PHOTOS}장`}>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: normalize(8) }}>
               {photos.map((photo, idx) => (
@@ -461,6 +500,7 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
               )}
             </ScrollView>
           </Section>
+          )}
 
           {/* 사용 장비 */}
           <Section label="사용 장비" hint="선택">
@@ -523,18 +563,18 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
         <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(10), paddingBottom: normalize(14) }}>
           <Pressable
             onPress={onSubmit}
-            disabled={!canSubmit || createReview.isPending}
+            disabled={!canSubmit || submitting}
             className="w-full items-center justify-center"
             style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS, backgroundColor: BRAND, opacity: canSubmit ? 1 : 0.35 }}
           >
-            {createReview.isPending ? (
+            {submitting ? (
               <ActivityIndicator color="#fff" />
             ) : (
               <Text
                 allowFontScaling={false}
                 style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_MD, color: '#fff', letterSpacing: -0.2 }}
               >
-                리뷰 등록하기
+                {isEdit ? '수정 완료' : '리뷰 등록하기'}
               </Text>
             )}
           </Pressable>
