@@ -414,9 +414,17 @@
         margin-bottom: 12px;
       }
       .post-card__username {
+        border: none;
+        background: none;
+        padding: 0;
+        font-family: var(--font-family);
         font-size: var(--font-base);
         font-weight: 600;
         letter-spacing: -0.2px;
+        color: #000;
+        cursor: pointer;
+        display: block;
+        text-align: left;
       }
       .post-card__meta {
         font-size: var(--font-xs);
@@ -1107,7 +1115,7 @@
                 <div class="post-card__user-row">
                   <div class="avatar" style="background: linear-gradient(135deg, #2c5364, #4a7c8a)">JK</div>
                   <div style="flex: 1; min-width: 0">
-                    <div class="post-card__username">sunset_jk</div>
+                    <button class="post-card__username" onclick="location.href = './user-profile.html'">sunset_jk</button>
                     <div class="post-card__meta">2시간 전 · 광안리 해수욕장</div>
                   </div>
                   <button class="post-card__follow">팔로우</button>
@@ -1158,7 +1166,7 @@
                 <div class="post-card__user-row">
                   <div class="avatar" style="background: linear-gradient(135deg, #8b4a6b, #d4856a)">YJ</div>
                   <div style="flex: 1; min-width: 0">
-                    <div class="post-card__username">photo_yujin</div>
+                    <button class="post-card__username" onclick="location.href = './user-profile.html'">photo_yujin</button>
                     <div class="post-card__meta">5시간 전 · 경복궁 야간개장</div>
                   </div>
                   <button class="post-card__follow is-following">팔로잉</button>
@@ -1209,7 +1217,7 @@
                 <div class="post-card__user-row">
                   <div class="avatar" style="background: linear-gradient(135deg, #3a506b, #5bc0be)">ME</div>
                   <div style="flex: 1; min-width: 0">
-                    <div class="post-card__username">my_username</div>
+                    <button class="post-card__username" onclick="location.href = './user-profile.html'">my_username</button>
                     <div class="post-card__meta">1일 전 · 해운대 블루라인파크</div>
                   </div>
                 </div>
@@ -1728,7 +1736,7 @@
                   투표 취소
                 </span>
               </button>
-              <button style="height: 44px; padding: 0 16px; border: none; border-radius: 22px; background: rgba(255, 255, 255, 0.1); color: #fff; font-family: var(--font-family); font-size: var(--font-sm); font-weight: 600; letter-spacing: -0.2px; display: flex; align-items: center; gap: 5px; cursor: pointer">
+              <button style="height: 44px; padding: 0 16px; border: none; border-radius: 22px; background: rgba(255, 255, 255, 0.1); color: #fff; font-family: var(--font-family); font-size: var(--font-sm); font-weight: 600; letter-spacing: -0.2px; display: flex; align-items: center; gap: 5px; cursor: pointer" onclick="location.href = './user-profile.html'">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg>
                 프로필
               </button>
