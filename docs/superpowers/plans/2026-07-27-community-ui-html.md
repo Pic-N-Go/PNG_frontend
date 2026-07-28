@@ -2053,41 +2053,53 @@ git commit -m "feat(community): 게시글 사진 라이트박스 및 EXIF 2중 �
 
 - [ ] **Step 2: 새 글 작성 본문 이식**
 
-`2e-post-compose.html`에서 사진 선택 영역 + 캡션 textarea + 메타 행(위치·시간·날씨·카메라·렌즈)을 가져온다.
+`2e-post-compose.html`에서 사진 선택 영역 + 썸네일 스트립 + 캡션 textarea + 위치 카드 + 촬영 정보 + 카테고리를 가져온다.
+
+**원본의 메타 영역은 56px 행 나열이 아니라 위치 카드 1개 + 촬영 정보 2×2 타일 그리드 + 카테고리 칩이다.** 이 Task의 이전 `.compose-row` 스니펫은 phase1 초안 기준이었고, 소스 HTML을 기준으로 타일 그리드로 확정한다. 동작 계약(`openSheet('location-sheet')`, `openGearSheet('camera'|'lens')`, `selectLocation`, `selectGear`)은 그대로 유지한다.
 
 원본 대비 적용할 변환:
-- 행 제목 `font-size:15px` → `var(--font-md)` · 우측 값 `font-size:13px` → `var(--font-sm)` · 캡션 `font-size:11px` → `var(--font-xs)`
-- 위치 행 → `onclick="openSheet('location-sheet')"`
-- 카메라 행 → `onclick="openGearSheet('camera')"` · 렌즈 행 → `onclick="openGearSheet('lens')"`
+- 위치 이름 `font-size:14px` → `var(--font-base)` · 주소 `11px` → `var(--font-xs)`
+- 타일 라벨 `10px` → `var(--font-2xs)` · 값 `13px` → `var(--font-sm)` · 보조 `11px` → `var(--font-xs)`
+- 위치 카드 → `onclick="openSheet('location-sheet')"`
+- 카메라 타일 → `onclick="openGearSheet('camera')"` · 렌즈 타일 → `onclick="openGearSheet('lens')"`
+- **일시·날씨 타일은 편집하지 않으므로 `<div>`로 둔다** (죽은 버튼을 만들지 않는다)
+- 카테고리는 `.chip` + `.chip.is-selected`(accent 틴트) 다중 선택 — 원본의 accent 틴트 유지, 셸의 검정 `is-active`와 구분
+- 상단 우측은 원본대로 accent solid 필 `게시하기` (텍스트 버튼이 아니다)
 - `#E31B59` → `var(--color-accent)`
 - 우측 화살표는 lucide `ChevronRight`
 
 ```css
-      /* ── Compose Row ── */
-      .compose-row {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        height: 56px;
-        padding: 0 28px;
+      /* ── 촬영 정보 타일 (2×2) ── */
+      .meta-tile {
+        background: var(--color-surface);
         border: none;
-        background: none;
-        width: 100%;
-        cursor: pointer;
+        border-radius: 12px;
+        padding: 12px;
+        font-family: var(--font-family);
         text-align: left;
-        border-bottom: 1px solid var(--color-border);
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
       }
-      .compose-row__label {
-        font-size: var(--font-md);
-        letter-spacing: -0.2px;
-        flex: 1;
+      .meta-tile--editable { cursor: pointer; }
+      .meta-tile__label {
+        font-size: var(--font-2xs);
+        color: rgba(0, 0, 0, 0.4);
+        letter-spacing: 0.3px;
+        font-weight: 600;
       }
-      .compose-row__value {
+      .meta-tile__value {
         font-size: var(--font-sm);
-        color: rgba(0, 0, 0, 0.45);
+        font-weight: 600;
         letter-spacing: -0.2px;
+        margin-top: 2px;
       }
-      .compose-row__value.is-set { color: #000; }
+      .meta-tile__sub {
+        font-size: var(--font-xs);
+        color: rgba(0, 0, 0, 0.45);
+        letter-spacing: -0.1px;
+        margin-top: 1px;
+      }
 ```
 
 - [ ] **Step 3: 위치 태그 시트 이식**
