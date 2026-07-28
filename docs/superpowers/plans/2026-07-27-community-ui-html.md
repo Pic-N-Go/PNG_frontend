@@ -103,14 +103,14 @@ done
 | `deletePost()` | 삭제 모달 `삭제` 버튼 | post | 7 |
 | `closeModal('delete-modal')` | 삭제 모달 `취소` 버튼 + backdrop | post | 7 |
 | `openSheet('report-sheet')` | 액션시트 `신고하기` 행 | post | 7 |
-| `submitReport()` | 신고 시트 제출 버튼 | post | 7 |
+| `submitReport()` | 신고 사유 행 각각 (제출 버튼 없음) | post | 7 |
 | `closeSheet('report-sheet')` | 신고 시트 backdrop | post | 7 |
 | `openLightbox()` | 히어로 우측 상단 확대 아이콘 (인자 없음) | post | 8 |
 | `closeLightbox()` | 라이트박스 닫기 버튼 | post | 8 |
 | `openExif()` | 라이트박스 하단 `(i)` 버튼 | post | 8 |
 | `closeExif()` | EXIF 패널 닫기 버튼 + EXIF backdrop | post | 8 |
 | `openSheet('location-sheet')` | 위치 행 (`#row-location`) | write | 9 |
-| `selectLocation(name)` | 위치 시트 목록 항목 각각 | write | 9 |
+| `selectLocation(name, addr)` | 위치 시트 목록 항목 각각 | write | 9 |
 | `closeSheet('location-sheet')` | 위치 시트 backdrop | write | 9 |
 | `openGearSheet('camera')` | 카메라 행 (`#row-camera`) | write | 9 |
 | `openGearSheet('lens')` | 렌즈 행 (`#row-lens`) | write | 9 |
@@ -1551,12 +1551,13 @@ git commit -m "feat(community): 콘테스트 지난 서브탭 추가"
 
 - [ ] **Step 2: 결과 상세 본문 이식**
 
-`2i-result-detail.html`에서 히어로(우승작) + 순위 목록 + 통계를 가져온다.
+`2i-result-detail.html`에서 결과 배너 + 최종 순위 + 전체 참여작을 가져온다.
 
 원본 대비 적용할 변환:
 - 히어로 상단 메타 행 `font-size:12px`(52행) → `var(--font-xs)` — 흰색 반투명 캡션이므로 11px
 - 26px 원형 랭크 뱃지 `font-size:12px`(67행) → `.rank-badge` 클래스 (13px)
-- 통계 수치 `font-size:22px` → `var(--font-xl)` · 라벨 `font-size:11px` → `var(--font-xs)`
+- **원본에 별도 통계 섹션은 없다** — 22px는 결과 배너 제목이므로 `var(--font-xl)`로, 라벨 `font-size:11px` → `var(--font-xs)`
+- 구성은 결과 배너 → 최종 순위(가로 스크롤) → 전체 참여작 그리드 → 더 보기
 - 트로피 아이콘은 쓰지 않는다 — 랭크 뱃지만 (phase3 README)
 - `#E31B59` → `var(--color-accent)`
 - 하단 탭바는 유지한다 (커뮤니티 탭 내부 화면)
@@ -1700,8 +1701,8 @@ git commit -m "feat(community): 콘테스트 결과 상세 목업 신규 작성"
 - 제목 `게시글을 삭제할까요?` · 본문 `삭제하면 되돌릴 수 없습니다` · 버튼 `취소` / `삭제`
 
 `2b-report-sheet.html` → `.sheet-backdrop` / `.sheet`, `id="report-sheet"`.
-- 사유 라디오 목록 + 하단 설명 `선택 즉시 접수됩니다 · 검토 결과는 알림으로 안내` `font-size:12px` → `var(--font-xs)` (캡션이므로 11px)
-- 제출 버튼 높이 52px · radius 26px · accent solid
+- 사유 목록 + 하단 설명 `선택 즉시 접수됩니다 · 검토 결과는 알림으로 안내` `font-size:12px` → `var(--font-xs)` (캡션이므로 11px)
+- **제출 버튼을 두지 않는다** — 원본에도 없고, 시트 문구가 "선택 즉시 접수됩니다"이므로 버튼을 두면 자기모순이다. 사유 행 각각에 `onclick="submitReport()"`를 배선한다
 
 - [ ] **Step 5: 토스트 2종 이식**
 
@@ -2107,7 +2108,7 @@ git commit -m "feat(community): 게시글 사진 라이트박스 및 EXIF 2중 �
 `2e-location-sheet.html` → `.sheet-backdrop` / `.sheet`, `id="location-sheet"`.
 - 검색 입력 + 최근 위치 목록 + 스팟 목록
 - 라벨 `font-size:15px` → `var(--font-md)` · 주소 `font-size:11px` → `var(--font-xs)`
-- 항목 클릭 → `selectLocation(name)`으로 본문 행 값 갱신 후 시트 닫기
+- 항목 클릭 → `selectLocation(name, addr)`으로 위치 행 이름·주소 갱신, 선택 표시(배경 + 체크마크)를 그 행으로 이동시킨 뒤 시트 닫기
 
 - [ ] **Step 4: 촬영 정보 시트 이식 (카메라 / 렌즈 분기)**
 
@@ -2130,10 +2131,13 @@ git commit -m "feat(community): 게시글 사진 라이트박스 및 EXIF 2중 �
       }
 
       /* ── 위치 선택 ── */
-      function selectLocation(name) {
-        const v = document.querySelector('#row-location .compose-row__value');
-        v.textContent = name;
-        v.classList.add('is-set');
+      function selectLocation(name, addr) {
+        const row = document.getElementById('row-location');
+        row.querySelector('.location-row__name').textContent = name;
+        row.querySelector('.location-row__addr').textContent = addr;
+        document.querySelectorAll('#location-sheet .pick-row').forEach((el) => {
+          el.classList.toggle('is-selected', el.querySelector('.pick-row__name').textContent === name);
+        });
         closeSheet('location-sheet');
       }
 
@@ -2150,11 +2154,33 @@ git commit -m "feat(community): 게시글 사진 라이트박스 및 EXIF 2중 �
         openSheet('gear-sheet');
       }
       function selectGear(name) {
-        const rowId = gearKind === 'camera' ? '#row-camera' : '#row-lens';
-        const v = document.querySelector(rowId + ' .compose-row__value');
-        v.textContent = name;
-        v.classList.add('is-set');
+        document.getElementById('gear-input').value = name;
+        applyGear(name);
         closeSheet('gear-sheet');
+      }
+      function confirmGear() {
+        applyGear(document.getElementById('gear-input').value.trim() || currentGearValue());
+        closeSheet('gear-sheet');
+      }
+      function currentGearValue() {
+        const rowId = gearKind === 'camera' ? 'row-camera' : 'row-lens';
+        return document.querySelector('#' + rowId + ' .meta-tile__value').textContent;
+      }
+      function applyGear(name) {
+        const rowId = gearKind === 'camera' ? 'row-camera' : 'row-lens';
+        document.querySelector('#' + rowId + ' .meta-tile__value').textContent = name;
+        // 보조 라인은 사진에서 읽은 값이므로 직접 고른 장비에는 맞지 않는다
+        document.querySelector('#' + rowId + ' .meta-tile__sub').textContent = '직접 입력';
+        document.querySelectorAll('#gear-sheet [data-gear-kind="' + gearKind + '"] .chip').forEach((c) => {
+          c.classList.toggle('is-selected', c.textContent.trim() === name);
+        });
+      }
+
+      /* ── 카테고리 다중 선택 ── */
+      function toggleCategory(btn) {
+        btn.classList.toggle('is-selected');
+        document.getElementById('category-count').textContent =
+          document.querySelectorAll('.chip.is-selected').length;
       }
     </script>
 ```

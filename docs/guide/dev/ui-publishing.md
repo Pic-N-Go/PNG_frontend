@@ -28,7 +28,7 @@ src/components/ui/
     community-feed.html       # 커뮤니티 루트 (게시글·갤러리·콘테스트 세그먼트 / 콘테스트 하위 진행중·내 출품·지난 서브탭)
     community-post.html       # 게시글 상세 (액션시트·삭제·신고·토스트 / 사진 라이트박스 → EXIF 2중 레이어)
     community-write.html      # 게시물 작성 (위치·촬영 정보 바텀시트)
-    contest-result.html       # 콘테스트 결과 상세 (우승작·순위·통계 / 풀스크린)
+    contest-result.html       # 콘테스트 결과 상세 (결과 배너·최종 순위·전체 참여작 / 풀스크린)
     user-profile.html         # 다른 유저 프로필 (게시글·콘테스트·방문한 스팟 탭)
   spot/
     spot-detail.html          # 스팟 상세 (포토제닉 스코어·날씨·정보/사진/채팅 탭)

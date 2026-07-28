@@ -519,6 +519,7 @@
         z-index: 40;
         display: none;
         overflow-y: auto;
+        padding-bottom: 80px; /* 탭바가 z-50으로 위에 있어 마지막 행이 가린다 */
       }
       .search-overlay.is-open { display: block; }
       .search-overlay__row {
@@ -617,13 +618,14 @@
         cursor: pointer;
         text-align: left;
       }
-      .search-overlay__recent-item span {
+      .search-overlay__recent-item > span:not([class]) {
         flex: 1;
         font-size: var(--font-base);
         color: #000;
         letter-spacing: -0.2px;
       }
       .search-overlay__recent-item-clear {
+        flex: none;
         border: none;
         background: none;
         color: rgba(0, 0, 0, 0.25);
@@ -1125,7 +1127,7 @@
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,.3)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 3"></path></svg>
                   <span>05:30</span>
                   <span class="post-card__dot"></span>
-                  <img src="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/clear-day.svg" width="15" height="15" style="opacity: 0.9" />
+                  <img src="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/clear-day.svg" width="15" height="15" alt="" style="opacity: 0.9" />
                   <span>맑음</span>
                   <span class="post-card__dot"></span>
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,.3)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="2"></rect><circle cx="12" cy="13" r="4"></circle></svg>
@@ -1176,7 +1178,7 @@
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,.3)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"></path></svg>
                   <span>20:30</span>
                   <span class="post-card__dot"></span>
-                  <img src="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/clear-night.svg" width="15" height="15" style="opacity: 0.9" />
+                  <img src="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/clear-night.svg" width="15" height="15" alt="" style="opacity: 0.9" />
                   <span>야간</span>
                   <span class="post-card__dot"></span>
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,.3)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="2"></rect><circle cx="12" cy="13" r="4"></circle></svg>
@@ -1226,7 +1228,7 @@
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,.3)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 3"></path></svg>
                   <span>18:20</span>
                   <span class="post-card__dot"></span>
-                  <img src="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/cloudy.svg" width="15" height="15" style="opacity: 0.9" />
+                  <img src="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/cloudy.svg" width="15" height="15" alt="" style="opacity: 0.9" />
                   <span>흐림</span>
                   <span class="post-card__dot"></span>
                   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,.3)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="2"></rect><circle cx="12" cy="13" r="4"></circle></svg>
@@ -1377,9 +1379,9 @@
                   <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"></path><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z"></path></svg>
                   28
                 </div>
-                <button class="entry-card__vote-btn" aria-label="자세히 보기">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"></path><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z"></path></svg>
-                </button>
+                <div class="entry-card__vote-btn" aria-hidden="true">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V5a2 2 0 0 1 2-2h3"></path><path d="M16 3h3a2 2 0 0 1 2 2v3"></path><path d="M21 16v3a2 2 0 0 1-2 2h-3"></path><path d="M8 21H5a2 2 0 0 1-2-2v-3"></path></svg>
+                </div>
               </div>
               <div class="entry-card" style="background: linear-gradient(to bottom, #0a1a0f, #4a8060)" onclick="openLightbox(5)">
                 <div class="entry-card__rank">5</div>
@@ -1387,9 +1389,9 @@
                   <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"></path><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z"></path></svg>
                   24
                 </div>
-                <button class="entry-card__vote-btn" aria-label="자세히 보기">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"></path><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z"></path></svg>
-                </button>
+                <div class="entry-card__vote-btn" aria-hidden="true">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V5a2 2 0 0 1 2-2h3"></path><path d="M16 3h3a2 2 0 0 1 2 2v3"></path><path d="M21 16v3a2 2 0 0 1-2 2h-3"></path><path d="M8 21H5a2 2 0 0 1-2-2v-3"></path></svg>
+                </div>
               </div>
               <div class="entry-card" style="background: linear-gradient(to bottom, #020010, #1a1545)" onclick="openLightbox(6)">
                 <div class="entry-card__rank">6</div>
@@ -1397,9 +1399,9 @@
                   <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"></path><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z"></path></svg>
                   19
                 </div>
-                <button class="entry-card__vote-btn" aria-label="자세히 보기">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"></path><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z"></path></svg>
-                </button>
+                <div class="entry-card__vote-btn" aria-hidden="true">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V5a2 2 0 0 1 2-2h3"></path><path d="M16 3h3a2 2 0 0 1 2 2v3"></path><path d="M21 16v3a2 2 0 0 1-2 2h-3"></path><path d="M8 21H5a2 2 0 0 1-2-2v-3"></path></svg>
+                </div>
               </div>
               <div class="entry-card" style="background: linear-gradient(to bottom, #1a1530, #b44a3a, #f0c89a)" onclick="openLightbox(7)">
                 <div class="entry-card__rank">7</div>
@@ -1407,9 +1409,9 @@
                   <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"></path><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z"></path></svg>
                   15
                 </div>
-                <button class="entry-card__vote-btn" aria-label="자세히 보기">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"></path><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z"></path></svg>
-                </button>
+                <div class="entry-card__vote-btn" aria-hidden="true">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8V5a2 2 0 0 1 2-2h3"></path><path d="M16 3h3a2 2 0 0 1 2 2v3"></path><path d="M21 16v3a2 2 0 0 1-2 2h-3"></path><path d="M8 21H5a2 2 0 0 1-2-2v-3"></path></svg>
+                </div>
               </div>
             </div>
 
@@ -1699,7 +1701,7 @@
         </button>
 
         <div style="background: #111; border-radius: 20px; overflow: hidden">
-          <div style="position: relative; width: 100%; aspect-ratio: 3 / 2; background: linear-gradient(to bottom, #1a1530, #b44a3a, #f0c89a)">
+          <div class="lightbox__photo" style="position: relative; width: 100%; aspect-ratio: 3 / 2; background: linear-gradient(to bottom, #1a1530, #b44a3a, #f0c89a)">
             <div style="position: absolute; top: 14px; left: 14px; display: flex; align-items: center; gap: 6px">
               <div class="rank-badge">1</div>
               <div class="lightbox__pill">현재 <span class="lightbox__rank-num">1</span>위</div>
@@ -1712,18 +1714,18 @@
 
           <div style="padding: 16px 18px 14px">
             <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px">
-              <div class="avatar" style="background: linear-gradient(135deg, #2c5364, #4a7c8a)">JK</div>
+              <div class="avatar lightbox__avatar" style="background: linear-gradient(135deg, #2c5364, #4a7c8a)">JK</div>
               <div style="flex: 1; min-width: 0">
-                <div style="font-size: var(--font-base); font-weight: 600; color: #fff; letter-spacing: -0.2px">@sunset_jk</div>
-                <div style="font-size: var(--font-xs); color: rgba(255, 255, 255, 0.5); margin-top: 1px; letter-spacing: -0.1px">광안리 · 새벽 5:30</div>
+                <div class="lightbox__user" style="font-size: var(--font-base); font-weight: 600; color: #fff; letter-spacing: -0.2px">@sunset_jk</div>
+                <div class="lightbox__place" style="font-size: var(--font-xs); color: rgba(255, 255, 255, 0.5); margin-top: 1px; letter-spacing: -0.1px">광안리 · 새벽 5:30</div>
               </div>
               <div style="display: flex; align-items: center; gap: 5px; height: 28px; padding: 0 11px; border-radius: 14px; background: rgba(255, 255, 255, 0.1); color: #fff">
                 <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"></path><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2h0a3.13 3.13 0 0 1 3 3.88Z"></path></svg>
-                <span style="font-size: var(--font-sm); font-weight: 600; letter-spacing: -0.1px">67표</span>
+                <span class="lightbox__votes" style="font-size: var(--font-sm); font-weight: 600; letter-spacing: -0.1px">67표</span>
               </div>
             </div>
 
-            <div style="font-size: var(--font-sm); color: rgba(255, 255, 255, 0.75); line-height: 1.55; letter-spacing: -0.15px; font-style: italic; margin-bottom: 14px">"새벽 5시, 광안대교 위로 떠오르는 태양 — 세상에서 제일 긴 하루의 시작"</div>
+            <div class="lightbox__caption" style="font-size: var(--font-sm); color: rgba(255, 255, 255, 0.75); line-height: 1.55; letter-spacing: -0.15px; font-style: italic; margin-bottom: 14px">"새벽 5시, 광안대교 위로 떠오르는 태양 — 세상에서 제일 긴 하루의 시작"</div>
 
             <div style="display: flex; gap: 8px">
               <button class="lightbox__vote" onclick="requestVote()">
@@ -1764,7 +1766,18 @@
           <div class="modal__body">사용한 표 1개가 복구됩니다</div>
           <div class="modal__actions">
             <button class="modal__btn modal__btn--cancel" onclick="closeModal('vote-cancel-modal')">닫기</button>
-            <button class="modal__btn modal__btn--confirm" onclick="undoVote()">투표 취소</button>
+            <button class="modal__btn modal__btn--confirm" onclick="undoVote(currentRank())">투표 취소</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 표 소진 모달 (표를 다 쓴 뒤 투표를 누르면) -->
+      <div class="modal-backdrop" id="vote-limit-modal" onclick="closeModal('vote-limit-modal')">
+        <div class="modal" onclick="event.stopPropagation()">
+          <div class="modal__title">오늘 표를 모두 사용했어요</div>
+          <div class="modal__body">이미 투표한 작품의 <strong style="color: #000; font-weight: 600">투표 취소</strong>로 표를 회수하면 다시 투표할 수 있어요. 표는 매일 3개로 초기화됩니다.</div>
+          <div class="modal__actions">
+            <button class="modal__btn modal__btn--confirm" onclick="closeModal('vote-limit-modal')">확인</button>
           </div>
         </div>
       </div>
@@ -1817,7 +1830,11 @@
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
           </div>
           <div class="modal__title">출품을 취소할까요?</div>
-          <div class="modal__body">지금까지 받은 <strong style="color: #000; font-weight: 600">28표</strong>가 모두 사라지고 순위에서 제외됩니다.</div>
+          <div class="modal__body" style="margin-bottom: 14px">지금까지 받은 <strong style="color: #000; font-weight: 600">28표</strong>가 모두 사라지고 순위에서 제외됩니다.</div>
+          <div style="padding: 10px 12px; background: var(--color-surface); border-radius: 10px; font-size: var(--font-xs); color: rgba(0, 0, 0, 0.55); letter-spacing: -0.1px; line-height: 1.5; margin-bottom: 16px; text-align: left; display: flex; align-items: flex-start; gap: 6px">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,.35)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px"><circle cx="12" cy="12" r="9"></circle><path d="M12 8h.01"></path><path d="M11 12h1v4h1"></path></svg>
+            <div>마감 전(D-3)까지는 <strong style="color: #000; font-weight: 600">다른 사진으로 재출품</strong> 가능하지만, 취소한 사진의 표는 복구되지 않아요.</div>
+          </div>
           <div class="modal__actions">
             <button class="modal__btn modal__btn--cancel" onclick="closeModal('withdraw-modal')">닫기</button>
             <button class="modal__btn modal__btn--confirm" onclick="withdrawEntry()">출품 취소</button>
@@ -1875,35 +1892,35 @@
                 <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 10px">
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,.4)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M8 12l3 3 5-6"></path></svg>
                   <span style="font-size: var(--font-xs); font-weight: 600; color: rgba(0, 0, 0, 0.5); letter-spacing: 0.3px">사진에서 자동 인식</span>
-                  <span style="margin-left: auto; font-size: var(--font-2xs); color: rgba(0, 0, 0, 0.35); letter-spacing: -0.1px">각 항목 탭하여 수정</span>
+                  <span style="margin-left: auto; font-size: var(--font-2xs); color: rgba(0, 0, 0, 0.35); letter-spacing: -0.1px">출품 후 수정 불가</span>
                 </div>
-                <button style="display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 2px; border: none; background: none; text-align: left; cursor: pointer">
+                <div style="display: flex; align-items: center; gap: 10px; padding: 8px 2px">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,.4)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 3"></path></svg>
                   <span style="font-size: var(--font-xs); color: rgba(0, 0, 0, 0.45); letter-spacing: -0.1px; flex: none; width: 44px">시간</span>
                   <span style="font-family: var(--font-family); font-size: var(--font-sm); font-weight: 500; color: #000; letter-spacing: -0.2px; flex: 1">17:42</span>
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,.25)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
-                </button>
+                </div>
                 <div style="height: 0.5px; background: rgba(0, 0, 0, 0.05); margin: 0 -6px"></div>
-                <button style="display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 2px; border: none; background: none; text-align: left; cursor: pointer">
+                <div style="display: flex; align-items: center; gap: 10px; padding: 8px 2px">
                   <img src="https://cdn.jsdelivr.net/npm/@meteocons/svg/fill/clear-day.svg" width="16" height="16" alt="" style="opacity: 0.9" />
                   <span style="font-size: var(--font-xs); color: rgba(0, 0, 0, 0.45); letter-spacing: -0.1px; flex: none; width: 44px">날씨</span>
                   <span style="font-family: var(--font-family); font-size: var(--font-sm); font-weight: 500; color: #000; letter-spacing: -0.2px; flex: 1">맑음</span>
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,.25)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
-                </button>
+                </div>
                 <div style="height: 0.5px; background: rgba(0, 0, 0, 0.05); margin: 0 -6px"></div>
-                <button style="display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 2px; border: none; background: none; text-align: left; cursor: pointer">
+                <div style="display: flex; align-items: center; gap: 10px; padding: 8px 2px">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,.4)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="14" rx="2"></rect><circle cx="12" cy="13" r="4"></circle></svg>
                   <span style="font-size: var(--font-xs); color: rgba(0, 0, 0, 0.45); letter-spacing: -0.1px; flex: none; width: 44px">카메라</span>
                   <span style="font-family: var(--font-family); font-size: var(--font-sm); font-weight: 500; color: #000; letter-spacing: -0.2px; flex: 1">Sony A7IV · 24mm</span>
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,.25)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
-                </button>
+                </div>
                 <div style="height: 0.5px; background: rgba(0, 0, 0, 0.05); margin: 0 -6px"></div>
-                <button style="display: flex; align-items: center; gap: 10px; width: 100%; padding: 8px 2px; border: none; background: none; text-align: left; cursor: pointer">
+                <div style="display: flex; align-items: center; gap: 10px; padding: 8px 2px">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-accent)"><circle cx="12" cy="10" r="3"></circle><path d="M12 21s-7-7.5-7-11a7 7 0 0 1 14 0c0 3.5-7 11-7 11z"></path></svg>
                   <span style="font-size: var(--font-xs); color: rgba(0, 0, 0, 0.45); letter-spacing: -0.1px; flex: none; width: 44px">위치</span>
                   <span style="font-family: var(--font-family); font-size: var(--font-sm); font-weight: 500; color: #000; letter-spacing: -0.2px; flex: 1">서울 종로 세운상가</span>
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="rgba(0,0,0,.25)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
-                </button>
+                </div>
               </div>
             </div>
 
@@ -2006,14 +2023,36 @@
         });
       }
 
+      /* ── 출품작 데이터 (라이트박스가 순위별로 이 값을 렌더한다) ── */
+      const ENTRIES = {
+        1: { user: '@sunset_jk', initials: 'JK', avatar: 'linear-gradient(135deg, #2c5364, #4a7c8a)', place: '광안리 · 새벽 5:30', votes: 67, caption: '"새벽 5시, 광안대교 위로 떠오르는 태양 — 세상에서 제일 긴 하루의 시작"', photo: 'linear-gradient(to bottom, #1a1530, #b44a3a, #f0c89a)' },
+        2: { user: '@minsoo', initials: 'MS', avatar: 'linear-gradient(135deg, #0f2027, #203a43)', place: '동해 어달항 · 겨울 새벽 바다', votes: 42, caption: '"영하 8도, 손이 얼어붙는데도 셔터를 놓을 수 없었던 하늘"', photo: 'linear-gradient(to bottom, #0f2027, #203a43, #e8a87c)' },
+        3: { user: '@yujin', initials: 'YJ', avatar: 'linear-gradient(135deg, #2d1b4e, #8b4a6b)', place: '경복궁 · 야경', votes: 31, caption: '"근정전 처마 끝에 걸린 노을, 600년째 같은 자리"', photo: 'linear-gradient(to bottom, #1a1530, #8b4a6b)' },
+        4: { user: '@dongho_', initials: 'DH', avatar: 'linear-gradient(135deg, #232526, #8e7b5a)', place: '서울 종로 세운상가', votes: 28, caption: '"도심 속 황금빛 노을, 빌딩 사이로 스며드는 빛"', photo: 'linear-gradient(to bottom, #232526, #8e7b5a)' },
+        5: { user: '@forestday', initials: 'FD', avatar: 'linear-gradient(135deg, #0a1a0f, #4a8060)', place: '축령산 · 아침 6:20', votes: 24, caption: '"안개가 걷히는 5분, 숲이 가장 밝아지는 순간"', photo: 'linear-gradient(to bottom, #0a1a0f, #4a8060)' },
+        6: { user: '@nightowl', initials: 'NO', avatar: 'linear-gradient(135deg, #020010, #1a1545)', place: '영월 별마로천문대', votes: 19, caption: '"달 없는 밤에만 보이는 은하수 — 노출 25초"', photo: 'linear-gradient(to bottom, #020010, #1a1545)' },
+        7: { user: '@rainy.frame', initials: 'RF', avatar: 'linear-gradient(135deg, #1a1530, #b44a3a)', place: '제주 사려니숲 · 비 온 뒤', votes: 15, caption: '"비 그친 직후 30분, 빛이 물기에 한 번 더 부서진다"', photo: 'linear-gradient(to bottom, #1a1530, #b44a3a, #f0c89a)' },
+      };
+
       /* ── 라이트박스 ── */
+      const MAX_VOTES = 3;
+
       function openLightbox(rank) {
         const lb = document.getElementById('contest-lightbox');
+        const e = ENTRIES[rank];
         lb.dataset.rank = rank;
         lb.querySelector('.rank-badge').textContent = rank;
         lb.querySelector('.lightbox__rank-num').textContent = rank;
+        // 순위 뱃지만 갈아끼우면 7위 출품작이 1위의 작성자·표수를 그대로 보여준다
+        lb.querySelector('.lightbox__photo').style.background = e.photo;
+        lb.querySelector('.lightbox__avatar').style.background = e.avatar;
+        lb.querySelector('.lightbox__avatar').textContent = e.initials;
+        lb.querySelector('.lightbox__user').textContent = e.user;
+        lb.querySelector('.lightbox__place').textContent = e.place;
+        lb.querySelector('.lightbox__votes').textContent = e.votes + '표';
+        lb.querySelector('.lightbox__caption').textContent = e.caption;
         // 투표는 출품작 단위 — 다른 출품작을 열면 투표됨 상태가 따라오면 안 된다
-        lb.classList.toggle('is-voted', votedRank === Number(rank));
+        lb.classList.toggle('is-voted', votedRanks.has(Number(rank)));
         lb.classList.add('is-open');
       }
       function closeLightbox() {
@@ -2021,28 +2060,44 @@
       }
 
       /* ── 투표 ── */
-      let remainingVotes = 3;
-      let votedRank = null; // 투표한 출품작의 랭크. null이면 미투표
+      // 표는 3개이고 서로 다른 출품작에 나눠 줄 수 있다 → 스칼라 하나로는 표현할 수 없다
+      const votedRanks = new Set();
+      let remainingVotes = MAX_VOTES;
+      let pendingUndoRank = null; // 스낵바가 가리키는 표. 연타해도 이 표 하나만 되돌린다
 
+      function currentRank() {
+        return Number(document.getElementById('contest-lightbox').dataset.rank);
+      }
       function requestVote() {
-        const voted = document.getElementById('contest-lightbox').classList.contains('is-voted');
-        openModal(voted ? 'vote-cancel-modal' : 'vote-confirm-modal');
+        if (votedRanks.has(currentRank())) {
+          openModal('vote-cancel-modal');
+          return;
+        }
+        // 표를 다 쓴 뒤에도 확인 모달을 열면 remainingVotes가 음수가 된다
+        openModal(remainingVotes > 0 ? 'vote-confirm-modal' : 'vote-limit-modal');
       }
       function castVote() {
-        const lb = document.getElementById('contest-lightbox');
         closeModal('vote-confirm-modal');
-        lb.classList.add('is-voted');
-        votedRank = Number(lb.dataset.rank);
+        if (remainingVotes <= 0) return;
+        const rank = currentRank();
+        document.getElementById('contest-lightbox').classList.add('is-voted');
+        votedRanks.add(rank);
+        pendingUndoRank = rank;
         remainingVotes -= 1;
         renderRemainingVotes();
         showToast('vote-toast');
       }
-      function undoVote() {
-        if (votedRank === null) return; // 스낵바 되돌리기 연타 시 remainingVotes가 3을 넘는 것 방지
+      // 인자 없이 부르면 스낵바가 가리키는 표를, 인자를 주면 그 출품작의 표를 되돌린다
+      function undoVote(rank) {
+        if (rank === undefined) rank = pendingUndoRank;
+        if (rank === null || !votedRanks.has(rank)) return; // 되돌리기 연타로 남의 표까지 회수되는 것 방지
         closeModal('vote-cancel-modal');
         document.getElementById('vote-toast').classList.remove('is-open');
-        document.getElementById('contest-lightbox').classList.remove('is-voted');
-        votedRank = null;
+        votedRanks.delete(rank);
+        if (rank === pendingUndoRank) pendingUndoRank = null;
+        if (currentRank() === rank) {
+          document.getElementById('contest-lightbox').classList.remove('is-voted');
+        }
         remainingVotes += 1;
         renderRemainingVotes();
       }

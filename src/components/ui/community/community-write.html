@@ -284,6 +284,8 @@
         justify-content: center;
         flex-shrink: 0;
       }
+      .pick-row__check { flex-shrink: 0; color: var(--color-accent); display: flex; }
+      .pick-row:not(.is-selected) .pick-row__check { display: none; }
       .pick-row.is-selected .pick-row__icon {
         background: rgba(227, 27, 89, 0.1);
         color: var(--color-accent);
@@ -434,7 +436,7 @@
           <div style="padding: 16px 0 20px">
             <div style="display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 10px">
               <span class="compose-section__label">카테고리</span>
-              <span class="compose-section__hint">다중 선택</span>
+              <span class="compose-section__hint">다중 선택 · <span id="category-count">2</span>개 선택됨</span>
             </div>
             <div style="display: flex; flex-wrap: wrap; gap: 6px">
               <button class="chip" onclick="toggleCategory(this)">역사/전통<span class="chip__count">1,383</span></button>
@@ -446,6 +448,7 @@
               <button class="chip is-selected" onclick="toggleCategory(this)">일출/일몰<span class="chip__count">206</span></button>
               <button class="chip" onclick="toggleCategory(this)">꽃<span class="chip__count">183</span></button>
             </div>
+            <div style="margin-top: 10px; font-size: var(--font-xs); color: rgba(0, 0, 0, 0.4); letter-spacing: -0.15px">선택한 카테고리는 스팟 검색·필터에 사용됩니다.</div>
           </div>
         </div>
       </div>
@@ -470,7 +473,7 @@
               <div class="pick-row__name">광안리 해수욕장</div>
               <div class="pick-row__meta">부산 수영구 광안해변로 219 · 42m</div>
             </div>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-accent)"><path d="M5 12l5 5 10-10"></path></svg>
+            <span class="pick-row__check"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 10-10"></path></svg></span>
           </button>
           <button class="pick-row" onclick="selectLocation('광안대교', '부산 수영구 민락수변공원')">
             <div class="pick-row__icon">
@@ -480,6 +483,7 @@
               <div class="pick-row__name">광안대교</div>
               <div class="pick-row__meta">부산 수영구 민락수변공원 · 180m</div>
             </div>
+          <span class="pick-row__check"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 10-10"></path></svg></span>
           </button>
           <button class="pick-row" onclick="selectLocation('민락수변공원', '부산 수영구 광안해변로 187')">
             <div class="pick-row__icon">
@@ -489,6 +493,7 @@
               <div class="pick-row__name">민락수변공원</div>
               <div class="pick-row__meta">부산 수영구 광안해변로 187 · 320m</div>
             </div>
+          <span class="pick-row__check"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 10-10"></path></svg></span>
           </button>
 
           <div class="sheet__label">최근 검색</div>
@@ -500,6 +505,7 @@
               <div class="pick-row__name">경복궁 야간개장</div>
               <div class="pick-row__meta">서울 종로구 사직로 161</div>
             </div>
+          <span class="pick-row__check"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 10-10"></path></svg></span>
           </button>
 
           <button class="sheet__cta" onclick="closeSheet('location-sheet')">확인</button>
@@ -554,6 +560,8 @@
       /* ── 카테고리 다중 선택 ── */
       function toggleCategory(btn) {
         btn.classList.toggle('is-selected');
+        document.getElementById('category-count').textContent =
+          document.querySelectorAll('.chip.is-selected').length;
       }
 
       /* ── 위치 선택 ── */
@@ -597,6 +605,11 @@
       function applyGear(name) {
         const rowId = gearKind === 'camera' ? 'row-camera' : 'row-lens';
         document.querySelector('#' + rowId + ' .meta-tile__value').textContent = name;
+        // 보조 라인(풀프레임 / f/2.8)은 원래 사진에서 읽은 값 — 직접 고른 장비에는 해당하지 않는다
+        document.querySelector('#' + rowId + ' .meta-tile__sub').textContent = '직접 입력';
+        document.querySelectorAll('#gear-sheet [data-gear-kind="' + gearKind + '"] .chip').forEach((c) => {
+          c.classList.toggle('is-selected', c.textContent.trim() === name);
+        });
       }
     </script>
   </body>
