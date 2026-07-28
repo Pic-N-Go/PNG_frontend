@@ -5,6 +5,7 @@ import Chip from '@/components/common/Chip';
 import StarRating from '@/components/common/StarRating';
 import InitialAvatar from '@/components/common/InitialAvatar';
 import BottomSheet from '@/components/common/BottomSheet';
+import PhotoLightbox from '@/components/spot/PhotoLightbox';
 import { useDeleteReview, useSpotReviews } from '@/hooks/useSpot';
 import { useAuthStore } from '@/store/useAuthStore';
 import { SORT_TO_API } from '@/utils/spotMappers';
@@ -42,6 +43,7 @@ export default function ReviewTab({ spotId, onWriteReview, onEditReview }: Props
 
   const myUserId = useAuthStore((s) => s.user?.id);
   const [menuTarget, setMenuTarget] = useState<Review | null>(null);
+  const [lightbox, setLightbox] = useState<{ photos: string[]; index: number } | null>(null);
   const deleteReview = useDeleteReview(spotId);
 
   const summary = data?.summary ?? EMPTY_SUMMARY;
@@ -176,8 +178,10 @@ export default function ReviewTab({ spotId, onWriteReview, onEditReview }: Props
                   contentContainerStyle={{ gap: normalize(6) }}
                   style={{ marginBottom: normalize(10) }}
                 >
-                  {review.photos.map((uri) => (
-                    <Image key={uri} source={{ uri }} resizeMode="cover" style={{ width: normalize(68), height: normalize(68), borderRadius: normalize(10), backgroundColor: '#E5E5EA' }} />
+                  {review.photos.map((uri, photoIdx) => (
+                    <Pressable key={uri} onPress={() => setLightbox({ photos: review.photos ?? [], index: photoIdx })}>
+                      <Image source={{ uri }} resizeMode="cover" style={{ width: normalize(68), height: normalize(68), borderRadius: normalize(10), backgroundColor: '#E5E5EA' }} />
+                    </Pressable>
                   ))}
                 </ScrollView>
               ) : review.photoColors && review.photoColors.length > 0 ? (
@@ -278,6 +282,13 @@ export default function ReviewTab({ spotId, onWriteReview, onEditReview }: Props
           </Pressable>
         </View>
       </BottomSheet>
+
+      <PhotoLightbox
+        photos={lightbox?.photos ?? []}
+        initialIndex={lightbox?.index ?? 0}
+        visible={lightbox !== null}
+        onClose={() => setLightbox(null)}
+      />
     </View>
   );
 }
