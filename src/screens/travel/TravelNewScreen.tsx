@@ -185,7 +185,12 @@ export default function TravelNewScreen() {
     },
   });
 
+  // 코스 생성은 createCourse → syncSpots 두 번의 왕복이라 응답까지 시간이 걸린다.
+  // 그 사이 저장 버튼이 계속 눌리면 누른 횟수만큼 코스가 생성되므로 진행 중에는 막는다.
+  const isSaving = createCourseMutation.isPending || updateCourseMutation.isPending;
+
   const handleSave = () => {
+    if (isSaving) return;
     if (!startDate || !endDate || !tripName.trim()) {
       showToast('이름과 날짜를 모두 입력해주세요.');
       return;
@@ -513,12 +518,14 @@ export default function TravelNewScreen() {
             <Text className="font-medium text-black" style={{ fontSize: normalizeFontSize(16) }}>이 날 삭제</Text>
           </TouchableOpacity>
         )}
-        <TouchableOpacity 
-          disabled={!tripName}
+        <TouchableOpacity
+          disabled={!tripName || isSaving}
           onPress={handleSave}
-          className={`flex-1 h-[52px] rounded-full items-center justify-center ${tripName ? 'bg-[#e31b59]' : 'bg-[#f5f5f7]'}`}
+          className={`flex-1 h-[52px] rounded-full items-center justify-center ${tripName && !isSaving ? 'bg-[#e31b59]' : 'bg-[#f5f5f7]'}`}
         >
-          <Text className={`font-medium ${tripName ? 'text-white' : 'text-black/25'}`} style={{ fontSize: normalizeFontSize(16) }}>저장하기</Text>
+          <Text className={`font-medium ${tripName && !isSaving ? 'text-white' : 'text-black/25'}`} style={{ fontSize: normalizeFontSize(16) }}>
+            {isSaving ? '저장 중...' : '저장하기'}
+          </Text>
         </TouchableOpacity>
       </View>
 
