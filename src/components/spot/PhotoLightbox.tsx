@@ -44,7 +44,7 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose }
         <Image
           source={{ uri }}
           resizeMode="contain"
-          // presigned URL 만료(현재 10분) 시 조용히 빈 화면이 되므로 원인을 남긴다.
+          // presigned URL 만료(환경 설정값, 로컬 60분) 시 조용히 빈 화면이 되므로 원인을 남긴다.
           onError={(e) => __DEV__ && console.warn('[lightbox] 이미지 로드 실패:', e.nativeEvent, uri.slice(0, 90))}
           style={{ width: SCREEN_WIDTH, height: IMAGE_HEIGHT }}
         />

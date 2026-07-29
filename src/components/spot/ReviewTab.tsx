@@ -1,23 +1,22 @@
 import React, { useState } from 'react';
 import { ActivityIndicator, Alert, Image, Pressable, ScrollView, Text, View } from 'react-native';
-import { IconCamera, IconDotsVertical, IconEdit, IconTrash } from '@tabler/icons-react-native';
+import { IconCamera, IconEdit } from '@tabler/icons-react-native';
 import Chip from '@/components/common/Chip';
 import StarRating from '@/components/common/StarRating';
 import InitialAvatar from '@/components/common/InitialAvatar';
-import BottomSheet from '@/components/common/BottomSheet';
 import PhotoLightbox from '@/components/spot/PhotoLightbox';
+import ReviewActionSheet from '@/components/spot/ReviewActionSheet';
+import ReviewMenuButton from '@/components/spot/ReviewMenuButton';
 import { useDeleteReview, useSpotReviews } from '@/hooks/useSpot';
 import { useAuthStore } from '@/store/useAuthStore';
 import { SORT_TO_API } from '@/utils/spotMappers';
-import { BUTTON_HEIGHT, BUTTON_RADIUS, FONT_2XS, FONT_LG, FONT_MD, FONT_SM, FONT_XS, GRID_PADDING } from '@/constants/layout';
+import { BUTTON_HEIGHT, BUTTON_RADIUS, FONT_2XS, FONT_MD, FONT_SM, FONT_XS, GRID_PADDING } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import type { ReviewEditSeed } from '@/navigation/stacks/SpotStack';
 import type { Review, ReviewSortOption, ReviewSummaryData } from '@/types/spot';
 
 // 아이콘 회색은 불투명 값으로 고정한다. rgba로 두면 획이 교차하는 지점에서 알파가 두 번
 // 합성돼 그 점만 진해진다(ReviewWriteScreen과 동일 처리). 값은 흰 배경 위 등가 명도.
-const ICON_SHEET = '#808080'; // 기존 rgba(0,0,0,0.5)
-const ICON_MID = '#A6A6A6';   // 기존 rgba(0,0,0,0.35)
 const ICON_WEAK = '#B3B3B3';  // 기존 rgba(0,0,0,0.3)
 
 const SORT_OPTIONS: ReviewSortOption[] = ['최신순', '별점 높은순', '별점 낮은순'];
@@ -155,16 +154,7 @@ export default function ReviewTab({ spotId, onWriteReview, onEditReview }: Props
                 </View>
                 {/* 본인 리뷰에만 노출. 서버도 소유자를 검증하므로 이건 진입점 숨김이지 보안 장치가 아니다. */}
                 {myUserId !== undefined && review.userId === myUserId && (
-                  <Pressable
-                    onPress={() => setMenuTarget(review)}
-                    hitSlop={8}
-                    accessibilityRole="button"
-                    accessibilityLabel="내 리뷰 관리"
-                    className="items-center justify-center"
-                    style={{ width: normalize(28), height: normalize(28) }}
-                  >
-                    <IconDotsVertical size={normalize(18)} color={ICON_MID} strokeWidth={2} />
-                  </Pressable>
+                  <ReviewMenuButton onPress={() => setMenuTarget(review)} />
                 )}
               </View>
 
@@ -181,9 +171,12 @@ export default function ReviewTab({ spotId, onWriteReview, onEditReview }: Props
                   contentContainerStyle={{ gap: normalize(6) }}
                   style={{ marginBottom: normalize(10) }}
                 >
-                  {review.photos.map((uri, photoIdx) => (
-                    <Pressable key={uri} onPress={() => setLightbox({ photos: review.photos ?? [], index: photoIdx })}>
-                      <Image source={{ uri }} resizeMode="cover" style={{ width: normalize(68), height: normalize(68), borderRadius: normalize(10), backgroundColor: '#E5E5EA' }} />
+                  {review.photos.map((photo, photoIdx) => (
+                    <Pressable
+                      key={photo.photoId}
+                      onPress={() => setLightbox({ photos: (review.photos ?? []).map((p) => p.url), index: photoIdx })}
+                    >
+                      <Image source={{ uri: photo.url }} resizeMode="cover" style={{ width: normalize(68), height: normalize(68), borderRadius: normalize(10), backgroundColor: '#E5E5EA' }} />
                     </Pressable>
                   ))}
                 </ScrollView>
@@ -235,50 +228,25 @@ export default function ReviewTab({ spotId, onWriteReview, onEditReview }: Props
         </Pressable>
       </View>
 
-      {/* OptionSheet는 "N개 중 하나 고르기"용이라(선택 항목에 체크 표시, selected 필수) 액션 메뉴엔 맞지 않다.
-          호출자가 이 화면뿐이라 공통 컴포넌트로 빼지 않고 BottomSheet에 항목 두 개만 얹는다. */}
-      <BottomSheet visible={menuTarget !== null} onClose={() => setMenuTarget(null)}>
-        {/* 제목 + 아이콘 행 구조는 ShareSheet와 동일하게 맞췄다(gap 12, paddingVertical 14, 라벨 14px).
-            제목은 다른 시트들이 쓰는 18px 대신 FONT_LG(17) — 18은 폰트 토큰 밖이다. */}
-        <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(16), paddingBottom: normalize(12) }}>
-          <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_LG, color: '#000', letterSpacing: -0.35 }}>
-            내 리뷰
-          </Text>
-        </View>
-        <View style={{ paddingHorizontal: GRID_PADDING, paddingBottom: normalize(12) }}>
-          <Pressable
-            onPress={() => {
-              const target = menuTarget;
-              setMenuTarget(null);
-              if (target) {
-                onEditReview({
-                  reviewId: Number(target.id),
-                  rating: target.rating,
-                  content: target.text,
-                  timePeriod: target.timePeriod,
-                  visitedAt: target.visitedAtISO,
-                  equipmentInfo: target.equipment ?? null,
-                });
-              }
-            }}
-            style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(12), paddingVertical: normalize(14) }}
-          >
-            <IconEdit size={normalize(20)} color={ICON_SHEET} strokeWidth={2} />
-            <Text allowFontScaling={false} style={{ flex: 1, fontSize: normalizeFontSize(14), color: '#000', letterSpacing: -0.15 }}>
-              수정하기
-            </Text>
-          </Pressable>
-          <Pressable
-            onPress={() => menuTarget && confirmDelete(menuTarget)}
-            style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(12), paddingVertical: normalize(14) }}
-          >
-            <IconTrash size={normalize(20)} color="#ff453a" strokeWidth={2} />
-            <Text allowFontScaling={false} style={{ flex: 1, fontSize: normalizeFontSize(14), color: '#ff453a', letterSpacing: -0.15 }}>
-              삭제하기
-            </Text>
-          </Pressable>
-        </View>
-      </BottomSheet>
+      <ReviewActionSheet
+        visible={menuTarget !== null}
+        onClose={() => setMenuTarget(null)}
+        onEdit={() => {
+          const target = menuTarget;
+          setMenuTarget(null);
+          if (!target) return;
+          onEditReview({
+            reviewId: Number(target.id),
+            rating: target.rating,
+            content: target.text,
+            timePeriod: target.timePeriod,
+            visitedAt: target.visitedAtISO,
+            equipmentInfo: target.equipment ?? null,
+            photos: target.photos ?? [],
+          });
+        }}
+        onDelete={() => menuTarget && confirmDelete(menuTarget)}
+      />
 
       <PhotoLightbox
         photos={lightbox?.photos ?? []}

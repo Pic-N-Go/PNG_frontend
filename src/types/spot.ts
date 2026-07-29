@@ -132,8 +132,8 @@ export interface Review {
   visitedAtISO: string | null;
   date: string;
   text: string;
-  /** 리뷰 사진 URL 목록 (presigned). 없으면 사진 영역을 그리지 않는다. */
-  photos?: string[];
+  /** 리뷰 사진. 없으면 사진 영역을 그리지 않는다. */
+  photos?: ReviewPhotoDTO[];
   equipment?: string;
 }
 
@@ -177,6 +177,15 @@ export interface BookmarkCollectionDTO {
 
 /** 촬영 시간대. 백엔드 TimePeriod enum과 1:1 (낮은 DAY가 아니라 DAYTIME) */
 export type TimePeriodApi = 'SUNRISE' | 'DAYTIME' | 'SUNSET' | 'NIGHT';
+
+/**
+ * 리뷰 사진. url은 presigned라 요청마다 서명이 바뀌므로 식별자로 쓸 수 없다.
+ * 삭제 대상 지정은 photoId로 한다(DELETE /reviews/{id}/photos/{photoId}).
+ */
+export interface ReviewPhotoDTO {
+  photoId: number;
+  url: string;
+}
 export type ReviewSortApi = 'LATEST' | 'RATING_HIGH' | 'RATING_LOW';
 
 // 실데이터상 각 필드는 null·빈문자열·HTML(usetime)이 섞여 옴 → 전부 nullable
@@ -218,7 +227,7 @@ export interface ReviewDTO {
   timePeriod: TimePeriodApi | null;
   content: string;
   equipmentInfo: string | null;
-  photos: string[];
+  photos: ReviewPhotoDTO[];
   visitedAt: string | null;
   createdAt: string;
 }
@@ -244,7 +253,7 @@ export interface ReviewResponseDTO {
   content: string;
   equipmentInfo: string | null;
   timePeriod: TimePeriodApi | null;
-  photos: string[];
+  photos: ReviewPhotoDTO[];
   visitedAt: string | null;
   createdAt: string;
 }
@@ -266,7 +275,7 @@ export interface MyReviewDTO {
   equipmentInfo: string | null;
   timePeriod: TimePeriodApi | null;
   /** presigned URL. 만료가 짧아 캐싱·영구 저장하지 않는다 */
-  photos: string[];
+  photos: ReviewPhotoDTO[];
   visitedAt: string | null;
   createdAt: string;
 }
@@ -286,9 +295,12 @@ export interface MyReview {
   rating: number;
   /** 시간대 라벨(일출/낮/일몰/야간). null이면 배지 미표시 */
   badge?: string;
+  /** 수정 폼 프리필용 원본값. badge·date는 표시용으로 가공돼 역산이 불가능하다. */
+  timePeriod: TimePeriodApi | null;
+  visitedAtISO: string | null;
   date: string;
   text: string;
-  photos: string[];
+  photos: ReviewPhotoDTO[];
   equipment?: string;
 }
 

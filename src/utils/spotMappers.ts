@@ -205,6 +205,8 @@ export function mapMyReview(dto: MyReviewDTO): MyReview {
     spotName: dto.spotName,
     rating: dto.rating,
     badge: dto.timePeriod ? TIME_PERIOD_LABEL[dto.timePeriod] : undefined,
+    timePeriod: dto.timePeriod,
+    visitedAtISO: dto.visitedAt,
     // visitedAt이 없으면 작성일로 대체. 초 뒤 소수점이 붙을 수 있어 앞 10자만 사용한다.
     date: (dto.visitedAt || dto.createdAt).slice(0, 10).replace(/-/g, '.'),
     text: dto.content,
@@ -291,6 +293,12 @@ if (__DEV__) {
   console.assert(mapReview({ ...base, timePeriod: 'DAYTIME' }).badge === '낮', 'timePeriod DAYTIME 라벨 오류');
   console.assert(mapReview({ ...base, timePeriod: null }).badge === undefined, 'timePeriod null 배지 오류');
   console.assert(mapReview({ ...base, timePeriod: null }).date === '2026.06.15', 'date 포맷 오류');
+  // 사진이 없을 때 undefined여야 카드가 사진 영역을 그리지 않는다. photoId는 삭제 대상 지정에 쓰여 유실되면 안 된다.
+  console.assert(mapReview({ ...base, timePeriod: null }).photos === undefined, '사진 없음 처리 오류');
+  console.assert(
+    mapReview({ ...base, timePeriod: null, photos: [{ photoId: 7, url: 'https://x/a.jpg' }] }).photos?.[0].photoId === 7,
+    'photoId 매핑 오류',
+  );
   // Review.avatarUrl은 optional 계약이라 null이 새어나가면 안 된다(타입만으로는 런타임 값을 못 막음).
   console.assert(mapReview({ ...base, timePeriod: null }).avatarUrl === undefined, 'profileImageUrl null 처리 오류');
   console.assert(mapReview({ ...base, timePeriod: null, profileImageUrl: '' }).avatarUrl === undefined, '빈 문자열 처리 오류');

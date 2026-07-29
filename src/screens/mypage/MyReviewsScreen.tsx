@@ -4,25 +4,55 @@ import {
   ActivityIndicator, Image,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { IconChevronLeft, IconTrash } from '@tabler/icons-react-native';
+import { IconChevronLeft } from '@tabler/icons-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { BUTTON_HEIGHT, BUTTON_RADIUS, FONT_XS, FONT_SM, FONT_MD } from '@/constants/layout';
 import Toast from '@/components/auth/Toast';
+import type { RootStackParamList } from '@/navigation';
+import ReviewActionSheet from '@/components/spot/ReviewActionSheet';
+import ReviewMenuButton from '@/components/spot/ReviewMenuButton';
 import { useDeleteReview, useMyReviews } from '@/hooks/useSpot';
+import { useAuthStore } from '@/store/useAuthStore';
 import type { MyReview } from '@/types/spot';
 
 export default function MyReviewsScreen() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const insets = useSafeAreaInsets();
   const { data, isLoading, isError, hasNextPage, fetchNextPage, isFetchingNextPage } = useMyReviews();
   const deleteReview = useDeleteReview();
+  // 토큰이 없으면 쿼리가 enabled:false로 아예 실행되지 않는다. 그때 isLoading도 false여서
+  // 빈 배열이 되는데, 이를 "리뷰 없음"으로 표시하면 조회 실패를 데이터 없음으로 오인시킨다.
+  const isLoggedOut = useAuthStore((st) => !st.accessToken);
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+  const [menuTarget, setMenuTarget] = useState<MyReview | null>(null);
 
   const reviews = data ?? [];
 
+  // 수정 화면은 SpotStack 소속이라 루트를 경유해 이동한다(navigation/index.tsx의 딥링크 처리와 같은 방식).
+  const goEdit = (review: MyReview) => {
+    setMenuTarget(null);
+    navigation.navigate('SpotStack', {
+      screen: 'ReviewWrite',
+      params: {
+        spotId: String(review.spotId),
+        edit: {
+          reviewId: review.reviewId,
+          rating: review.rating,
+          content: review.text,
+          timePeriod: review.timePeriod,
+          visitedAt: review.visitedAtISO,
+          equipmentInfo: review.equipment ?? null,
+          photos: review.photos,
+        },
+      },
+    });
+  };
+
   const handleDelete = (review: MyReview) => {
+    setMenuTarget(null);
     Alert.alert('리뷰 삭제', '삭제한 리뷰는 되돌릴 수 없어요. 첨부한 사진도 함께 삭제돼요.', [
       { text: '취소', style: 'cancel' },
       {
@@ -73,7 +103,11 @@ export default function MyReviewsScreen() {
         showsVerticalScrollIndicator={false} 
         contentContainerStyle={styles.listContainer}
       >
-        {isLoading ? (
+        {isLoggedOut ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>로그인이 필요해요</Text>
+          </View>
+        ) : isLoading ? (
           <View style={styles.emptyContainer}>
             <ActivityIndicator color="#E31B59" />
           </View>
@@ -102,15 +136,7 @@ export default function MyReviewsScreen() {
                       <Text style={styles.dateText}>{review.date}</Text>
                     </View>
                   </View>
-                  <TouchableOpacity
-                    style={styles.delBtn}
-                    onPress={() => handleDelete(review)}
-                    activeOpacity={0.7}
-                    accessibilityRole="button"
-                    accessibilityLabel="리뷰 삭제"
-                  >
-                    <IconTrash size={normalize(16)} color="#ff453a" />
-                  </TouchableOpacity>
+                  <ReviewMenuButton onPress={() => setMenuTarget(review)} />
                 </View>
 
                 <Text style={styles.reviewText} numberOfLines={2}>
@@ -119,8 +145,8 @@ export default function MyReviewsScreen() {
 
                 {review.photos.length > 0 && (
                   <View style={styles.photosRow}>
-                    {review.photos.map((uri) => (
-                      <Image key={uri} source={{ uri }} resizeMode="cover" style={styles.photoThumb} />
+                    {review.photos.map((photo) => (
+                      <Image key={photo.photoId} source={{ uri: photo.url }} resizeMode="cover" style={styles.photoThumb} />
                     ))}
                   </View>
                 )}
@@ -144,6 +170,13 @@ export default function MyReviewsScreen() {
           </>
         )}
       </ScrollView>
+
+      <ReviewActionSheet
+        visible={menuTarget !== null}
+        onClose={() => setMenuTarget(null)}
+        onEdit={() => menuTarget && goEdit(menuTarget)}
+        onDelete={() => menuTarget && handleDelete(menuTarget)}
+      />
 
       {/* 공통 토스트 */}
       <Toast 
@@ -204,7 +237,6 @@ const styles = StyleSheet.create({
   photosRow: { flexDirection: 'row', gap: normalize(5), marginTop: normalize(4) },
   photoThumb: { width: normalize(52), height: normalize(52), borderRadius: normalize(8) },
 
-  delBtn: { width: normalize(30), height: normalize(30), borderRadius: normalize(15), backgroundColor: 'rgba(255,69,58,0.07)', alignItems: 'center', justifyContent: 'center', marginTop: normalize(2) },
 
   emptyContainer: { paddingVertical: normalize(40), alignItems: 'center' },
   emptyText: { fontSize: FONT_SM, color: 'rgba(0,0,0,0.3)' },

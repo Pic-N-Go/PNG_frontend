@@ -113,7 +113,8 @@ export const spotApi = {
   getReviews: (id: string | number, { sort = 'LATEST', page = 0, size = 20 }: ReviewQuery = {}) =>
     request<ReviewListResponse>(`/spots/${id}/reviews?sort=${sort}&page=${page}&size=${size}`),
 
-  // multipart/form-data — JSON은 `request` 파트, 사진은 `photos` 파트(서버 최대 10장).
+  // multipart/form-data — JSON은 `request` 파트, 사진은 `photos` 파트.
+  // 서버 상한 5장, 초과 시 400 REVIEW_PHOTO_TOO_MANY (스펙 2026-07-29 변경: 10장 → 5장).
   createReview: (id: string | number, body: ReviewCreateRequest, photos: ReviewPhotoUpload[], token: string) => {
     const form = new FormData();
     // @RequestPart("request")가 파트별 Content-Type으로 컨버터를 고른다. RN FormData는 {string, type}

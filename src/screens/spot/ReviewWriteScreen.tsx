@@ -164,7 +164,8 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
   const toggleEquipment = (name: string) =>
     setEquipment((prev) => {
       if (prev.includes(name)) return prev.filter((e) => e !== name);
-      // 서버 @Size(max = 5). 지금은 목록이 4개라 닿지 않지만, 내 장비 조회로 바뀌면 바로 유효해진다.
+      // 서버 @Size(max = 5) + 합쳐서 100자 제한(초과 시 400 REVIEW_EQUIPMENT_INFO_TOO_LONG).
+      // 지금은 목록이 4개·합계 61자라 둘 다 닿지 않지만, 내 장비 조회로 바뀌면 길이도 막아야 한다.
       return prev.length >= MAX_EQUIPMENT ? prev : [...prev, name];
     });
 
@@ -510,10 +511,24 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
           {/* ponytail: 목업의 태그 섹션은 생략. 백엔드가 ReviewRequest.tags를 저장하지 않아(Review 엔티티에 필드 없음)
               지금 붙이면 사용자가 고른 값이 조용히 버려진다. 태그 저장·집계가 생기면 추가. */}
 
-          {/* 수정 모드에선 감춘다. PUT /reviews/{id}는 JSON이라 사진 파트를 받지 못하고
-              ReviewPhoto도 건드리지 않아, 여기서 사진을 고르게 하면 저장되지 않은 채 사라진다.
-              사진 교체는 삭제 후 재작성으로만 가능하다(백엔드 대응 요청 중). */}
-          {!isEdit && (
+          {/* 수정 모드는 읽기 전용. PUT은 JSON이라 사진을 바꿀 수 없어(사진 변경 API는 별도 예정)
+              추가·삭제 없이 기존 사진만 보여준다. 감추면 사진이 사라진 것처럼 보인다. */}
+          {isEdit ? (
+            edit.photos.length > 0 && (
+              <Section label="첨부한 사진" hint="수정할 수 없어요">
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: normalize(8) }}>
+                  {edit.photos.map((photo) => (
+                    <Image
+                      key={photo.photoId}
+                      source={{ uri: photo.url }}
+                      resizeMode="cover"
+                      style={{ width: normalize(72), height: normalize(72), borderRadius: INPUT_RADIUS, backgroundColor: SURFACE }}
+                    />
+                  ))}
+                </ScrollView>
+              </Section>
+            )
+          ) : (
           <Section label="사진 첨부" hint={`최대 ${MAX_PHOTOS}장`}>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: normalize(8) }}>
               {photos.map((photo, idx) => (

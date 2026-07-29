@@ -3,7 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import SpotDetailScreen from '@/screens/spot/SpotDetailScreen';
 import ReviewWriteScreen from '@/screens/spot/ReviewWriteScreen';
 import PhotoDetailScreen from '@/screens/spot/PhotoDetailScreen';
-import type { TimePeriodApi } from '@/types/spot';
+import type { ReviewPhotoDTO, TimePeriodApi } from '@/types/spot';
 
 /** 수정 모드로 진입할 때 넘기는 원본값. 네비게이션 파라미터라 직렬화 가능한 값만 담는다. */
 export interface ReviewEditSeed {
@@ -16,6 +16,8 @@ export interface ReviewEditSeed {
   visitedAt: string | null;
   /** 서버가 ", "로 합쳐 보관하는 값을 그대로 넘긴다. */
   equipmentInfo: string | null;
+  /** 기존 사진. 삭제는 photoId로 지정하므로 url만으로는 부족하다. */
+  photos: ReviewPhotoDTO[];
 }
 
 export type SpotStackParamList = {
