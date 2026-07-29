@@ -16,6 +16,9 @@ import type {
   ReviewSortApi,
   ReviewSortOption,
   ReviewSummaryData,
+  MyReview,
+  MyReviewDTO,
+  MyReviewListResponse,
   SpotDetailInfo,
   SpotDetailResponse,
   TimePeriodApi,
@@ -193,6 +196,25 @@ export function mapReviewSummary(s: ReviewListResponse['summary']): ReviewSummar
     percent: total > 0 ? Math.round(((s.distribution[String(star)] ?? 0) / total) * 100) : 0,
   }));
   return { score: s.avgRating, reviewCount: total, distribution };
+}
+
+export function mapMyReview(dto: MyReviewDTO): MyReview {
+  return {
+    reviewId: dto.reviewId,
+    spotId: dto.spotId,
+    spotName: dto.spotName,
+    rating: dto.rating,
+    badge: dto.timePeriod ? TIME_PERIOD_LABEL[dto.timePeriod] : undefined,
+    // visitedAt이 없으면 작성일로 대체. 초 뒤 소수점이 붙을 수 있어 앞 10자만 사용한다.
+    date: (dto.visitedAt || dto.createdAt).slice(0, 10).replace(/-/g, '.'),
+    text: dto.content,
+    photos: dto.photos,
+    equipment: dto.equipmentInfo ?? undefined,
+  };
+}
+
+export function mapMyReviewPages(data: { pages: MyReviewListResponse[] }): MyReview[] {
+  return data.pages.flatMap((page) => page.content.map(mapMyReview));
 }
 
 /**

@@ -5,7 +5,7 @@ import { ApiError } from '@/api/auth';
 import { spotApi } from '@/api/spot';
 import type { ReviewPhotoUpload } from '@/api/spot';
 import { useAuthStore } from '@/store/useAuthStore';
-import { mapPhotogenicScore, mapReviewPages, mapSpotDetail } from '@/utils/spotMappers';
+import { mapMyReviewPages, mapPhotogenicScore, mapReviewPages, mapSpotDetail } from '@/utils/spotMappers';
 import type { ReviewCreateRequest, ReviewSortApi } from '@/types/spot';
 
 const checklistKey = (id: string) => ['spot', id, 'checklist'] as const;
@@ -74,15 +74,36 @@ export function useUpdateReview(id: string) {
   });
 }
 
-export function useDeleteReview(id: string) {
+/**
+ * 삭제는 스팟 상세와 마이페이지 양쪽에서 호출된다. 어느 스팟의 리뷰인지는 항목마다 달라
+ * 훅 인자가 아니라 mutate 인자로 받고, 내 리뷰 목록까지 함께 무효화한다.
+ */
+export function useDeleteReview() {
   const token = useAuthStore((s) => s.accessToken);
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (reviewId: number) => {
+    mutationFn: ({ reviewId }: { reviewId: number; spotId: string }) => {
       if (!token) return Promise.reject(new ApiError('로그인이 필요합니다.'));
       return spotApi.deleteReview(reviewId, token);
     },
-    onSuccess: () => invalidateReviewCaches(qc, id),
+    onSuccess: (_data, { spotId }) => {
+      invalidateReviewCaches(qc, spotId);
+      qc.invalidateQueries({ queryKey: myReviewsKey });
+    },
+  });
+}
+
+const myReviewsKey = ['users', 'me', 'reviews'] as const;
+
+export function useMyReviews(sort: ReviewSortApi = 'LATEST') {
+  const token = useAuthStore((s) => s.accessToken);
+  return useInfiniteQuery({
+    queryKey: [...myReviewsKey, sort],
+    queryFn: ({ pageParam }) => spotApi.getMyReviews(token as string, { sort, page: pageParam, size: REVIEW_PAGE_SIZE }),
+    initialPageParam: 0,
+    getNextPageParam: (last) => (last.number + 1 < last.totalPages ? last.number + 1 : undefined),
+    enabled: !!token,
+    select: mapMyReviewPages,
   });
 }
 

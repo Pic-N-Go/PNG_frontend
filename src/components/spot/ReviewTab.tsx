@@ -44,7 +44,7 @@ export default function ReviewTab({ spotId, onWriteReview, onEditReview }: Props
   const myUserId = useAuthStore((s) => s.user?.id);
   const [menuTarget, setMenuTarget] = useState<Review | null>(null);
   const [lightbox, setLightbox] = useState<{ photos: string[]; index: number } | null>(null);
-  const deleteReview = useDeleteReview(spotId);
+  const deleteReview = useDeleteReview();
 
   const summary = data?.summary ?? EMPTY_SUMMARY;
   const reviews = data?.reviews ?? [];
@@ -57,7 +57,7 @@ export default function ReviewTab({ spotId, onWriteReview, onEditReview }: Props
         text: '삭제',
         style: 'destructive',
         onPress: () =>
-          deleteReview.mutate(Number(review.id), {
+          deleteReview.mutate({ reviewId: Number(review.id), spotId }, {
             onError: (err) =>
               Alert.alert('삭제 실패', err instanceof Error ? err.message : '잠시 후 다시 시도해 주세요.'),
           }),

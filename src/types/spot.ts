@@ -249,6 +249,49 @@ export interface ReviewResponseDTO {
   createdAt: string;
 }
 
+/**
+ * GET /users/me/reviews 의 항목. 스팟별 리뷰(ReviewDTO)와 필드가 다르다 —
+ * `id`가 아니라 `reviewId`이고, 내 리뷰라 userId·nickname·profileImageUrl이 없다.
+ * 스펙: ~/Desktop/리뷰-API-응답-스펙.md
+ */
+export interface MyReviewDTO {
+  reviewId: number;
+  spotId: number;
+  spotName: string;
+  /** thumbnailUrl → imageUrl 순 폴백. 둘 다 없으면 null → 그라디언트로 대체 */
+  spotImageUrl: string | null;
+  rating: number;
+  content: string;
+  /** 서버에서 ", "로 조인된 단일 문자열 (배열 아님) */
+  equipmentInfo: string | null;
+  timePeriod: TimePeriodApi | null;
+  /** presigned URL. 만료가 짧아 캐싱·영구 저장하지 않는다 */
+  photos: string[];
+  visitedAt: string | null;
+  createdAt: string;
+}
+
+export interface MyReviewListResponse {
+  content: MyReviewDTO[];
+  totalElements: number;
+  totalPages: number;
+  number: number;
+}
+
+/** 내 리뷰 카드 뷰모델. 스팟명이 제목이라 Review와 형태가 다르다. */
+export interface MyReview {
+  reviewId: number;
+  spotId: number;
+  spotName: string;
+  rating: number;
+  /** 시간대 라벨(일출/낮/일몰/야간). null이면 배지 미표시 */
+  badge?: string;
+  date: string;
+  text: string;
+  photos: string[];
+  equipment?: string;
+}
+
 export interface ReviewListResponse {
   summary: {
     avgRating: number;
