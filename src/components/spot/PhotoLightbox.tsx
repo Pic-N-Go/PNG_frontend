@@ -30,11 +30,12 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose }
     if (visible) setIndex(initialIndex);
   }, [visible, initialIndex]);
 
-  if (photos.length === 0) return null;
-  const uri = photos[Math.min(index, photos.length - 1)];
+  // visible로만 판정한다. photos가 비는 순간 Modal을 언마운트하면 fade 종료 애니메이션이 생략된다.
+  if (!visible && photos.length === 0) return null;
+  const uri = photos[Math.min(index, Math.max(photos.length - 1, 0))];
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <Modal visible={visible} transparent animationType="fade" statusBarTranslucent onRequestClose={onClose}>
       <StatusBar barStyle="light-content" />
       <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.94)', alignItems: 'center', justifyContent: 'center' }}>
         {/* 배경을 눌러도 닫히게 — 전체화면에서 X만 유일한 탈출구면 답답하다. */}
@@ -62,6 +63,8 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose }
           <Pressable
             onPress={onClose}
             hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel="닫기"
             style={{
               width: normalize(36),
               height: normalize(36),

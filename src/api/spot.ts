@@ -1,6 +1,6 @@
 // 스팟 상세 관련 API (순수 fetch). 매핑은 hooks/useSpot.ts에서 처리.
 // 스펙: docs/ai/specs/feature/spot-detail-screen/spot-detail-api.md
-import { ApiError } from '@/api/auth';
+import { ApiError, toHttpError } from '@/api/auth';
 import type {
   BookmarkCollectionDTO,
   ChecklistResponse,
@@ -33,21 +33,6 @@ const TIMEOUT_MS = 10_000;
 const UPLOAD_TIMEOUT_MS = 180_000;
 
 type Method = 'GET' | 'POST' | 'PUT' | 'DELETE';
-
-// 상태코드별 사용자 메시지. 서버가 401·413에는 본문을 주지 않아 그대로 두면
-// Alert에 `HTTP 401`이 그대로 찍힌다.
-const MESSAGE_BY_STATUS: Record<number, string> = {
-  401: '로그인이 만료됐어요. 다시 로그인해 주세요.',
-  403: '권한이 없어요. 다시 로그인해 주세요.',
-  413: '사진 용량이 너무 커요. 더 작은 사진으로 시도해 주세요.',
-};
-
-/** 응답 본문의 message를 우선하고, 없으면 상태코드 기반 메시지로 채운다. */
-async function toHttpError(res: Response): Promise<ApiError> {
-  const body = (await res.json().catch(() => ({}))) as { message?: string };
-  const message = body.message ?? MESSAGE_BY_STATUS[res.status] ?? `요청에 실패했어요. (${res.status})`;
-  return new ApiError(message, res.status);
-}
 
 // fetch는 타임아웃(abort)·전송 실패를 'Aborted' / 'Network request failed' 같은 영문으로 던진다.
 // 그대로 Alert에 노출되므로 한국어 메시지로 바꿔서 올린다.

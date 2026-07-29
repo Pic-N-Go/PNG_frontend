@@ -158,6 +158,8 @@ export default function ReviewTab({ spotId, onWriteReview, onEditReview }: Props
                   <Pressable
                     onPress={() => setMenuTarget(review)}
                     hitSlop={8}
+                    accessibilityRole="button"
+                    accessibilityLabel="내 리뷰 관리"
                     className="items-center justify-center"
                     style={{ width: normalize(28), height: normalize(28) }}
                   >
@@ -185,12 +187,6 @@ export default function ReviewTab({ spotId, onWriteReview, onEditReview }: Props
                     </Pressable>
                   ))}
                 </ScrollView>
-              ) : review.photoColors && review.photoColors.length > 0 ? (
-                <View style={{ flexDirection: 'row', gap: normalize(6), marginBottom: normalize(10) }}>
-                  {review.photoColors.map((color, i) => (
-                    <View key={i} style={{ width: normalize(68), height: normalize(68), borderRadius: normalize(10), backgroundColor: color }} />
-                  ))}
-                </View>
               ) : null}
 
               {review.equipment && (

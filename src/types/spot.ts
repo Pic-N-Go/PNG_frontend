@@ -132,9 +132,8 @@ export interface Review {
   visitedAtISO: string | null;
   date: string;
   text: string;
-  /** 리뷰 사진 URL 목록 (API 연동). 없으면 photoColors 플레이스홀더 사용 */
+  /** 리뷰 사진 URL 목록 (presigned). 없으면 사진 영역을 그리지 않는다. */
   photos?: string[];
-  photoColors?: string[];
   equipment?: string;
 }
 

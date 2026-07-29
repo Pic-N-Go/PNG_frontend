@@ -50,6 +50,28 @@ export function toErrorMessage(err: unknown, fallback: string): string {
   return err instanceof ApiError ? err.message : fallback;
 }
 
+/**
+ * 상태코드별 사용자 메시지. Spring Security의 401·403은 필터 단계라 GlobalExceptionHandler에
+ * 도달하지 않고, 413(MaxUploadSizeExceededException)도 핸들러가 없어 본문이 비어 온다.
+ * 그대로 두면 `HTTP 401`이 Alert에 노출된다.
+ */
+const MESSAGE_BY_STATUS: Record<number, string> = {
+  401: '로그인이 만료됐어요. 다시 로그인해 주세요.',
+  403: '권한이 없어요. 다시 로그인해 주세요.',
+  413: '사진 용량이 너무 커요. 더 작은 사진으로 시도해 주세요.',
+};
+
+/**
+ * 실패 응답을 ApiError로 변환한다. 서버가 준 message를 항상 우선하고(백엔드 ErrorResponse의
+ * message는 이미 사용자용 한국어다), 본문이 없을 때만 상태코드 기반 문구로 채운다.
+ * 모든 api 모듈이 이 함수를 공유해 도메인마다 처리가 갈리지 않게 한다.
+ */
+export async function toHttpError(res: Response): Promise<ApiError> {
+  const body = (await res.json().catch(() => ({}))) as { message?: string };
+  const message = body.message ?? MESSAGE_BY_STATUS[res.status] ?? `요청에 실패했어요. (${res.status})`;
+  return new ApiError(message, res.status);
+}
+
 async function post<T>(path: string, body: unknown): Promise<T> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
@@ -60,10 +82,7 @@ async function post<T>(path: string, body: unknown): Promise<T> {
       body: JSON.stringify(body),
       signal: controller.signal,
     });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({})) as { message?: string };
-      throw new ApiError(err.message ?? `HTTP ${res.status}`);
-    }
+    if (!res.ok) throw await toHttpError(res);
     if (res.status === 204) return undefined as T;
     return res.json() as Promise<T>;
   } finally {
@@ -79,10 +98,7 @@ async function get<T>(path: string, accessToken?: string): Promise<T> {
       headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
       signal: controller.signal,
     });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({})) as { message?: string };
-      throw new ApiError(err.message ?? `HTTP ${res.status}`);
-    }
+    if (!res.ok) throw await toHttpError(res);
     return res.json() as Promise<T>;
   } finally {
     clearTimeout(timer);

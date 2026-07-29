@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   View, Text, TextInput, ScrollView, Pressable, Platform, Image,
-  KeyboardAvoidingView, ActivityIndicator, Alert,
+  KeyboardAvoidingView, ActivityIndicator, Alert, Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -43,6 +43,8 @@ const MAX_PHOTOS = 5;
 const MAX_EQUIPMENT = 5;
 // 서버 max-file-size와 동일. 초과분은 업로드 전에 걸러 낸다.
 const MAX_PHOTO_BYTES = 20 * 1024 * 1024;
+// Android는 압축 전 크기만 알 수 있어 한도를 그대로 쓰면 오탐이 난다. 압축률을 감안한 여유 배수.
+const ANDROID_SIZE_SLACK = 3;
 
 const STAR_LABELS = ['선택 안 됨', '별로예요', '아쉬워요', '괜찮아요', '좋아요', '최고예요'];
 
@@ -170,13 +172,38 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
   // 되살리고(ImagePickerConstants.EXIF_TAGS에 포함), iOS도 전사 경로에 따라 남을 수 있어
   // 클라에서 보장할 수 없다. photo-upload-spec.md가 "저장 시 GPS 제거"를 서버 책임으로 규정하고
   // 있으므로 백엔드 ingest에서 처리한다. 그때까지 리뷰 사진에는 촬영 위치가 포함될 수 있다.
+  // 권한 요청·피커 호출 모두 reject할 수 있다(Android는 요청이 겹치면 IllegalStateException,
+  // iOS는 presenting VC를 못 찾으면 예외). 처리하지 않으면 unhandled rejection으로 끝나
+  // 프로덕션에서는 아무 반응도 없다. 재진입 가드까지 둬 더블탭도 막는다.
+  const picking = React.useRef(false);
   const addPhoto = async () => {
-    if (photos.length >= MAX_PHOTOS) return;
+    if (photos.length >= MAX_PHOTOS || picking.current) return;
+    picking.current = true;
+    try {
+      await pickPhotos();
+    } catch (err) {
+      if (__DEV__) console.warn('[picker] 실패:', err);
+      Alert.alert('사진을 불러오지 못했어요', '잠시 후 다시 시도해 주세요.');
+    } finally {
+      picking.current = false;
+    }
+  };
 
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) {
-      Alert.alert('사진 접근 권한 필요', '설정에서 사진 접근을 허용해 주세요.');
-      return;
+  const pickPhotos = async () => {
+    // iOS는 PHPickerViewController가 앱 외부 프로세스로 떠서 권한이 필요 없다(네이티브도 검사하지 않음).
+    // 우리가 물어보면 거부한 사용자가 동작하는 기능에서 영구히 차단되므로 Android에서만 요청한다.
+    if (Platform.OS === 'android') {
+      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permission.granted) {
+        Alert.alert(
+          '사진 접근 권한 필요',
+          '설정에서 사진 접근을 허용해 주세요.',
+          permission.canAskAgain
+            ? [{ text: '확인' }]
+            : [{ text: '취소', style: 'cancel' }, { text: '설정 열기', onPress: () => Linking.openSettings() }],
+        );
+        return;
+      }
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -192,16 +219,17 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
     });
     if (result.canceled) return;
 
-    // iOS의 fileSize는 압축 후 크기지만 Android는 압축 전 원본 크기다(MediaHandler가 source uri를
-    // 조회한다). Android에서 그 값으로 걸러내면 압축하면 통과할 사진을 오탐으로 막으므로,
-    // 실제 전송 크기를 아는 iOS에서만 사전 검증하고 Android는 서버 413 메시지에 맡긴다.
-    const canMeasureOutputSize = Platform.OS === 'ios';
+    // iOS의 fileSize는 압축 후(실제 전송) 크기라 서버 한도를 그대로 적용할 수 있다.
+    // Android는 압축 전 원본 크기라 같은 기준을 쓰면 압축하면 통과할 사진을 오탐으로 막는다.
+    // 서버 413에 맡길 수도 없다 — MaxUploadSizeExceededException 핸들러가 없어 본문 없는 500이 온다.
+    // 그래서 Android에서는 압축률을 감안한 관대한 상한만 둬 명백히 과대한 파일을 걸러낸다.
+    const sizeLimit = Platform.OS === 'ios' ? MAX_PHOTO_BYTES : MAX_PHOTO_BYTES * ANDROID_SIZE_SLACK;
 
     const picked: PickedPhoto[] = [];
     let tooLarge = 0;
     let unsupported = 0;
     result.assets.forEach((asset, idx) => {
-      if (canMeasureOutputSize && asset.fileSize && asset.fileSize > MAX_PHOTO_BYTES) {
+      if (asset.fileSize && asset.fileSize > sizeLimit) {
         tooLarge += 1;
         return;
       }
@@ -221,13 +249,14 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
       });
     });
 
-    if (tooLarge > 0) {
-      Alert.alert('사진 용량 초과', `${tooLarge}장은 20MB를 넘어 제외했어요.`);
+    const skipped: string[] = [];
+    if (tooLarge > 0) skipped.push(`${tooLarge}장은 용량이 너무 커요`);
+    if (unsupported > 0) skipped.push(`${unsupported}장은 지원하지 않는 형식이에요(JPG·PNG·HEIC만 가능)`);
+    if (picked.length === 0) {
+      // 전부 걸러졌으면 여기서 안내하고 끝낸다. 아래 중복 안내와 겹쳐 Alert가 연달아 뜨는 것을 막는다.
+      if (skipped.length > 0) Alert.alert('첨부하지 못한 사진', skipped.join('\n'));
+      return;
     }
-    if (unsupported > 0) {
-      Alert.alert('지원하지 않는 형식', `${unsupported}장은 지원하지 않는 형식이라 제외했어요. JPG, PNG, HEIC만 첨부할 수 있어요.`);
-    }
-    if (picked.length === 0) return;
 
     // setPhotos 업데이터는 dev에서 두 번 호출될 수 있어 카운트를 그 안에서 세지 않는다.
     const seen = new Set(photos.map(identityOf));
@@ -237,9 +266,11 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
       return true;
     });
     const duplicated = picked.length - fresh.length;
+    if (duplicated > 0) skipped.push(`${duplicated}장은 이미 추가되어 있어요`);
 
     if (fresh.length > 0) setPhotos((prev) => [...prev, ...fresh].slice(0, MAX_PHOTOS));
-    if (duplicated > 0) Alert.alert('이미 추가한 사진', `${duplicated}장은 이미 추가되어 있어요.`);
+    // 사유가 여러 개여도 Alert는 하나만 띄운다(iOS에서는 여러 개가 쌓여 연달아 닫아야 한다).
+    if (skipped.length > 0) Alert.alert('첨부하지 못한 사진', skipped.join('\n'));
   };
 
   const removePhoto = (idx: number) => setPhotos((prev) => prev.filter((_, i) => i !== idx));
@@ -346,7 +377,7 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
           <Section label="별점" required>
             <View className="flex-row items-center" style={{ gap: normalize(4) }}>
               {[1, 2, 3, 4, 5].map((value) => (
-                <Pressable key={value} onPress={() => setRating(value)} hitSlop={4} style={{ padding: normalize(4) }}>
+                <Pressable key={value} onPress={() => setRating(value)} hitSlop={4} accessibilityRole="button" accessibilityLabel={`별점 ${value}점`} style={{ padding: normalize(4) }}>
                   {/* 36은 폰트 스케일 토큰 밖이지만 글자가 아니라 아이콘으로 쓰는 별 글리프다(목업 36px). */}
                   <Text
                     allowFontScaling={false}

@@ -1,3 +1,4 @@
+import { toHttpError } from '@/api/auth';
 const BASE = process.env.EXPO_PUBLIC_API_URL ?? '';
 const TIMEOUT_MS = 30_000;
 
@@ -5,17 +6,14 @@ if (__DEV__ && !BASE) {
   console.warn('[notification] EXPO_PUBLIC_API_URL 환경 변수가 설정되지 않았습니다. API 요청이 실패할 수 있습니다.');
 }
 
-export class ApiError extends Error {}
+export { ApiError } from '@/api/auth';
 
 async function fetchWithTimeout(url: string, options: RequestInit) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
   try {
     const res = await fetch(url, { ...options, signal: controller.signal });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({})) as { message?: string };
-      throw new ApiError(err.message ?? `HTTP ${res.status}`);
-    }
+    if (!res.ok) throw await toHttpError(res);
     return res;
   } finally {
     clearTimeout(timer);
