@@ -9,6 +9,7 @@ import type {
   ReviewCreateRequest,
   MyReviewListResponse,
   ReviewListResponse,
+  ReviewPhotoDTO,
   ReviewResponseDTO,
   ReviewSortApi,
   SpotDetailResponse,
@@ -136,6 +137,28 @@ export const spotApi = {
   // 204. 서버가 S3 사진 삭제와 스팟 통계 재계산까지 처리한다.
   deleteReview: (reviewId: number, token: string) =>
     request<void>(`/reviews/${reviewId}`, { method: 'DELETE', token }),
+
+  /**
+   * 사진 추가. 파트 이름은 반드시 `photos`이고, 응답은 추가된 것만이 아니라
+   * 그 리뷰의 **전체** 사진 목록이다 — 받은 값으로 화면을 갈아끼우면 된다.
+   * 상한은 합계 기준(기존 + 신규 > 5 → 400 REVIEW_PHOTO_TOO_MANY).
+   */
+  addReviewPhotos: (reviewId: number, photos: ReviewPhotoUpload[], token: string) => {
+    const form = new FormData();
+    photos.forEach((photo) => form.append('photos', photo as unknown as Blob));
+    return upload<ReviewPhotoDTO[]>(`/reviews/${reviewId}/photos`, form, token);
+  },
+
+  /**
+   * 리뷰 단건. 수정 폼 시드 전용이라 탭한 시점에만 부른다 — 스팟 상세에 리뷰를 심으면
+   * 사진 presigned URL을 스팟 조회마다 서명해야 한다. 본인 리뷰가 아니면 403, 없으면 404.
+   */
+  getReview: (reviewId: number, token: string) =>
+    request<ReviewResponseDTO>(`/reviews/${reviewId}`, { token }),
+
+  // 개별 삭제(204). 다른 리뷰의 photoId는 404 REVIEW_PHOTO_NOT_FOUND로 거부된다.
+  deleteReviewPhoto: (reviewId: number, photoId: number, token: string) =>
+    request<void>(`/reviews/${reviewId}/photos/${photoId}`, { method: 'DELETE', token }),
 
   getChecklist: (id: string | number, token: string) =>
     request<ChecklistResponse>(`/spots/${id}/checklist`, { token }),

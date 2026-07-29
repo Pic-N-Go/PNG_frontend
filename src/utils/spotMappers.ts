@@ -16,6 +16,7 @@ import type {
   ReviewSortApi,
   ReviewSortOption,
   ReviewSummaryData,
+  ReviewTagApi,
   MyReview,
   MyReviewDTO,
   MyReviewListResponse,
@@ -158,6 +159,7 @@ export function mapSpotDetail(dto: SpotDetailResponse): { info: SpotDetailInfo; 
       photoCount: dto.stats.photoCount,
       tags: dto.tags,
       heroPhotoCount: dto.stats.photoCount,
+      myReviewId: dto.myReviewId,
     },
     convenience: mapConvenience(dto.convenience),
   };
@@ -184,6 +186,8 @@ export function mapReview(dto: ReviewDTO): Review {
     visitedAtISO: dto.visitedAt,
     date: formatReviewDate(dto),
     text: dto.content,
+    // 계약상 항상 [] 이상. ?? []는 어긋났을 때 칩 렌더가 터지지 않게 하는 최소 방어.
+    tags: dto.tags ?? [],
     photos: dto.photos.length > 0 ? dto.photos : undefined,
     equipment: dto.equipmentInfo ?? undefined,
   };
@@ -210,6 +214,8 @@ export function mapMyReview(dto: MyReviewDTO): MyReview {
     // visitedAt이 없으면 작성일로 대체. 초 뒤 소수점이 붙을 수 있어 앞 10자만 사용한다.
     date: (dto.visitedAt || dto.createdAt).slice(0, 10).replace(/-/g, '.'),
     text: dto.content,
+    // 계약상 항상 [] 이상. ?? []는 어긋났을 때 칩 렌더가 터지지 않게 하는 최소 방어.
+    tags: dto.tags ?? [],
     photos: dto.photos,
     equipment: dto.equipmentInfo ?? undefined,
   };
@@ -288,13 +294,24 @@ if (__DEV__) {
   const sum = mapReviewSummary({ avgRating: 4, totalCount: 4, distribution: { '5': 1, '4': 1, '3': 2 } });
   console.assert(sum.distribution.find((d) => d.star === 5)?.percent === 25, 'percent 계산 오류');
   console.assert(mapReviewSummary({ avgRating: 0, totalCount: 0, distribution: {} }).distribution[0].percent === 0, 'div-by-zero 처리 오류');
-  const base = { id: 1, userId: 1, nickname: '홍길동', profileImageUrl: null, rating: 5, content: 'x', equipmentInfo: null, photos: [], visitedAt: '2026-06-15', createdAt: '2026-06-16T10:30:00' };
+  const base = { id: 1, userId: 1, nickname: '홍길동', profileImageUrl: null, rating: 5, content: 'x', equipmentInfo: null, tags: [] as ReviewTagApi[], photos: [], visitedAt: '2026-06-15', createdAt: '2026-06-16T10:30:00' };
   console.assert(mapReview({ ...base, timePeriod: 'NIGHT' }).badge === '야간', 'timePeriod 라벨 오류');
   console.assert(mapReview({ ...base, timePeriod: 'DAYTIME' }).badge === '낮', 'timePeriod DAYTIME 라벨 오류');
   console.assert(mapReview({ ...base, timePeriod: null }).badge === undefined, 'timePeriod null 배지 오류');
   console.assert(mapReview({ ...base, timePeriod: null }).date === '2026.06.15', 'date 포맷 오류');
   // 사진이 없을 때 undefined여야 카드가 사진 영역을 그리지 않는다. photoId는 삭제 대상 지정에 쓰여 유실되면 안 된다.
   console.assert(mapReview({ ...base, timePeriod: null }).photos === undefined, '사진 없음 처리 오류');
+  // 수정 폼이 선택 상태를 되살리려면 태그가 유실되지 않아야 한다.
+  console.assert(mapReview({ ...base, timePeriod: null, tags: ['LIGHTING', 'MOODY'] }).tags.length === 2, '태그 매핑 오류');
+  // mapMyReview는 date를 직접 조립한다(mapReview는 formatReviewDate 경유). visitedAt이 없으면
+  // 작성일로 대체하고, createdAt에 붙는 소수점 초를 slice로 잘라낸다 — 둘 다 회귀하기 쉬운 자리다.
+  const myBase = {
+    reviewId: 1, spotId: 7, spotName: '갈산공원', spotImageUrl: null, rating: 4,
+    content: 'x', equipmentInfo: null, timePeriod: null, tags: [] as ReviewTagApi[],
+    photos: [], visitedAt: null, createdAt: '2026-06-16T10:30:00.123456',
+  };
+  console.assert(mapMyReview(myBase).date === '2026.06.16', 'visitedAt 없을 때 작성일 폴백 오류');
+  console.assert(mapMyReview({ ...myBase, visitedAt: '2026-06-15' }).date === '2026.06.15', 'visitedAt 우선 오류');
   console.assert(
     mapReview({ ...base, timePeriod: null, photos: [{ photoId: 7, url: 'https://x/a.jpg' }] }).photos?.[0].photoId === 7,
     'photoId 매핑 오류',

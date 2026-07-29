@@ -7,7 +7,10 @@ import InitialAvatar from '@/components/common/InitialAvatar';
 import PhotoLightbox from '@/components/spot/PhotoLightbox';
 import ReviewActionSheet from '@/components/spot/ReviewActionSheet';
 import ReviewMenuButton from '@/components/spot/ReviewMenuButton';
-import { useDeleteReview, useSpotReviews } from '@/hooks/useSpot';
+import ReviewTagRow from '@/components/spot/ReviewTagRow';
+import { useDeleteReview, useFetchReview, useSpotDetail, useSpotReviews } from '@/hooks/useSpot';
+import { ApiError } from '@/api/auth';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/store/useAuthStore';
 import { SORT_TO_API } from '@/utils/spotMappers';
 import { BUTTON_HEIGHT, BUTTON_RADIUS, FONT_2XS, FONT_MD, FONT_SM, FONT_XS, GRID_PADDING } from '@/constants/layout';
@@ -44,6 +47,42 @@ export default function ReviewTab({ spotId, onWriteReview, onEditReview }: Props
   const [menuTarget, setMenuTarget] = useState<Review | null>(null);
   const [lightbox, setLightbox] = useState<{ photos: string[]; index: number } | null>(null);
   const deleteReview = useDeleteReview();
+
+  // 스팟당 1리뷰. 이미 썼으면 작성 대신 수정으로 보낸다 — 서버는 409로 막지만
+  // 다 쓴 뒤에 알게 되는 건 막을 수 없어서 버튼 단계에서 갈라놓는다.
+  const { data: spot } = useSpotDetail(spotId);
+  const myReviewId = spot?.info.myReviewId ?? null;
+  const fetchReview = useFetchReview();
+  const qc = useQueryClient();
+  const [loadingSeed, setLoadingSeed] = useState(false);
+
+  const openMyReview = async () => {
+    if (myReviewId === null || loadingSeed) return;
+    setLoadingSeed(true);
+    try {
+      const dto = await fetchReview(myReviewId);
+      onEditReview({
+        reviewId: dto.id,
+        rating: dto.rating,
+        content: dto.content,
+        timePeriod: dto.timePeriod,
+        visitedAt: dto.visitedAt,
+        equipmentInfo: dto.equipmentInfo,
+        tags: dto.tags,
+        photos: dto.photos,
+      });
+    } catch (err) {
+      // 404 = 다른 기기·화면에서 이미 지워졌다. 상세를 다시 받아 작성 버튼으로 되돌린다.
+      if (err instanceof ApiError && err.status === 404) {
+        qc.invalidateQueries({ queryKey: ['spot', spotId, 'detail'] });
+        Alert.alert('리뷰를 찾을 수 없어요', '이미 삭제된 리뷰예요. 새로 작성할 수 있어요.');
+        return;
+      }
+      Alert.alert('리뷰를 불러오지 못했어요', err instanceof ApiError ? err.message : '잠시 후 다시 시도해 주세요.');
+    } finally {
+      setLoadingSeed(false);
+    }
+  };
 
   const summary = data?.summary ?? EMPTY_SUMMARY;
   const reviews = data?.reviews ?? [];
@@ -162,6 +201,8 @@ export default function ReviewTab({ spotId, onWriteReview, onEditReview }: Props
                 {review.text}
               </Text>
 
+              <ReviewTagRow tags={review.tags} />
+
               {/* 68dp 타일 5장 + 간격이면 350dp(390 기준 콘텐츠 폭)를 넘겨 마지막 장이 잘린다.
                   사진 첨부가 열리면서 5장이 실제로 도달 가능해졌으므로 가로 스크롤로 처리한다. */}
               {review.photos && review.photos.length > 0 ? (
@@ -217,14 +258,21 @@ export default function ReviewTab({ spotId, onWriteReview, onEditReview }: Props
         )}
 
         <Pressable
-          onPress={onWriteReview}
+          onPress={myReviewId === null ? onWriteReview : openMyReview}
+          disabled={loadingSeed}
           className="w-full flex-row items-center justify-center gap-2"
-          style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS, backgroundColor: '#e31b59' }}
+          style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS, backgroundColor: '#e31b59', opacity: loadingSeed ? 0.6 : 1 }}
         >
-          <IconEdit size={normalize(16)} color="#fff" strokeWidth={2} />
-          <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_MD, color: '#fff', letterSpacing: -0.2 }}>
-            리뷰 작성하기
-          </Text>
+          {loadingSeed ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <>
+              <IconEdit size={normalize(16)} color="#fff" strokeWidth={2} />
+              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_MD, color: '#fff', letterSpacing: -0.2 }}>
+                {myReviewId === null ? '리뷰 작성하기' : '내 리뷰 수정하기'}
+              </Text>
+            </>
+          )}
         </Pressable>
       </View>
 
@@ -242,6 +290,7 @@ export default function ReviewTab({ spotId, onWriteReview, onEditReview }: Props
             timePeriod: target.timePeriod,
             visitedAt: target.visitedAtISO,
             equipmentInfo: target.equipment ?? null,
+            tags: target.tags,
             photos: target.photos ?? [],
           });
         }}

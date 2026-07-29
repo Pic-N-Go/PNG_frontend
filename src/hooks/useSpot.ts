@@ -54,10 +54,20 @@ export function useCreateReview(id: string) {
   });
 }
 
+const myReviewsKey = ['users', 'me', 'reviews'] as const;
+/** 수정 폼 시드 단건 캐시. 사진·본문이 바뀌면 함께 버려야 다음 진입이 옛 값을 쓰지 않는다. */
+const reviewKey = (reviewId: number) => ['review', reviewId] as const;
+
 // 작성·수정·삭제가 모두 같은 캐시를 건드려 무효화 대상이 동일하다.
-function invalidateReviewCaches(qc: ReturnType<typeof useQueryClient>, id: string) {
+/** 같은 리뷰가 두 목록에 동시에 노출된다 — 스팟 상세 리뷰 탭과 마이페이지 내 리뷰. */
+function invalidateReviewLists(qc: ReturnType<typeof useQueryClient>, id: string) {
   // 정렬별로 캐시가 갈리므로 sort까지 특정하지 않고 리뷰 목록 전체를 무효화.
   qc.invalidateQueries({ queryKey: ['spot', id, 'reviews'] });
+  qc.invalidateQueries({ queryKey: myReviewsKey });
+}
+
+function invalidateReviewCaches(qc: ReturnType<typeof useQueryClient>, id: string) {
+  invalidateReviewLists(qc, id);
   // 평점·리뷰수·사진수가 헤더에 걸려 있어 상세도 함께 갱신.
   qc.invalidateQueries({ queryKey: ['spot', id, 'detail'] });
 }
@@ -70,7 +80,10 @@ export function useUpdateReview(id: string) {
       if (!token) return Promise.reject(new ApiError('로그인이 필요합니다.'));
       return spotApi.updateReview(reviewId, body, token);
     },
-    onSuccess: () => invalidateReviewCaches(qc, id),
+    onSuccess: (_data, { reviewId }) => {
+      invalidateReviewCaches(qc, id);
+      qc.invalidateQueries({ queryKey: reviewKey(reviewId) });
+    },
   });
 }
 
@@ -86,14 +99,65 @@ export function useDeleteReview() {
       if (!token) return Promise.reject(new ApiError('로그인이 필요합니다.'));
       return spotApi.deleteReview(reviewId, token);
     },
-    onSuccess: (_data, { spotId }) => {
+    onSuccess: (_data, { reviewId, spotId }) => {
       invalidateReviewCaches(qc, spotId);
-      qc.invalidateQueries({ queryKey: myReviewsKey });
+      // 지운 리뷰의 시드가 남아 있으면 다음 진입에서 없는 리뷰를 수정하려 든다.
+      qc.removeQueries({ queryKey: reviewKey(reviewId) });
     },
   });
 }
 
-const myReviewsKey = ['users', 'me', 'reviews'] as const;
+/**
+ * 사진 추가·삭제는 텍스트 저장과 달리 즉시 서버에 반영된다(전용 엔드포인트).
+ * 평점·리뷰수는 바뀌지 않아 스팟 상세는 건드리지 않고 목록만 무효화한다.
+ */
+export function useAddReviewPhotos(spotId: string) {
+  const token = useAuthStore((s) => s.accessToken);
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ reviewId, photos }: { reviewId: number; photos: ReviewPhotoUpload[] }) => {
+      if (!token) return Promise.reject(new ApiError('로그인이 필요합니다.'));
+      return spotApi.addReviewPhotos(reviewId, photos, token);
+    },
+    onSuccess: (_data, { reviewId }) => {
+      invalidateReviewLists(qc, spotId);
+      qc.invalidateQueries({ queryKey: reviewKey(reviewId) });
+    },
+  });
+}
+
+/**
+ * 수정 폼 시드를 탭 시점에 가져온다. presigned URL 만료(환경 설정값, 로컬 60분)가 있어 캐시를
+ * 재사용하지 않고 매번 새로 받는다. staleTime을 명시하는 이유: QueryClient 전역 기본값이 나중에
+ * 바뀌면 만료된 URL로 수정 화면이 열려 사진만 안 보이는, 추적하기 어려운 증상이 된다.
+ */
+export function useFetchReview() {
+  const token = useAuthStore((s) => s.accessToken);
+  const qc = useQueryClient();
+  return (reviewId: number) => {
+    if (!token) return Promise.reject(new ApiError('로그인이 필요합니다.'));
+    return qc.fetchQuery({
+      queryKey: reviewKey(reviewId),
+      queryFn: () => spotApi.getReview(reviewId, token),
+      staleTime: 0,
+    });
+  };
+}
+
+export function useDeleteReviewPhoto(spotId: string) {
+  const token = useAuthStore((s) => s.accessToken);
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ reviewId, photoId }: { reviewId: number; photoId: number }) => {
+      if (!token) return Promise.reject(new ApiError('로그인이 필요합니다.'));
+      return spotApi.deleteReviewPhoto(reviewId, photoId, token);
+    },
+    onSuccess: (_data, { reviewId }) => {
+      invalidateReviewLists(qc, spotId);
+      qc.invalidateQueries({ queryKey: reviewKey(reviewId) });
+    },
+  });
+}
 
 export function useMyReviews(sort: ReviewSortApi = 'LATEST') {
   const token = useAuthStore((s) => s.accessToken);

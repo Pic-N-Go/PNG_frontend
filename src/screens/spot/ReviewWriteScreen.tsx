@@ -15,13 +15,17 @@ import { IconSunrise, IconSun, IconSunset, IconMoon } from '@tabler/icons-react-
 import { ChevronLeft, Calendar, Image as ImageIcon, Check, Camera, CircleDot, X } from 'lucide-react-native';
 import { SpotStackParamList } from '@/navigation/stacks/SpotStack';
 import type { ReviewPhotoUpload } from '@/api/spot';
-import { useCreateReview, useSpotDetail, useUpdateReview } from '@/hooks/useSpot';
+import { ApiError } from '@/api/auth';
+import {
+  useAddReviewPhotos, useCreateReview, useDeleteReviewPhoto, useSpotDetail, useUpdateReview,
+} from '@/hooks/useSpot';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import {
   FONT_2XS, FONT_XS, FONT_SM, FONT_MD, FONT_LG,
   GRID_PADDING, BUTTON_HEIGHT, BUTTON_RADIUS, CARD_RADIUS, INPUT_RADIUS,
 } from '@/constants/layout';
-import type { TimePeriodApi } from '@/types/spot';
+import type { ReviewPhotoDTO, ReviewTagApi, TimePeriodApi } from '@/types/spot';
+import { MAX_REVIEW_TAGS, REVIEW_TAGS } from '@/constants/reviewTags';
 
 type Props = NativeStackScreenProps<SpotStackParamList, 'ReviewWrite'>;
 
@@ -36,6 +40,9 @@ const ERR = '#ff453a';
 const ICON_STRONG = '#595959'; // 흰 배경 위, 기존 rgba(0,0,0,0.65)
 const ICON_MID = '#878789';    // SURFACE 위, 기존 rgba(0,0,0,0.45)
 const ICON_WEAK = '#ABABAD';   // SURFACE 위, 기존 rgba(0,0,0,0.25~0.3)
+
+// 서버가 code별 한국어 message를 주므로 그대로 노출한다(장수 초과·본인 리뷰 아님 등).
+const errorTextOf = (err: unknown) => (err instanceof ApiError ? err.message : '잠시 후 다시 시도해 주세요.');
 
 const CONTENT_MIN = 20;
 const CONTENT_MAX = 500;
@@ -102,7 +109,12 @@ const fromISODate = (iso: string) => {
   return new Date(y, m - 1, d);
 };
 
-/** 서버는 장비를 ", "로 합쳐 보관한다. 칩으로 표현 가능한 항목만 되살린다. */
+/**
+ * 서버는 장비를 ", "로 합쳐 보관한다. 칩으로 표현 가능한 항목만 되살린다.
+ * 주의: 걸러진 값은 화면에서 사라지는 데 그치지 않고 저장 시 삭제된다 — PUT이 equipmentInfo를
+ * 무조건 덮어쓰기 때문이다. EQUIPMENT가 하드코딩이라 지금은 닿지 않지만, 항목 이름을 바꾸거나
+ * "내 장비" 조회로 교체하면 그 순간 조용한 데이터 유실이 된다. 그때는 미지의 값을 보존해야 한다.
+ */
 const seedEquipmentOf = (joined: string | null) => {
   if (!joined) return [];
   const known = new Set(EQUIPMENT.map((e) => e.name));
@@ -115,6 +127,10 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
   const { data: spot } = useSpotDetail(spotId);
   const createReview = useCreateReview(spotId);
   const updateReview = useUpdateReview(spotId);
+  const addPhotos = useAddReviewPhotos(spotId);
+  const deletePhoto = useDeleteReviewPhoto(spotId);
+  // 진행 중에 다른 사진 요청을 받으면 서버 응답 순서가 뒤집혀 화면이 과거 상태로 되돌아간다.
+  const photoBusy = addPhotos.isPending || deletePhoto.isPending;
   const submitting = isEdit ? updateReview.isPending : createReview.isPending;
 
   const today = React.useRef(new Date()).current;
@@ -125,6 +141,10 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
   const [content, setContent] = React.useState(edit?.content ?? '');
   const [contentFocused, setContentFocused] = React.useState(false);
   const [photos, setPhotos] = React.useState<PickedPhoto[]>([]);
+  // 수정 모드의 사진은 저장 버튼과 무관하게 즉시 서버에 반영되므로(전용 엔드포인트) 로컬 파일이
+  // 아니라 서버가 준 목록을 그대로 들고 있는다. 작성 모드에서는 항상 빈 배열.
+  const [serverPhotos, setServerPhotos] = React.useState<ReviewPhotoDTO[]>(edit?.photos ?? []);
+  const [tags, setTags] = React.useState<ReviewTagApi[]>(edit?.tags ?? []);
   const [equipment, setEquipment] = React.useState<string[]>(seedEquipmentOf(edit?.equipmentInfo ?? null));
 
   const trimmed = content.trim();
@@ -139,13 +159,19 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
     content: (edit?.content ?? '').trim(),
     visitedAt: toISODate(edit?.visitedAt ? fromISODate(edit.visitedAt) : today),
     equipment: seedEquipmentOf(edit?.equipmentInfo ?? null).join('|'),
+    // 선택 순서가 달라도 같은 조합이면 변경으로 보지 않는다.
+    tags: [...(edit?.tags ?? [])].sort().join('|'),
   }).current;
+  // 사진은 확인창 대상이 아니다(이미 저장됨). 다만 문구가 "저장되지 않아요"만 남으면
+  // 방금 지운 사진이 되살아난다고 오해할 수 있어 안내를 덧붙인다.
+  const photosTouched = React.useRef(false);
   const isDirty =
     rating !== initial.rating ||
     period !== initial.period ||
     trimmed !== initial.content ||
     toISODate(visitedAt) !== initial.visitedAt ||
     equipment.join('|') !== initial.equipment ||
+    [...tags].sort().join('|') !== initial.tags ||
     photos.length > 0;
 
   React.useEffect(() => {
@@ -153,13 +179,23 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
     const unsubscribe = navigation.addListener('beforeRemove', (e) => {
       if (!isDirty || submitted.current) return;
       e.preventDefault();
-      Alert.alert('작성을 그만둘까요?', '입력한 내용은 저장되지 않아요.', [
+      const lost = photosTouched.current
+        ? '사진 변경은 이미 저장됐어요. 나머지 입력한 내용은 저장되지 않아요.'
+        : '입력한 내용은 저장되지 않아요.';
+      Alert.alert('작성을 그만둘까요?', lost, [
         { text: '계속 작성', style: 'cancel' },
         { text: '나가기', style: 'destructive', onPress: () => navigation.dispatch(e.data.action) },
       ]);
     });
     return unsubscribe;
   }, [navigation, isDirty]);
+
+  const toggleTag = (tag: ReviewTagApi) =>
+    setTags((prev) => {
+      if (prev.includes(tag)) return prev.filter((t) => t !== tag);
+      // 서버 @Size(max = 5). 넘기면 400이라 프론트에서 막는다.
+      return prev.length >= MAX_REVIEW_TAGS ? prev : [...prev, tag];
+    });
 
   const toggleEquipment = (name: string) =>
     setEquipment((prev) => {
@@ -169,16 +205,21 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
       return prev.length >= MAX_EQUIPMENT ? prev : [...prev, name];
     });
 
-  // ponytail: EXIF GPS 제거는 여기서 하지 않는다. Android는 압축 후 copyExifData가 GPS 태그를
-  // 되살리고(ImagePickerConstants.EXIF_TAGS에 포함), iOS도 전사 경로에 따라 남을 수 있어
-  // 클라에서 보장할 수 없다. photo-upload-spec.md가 "저장 시 GPS 제거"를 서버 책임으로 규정하고
-  // 있으므로 백엔드 ingest에서 처리한다. 그때까지 리뷰 사진에는 촬영 위치가 포함될 수 있다.
+  // ponytail: EXIF를 지우지 않는다. 서버가 EXIF에서 촬영 위치(위도·경도)를 읽어 사진 정보 화면에
+  // 표시할 예정이라 GPS 태그가 유지되어야 한다.
+  // (docs/guide/api/photo-upload-spec.md의 "저장 시 GPS 제거" 규정은 이 결정으로 철회됨 — 갱신 완료)
+  // 주의: 그 표시 기능은 아직 없다 — 백엔드 ExifExtractor는 어디서도 호출되지 않는 죽은 코드다.
+  // 즉 지금은 좌표가 공개되기만 하고 쓰이지는 않는다. 리뷰 목록은 인증 없이 조회되므로
+  // 사진 섹션에 고지 문구를 뒀다. 표시 기능을 끝내 안 만들면 클라에서 GPS를 지우는 쪽이 맞다.
   // 권한 요청·피커 호출 모두 reject할 수 있다(Android는 요청이 겹치면 IllegalStateException,
   // iOS는 presenting VC를 못 찾으면 예외). 처리하지 않으면 unhandled rejection으로 끝나
   // 프로덕션에서는 아무 반응도 없다. 재진입 가드까지 둬 더블탭도 막는다.
   const picking = React.useRef(false);
+  // 수정 모드는 고른 사진이 곧바로 POST로 가 photos state에 남지 않는다. 그래서 이 세션에 올린
+  // 신원을 따로 모아야 "다른 피커 세션에서 같은 사진을 다시 고르는" 중복을 걸러낼 수 있다.
+  const uploadedIds = React.useRef(new Set<string>());
   const addPhoto = async () => {
-    if (photos.length >= MAX_PHOTOS || picking.current) return;
+    if (thumbs.length >= MAX_PHOTOS || picking.current || photoBusy) return;
     picking.current = true;
     try {
       await pickPhotos();
@@ -210,7 +251,7 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ['images'],
       allowsMultipleSelection: true,
-      selectionLimit: MAX_PHOTOS - photos.length,
+      selectionLimit: MAX_PHOTOS - thumbs.length,
       quality: 0.8,
       // iOS 기본값은 .current(전사 회피)라서 HEIC 자산이 원본 바이트째로 넘어온다
       // (ImageUtils.swift의 `case UTType.heic: return (rawData, ".heic")` 분기 — quality가 적용되지 않는다).
@@ -222,8 +263,9 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
 
     // iOS의 fileSize는 압축 후(실제 전송) 크기라 서버 한도를 그대로 적용할 수 있다.
     // Android는 압축 전 원본 크기라 같은 기준을 쓰면 압축하면 통과할 사진을 오탐으로 막는다.
-    // 서버 413에 맡길 수도 없다 — MaxUploadSizeExceededException 핸들러가 없어 본문 없는 500이 온다.
-    // 그래서 Android에서는 압축률을 감안한 관대한 상한만 둬 명백히 과대한 파일을 걸러낸다.
+    // 서버도 이제 초과를 400 + 한국어 message로 알려주지만(이전엔 본문 없는 500),
+    // 20MB를 다 올려보낸 뒤 거부당하는 낭비는 그대로다. 그래서 Android에서는 압축률을 감안한
+    // 관대한 상한만 둬 명백히 과대한 파일을 미리 걸러낸다.
     const sizeLimit = Platform.OS === 'ios' ? MAX_PHOTO_BYTES : MAX_PHOTO_BYTES * ANDROID_SIZE_SLACK;
 
     const picked: PickedPhoto[] = [];
@@ -260,7 +302,7 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
     }
 
     // setPhotos 업데이터는 dev에서 두 번 호출될 수 있어 카운트를 그 안에서 세지 않는다.
-    const seen = new Set(photos.map(identityOf));
+    const seen = isEdit ? new Set(uploadedIds.current) : new Set(photos.map(identityOf));
     const fresh = picked.filter((p) => {
       if (seen.has(identityOf(p))) return false;
       seen.add(identityOf(p));
@@ -269,20 +311,78 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
     const duplicated = picked.length - fresh.length;
     if (duplicated > 0) skipped.push(`${duplicated}장은 이미 추가되어 있어요`);
 
-    if (fresh.length > 0) setPhotos((prev) => [...prev, ...fresh].slice(0, MAX_PHOTOS));
     // 사유가 여러 개여도 Alert는 하나만 띄운다(iOS에서는 여러 개가 쌓여 연달아 닫아야 한다).
     if (skipped.length > 0) Alert.alert('첨부하지 못한 사진', skipped.join('\n'));
+    if (fresh.length === 0) return;
+    if (isEdit) {
+      // 한 장씩 여러 번 호출하면 서버 상한 검사가 매번 다른 기준으로 돌아 일부만 올라간다.
+      await uploadPhotos(fresh.slice(0, MAX_PHOTOS - thumbs.length));
+      return;
+    }
+    setPhotos((prev) => [...prev, ...fresh].slice(0, MAX_PHOTOS));
   };
 
   const removePhoto = (idx: number) => setPhotos((prev) => prev.filter((_, i) => i !== idx));
 
+  const confirmDeletePhoto = (photoId: number) =>
+    Alert.alert('사진을 삭제할까요?', '되돌릴 수 없어요.', [
+      { text: '취소', style: 'cancel' },
+      { text: '삭제', style: 'destructive', onPress: () => runDeletePhoto(photoId) },
+    ]);
+
+  const runDeletePhoto = async (photoId: number) => {
+    if (!edit) return;
+    try {
+      await deletePhoto.mutateAsync({ reviewId: edit.reviewId, photoId });
+      // 204라 목록이 오지 않는다. 무효화한 목록 쿼리와 어긋나지 않게 해당 항목만 뺀다.
+      setServerPhotos((prev) => prev.filter((p) => p.photoId !== photoId));
+      // photoId로는 어떤 파일이었는지 역산할 수 없다. 지운 사진을 다시 고르는 것이 막히지 않게
+      // 중복 판정 기록을 비운다 — 삭제 직후 한 번은 중복이 통과할 수 있지만 그쪽이 덜 나쁘다.
+      uploadedIds.current.clear();
+      photosTouched.current = true;
+    } catch (err) {
+      Alert.alert('사진을 삭제하지 못했어요', errorTextOf(err));
+    }
+  };
+
+  /** 응답이 추가분이 아니라 전체 목록이라 그대로 갈아끼운다. */
+  const uploadPhotos = async (files: PickedPhoto[]) => {
+    if (!edit) return;
+    try {
+      setServerPhotos(await addPhotos.mutateAsync({ reviewId: edit.reviewId, photos: files }));
+      files.forEach((f) => uploadedIds.current.add(identityOf(f)));
+      photosTouched.current = true;
+    } catch (err) {
+      Alert.alert('사진을 추가하지 못했어요', errorTextOf(err));
+    }
+  };
+
+  /** 수정 모드는 서버 사진, 작성 모드는 고른 파일 — 화면은 같은 목록으로 그린다. */
+  const thumbs = isEdit
+    ? serverPhotos.map((photo) => ({
+        key: String(photo.photoId),
+        uri: photo.url,
+        onRemove: () => confirmDeletePhoto(photo.photoId),
+      }))
+    : photos.map((photo, idx) => ({
+        key: identityOf(photo),
+        uri: photo.uri,
+        onRemove: () => removePhoto(idx),
+      }));
+
+  // isPending은 상태 갱신 뒤에야 true가 된다. 같은 틱에 두 번 눌리면 POST가 두 번 나가고,
+  // 서버는 1인 1리뷰를 동시 요청까지 막지 않는다(백엔드 요청 사항). ref로 즉시 잠근다.
+  const submitLock = React.useRef(false);
   const onSubmit = () => {
-    if (!canSubmit || period === null || submitting) return;
+    if (!canSubmit || period === null || submitting || submitLock.current) return;
+    submitLock.current = true;
     const body = {
       rating,
       content: trimmed,
       timePeriod: period,
       visitedAt: toISODate(visitedAt),
+      // 미선택이어도 빈 배열로 보낸다. 수정은 전체 교체라 []가 곧 "태그 전부 해제"다.
+      tags,
       ...(equipment.length > 0 && { equipmentInfo: equipment }),
     };
     const handlers = {
@@ -290,15 +390,26 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
         submitted.current = true;
         navigation.goBack();
       },
-      onError: (err: unknown) =>
-        Alert.alert(
-          isEdit ? '수정 실패' : '등록 실패',
-          err instanceof Error ? err.message : '잠시 후 다시 시도해 주세요.',
-        ),
+      onSettled: () => {
+        submitLock.current = false;
+      },
+      onError: (err: unknown) => {
+        // 스팟당 1리뷰(409). 정상 경로는 myReviewId로 버튼 단계에서 갈라지지만(ReviewTab),
+        // 작성 화면을 열어둔 사이 다른 기기에서 리뷰가 생기는 경우가 남는다. 서버도 동시 요청을
+        // 완전히 막지 않아 마지막 방어선으로 둔다. 안내 후 목록으로 돌려보낸다.
+        if (err instanceof ApiError && err.status === 409) {
+          submitted.current = true; // 유실이 아니라 중복이므로 이탈 확인창을 건너뛴다
+          Alert.alert('이미 리뷰를 작성했어요', errorTextOf(err), [
+            { text: '확인', onPress: () => navigation.goBack() },
+          ]);
+          return;
+        }
+        Alert.alert(isEdit ? '수정 실패' : '등록 실패', errorTextOf(err));
+      },
     };
 
     if (isEdit) {
-      // PUT은 사진을 다루지 않아 기존 사진이 그대로 유지된다. 수정 화면에서 사진 섹션을 감춘 이유.
+      // PUT은 JSON이라 사진을 다루지 않는다. 사진은 전용 엔드포인트로 이미 반영돼 있어 여기서 보낼 것이 없다.
       updateReview.mutate({ reviewId: edit.reviewId, body }, handlers);
       return;
     }
@@ -508,67 +619,114 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
             </View>
           </Section>
 
-          {/* ponytail: 목업의 태그 섹션은 생략. 백엔드가 ReviewRequest.tags를 저장하지 않아(Review 엔티티에 필드 없음)
-              지금 붙이면 사용자가 고른 값이 조용히 버려진다. 태그 저장·집계가 생기면 추가. */}
+          <Section label="태그" hint={`선택 · 최대 ${MAX_REVIEW_TAGS}개`}>
+            <View className="flex-row flex-wrap" style={{ gap: normalize(8) }}>
+              {REVIEW_TAGS.map(({ tag, label }) => {
+                const selected = tags.includes(tag);
+                return (
+                  <Pressable
+                    key={tag}
+                    onPress={() => toggleTag(tag)}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected }}
+                    className="items-center justify-center"
+                    style={{
+                      height: normalize(30),
+                      paddingHorizontal: normalize(14),
+                      borderRadius: normalize(15),
+                      backgroundColor: selected ? 'rgba(227,27,89,0.1)' : SURFACE,
+                    }}
+                  >
+                    <Text
+                      allowFontScaling={false}
+                      /* 목업은 12px이지만 폰트 토큰 밖이라 FONT_SM(13)으로 올렸다. */
+                      style={{
+                        fontFamily: selected ? 'Pretendard-SemiBold' : 'Pretendard-Regular',
+                        fontSize: FONT_SM,
+                        color: selected ? BRAND : 'rgba(0,0,0,0.45)',
+                        letterSpacing: -0.1,
+                      }}
+                    >
+                      {`#${label}`}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+            <Text
+              allowFontScaling={false}
+              style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.28)', letterSpacing: -0.1, marginTop: normalize(8) }}
+            >
+              자주 쓰인 태그는 스팟 상세 페이지에 노출됩니다
+            </Text>
+          </Section>
 
-          {/* 수정 모드는 읽기 전용. PUT은 JSON이라 사진을 바꿀 수 없어(사진 변경 API는 별도 예정)
-              추가·삭제 없이 기존 사진만 보여준다. 감추면 사진이 사라진 것처럼 보인다. */}
-          {isEdit ? (
-            edit.photos.length > 0 && (
-              <Section label="첨부한 사진" hint="수정할 수 없어요">
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: normalize(8) }}>
-                  {edit.photos.map((photo) => (
-                    <Image
-                      key={photo.photoId}
-                      source={{ uri: photo.url }}
-                      resizeMode="cover"
-                      style={{ width: normalize(72), height: normalize(72), borderRadius: INPUT_RADIUS, backgroundColor: SURFACE }}
-                    />
-                  ))}
-                </ScrollView>
-              </Section>
-            )
-          ) : (
-          <Section label="사진 첨부" hint={`최대 ${MAX_PHOTOS}장`}>
+          <Section
+            label={isEdit ? '첨부한 사진' : '사진 첨부'}
+            /* 수정 모드의 추가·삭제는 저장 버튼을 기다리지 않고 바로 반영된다. 모르면 되돌릴 수 있다고 착각한다. */
+            hint={isEdit ? `최대 ${MAX_PHOTOS}장 · 바로 저장돼요` : `최대 ${MAX_PHOTOS}장`}
+          >
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: normalize(8) }}>
-              {photos.map((photo, idx) => (
+              {thumbs.map((thumb) => (
                 <View
-                  key={identityOf(photo)}
+                  key={thumb.key}
                   style={{ width: normalize(72), height: normalize(72), borderRadius: INPUT_RADIUS, overflow: 'hidden', backgroundColor: SURFACE }}
                 >
-                  <Image source={{ uri: photo.uri }} resizeMode="cover" style={{ width: '100%', height: '100%' }} />
+                  <Image source={{ uri: thumb.uri }} resizeMode="cover" style={{ width: '100%', height: '100%' }} />
                   <Pressable
-                    onPress={() => removePhoto(idx)}
+                    onPress={thumb.onRemove}
+                    disabled={photoBusy}
                     hitSlop={6}
+                    accessibilityRole="button"
+                    accessibilityLabel="사진 삭제"
                     className="items-center justify-center"
-                    style={{ position: 'absolute', top: normalize(4), right: normalize(4), width: normalize(18), height: normalize(18), borderRadius: normalize(9), backgroundColor: 'rgba(0,0,0,0.5)' }}
+                    style={{
+                      position: 'absolute', top: normalize(4), right: normalize(4),
+                      width: normalize(18), height: normalize(18), borderRadius: normalize(9),
+                      backgroundColor: 'rgba(0,0,0,0.5)', opacity: photoBusy ? 0.4 : 1,
+                    }}
                   >
                     <X size={normalize(10)} color="#fff" strokeWidth={3} />
                   </Pressable>
                 </View>
               ))}
-              {photos.length < MAX_PHOTOS && (
+              {thumbs.length < MAX_PHOTOS && (
                 <Pressable
                   onPress={addPhoto}
+                  disabled={photoBusy}
+                  accessibilityRole="button"
+                  accessibilityLabel="사진 추가"
                   className="items-center justify-center"
                   style={{
                     width: normalize(72), height: normalize(72), borderRadius: INPUT_RADIUS,
                     backgroundColor: SURFACE, borderWidth: 1.5, borderColor: 'rgba(0,0,0,0.12)',
-                    borderStyle: 'dashed', gap: normalize(4),
+                    borderStyle: 'dashed', gap: normalize(4), opacity: photoBusy ? 0.4 : 1,
                   }}
                 >
-                  <ImageIcon size={normalize(22)} color={ICON_WEAK} strokeWidth={2} />
-                  <Text
-                    allowFontScaling={false}
-                    style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_2XS, color: 'rgba(0,0,0,0.3)', letterSpacing: -0.1 }}
-                  >
-                    {`${photos.length}/${MAX_PHOTOS}`}
-                  </Text>
+                  {addPhotos.isPending ? (
+                    <ActivityIndicator size="small" color={ICON_WEAK} />
+                  ) : (
+                    <>
+                      <ImageIcon size={normalize(22)} color={ICON_WEAK} strokeWidth={2} />
+                      <Text
+                        allowFontScaling={false}
+                        style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_2XS, color: 'rgba(0,0,0,0.3)', letterSpacing: -0.1 }}
+                      >
+                        {`${thumbs.length}/${MAX_PHOTOS}`}
+                      </Text>
+                    </>
+                  )}
                 </Pressable>
               )}
             </ScrollView>
+            {/* 촬영 위치는 EXIF에 남긴다(아래 주석 참고). 공개 엔드포인트로 나가므로 고지한다. */}
+            <Text
+              allowFontScaling={false}
+              style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.28)', letterSpacing: -0.1, marginTop: normalize(8) }}
+            >
+              사진에 담긴 촬영 위치가 다른 사용자에게 보일 수 있어요
+            </Text>
           </Section>
-          )}
 
           {/* 사용 장비 */}
           <Section label="사용 장비" hint="선택">

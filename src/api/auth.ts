@@ -52,8 +52,9 @@ export function toErrorMessage(err: unknown, fallback: string): string {
 
 /**
  * 상태코드별 사용자 메시지. Spring Security의 401·403은 필터 단계라 GlobalExceptionHandler에
- * 도달하지 않고, 413(MaxUploadSizeExceededException)도 핸들러가 없어 본문이 비어 온다.
- * 그대로 두면 `HTTP 401`이 Alert에 노출된다.
+ * 도달하지 않고, Boot 기본 에러 본문(timestamp/status/error/path)이 나가 `message` 키가 없다.
+ * 그래서 여기서 채우지 않으면 `요청에 실패했어요. (403)`만 보인다.
+ * 413은 이제 서버가 400 + message로 바꿔 보내지만, 톰캣 커넥터 단계에서 잘리는 경우가 남아 폴백으로 둔다.
  */
 const MESSAGE_BY_STATUS: Record<number, string> = {
   401: '로그인이 만료됐어요. 다시 로그인해 주세요.',

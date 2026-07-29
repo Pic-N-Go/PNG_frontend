@@ -5,7 +5,7 @@ import { FONT_SM } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
 
 interface Props {
-  /** 표시할 사진 URL 목록. 비어 있으면 열리지 않는다. */
+  /** 표시할 사진 URL 목록. visible=true인데 비어 있으면 uri가 undefined가 되므로 호출부가 보장해야 한다. */
   photos: string[];
   /** 처음 보여줄 사진 인덱스 */
   initialIndex: number;
@@ -45,7 +45,7 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose }
           source={{ uri }}
           resizeMode="contain"
           // presigned URL 만료(환경 설정값, 로컬 60분) 시 조용히 빈 화면이 되므로 원인을 남긴다.
-          onError={(e) => __DEV__ && console.warn('[lightbox] 이미지 로드 실패:', e.nativeEvent, uri.slice(0, 90))}
+          onError={(e) => __DEV__ && console.warn('[lightbox] 이미지 로드 실패:', e.nativeEvent, uri?.slice(0, 90))}
           style={{ width: SCREEN_WIDTH, height: IMAGE_HEIGHT }}
         />
 

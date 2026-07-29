@@ -8,11 +8,13 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconChevronLeft } from '@tabler/icons-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { BUTTON_HEIGHT, BUTTON_RADIUS, FONT_XS, FONT_SM, FONT_MD } from '@/constants/layout';
+import { BUTTON_HEIGHT, BUTTON_RADIUS, FONT_2XS, FONT_XS, FONT_SM, FONT_MD } from '@/constants/layout';
 import Toast from '@/components/auth/Toast';
 import type { RootStackParamList } from '@/navigation';
 import ReviewActionSheet from '@/components/spot/ReviewActionSheet';
 import ReviewMenuButton from '@/components/spot/ReviewMenuButton';
+import ReviewTagRow from '@/components/spot/ReviewTagRow';
+import PhotoLightbox from '@/components/spot/PhotoLightbox';
 import { useDeleteReview, useMyReviews } from '@/hooks/useSpot';
 import { useAuthStore } from '@/store/useAuthStore';
 import type { MyReview } from '@/types/spot';
@@ -28,6 +30,7 @@ export default function MyReviewsScreen() {
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [menuTarget, setMenuTarget] = useState<MyReview | null>(null);
+  const [lightbox, setLightbox] = useState<{ photos: string[]; index: number } | null>(null);
 
   const reviews = data ?? [];
 
@@ -45,6 +48,7 @@ export default function MyReviewsScreen() {
           timePeriod: review.timePeriod,
           visitedAt: review.visitedAtISO,
           equipmentInfo: review.equipment ?? null,
+          tags: review.tags,
           photos: review.photos,
         },
       },
@@ -143,10 +147,20 @@ export default function MyReviewsScreen() {
                   {review.text}
                 </Text>
 
+                <ReviewTagRow tags={review.tags} />
+
                 {review.photos.length > 0 && (
                   <View style={styles.photosRow}>
-                    {review.photos.map((photo) => (
-                      <Image key={photo.photoId} source={{ uri: photo.url }} resizeMode="cover" style={styles.photoThumb} />
+                    {review.photos.map((photo, photoIdx) => (
+                      <TouchableOpacity
+                        key={photo.photoId}
+                        activeOpacity={0.8}
+                        accessibilityRole="button"
+                        accessibilityLabel="사진 크게 보기"
+                        onPress={() => setLightbox({ photos: review.photos.map((p) => p.url), index: photoIdx })}
+                      >
+                        <Image source={{ uri: photo.url }} resizeMode="cover" style={styles.photoThumb} />
+                      </TouchableOpacity>
                     ))}
                   </View>
                 )}
@@ -176,6 +190,13 @@ export default function MyReviewsScreen() {
         onClose={() => setMenuTarget(null)}
         onEdit={() => menuTarget && goEdit(menuTarget)}
         onDelete={() => menuTarget && handleDelete(menuTarget)}
+      />
+
+      <PhotoLightbox
+        photos={lightbox?.photos ?? []}
+        initialIndex={lightbox?.index ?? 0}
+        visible={lightbox !== null}
+        onClose={() => setLightbox(null)}
       />
 
       {/* 공통 토스트 */}
@@ -229,7 +250,7 @@ const styles = StyleSheet.create({
   starText: { fontSize: FONT_XS, color: '#f59e0b' },
   
   badge: { height: normalize(16), paddingHorizontal: normalize(6), borderRadius: normalize(8), backgroundColor: 'rgba(0,0,0,0.06)', justifyContent: 'center', alignItems: 'center' },
-  badgeText: { fontSize: normalizeFontSize(10), fontWeight: '500', color: 'rgba(0,0,0,0.4)' },
+  badgeText: { fontSize: FONT_2XS, fontWeight: '500', color: 'rgba(0,0,0,0.4)' },
   dateText: { fontSize: FONT_XS, color: 'rgba(0,0,0,0.35)' },
 
   reviewText: { fontSize: FONT_SM, color: 'rgba(0,0,0,0.6)', lineHeight: normalize(22), letterSpacing: -0.1 },
