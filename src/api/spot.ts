@@ -28,10 +28,26 @@ if (__DEV__ && !BASE) {
 }
 
 const TIMEOUT_MS = 10_000;
-// 사진 최대 5장(장당 20MB 허용)이라 일반 요청보다 넉넉하게.
-const UPLOAD_TIMEOUT_MS = 60_000;
+// 사진 최대 5장. 60초는 약한 회선에서 자주 걸렸고, 중단 시 서버엔 저장돼 중복 위험이 있어
+// 넉넉하게 잡는다. 진행률 표시는 fetch로 불가해 별도 과제(XHR 전환).
+const UPLOAD_TIMEOUT_MS = 180_000;
 
 type Method = 'GET' | 'POST' | 'PUT' | 'DELETE';
+
+// 상태코드별 사용자 메시지. 서버가 401·413에는 본문을 주지 않아 그대로 두면
+// Alert에 `HTTP 401`이 그대로 찍힌다.
+const MESSAGE_BY_STATUS: Record<number, string> = {
+  401: '로그인이 만료됐어요. 다시 로그인해 주세요.',
+  403: '권한이 없어요. 다시 로그인해 주세요.',
+  413: '사진 용량이 너무 커요. 더 작은 사진으로 시도해 주세요.',
+};
+
+/** 응답 본문의 message를 우선하고, 없으면 상태코드 기반 메시지로 채운다. */
+async function toHttpError(res: Response): Promise<ApiError> {
+  const body = (await res.json().catch(() => ({}))) as { message?: string };
+  const message = body.message ?? MESSAGE_BY_STATUS[res.status] ?? `요청에 실패했어요. (${res.status})`;
+  return new ApiError(message, res.status);
+}
 
 // fetch는 타임아웃(abort)·전송 실패를 'Aborted' / 'Network request failed' 같은 영문으로 던진다.
 // 그대로 Alert에 노출되므로 한국어 메시지로 바꿔서 올린다.
@@ -40,7 +56,8 @@ function toApiError(err: unknown): ApiError {
   // 사용자에게는 한국어 메시지를 보여주되, 원인을 잃으면 디버깅이 불가능해 dev에서는 원본을 남긴다.
   if (__DEV__) console.warn('[api] 원본 오류:', err);
   if (err instanceof Error && err.name === 'AbortError') {
-    return new ApiError('요청 시간이 초과됐어요. 잠시 후 다시 시도해 주세요.');
+    // 서버가 이미 처리를 끝냈을 수 있어 "다시 시도"를 권하지 않는다(멱등 키가 없어 중복이 생긴다).
+    return new ApiError('응답이 늦어 중단했어요. 등록됐는지 확인한 뒤 다시 시도해 주세요.');
   }
   return new ApiError('네트워크 연결을 확인해 주세요.');
 }
@@ -59,10 +76,7 @@ async function request<T>(path: string, opts: { method?: Method; body?: unknown;
       body: body !== undefined ? JSON.stringify(body) : undefined,
       signal: controller.signal,
     });
-    if (!res.ok) {
-      const err = (await res.json().catch(() => ({}))) as { message?: string };
-      throw new ApiError(err.message ?? `HTTP ${res.status}`);
-    }
+    if (!res.ok) throw await toHttpError(res);
     if (res.status === 204) return undefined as T;
     return (await res.json()) as T;
   } catch (err) {
@@ -92,10 +106,7 @@ async function upload<T>(path: string, form: FormData, token: string): Promise<T
       body: form,
       signal: controller.signal,
     });
-    if (!res.ok) {
-      const err = (await res.json().catch(() => ({}))) as { message?: string };
-      throw new ApiError(err.message ?? `HTTP ${res.status}`);
-    }
+    if (!res.ok) throw await toHttpError(res);
     return (await res.json()) as T;
   } catch (err) {
     throw toApiError(err);

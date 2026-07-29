@@ -67,8 +67,13 @@ const EQUIPMENT = [
  * quality 옵션 때문에 같은 사진을 다시 고르면 매번 새 임시 파일로 재인코딩되어 uri가 달라진다.
  * 중복 판정은 사진첩 원본을 가리키는 assetId로 해야 하고, 없을 때만 uri로 폴백한다.
  */
-type PickedPhoto = ReviewPhotoUpload & { assetId?: string | null };
-const identityOf = (p: PickedPhoto) => p.assetId ?? p.uri;
+type PickedPhoto = ReviewPhotoUpload & { assetId?: string | null; fingerprint: string };
+/**
+ * assetId는 iOS에선 오지만 Android 최신 photo picker 경로에선 항상 null이다.
+ * uri는 quality 재인코딩 때문에 매번 달라져 폴백으로 쓸 수 없으므로,
+ * 원본 메타데이터(파일명·크기·해상도) 조합을 보조 식별자로 쓴다.
+ */
+const identityOf = (p: PickedPhoto) => p.assetId ?? p.fingerprint;
 
 const MIME_BY_EXT: Record<string, string> = {
   jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', heic: 'image/heic', heif: 'image/heif',
@@ -79,10 +84,11 @@ const MIME_BY_EXT: Record<string, string> = {
  * quality 재인코딩 결과가 uri에 반영되므로, 원본이 HEIC여도 uri는 .jpg가 된다.
  * fileName을 쓰면 내용은 JPEG인데 S3 키만 .heic로 남아 일부 기기에서 표시가 깨진다.
  */
-const extOf = (uri: string) => {
+const extOf = (uri: string): string | null => {
   const matched = /\.([a-zA-Z0-9]+)(?:[?#]|$)/.exec(uri);
   const ext = matched?.[1].toLowerCase();
-  return ext && MIME_BY_EXT[ext] ? ext : 'jpg';
+  // 폴백으로 'jpg'를 주면 GIF·WebP 바이트가 .jpg로 둔갑해 올라가 표시가 깨진다(스펙 미허용 형식).
+  return ext && MIME_BY_EXT[ext] ? ext : null;
 };
 
 const toISODate = (d: Date) =>
@@ -186,24 +192,40 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
     });
     if (result.canceled) return;
 
+    // iOS의 fileSize는 압축 후 크기지만 Android는 압축 전 원본 크기다(MediaHandler가 source uri를
+    // 조회한다). Android에서 그 값으로 걸러내면 압축하면 통과할 사진을 오탐으로 막으므로,
+    // 실제 전송 크기를 아는 iOS에서만 사전 검증하고 Android는 서버 413 메시지에 맡긴다.
+    const canMeasureOutputSize = Platform.OS === 'ios';
+
     const picked: PickedPhoto[] = [];
     let tooLarge = 0;
+    let unsupported = 0;
     result.assets.forEach((asset, idx) => {
-      if (asset.fileSize && asset.fileSize > MAX_PHOTO_BYTES) {
+      if (canMeasureOutputSize && asset.fileSize && asset.fileSize > MAX_PHOTO_BYTES) {
         tooLarge += 1;
         return;
       }
       const ext = extOf(asset.uri);
+      if (!ext) {
+        unsupported += 1;
+        return;
+      }
       picked.push({
         uri: asset.uri,
         name: `review_${Date.now()}_${idx}.${ext}`,
         type: MIME_BY_EXT[ext],
         assetId: asset.assetId,
+        // Android는 assetId가 null이라 중복 판정에 쓸 보조 키가 필요하다. 원본 메타데이터는
+        // 재인코딩과 무관하게 같은 사진이면 동일하다.
+        fingerprint: `${asset.fileName ?? ''}|${asset.fileSize ?? ''}|${asset.width}x${asset.height}`,
       });
     });
 
     if (tooLarge > 0) {
       Alert.alert('사진 용량 초과', `${tooLarge}장은 20MB를 넘어 제외했어요.`);
+    }
+    if (unsupported > 0) {
+      Alert.alert('지원하지 않는 형식', `${unsupported}장은 지원하지 않는 형식이라 제외했어요. JPG, PNG, HEIC만 첨부할 수 있어요.`);
     }
     if (picked.length === 0) return;
 

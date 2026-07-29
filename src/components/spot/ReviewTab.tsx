@@ -67,7 +67,8 @@ export default function ReviewTab({ spotId, onWriteReview, onEditReview }: Props
 
   return (
     <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(20) }}>
-      {!isError && (
+      {/* 리뷰가 없으면 0.0과 0% 막대만 남아 의미가 없다. 로딩 중에는 유지해 레이아웃이 튀지 않게 한다. */}
+      {!isError && (isLoading || summary.reviewCount > 0) && (
       <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: normalize(20), padding: normalize(20), borderRadius: normalize(16), backgroundColor: '#F5F5F7', marginBottom: normalize(16) }}>
         <View style={{ width: normalize(80), alignItems: 'center' }}>
           {/* 44는 폰트 스케일 토큰(최대 28) 밖이지만 본문이 아니라 요약 카드의 디스플레이 수치다(목업 44px). */}
