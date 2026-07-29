@@ -34,7 +34,7 @@
     - 필터 버튼 터치 시 기존 `FilterBottomSheet`가 팝업되도록 구현.
     - 선택한 조건(거리, 시간대, 날씨 등)을 통해 마커 데이터를 필터링할 수 있도록 설계 (현재는 목업 연동 상태이므로 로컬 상태 변화 반영 검증).
   - **마커 클러스터링 및 뷰포트 기반 조회**:
-    - 카카오 맵 SDK의 `clusterer` 라이브러리로 근접 마커를 묶어 표시 (`minLevel: 5`, `gridSize: 70`).
+    - 카카오 맵 SDK의 `clusterer` 라이브러리로 근접 마커를 묶어 표시 (`minLevel: 5`, `gridSize: 50`).
     - 지도 `idle` 이벤트마다 현재 화면 영역(bounds)을 RN으로 전달하고, 해당 영역 기준으로 `/spots/map`을 재조회함.
     - 카메라 이동(`setBounds`)은 최초 1회와 검색 결과를 그릴 때만 수행하고, 그 외에는 사용자가 보던 영역을 유지함.
   - **카테고리 필터**:
@@ -78,7 +78,7 @@
   - `src/components/ui/home/map.html` (라인 221~266)
   - `src/components/ui/home/home.html` (필터 바텀시트 UI 구조 참조)
 - 화면 전환 규칙:
-  - 검색바 터치 시 `SearchResultScreen`으로 Stack Navigation 이동.
+  - 검색바 터치 시 화면 전환 없이 지도에 머무르며, 입력값을 300ms 디바운스해 마커만 갱신함.
   - 필터 버튼 터치 시 `FilterBottomSheet` 오픈.
 - 빈 상태/에러 상태: N/A
 - 로딩 상태: WebView 로딩 완료 전에는 지도 컨트롤 클릭 비활성화.

@@ -130,7 +130,9 @@ export default function MapScreen() {
       rawList = searchSpotsData?.content || [];
     } else if (mapSpotsData && Array.isArray(mapSpotsData) && mapSpotsData.length > 0) {
       rawList = mapSpotsData;
-    } else if (spotsPageData?.content && Array.isArray(spotsPageData.content)) {
+    } else if (needsFallback && spotsPageData?.content && Array.isArray(spotsPageData.content)) {
+      // 비활성 쿼리도 캐시가 남아 있으면 data를 돌려주므로, 폴백 조건일 때만 사용한다.
+      // (그렇지 않으면 "이 영역에 스팟 없음"인 정상 응답을 이전 전국 목록이 덮어쓴다)
       rawList = spotsPageData.content;
     }
 
@@ -151,7 +153,7 @@ export default function MapScreen() {
         badge: spot.badge ?? false,
       };
     });
-  }, [hasKeyword, mapSpotsData, searchSpotsData, spotsPageData]);
+  }, [hasKeyword, needsFallback, mapSpotsData, searchSpotsData, spotsPageData]);
 
   // 현재 코스(선택 목록)에 담긴 스팟인지 판단 — id 타입 불일치(number/string) 방지
   const isSpotSaved = useCallback(
