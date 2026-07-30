@@ -22,7 +22,7 @@ import type { MyReview } from '@/types/spot';
 export default function MyReviewsScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const insets = useSafeAreaInsets();
-  const { data, isLoading, isError, hasNextPage, fetchNextPage, isFetchingNextPage } = useMyReviews();
+  const { data, isLoading, isError, hasNextPage, fetchNextPage, isFetchingNextPage, refetch } = useMyReviews();
   const deleteReview = useDeleteReview();
   // 토큰이 없으면 쿼리가 enabled:false로 아예 실행되지 않는다. 그때 isLoading도 false여서
   // 빈 배열이 되는데, 이를 "리뷰 없음"으로 표시하면 조회 실패를 데이터 없음으로 오인시킨다.
@@ -118,6 +118,9 @@ export default function MyReviewsScreen() {
         ) : isError ? (
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyText}>리뷰를 불러오지 못했어요</Text>
+            <TouchableOpacity onPress={() => refetch()} style={styles.retryBtn}>
+              <Text style={styles.retryText}>다시 시도</Text>
+            </TouchableOpacity>
           </View>
         ) : reviews.length === 0 ? (
           <View style={styles.emptyContainer}>
@@ -259,6 +262,15 @@ const styles = StyleSheet.create({
   photoThumb: { width: normalize(52), height: normalize(52), borderRadius: normalize(8) },
 
 
-  emptyContainer: { paddingVertical: normalize(40), alignItems: 'center' },
+  emptyContainer: { paddingVertical: normalize(40), alignItems: 'center', gap: normalize(12) },
   emptyText: { fontSize: FONT_SM, color: 'rgba(0,0,0,0.3)' },
+  retryBtn: {
+    height: normalize(44),
+    paddingHorizontal: normalize(24),
+    borderRadius: BUTTON_RADIUS,
+    backgroundColor: '#F5F5F7',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  retryText: { fontSize: normalizeFontSize(14), fontWeight: '600', color: '#000', letterSpacing: -0.2 },
 });

@@ -8,6 +8,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { usePreventRemove } from '@react-navigation/native';
 // 시간대 칩만 tabler — 목업은 meteocons 컬러 아이콘이고 대체안 확정 전까지 유지한다.
 import { IconSunrise, IconSun, IconSunset, IconMoon } from '@tabler/icons-react-native';
 // CalendarDays가 아니라 Calendar — Days 쪽은 날짜 칸을 길이 0짜리 선(h.01) + round linecap으로
@@ -151,7 +152,9 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
   const canSubmit = rating > 0 && period !== null && trimmed.length >= CONTENT_MIN;
 
   // 등록·수정 성공으로 나가는 건 유실이 아니므로 확인창을 건너뛴다.
-  const submitted = React.useRef(false);
+  // usePreventRemove는 렌더 시점의 boolean을 읽으므로 ref로는 잠금을 풀 수 없다. 상태로 두고,
+  // 실제 이탈은 다음 렌더의 effect에서 처리해야 같은 틱에 확인창이 뜨는 일이 없다.
+  const [leaving, setLeaving] = React.useState(false);
   // 수정 모드는 폼이 채워진 상태로 시작하므로 "값이 있는지"가 아니라 "처음과 달라졌는지"로 판단한다.
   const initial = React.useRef({
     rating: edit?.rating ?? 0,
@@ -175,20 +178,21 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
     photos.length > 0;
 
   React.useEffect(() => {
-    // 작성 분량이 큰 화면이라 뒤로가기·스와이프·안드로이드 백키로 날리는 사고를 막는다.
-    const unsubscribe = navigation.addListener('beforeRemove', (e) => {
-      if (!isDirty || submitted.current) return;
-      e.preventDefault();
-      const lost = photosTouched.current
-        ? '사진 변경은 이미 저장됐어요. 나머지 입력한 내용은 저장되지 않아요.'
-        : '입력한 내용은 저장되지 않아요.';
-      Alert.alert('작성을 그만둘까요?', lost, [
-        { text: '계속 작성', style: 'cancel' },
-        { text: '나가기', style: 'destructive', onPress: () => navigation.dispatch(e.data.action) },
-      ]);
-    });
-    return unsubscribe;
-  }, [navigation, isDirty]);
+    if (leaving) navigation.goBack();
+  }, [leaving, navigation]);
+
+  // 작성 분량이 큰 화면이라 뒤로가기·스와이프·안드로이드 백키로 날리는 사고를 막는다.
+  // native-stack에서는 beforeRemove의 preventDefault()가 스와이프 백 제스처를 잡지 못해
+  // usePreventRemove를 쓴다(react-navigation 권장 경로).
+  usePreventRemove(isDirty && !leaving, ({ data }) => {
+    const lost = photosTouched.current
+      ? '사진 변경은 이미 저장됐어요. 나머지 입력한 내용은 저장되지 않아요.'
+      : '입력한 내용은 저장되지 않아요.';
+    Alert.alert('작성을 그만둘까요?', lost, [
+      { text: '계속 작성', style: 'cancel' },
+      { text: '나가기', style: 'destructive', onPress: () => navigation.dispatch(data.action) },
+    ]);
+  });
 
   const toggleTag = (tag: ReviewTagApi) =>
     setTags((prev) => {
@@ -386,10 +390,7 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
       ...(equipment.length > 0 && { equipmentInfo: equipment }),
     };
     const handlers = {
-      onSuccess: () => {
-        submitted.current = true;
-        navigation.goBack();
-      },
+      onSuccess: () => setLeaving(true),
       onSettled: () => {
         submitLock.current = false;
       },
@@ -398,9 +399,9 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
         // 작성 화면을 열어둔 사이 다른 기기에서 리뷰가 생기는 경우가 남는다. 서버도 동시 요청을
         // 완전히 막지 않아 마지막 방어선으로 둔다. 안내 후 목록으로 돌려보낸다.
         if (err instanceof ApiError && err.status === 409) {
-          submitted.current = true; // 유실이 아니라 중복이므로 이탈 확인창을 건너뛴다
+          // 유실이 아니라 중복이므로 이탈 확인창을 건너뛴다.
           Alert.alert('이미 리뷰를 작성했어요', errorTextOf(err), [
-            { text: '확인', onPress: () => navigation.goBack() },
+            { text: '확인', onPress: () => setLeaving(true) },
           ]);
           return;
         }
@@ -548,6 +549,8 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
                   <Pressable
                     key={value}
                     onPress={() => setPeriod(value)}
+                    accessibilityRole="button"
+                    accessibilityState={{ selected: active }}
                     className="flex-1 items-center justify-center"
                     style={{
                       height: normalize(48),
@@ -737,6 +740,8 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
                   <Pressable
                     key={name}
                     onPress={() => toggleEquipment(name)}
+                    accessibilityRole="checkbox"
+                    accessibilityState={{ checked: selected }}
                     className="flex-row items-center"
                     style={{
                       gap: normalize(12),

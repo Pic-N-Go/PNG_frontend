@@ -49,6 +49,15 @@ function toApiError(err: unknown): ApiError {
   return new ApiError('네트워크 연결을 확인해 주세요.');
 }
 
+// 204 말고도 본문 없는 성공 응답이 있다(DELETE의 200/202). res.json()을 그대로 부르면
+// 파싱 오류가 toApiError를 타고 "네트워크 연결을 확인해 주세요"로 바뀌어, 성공한 요청이
+// 실패로 보인다. 본문이 있을 때만 파싱한다.
+async function parseBody<T>(res: Response): Promise<T> {
+  if (res.status === 204) return undefined as T;
+  const text = await res.text();
+  return (text ? JSON.parse(text) : undefined) as T;
+}
+
 async function request<T>(path: string, opts: { method?: Method; body?: unknown; token?: string } = {}): Promise<T> {
   const { method = 'GET', body, token } = opts;
   const controller = new AbortController();
@@ -64,8 +73,7 @@ async function request<T>(path: string, opts: { method?: Method; body?: unknown;
       signal: controller.signal,
     });
     if (!res.ok) throw await toHttpError(res);
-    if (res.status === 204) return undefined as T;
-    return (await res.json()) as T;
+    return await parseBody<T>(res);
   } catch (err) {
     throw toApiError(err);
   } finally {
@@ -94,7 +102,7 @@ async function upload<T>(path: string, form: FormData, token: string): Promise<T
       signal: controller.signal,
     });
     if (!res.ok) throw await toHttpError(res);
-    return (await res.json()) as T;
+    return await parseBody<T>(res);
   } catch (err) {
     throw toApiError(err);
   } finally {

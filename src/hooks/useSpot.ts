@@ -109,7 +109,7 @@ export function useDeleteReview() {
 
 /**
  * 사진 추가·삭제는 텍스트 저장과 달리 즉시 서버에 반영된다(전용 엔드포인트).
- * 평점·리뷰수는 바뀌지 않아 스팟 상세는 건드리지 않고 목록만 무효화한다.
+ * 평점·리뷰수는 그대로지만 헤더의 사진수(stats.photoCount)가 바뀌므로 상세도 함께 무효화한다.
  */
 export function useAddReviewPhotos(spotId: string) {
   const token = useAuthStore((s) => s.accessToken);
@@ -120,7 +120,7 @@ export function useAddReviewPhotos(spotId: string) {
       return spotApi.addReviewPhotos(reviewId, photos, token);
     },
     onSuccess: (_data, { reviewId }) => {
-      invalidateReviewLists(qc, spotId);
+      invalidateReviewCaches(qc, spotId);
       qc.invalidateQueries({ queryKey: reviewKey(reviewId) });
     },
   });
@@ -153,7 +153,7 @@ export function useDeleteReviewPhoto(spotId: string) {
       return spotApi.deleteReviewPhoto(reviewId, photoId, token);
     },
     onSuccess: (_data, { reviewId }) => {
-      invalidateReviewLists(qc, spotId);
+      invalidateReviewCaches(qc, spotId);
       qc.invalidateQueries({ queryKey: reviewKey(reviewId) });
     },
   });
