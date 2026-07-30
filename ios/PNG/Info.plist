@@ -27,6 +27,7 @@
       <dict>
         <key>CFBundleURLSchemes</key>
         <array>
+          <string>png</string>
           <string>kakao064f119585ac3464d0933271679fff60</string>
           <string>kakaoa9f0a957cdf5c7793d2ee0c38474d39c</string>
           <string>com.picngo.app</string>
@@ -59,6 +60,8 @@
     </dict>
     <key>NSFaceIDUsageDescription</key>
     <string>Allow $(PRODUCT_NAME) to access your Face ID biometric data.</string>
+    <key>NSPhotoLibraryUsageDescription</key>
+    <string>리뷰에 첨부할 사진을 선택하기 위해 앨범 접근 권한이 필요해요.</string>
     <key>RCTNewArchEnabled</key>
     <true/>
     <key>UILaunchStoryboardName</key>

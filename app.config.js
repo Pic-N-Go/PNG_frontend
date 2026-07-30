@@ -67,6 +67,18 @@ module.exports = {
           },
         },
       ],
+      [
+        // 권한 문구는 여기서 선언해야 prebuild가 Info.plist를 덮어써도 유지된다.
+        // 앨범 선택만 쓰므로 카메라·마이크는 명시적으로 끈다. false로 두지 않으면 플러그인이
+        // NSCameraUsageDescription과 영문 NSMicrophoneUsageDescription을 무조건 넣고,
+        // Android 매니페스트에도 CAMERA·RECORD_AUDIO가 병합돼 앱 심사에서 사유를 요구받는다.
+        'expo-image-picker',
+        {
+          photosPermission: '리뷰에 첨부할 사진을 선택하기 위해 앨범 접근 권한이 필요해요.',
+          cameraPermission: false,
+          microphonePermission: false,
+        },
+      ],
       '@react-native-community/datetimepicker',
       '@react-native-firebase/app',
       '@react-native-firebase/messaging',
