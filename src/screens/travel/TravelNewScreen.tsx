@@ -23,7 +23,7 @@ import {
 } from '@tabler/icons-react-native';
 
 import { StatusBar } from 'expo-status-bar';
-import { useTravelStore, Spot } from '@/store/useTravelStore';
+import { useCourseStore, Spot } from '@/store/useCourseStore';
 import Toast from '@/components/auth/Toast';
 
 import { BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING } from '@/constants/layout';
@@ -68,7 +68,7 @@ export default function TravelNewScreen() {
   const [daysCount, setDaysCount] = useState(1); // How many days are created
 
   // Zustand Store Integration
-  const { selectedSpots, clearSpots } = useTravelStore();
+  const { selectedSpots, clearSpots } = useCourseStore();
 
   useFocusEffect(
     React.useCallback(() => {
