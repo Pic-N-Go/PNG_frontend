@@ -14,6 +14,12 @@ interface Props {
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
+// 네이티브 드라이버는 네이티브 뷰만 변형하고 JS 쪽 위치는 그대로 두므로,
+// 화면에 보이는 위치와 터치 판정 위치가 어긋나 첫 탭이 버튼에 닿지 않는다.
+// (팝업을 처음 열 때만 translateY가 SCREEN_HEIGHT → 0으로 크게 움직여 증상이 첫 오픈에만 발생했다)
+// PanResponder가 translateY.setValue()로 같은 값을 직접 건드리기도 해서, JS 드라이버로 통일한다.
+const USE_NATIVE_DRIVER = false;
+
 export default function SpotPopup({ activeSpot, onClose, renderButtons }: Props) {
   const translateY = useRef(new Animated.Value(SCREEN_HEIGHT)).current;
   const lastSpot = useRef<Spot | null>(null);
@@ -31,14 +37,14 @@ export default function SpotPopup({ activeSpot, onClose, renderButtons }: Props)
         stiffness: 200,
         damping: 20,
         mass: 0.8,
-        useNativeDriver: true,
+        useNativeDriver: USE_NATIVE_DRIVER,
       }).start();
     } else {
       Animated.timing(translateY, {
         toValue: SCREEN_HEIGHT,
         duration: 250,
         easing: Easing.in(Easing.cubic),
-        useNativeDriver: true,
+        useNativeDriver: USE_NATIVE_DRIVER,
       }).start();
     }
   }, [activeSpot, translateY]);
@@ -53,7 +59,7 @@ export default function SpotPopup({ activeSpot, onClose, renderButtons }: Props)
       toValue: SCREEN_HEIGHT,
       duration: 250,
       easing: Easing.in(Easing.cubic),
-      useNativeDriver: true,
+      useNativeDriver: USE_NATIVE_DRIVER,
     }).start(({ finished }) => {
       if (finished) onCloseRef.current();
     });
@@ -78,7 +84,7 @@ export default function SpotPopup({ activeSpot, onClose, renderButtons }: Props)
             stiffness: 200,
             damping: 20,
             mass: 0.8,
-            useNativeDriver: true,
+            useNativeDriver: USE_NATIVE_DRIVER,
           }).start();
         }
       },
