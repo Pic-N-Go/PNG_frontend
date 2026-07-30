@@ -1560,7 +1560,8 @@ git commit -m "feat(community): 콘테스트 지난 서브탭 추가"
 - 구성은 결과 배너 → 최종 순위(가로 스크롤) → 전체 참여작 그리드 → 더 보기
 - 트로피 아이콘은 쓰지 않는다 — 랭크 뱃지만 (phase3 README)
 - `#E31B59` → `var(--color-accent)`
-- 하단 탭바는 유지한다 (커뮤니티 탭 내부 화면)
+- 하단 탭바는 **제거한다** — push로 진입하는 목적지이므로 탭바를 넣지 않는다
+  (`docs/guide/dev/ui-publishing.md` 탭바 규칙)
 
 - [ ] **Step 3: 브라우저에서 확인**
 
@@ -2238,7 +2239,8 @@ git commit -m "feat(community): 새 글 작성 목업 신규 작성 — 위치·
 - `<title>`을 `PNG - 유저 프로필`로
 - `.page-nav` 콜랩스 CSS 삭제
 - Task 6의 `.detail-nav` CSS를 가져와 뒤로가기 + 유저명 헤더로 쓴다
-- 하단 탭바는 유지한다 (커뮤니티 탭 내부 화면)
+- 하단 탭바는 **제거한다** — push로 진입하는 목적지이므로 탭바를 넣지 않는다
+  (`docs/guide/dev/ui-publishing.md` 탭바 규칙)
 
 - [ ] **Step 2: 프로필 헤더 + 통계 이식**
 

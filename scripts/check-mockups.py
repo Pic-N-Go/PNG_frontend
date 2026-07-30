@@ -73,12 +73,17 @@ def check(path):
 
 def main():
     target = sys.argv[1] if len(sys.argv) > 1 else 'src/components/ui/community'
-    files = sorted(f for f in os.listdir(target) if f.endswith(('.html', '.css')))
+    files = sorted(os.path.join(r, f) for r, _, fs in os.walk(target)
+                   for f in fs if f.endswith(('.html', '.css')))
+    # 대상이 0개면 통과가 아니라 실패 — 경로 오타가 초록불로 보이면 게이트가 무의미하다
+    if not files:
+        print(f'검사 대상 없음: {target}')
+        return 1
     total = 0
-    for f in files:
-        errs = check(os.path.join(target, f))
+    for path in files:
+        errs = check(path)
         total += len(errs)
-        print(f'{f:24} {"OK" if not errs else str(len(errs)) + "건"}')
+        print(f'{os.path.relpath(path, target):32} {"OK" if not errs else str(len(errs)) + "건"}')
         for e in errs:
             print(f'  - {e}')
     print(f'\n{"통과" if total == 0 else f"실패 {total}건"} ({len(files)}개 파일)')

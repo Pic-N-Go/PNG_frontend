@@ -146,6 +146,12 @@
         letter-spacing: 0.3px;
         padding: 8px 0 6px;
       }
+      /* JS가 display를 토글하므로 flex는 인라인이 아니라 클래스에 둔다 */
+      .sheet__chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
 
       /* ── Chip ── */
       .chip {
@@ -527,7 +533,7 @@
           </div>
 
           <div class="sheet__label" data-gear-kind="camera">자주 쓰는 카메라</div>
-          <div style="display: flex; flex-wrap: wrap; gap: 6px" data-gear-kind="camera">
+          <div class="sheet__chips" data-gear-kind="camera">
             <button class="chip" onclick="selectGear('Sony A7IV')">Sony A7IV</button>
             <button class="chip" onclick="selectGear('Sony A7C II')">Sony A7C II</button>
             <button class="chip" onclick="selectGear('Canon R6 II')">Canon R6 II</button>
@@ -538,7 +544,7 @@
           </div>
 
           <div class="sheet__label" data-gear-kind="lens">자주 쓰는 렌즈</div>
-          <div style="display: flex; flex-wrap: wrap; gap: 6px" data-gear-kind="lens">
+          <div class="sheet__chips" data-gear-kind="lens">
             <button class="chip" onclick="selectGear('24mm f/2.8')">24mm f/2.8</button>
             <button class="chip" onclick="selectGear('35mm f/1.4')">35mm f/1.4</button>
             <button class="chip" onclick="selectGear('50mm f/1.8')">50mm f/1.8</button>
@@ -563,8 +569,9 @@
       /* ── 카테고리 다중 선택 ── */
       function toggleCategory(btn) {
         btn.classList.toggle('is-selected');
+        // 카테고리 컨테이너로 한정한다 — gear-sheet 칩도 같은 .chip.is-selected를 쓴다
         document.getElementById('category-count').textContent =
-          document.querySelectorAll('.chip.is-selected').length;
+          btn.parentElement.querySelectorAll('.chip.is-selected').length;
       }
 
       /* ── 위치 선택 ── */
