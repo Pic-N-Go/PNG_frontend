@@ -30,7 +30,7 @@ function navigateToSpotDetail(spotId: string) {
 }
 
 function handleDeepLinkNav(deepLink: string) {
-  const spotIdMatch = deepLink.match(/(?:spotId=|\/spot\/|^)(\d+)/);
+  const spotIdMatch = deepLink.match(/(?:spotId=|\/spot\/|\/wishlist\/|\/spot-alerts\/|^)(\d+)/);
   if (!spotIdMatch || !spotIdMatch[1]) return;
 
   const spotId = spotIdMatch[1];
