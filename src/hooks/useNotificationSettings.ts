@@ -115,7 +115,7 @@ export function useNotificationSettings(initial?: Partial<NotificationSettings>)
       const hasDnd = serverSettings.isDndEnabled ?? !!(serverSettings.dndStartTime && serverSettings.dndEndTime);
       setSettings((prev) => ({
         ...prev,
-        wishlist: serverSettings.isWishlistPushEnabled ?? prev.wishlist,
+        wishlist: serverSettings.isSpotAlertPushEnabled ?? prev.wishlist,
         golden: serverSettings.isGoldenHourPushEnabled ?? prev.golden,
         community: serverSettings.isCommunityPushEnabled ?? prev.community,
         dnd: {
@@ -149,7 +149,7 @@ export function useNotificationSettings(initial?: Partial<NotificationSettings>)
       syncTimerRef.current = null;
       updateApiMutation.mutate({
         requestToken: tokenForRequest,
-        isWishlistPushEnabled: newSettings.wishlist,
+        isSpotAlertPushEnabled: newSettings.wishlist,
         isGoldenHourPushEnabled: newSettings.golden,
         isCommunityPushEnabled: newSettings.community,
         isDndEnabled: newSettings.dnd.enabled,

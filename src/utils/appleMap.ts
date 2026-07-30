@@ -38,29 +38,35 @@ export const openAppleMap = async (spots: SpotLocation[]) => {
     return;
   }
 
-  const startSpot = validSpots.length > 1 ? validSpots[0] : null;
-  const destSpot = validSpots[validSpots.length - 1];
-  const viaSpots = validSpots.length > 2 ? validSpots.slice(1, validSpots.length - 1) : [];
-
-  let url = 'https://maps.apple.com/?dirflg=d';
-
-  if (startSpot) {
-    url += `&saddr=${startSpot.latitude},${startSpot.longitude}`;
+  // 상위 5개 스팟까지 선택 (경유지 최대 4개 + 최종 목적지 1개)
+  const limitedSpots = validSpots.slice(0, 5);
+  if (validSpots.length > 5) {
+    Alert.alert('길안내 안내', '길안내 앱 제약으로 상위 5개 스팟까지만 길안내에 포함됩니다.');
   }
 
-  // 중간 경유지 반복 지정
-  viaSpots.forEach((spot) => {
-    url += `&daddr=${spot.latitude},${spot.longitude}`;
-  });
+  const destSpot = limitedSpots[limitedSpots.length - 1];
+  const viaSpots = limitedSpots.length > 1 ? limitedSpots.slice(0, limitedSpots.length - 1) : [];
 
-  url += `&daddr=${destSpot.latitude},${destSpot.longitude}`;
+  // 현대 Apple 지도 공식 /directions 규격 (iOS 16+): waypoint 반복 지정 + destination 1개 지정
+  let modernUrl = 'https://maps.apple.com/directions?dirflg=d';
+  viaSpots.forEach((spot) => {
+    modernUrl += `&waypoint=${spot.latitude},${spot.longitude}`;
+  });
+  modernUrl += `&destination=${destSpot.latitude},${destSpot.longitude}`;
+
+  // 구형 iOS 지원용 폴백 URL 규격 (daddr 반복 지정)
+  let legacyUrl = 'https://maps.apple.com/?dirflg=d';
+  viaSpots.forEach((spot) => {
+    legacyUrl += `&daddr=${spot.latitude},${spot.longitude}`;
+  });
+  legacyUrl += `&daddr=${destSpot.latitude},${destSpot.longitude}`;
 
   try {
-    const supported = await Linking.canOpenURL(url);
+    const supported = await Linking.canOpenURL(modernUrl);
     if (supported) {
-      await Linking.openURL(url);
+      await Linking.openURL(modernUrl);
     } else {
-      await Linking.openURL(url);
+      await Linking.openURL(legacyUrl);
     }
   } catch (error) {
     console.error('Apple 지도 실행 오류:', error);

@@ -57,7 +57,7 @@ export interface WishlistSettingUpdateRequest {
 
 export const wishlistApi = {
   getWishlists: async (accessToken: string): Promise<WishlistSettingResponse[]> => {
-    const res = await fetchWithTimeout(`${BASE}/wishlist`, {
+    const res = await fetchWithTimeout(`${BASE}/spot-alerts`, {
       method: 'GET',
       headers: { Authorization: `Bearer ${accessToken}` },
     });
@@ -65,7 +65,7 @@ export const wishlistApi = {
   },
 
   getWishlist: async (spotId: number, accessToken: string): Promise<WishlistSettingResponse> => {
-    const res = await fetchWithTimeout(`${BASE}/wishlist/${spotId}`, {
+    const res = await fetchWithTimeout(`${BASE}/spot-alerts/${spotId}`, {
       method: 'GET',
       headers: { Authorization: `Bearer ${accessToken}` },
     });
@@ -73,7 +73,7 @@ export const wishlistApi = {
   },
 
   updateWishlist: async (spotId: number, data: WishlistSettingUpdateRequest, accessToken: string): Promise<WishlistSettingResponse> => {
-    const res = await fetchWithTimeout(`${BASE}/wishlist/${spotId}`, {
+    const res = await fetchWithTimeout(`${BASE}/spot-alerts/${spotId}`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
@@ -85,7 +85,7 @@ export const wishlistApi = {
   },
 
   deleteWishlist: async (spotId: number, accessToken: string): Promise<void> => {
-    await fetchWithTimeout(`${BASE}/wishlist/${spotId}`, {
+    await fetchWithTimeout(`${BASE}/spot-alerts/${spotId}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${accessToken}` },
     });

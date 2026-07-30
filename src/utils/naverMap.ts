@@ -35,35 +35,36 @@ export const openNaverMap = async (spots: SpotLocation[]) => {
     return;
   }
 
-  const startSpot = validSpots.length > 1 ? validSpots[0] : null;
-  const destSpot = validSpots[validSpots.length - 1];
-  const viaSpots = validSpots.length > 2 ? validSpots.slice(1, validSpots.length - 1) : [];
-
-  // 네이버 지도 URI Scheme 생성 (appname: com.picngo.app)
-  let scheme = `nmap://route/car?dlat=${destSpot.latitude}&dlng=${destSpot.longitude}&dname=${encodeURIComponent(destSpot.name)}&appname=com.picngo.app`;
-
-  if (startSpot) {
-    scheme += `&slat=${startSpot.latitude}&slng=${startSpot.longitude}&sname=${encodeURIComponent(startSpot.name)}`;
+  // 상위 5개 스팟 선택 (경유지 최대 4개 + 최종 목적지 1개)
+  const limitedSpots = validSpots.slice(0, 5);
+  if (validSpots.length > 5) {
+    Alert.alert('길안내 안내', '길안내 앱 제약으로 상위 5개 스팟까지만 길안내에 포함됩니다.');
   }
 
-  // 중간 경유지 추가 (v1lat, v1lng, v1name, ...)
+  const destSpot = limitedSpots[limitedSpots.length - 1];
+  const viaSpots = limitedSpots.length > 1 ? limitedSpots.slice(0, limitedSpots.length - 1) : [];
+
+  // 네이버 클라우드 공식 URL Scheme 규격:
+  // - 출발지(slat/slng/sname) 생략 시 기기의 현재 GPS 위치가 출발지(초록색 핀)로 자동 설정됩니다.
+  // - 1번 스팟부터 v1(경유지1), v2(경유지2)..로 들어가서 1번 스팟이 출발지로 먹히는 현상을 해결합니다.
+  let viaParams = '';
   viaSpots.forEach((spot, idx) => {
     const wayIdx = idx + 1;
-    scheme += `&v${wayIdx}lat=${spot.latitude}&v${wayIdx}lng=${spot.longitude}&v${wayIdx}name=${encodeURIComponent(spot.name)}`;
+    viaParams += `&v${wayIdx}lng=${spot.longitude}&v${wayIdx}lat=${spot.latitude}&v${wayIdx}name=${encodeURIComponent(spot.name)}`;
   });
+
+  const scheme = `nmap://route/car?dlng=${destSpot.longitude}&dlat=${destSpot.latitude}&dname=${encodeURIComponent(destSpot.name)}${viaParams}&appname=com.picngo.app`;
+
+  const viaPath = viaSpots.length > 0
+    ? `/${viaSpots.map((s) => `${s.longitude},${s.latitude},${encodeURIComponent(s.name)}`).join('/')}`
+    : '';
+  const fallbackUrl = `https://map.naver.com/v5/directions/-${viaPath}/${destSpot.longitude},${destSpot.latitude},${encodeURIComponent(destSpot.name)}/-/car`;
 
   try {
     const supported = await Linking.canOpenURL('nmap://');
     if (supported) {
       await Linking.openURL(scheme);
     } else {
-      // 네이버 지도 미설치 시 네이버 지도 웹 폴백
-      let fallbackUrl = '';
-      if (startSpot) {
-        fallbackUrl = `https://map.naver.com/v5/directions/${startSpot.longitude},${startSpot.latitude},${encodeURIComponent(startSpot.name)}/${destSpot.longitude},${destSpot.latitude},${encodeURIComponent(destSpot.name)}/-/car`;
-      } else {
-        fallbackUrl = `https://map.naver.com/v5/directions/-/${destSpot.longitude},${destSpot.latitude},${encodeURIComponent(destSpot.name)}/-/car`;
-      }
       await Linking.openURL(fallbackUrl);
     }
   } catch (error) {

@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, Platform, PermissionsAndroid,
 import { WebView } from 'react-native-webview';
 import { IconChevronLeft, IconSearch, IconAdjustmentsHorizontal, IconFocus2, IconX } from '@tabler/icons-react-native';
 import { useNavigation, useRoute, useFocusEffect, CommonActions } from '@react-navigation/native';
-import { useTravelStore, Spot } from '@/store/useTravelStore';
+import { useCourseStore, Spot } from '@/store/useCourseStore';
 import { useSpots, useMapSpots, useSearchSpots } from '@/hooks/useSpot';
 import SpotPopup from '@/components/travel/SpotPopup';
 import BottomSheet from '@/components/common/BottomSheet';
@@ -73,7 +73,7 @@ export default function MapScreen() {
 
   const webViewRef = useRef<any>(null);
   const [mapReady, setMapReady] = useState(false);
-  const { selectedSpots, addSpot, removeSpot } = useTravelStore();
+  const { selectedSpots, addSpot, removeSpot } = useCourseStore();
   const [activeSpot, setActiveSpot] = useState<Spot | null>(null);
   const [isCourseModalOpen, setCourseModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -403,18 +403,18 @@ export default function MapScreen() {
             }]
         });
 
-      // 마커(오버레이) 탭 시 kakao가 지도 'click'도 함께 발생시켜 '열자마자 닫힘' 깜빡임이 생긴다.
-      // 지도 클릭에 의한 닫기(MAP_CLICK)를 살짝 지연시키고, 그 사이 마커 탭이 오면 취소한다(순서 무관).
-      var pendingMapClose = null;
-      function scheduleMapClose() {
-        if (pendingMapClose) clearTimeout(pendingMapClose);
-        pendingMapClose = setTimeout(function () {
-          pendingMapClose = null;
-          window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'MAP_CLICK' }));
-        }, 80);
+      // 마커(오버레이) 탭 시 kakao가 지도 'click'도 함께 발생시켜 '열자마자 닫힘'이 생긴다.
+      // 이전에는 MAP_CLICK을 80ms 지연시키고 마커 탭이 오면 취소했는데, 지도 click이 마커 click
+      // '뒤에' 오면 취소 후 다시 예약되어 팝업이 닫혔다. 취소가 아니라 '억제'로 바꿔 순서에 무관하게 만든다.
+      // (touchstart는 항상 click보다 먼저 오므로 마커 탭 시각을 기록해두면 판별이 가능하다)
+      var MARKER_TAP_GUARD_MS = 400;
+      var lastMarkerTapAt = 0;
+      function markMarkerTapped() {
+        lastMarkerTapAt = Date.now();
       }
-      function cancelMapClose() {
-        if (pendingMapClose) { clearTimeout(pendingMapClose); pendingMapClose = null; }
+      function closePopupFromMapClick() {
+        if (Date.now() - lastMarkerTapAt < MARKER_TAP_GUARD_MS) return; // 마커 탭에 딸려온 지도 클릭
+        window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'MAP_CLICK' }));
       }
 
       var spots = ${JSON.stringify(initialSpots).replace(/</g, '\\u003c')};
@@ -471,10 +471,10 @@ export default function MapScreen() {
 
           wrap.onclick = function(e) {
               e.stopPropagation();
-              cancelMapClose();
+              markMarkerTapped();
               window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'SPOT_CLICK', data: spot }));
           };
-          wrap.addEventListener('touchstart', function(e) { e.stopPropagation(); cancelMapClose(); }, { passive: true });
+          wrap.addEventListener('touchstart', function(e) { e.stopPropagation(); markMarkerTapped(); }, { passive: true });
 
           var customOverlay = new kakao.maps.CustomOverlay({
               position: markerPosition,
@@ -539,7 +539,7 @@ export default function MapScreen() {
       kakao.maps.event.addListener(map, 'idle', postBounds);
 
       kakao.maps.event.addListener(map, 'click', function() {
-          scheduleMapClose();
+          closePopupFromMapClick();
       });
       }
       initMap();
@@ -924,7 +924,7 @@ export default function MapScreen() {
                       // 렌더 시점 파생값(saved) 대신 스토어 최신 상태를 직접 읽어 판단한다.
                       // 렌더가 한 박자 늦으면 첫 탭이 removeSpot(목록에 없어 no-op)으로 새어
                       // "두 번 눌러야 저장되는" 현상이 생기기 때문.
-                      const alreadySaved = useTravelStore
+                      const alreadySaved = useCourseStore
                         .getState()
                         .selectedSpots.some((s) => String(s.id) === String(popupSpot.id));
                       if (alreadySaved) {
