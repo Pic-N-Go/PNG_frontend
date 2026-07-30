@@ -403,18 +403,18 @@ export default function MapScreen() {
             }]
         });
 
-      // 마커(오버레이) 탭 시 kakao가 지도 'click'도 함께 발생시켜 '열자마자 닫힘' 깜빡임이 생긴다.
-      // 지도 클릭에 의한 닫기(MAP_CLICK)를 살짝 지연시키고, 그 사이 마커 탭이 오면 취소한다(순서 무관).
-      var pendingMapClose = null;
-      function scheduleMapClose() {
-        if (pendingMapClose) clearTimeout(pendingMapClose);
-        pendingMapClose = setTimeout(function () {
-          pendingMapClose = null;
-          window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'MAP_CLICK' }));
-        }, 80);
+      // 마커(오버레이) 탭 시 kakao가 지도 'click'도 함께 발생시켜 '열자마자 닫힘'이 생긴다.
+      // 이전에는 MAP_CLICK을 80ms 지연시키고 마커 탭이 오면 취소했는데, 지도 click이 마커 click
+      // '뒤에' 오면 취소 후 다시 예약되어 팝업이 닫혔다. 취소가 아니라 '억제'로 바꿔 순서에 무관하게 만든다.
+      // (touchstart는 항상 click보다 먼저 오므로 마커 탭 시각을 기록해두면 판별이 가능하다)
+      var MARKER_TAP_GUARD_MS = 400;
+      var lastMarkerTapAt = 0;
+      function markMarkerTapped() {
+        lastMarkerTapAt = Date.now();
       }
-      function cancelMapClose() {
-        if (pendingMapClose) { clearTimeout(pendingMapClose); pendingMapClose = null; }
+      function closePopupFromMapClick() {
+        if (Date.now() - lastMarkerTapAt < MARKER_TAP_GUARD_MS) return; // 마커 탭에 딸려온 지도 클릭
+        window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'MAP_CLICK' }));
       }
 
       var spots = ${JSON.stringify(initialSpots).replace(/</g, '\\u003c')};
@@ -471,10 +471,10 @@ export default function MapScreen() {
 
           wrap.onclick = function(e) {
               e.stopPropagation();
-              cancelMapClose();
+              markMarkerTapped();
               window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'SPOT_CLICK', data: spot }));
           };
-          wrap.addEventListener('touchstart', function(e) { e.stopPropagation(); cancelMapClose(); }, { passive: true });
+          wrap.addEventListener('touchstart', function(e) { e.stopPropagation(); markMarkerTapped(); }, { passive: true });
 
           var customOverlay = new kakao.maps.CustomOverlay({
               position: markerPosition,
@@ -539,7 +539,7 @@ export default function MapScreen() {
       kakao.maps.event.addListener(map, 'idle', postBounds);
 
       kakao.maps.event.addListener(map, 'click', function() {
-          scheduleMapClose();
+          closePopupFromMapClick();
       });
       }
       initMap();
