@@ -81,7 +81,9 @@ const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 Key rules:
 
 - **Brand / Accent color**: `#E31B59` (Pink) — used for all interactive elements (CTA buttons, active states, active tabs, focus borders). Primary palette: Black · White · Pink.
-  - 예외: 알림 화면(`notification.html`)의 필터 탭 활성 상태는 Black(`#000`) 사용 (의도된 디자인)
+  - **Accent(핑크)**: 화면을 전환하거나 데이터를 바꾸는 것 — CTA 버튼, 하단 탭바 활성, 언더라인 탭 활성, 포커스 보더, 좋아요·팔로우 활성
+  - **Black(`#000`)**: 같은 화면 안에서 목록만 거르는 중립 컨트롤 — 세그먼트 컨트롤 활성, 필터 칩 활성, 정렬 칩 활성 (`notification.html` 필터 탭, `community-feed.html` 세그먼트·칩, `spot-detail.html`, `mypage.html`, `travel-plan.html` 등)
+  - 판단 기준: **어디로 가는가 → 핑크 / 무엇을 보는가 → 블랙**
 - **Backgrounds**: page `#ffffff`, card/input `#f5f5f7`
 - **Cards**: no border, no shadow — elevation via background color contrast only
 - **Buttons**: pill shape (`border-radius: 50%` of height), primary height 52px

@@ -25,9 +25,11 @@ src/components/ui/
     travel-plan.html          # 여행 계획 상세 (지도 헤더·일자별 스팟 타임라인)
     travel-new.html           # 새 여행 계획 만들기
   community/
-    community-feed.html       # 커뮤니티 피드 (레시피·갤러리 탭·타이틀 하단 검색바)
-    community-write.html      # 게시물 작성 (촬영 시간·날씨·카메라·렌즈·위치 바텀시트)
-    contest.html              # 주간 콘테스트 — 미퍼블리싱
+    community-feed.html       # 커뮤니티 루트 (게시글·갤러리·콘테스트 세그먼트 / 콘테스트 하위 진행중·내 출품·지난 서브탭)
+    community-post.html       # 게시글 상세 (액션시트·삭제·신고·토스트 / 사진 라이트박스 → EXIF 2중 레이어)
+    community-write.html      # 게시물 작성 (위치·촬영 정보 바텀시트)
+    contest-result.html       # 콘테스트 결과 상세 (결과 배너·최종 순위·전체 참여작 / 풀스크린)
+    user-profile.html         # 다른 유저 프로필 (게시글·콘테스트·방문한 스팟 탭)
   spot/
     spot-detail.html          # 스팟 상세 (포토제닉 스코어·날씨·정보/사진/채팅 탭)
     spot-register.html        # 새 스팟 등록 (3단계 폼·장소명 필수 검증)
@@ -42,7 +44,6 @@ src/components/ui/
     setting.html              # 설정 (알림·계정·로그아웃)
     notification.html         # 알림 목록
     follow.html               # 팔로워/팔로잉 목록 — 미퍼블리싱
-    user-profile.html         # 타 유저 프로필 — 미퍼블리싱
   wishlist/
     wishlist.html             # 촬영 조건 알림 설정 목록 (날씨·골든아워·미세먼지 조건, 빈 상태 ?empty=1)
     wishlist-setting.html     # 위시리스트 상세 설정
@@ -87,8 +88,8 @@ src/components/ui/
 | `--color-bg` | `#ffffff` | 페이지 배경 |
 | `--color-surface` | `#f5f5f7` | 카드·인풋 배경 |
 | `--color-text-primary` | `#000000` | 본문 텍스트 |
-| `--color-text-secondary` | `rgba(0,0,0,0.48)` | 보조 텍스트 (설명·메타) |
-| `--color-text-tertiary` | `rgba(0,0,0,0.28)` | 비활성·플레이스홀더 |
+| `--color-text-secondary` | `rgba(0,0,0,0.4)` | 보조 텍스트 (설명·메타) |
+| `--color-text-tertiary` | `rgba(0,0,0,0.3)` | 비활성·플레이스홀더 |
 | `--color-accent` | `#e31b59` | 브랜드 핑크 — 버튼·활성 탭·포커스 |
 | `--color-accent-hover` | `#c91550` | hover 상태 |
 | `--color-accent-disabled` | `rgba(227,27,89,0.25)` | 비활성 버튼 |
@@ -100,6 +101,15 @@ src/components/ui/
 | `--color-error` | `#ff453a` | 에러 상태 |
 | `--color-success` | `#34c759` | 성공 상태 |
 | `--color-warning` | `#ff9f0a` | 경고 상태 |
+
+> **토큰과 값이 같은 raw 리터럴은 쓰지 않습니다.** `color: rgba(0,0,0,0.4)` 대신 `var(--color-text-secondary)`,
+> `border: 0.5px solid rgba(0,0,0,0.08)` 대신 `var(--color-border)`. `scripts/check-mockups.py`가 잡습니다.
+>
+> 토큰에 없는 중간톤(`0.35 · 0.45 · 0.5 · 0.55` 등)은 그대로 써도 됩니다 — 억지로 토큰에 맞추면 디자인이 뭉갭니다.
+> 다만 같은 역할에 매번 다른 알파를 새로 고르지는 마세요. 세 계층(본문 `primary` / 보조 `secondary` / 비활성 `tertiary`)으로
+> 설명되는 텍스트는 토큰을 쓰고, 그 밖의 값은 왜 중간톤이어야 하는지 설명될 때만 씁니다.
+>
+> `--color-text-*`는 **텍스트 전용**입니다. 배경·보더에 쓰지 마세요 (`--color-surface`, `--color-border*` 사용).
 
 **스페이싱 (8px 그리드)**
 
@@ -113,10 +123,17 @@ src/components/ui/
 
 | 변수 | 값 | 용도 |
 |---|---|---|
-| `--radius-input` | `12px` | 인풋·버튼 |
-| `--radius-btn` | `26px` | 주요 CTA 버튼 (pill) |
+| `--radius-input` | `12px` | 인풋 |
+| `--radius-btn` | `26px` | 주요 CTA 버튼 (높이 52px pill) |
 | `--radius-card` | `16px` | 카드 |
-| `--radius-pill` | `17px` | 필터 칩·태그 |
+| `--radius-pill` | `17px` | 높이 34px pill |
+
+> **pill의 radius는 토큰이 아니라 높이의 절반입니다.** 높이 44px 버튼은 `22px`, 30px 칩은 `15px`.
+> 값이 우연히 `--radius-card`(16px)와 같더라도 토큰을 쓰면 안 됩니다 — 나중에 카드 반경을 조정하는 순간
+> 버튼 모양이 깨집니다. `--radius-btn`/`--radius-pill`도 각각 52px/34px 높이 전용입니다.
+>
+> 카드 반경은 실제로 `12 · 14 · 16 · 20px`이 혼용됩니다. 그중 `16px`만 토큰이 있으니,
+> 새 카드는 `var(--radius-card)`부터 검토하고 다른 값을 쓸 거면 주변 카드와 맞춥니다.
 
 **폰트 크기** — `layout.ts FONT_*`와 대응
 
@@ -142,6 +159,9 @@ src/components/ui/
 - `body { font-family: var(--font-family); }` — `--font-family`는 `fonts.css`에서 정의, `common.css`의 `body` 스타일에서 적용
 - Pretendard Variable — `font-weight` 100~600 사용 (700 이상 사용 안 함)
 - 모든 텍스트에 음수 `letter-spacing` 적용 (`-0.2px` ~ `-0.6px`)
+  - 한글 본문·메타: `--font-2xs`/`--font-xs`는 `-0.1px`, `--font-sm` 이상은 `-0.2px` ~ `-0.6px`
+  - **예외 — 대문자·마이크로 라벨은 양수 트래킹 허용** (`+0.3px` ~ `+1px`): `WEEKLY`, `D-3`, `BETA` 같은 배지, `--font-2xs`/`--font-xs` 섹션 라벨("현재 순위", "받은 표"). 좁은 글자를 벌려 라벨로 읽히게 하는 의도이며 레포 전반에서 쓰이는 확립된 패턴
+  - 한글 문장·헤딩에는 양수 트래킹을 쓰지 않습니다
 
 ### 로고 이미지
 
@@ -171,6 +191,7 @@ src/components/ui/
 
 - 활성 탭: `is-active` 클래스 → `color: var(--color-accent)`
 - `map.html`은 탭바 `position: absolute` (풀스크린 지도 위 오버레이), 나머지는 `position: fixed`
+- **탭바는 탭 루트 화면에만 둡니다.** 다른 화면에서 push로 진입하는 목적지(`community-post`, `community-write`, `contest-result`, `user-profile`, `my-photos`, `travel-plan` 등)에는 탭바를 넣지 않습니다 — RN에서 이들은 스택 내부 화면이라 탭바가 가려지고, 목업에 탭바가 있으면 잘못된 네비게이션 상태를 표시하게 됩니다
 
 ---
 
@@ -215,10 +236,36 @@ src/components/ui/
 
 ### community/community-feed.html
 - 스크롤 콜랩스 헤더 (travel과 동일 패턴)
-- 타이틀 하단 검색바 (항상 노출, 스크롤 시 큰 타이틀만 접힘)
-- 레시피·갤러리 탭 전환
+- 세그먼트 3개: 게시글 · 갤러리 · 콘테스트 — `switchView('posts'|'gallery'|'contest', el)`
+- 검색은 헤더 아이콘 → 전체 오버레이 (대상 chips 5개 · 최근 검색), `취소`로 닫기
+  - **최근 검색 섹션은 정적 블록입니다** — 행 탭 · 개별 삭제 · `모두 지우기` 모두 핸들러가 없어
+    동작이 명세돼 있지 않습니다. RN 구현 시 보이는 대로 옮기면 죽은 컨트롤 3개가 됩니다.
+    검색 히스토리 API(`src/api/search.ts` `getSearchHistory`) 확정 후 동작을 정의하세요
 - 인기순 정렬 드롭다운
+- 콘테스트 세그먼트 하위 언더라인 서브탭 3개 — `switchSubtab('active'|'mine'|'past', el)`
+  - 진행중: 히어로 배너 186px · 포디움 · 투표 확인/취소 모달 · undo 스낵바 · 라이트박스
+  - 내 출품: 컴팩트 배너 120px · 캡션 수정 시트 · 출품 취소 모달 · 출품하기 시트
+  - 지난: 2열 그리드 카드 → `contest-result.html`
 - 게시물 작성 버튼 → `community-write.html`
+- 카드 유저명 → `user-profile.html`
+- 인터랙션으로 도달 불가한 상태는 쿼리로 진입: `?empty=1` (내 출품 빈 상태)
+
+### community/community-post.html
+- 게시글 상세 — 히어로 · 유저 · 캡션 · 촬영 정보 · 포토제닉 · 댓글
+- `⋯` → 액션시트. `?mine=1`이면 내글(수정·삭제), 없으면 남글(신고)
+- 삭제 확인 모달 · 신고 사유 시트(사유 선택 즉시 접수) · 완료 토스트 2종
+- 히어로 우측 상단 확대 → 라이트박스(layer 1) → `(i)` → EXIF(layer 2, 라이트박스 위에 겹침)
+  - EXIF를 닫으면 라이트박스가 남는다. 라이트박스를 닫으면 둘 다 닫힌다
+- 하단은 탭바 대신 댓글 입력 바 (푸시 화면)
+
+### community/contest-result.html
+- 콘테스트 결과 상세 — 결과 배너 · 최종 순위 가로 스크롤 · 전체 참여작 그리드
+- 풀스크린 목적지 (시트 아님) — 스크롤이 길고 공유·딥링크 대상
+
+### community/user-profile.html
+- 다른 유저 프로필 (자기 프로필은 `mypage/mypage.html`)
+- 탭 3개: 게시글 · 콘테스트 · 방문한 스팟
+- 팔로우 버튼 토글 · 메시지 버튼은 BETA disabled
 
 ### spot/spot-detail.html
 - 탭: 정보 / 사진 / **채팅**
@@ -280,14 +327,15 @@ auth/login
             │    │    └─ spot/spot-detail
             │    └─ travel/travel-new
             ├─ community/community-feed
+            │    ├─ community/community-post
             │    ├─ community/community-write
-            │    └─ community/contest (미퍼블리싱)
+            │    ├─ community/contest-result
+            │    └─ community/user-profile
             └─ mypage/mypage
                  ├─ mypage/my-photos
                  ├─ mypage/setting
                  │    └─ mypage/profile-edit
                  ├─ mypage/notification
-                 ├─ mypage/user-profile (미퍼블리싱)
                  ├─ spot/spot-list?view=visited
                  └─ wishlist/wishlist
 ```
@@ -323,6 +371,22 @@ if (frame && nav) {
 }
 .sheet.is-open { transform: translateX(-50%) translateY(0); }
 ```
+
+### 토스트 · 스낵바 패턴
+
+같은 "잠깐 떴다 사라지는 알림"이지만 액션 버튼 유무로 형태가 갈립니다.
+
+| | 토스트 (`.toast`) | 스낵바 (`.snackbar`) |
+|---|---|---|
+| 용도 | 결과 통보만 ("삭제되었어요") | 되돌릴 수 있는 액션 포함 |
+| 폭 | 콘텐츠 폭 (`white-space: nowrap`), 중앙 정렬 | 풀폭 (`left/right: 28px`) |
+| 높이 / radius | 44px / 22px | 48px / 24px |
+| 배경 | `rgba(0, 0, 0, 0.75)` | `rgba(0, 0, 0, 0.75)` |
+| `pointer-events` | `none` (탭 통과) | 열렸을 때 `auto` (버튼 눌러야 함) |
+
+공통: `font-size: var(--font-base)`, `font-weight: 500`, `letter-spacing: -0.2px`, `color: #fff`,
+`opacity` + `translateY(16px)` 페이드 (`transition: opacity 0.3s, transform 0.3s`), 2.6~2.8초 후 자동 닫힘.
+표시 클래스는 파일 내 다른 오버레이(시트·모달·라이트박스)와 맞춥니다 — community는 `is-open`, mypage는 `is-visible`.
 
 ### 검색 패널 패턴 (home.html)
 
