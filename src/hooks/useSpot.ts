@@ -3,7 +3,7 @@
 import { keepPreviousData, useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ApiError } from '@/api/auth';
 import { spotApi } from '@/api/spot';
-import type { ReviewPhotoUpload } from '@/api/spot';
+import type { ReviewPhotoUpload, MapSpotsParams, GetSpotsParams, SearchSpotsParams } from '@/api/spot';
 import { useAuthStore } from '@/store/useAuthStore';
 import { mapMyReviewPages, mapPhotogenicScore, mapReviewPages, mapSpotDetail } from '@/utils/spotMappers';
 import type { ReviewCreateRequest, ReviewSortApi } from '@/types/spot';
@@ -19,10 +19,43 @@ export function useSpotDetail(id: string) {
   });
 }
 
-export function useSpots() {
+// 스팟 목록류는 자주 바뀌지 않으므로 1분간 fresh로 취급한다.
+// 지도 이동마다 마운트/재조회가 반복되는 것을 막는 용도.
+const SPOTS_STALE_TIME = 60 * 1000;
+
+type QueryToggle = { enabled?: boolean };
+
+export function useMapSpots(params?: MapSpotsParams, options?: QueryToggle) {
+  const token = useAuthStore((s) => s.accessToken);
   return useQuery({
-    queryKey: ['spots', 'list'],
-    queryFn: () => spotApi.getSpots(),
+    queryKey: ['spots', 'map', params?.southWestLat, params?.southWestLng, params?.northEastLat, params?.northEastLng, params?.category, params?.size, token ?? 'guest'],
+    queryFn: () => spotApi.getMapSpots({ ...params, token: token ?? undefined }),
+    enabled: options?.enabled ?? true,
+    staleTime: SPOTS_STALE_TIME,
+    // 지도를 옮기는 동안 이전 핀을 유지해 마커가 깜빡이지 않게 한다.
+    placeholderData: keepPreviousData,
+  });
+}
+
+export function useSpots(params?: GetSpotsParams, options?: QueryToggle) {
+  const token = useAuthStore((s) => s.accessToken);
+  return useQuery({
+    queryKey: ['spots', 'list', params?.category ?? 'ALL', params?.sort ?? 'latest', params?.page ?? 0, params?.size ?? 50, token ?? 'guest'],
+    queryFn: () => spotApi.getSpots({ ...params, token: token ?? undefined }),
+    enabled: options?.enabled ?? true,
+    staleTime: SPOTS_STALE_TIME,
+  });
+}
+
+export function useSearchSpots(params: SearchSpotsParams, options?: QueryToggle) {
+  const token = useAuthStore((s) => s.accessToken);
+  const hasKeyword = !!params.keyword && params.keyword.trim().length > 0;
+  return useQuery({
+    queryKey: ['spots', 'search', params.keyword, params.category ?? 'ALL', params.page ?? 0, params.size ?? 20, token ?? 'guest'],
+    queryFn: () => spotApi.searchSpots({ ...params, token: token ?? undefined }),
+    enabled: hasKeyword && (options?.enabled ?? true),
+    staleTime: SPOTS_STALE_TIME,
+    placeholderData: keepPreviousData,
   });
 }
 

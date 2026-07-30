@@ -253,7 +253,7 @@
         justify-content: center;
         font-size: var(--font-base);
         font-weight: 500;
-        color: rgba(0, 0, 0, 0.4);
+        color: var(--color-text-secondary);
         border: none;
         background: none;
         cursor: pointer;
@@ -343,7 +343,7 @@
       }
       .selector svg {
         flex-shrink: 0;
-        color: rgba(0, 0, 0, 0.3);
+        color: var(--color-text-tertiary);
       }
       .selector__arrow {
         margin-left: auto;
@@ -407,13 +407,13 @@
       .pg-score-label-top {
         font-size: var(--font-xs);
         font-weight: 600;
-        color: rgba(0, 0, 0, 0.3);
+        color: var(--color-text-tertiary);
         letter-spacing: 0.4px;
         text-transform: uppercase;
         margin-bottom: 2px;
       }
       .pg-score-num {
-        font-size: 56px;
+        font-size: 56px; /* token-exempt — display 숫자, 8토큰 스케일 밖 */
         font-weight: 600;
         letter-spacing: -3px;
         line-height: 1;
@@ -510,7 +510,7 @@
       }
       .pg-factor__label {
         font-size: var(--font-xs);
-        color: rgba(0, 0, 0, 0.38);
+        color: var(--color-text-secondary);
         letter-spacing: -0.1px;
         font-weight: 500;
       }
@@ -700,7 +700,7 @@
         border: none;
         padding: 4px 0;
         cursor: pointer;
-        color: rgba(0, 0, 0, 0.4);
+        color: var(--color-text-secondary);
         font-size: 13px;
         font-family: inherit;
         letter-spacing: -0.2px;
@@ -715,7 +715,7 @@
       }
       .checklist-empty__prompt {
         font-size: 14px;
-        color: rgba(0, 0, 0, 0.4);
+        color: var(--color-text-secondary);
         letter-spacing: -0.2px;
         margin-bottom: 14px;
       }
@@ -819,7 +819,7 @@
         color: var(--color-text-primary);
       }
       .checklist__label--off {
-        color: rgba(0, 0, 0, 0.4);
+        color: var(--color-text-secondary);
       }
 
       /* ======================== */
@@ -860,7 +860,7 @@
       }
       .wishlist-banner__desc {
         font-size: 12px;
-        color: rgba(0, 0, 0, 0.4);
+        color: var(--color-text-secondary);
         margin-top: 1px;
       }
       .wishlist-banner__arrow {
@@ -876,7 +876,7 @@
         gap: 12px;
         padding: 20px;
         background: #fff;
-        border-top: 0.5px solid rgba(0, 0, 0, 0.06);
+        border-top: 0.5px solid var(--color-border-light);
       }
       .btn {
         flex: 1;
@@ -976,7 +976,7 @@
         flex-shrink: 0;
       }
       .photo-filter__chip.active {
-        background: var(--color-text-primary);
+        background: #000;
         color: #fff;
       }
       .photo-filter__chip:not(.active) {
@@ -1046,7 +1046,7 @@
       }
       .chat-date__text {
         font-size: var(--font-xs);
-        color: rgba(0, 0, 0, 0.3);
+        color: var(--color-text-tertiary);
         white-space: nowrap;
         letter-spacing: -0.1px;
       }
@@ -1130,7 +1130,7 @@
       .chat-system {
         text-align: center;
         font-size: 12px;
-        color: rgba(0, 0, 0, 0.3);
+        color: var(--color-text-tertiary);
         background: rgba(0, 0, 0, 0.04);
         border-radius: 10px;
         padding: 6px 14px;
@@ -1161,7 +1161,7 @@
       .chat-input-bar {
         padding: 10px 16px 24px;
         background: var(--color-bg);
-        border-top: 0.5px solid rgba(0, 0, 0, 0.06);
+        border-top: 0.5px solid var(--color-border-light);
         flex-shrink: 0;
         display: flex;
         align-items: center;
@@ -1188,7 +1188,7 @@
         outline: none;
       }
       .chat-input::placeholder {
-        color: rgba(0, 0, 0, 0.3);
+        color: var(--color-text-tertiary);
       }
       .chat-input-icon {
         width: 20px;
@@ -1240,7 +1240,7 @@
         width: 80px;
       }
       .review-summary__score {
-        font-size: 44px;
+        font-size: 44px; /* token-exempt — display 숫자, 8토큰 스케일 밖 */
         font-weight: 600;
         color: var(--color-text-primary);
         line-height: 1;
@@ -1270,7 +1270,7 @@
       }
       .review-bar-row__label {
         font-size: var(--font-xs);
-        color: rgba(0, 0, 0, 0.4);
+        color: var(--color-text-secondary);
         width: 14px;
         text-align: right;
         flex-shrink: 0;
@@ -1289,7 +1289,7 @@
       }
       .review-bar-row__pct {
         font-size: var(--font-2xs);
-        color: rgba(0, 0, 0, 0.3);
+        color: var(--color-text-tertiary);
         width: 26px;
         text-align: right;
         flex-shrink: 0;
@@ -1327,7 +1327,7 @@
       }
       .review-card {
         padding: 18px 0;
-        border-bottom: 0.5px solid rgba(0, 0, 0, 0.06);
+        border-bottom: 0.5px solid var(--color-border-light);
       }
       .review-card:last-child {
         border-bottom: none;
@@ -1413,7 +1413,7 @@
         align-items: center;
         gap: 4px;
         font-size: var(--font-xs);
-        color: rgba(0, 0, 0, 0.3);
+        color: var(--color-text-tertiary);
         letter-spacing: -0.1px;
       }
 
@@ -1422,7 +1422,7 @@
         bottom: 0;
         background: var(--color-bg);
         padding: 12px 0 24px;
-        border-top: 0.5px solid rgba(0, 0, 0, 0.06);
+        border-top: 0.5px solid var(--color-border-light);
         margin-top: 4px;
       }
       .btn-review-write {
@@ -1560,7 +1560,7 @@
       }
       .plan-meta {
         font-size: 12px;
-        color: rgba(0, 0, 0, 0.4);
+        color: var(--color-text-secondary);
         margin-top: 2px;
       }
       .plan-check {
@@ -1683,7 +1683,7 @@
       }
       .navi-route-text__sub {
         font-size: 12px;
-        color: rgba(0, 0, 0, 0.4);
+        color: var(--color-text-secondary);
         margin-top: 2px;
         letter-spacing: -0.1px;
       }
@@ -1715,7 +1715,7 @@
       }
       .navi-time-sub {
         font-size: 12px;
-        color: rgba(0, 0, 0, 0.4);
+        color: var(--color-text-secondary);
         margin-top: 1px;
       }
       .navi-apps-label {
@@ -1784,7 +1784,7 @@
         font-size: var(--font-xs);
         font-weight: 600;
         letter-spacing: -0.1px;
-        color: rgba(0,0,0,0.4);
+        color: var(--color-text-secondary);
         margin-bottom: 2px;
       }
       .day-chip.is-selected .day-chip__label { color: var(--color-accent); }
@@ -1977,7 +1977,7 @@
         flex-shrink: 0;
       }
       .bk-saved-spot { font-size: var(--font-base); font-weight: 600; letter-spacing: -0.2px; color:#000; }
-      .bk-saved-col { font-size: 12px; color: rgba(0,0,0,0.4); margin-top: 2px; letter-spacing: -0.1px; }
+      .bk-saved-col { font-size: 12px; color: var(--color-text-secondary); margin-top: 2px; letter-spacing: -0.1px; }
       .bk-saved-actions {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -2998,7 +2998,7 @@
               </div>
             </div>
             <div>
-              <div class="navi-route-text__main" style="color: rgba(0,0,0,0.4); font-weight: 400">현재 위치</div>
+              <div class="navi-route-text__main" style="color: var(--color-text-secondary); font-weight: 400">현재 위치</div>
             </div>
           </div>
           <!-- 점선 -->

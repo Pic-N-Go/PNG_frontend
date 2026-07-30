@@ -22,12 +22,16 @@ interface TravelStore {
 export const useTravelStore = create<TravelStore>((set) => ({
   selectedSpots: [],
   addSpot: (spot) => set((state) => {
-    // 중복 방지
-    if (state.selectedSpots.some(s => s.id === spot.id)) return state;
-    return { selectedSpots: [...state.selectedSpots, spot] };
+    const normalizedId = String(spot.id);
+    // 중복 방지 (id 타입 불일치 방지: number vs string)
+    if (state.selectedSpots.some(s => String(s.id) === normalizedId)) return state;
+    return { selectedSpots: [...state.selectedSpots, { ...spot, id: normalizedId }] };
   }),
-  removeSpot: (spotId) => set((state) => ({
-    selectedSpots: state.selectedSpots.filter(s => s.id !== spotId)
-  })),
+  removeSpot: (spotId) => set((state) => {
+    const next = state.selectedSpots.filter(s => String(s.id) !== String(spotId));
+    // 목록에 없던 id면 상태를 그대로 둔다 (불필요한 리렌더 및 focus effect 재실행 방지)
+    if (next.length === state.selectedSpots.length) return state;
+    return { selectedSpots: next };
+  }),
   clearSpots: () => set({ selectedSpots: [] }),
 }));

@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>PNG - 콘테스트 결과</title>
+    <link rel="stylesheet" href="../common/fonts.css" />
+    <link rel="stylesheet" href="../common/common.css" />
+    <style>
+      /* ── Phone Frame ── */
+      .phone-frame {
+        width: 100%;
+        height: 100dvh;
+        background: var(--color-bg);
+        position: relative;
+        overflow: hidden;
+      }
+      .phone-scroll {
+        height: 100%;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding-bottom: 24px;
+      }
+
+      /* ── Status Bar ── */
+      .status-bar {
+        position: sticky;
+        top: 0;
+        z-index: 30;
+        height: 54px;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 34px;
+      }
+      .status-bar__time {
+        font-size: var(--font-md);
+        font-weight: 600;
+        color: #000;
+        letter-spacing: -0.3px;
+      }
+      .dynamic-island {
+        position: absolute;
+        top: 8px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 106px;
+        height: 28px;
+        background: #000;
+        border-radius: 14px;
+      }
+      .status-bar__icons {
+        display: flex;
+        gap: 6px;
+      }
+      .status-bar__icons svg {
+        height: 12px;
+        fill: #000;
+      }
+
+      /* ── Detail Nav (콜랩스 없는 풀스크린 헤더) ── */
+      .detail-nav {
+        position: sticky;
+        top: 54px;
+        z-index: 25;
+        background: #fff;
+        height: 52px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 0 20px;
+        border-bottom: 0.5px solid var(--color-border-light);
+      }
+      .detail-nav__back,
+      .detail-nav__action {
+        width: 32px;
+        height: 32px;
+        border: none;
+        background: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #000;
+        cursor: pointer;
+        flex-shrink: 0;
+      }
+      .detail-nav__action { margin-left: auto; }
+      .detail-nav__title {
+        font-size: var(--font-lg);
+        font-weight: 600;
+        letter-spacing: -0.4px;
+      }
+
+      /* ── Rank Badge (콘테스트 순위) ── */
+      .rank-badge {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #f0c89a, #d4856a);
+        color: #fff;
+        font-size: var(--font-sm);
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      /* ── 최종 순위 카드 (가로 스크롤) ── */
+      .result-podium {
+        flex: none;
+        height: 198px;
+        border-radius: 14px;
+        position: relative;
+        padding: 10px;
+      }
+      .result-podium__info {
+        position: absolute;
+        bottom: 10px;
+        left: 10px;
+        right: 10px;
+      }
+      .result-podium__name {
+        font-size: var(--font-sm);
+        font-weight: 600;
+        color: #fff;
+        letter-spacing: -0.15px;
+      }
+      .result-podium__meta {
+        font-size: var(--font-xs);
+        color: rgba(255, 255, 255, 0.75);
+        margin-top: 3px;
+      }
+      .result-podium__votes {
+        font-size: var(--font-sm);
+        font-weight: 600;
+        color: #fff;
+        margin-top: 4px;
+        letter-spacing: -0.15px;
+      }
+
+      /* ── 전체 참여작 그리드 ── */
+      .result-entry {
+        aspect-ratio: 1;
+        border-radius: 12px;
+        position: relative;
+      }
+      .result-entry__pill {
+        position: absolute;
+        top: 8px;
+        height: 20px;
+        padding: 0 8px;
+        border-radius: 10px;
+        background: rgba(0, 0, 0, 0.35);
+        color: #fff;
+        font-size: var(--font-2xs);
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+      }
+      .result-entry__pill--rank { left: 8px; }
+      .result-entry__pill--votes { right: 8px; }
+    </style>
+  </head>
+  <body>
+    <div class="phone-frame">
+      <div class="phone-scroll">
+        <!-- Status Bar -->
+        <div class="status-bar">
+          <span class="status-bar__time">9:41</span>
+          <div class="dynamic-island"></div>
+          <div class="status-bar__icons">
+            <svg viewBox="0 0 18 12">
+              <rect x="0" y="9" width="3" height="3" rx=".75" />
+              <rect x="4.5" y="6" width="3" height="6" rx=".75" />
+              <rect x="9" y="3" width="3" height="9" rx=".75" />
+              <rect x="13.5" y="0" width="3" height="12" rx=".75" />
+            </svg>
+            <svg viewBox="0 0 16 14" fill="none" stroke="#000" stroke-width="1.3" stroke-linecap="round">
+              <path d="M5 10.5A4 4 0 0 1 11 10.5" />
+              <path d="M2.5 7A8 8 0 0 1 13.5 7" />
+              <circle cx="8" cy="13" r="1.2" fill="#000" stroke="none" />
+            </svg>
+            <svg viewBox="0 0 28 14">
+              <rect x="0" y="0" width="25" height="12" rx="3.5" fill="none" stroke="rgba(0,0,0,.3)" stroke-width="1" />
+              <rect x="1.5" y="1.5" width="20" height="9" rx="2" fill="#34c759" />
+            </svg>
+          </div>
+        </div>
+
+        <!-- Nav -->
+        <div class="detail-nav">
+          <button class="detail-nav__back" onclick="history.back()" aria-label="뒤로가기">
+            <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M15 18l-6-6 6-6" />
+            </svg>
+          </button>
+          <span class="detail-nav__title">콘테스트 결과</span>
+          <button class="detail-nav__action" aria-label="공유">
+            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" />
+              <path d="M16 6l-4-4-4 4" />
+              <path d="M12 2v13" />
+            </svg>
+          </button>
+        </div>
+
+        <!-- 결과 배너 -->
+        <div style="padding: 16px 20px 12px">
+          <div style="padding: 18px 20px; border-radius: 16px; background: linear-gradient(135deg, #0a1a0f 0%, #4a8060 55%, #a8c090 100%); color: #fff">
+            <div style="display: inline-flex; align-items: center; height: 22px; padding: 0 10px; border-radius: 11px; background: rgba(255, 255, 255, 0.2); font-size: var(--font-2xs); font-weight: 600; letter-spacing: 1px">종료</div>
+            <div style="font-size: var(--font-xl); font-weight: 600; letter-spacing: -0.6px; margin-top: 8px">숲 산책</div>
+            <div style="display: flex; align-items: center; gap: 8px; margin-top: 4px; font-size: var(--font-xs); color: rgba(255, 255, 255, 0.85); letter-spacing: -0.15px">
+              <span>2026.06.30 – 07.06</span>
+              <span style="width: 2px; height: 2px; border-radius: 50%; background: rgba(255, 255, 255, 0.4)"></span>
+              <span>참여 65명</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 최종 순위 -->
+        <div style="padding: 0 20px 6px">
+          <span style="font-size: var(--font-md); font-weight: 600; letter-spacing: -0.2px">최종 순위</span>
+        </div>
+        <div style="padding: 10px 20px 8px; display: flex; gap: 8px; overflow-x: auto">
+          <div class="result-podium" style="width: 158px; background: linear-gradient(to bottom, #0a1a0f, #4a8060, #a8c090)">
+            <div class="rank-badge" style="position: absolute; top: 10px; left: 10px">1</div>
+            <div class="result-podium__info">
+              <div class="result-podium__name">@forestday</div>
+              <div class="result-podium__meta">축령산 · 아침 6:20</div>
+              <div class="result-podium__votes">89표</div>
+            </div>
+          </div>
+          <div class="result-podium" style="width: 140px; background: linear-gradient(to bottom, #1a1510, #a08060)">
+            <div class="rank-badge" style="position: absolute; top: 10px; left: 10px; background: linear-gradient(135deg, #c0c0c0, #8a8a8a)">2</div>
+            <div class="result-podium__info">
+              <div class="result-podium__name">@moss.walk</div>
+              <div class="result-podium__meta">남해 편백숲</div>
+              <div class="result-podium__votes">54표</div>
+            </div>
+          </div>
+          <div class="result-podium" style="width: 140px; background: linear-gradient(to bottom, #020010, #1a1545)">
+            <div class="rank-badge" style="position: absolute; top: 10px; left: 10px; background: linear-gradient(135deg, #cd8c52, #8a6030)">3</div>
+            <div class="result-podium__info">
+              <div class="result-podium__name">@quiet.grove</div>
+              <div class="result-podium__meta">한라산 성판악</div>
+              <div class="result-podium__votes">37표</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 전체 참여작 -->
+        <div style="padding: 20px 20px 12px; display: flex; align-items: baseline; justify-content: space-between">
+          <span style="font-size: var(--font-md); font-weight: 600; letter-spacing: -0.2px">전체 참여작</span>
+          <span style="font-size: var(--font-xs); color: var(--color-text-secondary); letter-spacing: -0.1px">65개</span>
+        </div>
+        <div style="padding: 0 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px">
+          <div class="result-entry" style="background: linear-gradient(to bottom, #0a1520, #3a708a)">
+            <div class="result-entry__pill result-entry__pill--rank">4</div>
+            <div class="result-entry__pill result-entry__pill--votes">28표</div>
+          </div>
+          <div class="result-entry" style="background: linear-gradient(to bottom, #232526, #8e7b5a)">
+            <div class="result-entry__pill result-entry__pill--rank">5</div>
+            <div class="result-entry__pill result-entry__pill--votes">22표</div>
+          </div>
+          <div class="result-entry" style="background: linear-gradient(to bottom, #1a0a0a, #8a3030)">
+            <div class="result-entry__pill result-entry__pill--rank">6</div>
+            <div class="result-entry__pill result-entry__pill--votes">18표</div>
+          </div>
+          <div class="result-entry" style="background: linear-gradient(to bottom, #0a2020, #40a090)">
+            <div class="result-entry__pill result-entry__pill--rank">7</div>
+            <div class="result-entry__pill result-entry__pill--votes">14표</div>
+          </div>
+        </div>
+
+        <div style="padding: 12px 20px 24px">
+          <button style="width: 100%; height: 44px; border: none; border-radius: 22px; background: var(--color-surface); color: #000; font-family: var(--font-family); font-size: var(--font-sm); font-weight: 600; letter-spacing: -0.2px; cursor: pointer">전체 65개 보기</button>
+        </div>
+      </div>
+
+    </div>
+  </body>
+</html>

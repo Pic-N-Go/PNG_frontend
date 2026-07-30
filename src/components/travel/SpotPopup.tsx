@@ -8,7 +8,8 @@ import { Spot } from '@/store/useTravelStore';
 interface Props {
   activeSpot: Spot | null;
   onClose: () => void;
-  renderButtons?: () => React.ReactNode;
+  /** 팝업이 실제로 그리고 있는 스팟을 넘겨준다 (닫히는 중에도 표시 중인 스팟과 버튼 동작을 일치시키기 위함) */
+  renderButtons?: (spot: Spot) => React.ReactNode;
 }
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -171,7 +172,7 @@ export default function SpotPopup({ activeSpot, onClose, renderButtons }: Props)
                 ))}
               </View>
 
-              {renderButtons && renderButtons()}
+              {renderButtons && renderButtons(displaySpot)}
             </View>
           </>
         )}

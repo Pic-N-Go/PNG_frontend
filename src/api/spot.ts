@@ -14,6 +14,7 @@ import type {
   ReviewSortApi,
   SpotDetailResponse,
   PageSpotResponse,
+  SpotMapResponse,
 } from '@/types/spot';
 
 /** RN이 파일 파트로 인식하는 최소 형태 (expo/RN 이미지 피커 결과 그대로) */
@@ -81,10 +82,47 @@ async function request<T>(path: string, opts: { method?: Method; body?: unknown;
   }
 }
 
+function buildCategoryQuery(category?: string | string[]): string {
+  if (!category) return '';
+  if (Array.isArray(category)) {
+    const valid = category.filter((c) => c && c !== 'ALL' && c !== 'all');
+    if (valid.length === 0) return '';
+    return `category=${valid.map((c) => encodeURIComponent(c)).join(',')}&`;
+  }
+  if (category === 'ALL' || category === 'all') return '';
+  return `category=${encodeURIComponent(category)}&`;
+}
+
 interface ReviewQuery {
   sort?: ReviewSortApi;
   page?: number;
   size?: number;
+}
+
+export interface MapSpotsParams {
+  southWestLat?: number;
+  southWestLng?: number;
+  northEastLat?: number;
+  northEastLng?: number;
+  category?: string | string[];
+  size?: number;
+  token?: string;
+}
+
+export interface GetSpotsParams {
+  category?: string | string[];
+  sort?: 'latest' | 'popular' | 'score';
+  page?: number;
+  size?: number;
+  token?: string;
+}
+
+export interface SearchSpotsParams {
+  keyword: string;
+  category?: string | string[];
+  page?: number;
+  size?: number;
+  token?: string;
 }
 
 /**
@@ -111,12 +149,32 @@ async function upload<T>(path: string, form: FormData, token: string): Promise<T
 }
 
 export const spotApi = {
-  getSpots: (params: { category?: string; size?: number; page?: number } = {}) => {
-    const { category, size = 50, page = 0 } = params;
-    const categoryQuery = (category && category !== 'ALL') ? `category=${category}&` : '';
-    return request<PageSpotResponse>(`/spots?${categoryQuery}size=${size}&page=${page}`);
+  // 1. 지도 영역 스팟 핀 목록 조회 (GET /spots/map)
+  getMapSpots: (params: MapSpotsParams = {}) => {
+    const { southWestLat, southWestLng, northEastLat, northEastLng, category, size = 100, token } = params;
+    const catQs = buildCategoryQuery(category);
+    const boundsQs = (southWestLat !== undefined && southWestLng !== undefined && northEastLat !== undefined && northEastLng !== undefined)
+      ? `southWestLat=${southWestLat}&southWestLng=${southWestLng}&northEastLat=${northEastLat}&northEastLng=${northEastLng}&`
+      : '';
+    return request<SpotMapResponse[]>(`/spots/map?${boundsQs}${catQs}size=${size}`, { token });
   },
 
+  // 2. 스팟 목록 조회 (페이징 & 필터) (GET /spots)
+  getSpots: (params: GetSpotsParams = {}) => {
+    const { category, sort = 'latest', size = 50, page = 0, token } = params;
+    const catQs = buildCategoryQuery(category);
+    return request<PageSpotResponse>(`/spots?${catQs}sort=${sort}&size=${size}&page=${page}`, { token });
+  },
+
+  // 3. 스팟 키워드 검색 (GET /spots/search)
+  searchSpots: (params: SearchSpotsParams) => {
+    const { keyword, category, size = 20, page = 0, token } = params;
+    const catQs = buildCategoryQuery(category);
+    const kwQs = `keyword=${encodeURIComponent(keyword.trim())}&`;
+    return request<PageSpotResponse>(`/spots/search?${kwQs}${catQs}size=${size}&page=${page}`, { token });
+  },
+
+  // 4. 스팟 상세 정보 조회 (GET /spots/{id})
   getDetail: (id: string | number) => request<SpotDetailResponse>(`/spots/${id}`),
 
   getReviews: (id: string | number, { sort = 'LATEST', page = 0, size = 20 }: ReviewQuery = {}) =>

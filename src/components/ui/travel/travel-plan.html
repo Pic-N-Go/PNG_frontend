@@ -98,7 +98,7 @@
       .trip-nav__date {
         display: block;
         font-size: var(--font-xs);
-        color: rgba(0,0,0,0.4);
+        color: var(--color-text-secondary);
         letter-spacing: -0.1px;
         margin-top: 1px;
       }
@@ -230,7 +230,7 @@
       }
       .trip-summary__date {
         font-size: var(--font-sm);
-        color: rgba(0, 0, 0, 0.4);
+        color: var(--color-text-secondary);
         letter-spacing: -0.1px;
         margin-bottom: var(--space-md);
       }
@@ -261,7 +261,7 @@
       }
       .trip-stat__label {
         font-size: var(--font-xs);
-        color: rgba(0, 0, 0, 0.3);
+        color: var(--color-text-tertiary);
         margin-top: 1px;
       }
 
@@ -311,7 +311,7 @@
       }
       .day-date {
         font-size: var(--font-sm);
-        color: rgba(0, 0, 0, 0.4);
+        color: var(--color-text-secondary);
         letter-spacing: -0.1px;
         margin-bottom: var(--space-md);
       }
@@ -399,7 +399,7 @@
       }
       .spot-card__loc {
         font-size: 12px;
-        color: rgba(0, 0, 0, 0.4);
+        color: var(--color-text-secondary);
         margin-bottom: 8px;
       }
       .spot-card__time {
@@ -462,13 +462,13 @@
         padding: 0 14px;
         border-radius: 16px;
         background: #fff;
-        border: 0.5px solid rgba(0, 0, 0, 0.06);
+        border: 0.5px solid var(--color-border-light);
         font-size: 12px;
         color: rgba(0, 0, 0, 0.45);
       }
       .transport-pill svg {
         flex-shrink: 0;
-        color: rgba(0, 0, 0, 0.3);
+        color: var(--color-text-tertiary);
       }
       .add-card {
         border: 1px dashed rgba(0, 0, 0, 0.08);
@@ -516,7 +516,7 @@
       }
       .tip-banner__desc {
         font-size: 12px;
-        color: rgba(0, 0, 0, 0.4);
+        color: var(--color-text-secondary);
         line-height: 1.5;
       }
 
@@ -588,7 +588,7 @@
         gap: 6px;
         padding: 7px 12px;
         border-radius: 50px;
-        border: 1px solid rgba(0,0,0,0.08);
+        border: 1px solid var(--color-border);
         background: var(--color-surface);
         font-size: 13px;
         letter-spacing: -0.2px;
@@ -655,7 +655,7 @@
         gap: 12px;
         padding: 20px;
         margin-top: 28px;
-        border-top: 0.5px solid rgba(0, 0, 0, 0.06);
+        border-top: 0.5px solid var(--color-border-light);
       }
       .btn {
         flex: 1;
@@ -692,7 +692,7 @@
     
       /* 코스 편집 모드 */
       .spot-card.is-editing { cursor: default !important; }
-      .spot-card__del { width: 32px; height: 32px; border-radius: 50%; border: none; background: rgba(0,0,0,0.06); cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: rgba(0,0,0,0.4); transition: background 0.15s; }
+      .spot-card__del { width: 32px; height: 32px; border-radius: 50%; border: none; background: rgba(0,0,0,0.06); cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: var(--color-text-secondary); transition: background 0.15s; }
       .spot-card__del:hover { background: rgba(227,27,89,0.1); color: #e31b59; }
 
       /* ── 바텀시트 (바로 출발) ── */
@@ -768,7 +768,7 @@
       .navi-route-dot__inner { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.9); }
       .navi-route-line { width: 1.5px; height: 20px; background: rgba(0,0,0,0.12); margin: 4px auto; }
       .navi-route-text__main { font-size: var(--font-base); font-weight: 500; color: #000; letter-spacing: -0.15px; }
-      .navi-route-text__sub { font-size: 12px; color: rgba(0,0,0,0.4); margin-top: 2px; }
+      .navi-route-text__sub { font-size: 12px; color: var(--color-text-secondary); margin-top: 2px; }
       .navi-time-card {
         display: flex; align-items: center; gap: 12px;
         padding: 14px 16px;
@@ -778,8 +778,8 @@
       }
       .navi-time-icon { width: 36px; height: 36px; border-radius: 10px; background: rgba(227,27,89,0.08); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
       .navi-time-text { font-size: var(--font-base); font-weight: 500; color: #000; letter-spacing: -0.15px; }
-      .navi-time-sub { font-size: 12px; color: rgba(0,0,0,0.4); margin-top: 2px; }
-      .navi-apps-label { font-size: var(--font-sm); font-weight: 600; color: rgba(0,0,0,0.4); letter-spacing: -0.1px; margin-bottom: 12px; }
+      .navi-time-sub { font-size: 12px; color: var(--color-text-secondary); margin-top: 2px; }
+      .navi-apps-label { font-size: var(--font-sm); font-weight: 600; color: var(--color-text-secondary); letter-spacing: -0.1px; margin-bottom: 12px; }
       .navi-apps { display: flex; gap: 12px; }
       .navi-app-btn {
         flex: 1; display: flex; flex-direction: column; align-items: center; gap: 8px;
@@ -851,7 +851,7 @@
       .si-logo { display: flex; align-items: center; gap: 8px; }
       .si-logo__mark { width: 28px; height: 28px; border-radius: 8px; background: var(--color-accent); }
       .si-logo__text { font-size: var(--font-sm); font-weight: 600; }
-      .si-watermark { font-size: var(--font-xs); color: rgba(0,0,0,0.4); letter-spacing: 0.4px; }
+      .si-watermark { font-size: var(--font-xs); color: var(--color-text-secondary); letter-spacing: 0.4px; }
       .si-daylabel { font-size: var(--font-xs); font-weight: 600; color: #f59e0b; letter-spacing: 1px; margin-top: 24px; }
       .si-title { font-size: var(--font-2xl); font-weight: 600; letter-spacing: -0.5px; margin-top: 4px; line-height: 1.15; }
       .si-daterange { font-size: var(--font-sm); color: var(--color-text-secondary); margin-top: 6px; }
@@ -861,8 +861,8 @@
       .si-legend__item { display: flex; align-items: center; gap: 6px; font-size: var(--font-xs); font-weight: 600; color: rgba(0,0,0,0.65); }
       .si-legend__dot { width: 8px; height: 8px; border-radius: 4px; }
       .si-hl-head { display: flex; align-items: center; justify-content: space-between; margin-top: 16px; margin-bottom: 8px; }
-      .si-hl-head__l { font-size: var(--font-xs); font-weight: 600; color: rgba(0,0,0,0.4); letter-spacing: 0.6px; }
-      .si-hl-head__r { font-size: var(--font-xs); color: rgba(0,0,0,0.4); }
+      .si-hl-head__l { font-size: var(--font-xs); font-weight: 600; color: var(--color-text-secondary); letter-spacing: 0.6px; }
+      .si-hl-head__r { font-size: var(--font-xs); color: var(--color-text-secondary); }
       .si-spot { display: flex; align-items: center; gap: 10px; }
       .si-spot + .si-spot { margin-top: 10px; }
       .si-daybadge { height: 20px; padding: 0 7px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: var(--font-2xs); font-weight: 600; color: #fff; letter-spacing: 0.2px; flex-shrink: 0; }
@@ -877,7 +877,7 @@
       .si-stat__div { width: 1px; height: 24px; background: rgba(0,0,0,0.08); }
       .si-qr { display: flex; align-items: center; gap: 10px; margin-top: 14px; }
       .si-qr__box { width: 52px; height: 52px; border-radius: 8px; background: #fff; border: 1px solid rgba(0,0,0,0.1); display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #000; }
-      .si-qr__cap { display: block; font-size: var(--font-xs); color: rgba(0,0,0,0.4); }
+      .si-qr__cap { display: block; font-size: var(--font-xs); color: var(--color-text-secondary); }
       .si-qr__url { display: block; font-size: var(--font-sm); font-weight: 600; margin-top: 2px; }
 
       /* 이름 변경 다이얼로그 (중앙 모달) — RenameDialog.native.jsx 기준 */
@@ -888,10 +888,10 @@
       .dialog__sub { font-size: var(--font-sm); color: rgba(0,0,0,0.5); text-align: center; margin-top: 6px; }
       .dialog__field { position: relative; margin-top: 18px; }
       .dialog__input { width: 100%; min-height: 48px; border: 1.5px solid var(--color-accent); border-radius: 12px; background: #fff; padding: 12px 40px 12px 14px; font-family: var(--font-family); font-size: var(--font-md); font-weight: 500; color: #000; outline: none; }
-      .dialog__input::placeholder { color: rgba(0,0,0,0.28); font-weight: 400; }
+      .dialog__input::placeholder { color: var(--color-text-tertiary); font-weight: 400; }
       .dialog__clear { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); width: 22px; height: 22px; padding: 0; border: none; border-radius: 50%; background: rgba(0,0,0,0.2); display: none; align-items: center; justify-content: center; cursor: pointer; }
       .dialog__clear.is-shown { display: flex; }
-      .dialog__count { text-align: right; font-size: var(--font-xs); color: rgba(0,0,0,0.4); margin-top: 6px; }
+      .dialog__count { text-align: right; font-size: var(--font-xs); color: var(--color-text-secondary); margin-top: 6px; }
       .dialog__count .num { color: rgba(0,0,0,0.5); font-weight: 600; }
       .dialog__count.is-near { color: var(--color-accent); }
       .dialog__count.is-near .num { color: var(--color-accent); }
@@ -1180,7 +1180,7 @@
                 <div class="navi-route-dot" style="background:#34C759"><div class="navi-route-dot__inner"></div></div>
               </div>
               <div>
-                <div class="navi-route-text__main" style="color:rgba(0,0,0,0.4);font-weight:400">현재 위치</div>
+                <div class="navi-route-text__main" style="color:var(--color-text-secondary);font-weight:400">현재 위치</div>
               </div>
             </div>
             <div class="navi-route-row" style="padding-left:7px">

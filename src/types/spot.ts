@@ -220,7 +220,7 @@ export interface SpotDetailResponse {
   imageUrl: string | null;
   latitude: number;
   longitude: number;
-  category: string;
+  categories: string[];
   overview: string;
   tags: string[];
   convenience: ConvenienceDTO;
@@ -375,8 +375,38 @@ export interface PhotogenicScoreResponse {
   goldenHour: PhotogenicGoldenHourDTO;
 }
 
+export interface SpotMapResponse {
+  id: number;
+  name: string;
+  categories: string[];
+  latitude: number;
+  longitude: number;
+  thumbnailUrl: string | null;
+  photogenicScore: number;
+  badge: boolean;
+}
+
+export interface SpotResponse {
+  id: number;
+  name: string;
+  address: string;
+  zipcode?: string;
+  overview?: string;
+  latitude: number;
+  longitude: number;
+  categories: string[];
+  source?: string;
+  badge: boolean;
+  imageUrl: string | null;
+  thumbnailUrl: string | null;
+  bookmarkCount: number;
+  reviewCount: number;
+  photogenicScore: number;
+  reviewAverage: number;
+}
+
 export interface PageSpotResponse {
-  content: any[];
+  content: SpotResponse[];
   totalElements: number;
   totalPages: number;
   number: number;
