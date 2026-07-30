@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, Platform, PermissionsAndroid,
 import { WebView } from 'react-native-webview';
 import { IconChevronLeft, IconSearch, IconAdjustmentsHorizontal, IconFocus2, IconX } from '@tabler/icons-react-native';
 import { useNavigation, useRoute, useFocusEffect, CommonActions } from '@react-navigation/native';
-import { useTravelStore, Spot } from '@/store/useTravelStore';
+import { useCourseStore, Spot } from '@/store/useCourseStore';
 import { useSpots, useMapSpots, useSearchSpots } from '@/hooks/useSpot';
 import SpotPopup from '@/components/travel/SpotPopup';
 import BottomSheet from '@/components/common/BottomSheet';
@@ -73,7 +73,7 @@ export default function MapScreen() {
 
   const webViewRef = useRef<any>(null);
   const [mapReady, setMapReady] = useState(false);
-  const { selectedSpots, addSpot, removeSpot } = useTravelStore();
+  const { selectedSpots, addSpot, removeSpot } = useCourseStore();
   const [activeSpot, setActiveSpot] = useState<Spot | null>(null);
   const [isCourseModalOpen, setCourseModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -924,7 +924,7 @@ export default function MapScreen() {
                       // 렌더 시점 파생값(saved) 대신 스토어 최신 상태를 직접 읽어 판단한다.
                       // 렌더가 한 박자 늦으면 첫 탭이 removeSpot(목록에 없어 no-op)으로 새어
                       // "두 번 눌러야 저장되는" 현상이 생기기 때문.
-                      const alreadySaved = useTravelStore
+                      const alreadySaved = useCourseStore
                         .getState()
                         .selectedSpots.some((s) => String(s.id) === String(popupSpot.id));
                       if (alreadySaved) {

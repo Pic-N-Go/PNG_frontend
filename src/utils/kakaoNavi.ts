@@ -36,10 +36,16 @@ export const openKakaoNavi = async (spots: SpotLocation[]) => {
     return;
   }
 
-  const startSpot = validSpots.length > 1 ? validSpots[0] : null;
-  const destSpot = validSpots[validSpots.length - 1];
+  // 상위 5개 스팟까지 선택 (목적지 및 안내 대상)
+  const limitedSpots = validSpots.slice(0, 5);
+  if (validSpots.length > 5) {
+    Alert.alert('길안내 안내', '길안내 앱 제약으로 상위 5개 스팟까지만 길안내에 포함됩니다.');
+  }
+
+  const destSpot = limitedSpots[limitedSpots.length - 1];
 
   // 카카오내비 공식 URI Scheme 생성 (kakaonavi://navigate?name=목적지명&x=경도&y=위도)
+  // 출발지를 파라미터로 주지 않으면 카카오내비가 현재 위치를 출발지로 자동 사용합니다.
   const scheme = `kakaonavi://navigate?name=${encodeURIComponent(destSpot.name)}&x=${destSpot.longitude}&y=${destSpot.latitude}&coord_type=wgs84`;
 
   try {
@@ -47,13 +53,8 @@ export const openKakaoNavi = async (spots: SpotLocation[]) => {
     if (supported) {
       await Linking.openURL(scheme);
     } else {
-      // 카카오내비 미설치 시 카카오맵 웹 폴백 (출발지가 존재할 경우 출발지->목적지 경로 표시)
-      let fallbackUrl = '';
-      if (startSpot) {
-        fallbackUrl = `https://map.kakao.com/link/from/${encodeURIComponent(startSpot.name)},${startSpot.latitude},${startSpot.longitude}/to/${encodeURIComponent(destSpot.name)},${destSpot.latitude},${destSpot.longitude}`;
-      } else {
-        fallbackUrl = `https://map.kakao.com/link/to/${encodeURIComponent(destSpot.name)},${destSpot.latitude},${destSpot.longitude}`;
-      }
+      // 카카오내비 미설치 시 카카오맵 웹/앱 폴백 (현재위치 -> 목적지)
+      const fallbackUrl = `https://map.kakao.com/link/to/${encodeURIComponent(destSpot.name)},${destSpot.latitude},${destSpot.longitude}`;
       await Linking.openURL(fallbackUrl);
     }
   } catch (error) {

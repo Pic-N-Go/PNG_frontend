@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, Image, Animated, Easing, PanResponder, Di
 import { FONT_SM, BOTTOM_SHEET_RADIUS } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { IconMapPin, IconX, IconStarFilled, IconHeart, IconBookmark } from '@tabler/icons-react-native';
-import { Spot } from '@/store/useTravelStore';
+import { Spot } from '@/store/useCourseStore';
 
 interface Props {
   activeSpot: Spot | null;

@@ -38,21 +38,24 @@ export const openAppleMap = async (spots: SpotLocation[]) => {
     return;
   }
 
-  const startSpot = validSpots.length > 1 ? validSpots[0] : null;
-  const destSpot = validSpots[validSpots.length - 1];
-  const viaSpots = validSpots.length > 2 ? validSpots.slice(1, validSpots.length - 1) : [];
-
-  let url = 'https://maps.apple.com/?dirflg=d';
-
-  if (startSpot) {
-    url += `&saddr=${startSpot.latitude},${startSpot.longitude}`;
+  // 상위 5개 스팟까지 선택 (경유지 최대 4개 + 최종 목적지 1개)
+  const limitedSpots = validSpots.slice(0, 5);
+  if (validSpots.length > 5) {
+    Alert.alert('길안내 안내', '길안내 앱 제약으로 상위 5개 스팟까지만 길안내에 포함됩니다.');
   }
 
-  // 중간 경유지 반복 지정
+  const destSpot = limitedSpots[limitedSpots.length - 1];
+  const viaSpots = limitedSpots.length > 1 ? limitedSpots.slice(0, limitedSpots.length - 1) : [];
+
+  // saddr(출발지)을 지정하지 않으면 Apple 지도가 현재 위치를 출발지로 자동 설정합니다.
+  let url = 'https://maps.apple.com/?dirflg=d';
+
+  // 중간 경유지 추가 (daddr 반복 지정)
   viaSpots.forEach((spot) => {
     url += `&daddr=${spot.latitude},${spot.longitude}`;
   });
 
+  // 최종 목적지 추가
   url += `&daddr=${destSpot.latitude},${destSpot.longitude}`;
 
   try {

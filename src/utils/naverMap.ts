@@ -35,18 +35,19 @@ export const openNaverMap = async (spots: SpotLocation[]) => {
     return;
   }
 
-  const startSpot = validSpots.length > 1 ? validSpots[0] : null;
-  const destSpot = validSpots[validSpots.length - 1];
-  const viaSpots = validSpots.length > 2 ? validSpots.slice(1, validSpots.length - 1) : [];
-
-  // 네이버 지도 URI Scheme 생성 (appname: com.picngo.app)
-  let scheme = `nmap://route/car?dlat=${destSpot.latitude}&dlng=${destSpot.longitude}&dname=${encodeURIComponent(destSpot.name)}&appname=com.picngo.app`;
-
-  if (startSpot) {
-    scheme += `&slat=${startSpot.latitude}&slng=${startSpot.longitude}&sname=${encodeURIComponent(startSpot.name)}`;
+  // 상위 5개 스팟까지 선택 (경유지 최대 4개 + 최종 목적지 1개)
+  const limitedSpots = validSpots.slice(0, 5);
+  if (validSpots.length > 5) {
+    Alert.alert('길안내 안내', '길안내 앱 제약으로 상위 5개 스팟까지만 길안내에 포함됩니다.');
   }
 
-  // 중간 경유지 추가 (v1lat, v1lng, v1name, ...)
+  const destSpot = limitedSpots[limitedSpots.length - 1];
+  const viaSpots = limitedSpots.length > 1 ? limitedSpots.slice(0, limitedSpots.length - 1) : [];
+
+  // 출발지(slat, slng)를 생략하면 네이버 지도가 현재 위치를 출발지로 자동 설정합니다.
+  let scheme = `nmap://route/car?dlat=${destSpot.latitude}&dlng=${destSpot.longitude}&dname=${encodeURIComponent(destSpot.name)}&appname=com.picngo.app`;
+
+  // 중간 경유지 추가 (v1lat, v1lng, v1name, v2lat, ...)
   viaSpots.forEach((spot, idx) => {
     const wayIdx = idx + 1;
     scheme += `&v${wayIdx}lat=${spot.latitude}&v${wayIdx}lng=${spot.longitude}&v${wayIdx}name=${encodeURIComponent(spot.name)}`;
@@ -57,10 +58,11 @@ export const openNaverMap = async (spots: SpotLocation[]) => {
     if (supported) {
       await Linking.openURL(scheme);
     } else {
-      // 네이버 지도 미설치 시 네이버 지도 웹 폴백
+      // 네이버 지도 미설치 시 네이버 지도 웹 폴백 (현재위치 -> 경유지들 -> 목적지)
       let fallbackUrl = '';
-      if (startSpot) {
-        fallbackUrl = `https://map.naver.com/v5/directions/${startSpot.longitude},${startSpot.latitude},${encodeURIComponent(startSpot.name)}/${destSpot.longitude},${destSpot.latitude},${encodeURIComponent(destSpot.name)}/-/car`;
+      if (viaSpots.length > 0) {
+        const viaPath = viaSpots.map((s) => `${s.longitude},${s.latitude},${encodeURIComponent(s.name)}`).join('/');
+        fallbackUrl = `https://map.naver.com/v5/directions/-/${viaPath}/${destSpot.longitude},${destSpot.latitude},${encodeURIComponent(destSpot.name)}/-/car`;
       } else {
         fallbackUrl = `https://map.naver.com/v5/directions/-/${destSpot.longitude},${destSpot.latitude},${encodeURIComponent(destSpot.name)}/-/car`;
       }

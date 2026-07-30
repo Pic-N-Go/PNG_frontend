@@ -3,7 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useFocusEffect } from "@react-navigation/native";
 import { View, Text, TouchableOpacity, ScrollView, Alert, TextInput, Image, KeyboardAvoidingView, Platform } from "react-native";
 import { coursesApi } from "@/api/courses";
-import { useTravelStore } from "@/store/useTravelStore";
+import { useCourseStore } from "@/store/useCourseStore";
 import { useAnimatedRef } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { SvgUri } from "react-native-svg";
@@ -523,7 +523,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
     });
   }, []);
 
-  const { selectedSpots, clearSpots } = useTravelStore();
+  const { selectedSpots, clearSpots } = useCourseStore();
 
   useFocusEffect(
     React.useCallback(() => {
