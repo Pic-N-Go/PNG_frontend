@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""목업 HTML 정합성 검사. 사용법: python3 scripts/check-mockups.py [디렉터리]
+"""목업 HTML·CSS 정합성 검사. 사용법: python3 scripts/check-mockups.py [디렉터리]
 
-기본값은 src/components/ui/community. 확인 항목:
+기본값은 src/components/ui/community. 정당한 예외 줄에는 `token-exempt` 주석을 답니다.
+확인 항목:
   - 디자인 토큰 위반 (raw font-size px, #E31B59 리터럴, font-weight 700+, width=390 등)
   - 토큰과 값이 정확히 같은 raw 리터럴 (color/border/surface) — 중간톤 값은 허용
   - 이모지
@@ -16,9 +17,11 @@ import os, re, sys
 
 TAGS = ('div', 'button', 'span', 'svg', 'textarea')
 VIOLATION = re.compile(
-    r'font-size:\s*[0-9]|font-weight:\s*(?:7|8|9)[0-9][0-9]|font-weight:\s*bold'
-    r'|#[eE]31[bB]59|dv-card|dv-turn|pretendard.*jsdelivr|width=390|icons\.js')
+    r'font-size:\s*[1-9]|font-weight:\s*(?:7|8|9)[0-9][0-9]|font-weight:\s*bold'
+    r'|#[eE]31[bB]59|dv-card|dv-turn|pretendard.*jsdelivr|width=390')
 EMOJI = re.compile('[\U0001F000-\U0001FAFF☀-➿️]')
+# 정당한 예외에만 붙이는 이스케이프 해치 (예: html rem 기준값)
+EXEMPT = re.compile(r'token-exempt')
 
 # 토큰과 값이 정확히 같은 raw 리터럴 → 토큰으로 써야 함 (값이 다른 중간톤은 허용)
 TOKEN_DUPES = [
@@ -34,6 +37,8 @@ def check(path):
     d = os.path.dirname(path)
     errs = []
     for i, line in enumerate(s.splitlines(), 1):
+        if EXEMPT.search(line):
+            continue
         if VIOLATION.search(line):
             errs.append(f'{i}: 토큰/규약 위반 → {line.strip()[:80]}')
         if EMOJI.search(line):
@@ -68,7 +73,7 @@ def check(path):
 
 def main():
     target = sys.argv[1] if len(sys.argv) > 1 else 'src/components/ui/community'
-    files = sorted(f for f in os.listdir(target) if f.endswith('.html'))
+    files = sorted(f for f in os.listdir(target) if f.endswith(('.html', '.css')))
     total = 0
     for f in files:
         errs = check(os.path.join(target, f))

@@ -11,12 +11,12 @@
   --color-text-primary: #000000;
   --color-text-secondary: rgba(0, 0, 0, 0.4);
   --color-text-tertiary: rgba(0, 0, 0, 0.3);
-  --color-accent: #e31b59;        /* 브랜드 핑크 — 버튼·링크·탭 활성 공통 */
+  --color-accent: #e31b59;        /* 브랜드 핑크 — 버튼·링크·탭 활성 공통. token-exempt: 원본 정의 */
   --color-accent-hover: #c91550;
   --color-accent-disabled: rgba(227, 27, 89, 0.25);
   --color-border: rgba(0, 0, 0, 0.08);
   --color-border-light: rgba(0, 0, 0, 0.06);
-  --color-input-border-focus: #e31b59;
+  --color-input-border-focus: var(--color-accent);
   --color-kakao: #FEE500;
   --color-kakao-text: #391B1B;
   --color-error: #ff453a;
@@ -56,7 +56,7 @@
 
 /* ─── Base ──────────────────────────────────────────────────────────────── */
 html {
-  font-size: 16px;
+  font-size: 16px; /* token-exempt — rem 기준값, 텍스트 크기 아님 */
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -108,7 +108,7 @@ svg[viewBox="0 0 24 24"] rect {
   display: inline-flex;
   align-items: center;
   font-family: var(--font-family);
-  font-size: 12px;
+  font-size: var(--font-sm);
   color: rgba(0, 0, 0, 0.45);
   cursor: pointer;
   transition: all 0.15s;
@@ -135,7 +135,7 @@ svg[viewBox="0 0 24 24"] rect {
   flex-shrink: 0;
   width: 18px;
   height: 18px;
-  color: rgba(0, 0, 0, 0.3);
+  color: var(--color-text-tertiary);
   margin-right: 10px;
 }
 .search-bar__input {
