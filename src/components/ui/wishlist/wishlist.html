@@ -19,10 +19,10 @@
 
     /* ── 섹션 헤더 ── */
     .section-header{padding:20px 20px 10px;display:flex;align-items:center;justify-content:space-between;position:relative}
-    .section-header__title{font-size: var(--font-sm);font-weight:600;color:rgba(0,0,0,0.3);letter-spacing:0.3px}
+    .section-header__title{font-size: var(--font-sm);font-weight:600;color:var(--color-text-tertiary);letter-spacing:0.3px}
 
     /* ── 정렬 드롭다운 ── */
-    .sort-btn{display:flex;align-items:center;gap:4px;background:none;border:none;cursor:pointer;font-family:var(--font-family);font-size:12px;color:rgba(0,0,0,0.4);padding:4px 0;transition:color 0.15s}
+    .sort-btn{display:flex;align-items:center;gap:4px;background:none;border:none;cursor:pointer;font-family:var(--font-family);font-size:12px;color:var(--color-text-secondary);padding:4px 0;transition:color 0.15s}
     .sort-btn:hover{color:rgba(0,0,0,0.7)}
     .sort-btn__label{letter-spacing:-0.1px}
     .sort-btn svg{transition:transform 0.2s}
@@ -50,7 +50,7 @@
     .wishlist-card__top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px}
     .wishlist-card__name{font-size:16px;font-weight:600;color:var(--color-text-primary);letter-spacing:-0.2px}
     .wishlist-card__arrow{color:rgba(0,0,0,0.18);flex-shrink:0;margin-top:2px}
-    .wishlist-card__loc{font-size:12px;color:rgba(0,0,0,0.38);margin-bottom:10px;display:flex;align-items:center;gap:4px}
+    .wishlist-card__loc{font-size:12px;color: var(--color-text-secondary);margin-bottom:10px;display:flex;align-items:center;gap:4px}
 
     /* 조건 뱃지 열 */
     .wishlist-card__conditions{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:10px}
@@ -60,8 +60,8 @@
     /* 예보 바 */
     .wishlist-card__forecast{display:flex;gap:4px;padding:10px 0 0;border-top:0.5px solid rgba(0,0,0,0.05)}
     .forecast-dot{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px}
-    .forecast-dot__day{font-size:9px;color:rgba(0,0,0,0.28)}
-    .forecast-dot__circle{width:32px;height:32px;border-radius:50%;background:#fff;border:0.5px solid rgba(0,0,0,0.08);display:flex;align-items:center;justify-content:center;font-size:0;overflow:visible;flex-shrink:0}
+    .forecast-dot__day{font-size:9px;color: var(--color-text-tertiary)}
+    .forecast-dot__circle{width:32px;height:32px;border-radius:50%;background:#fff;border:0.5px solid var(--color-border);display:flex;align-items:center;justify-content:center;font-size:0;overflow:visible;flex-shrink:0}
     .forecast-dot__circle--hit{background:rgba(227,27,89,0.06);border-color:var(--color-accent);box-shadow:0 0 0 1px var(--color-accent)}
 
     /* 알림 뱃지 */
@@ -73,7 +73,7 @@
     .empty{display:flex;flex-direction:column;align-items:center;padding:64px 40px;gap:12px;text-align:center}
     .empty__icon{width:64px;height:64px;border-radius:18px;background:var(--color-surface);display:flex;align-items:center;justify-content:center;margin-bottom:4px}
     .empty__title{font-size: var(--font-lg);font-weight:600;color:var(--color-text-primary);letter-spacing:-0.3px}
-    .empty__desc{font-size: var(--font-base);color:rgba(0,0,0,0.38);line-height:1.55;letter-spacing:-0.1px}
+    .empty__desc{font-size: var(--font-base);color: var(--color-text-secondary);line-height:1.55;letter-spacing:-0.1px}
     .empty__btn{margin-top:8px;height:44px;padding:0 var(--space-lg);border-radius:22px;border:none;background:var(--color-accent);font-family:var(--font-family);font-size: var(--font-md);font-weight:500;color:#fff;cursor:pointer;transition:opacity 0.15s}
     .empty__btn:hover{opacity:0.88}
 
@@ -82,7 +82,7 @@
     .info-banner__icon{width:20px;height:20px;flex-shrink:0;margin-top:1px}
     .info-banner__text{flex:1}
     .info-banner__title{font-size: var(--font-sm);font-weight:500;color:var(--color-accent);margin-bottom:2px}
-    .info-banner__desc{font-size:12px;color:rgba(0,0,0,0.4);line-height:1.45}
+    .info-banner__desc{font-size:12px;color:var(--color-text-secondary);line-height:1.45}
 
     /* ── 상태바 ── */
     .status-bar{height:50px;display:flex;align-items:center;justify-content:space-between;padding:0 30px;background:var(--color-bg);position:sticky;top:0;z-index:30;flex-shrink:0}

@@ -1,11 +1,12 @@
 // 스팟 상세 화면 서버 상태 훅 (TanStack Query)
 // 스펙: docs/ai/specs/feature/spot-detail-screen/spot-detail-api.md
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ApiError } from '@/api/auth';
-import { spotApi, type MapSpotsParams, type GetSpotsParams, type SearchSpotsParams } from '@/api/spot';
+import { spotApi } from '@/api/spot';
+import type { ReviewPhotoUpload, MapSpotsParams, GetSpotsParams, SearchSpotsParams } from '@/api/spot';
 import { useAuthStore } from '@/store/useAuthStore';
-import { mapPhotogenicScore, mapReviewList, mapSpotDetail } from '@/utils/spotMappers';
-import type { ReviewSortApi } from '@/types/spot';
+import { mapMyReviewPages, mapPhotogenicScore, mapReviewPages, mapSpotDetail } from '@/utils/spotMappers';
+import type { ReviewCreateRequest, ReviewSortApi } from '@/types/spot';
 
 const checklistKey = (id: string) => ['spot', id, 'checklist'] as const;
 
@@ -58,12 +59,148 @@ export function useSearchSpots(params: SearchSpotsParams, options?: QueryToggle)
   });
 }
 
+// 리뷰 카드가 세로로 길어(본문+사진+장비) 20건이면 "더보기"가 화면 한참 아래로 밀린다.
+const REVIEW_PAGE_SIZE = 10;
+
 export function useSpotReviews(id: string, sort: ReviewSortApi) {
-  return useQuery({
+  return useInfiniteQuery({
     queryKey: ['spot', id, 'reviews', sort],
-    queryFn: () => spotApi.getReviews(id, { sort }),
+    queryFn: ({ pageParam }) => spotApi.getReviews(id, { sort, page: pageParam, size: REVIEW_PAGE_SIZE }),
+    initialPageParam: 0,
+    // 서버가 0-based page(number)와 totalPages를 내려준다.
+    getNextPageParam: (last) =>
+      last.reviews.number + 1 < last.reviews.totalPages ? last.reviews.number + 1 : undefined,
     enabled: !!id,
-    select: mapReviewList,
+    select: mapReviewPages,
+  });
+}
+
+export function useCreateReview(id: string) {
+  const token = useAuthStore((s) => s.accessToken);
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ body, photos = [] }: { body: ReviewCreateRequest; photos?: ReviewPhotoUpload[] }) => {
+      if (!token) return Promise.reject(new ApiError('로그인이 필요합니다.'));
+      return spotApi.createReview(id, body, photos, token);
+    },
+    onSuccess: () => invalidateReviewCaches(qc, id),
+  });
+}
+
+const myReviewsKey = ['users', 'me', 'reviews'] as const;
+/** 수정 폼 시드 단건 캐시. 사진·본문이 바뀌면 함께 버려야 다음 진입이 옛 값을 쓰지 않는다. */
+const reviewKey = (reviewId: number) => ['review', reviewId] as const;
+
+// 작성·수정·삭제가 모두 같은 캐시를 건드려 무효화 대상이 동일하다.
+/** 같은 리뷰가 두 목록에 동시에 노출된다 — 스팟 상세 리뷰 탭과 마이페이지 내 리뷰. */
+function invalidateReviewLists(qc: ReturnType<typeof useQueryClient>, id: string) {
+  // 정렬별로 캐시가 갈리므로 sort까지 특정하지 않고 리뷰 목록 전체를 무효화.
+  qc.invalidateQueries({ queryKey: ['spot', id, 'reviews'] });
+  qc.invalidateQueries({ queryKey: myReviewsKey });
+}
+
+function invalidateReviewCaches(qc: ReturnType<typeof useQueryClient>, id: string) {
+  invalidateReviewLists(qc, id);
+  // 평점·리뷰수·사진수가 헤더에 걸려 있어 상세도 함께 갱신.
+  qc.invalidateQueries({ queryKey: ['spot', id, 'detail'] });
+}
+
+export function useUpdateReview(id: string) {
+  const token = useAuthStore((s) => s.accessToken);
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ reviewId, body }: { reviewId: number; body: ReviewCreateRequest }) => {
+      if (!token) return Promise.reject(new ApiError('로그인이 필요합니다.'));
+      return spotApi.updateReview(reviewId, body, token);
+    },
+    onSuccess: (_data, { reviewId }) => {
+      invalidateReviewCaches(qc, id);
+      qc.invalidateQueries({ queryKey: reviewKey(reviewId) });
+    },
+  });
+}
+
+/**
+ * 삭제는 스팟 상세와 마이페이지 양쪽에서 호출된다. 어느 스팟의 리뷰인지는 항목마다 달라
+ * 훅 인자가 아니라 mutate 인자로 받고, 내 리뷰 목록까지 함께 무효화한다.
+ */
+export function useDeleteReview() {
+  const token = useAuthStore((s) => s.accessToken);
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ reviewId }: { reviewId: number; spotId: string }) => {
+      if (!token) return Promise.reject(new ApiError('로그인이 필요합니다.'));
+      return spotApi.deleteReview(reviewId, token);
+    },
+    onSuccess: (_data, { reviewId, spotId }) => {
+      invalidateReviewCaches(qc, spotId);
+      // 지운 리뷰의 시드가 남아 있으면 다음 진입에서 없는 리뷰를 수정하려 든다.
+      qc.removeQueries({ queryKey: reviewKey(reviewId) });
+    },
+  });
+}
+
+/**
+ * 사진 추가·삭제는 텍스트 저장과 달리 즉시 서버에 반영된다(전용 엔드포인트).
+ * 평점·리뷰수는 그대로지만 헤더의 사진수(stats.photoCount)가 바뀌므로 상세도 함께 무효화한다.
+ */
+export function useAddReviewPhotos(spotId: string) {
+  const token = useAuthStore((s) => s.accessToken);
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ reviewId, photos }: { reviewId: number; photos: ReviewPhotoUpload[] }) => {
+      if (!token) return Promise.reject(new ApiError('로그인이 필요합니다.'));
+      return spotApi.addReviewPhotos(reviewId, photos, token);
+    },
+    onSuccess: (_data, { reviewId }) => {
+      invalidateReviewCaches(qc, spotId);
+      qc.invalidateQueries({ queryKey: reviewKey(reviewId) });
+    },
+  });
+}
+
+/**
+ * 수정 폼 시드를 탭 시점에 가져온다. presigned URL 만료(환경 설정값, 로컬 60분)가 있어 캐시를
+ * 재사용하지 않고 매번 새로 받는다. staleTime을 명시하는 이유: QueryClient 전역 기본값이 나중에
+ * 바뀌면 만료된 URL로 수정 화면이 열려 사진만 안 보이는, 추적하기 어려운 증상이 된다.
+ */
+export function useFetchReview() {
+  const token = useAuthStore((s) => s.accessToken);
+  const qc = useQueryClient();
+  return (reviewId: number) => {
+    if (!token) return Promise.reject(new ApiError('로그인이 필요합니다.'));
+    return qc.fetchQuery({
+      queryKey: reviewKey(reviewId),
+      queryFn: () => spotApi.getReview(reviewId, token),
+      staleTime: 0,
+    });
+  };
+}
+
+export function useDeleteReviewPhoto(spotId: string) {
+  const token = useAuthStore((s) => s.accessToken);
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ reviewId, photoId }: { reviewId: number; photoId: number }) => {
+      if (!token) return Promise.reject(new ApiError('로그인이 필요합니다.'));
+      return spotApi.deleteReviewPhoto(reviewId, photoId, token);
+    },
+    onSuccess: (_data, { reviewId }) => {
+      invalidateReviewCaches(qc, spotId);
+      qc.invalidateQueries({ queryKey: reviewKey(reviewId) });
+    },
+  });
+}
+
+export function useMyReviews(sort: ReviewSortApi = 'LATEST') {
+  const token = useAuthStore((s) => s.accessToken);
+  return useInfiniteQuery({
+    queryKey: [...myReviewsKey, sort],
+    queryFn: ({ pageParam }) => spotApi.getMyReviews(token as string, { sort, page: pageParam, size: REVIEW_PAGE_SIZE }),
+    initialPageParam: 0,
+    getNextPageParam: (last) => (last.number + 1 < last.totalPages ? last.number + 1 : undefined),
+    enabled: !!token,
+    select: mapMyReviewPages,
   });
 }
 

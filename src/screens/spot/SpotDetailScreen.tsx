@@ -213,7 +213,11 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
             {activeTab === 'photo' && <PhotoGridTab loadMoreSignal={photoLoadSignal} />}
 
             {activeTab === 'review' && (
-              <ReviewTab spotId={spot.id} onWriteReview={() => navigation.navigate('ReviewWrite', { spotId: spot.id })} />
+              <ReviewTab
+                spotId={spot.id}
+                onWriteReview={() => navigation.navigate('ReviewWrite', { spotId: spot.id })}
+                onEditReview={(edit) => navigation.navigate('ReviewWrite', { spotId: spot.id, edit })}
+              />
             )}
           </View>
         </Animated.ScrollView>

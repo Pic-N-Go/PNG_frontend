@@ -17,7 +17,7 @@
 
 - 포함(In Scope):
   - 스팟 상세 조회 `GET /spots/{id}` (편의정보 임베디드 포함)
-  - 리뷰 목록 조회 `GET /spots/{id}/reviews` (`timeSlot` 배지 포함, 정렬)
+  - 리뷰 목록 조회 `GET /spots/{id}/reviews` (`timePeriod` 배지 포함, 정렬)
   - 체크리스트 조회/추가/삭제 `GET·POST·DELETE /spots/{id}/checklist`
   - **포토제닉 지수 `GET /spots/{id}/photogenic-score?date=&time=`** (2차 확장 — API 팀이 date/time 재조회 + 골든아워 카운트다운 필드 제공하며 언블록됨)
   - `api/spot.ts`, `hooks/useSpot.ts`, `types/spot.ts` 구현/보강
@@ -77,7 +77,7 @@ Base URL: `http://localhost:8080` (`EXPO_PUBLIC_API_URL`). 체크리스트는 `A
 - 편의정보(`convenience`) → `ConvenienceInfo`:
   - transport 카드: `parking`, `subwayAccess`
   - cells: **주차장**(`parking`), 휠체어(`wheelchairAccess`), 유모차(`strollerAccess`), 반려동물(`petFriendly`), 지하철(`subwayAccess`), 문의(`infocenter`) — 값이 "가능/있음"이면 `green`, 아니면 `default`
-- 리뷰: `distribution`(카운트) → percent 변환, `nickname` → 이름·이니셜(첫 글자)·아바타색(클라 생성), `timeSlot`(SUNRISE/DAY/SUNSET/NIGHT) → 배지 라벨(일출/낮/일몰/야간), **`timeSlot === null`이면 배지 미표시**, `equipmentInfo`→장비, `photos`→사진 URL
+- 리뷰: `distribution`(카운트) → percent 변환, `nickname` → 이름·이니셜(첫 글자)·아바타색(클라 생성), `timePeriod`(SUNRISE/DAYTIME/SUNSET/NIGHT) → 배지 라벨(일출/낮/일몰/야간), **`timePeriod === null`이면 배지 미표시**, `equipmentInfo`→장비, `photos`→사진 URL
 - 정렬: 최신순→`LATEST`, 별점 높은순→`RATING_HIGH`, 별점 낮은순→`RATING_LOW`
 - 체크리스트: `defaultItems`(`defaultItemId`) + `userItems`(숫자 `id`), **사용자 항목은 삭제**(`DELETE .../checklist/{itemId}`)·**기본 항목은 숨김**(`DELETE .../checklist/default/{defaultItemId}`), 체크 토글은 **클라 로컬 상태**(서버 토글 API 없음)
 - 포토제닉 → `PhotogenicScoreData`:
@@ -123,7 +123,7 @@ Base URL: `http://localhost:8080` (`EXPO_PUBLIC_API_URL`). 체크리스트는 `A
 
 1. **체크리스트 = 자유 입력** — 프리셋 칩(`MOCK_CHECKLIST_OPTIONS`) 제거. 서버 `defaultItems`를 기본 추천으로 표시 + 사용자는 텍스트 입력으로 자유 추가(최대 10·20자) + **사용자 항목 삭제(`id`)** + **기본 항목 숨김(`defaultItemId`, `DELETE .../default/{defaultItemId}`)**. 개인 데이터라 자유 입력 리스크 낮음.
 2. **badge = 조건부 렌더** — `badge === true`일 때만 "관광공사 인증" 배지 표시. 현재는 전량 관광공사 데이터라 항상 표시되지만, 향후 사용자 스팟(`false`) 대비.
-3. **리뷰 시간대 배지 = 색 구분 없음** — 라벨만 교체, 현행 회색 단색 유지. `timeSlot === null`이면 미표시.
+3. **리뷰 시간대 배지 = 색 구분 없음** — 라벨만 교체, 현행 회색 단색 유지. `timePeriod === null`이면 미표시.
 4. **포토제닉 = 실 API 연동(2차)** — API 팀이 date/time 재조회 + 골든아워 카운트다운 필드를 제공해 언블록. `maxScore=80`, `ozone` 팩터 신규 추가, 골든아워 콜아웃은 `minutesUntilStart`/`startTime` null 규칙대로 "진행 중/오늘 종료/N분 후" 분기. 날짜 옵션은 오늘~+2일 동적 생성.
 
 ## 12) 남은 참고 사항
