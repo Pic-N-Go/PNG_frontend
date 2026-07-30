@@ -47,23 +47,26 @@ export const openAppleMap = async (spots: SpotLocation[]) => {
   const destSpot = limitedSpots[limitedSpots.length - 1];
   const viaSpots = limitedSpots.length > 1 ? limitedSpots.slice(0, limitedSpots.length - 1) : [];
 
-  // saddr(출발지)을 지정하지 않으면 Apple 지도가 현재 위치를 출발지로 자동 설정합니다.
-  let url = 'https://maps.apple.com/?dirflg=d';
-
-  // 중간 경유지 추가 (daddr 반복 지정)
+  // 현대 Apple 지도 공식 /directions 규격 (iOS 16+): waypoint 반복 지정 + destination 1개 지정
+  let modernUrl = 'https://maps.apple.com/directions?dirflg=d';
   viaSpots.forEach((spot) => {
-    url += `&daddr=${spot.latitude},${spot.longitude}`;
+    modernUrl += `&waypoint=${spot.latitude},${spot.longitude}`;
   });
+  modernUrl += `&destination=${destSpot.latitude},${destSpot.longitude}`;
 
-  // 최종 목적지 추가
-  url += `&daddr=${destSpot.latitude},${destSpot.longitude}`;
+  // 구형 iOS 지원용 폴백 URL 규격 (daddr 반복 지정)
+  let legacyUrl = 'https://maps.apple.com/?dirflg=d';
+  viaSpots.forEach((spot) => {
+    legacyUrl += `&daddr=${spot.latitude},${spot.longitude}`;
+  });
+  legacyUrl += `&daddr=${destSpot.latitude},${destSpot.longitude}`;
 
   try {
-    const supported = await Linking.canOpenURL(url);
+    const supported = await Linking.canOpenURL(modernUrl);
     if (supported) {
-      await Linking.openURL(url);
+      await Linking.openURL(modernUrl);
     } else {
-      await Linking.openURL(url);
+      await Linking.openURL(legacyUrl);
     }
   } catch (error) {
     console.error('Apple 지도 실행 오류:', error);
