@@ -38,24 +38,30 @@ export default function SettingScreen({ navigation }: Props) {
   const [hasSystemPermission, setHasSystemPermission] = React.useState<boolean>(true);
 
   const checkPushPermission = React.useCallback(async () => {
-    if (Platform.OS === 'android') {
-      if (Platform.Version >= 33) {
-        const hasPermission = await PermissionsAndroid.check(
-          PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
-        );
-        setHasSystemPermission(hasPermission);
-        return hasPermission;
+    try {
+      if (Platform.OS === 'android') {
+        if (Platform.Version >= 33) {
+          const hasPermission = await PermissionsAndroid.check(
+            PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
+          );
+          setHasSystemPermission(hasPermission);
+          return hasPermission;
+        }
+        setHasSystemPermission(true);
+        return true;
       }
-      setHasSystemPermission(true);
-      return true;
-    }
 
-    const authStatus = await hasPermission(getMessaging());
-    const granted =
-      authStatus === AuthorizationStatus.AUTHORIZED ||
-      authStatus === AuthorizationStatus.PROVISIONAL;
-    setHasSystemPermission(granted);
-    return granted;
+      const authStatus = await hasPermission(getMessaging());
+      const granted =
+        authStatus === AuthorizationStatus.AUTHORIZED ||
+        authStatus === AuthorizationStatus.PROVISIONAL;
+      setHasSystemPermission(granted);
+      return granted;
+    } catch (error) {
+      console.error('[SettingScreen] checkPushPermission error:', error);
+      setHasSystemPermission(false);
+      return false;
+    }
   }, []);
 
   React.useEffect(() => {

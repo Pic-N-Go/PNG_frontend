@@ -1003,10 +1003,19 @@ export default function MapScreen() {
           onSelectSpot={(spot) => {
             setSearchQuery(spot.name);
             setActiveSpot(spot);
-            if (webViewRef.current && spot.lat && spot.lng) {
+            const lat = Number(spot.lat);
+            const lng = Number(spot.lng);
+            const isValidCoord =
+              Number.isFinite(lat) &&
+              Number.isFinite(lng) &&
+              lat >= -90 &&
+              lat <= 90 &&
+              lng >= -180 &&
+              lng <= 180;
+            if (webViewRef.current && isValidCoord) {
               webViewRef.current.injectJavaScript(`
                 if (window.kakaoMap) {
-                  window.kakaoMap.setCenter(new kakao.maps.LatLng(${spot.lat}, ${spot.lng}));
+                  window.kakaoMap.setCenter(new kakao.maps.LatLng(${JSON.stringify(lat)}, ${JSON.stringify(lng)}));
                   window.kakaoMap.setLevel(3);
                 }
               `);
