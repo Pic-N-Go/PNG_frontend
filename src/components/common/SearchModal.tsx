@@ -67,9 +67,9 @@ export default function SearchModal({
   const { data: recSpotsData, isLoading: isRecLoading } = useSpots({ sort: 'score' });
   const recSpots: SpotResponse[] = recSpotsData?.content || [];
 
-  const debouncedQuery = useDebounce(query, 300);
+  const debouncedQuery = useDebounce(query, 500);
 
-  // 실시간 스팟 검색 결과 (300ms 디바운스 적용)
+  // 실시간 스팟 검색 결과 (500ms 디바운스 적용)
   const { data: searchResultsData, isLoading: isSearchLoading } = useSearchSpots({ keyword: debouncedQuery });
   const apiResults: SpotResponse[] = searchResultsData?.content || [];
 

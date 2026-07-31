@@ -87,15 +87,15 @@ export default function MapScreen() {
   const [currentPlanDay, setCurrentPlanDay] = useState<string>(route.params?.initialDay || '1');
   // 지도가 idle될 때마다 WebView가 알려주는 현재 화면 영역
   const [mapBounds, setMapBounds] = useState<MapBounds | null>(null);
-  const debouncedKeyword = useDebounce(searchQuery, 300);
-  const debouncedMapBounds = useDebounce(mapBounds, 300);
+  const debouncedKeyword = useDebounce(searchQuery, 500);
+  const debouncedMapBounds = useDebounce(mapBounds, 500);
 
   const apiCategory = CATEGORY_MAP[selectedCategory] || (selectedCategory !== 'all' ? selectedCategory : undefined);
   const hasKeyword = debouncedKeyword.trim().length > 0;
   // 코스 보기/스팟 목록을 파라미터로 받은 경우엔 API 조회가 필요 없다.
   const usesRouteSpots = mode === 'plan-view' || Array.isArray(route.params?.spots);
 
-  // 1. 지도 영역 핀 목록 (GET /spots/map) — 지도 드래그/확대 축소가 멈춘 뒤 300ms 후에 API 호출
+  // 1. 지도 영역 핀 목록 (GET /spots/map) — 지도 드래그/확대 축소가 멈춘 뒤 500ms 후에 API 호출
   const { data: mapSpotsData, error: mapError } = useMapSpots(
     { ...(debouncedMapBounds ?? DEFAULT_BOUNDS), category: apiCategory, size: 200 },
     { enabled: !usesRouteSpots && !hasKeyword },
