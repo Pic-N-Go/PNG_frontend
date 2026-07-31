@@ -5,6 +5,7 @@ import { IconChevronLeft, IconSearch, IconAdjustmentsHorizontal, IconFocus2, Ico
 import { useNavigation, useRoute, useFocusEffect, CommonActions } from '@react-navigation/native';
 import { useCourseStore, Spot } from '@/store/useCourseStore';
 import { useSpots, useMapSpots, useSearchSpots } from '@/hooks/useSpot';
+import { useDebounce } from '@/hooks/useDebounce';
 import SpotPopup from '@/components/travel/SpotPopup';
 import BottomSheet from '@/components/common/BottomSheet';
 import FilterBottomSheet, { FilterState, EMPTY_FILTER } from '@/components/home/FilterBottomSheet';
@@ -86,14 +87,7 @@ export default function MapScreen() {
   const [detailFilter, setDetailFilter] = useState<FilterState>(EMPTY_FILTER);
   const [currentPlanDay, setCurrentPlanDay] = useState<string>(route.params?.initialDay || '1');
   // 지도가 idle될 때마다 WebView가 알려주는 현재 화면 영역
-  const [mapBounds, setMapBounds] = useState<MapBounds | null>(null);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedKeyword(searchQuery);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
+  const debouncedKeyword = useDebounce(searchQuery, 300);
 
   const apiCategory = CATEGORY_MAP[selectedCategory] || (selectedCategory !== 'all' ? selectedCategory : undefined);
   const hasKeyword = debouncedKeyword.trim().length > 0;

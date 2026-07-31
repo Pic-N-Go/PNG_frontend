@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { IconSearch, IconX, IconClock, IconMapPin, IconChevronRight, IconChevronLeft } from '@tabler/icons-react-native';
 import { useSearchStore } from '@/store/useSearchStore';
 import { useSpots, useSearchSpots } from '@/hooks/useSpot';
+import { useDebounce } from '@/hooks/useDebounce';
 import { Spot } from '@/store/useCourseStore';
 import { SpotResponse } from '@/types/spot';
 import { normalize } from '@/utils/normalize';
@@ -66,8 +67,10 @@ export default function SearchModal({
   const { data: recSpotsData, isLoading: isRecLoading } = useSpots({ sort: 'score' });
   const recSpots: SpotResponse[] = recSpotsData?.content || [];
 
-  // 실시간 스팟 검색 결과
-  const { data: searchResultsData, isLoading: isSearchLoading } = useSearchSpots({ keyword: query });
+  const debouncedQuery = useDebounce(query, 300);
+
+  // 실시간 스팟 검색 결과 (300ms 디바운스 적용)
+  const { data: searchResultsData, isLoading: isSearchLoading } = useSearchSpots({ keyword: debouncedQuery });
   const apiResults: SpotResponse[] = searchResultsData?.content || [];
 
   const searchResults = React.useMemo(() => {
