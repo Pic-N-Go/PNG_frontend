@@ -21,7 +21,7 @@ import NaviSheet from '@/components/spot/NaviSheet';
 import ShareSheet from '@/components/spot/ShareSheet';
 import BookmarkSheet from '@/components/spot/BookmarkSheet';
 import { useBookmarkCollections, useSpotDetail, useSpotPhotogenicScore } from '@/hooks/useSpot';
-import { BUTTON_RADIUS, GRID_PADDING, TAB_BAR_HEIGHT } from '@/constants/layout';
+import { BUTTON_RADIUS, GRID_PADDING, SPACING_LG } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 
 // 히어로 이미지 갤러리는 사진 탭 담당자 스코프 — 실제 이미지 연동 전까지 플레이스홀더 페이지 수.
@@ -153,7 +153,11 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
           scrollEventThrottle={16}
           stickyHeaderIndices={[2]}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: TAB_BAR_HEIGHT + insets.bottom }}
+          // TAB_BAR_HEIGHT를 더하지 않는다 — SpotStack은 MainTab의 형제라(navigation/index.tsx)
+          // 이 화면에서는 탭바가 가려져 보이지 않는다. 더하면 없는 탭바 자리로 80dp가 비어,
+          // 리뷰 탭 CTA 아래에 커다란 흰 공백이 생긴다. 필요한 건 시스템 내비바·홈 인디케이터를
+          // 피하는 인셋과 최소 여백뿐이다.
+          contentContainerStyle={{ paddingBottom: SPACING_LG + insets.bottom }}
         >
           <SpotHero
             scrollY={scrollY}

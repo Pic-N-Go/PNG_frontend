@@ -3,11 +3,10 @@ import React, { useState } from 'react';
 
 import { ScrollView, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
 import { HomeStackParamList } from '@/navigation/stacks/HomeStack';
 import type { RootStackParamList } from '@/navigation';
-import { CONTENT_PADDING, FONT_SM, FONT_XL, TAB_BAR_HEIGHT } from '@/constants/layout';
+import { CONTENT_PADDING, FONT_SM, FONT_XL, SPACING_LG } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
 import HeroSection from '@/components/home/HeroSection';
 import SearchBar from '@/components/home/SearchBar';
@@ -22,7 +21,6 @@ import { useNotification } from '@/hooks/useNotification';
 type Props = NativeStackScreenProps<HomeStackParamList, 'Home'>;
 
 export default function HomeScreen({ navigation }: Props) {
-  const insets = useSafeAreaInsets();
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [activeFilterCount, setActiveFilterCount] = useState(0);
   const [filterVisible, setFilterVisible] = useState(false);
@@ -36,7 +34,11 @@ export default function HomeScreen({ navigation }: Props) {
       <ScrollView
         bounces={false}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: TAB_BAR_HEIGHT + insets.bottom }}
+        // TAB_BAR_HEIGHT·insets.bottom을 더하지 않는다 — MainTab이 기본(non-absolute) 하단 탭
+        // 내비게이터라 화면 영역이 이미 탭바 높이를 뺀 크기로 잡히고, 시스템 내비바는 탭바 자신의
+        // paddingBottom(TabBar.tsx)이 덮는다. 여기서 또 더하면 그만큼 죽은 공백이 두 배로 생긴다.
+        // 필요한 건 마지막 콘텐츠와 탭바 사이의 최소 여백뿐이다.
+        contentContainerStyle={{ paddingBottom: SPACING_LG }}
       >
         <HeroSection onNotificationPress={() => navigation.navigate('Notification')} hasUnread={hasUnread} />
 

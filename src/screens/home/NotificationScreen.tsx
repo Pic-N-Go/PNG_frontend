@@ -19,7 +19,7 @@ import {
   FONT_XL,
   FONT_XS,
   GRID_PADDING,
-  TAB_BAR_HEIGHT,
+  SPACING_LG,
 } from '@/constants/layout';
 
 type TabKey = 'all' | 'wishlist' | 'weather' | 'community';
@@ -227,7 +227,8 @@ export default function NotificationScreen({ navigation }: Props) {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
           paddingTop: normalize(10),
-          paddingBottom: TAB_BAR_HEIGHT + insets.bottom,
+          // 탭바 높이·인셋을 더하지 않는다 — 화면 영역에서 이미 빠져 있다(HomeScreen 주석 참고).
+          paddingBottom: SPACING_LG,
         }}
       >
         {isLoading ? (
