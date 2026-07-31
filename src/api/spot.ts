@@ -73,7 +73,7 @@ async function request<T>(path: string, opts: { method?: Method; body?: unknown;
       body: body !== undefined ? JSON.stringify(body) : undefined,
       signal: controller.signal,
     });
-    if (!res.ok) throw await toHttpError(res);
+    if (!res.ok) throw await toHttpError(res, token);
     return await parseBody<T>(res);
   } catch (err) {
     throw toApiError(err);
@@ -139,7 +139,7 @@ async function upload<T>(path: string, form: FormData, token: string): Promise<T
       body: form,
       signal: controller.signal,
     });
-    if (!res.ok) throw await toHttpError(res);
+    if (!res.ok) throw await toHttpError(res, token);
     return await parseBody<T>(res);
   } catch (err) {
     throw toApiError(err);

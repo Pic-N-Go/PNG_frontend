@@ -1,4 +1,4 @@
-import { toHttpError } from '@/api/auth';
+import { toHttpError, tokenFromHeaders } from '@/api/auth';
 const BASE = process.env.EXPO_PUBLIC_API_URL ?? '';
 const TIMEOUT_MS = 30_000;
 
@@ -9,7 +9,7 @@ async function fetchWithTimeout(url: string, options: RequestInit) {
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
   try {
     const res = await fetch(url, { ...options, signal: controller.signal });
-    if (!res.ok) throw await toHttpError(res);
+    if (!res.ok) throw await toHttpError(res, tokenFromHeaders(options.headers));
     return res;
   } finally {
     clearTimeout(timer);

@@ -1,7 +1,8 @@
+import { Alert } from 'react-native';
 import { create } from 'zustand';
 import { persist, createJSONStorage, StateStorage } from 'zustand/middleware';
 import * as SecureStore from 'expo-secure-store';
-import { authApi, type UserResponse } from '@/api/auth';
+import { authApi, setUnauthorizedHandler, type UserResponse } from '@/api/auth';
 
 const secureStorage: StateStorage = {
   getItem: async (key) => {
@@ -51,10 +52,32 @@ export const useAuthStore = create<AuthState>()(
       partialize: (state) => ({ accessToken: state.accessToken }),
       onRehydrateStorage: () => (state) => {
         if (!state?.accessToken) return;
+        // 이 검사의 401은 "쓰던 세션이 끊긴 것"이 아니라 "저장된 토큰이 이미 죽어 있던 것"이다.
+        // 안내 Alert이 스플래시 위에 뜨면 로그인한 적 없는 사람에게 만료를 알리는 꼴이라 조용히 버린다.
+        silentUnauthorized = true;
         authApi.me(state.accessToken)
           .then((user) => state.setAuth(state.accessToken as string, user))
-          .catch(() => state.clearAuth());
+          .catch(() => state.clearAuth())
+          .finally(() => { silentUnauthorized = false; });
       },
     },
   ),
 );
+
+// 어느 API에서 401이 나든 죽은 토큰을 버린다. 리프레시 토큰이 없어 재발급 수단이 없으므로
+// 만료 = 로그아웃이다. RootNavigator가 accessToken으로 트리를 갈아끼우므로 곧 화면 이동이기도 하다.
+// 설계 근거와 리프레시 토큰 도입 시 교체 방법 → `docs/guide/api/token-refresh-plan.md`
+/** 앱 시작 시 저장된 토큰을 검사하는 동안에는 만료 안내를 띄우지 않는다. */
+let silentUnauthorized = false;
+
+setUnauthorizedHandler((requestToken) => {
+  const current = useAuthStore.getState().accessToken;
+  // 이미 비어 있으면 할 일이 없다(로그인 실패의 401도 여기서 걸러진다).
+  if (!current) return;
+  // 뒤늦게 도착한 옛 요청의 401이 새 세션을 끊지 않게 한다.
+  if (requestToken && requestToken !== current) return;
+
+  useAuthStore.getState().clearAuth();
+  // query 401은 아무도 렌더하지 않아 안내 없이 튕긴다. 여기서 한 번만 알린다.
+  if (!silentUnauthorized) Alert.alert('로그인이 만료됐어요', '다시 로그인해 주세요.');
+});

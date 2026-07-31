@@ -45,6 +45,12 @@ const ICON_WEAK = '#ABABAD';   // SURFACE 위, 기존 rgba(0,0,0,0.25~0.3)
 // 서버가 code별 한국어 message를 주므로 그대로 노출한다(장수 초과·본인 리뷰 아님 등).
 const errorTextOf = (err: unknown) => (err instanceof ApiError ? err.message : '잠시 후 다시 시도해 주세요.');
 
+/**
+ * 401은 화면에서 알리지 않는다. useAuthStore의 401 핸들러가 이미 만료 Alert을 띄우고 로그아웃까지
+ * 하므로, 여기서 또 띄우면 같은 문구의 다이얼로그가 두 겹으로 쌓인다(그것도 화면이 언마운트되는 중에).
+ */
+const isExpired = (err: unknown) => err instanceof ApiError && err.status === 401;
+
 const CONTENT_MIN = 20;
 const CONTENT_MAX = 500;
 const MAX_PHOTOS = 5;
@@ -345,7 +351,7 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
       uploadedIds.current.clear();
       photosTouched.current = true;
     } catch (err) {
-      Alert.alert('사진을 삭제하지 못했어요', errorTextOf(err));
+      if (!isExpired(err)) Alert.alert('사진을 삭제하지 못했어요', errorTextOf(err));
     }
   };
 
@@ -357,7 +363,7 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
       files.forEach((f) => uploadedIds.current.add(identityOf(f)));
       photosTouched.current = true;
     } catch (err) {
-      Alert.alert('사진을 추가하지 못했어요', errorTextOf(err));
+      if (!isExpired(err)) Alert.alert('사진을 추가하지 못했어요', errorTextOf(err));
     }
   };
 
@@ -405,7 +411,7 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
           ]);
           return;
         }
-        Alert.alert(isEdit ? '수정 실패' : '등록 실패', errorTextOf(err));
+        if (!isExpired(err)) Alert.alert(isEdit ? '수정 실패' : '등록 실패', errorTextOf(err));
       },
     };
 
