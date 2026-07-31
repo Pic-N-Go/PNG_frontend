@@ -8,6 +8,7 @@ import { useSpots, useMapSpots, useSearchSpots } from '@/hooks/useSpot';
 import SpotPopup from '@/components/travel/SpotPopup';
 import BottomSheet from '@/components/common/BottomSheet';
 import FilterBottomSheet, { FilterState, EMPTY_FILTER } from '@/components/home/FilterBottomSheet';
+import SearchModal from '@/components/common/SearchModal';
 import { StatusBar } from 'expo-status-bar';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { FONT_MD, BUTTON_HEIGHT, BUTTON_RADIUS, HEADER_HEIGHT } from '@/constants/layout';
@@ -81,6 +82,7 @@ export default function MapScreen() {
   const [debouncedKeyword, setDebouncedKeyword] = useState('');
   const [activeFilterCount, setActiveFilterCount] = useState(0);
   const [filterVisible, setFilterVisible] = useState(false);
+  const [isSearchModalVisible, setSearchModalVisible] = useState(false);
   const [detailFilter, setDetailFilter] = useState<FilterState>(EMPTY_FILTER);
   const [currentPlanDay, setCurrentPlanDay] = useState<string>(route.params?.initialDay || '1');
   // 지도가 idle될 때마다 WebView가 알려주는 현재 화면 영역
@@ -627,31 +629,31 @@ export default function MapScreen() {
                   elevation: 3,
                 }}
               >
-                <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', height: '100%', paddingRight: normalize(32) }}>
+                <TouchableOpacity
+                  onPress={() => setSearchModalVisible(true)}
+                  style={{ flex: 1, flexDirection: 'row', alignItems: 'center', height: '100%', paddingRight: normalize(32) }}
+                  activeOpacity={0.8}
+                >
                   <IconSearch size={normalize(18)} color="rgba(0,0,0,0.3)" strokeWidth={1.5} />
-                  <TextInput
-                    value={searchQuery}
-                    onChangeText={setSearchQuery}
-                    placeholder="장소, 테마, 키워드 검색"
-                    placeholderTextColor="rgba(0,0,0,0.3)"
-                    allowFontScaling={false}
-                    returnKeyType="search"
+                  <Text
+                    numberOfLines={1}
                     style={{
                       flex: 1,
                       marginLeft: normalize(8),
                       fontSize: FONT_MD,
-                      color: '#111',
+                      color: searchQuery ? '#111' : 'rgba(0,0,0,0.3)',
                       fontFamily: 'Pretendard-Regular',
                       letterSpacing: -0.2,
-                      padding: 0,
                     }}
-                  />
+                  >
+                    {searchQuery || '장소, 테마, 키워드 검색'}
+                  </Text>
                   {searchQuery.length > 0 && (
                     <TouchableOpacity onPress={() => setSearchQuery('')} hitSlop={8} style={{ padding: 4 }}>
                       <IconX size={normalize(16)} color="rgba(0,0,0,0.4)" strokeWidth={1.5} />
                     </TouchableOpacity>
                   )}
-                </View>
+                </TouchableOpacity>
 
                 {/* 필터 조절 아이콘 */}
                 <TouchableOpacity
@@ -993,6 +995,28 @@ export default function MapScreen() {
             </View>
           </View>
         )}
+
+        <SearchModal
+          visible={isSearchModalVisible}
+          onClose={() => setSearchModalVisible(false)}
+          defaultCategory="spot"
+          onSelectSpot={(spot) => {
+            setSearchQuery(spot.name);
+            setActiveSpot(spot);
+            if (webViewRef.current && spot.lat && spot.lng) {
+              webViewRef.current.injectJavaScript(`
+                if (window.kakaoMap) {
+                  window.kakaoMap.setCenter(new kakao.maps.LatLng(${spot.lat}, ${spot.lng}));
+                  window.kakaoMap.setLevel(3);
+                }
+              `);
+            }
+          }}
+          onSelectKeyword={(keyword) => {
+            setSearchQuery(keyword);
+            setSearchModalVisible(false);
+          }}
+        />
 
         <FilterBottomSheet
           visible={filterVisible}
