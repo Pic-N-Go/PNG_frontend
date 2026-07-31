@@ -27,7 +27,7 @@ const CATEGORY_KO = {
   home:       '홈',
   mypage:     '마이페이지',
   spot:       '스팟',
-  travel:     '여행',
+  course:     '코스',
   wishlist:   '위시리스트',
 };
 
@@ -62,9 +62,9 @@ function subCategory(folder, base) {
     'spot/spot-change':            '수정',
     'spot/spot-register':          '등록',
     'spot/review-write':           '리뷰 작성',
-    'travel/travel-list':          '코스 목록',
-    'travel/travel-new':           '코스 생성',
-    'travel/travel-plan':          '코스 상세',
+    'course/course-list':          '코스 목록',
+    'course/course-new':           '코스 생성',
+    'course/course-plan':          '코스 상세',
     'wishlist/wishlist':           '위시리스트',
     'wishlist/wishlist-setting':   '위시리스트 설정',
   };
@@ -99,9 +99,9 @@ const ASSIGNEE = {
   'spot/spot-detail':          '박예은',
   'spot/spot-list':            '이예인',
   'spot/spot-register':        '소영재',
-  'travel/travel-list':        '모정민',
-  'travel/travel-new':         '모정민',
-  'travel/travel-plan':        '모정민',
+  'course/course-list':        '모정민',
+  'course/course-new':         '모정민',
+  'course/course-plan':        '모정민',
   'wishlist/wishlist':         '모정민',
   'wishlist/wishlist-setting': '모정민',
 };
