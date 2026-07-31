@@ -175,7 +175,11 @@ export const spotApi = {
   },
 
   // 4. 스팟 상세 정보 조회 (GET /spots/{id})
-  getDetail: (id: string | number) => request<SpotDetailResponse>(`/spots/${id}`),
+  // 비로그인도 조회되지만 토큰이 없으면 서버가 "나"를 몰라 myReviewId가 항상 null로 온다.
+  // 리뷰 탭의 작성/수정 분기가 이 값에 걸려 있어 로그인 상태면 반드시 보낸다.
+  // (응답의 isBookmarked도 유저별 값이지만 mapSpotDetail이 버리고 SpotDetailScreen이
+  //  useBookmarkCollections로 따로 구하므로 여기에 걸려 있지 않다.)
+  getDetail: (id: string | number, token?: string) => request<SpotDetailResponse>(`/spots/${id}`, { token }),
 
   getReviews: (id: string | number, { sort = 'LATEST', page = 0, size = 20 }: ReviewQuery = {}) =>
     request<ReviewListResponse>(`/spots/${id}/reviews?sort=${sort}&page=${page}&size=${size}`),
