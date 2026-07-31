@@ -471,7 +471,9 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
         </Text>
       </View>
 
-      <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      {/* 안드로이드도 behavior가 필요하다 — 엣지투엣지(app.config.js)라 adjustResize가 창을
+          줄여 주지 않는다. 근거는 BottomSheet.tsx 주석 참고. */}
+      <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <ScrollView
           ref={scrollRef}
           contentContainerStyle={{ paddingBottom: normalize(36) }}
