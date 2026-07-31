@@ -1014,7 +1014,6 @@ export default function MapScreen() {
           }}
           onSelectKeyword={(keyword) => {
             setSearchQuery(keyword);
-            setSearchModalVisible(false);
           }}
         />
 
