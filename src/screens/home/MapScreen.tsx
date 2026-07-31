@@ -173,13 +173,18 @@ export default function MapScreen() {
   }, [route.params?.initialDay]);
 
   const handleBackNavigation = useCallback(() => {
+    if (searchQuery || activeSpot) {
+      setSearchQuery('');
+      setActiveSpot(null);
+      return true;
+    }
     if (navigation.canGoBack()) {
       navigation.goBack();
     } else {
       navigation.navigate('HomeTab');
     }
     return true; // prevent default behavior
-  }, [navigation]);
+  }, [searchQuery, activeSpot, navigation]);
 
   useFocusEffect(
     useCallback(() => {
