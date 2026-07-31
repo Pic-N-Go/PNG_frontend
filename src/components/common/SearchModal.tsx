@@ -65,13 +65,19 @@ export default function SearchModal({
 
   // 추천 스팟 목록 (포토제닉 점수 순)
   const { data: recSpotsData, isLoading: isRecLoading } = useSpots({ sort: 'score' });
-  const recSpots: SpotResponse[] = recSpotsData?.content || [];
+  const recSpots: SpotResponse[] = React.useMemo(
+    () => recSpotsData?.content || [],
+    [recSpotsData?.content]
+  );
 
   const debouncedQuery = useDebounce(query, 500);
 
   // 실시간 스팟 검색 결과 (500ms 디바운스 적용)
   const { data: searchResultsData, isLoading: isSearchLoading } = useSearchSpots({ keyword: debouncedQuery });
-  const apiResults: SpotResponse[] = searchResultsData?.content || [];
+  const apiResults: SpotResponse[] = React.useMemo(
+    () => searchResultsData?.content || [],
+    [searchResultsData?.content]
+  );
 
   const searchResults = React.useMemo(() => {
     if (!query.trim()) return [];
