@@ -11,7 +11,7 @@ import {
   Keyboard,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { IconSearch, IconX, IconClock, IconMapPin, IconChevronRight } from '@tabler/icons-react-native';
+import { IconSearch, IconX, IconClock, IconMapPin, IconChevronRight, IconChevronLeft } from '@tabler/icons-react-native';
 import { useSearchStore } from '@/store/useSearchStore';
 import { useSpots, useSearchSpots } from '@/hooks/useSpot';
 import { Spot } from '@/store/useCourseStore';
@@ -110,11 +110,15 @@ export default function SearchModal({
   return (
     <Modal visible={visible} animationType="slide" transparent={false} onRequestClose={onClose}>
       <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right', 'bottom']}>
-        {/* ── 1. 헤더 (검색 입력창 + 취소 버튼) ── */}
+        {/* ── 1. 헤더 (뒤로가기/취소 버튼 + 검색 입력창) ── */}
         <View
           className="flex-row items-center border-b border-black/5 bg-white"
           style={{ paddingHorizontal: GRID_PADDING, paddingVertical: normalize(10), gap: normalize(10) }}
         >
+          <TouchableOpacity onPress={onClose} hitSlop={8} style={{ paddingRight: normalize(2) }}>
+            <IconChevronLeft size={normalize(24)} color="#111" strokeWidth={2} />
+          </TouchableOpacity>
+
           <View
             className="flex-1 flex-row items-center bg-[#f2f4f6]"
             style={{
@@ -152,12 +156,6 @@ export default function SearchModal({
               </TouchableOpacity>
             )}
           </View>
-
-          <TouchableOpacity onPress={onClose} hitSlop={8}>
-            <Text className="font-semibold" style={{ fontSize: FONT_MD, color: BRAND }}>
-              취소
-            </Text>
-          </TouchableOpacity>
         </View>
 
         {/* ── 2. 카테고리 탭 칩 ── */}
