@@ -80,13 +80,13 @@ export default function MapScreen() {
   const [isCourseModalOpen, setCourseModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [debouncedKeyword, setDebouncedKeyword] = useState('');
   const [activeFilterCount, setActiveFilterCount] = useState(0);
   const [filterVisible, setFilterVisible] = useState(false);
   const [isSearchModalVisible, setSearchModalVisible] = useState(false);
   const [detailFilter, setDetailFilter] = useState<FilterState>(EMPTY_FILTER);
   const [currentPlanDay, setCurrentPlanDay] = useState<string>(route.params?.initialDay || '1');
   // 지도가 idle될 때마다 WebView가 알려주는 현재 화면 영역
+  const [mapBounds, setMapBounds] = useState<MapBounds | null>(null);
   const debouncedKeyword = useDebounce(searchQuery, 300);
 
   const apiCategory = CATEGORY_MAP[selectedCategory] || (selectedCategory !== 'all' ? selectedCategory : undefined);
