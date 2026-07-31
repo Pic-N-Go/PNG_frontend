@@ -45,9 +45,6 @@ const POPULAR_KEYWORDS = [
 const CATEGORIES: { id: SearchCategory; label: string }[] = [
   { id: 'all', label: '전체' },
   { id: 'spot', label: '스팟' },
-  { id: 'post', label: '게시글' },
-  { id: 'photo', label: '사진' },
-  { id: 'user', label: '사용자' },
 ];
 
 export default function SearchModal({
@@ -56,15 +53,18 @@ export default function SearchModal({
   defaultCategory = 'spot',
   onSelectSpot,
   onSelectKeyword,
-  placeholder = '스팟, 게시글, 사용자 검색',
+  placeholder = '스팟 검색',
 }: SearchModalProps) {
   const [query, setQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<SearchCategory>(defaultCategory);
 
   const { recentSearches, addRecentSearch, removeRecentSearch, clearRecentSearches } = useSearchStore();
 
-  // 추천 스팟 목록 (포토제닉 점수 순)
-  const { data: recSpotsData, isLoading: isRecLoading } = useSpots({ sort: 'score' });
+  // 추천 스팟 목록 (포토제닉 점수 순) - 모달이 열려있을 때만 가져온다.
+  const { data: recSpotsData, isLoading: isRecLoading } = useSpots(
+    { sort: 'score' },
+    { enabled: visible }
+  );
   const recSpots: SpotResponse[] = React.useMemo(
     () => recSpotsData?.content || [],
     [recSpotsData?.content]
@@ -92,18 +92,7 @@ export default function SearchModal({
     );
     if (filteredRec.length > 0) return filteredRec;
 
-    const defaultMock: SpotResponse[] = [
-      { id: 901, name: '광안리 해수욕장', address: '부산 수영구 광안해변로 219', latitude: 35.1532, longitude: 129.1189, categories: ['바다', '야경'], photogenicScore: 94, badge: true, imageUrl: null, thumbnailUrl: 'https://picsum.photos/200/200?random=901', bookmarkCount: 120, reviewCount: 45, reviewAverage: 4.8 },
-      { id: 902, name: '경복궁 야경', address: '서울 종로구 사직로 161', latitude: 37.5796, longitude: 126.9770, categories: ['한옥', '야경'], photogenicScore: 98, badge: true, imageUrl: null, thumbnailUrl: 'https://picsum.photos/200/200?random=902', bookmarkCount: 340, reviewCount: 120, reviewAverage: 4.9 },
-      { id: 903, name: '제주 성산일출봉', address: '제주 서귀포시 성산읍 일출로 284-12', latitude: 33.4581, longitude: 126.9426, categories: ['일출', '바다'], photogenicScore: 96, badge: true, imageUrl: null, thumbnailUrl: 'https://picsum.photos/200/200?random=903', bookmarkCount: 280, reviewCount: 98, reviewAverage: 4.7 },
-      { id: 904, name: '해운대 해수욕장', address: '부산 해운대구 우동', latitude: 35.1587, longitude: 129.1604, categories: ['바다', '일출'], photogenicScore: 90, badge: true, imageUrl: null, thumbnailUrl: 'https://picsum.photos/200/200?random=904', bookmarkCount: 150, reviewCount: 60, reviewAverage: 4.6 },
-    ];
-    return defaultMock.filter(
-      (s) =>
-        s.name.toLowerCase().includes(q) ||
-        s.address?.toLowerCase().includes(q) ||
-        s.categories?.some((c) => c.toLowerCase().includes(q))
-    );
+    return [];
   }, [query, apiResults, recSpots]);
 
   useEffect(() => {
