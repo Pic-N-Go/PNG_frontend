@@ -5,9 +5,11 @@ import { IconChevronLeft, IconSearch, IconAdjustmentsHorizontal, IconFocus2, Ico
 import { useNavigation, useRoute, useFocusEffect, CommonActions } from '@react-navigation/native';
 import { useCourseStore, Spot } from '@/store/useCourseStore';
 import { useSpots, useMapSpots, useSearchSpots } from '@/hooks/useSpot';
+import { useDebounce } from '@/hooks/useDebounce';
 import SpotPopup from '@/components/travel/SpotPopup';
 import BottomSheet from '@/components/common/BottomSheet';
 import FilterBottomSheet, { FilterState, EMPTY_FILTER } from '@/components/home/FilterBottomSheet';
+import SearchModal from '@/components/common/SearchModal';
 import { StatusBar } from 'expo-status-bar';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { FONT_MD, BUTTON_HEIGHT, BUTTON_RADIUS, HEADER_HEIGHT } from '@/constants/layout';
@@ -78,29 +80,24 @@ export default function MapScreen() {
   const [isCourseModalOpen, setCourseModalOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [debouncedKeyword, setDebouncedKeyword] = useState('');
   const [activeFilterCount, setActiveFilterCount] = useState(0);
   const [filterVisible, setFilterVisible] = useState(false);
+  const [isSearchModalVisible, setSearchModalVisible] = useState(false);
   const [detailFilter, setDetailFilter] = useState<FilterState>(EMPTY_FILTER);
   const [currentPlanDay, setCurrentPlanDay] = useState<string>(route.params?.initialDay || '1');
   // 지도가 idle될 때마다 WebView가 알려주는 현재 화면 영역
   const [mapBounds, setMapBounds] = useState<MapBounds | null>(null);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedKeyword(searchQuery);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
+  const debouncedKeyword = useDebounce(searchQuery, 500);
+  const debouncedMapBounds = useDebounce(mapBounds, 500);
 
   const apiCategory = CATEGORY_MAP[selectedCategory] || (selectedCategory !== 'all' ? selectedCategory : undefined);
   const hasKeyword = debouncedKeyword.trim().length > 0;
   // 코스 보기/스팟 목록을 파라미터로 받은 경우엔 API 조회가 필요 없다.
   const usesRouteSpots = mode === 'plan-view' || Array.isArray(route.params?.spots);
 
-  // 1. 지도 영역 핀 목록 (GET /spots/map) — 검색 중에는 검색 결과가 우선이라 끈다.
+  // 1. 지도 영역 핀 목록 (GET /spots/map) — 지도 드래그/확대 축소가 멈춘 뒤 500ms 후에 API 호출
   const { data: mapSpotsData, error: mapError } = useMapSpots(
-    { ...(mapBounds ?? DEFAULT_BOUNDS), category: apiCategory, size: 200 },
+    { ...(debouncedMapBounds ?? DEFAULT_BOUNDS), category: apiCategory, size: 200 },
     { enabled: !usesRouteSpots && !hasKeyword },
   );
 
@@ -171,13 +168,18 @@ export default function MapScreen() {
   }, [route.params?.initialDay]);
 
   const handleBackNavigation = useCallback(() => {
+    if (searchQuery || activeSpot) {
+      setSearchQuery('');
+      setActiveSpot(null);
+      return true;
+    }
     if (navigation.canGoBack()) {
       navigation.goBack();
     } else {
       navigation.navigate('HomeTab');
     }
     return true; // prevent default behavior
-  }, [navigation]);
+  }, [searchQuery, activeSpot, navigation]);
 
   useFocusEffect(
     useCallback(() => {
@@ -627,31 +629,31 @@ export default function MapScreen() {
                   elevation: 3,
                 }}
               >
-                <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', height: '100%', paddingRight: normalize(32) }}>
+                <TouchableOpacity
+                  onPress={() => setSearchModalVisible(true)}
+                  style={{ flex: 1, flexDirection: 'row', alignItems: 'center', height: '100%', paddingRight: normalize(32) }}
+                  activeOpacity={0.8}
+                >
                   <IconSearch size={normalize(18)} color="rgba(0,0,0,0.3)" strokeWidth={1.5} />
-                  <TextInput
-                    value={searchQuery}
-                    onChangeText={setSearchQuery}
-                    placeholder="장소, 테마, 키워드 검색"
-                    placeholderTextColor="rgba(0,0,0,0.3)"
-                    allowFontScaling={false}
-                    returnKeyType="search"
+                  <Text
+                    numberOfLines={1}
                     style={{
                       flex: 1,
                       marginLeft: normalize(8),
                       fontSize: FONT_MD,
-                      color: '#111',
+                      color: searchQuery ? '#111' : 'rgba(0,0,0,0.3)',
                       fontFamily: 'Pretendard-Regular',
                       letterSpacing: -0.2,
-                      padding: 0,
                     }}
-                  />
+                  >
+                    {searchQuery || '장소, 테마, 키워드 검색'}
+                  </Text>
                   {searchQuery.length > 0 && (
                     <TouchableOpacity onPress={() => setSearchQuery('')} hitSlop={8} style={{ padding: 4 }}>
                       <IconX size={normalize(16)} color="rgba(0,0,0,0.4)" strokeWidth={1.5} />
                     </TouchableOpacity>
                   )}
-                </View>
+                </TouchableOpacity>
 
                 {/* 필터 조절 아이콘 */}
                 <TouchableOpacity
@@ -993,6 +995,36 @@ export default function MapScreen() {
             </View>
           </View>
         )}
+
+        <SearchModal
+          visible={isSearchModalVisible}
+          onClose={() => setSearchModalVisible(false)}
+          defaultCategory="spot"
+          onSelectSpot={(spot) => {
+            setSearchQuery(spot.name);
+            setActiveSpot(spot);
+            const lat = Number(spot.lat);
+            const lng = Number(spot.lng);
+            const isValidCoord =
+              Number.isFinite(lat) &&
+              Number.isFinite(lng) &&
+              lat >= -90 &&
+              lat <= 90 &&
+              lng >= -180 &&
+              lng <= 180;
+            if (webViewRef.current && isValidCoord) {
+              webViewRef.current.injectJavaScript(`
+                if (window.kakaoMap) {
+                  window.kakaoMap.setCenter(new kakao.maps.LatLng(${JSON.stringify(lat)}, ${JSON.stringify(lng)}));
+                  window.kakaoMap.setLevel(3);
+                }
+              `);
+            }
+          }}
+          onSelectKeyword={(keyword) => {
+            setSearchQuery(keyword);
+          }}
+        />
 
         <FilterBottomSheet
           visible={filterVisible}
