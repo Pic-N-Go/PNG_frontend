@@ -114,7 +114,7 @@ export default function ProfileEditScreen({ navigation }: Props) {
       {/* KeyboardAvoidingView를 쓰지 않는다 — 축소량이 부정확해 자기소개 입력창이 계속 잘렸다.
           키보드 상단까지를 직접 재서 그만큼 컨테이너를 줄인다(keyboardLift 주석). */}
       <View className="flex-1" style={{ paddingBottom: keyboardLift }}>
-        <ScrollView ref={scrollRef} contentContainerStyle={{ paddingBottom: normalize(24) }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+        <ScrollView ref={scrollRef} style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: normalize(24) }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           {/* 아바타 */}
           <View className="items-center" style={{ paddingTop: normalize(16), paddingHorizontal: normalize(20), paddingBottom: normalize(16) }}>
             <Pressable onPress={onChangeAvatar} style={{ marginBottom: normalize(12) }}>

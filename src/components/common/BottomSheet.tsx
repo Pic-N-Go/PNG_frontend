@@ -3,6 +3,7 @@ import { Dimensions, KeyboardAvoidingView, Modal, Platform, Pressable, View, Ani
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BOTTOM_SHEET_RADIUS, SPACING_LG } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
+import { useKeyboardOverlap } from '@/hooks/useKeyboardHeight';
 
 interface Props {
   visible: boolean;
@@ -15,6 +16,7 @@ const DEFAULT_DIM_OPACITY = 0.4;
 
 export default function BottomSheet({ visible, onClose, children, dimOpacity = DEFAULT_DIM_OPACITY }: Props) {
   const insets = useSafeAreaInsets();
+  const keyboardOverlap = useKeyboardOverlap();
 
   const panY = useRef(new Animated.Value(0)).current;
 
@@ -86,9 +88,14 @@ export default function BottomSheet({ visible, onClose, children, dimOpacity = D
                   backgroundColor: '#fff',
                   borderTopLeftRadius: BOTTOM_SHEET_RADIUS,
                   borderTopRightRadius: BOTTOM_SHEET_RADIUS,
-                  // 퍼센트라야 키보드로 줄어든 부모를 기준으로 잡힌다. 고정값이면 키보드가 열렸을 때
-                  // 시트가 부모보다 커져 flex-end 특성상 위쪽(헤더·닫기 버튼)이 잘린다.
-                  maxHeight: '80%',
+                  // 이 View의 조상(Animated.View, Pressable)이 전부 auto-size라 퍼센트 maxHeight는
+                  // 기준을 잡을 수 없다 — 키보드로 줄어든 실제 가용 높이를 직접 계산해 숫자로 준다.
+                  // 고정값(창 높이*0.8)이면 키보드가 열렸을 때 시트가 가용 영역보다 커져
+                  // flex-end 특성상 위쪽(헤더·닫기 버튼)이 잘린다.
+                  maxHeight: Math.min(
+                    Dimensions.get('window').height * 0.8,
+                    Dimensions.get('window').height - keyboardOverlap,
+                  ),
                   flexShrink: 1,
                   paddingBottom: Math.max(insets.bottom, SPACING_LG),
                 }}

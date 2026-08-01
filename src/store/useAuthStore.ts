@@ -55,9 +55,20 @@ export const useAuthStore = create<AuthState>()(
         // 이 검사의 401은 "쓰던 세션이 끊긴 것"이 아니라 "저장된 토큰이 이미 죽어 있던 것"이다.
         // 안내 Alert이 스플래시 위에 뜨면 로그인한 적 없는 사람에게 만료를 알리는 꼴이라 조용히 버린다.
         silentUnauthorized = true;
-        authApi.me(state.accessToken)
-          .then((user) => state.setAuth(state.accessToken as string, user))
-          .catch(() => state.clearAuth())
+        // 검증 도중 사용자가 이미 새로 로그인했을 수 있다 — 그 사이 스토어의 토큰이 바뀌었으면
+        // 이 비동기 검증 결과(성공이든 실패든)로 새 세션을 덮어쓰지 않는다.
+        const rehydratedToken = state.accessToken;
+        authApi.me(rehydratedToken)
+          .then((user) => {
+            if (useAuthStore.getState().accessToken === rehydratedToken) {
+              state.setAuth(rehydratedToken as string, user);
+            }
+          })
+          .catch(() => {
+            if (useAuthStore.getState().accessToken === rehydratedToken) {
+              state.clearAuth();
+            }
+          })
           .finally(() => { silentUnauthorized = false; });
       },
     },
