@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Dimensions, Keyboard } from 'react-native';
+import { Dimensions, Keyboard, LayoutAnimation, Platform } from 'react-native';
 
 /**
  * 화면 하단부터 키보드 상단까지의 거리(dp). 키보드가 닫혀 있으면 0.
@@ -17,15 +17,38 @@ import { Dimensions, Keyboard } from 'react-native';
  *
  * 이 값을 쓸 때는 insets.bottom을 **더하지 않는다** — 내비바 자리는 키보드가 이미 덮고 있고,
  * 이 계산에 그 구간이 포함돼 있다.
+ *
+ * iOS/Android 분기는 훅 내부에 가둔다 (호출부는 플랫폼을 몰라도 됨):
+ * - Android: `keyboardDidShow/Hide` — 애니메이션 종료 후 값이 확정되므로 이 값 기준 계산이 정확함.
+ * - iOS: `keyboardWillShow/Hide` — 네이티브 키보드 애니메이션과 같은 프레임에서 시작해야 하므로
+ *   Did 이벤트를 쓰면 한 박자 늦게 스냅되어 보인다. `LayoutAnimation`으로 키보드와 같은
+ *   duration/easing으로 보간해 예전 `KeyboardAvoidingView`와 동일한 부드러움을 재현한다.
  */
 export function useKeyboardOverlap() {
   const [overlap, setOverlap] = useState(0);
 
   useEffect(() => {
-    const show = Keyboard.addListener('keyboardDidShow', (e) => {
+    const showEvent = Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent = Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+    const show = Keyboard.addListener(showEvent, (e) => {
+      if (Platform.OS === 'ios') {
+        LayoutAnimation.configureNext({
+          duration: e.duration,
+          update: { type: LayoutAnimation.Types.keyboard },
+        });
+      }
       setOverlap(Math.max(0, Dimensions.get('screen').height - e.endCoordinates.screenY));
     });
-    const hide = Keyboard.addListener('keyboardDidHide', () => setOverlap(0));
+    const hide = Keyboard.addListener(hideEvent, (e) => {
+      if (Platform.OS === 'ios') {
+        LayoutAnimation.configureNext({
+          duration: e.duration,
+          update: { type: LayoutAnimation.Types.keyboard },
+        });
+      }
+      setOverlap(0);
+    });
     return () => {
       show.remove();
       hide.remove();

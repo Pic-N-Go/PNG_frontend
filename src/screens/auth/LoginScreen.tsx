@@ -21,7 +21,7 @@ import { authApi, toErrorMessage } from "@/api/auth";
 import AuthInput from "@/components/auth/AuthInput";
 import Toast from "@/components/auth/Toast";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { normalize, normalizeFontSize } from "@/utils/normalize";
+import { normalizeFontSize } from "@/utils/normalize";
 import {
   BUTTON_HEIGHT,
   BUTTON_RADIUS,
@@ -588,7 +588,7 @@ export default function LoginScreen({ navigation }: Props) {
                 borderTopRightRadius: 20,
                 // 40 고정이면 안드로이드 내비바(48dp)를 못 덮어 인증코드 발송 버튼이 그 아래로 깔린다.
                 // 공용 BottomSheet.tsx와 같은 식으로 맞춘다.
-                paddingBottom: Math.max(insets.bottom, normalize(24)),
+                paddingBottom: Math.max(insets.bottom, SPACING_LG),
               }}
             >
               {/* Handle */}
