@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, ScrollView, Pressable, Switch, Alert } from 'react-native';
+import { View, Text, ScrollView, Pressable, Switch, Alert, Linking, AppState, Platform, PermissionsAndroid } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -11,7 +11,7 @@ import {
   IconMessage2Question, IconInfoCircle, IconLogout, IconTrash,
   IconX, IconCheck, IconRefresh,
 } from '@tabler/icons-react-native';
-import { getMessaging, AuthorizationStatus } from '@react-native-firebase/messaging';
+import { getMessaging, hasPermission, AuthorizationStatus } from '@react-native-firebase/messaging';
 import BottomSheet from '@/components/common/BottomSheet';
 import { MyPageStackParamList } from '@/navigation/stacks/MyPageStack';
 import { useNotificationSettings, DndRepeatPreset } from '@/hooks/useNotificationSettings';
@@ -35,29 +35,64 @@ export default function SettingScreen({ navigation }: Props) {
   const [dndRepeatSheetVisible, setDndRepeatSheetVisible] = React.useState(false);
   const [versionSheetVisible, setVersionSheetVisible] = React.useState(false);
 
-  const isPushEnabled = React.useCallback(async () => {
-    const authStatus = await getMessaging().hasPermission();
-    return (
+  const [hasSystemPermission, setHasSystemPermission] = React.useState<boolean>(true);
+
+  const checkPushPermission = React.useCallback(async () => {
+    if (Platform.OS === 'android') {
+      if (Platform.Version >= 33) {
+        const hasPermission = await PermissionsAndroid.check(
+          PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
+        );
+        setHasSystemPermission(hasPermission);
+        return hasPermission;
+      }
+      setHasSystemPermission(true);
+      return true;
+    }
+
+    const authStatus = await hasPermission(getMessaging());
+    const granted =
       authStatus === AuthorizationStatus.AUTHORIZED ||
-      authStatus === AuthorizationStatus.PROVISIONAL
-    );
+      authStatus === AuthorizationStatus.PROVISIONAL;
+    setHasSystemPermission(granted);
+    return granted;
   }, []);
 
-  // 마운트 시 시스템 푸시 권한이 없으면 알림 토글을 모두 끔
   React.useEffect(() => {
-    (async () => {
-      if (!(await isPushEnabled())) {
-        setWishlist(false);
-        setGolden(false);
-        setCommunity(false);
-      }
-    })();
-  }, [isPushEnabled, setWishlist, setGolden, setCommunity]);
+    void checkPushPermission();
 
-  // 알림 토글: 켤 때만 시스템 권한 확인, 없으면 안내 후 중단
-  const toggleNotif = async (value: boolean, apply: (v: boolean) => void) => {
-    if (value && !(await isPushEnabled())) {
-      Alert.alert('알림', '시스템 설정에서 앱의 알림 권한을 허용해주세요.');
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      if (nextState === 'active') {
+        void checkPushPermission();
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [checkPushPermission]);
+
+
+  const openSystemNotifSettingsAlert = () => {
+    Alert.alert(
+      '알림 권한 필요',
+      '알림을 받으려면 기기 설정에서 알림 권한을 허용해야 합니다.',
+      [
+        { text: '취소', style: 'cancel' },
+        {
+          text: '설정으로 이동',
+          onPress: () => {
+            void Linking.openSettings();
+          },
+        },
+      ]
+    );
+  };
+
+  // 알림 토글: 시스템 권한이 없으면 안내 후 중단
+  const toggleNotif = (value: boolean, apply: (v: boolean) => void) => {
+    if (!hasSystemPermission) {
+      openSystemNotifSettingsAlert();
       return;
     }
     apply(value);
@@ -106,9 +141,42 @@ export default function SettingScreen({ navigation }: Props) {
         <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: SPACING_LG }}>
           <SectionLabel text="알림" />
           <Card>
-            <SettingRow icon={IconBell} iconBg="#fde3ec" iconColor={BRAND} label="위시리스트 알림" desc="조건 충족 시 알림" toggle toggleValue={settings.wishlist} onToggle={(v) => toggleNotif(v, setWishlist)} />
-            <SettingRow icon={IconSun} iconBg="#fdecd0" iconColor="#d99334" label="골든아워 알림" desc="일출·일몰 30분 전" toggle toggleValue={settings.golden} onToggle={(v) => toggleNotif(v, setGolden)} />
-            <SettingRow icon={IconMessageCircle} iconBg="#e0e7ff" iconColor="#5b6dff" label="커뮤니티 알림" desc="좋아요, 댓글, 팔로우" toggle toggleValue={settings.community} onToggle={(v) => toggleNotif(v, setCommunity)} />
+            <SettingRow
+              icon={IconBell}
+              iconBg="#fde3ec"
+              iconColor={BRAND}
+              label="위시리스트 알림"
+              desc="조건 충족 시 알림"
+              toggle
+              toggleValue={settings.wishlist}
+              onToggle={(v) => toggleNotif(v, setWishlist)}
+              disabled={!hasSystemPermission}
+              disabledPress={openSystemNotifSettingsAlert}
+            />
+            <SettingRow
+              icon={IconSun}
+              iconBg="#fdecd0"
+              iconColor="#d99334"
+              label="골든아워 알림"
+              desc="일출·일몰 30분 전"
+              toggle
+              toggleValue={settings.golden}
+              onToggle={(v) => toggleNotif(v, setGolden)}
+              disabled={!hasSystemPermission}
+              disabledPress={openSystemNotifSettingsAlert}
+            />
+            <SettingRow
+              icon={IconMessageCircle}
+              iconBg="#e0e7ff"
+              iconColor="#5b6dff"
+              label="커뮤니티 알림"
+              desc="좋아요, 댓글, 팔로우"
+              toggle
+              toggleValue={settings.community}
+              onToggle={(v) => toggleNotif(v, setCommunity)}
+              disabled={!hasSystemPermission}
+              disabledPress={openSystemNotifSettingsAlert}
+            />
           </Card>
         </View>
 
@@ -270,17 +338,34 @@ interface SettingRowProps {
   onToggle?: (value: boolean) => void;
   onPress?: () => void;
   indent?: boolean;
+  disabled?: boolean;
+  disabledPress?: () => void;
 }
 
 function SettingRow({
   icon: Icon, iconBg, iconColor, label, labelColor, desc, right,
   chevron, chevronColor, toggle, toggleValue, onToggle, onPress, indent,
+  disabled, disabledPress,
 }: SettingRowProps) {
+  const handlePress = () => {
+    if (disabled) {
+      disabledPress?.();
+      return;
+    }
+    onPress?.();
+  };
+
   return (
     <Pressable
-      onPress={onPress}
+      onPress={handlePress}
       className="flex-row items-center"
-      style={{ gap: normalize(12), paddingHorizontal: normalize(16), paddingVertical: normalize(14), minHeight: normalize(64) }}
+      style={{
+        gap: normalize(12),
+        paddingHorizontal: normalize(16),
+        paddingVertical: normalize(14),
+        minHeight: normalize(64),
+        opacity: disabled ? 0.45 : 1,
+      }}
     >
       {Icon && (
         <View
@@ -307,7 +392,14 @@ function SettingRow({
 
       {right}
       {toggle && (
-        <Switch value={toggleValue} onValueChange={onToggle} trackColor={{ true: '#34C759' }} />
+        <View pointerEvents={disabled ? 'none' : 'auto'}>
+          <Switch
+            value={disabled ? false : toggleValue}
+            onValueChange={onToggle}
+            disabled={disabled}
+            trackColor={{ true: '#34C759' }}
+          />
+        </View>
       )}
       {chevron && (
         <IconChevronRight size={normalize(14)} color={chevronColor ?? 'rgba(0,0,0,0.2)'} strokeWidth={1.75} />
