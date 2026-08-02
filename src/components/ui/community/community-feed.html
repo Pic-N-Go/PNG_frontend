@@ -306,35 +306,6 @@
       .modal__btn--cancel { background: var(--color-surface); color: rgba(0, 0, 0, 0.55); }
       .modal__btn--confirm { background: var(--color-accent); color: #fff; }
 
-      /* ── Snackbar (액션 버튼 포함 · 풀폭) ── */
-      .snackbar {
-        position: absolute;
-        left: 28px;
-        right: 28px;
-        bottom: 100px;
-        transform: translateY(16px);
-        z-index: 80;
-        height: 48px;
-        border-radius: 24px;
-        background: rgba(0, 0, 0, 0.75);
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 0 18px;
-        color: #fff;
-        font-size: var(--font-base);
-        font-weight: 500;
-        letter-spacing: -0.2px;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.3s, transform 0.3s;
-      }
-      .snackbar.is-open {
-        opacity: 1;
-        transform: translateY(0);
-        pointer-events: auto;
-      }
-
       /* ── Score Badge (포토제닉) ── */
       .score-badge {
         display: flex;
@@ -356,21 +327,6 @@
         color: var(--color-accent);
         font-weight: 600;
         letter-spacing: -0.2px;
-      }
-
-      /* ── Rank Badge (콘테스트 순위) ── */
-      .rank-badge {
-        width: 26px;
-        height: 26px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #f0c89a, #d4856a);
-        color: #fff;
-        font-size: var(--font-sm);
-        font-weight: 600;
-        letter-spacing: -0.2px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
       }
 
       /* ── Avatar ── */
@@ -783,192 +739,7 @@
       .subview { display: none; }
       .subview.is-active { display: block; }
 
-      /* ── 남은 표 ── */
-      .vote-remain { display: flex; gap: 4px; }
-      .vote-remain__dot {
-        width: 6px;
-        height: 6px;
-        border-radius: 3px;
-        background: var(--color-accent);
-      }
-      .vote-remain__dot.is-used { background: rgba(0, 0, 0, 0.12); }
 
-      /* ── Podium (가로 스크롤 순위 카드) ── */
-      .podium-card {
-        flex: none;
-        height: 198px;
-        border-radius: 14px;
-        position: relative;
-        padding: 10px;
-        cursor: pointer;
-      }
-      .podium-card__info {
-        position: absolute;
-        bottom: 10px;
-        left: 10px;
-        right: 10px;
-      }
-      .podium-card__name {
-        font-size: var(--font-sm);
-        font-weight: 600;
-        color: #fff;
-        letter-spacing: -0.15px;
-      }
-      .podium-card__meta {
-        font-size: var(--font-xs);
-        color: rgba(255, 255, 255, 0.75);
-        letter-spacing: -0.1px;
-        margin-top: 3px;
-      }
-      .podium-card__votes {
-        font-size: var(--font-sm);
-        font-weight: 600;
-        color: #fff;
-        margin-top: 4px;
-        letter-spacing: -0.15px;
-      }
-
-      /* ── 출품작 그리드 카드 ── */
-      .entry-card {
-        aspect-ratio: 1;
-        border-radius: 14px;
-        position: relative;
-        padding: 8px;
-        cursor: pointer;
-      }
-      .entry-card__rank,
-      .entry-card__votes {
-        position: absolute;
-        top: 8px;
-        height: 20px;
-        padding: 0 8px;
-        border-radius: 10px;
-        background: rgba(0, 0, 0, 0.35);
-        color: #fff;
-        font-size: var(--font-2xs);
-        font-weight: 600;
-        letter-spacing: -0.1px;
-        display: flex;
-        align-items: center;
-      }
-      .entry-card__rank { left: 8px; }
-      .entry-card__votes {
-        right: 8px;
-        gap: 3px;
-      }
-      .entry-card__vote-btn {
-        position: absolute;
-        bottom: 8px;
-        right: 8px;
-        width: 32px;
-        height: 32px;
-        border: none;
-        border-radius: 50%;
-        background: var(--color-accent);
-        color: #fff;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-      }
-
-      /* ── Contest Lightbox ── */
-      .lightbox {
-        position: absolute;
-        inset: 0;
-        background: #000;
-        z-index: 65;
-        display: none;
-        flex-direction: column;
-        justify-content: center;
-        padding: 0 20px;
-      }
-      .lightbox.is-open { display: flex; }
-      .lightbox__close {
-        position: absolute;
-        top: 60px;
-        right: 20px;
-        width: 36px;
-        height: 36px;
-        border: none;
-        border-radius: 18px;
-        background: rgba(255, 255, 255, 0.15);
-        color: #fff;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        cursor: pointer;
-        z-index: 2;
-      }
-      .lightbox__pill,
-      .lightbox__voted-pill {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        height: 22px;
-        padding: 0 9px;
-        border-radius: 11px;
-        color: #fff;
-        font-size: var(--font-xs);
-        font-weight: 600;
-      }
-      .lightbox__pill {
-        background: rgba(0, 0, 0, 0.45);
-        letter-spacing: 0.3px;
-      }
-      .lightbox__voted-pill {
-        background: var(--color-accent);
-        letter-spacing: -0.1px;
-        display: none;
-      }
-      .lightbox.is-voted .lightbox__pill { display: none; }
-      .lightbox.is-voted .lightbox__voted-pill { display: inline-flex; }
-      .lightbox__vote {
-        flex: 1;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: 44px;
-        border: none;
-        border-radius: 22px;
-        background: var(--color-accent);
-        color: #fff;
-        font-family: var(--font-family);
-        font-size: var(--font-sm);
-        font-weight: 600;
-        letter-spacing: -0.2px;
-        cursor: pointer;
-      }
-      .lightbox.is-voted .lightbox__vote {
-        background: rgba(255, 255, 255, 0.1);
-        color: var(--color-accent);
-        box-shadow: inset 0 0 0 1.5px var(--color-accent);
-      }
-      .lightbox__vote-on,
-      .lightbox__vote-off {
-        display: flex;
-        align-items: center;
-        gap: 5px;
-      }
-      .lightbox__vote-off { display: none; }
-      .lightbox.is-voted .lightbox__vote-on { display: none; }
-      .lightbox.is-voted .lightbox__vote-off { display: flex; }
-
-      /* ── 스낵바 되돌리기 버튼 ── */
-      .snackbar__undo {
-        height: 32px;
-        padding: 0 14px;
-        border: none;
-        border-radius: 16px;
-        background: rgba(255, 255, 255, 0.15);
-        color: #fff;
-        font-family: var(--font-family);
-        font-size: var(--font-sm);
-        font-weight: 600;
-        letter-spacing: -0.2px;
-        cursor: pointer;
-        flex-shrink: 0;
-      }
 
       /* ── 지난 콘테스트 카드 (2열 그리드) ── */
       .past-card {
@@ -1319,123 +1090,112 @@
             <button class="subtab__btn" onclick="switchSubtab('past', this)">지난</button>
           </div>
 
-          <!-- 진행중 -->
+          <!-- 진행중 (핸드오프 "시안 1b" 반영, ~/Desktop/handoff/golden-hour-contest.html) -->
           <div class="subview is-active" data-subview="active">
-            <!-- 히어로 배너 (골든아워 그라디언트) -->
-            <div style="padding: 16px 20px">
-              <div style="position: relative; height: 186px; border-radius: 20px; overflow: hidden; background: linear-gradient(135deg, #1a1530 0%, #2d1b4e 20%, #8b4a6b 45%, #d4856a 65%, #e8a87c 82%, #f0c89a 100%)">
-                <div style="position: absolute; inset: 0; padding: 20px; display: flex; flex-direction: column; justify-content: space-between">
-                  <div>
-                    <div style="display: inline-flex; align-items: center; height: 22px; padding: 0 10px; border-radius: 11px; background: rgba(255, 255, 255, 0.2); color: #fff; font-size: var(--font-2xs); font-weight: 600; letter-spacing: 1px">WEEKLY</div>
-                    <div style="font-size: var(--font-2xl); font-weight: 600; letter-spacing: -1px; color: #fff; margin-top: 8px; line-height: 1.05">골든아워</div>
-                    <div style="font-size: var(--font-sm); color: rgba(255, 255, 255, 0.85); letter-spacing: -0.2px; margin-top: 4px">해 뜨거나 지는 시간의 빛을 담아보세요</div>
+            <!-- 히어로 -->
+            <div style="margin-top: 14px; position: relative; height: 372px; overflow: hidden; background: #1a1530; border-radius: 0 0 30px 30px">
+              <div style="position: absolute; inset: 0; background: linear-gradient(180deg, #1a1530 0%, #2d1b4e 32%, #8b4a6b 58%, #d4856a 78%, #f0c89a 100%)"></div>
+              <div style="position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(10, 7, 20, 0.42) 0%, rgba(10, 7, 20, 0.06) 26%, rgba(10, 7, 20, 0.06) 40%, rgba(10, 7, 20, 0.58) 66%, rgba(10, 7, 20, 0.88) 88%, rgba(10, 7, 20, 0.94) 100%)"></div>
+              <div style="position: absolute; inset: 0; padding: 24px 28px 26px; display: flex; flex-direction: column; justify-content: space-between">
+                <span style="align-self: flex-start; font-size: var(--font-2xs); font-weight: 600; letter-spacing: 2px; color: #fff; background: rgba(10, 7, 20, 0.42); border-radius: 999px; padding: 6px 12px">WEEKLY CONTEST</span>
+                <div style="display: flex; flex-direction: column; gap: 18px; text-shadow: 0 1px 8px rgba(10, 7, 20, 0.55)">
+                  <div style="display: flex; flex-direction: column; gap: 8px">
+                    <div style="font-size: var(--font-2xl); font-weight: 600; letter-spacing: -1.1px; color: #fff; line-height: 1.1">골든아워</div>
+                    <div style="font-size: var(--font-md); color: rgba(255, 255, 255, 0.88); letter-spacing: -0.3px">해 뜨거나 지는 시간의 빛을 담아보세요</div>
                   </div>
-                  <div style="display: flex; align-items: center; gap: 8px">
-                    <div style="display: flex; gap: 6px">
-                      <span style="height: 22px; padding: 0 10px; border-radius: 11px; background: rgba(0, 0, 0, 0.35); color: #fff; font-size: var(--font-xs); font-weight: 600; letter-spacing: 0.3px; display: inline-flex; align-items: center">D-3</span>
-                      <span style="height: 22px; padding: 0 10px; border-radius: 11px; background: rgba(255, 255, 255, 0.2); color: #fff; font-size: var(--font-xs); display: inline-flex; align-items: center">128명 참여</span>
+                  <div style="display: flex; flex-direction: column; gap: 9px">
+                    <div style="display: flex; align-items: center; justify-content: space-between">
+                      <span style="font-size: var(--font-xs); color: rgba(255, 255, 255, 0.82)">128명 참여 · 목표 200명</span>
+                      <span style="font-size: var(--font-xs); font-weight: 600; color: #fff">3일 남음</span>
                     </div>
-                    <button style="margin-left: auto; height: 34px; padding: 0 18px; border: none; border-radius: 17px; background: #fff; color: #000; font-family: var(--font-family); font-size: var(--font-sm); font-weight: 600; letter-spacing: -0.2px; cursor: pointer" onclick="openSheet('submit-sheet')">출품하기</button>
+                    <div style="height: 3px; border-radius: 2px; background: rgba(255, 255, 255, 0.28); overflow: hidden">
+                      <div style="width: 64%; height: 100%; border-radius: 2px; background: #fff"></div>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
-            <!-- 현재 순위 + 오늘 남은 표 -->
-            <div style="padding: 0 20px 6px; display: flex; align-items: center; gap: 8px">
-              <span style="font-size: var(--font-md); font-weight: 600; letter-spacing: -0.2px">현재 순위</span>
-              <div style="margin-left: auto; display: flex; align-items: center; gap: 6px; font-size: var(--font-xs); color: rgba(0, 0, 0, 0.5); letter-spacing: -0.1px">
-                <span>오늘 남은 표</span>
-                <div class="vote-remain">
-                  <div class="vote-remain__dot"></div>
-                  <div class="vote-remain__dot"></div>
-                  <div class="vote-remain__dot"></div>
+            <!-- 현재 순위 -->
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 28px 28px 14px">
+              <span style="font-size: var(--font-lg); font-weight: 600; letter-spacing: -0.4px; color: #000">현재 순위</span>
+              <div style="display: flex; align-items: center; gap: 8px">
+                <span style="font-size: var(--font-xs); color: var(--color-text-secondary)">오늘 남은 표</span>
+                <div style="display: flex; align-items: center; gap: 4px">
+                  <span style="width: 6px; height: 6px; border-radius: 3px; background: var(--color-accent)"></span>
+                  <span style="width: 6px; height: 6px; border-radius: 3px; background: var(--color-accent)"></span>
+                  <span style="width: 6px; height: 6px; border-radius: 3px; background: var(--color-accent)"></span>
                 </div>
-                <span><strong class="vote-remain__count" style="color: var(--color-accent); font-weight: 600">3</strong>/3</span>
+                <span style="font-size: var(--font-xs); font-weight: 600; color: #000">3/3</span>
               </div>
             </div>
 
-            <!-- 포디움 (가로 스크롤) -->
-            <div style="padding: 10px 20px 8px; display: flex; gap: 8px; overflow-x: auto">
-              <div class="podium-card" style="width: 158px; background: linear-gradient(to bottom, #1a1530, #b44a3a, #f0c89a)" onclick="openLightbox(1)">
-                <!-- 원본 2g의 `내 투표` 뱃지는 제거: 초기 상태가 3/3 미투표라 모순된다 -->
-                <div class="rank-badge" style="position: absolute; top: 10px; left: 10px">1</div>
-                <div class="podium-card__info">
-                  <div class="podium-card__name">@sunset_jk</div>
-                  <div class="podium-card__meta">광안리 · 05:30</div>
-                  <div class="podium-card__votes">67표</div>
+            <!-- 1위 -->
+            <div style="margin: 0 28px; position: relative; height: 238px; border-radius: 20px; overflow: hidden; background: #2b2338">
+              <div style="position: absolute; inset: 0; background: linear-gradient(180deg, #2b2338 0%, #7a3b4e 45%, #e0956d 100%)"></div>
+              <div style="position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(12, 9, 24, 0.3) 0%, rgba(12, 9, 24, 0) 26%, rgba(12, 9, 24, 0.86) 100%)"></div>
+              <div style="position: absolute; inset: 0; pointer-events: none; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; text-shadow: 0 1px 8px rgba(10, 7, 20, 0.5)">
+                <span style="align-self: flex-start; background: #fff; border-radius: 9px; padding: 5px 10px; font-size: var(--font-xs); font-weight: 600; color: #111; text-shadow: none">1위 · 67표</span>
+                <div style="display: flex; align-items: flex-end; justify-content: space-between">
+                  <div style="display: flex; flex-direction: column; gap: 3px">
+                    <span style="font-size: var(--font-md); font-weight: 600; color: #fff">@sunset_jk</span>
+                    <span style="font-size: var(--font-xs); color: rgba(255, 255, 255, 0.66)">광안리 · 05:30</span>
+                  </div>
+                  <span style="display: flex; align-items: center; height: 36px; padding: 0 18px; border-radius: 18px; background: var(--color-accent); font-size: var(--font-sm); font-weight: 600; color: #fff; text-shadow: none">투표</span>
                 </div>
               </div>
-              <div class="podium-card" style="width: 140px; background: linear-gradient(to bottom, #0f2027, #203a43, #e8a87c)" onclick="openLightbox(2)">
-                <div class="rank-badge" style="position: absolute; top: 10px; left: 10px; background: linear-gradient(135deg, #c0c0c0, #8a8a8a)">2</div>
-                <div class="podium-card__info">
-                  <div class="podium-card__name">@minsoo</div>
-                  <div class="podium-card__meta">겨울 새벽 바다</div>
-                  <div class="podium-card__votes">42표</div>
+            </div>
+
+            <!-- 2·3위 -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 12px 28px 0">
+              <div style="position: relative; height: 150px; border-radius: 16px; overflow: hidden; background: #1d2a2e">
+                <div style="position: absolute; inset: 0; background: linear-gradient(180deg, #12242a 0%, #2f5a5e 70%, #7fa39a 100%)"></div>
+                <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(12, 9, 24, 0.28) 0%, rgba(12, 9, 24, 0) 34%, rgba(12, 9, 24, 0.82) 100%)"></div>
+                <div style="position: absolute; inset: 0; padding: 11px; display: flex; flex-direction: column; justify-content: space-between; text-shadow: 0 1px 8px rgba(10, 7, 20, 0.5)">
+                  <span style="align-self: flex-start; background: rgba(255, 255, 255, 0.95); border-radius: 8px; padding: 3px 8px; font-size: var(--font-2xs); font-weight: 600; color: #111; text-shadow: none">2위</span>
+                  <div style="display: flex; flex-direction: column; gap: 2px">
+                    <span style="font-size: var(--font-sm); font-weight: 600; color: #fff">@minsoo</span>
+                    <span style="font-size: var(--font-xs); color: rgba(255, 255, 255, 0.66)">42표</span>
+                  </div>
                 </div>
               </div>
-              <div class="podium-card" style="width: 140px; background: linear-gradient(to bottom, #1a1530, #8b4a6b)" onclick="openLightbox(3)">
-                <div class="rank-badge" style="position: absolute; top: 10px; left: 10px; background: linear-gradient(135deg, #cd8c52, #8a6030)">3</div>
-                <div class="podium-card__info">
-                  <div class="podium-card__name">@yujin</div>
-                  <div class="podium-card__meta">경복궁 야경</div>
-                  <div class="podium-card__votes">31표</div>
+              <div style="position: relative; height: 150px; border-radius: 16px; overflow: hidden; background: #3a2438">
+                <div style="position: absolute; inset: 0; background: linear-gradient(180deg, #2a1830 0%, #6b3a5e 60%, #c98b9c 100%)"></div>
+                <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(12, 9, 24, 0.28) 0%, rgba(12, 9, 24, 0) 34%, rgba(12, 9, 24, 0.82) 100%)"></div>
+                <div style="position: absolute; inset: 0; padding: 11px; display: flex; flex-direction: column; justify-content: space-between; text-shadow: 0 1px 8px rgba(10, 7, 20, 0.5)">
+                  <span style="align-self: flex-start; background: rgba(255, 255, 255, 0.95); border-radius: 8px; padding: 3px 8px; font-size: var(--font-2xs); font-weight: 600; color: #111; text-shadow: none">3위</span>
+                  <div style="display: flex; flex-direction: column; gap: 2px">
+                    <span style="font-size: var(--font-sm); font-weight: 600; color: #fff">@yujin</span>
+                    <span style="font-size: var(--font-xs); color: rgba(255, 255, 255, 0.66)">31표</span>
+                  </div>
                 </div>
               </div>
-              <div class="podium-card" style="width: 100px; background: linear-gradient(to bottom, #232526, #8e7b5a); opacity: 0.65"></div>
             </div>
 
             <!-- 전체 출품작 -->
-            <div style="padding: 20px 20px 12px; display: flex; align-items: baseline; justify-content: space-between">
-              <span style="font-size: var(--font-md); font-weight: 600; letter-spacing: -0.2px">전체 출품작</span>
-              <span style="font-size: var(--font-xs); color: var(--color-text-secondary); letter-spacing: -0.1px">128개 작품</span>
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 28px 28px 14px">
+              <span style="font-size: var(--font-lg); font-weight: 600; letter-spacing: -0.4px; color: #000">전체 출품작</span>
+              <span style="font-size: var(--font-xs); color: var(--color-text-secondary)">128개 작품</span>
+            </div>
+            <div id="contest-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 0 28px"></div>
+
+            <div style="padding: 14px 28px 20px">
+              <button style="width: 100%; height: 52px; border: none; border-radius: 26px; background: var(--color-surface); color: #31302e; font-family: var(--font-family); font-size: var(--font-sm); font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 5px; cursor: pointer">
+                출품작 128개 모두 보기
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#31302e" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 5l7 7-7 7"></path></svg>
+              </button>
             </div>
 
-            <div style="padding: 0 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px">
-              <div class="entry-card" style="background: linear-gradient(to bottom, #232526, #8e7b5a)" onclick="openLightbox(4)">
-                <div class="entry-card__rank">4</div>
-                <div class="entry-card__votes">
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"></path><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"></path></svg>
-                  28
-                </div>
-                <div class="entry-card__vote-btn" aria-hidden="true">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"></path><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"></path></svg>
-                </div>
+            <!-- 하단 고정 CTA (탭바 위) -->
+            <div style="margin: 0 -28px 0; padding: 0 28px; height: 72px; background: #fff; border-top: 1px solid rgba(0, 0, 0, 0.07); display: flex; align-items: center; justify-content: space-between">
+              <div style="display: flex; flex-direction: column; gap: 2px">
+                <span style="font-size: var(--font-xs); color: var(--color-text-secondary)">골든아워 · 3일 남음</span>
+                <span style="font-size: var(--font-sm); font-weight: 600; color: #000">아직 출품하지 않았어요</span>
               </div>
-              <div class="entry-card" style="background: linear-gradient(to bottom, #0a1a0f, #4a8060)" onclick="openLightbox(5)">
-                <div class="entry-card__rank">5</div>
-                <div class="entry-card__votes">
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"></path><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"></path></svg>
-                  24
-                </div>
-                <div class="entry-card__vote-btn" aria-hidden="true">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"></path><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"></path></svg>
-                </div>
-              </div>
-              <div class="entry-card" style="background: linear-gradient(to bottom, #020010, #1a1545)" onclick="openLightbox(6)">
-                <div class="entry-card__rank">6</div>
-                <div class="entry-card__votes">
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"></path><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"></path></svg>
-                  19
-                </div>
-                <div class="entry-card__vote-btn" aria-hidden="true">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"></path><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"></path></svg>
-                </div>
-              </div>
-              <div class="entry-card" style="background: linear-gradient(to bottom, #1a1530, #b44a3a, #f0c89a)" onclick="openLightbox(7)">
-                <div class="entry-card__rank">7</div>
-                <div class="entry-card__votes">
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"></path><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"></path></svg>
-                  15
-                </div>
-                <div class="entry-card__vote-btn" aria-hidden="true">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"></path><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"></path></svg>
-                </div>
-              </div>
-            </div>
-
-            <div style="padding: 12px 20px 20px">
-              <button style="width: 100%; height: 44px; border: none; border-radius: 22px; background: var(--color-surface); color: #000; font-family: var(--font-family); font-size: var(--font-sm); font-weight: 600; letter-spacing: -0.2px; cursor: pointer">전체 128개 더 보기</button>
+              <button style="height: 52px; padding: 0 26px; border: none; border-radius: 26px; background: var(--color-accent); color: #fff; font-family: var(--font-family); display: flex; align-items: center; gap: 7px; cursor: pointer" onclick="openSheet('submit-sheet')">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L8 6.5H4.5A1.5 1.5 0 0 0 3 8v10a1.5 1.5 0 0 0 1.5 1.5h15a1.5 1.5 0 0 0 1.5-1.5V8a1.5 1.5 0 0 0-1.5-1.5H16z"></path><circle cx="12" cy="12.5" r="3.4"></circle></svg>
+                <span style="font-size: var(--font-md); font-weight: 600; letter-spacing: -0.3px">출품하기</span>
+              </button>
             </div>
           </div>
 
@@ -1713,101 +1473,6 @@
         </div>
       </div>
 
-      <!-- 콘테스트 라이트박스 (투표 전 / 투표됨 2상태) -->
-      <div class="lightbox" id="contest-lightbox">
-        <button class="lightbox__close" aria-label="닫기" onclick="closeLightbox()">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6l-12 12"></path><path d="M6 6l12 12"></path></svg>
-        </button>
-
-        <div style="background: #111; border-radius: 20px; overflow: hidden">
-          <div class="lightbox__photo" style="position: relative; width: 100%; aspect-ratio: 3 / 2; background: linear-gradient(to bottom, #1a1530, #b44a3a, #f0c89a)">
-            <div style="position: absolute; top: 14px; left: 14px; display: flex; align-items: center; gap: 6px">
-              <div class="rank-badge">1</div>
-              <div class="lightbox__pill">현재 <span class="lightbox__rank-num">1</span>위</div>
-              <div class="lightbox__voted-pill">
-                <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M7 10v12" stroke-linecap="round"></path><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"></path></svg>
-                내 투표
-              </div>
-            </div>
-          </div>
-
-          <div style="padding: 16px 18px 14px">
-            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px">
-              <div class="avatar lightbox__avatar" style="background: linear-gradient(135deg, #2c5364, #4a7c8a)">JK</div>
-              <div style="flex: 1; min-width: 0">
-                <div class="lightbox__user" style="font-size: var(--font-base); font-weight: 600; color: #fff; letter-spacing: -0.2px">@sunset_jk</div>
-                <div class="lightbox__place" style="font-size: var(--font-xs); color: rgba(255, 255, 255, 0.5); margin-top: 1px; letter-spacing: -0.1px">광안리 · 새벽 5:30</div>
-              </div>
-              <div style="display: flex; align-items: center; gap: 5px; height: 28px; padding: 0 11px; border-radius: 14px; background: rgba(255, 255, 255, 0.1); color: #fff">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"></path><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"></path></svg>
-                <span class="lightbox__votes" style="font-size: var(--font-sm); font-weight: 600; letter-spacing: -0.1px">67표</span>
-              </div>
-            </div>
-
-            <div class="lightbox__caption" style="font-size: var(--font-sm); color: rgba(255, 255, 255, 0.75); line-height: 1.55; letter-spacing: -0.15px; font-style: italic; margin-bottom: 14px">"새벽 5시, 광안대교 위로 떠오르는 태양 — 세상에서 제일 긴 하루의 시작"</div>
-
-            <div style="display: flex; gap: 8px">
-              <button class="lightbox__vote" onclick="requestVote()">
-                <span class="lightbox__vote-on">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"></path><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"></path></svg>
-                  투표하기
-                </span>
-                <span class="lightbox__vote-off">
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M7 10v12" stroke-linecap="round"></path><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"></path></svg>
-                  투표 취소
-                </span>
-              </button>
-              <button style="height: 44px; padding: 0 16px; border: none; border-radius: 22px; background: rgba(255, 255, 255, 0.1); color: #fff; font-family: var(--font-family); font-size: var(--font-sm); font-weight: 600; letter-spacing: -0.2px; display: flex; align-items: center; gap: 5px; cursor: pointer" onclick="location.href = './user-profile.html'">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"></circle><path d="M4 21a8 8 0 0 1 16 0"></path></svg>
-                프로필
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 투표 확인 모달 -->
-      <div class="modal-backdrop" id="vote-confirm-modal" onclick="closeModal('vote-confirm-modal')">
-        <div class="modal" onclick="event.stopPropagation()">
-          <div class="modal__title">이 사진에 투표할까요?</div>
-          <div class="modal__body">남은 표 <span class="vote-remain__count">3</span>개 중 1개를 사용합니다</div>
-          <div class="modal__actions">
-            <button class="modal__btn modal__btn--cancel" onclick="closeModal('vote-confirm-modal')">취소</button>
-            <button class="modal__btn modal__btn--confirm" onclick="castVote()">투표하기</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- 투표 취소 모달 -->
-      <div class="modal-backdrop" id="vote-cancel-modal" onclick="closeModal('vote-cancel-modal')">
-        <div class="modal" onclick="event.stopPropagation()">
-          <div class="modal__title">투표를 취소할까요?</div>
-          <div class="modal__body">사용한 표 1개가 복구됩니다</div>
-          <div class="modal__actions">
-            <button class="modal__btn modal__btn--cancel" onclick="closeModal('vote-cancel-modal')">닫기</button>
-            <button class="modal__btn modal__btn--confirm" onclick="undoVote(currentRank())">투표 취소</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- 표 소진 모달 (표를 다 쓴 뒤 투표를 누르면) -->
-      <div class="modal-backdrop" id="vote-limit-modal" onclick="closeModal('vote-limit-modal')">
-        <div class="modal" onclick="event.stopPropagation()">
-          <div class="modal__title">오늘 표를 모두 사용했어요</div>
-          <div class="modal__body">이미 투표한 작품의 <strong style="color: #000; font-weight: 600">투표 취소</strong>로 표를 회수하면 다시 투표할 수 있어요. 표는 매일 3개로 초기화됩니다.</div>
-          <div class="modal__actions">
-            <button class="modal__btn modal__btn--confirm" onclick="closeModal('vote-limit-modal')">확인</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- 투표 스낵바 (되돌리기) -->
-      <div class="snackbar" id="vote-toast">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="color: var(--color-accent); flex-shrink: 0"><circle cx="12" cy="12" r="10"></circle><path d="M8 12l3 3 5-6"></path></svg>
-        <span style="flex: 1">투표됨 · 남은 표 <span class="vote-remain__count">3</span>/3</span>
-        <button class="snackbar__undo" onclick="undoVote()">되돌리기</button>
-      </div>
-
       <!-- 캡션 수정 시트 -->
       <div class="sheet-backdrop" id="caption-sheet" onclick="closeSheet('caption-sheet')">
         <div class="sheet" style="padding: 8px 0 20px" onclick="event.stopPropagation()">
@@ -2042,92 +1707,41 @@
         });
       }
 
-      /* ── 출품작 데이터 (라이트박스가 순위별로 이 값을 렌더한다) ── */
-      const ENTRIES = {
-        1: { user: '@sunset_jk', initials: 'JK', avatar: 'linear-gradient(135deg, #2c5364, #4a7c8a)', place: '광안리 · 새벽 5:30', votes: 67, caption: '"새벽 5시, 광안대교 위로 떠오르는 태양 — 세상에서 제일 긴 하루의 시작"', photo: 'linear-gradient(to bottom, #1a1530, #b44a3a, #f0c89a)' },
-        2: { user: '@minsoo', initials: 'MS', avatar: 'linear-gradient(135deg, #0f2027, #203a43)', place: '동해 어달항 · 겨울 새벽 바다', votes: 42, caption: '"영하 8도, 손이 얼어붙는데도 셔터를 놓을 수 없었던 하늘"', photo: 'linear-gradient(to bottom, #0f2027, #203a43, #e8a87c)' },
-        3: { user: '@yujin', initials: 'YJ', avatar: 'linear-gradient(135deg, #2d1b4e, #8b4a6b)', place: '경복궁 · 야경', votes: 31, caption: '"근정전 처마 끝에 걸린 노을, 600년째 같은 자리"', photo: 'linear-gradient(to bottom, #1a1530, #8b4a6b)' },
-        4: { user: '@dongho_', initials: 'DH', avatar: 'linear-gradient(135deg, #232526, #8e7b5a)', place: '서울 종로 세운상가', votes: 28, caption: '"도심 속 황금빛 노을, 빌딩 사이로 스며드는 빛"', photo: 'linear-gradient(to bottom, #232526, #8e7b5a)' },
-        5: { user: '@forestday', initials: 'FD', avatar: 'linear-gradient(135deg, #0a1a0f, #4a8060)', place: '축령산 · 아침 6:20', votes: 24, caption: '"안개가 걷히는 5분, 숲이 가장 밝아지는 순간"', photo: 'linear-gradient(to bottom, #0a1a0f, #4a8060)' },
-        6: { user: '@nightowl', initials: 'NO', avatar: 'linear-gradient(135deg, #020010, #1a1545)', place: '영월 별마로천문대', votes: 19, caption: '"달 없는 밤에만 보이는 은하수 — 노출 25초"', photo: 'linear-gradient(to bottom, #020010, #1a1545)' },
-        7: { user: '@rainy.frame', initials: 'RF', avatar: 'linear-gradient(135deg, #1a1530, #b44a3a)', place: '제주 사려니숲 · 비 온 뒤', votes: 15, caption: '"비 그친 직후 30분, 빛이 물기에 한 번 더 부서진다"', photo: 'linear-gradient(to bottom, #1a1530, #b44a3a, #f0c89a)' },
-      };
-
-      /* ── 라이트박스 ── */
-      const MAX_VOTES = 3;
-
-      function openLightbox(rank) {
-        const lb = document.getElementById('contest-lightbox');
-        const e = ENTRIES[rank];
-        lb.dataset.rank = rank;
-        lb.querySelector('.rank-badge').textContent = rank;
-        lb.querySelector('.lightbox__rank-num').textContent = rank;
-        // 순위 뱃지만 갈아끼우면 7위 출품작이 1위의 작성자·표수를 그대로 보여준다
-        lb.querySelector('.lightbox__photo').style.background = e.photo;
-        lb.querySelector('.lightbox__avatar').style.background = e.avatar;
-        lb.querySelector('.lightbox__avatar').textContent = e.initials;
-        lb.querySelector('.lightbox__user').textContent = e.user;
-        lb.querySelector('.lightbox__place').textContent = e.place;
-        lb.querySelector('.lightbox__votes').textContent = e.votes + '표';
-        lb.querySelector('.lightbox__caption').textContent = e.caption;
-        // 투표는 출품작 단위 — 다른 출품작을 열면 투표됨 상태가 따라오면 안 된다
-        lb.classList.toggle('is-voted', votedRanks.has(Number(rank)));
-        lb.classList.add('is-open');
+      /* ── 전체 출품작 그리드 (4위~) — 핸드오프 "시안 1b" 기준, 낙관적 업데이트(확인 모달 없음) ── */
+      var contestGridItems = [
+        { rank: 4, user: '@haneul', votes: 28, bg: 'linear-gradient(180deg, #2b2a1c 0%, #6b6142 60%, #b5a173 100%)' },
+        { rank: 5, user: '@jin_00', votes: 24, bg: 'linear-gradient(180deg, #0f2a22 0%, #2f6a52 60%, #6fae8c 100%)' },
+        { rank: 6, user: '@seoyeon', votes: 19, bg: 'linear-gradient(180deg, #0d0b22 0%, #241f4a 60%, #4b4380 100%)' },
+        { rank: 7, user: '@dawnlee', votes: 15, bg: 'linear-gradient(180deg, #2a1030 0%, #8b4438 55%, #f0c89a 100%)' },
+      ];
+      var contestVoted = {};
+      function renderContestGrid() {
+        document.getElementById('contest-grid').innerHTML = contestGridItems
+          .map(function (it) {
+            var on = !!contestVoted[it.rank];
+            var count = it.votes + (on ? 1 : 0);
+            var icon = on
+              ? '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12.5l5 5L20 6.5"></path></svg>'
+              : '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 11v9H4v-9zM7 11l4.2-7a2 2 0 0 1 3.6 1.5L14 11h5.2a1.8 1.8 0 0 1 1.7 2.3l-1.7 6A1.8 1.8 0 0 1 17.5 20H7"></path></svg>';
+            return (
+              '<div style="position: relative; height: 196px; border-radius: 16px; overflow: hidden">' +
+              '<div style="position: absolute; inset: 0; background: ' + it.bg + '"></div>' +
+              '<div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10, 7, 20, 0.34) 0%, rgba(10, 7, 20, 0.02) 30%, rgba(10, 7, 20, 0.78) 100%)"></div>' +
+              '<div style="position: absolute; inset: 0; padding: 10px; display: flex; flex-direction: column; justify-content: space-between; text-shadow: 0 1px 8px rgba(10, 7, 20, 0.5)">' +
+              '<span style="align-self: flex-start; font-size: var(--font-2xs); font-weight: 600; color: #fff; background: rgba(10, 7, 20, 0.45); border-radius: 7px; padding: 3px 7px">' + it.rank + '위</span>' +
+              '<div style="display: flex; align-items: center; justify-content: space-between; gap: 6px">' +
+              '<span style="font-size: var(--font-xs); font-weight: 600; color: #fff; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">' + it.user + '</span>' +
+              '<span onclick="voteContestGrid(' + it.rank + ')" style="cursor: pointer; display: flex; align-items: center; gap: 4px; height: 28px; padding: 0 10px; border-radius: 14px; background: ' + (on ? 'var(--color-accent)' : 'rgba(255, 255, 255, 0.2)') + '; font-size: var(--font-xs); font-weight: 600; color: #fff; text-shadow: none">' + icon + count + '</span>' +
+              '</div></div></div>'
+            );
+          })
+          .join('');
       }
-      function closeLightbox() {
-        document.getElementById('contest-lightbox').classList.remove('is-open');
+      function voteContestGrid(rank) {
+        contestVoted[rank] = true;
+        renderContestGrid();
       }
-
-      /* ── 투표 ── */
-      // 표는 3개이고 서로 다른 출품작에 나눠 줄 수 있다 → 스칼라 하나로는 표현할 수 없다
-      const votedRanks = new Set();
-      let remainingVotes = MAX_VOTES;
-      let pendingUndoRank = null; // 스낵바가 가리키는 표. 연타해도 이 표 하나만 되돌린다
-
-      function currentRank() {
-        return Number(document.getElementById('contest-lightbox').dataset.rank);
-      }
-      function requestVote() {
-        if (votedRanks.has(currentRank())) {
-          openModal('vote-cancel-modal');
-          return;
-        }
-        // 표를 다 쓴 뒤에도 확인 모달을 열면 remainingVotes가 음수가 된다
-        openModal(remainingVotes > 0 ? 'vote-confirm-modal' : 'vote-limit-modal');
-      }
-      function castVote() {
-        closeModal('vote-confirm-modal');
-        if (remainingVotes <= 0) return;
-        const rank = currentRank();
-        document.getElementById('contest-lightbox').classList.add('is-voted');
-        votedRanks.add(rank);
-        pendingUndoRank = rank;
-        remainingVotes -= 1;
-        renderRemainingVotes();
-        showToast('vote-toast');
-      }
-      // 인자 없이 부르면 스낵바가 가리키는 표를, 인자를 주면 그 출품작의 표를 되돌린다
-      function undoVote(rank) {
-        if (rank === undefined) rank = pendingUndoRank;
-        if (rank === null || !votedRanks.has(rank)) return; // 되돌리기 연타로 남의 표까지 회수되는 것 방지
-        closeModal('vote-cancel-modal');
-        document.getElementById('vote-toast').classList.remove('is-open');
-        votedRanks.delete(rank);
-        if (rank === pendingUndoRank) pendingUndoRank = null;
-        if (currentRank() === rank) {
-          document.getElementById('contest-lightbox').classList.remove('is-voted');
-        }
-        remainingVotes += 1;
-        renderRemainingVotes();
-      }
-      function renderRemainingVotes() {
-        document.querySelectorAll('.vote-remain__dot').forEach((dot, i) => {
-          dot.classList.toggle('is-used', i >= remainingVotes);
-        });
-        document.querySelectorAll('.vote-remain__count').forEach((n) => {
-          n.textContent = remainingVotes;
-        });
-      }
+      renderContestGrid();
 
       /* ── 시트 · 모달 · 토스트 공통 ── */
       function openSheet(id) {
