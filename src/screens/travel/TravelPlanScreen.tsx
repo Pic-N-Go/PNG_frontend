@@ -403,27 +403,29 @@ export default function TravelPlanScreen({ navigation, route }: any) {
     let distance = 0;
     let durationMins = 0;
     
-    // Each spot defaults to 60 mins stay
-    durationMins += currentData.spots.length * 60;
-    
     for (let i = 0; i < currentData.spots.length; i++) {
       const current = currentData.spots[i];
       if (i < currentData.spots.length - 1) {
         const next = currentData.spots[i + 1];
         if (current.lat && current.lng && next.lat && next.lng) {
-          distance += getDistanceFromLatLonInKm(current.lat, current.lng, next.lat, next.lng);
-        }
-        if (next.travelTimeMinutes != null) {
+          const legDist = getDistanceFromLatLonInKm(current.lat, current.lng, next.lat, next.lng);
+          distance += legDist;
+          if (next.travelTimeMinutes != null) {
+            durationMins += next.travelTimeMinutes;
+          } else if (legDist > 0) {
+            durationMins += Math.max(1, Math.round((legDist / 35) * 60));
+          }
+        } else if (next.travelTimeMinutes != null) {
           durationMins += next.travelTimeMinutes;
-        } else {
-          durationMins += 30;
         }
       }
     }
     
     const h = Math.floor(durationMins / 60);
     const m = durationMins % 60;
-    const durStr = h > 0 ? (m > 0 ? `${h}시간 ${m}분` : `${h}시간`) : `${m}분`;
+    const durStr = durationMins > 0
+      ? (h > 0 ? (m > 0 ? `약 ${h}시간 ${m}분` : `약 ${h}시간`) : `약 ${m}분`)
+      : "0분";
     return { totalDistance: Math.round(distance), totalDurationFormatted: durStr };
   }, [currentData]);
 
@@ -787,7 +789,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
                 <IconClock size={normalize(14)} color="#e31b59" />
               </View>
               <Text className="font-semibold text-black tracking-tight" style={{ fontSize: normalizeFontSize(14) }}>{totalDurationFormatted}</Text>
-              <Text className="text-black/30 tracking-tight" style={{ fontSize: normalizeFontSize(12) }}>예상 소요</Text>
+              <Text className="text-black/30 tracking-tight" style={{ fontSize: normalizeFontSize(12) }}>총 이동시간</Text>
             </View>
           </View>
 

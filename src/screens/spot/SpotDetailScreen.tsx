@@ -226,6 +226,7 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
       <SaveToPlanSheet
         visible={saveSheetVisible}
         onClose={() => setSaveSheetVisible(false)}
+        spot={spot}
         onSaved={(message) => {
           setSaveSheetVisible(false);
           showToast(message);
