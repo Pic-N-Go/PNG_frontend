@@ -1,5 +1,6 @@
 import { toHttpError } from '@/api/auth';
 import { useAuthStore } from '@/store/useAuthStore';
+import type { SpotNavigationDTO } from '@/types/spot';
 
 const BASE = process.env.EXPO_PUBLIC_API_URL ?? '';
 const TIMEOUT_MS = 30_000;
@@ -37,8 +38,13 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
 export type SpotInCourse = {
   id: number;
   spotId: number;
-  // UI properties like spotName, latitude, longitude, category, thumbnailUrl, photogenicScore 
-  // should be explicitly hydrated from a spot lookup or extended backend response.
+  spotName?: string;
+  category?: string;
+  latitude?: number;
+  longitude?: number;
+  thumbnailUrl?: string | null;
+  photogenicScore?: number;
+  navigation?: SpotNavigationDTO;
   dayNumber: number;
   sequenceOrder: number;
   memo: string;

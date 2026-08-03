@@ -325,6 +325,7 @@ function mapCourseToData(course: any) {
           lng: s.longitude || 129.118666,
           photo: s.thumbnailUrl || '',
           travelTimeMinutes: s.travelTimeMinutes,
+          navigation: s.navigation,
         };
       });
 
@@ -1213,18 +1214,20 @@ export default function TravelPlanScreen({ navigation, route }: any) {
       <NaviSheet
         visible={isDepartModalVisible}
         onClose={() => setIsDepartModalVisible(false)}
-        spotName={currentData?.spots?.[0]?.name || ""}
-        address={currentData?.spots?.[0]?.loc || ""}
+        spotName={currentData?.spots?.[currentData.spots.length - 1]?.name || currentData?.spots?.[0]?.name || ""}
+        address={currentData?.spots?.[currentData.spots.length - 1]?.loc || currentData?.spots?.[0]?.loc || ""}
+        navigation={currentData?.spots?.[currentData.spots.length - 1]?.navigation}
         spots={(currentData?.spots || [])
           .map((s: any) => {
-            const rawLat = s.lat ?? s.latitude ?? s.y ?? s.mapY;
-            const rawLng = s.lng ?? s.longitude ?? s.x ?? s.mapX;
+            const rawLat = s.navigation?.latitude ?? s.lat ?? s.latitude ?? s.y ?? s.mapY;
+            const rawLng = s.navigation?.longitude ?? s.lng ?? s.longitude ?? s.x ?? s.mapX;
             const coord = parseValidCoordinate(rawLat, rawLng);
             if (!coord) return null;
             return {
-              name: s.name || s.spotName || "스팟",
+              name: s.navigation?.name || s.name || s.spotName || "스팟",
               latitude: coord.latitude,
               longitude: coord.longitude,
+              navigation: s.navigation,
             };
           })
           .filter(Boolean)}

@@ -236,6 +236,19 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
         onClose={() => setNaviSheetVisible(false)}
         spotName={spot.name}
         address={spot.address}
+        navigation={spot.navigation}
+        spots={
+          spot.latitude && spot.longitude
+            ? [
+                {
+                  name: spot.navigation?.name || spot.name,
+                  latitude: spot.navigation?.latitude ?? spot.latitude,
+                  longitude: spot.navigation?.longitude ?? spot.longitude,
+                  navigation: spot.navigation,
+                },
+              ]
+            : undefined
+        }
         onLaunched={(message) => {
           setNaviSheetVisible(false);
           showToast(message);
