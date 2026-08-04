@@ -18,7 +18,7 @@ import ReviewTab from '@/components/spot/ReviewTab';
 import ChatTab from '@/components/spot/ChatTab';
 import SaveToPlanSheet from '@/components/spot/SaveToPlanSheet';
 import NaviSheet from '@/components/spot/NaviSheet';
-import ShareSheet from '@/components/spot/ShareSheet';
+import ShareSheet from '@/components/common/ShareSheet';
 import BookmarkSheet from '@/components/spot/BookmarkSheet';
 import { useBookmarkCollections, useSpotDetail, useSpotPhotogenicScore } from '@/hooks/useSpot';
 import { useKeyboardOverlap } from '@/hooks/useKeyboardHeight';

@@ -8,6 +8,7 @@ import PostActionSheet from '@/components/community/PostActionSheet';
 import PostReportSheet from '@/components/community/PostReportSheet';
 import PhotoLightbox from '@/components/community/PhotoLightbox';
 import ConfirmModal from '@/components/common/ConfirmModal';
+import ShareSheet from '@/components/common/ShareSheet';
 import Toast from '@/components/auth/Toast';
 import { useKeyboardOverlap } from '@/hooks/useKeyboardHeight';
 import { CommunityDetailStackParamList } from '@/navigation/stacks/CommunityDetailStack';
@@ -86,6 +87,7 @@ export default function PostDetailScreen() {
   // 렌더 조건을 lightboxOpen && exifOpen으로 걸어 "EXIF만 닫아도 라이트박스는 유지" 규칙을 자연히 만족시킨다.
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [exifOpen, setExifOpen] = useState(false);
+  const [shareSheetVisible, setShareSheetVisible] = useState(false);
 
   const [toastMessage, setToastMessage] = useState('');
   const [toastVisible, setToastVisible] = useState(false);
@@ -423,7 +425,7 @@ export default function PostDetailScreen() {
         visible={actionSheetOpen}
         onClose={() => setActionSheetOpen(false)}
         isMyPost={isMyPost}
-        onShare={() => {}}
+        onShare={() => setShareSheetVisible(true)}
         onEdit={() => {}}
         onRequestDelete={() => setDeleteModalOpen(true)}
         onRequestReport={() => setReportSheetOpen(true)}
@@ -452,6 +454,12 @@ export default function PostDetailScreen() {
         onOpenExif={() => setExifOpen(true)}
         onCloseExif={() => setExifOpen(false)}
         post={post}
+      />
+
+      <ShareSheet
+        visible={shareSheetVisible}
+        onClose={() => setShareSheetVisible(false)}
+        onShared={(message) => showToast(message)}
       />
 
       <Toast message={toastMessage} visible={toastVisible} onHide={handleToastHide} />
