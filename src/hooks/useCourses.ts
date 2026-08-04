@@ -2,13 +2,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { coursesApi } from '@/api/courses';
 
-/**
- * 코스에 스팟 1개를 추가한다.
- *
- * 서버에 단건 추가 API가 없어 "상세 조회 → 목록에 append → 전체 sync(PUT)" 순으로 동작한다.
- * 조회와 저장 사이에 다른 클라이언트가 같은 코스를 수정하면 그 변경이 덮어써진다(lost update).
- * 근본 해결은 서버의 단건 추가 엔드포인트 또는 코스 revision 토큰 검증이 필요하다.
- */
+/** 코스에 스팟 1개를 추가한다. */
 export function useAddSpotToCourse() {
   const qc = useQueryClient();
   return useMutation({
