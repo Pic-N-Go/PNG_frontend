@@ -19,6 +19,15 @@ export function useSpotDetail(id: string) {
   });
 }
 
+export function useSpotSummary(id?: string | number | null) {
+  return useQuery({
+    queryKey: ['spot', id ? String(id) : null, 'summary'],
+    queryFn: () => spotApi.getSummary(id!),
+    enabled: !!id,
+    staleTime: SPOTS_STALE_TIME,
+  });
+}
+
 // 스팟 목록류는 자주 바뀌지 않으므로 1분간 fresh로 취급한다.
 // 지도 이동마다 마운트/재조회가 반복되는 것을 막는 용도.
 const SPOTS_STALE_TIME = 60 * 1000;

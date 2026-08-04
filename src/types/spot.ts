@@ -399,6 +399,20 @@ export interface SpotMapResponse {
   badge: boolean;
 }
 
+export interface SpotSummaryResponse {
+  id: number;
+  name: string;
+  address: string;
+  category: string;
+  latitude: number;
+  longitude: number;
+  thumbnailUrl: string | null;
+  photogenicScore: number;
+  reviewAverage: number;
+  bookmarkCount: number;
+  badge: boolean;
+}
+
 export interface SpotResponse {
   id: number;
   name: string;

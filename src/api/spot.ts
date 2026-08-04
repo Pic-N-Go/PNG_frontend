@@ -15,6 +15,7 @@ import type {
   SpotDetailResponse,
   PageSpotResponse,
   SpotMapResponse,
+  SpotSummaryResponse,
 } from '@/types/spot';
 
 /** RN이 파일 파트로 인식하는 최소 형태 (expo/RN 이미지 피커 결과 그대로) */
@@ -176,6 +177,9 @@ export const spotApi = {
 
   // 4. 스팟 상세 정보 조회 (GET /spots/{id})
   getDetail: (id: string | number) => request<SpotDetailResponse>(`/spots/${id}`),
+
+  // 5. 스팟 요약 카드 조회 (GET /spots/{id}/summary)
+  getSummary: (id: string | number) => request<SpotSummaryResponse>(`/spots/${id}/summary`),
 
   getReviews: (id: string | number, { sort = 'LATEST', page = 0, size = 20 }: ReviewQuery = {}) =>
     request<ReviewListResponse>(`/spots/${id}/reviews?sort=${sort}&page=${page}&size=${size}`),
