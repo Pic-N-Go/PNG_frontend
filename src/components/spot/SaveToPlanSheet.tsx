@@ -5,7 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useQuery } from '@tanstack/react-query';
 import { IconCheck, IconChevronLeft, IconPlus } from '@tabler/icons-react-native';
 import BottomSheet from '@/components/common/BottomSheet';
-import { BUTTON_RADIUS, GRID_PADDING } from '@/constants/layout';
+import { BUTTON_HEIGHT, BUTTON_RADIUS, GRID_PADDING } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { coursesApi } from '@/api/courses';
 import { useAddSpotToCourse } from '@/hooks/useCourses';
@@ -267,7 +267,7 @@ export default function SaveToPlanSheet({ visible, onClose, spot, onSaved }: Pro
               disabled={!selectedCourse || isSaving}
               style={{
                 width: '100%',
-                height: normalize(52),
+                height: BUTTON_HEIGHT,
                 borderRadius: BUTTON_RADIUS,
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -336,7 +336,7 @@ export default function SaveToPlanSheet({ visible, onClose, spot, onSaved }: Pro
               disabled={isSaving}
               style={{
                 width: '100%',
-                height: normalize(52),
+                height: BUTTON_HEIGHT,
                 borderRadius: BUTTON_RADIUS,
                 alignItems: 'center',
                 justifyContent: 'center',

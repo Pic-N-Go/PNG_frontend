@@ -135,6 +135,18 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
     );
   }
 
+  // 길안내 좌표는 보정 좌표(navigation)를 우선 사용한다. 0도 유효한 좌표라 falsy 체크 대신 isFinite로 검증.
+  const naviLat = spot.navigation?.latitude ?? spot.latitude;
+  const naviLng = spot.navigation?.longitude ?? spot.longitude;
+  const naviSpots = Number.isFinite(naviLat) && Number.isFinite(naviLng)
+    ? [{
+        name: spot.navigation?.name || spot.name,
+        latitude: naviLat as number,
+        longitude: naviLng as number,
+        navigation: spot.navigation,
+      }]
+    : undefined;
+
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
       {activeTab === 'chat' ? (
@@ -238,18 +250,7 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
         spotName={spot.name}
         address={spot.address}
         navigation={spot.navigation}
-        spots={
-          spot.latitude && spot.longitude
-            ? [
-                {
-                  name: spot.navigation?.name || spot.name,
-                  latitude: spot.navigation?.latitude ?? spot.latitude,
-                  longitude: spot.navigation?.longitude ?? spot.longitude,
-                  navigation: spot.navigation,
-                },
-              ]
-            : undefined
-        }
+        spots={naviSpots}
         onLaunched={(message) => {
           setNaviSheetVisible(false);
           showToast(message);

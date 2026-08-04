@@ -311,6 +311,10 @@ function mapCourseToData(course: any) {
       .filter((s: any) => s.dayNumber === i)
       .sort((a: any, b: any) => a.sequenceOrder - b.sequenceOrder)
       .map((s: any) => {
+        // 보정 좌표(navigation)가 유효하면 그것을 쓰고, 아니면 원본 스팟 좌표로 폴백한다.
+        const navLat = s.navigation?.latitude;
+        const navLng = s.navigation?.longitude;
+        const hasNavCoord = Number.isFinite(navLat) && Number.isFinite(navLng);
         return {
           id: String(s.id),
           realSpotId: s.spotId,
@@ -322,8 +326,8 @@ function mapCourseToData(course: any) {
           score: s.photogenicScore ? `${s.photogenicScore}점` : "-",
           scoreColor: s.photogenicScore && s.photogenicScore > 90 ? "#e31b59" : s.photogenicScore && s.photogenicScore > 80 ? "#ff9f0a" : "#34c759",
           bg: "#2c6e91", // Default background color
-          lat: s.latitude || 35.1531696,
-          lng: s.longitude || 129.118666,
+          lat: hasNavCoord ? navLat : (s.latitude || 35.1531696),
+          lng: hasNavCoord ? navLng : (s.longitude || 129.118666),
           photo: s.thumbnailUrl || '',
           travelTimeMinutes: s.travelTimeMinutes,
           travelTimeEstimated: s.travelTimeEstimated,
