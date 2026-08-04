@@ -2,12 +2,13 @@ import React, { useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { IconCheck, IconChevronLeft, IconPlus } from '@tabler/icons-react-native';
 import BottomSheet from '@/components/common/BottomSheet';
 import { BUTTON_RADIUS, GRID_PADDING } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { coursesApi } from '@/api/courses';
+import { useAddSpotToCourse } from '@/hooks/useCourses';
 import { useCourseStore } from '@/store/useCourseStore';
 
 const GRADIENT_PALETTES: [string, string][] = [
@@ -19,21 +20,24 @@ const GRADIENT_PALETTES: [string, string][] = [
   ['#06b6d4', '#0e7490'],
 ];
 
+/** 'YYYY-MM-DD' 문자열을 UTC가 아닌 로컬 달력 날짜(자정)로 파싱 */
+function parseLocalDate(dateString: string): Date {
+  const [year, month, day] = dateString.split('-').map(Number);
+  return new Date(year, month - 1, day);
+}
+
 function isCourseCompleted(endDate: string): boolean {
   if (!endDate) return false;
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  const end = new Date(endDate);
-  end.setHours(0, 0, 0, 0);
+  const end = parseLocalDate(endDate);
   return today > end;
 }
 
 function getCourseDays(startDate: string, endDate: string) {
   if (!startDate || !endDate) return [{ label: 'DAY 1', dateStr: '당일', dayNumber: 1 }];
-  const start = new Date(startDate);
-  start.setHours(0, 0, 0, 0);
-  const end = new Date(endDate);
-  end.setHours(0, 0, 0, 0);
+  const start = parseLocalDate(startDate);
+  const end = parseLocalDate(endDate);
   const days: { label: string; dateStr: string; dayNumber: number }[] = [];
   const cur = new Date(start);
   let dayNum = 1;
@@ -74,12 +78,12 @@ interface Props {
 
 export default function SaveToPlanSheet({ visible, onClose, spot, onSaved }: Props) {
   const navigation = useNavigation<any>();
-  const queryClient = useQueryClient();
 
   const [step, setStep] = useState<1 | 2>(1);
   const [selectedCourseId, setSelectedCourseId] = useState<number | null>(null);
   const [selectedDayNumber, setSelectedDayNumber] = useState<number>(1);
-  const [isSaving, setIsSaving] = useState(false);
+
+  const { mutateAsync: addSpotToCourse, isPending: isSaving } = useAddSpotToCourse();
 
   // 실시간 생성된 코스 목록 조회
   const { data: courses = [], isLoading } = useQuery({
@@ -99,7 +103,6 @@ export default function SaveToPlanSheet({ visible, onClose, spot, onSaved }: Pro
     setStep(1);
     setSelectedCourseId(null);
     setSelectedDayNumber(1);
-    setIsSaving(false);
   }
 
   function handleClose() {
@@ -128,44 +131,17 @@ export default function SaveToPlanSheet({ visible, onClose, spot, onSaved }: Pro
 
   async function handleExecuteSave(dayNum: number) {
     if (!selectedCourse || !spot || isSaving) return;
-    setIsSaving(true);
 
     try {
-      // 1. 최신 코스 상세 정보 조회
-      const courseDetail = await coursesApi.getCourse(selectedCourse.id);
-      const existingSpots = courseDetail.spots || [];
-      const sameDaySpots = existingSpots.filter((s) => s.dayNumber === dayNum);
-      const nextSeq = sameDaySpots.length > 0
-        ? Math.max(...sameDaySpots.map((s) => s.sequenceOrder)) + 1
-        : 1;
-
-      // 2. 스팟 추가 후 일괄 동기화
-      const allSpotsPayload = [
-        ...existingSpots.map((s) => ({
-          courseSpotId: s.id,
-          spotId: s.spotId,
-          dayNumber: s.dayNumber,
-          sequenceOrder: s.sequenceOrder,
-          memo: s.memo || '',
-        })),
-        {
-          spotId: Number(spot.id),
-          dayNumber: dayNum,
-          sequenceOrder: nextSeq,
-          memo: '',
-        },
-      ];
-
-      await coursesApi.syncSpots(selectedCourse.id, { spots: allSpotsPayload });
-      await queryClient.invalidateQueries({ queryKey: ['courses'] });
-      await queryClient.invalidateQueries({ queryKey: ['course', selectedCourse.id] });
-
+      await addSpotToCourse({
+        courseId: selectedCourse.id,
+        spotId: Number(spot.id),
+        dayNumber: dayNum,
+      });
       onSaved?.(`'${selectedCourse.title}' 코스에 저장했습니다`);
       handleClose();
     } catch (err: any) {
       Alert.alert('저장 실패', err?.message || '코스에 스팟을 저장하는 중 오류가 발생했습니다.');
-    } finally {
-      setIsSaving(false);
     }
   }
 
