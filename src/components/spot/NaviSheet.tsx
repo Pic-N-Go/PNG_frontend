@@ -112,7 +112,7 @@ export default function NaviSheet({ visible, onClose, spotName, address, spots, 
               {navStatus === 'CORRECTED' && targetNav && (
                 <View style={{ marginTop: normalize(6), paddingHorizontal: normalize(8), paddingVertical: normalize(4), borderRadius: normalize(6), backgroundColor: '#FFF5E5', alignSelf: 'flex-start' }}>
                   <Text allowFontScaling={false} style={{ fontSize: normalizeFontSize(12), color: '#D97706', fontFamily: 'Pretendard-Medium' }}>
-                    {targetNav.name}으로 안내 · 도보 {targetNav.walkingMinutes ?? 0}분
+                    {targetNav.name}으로 안내 · 도보 이동 필요
                   </Text>
                 </View>
               )}

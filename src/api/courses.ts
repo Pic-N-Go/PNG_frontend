@@ -39,6 +39,7 @@ export type SpotInCourse = {
   id: number;
   spotId: number;
   spotName?: string;
+  address?: string;
   category?: string;
   latitude?: number;
   longitude?: number;
@@ -48,7 +49,8 @@ export type SpotInCourse = {
   dayNumber: number;
   sequenceOrder: number;
   memo: string;
-  travelTimeMinutes: number;
+  travelTimeMinutes: number | null;
+  travelTimeEstimated?: boolean;
 };
 
 export type CourseChecklist = {

@@ -315,7 +315,8 @@ function mapCourseToData(course: any) {
           id: String(s.id),
           realSpotId: s.spotId,
           name: s.spotName || `스팟 ${s.spotId}`,
-          loc: s.category || "위치 정보 없음",
+          address: s.address || "",
+          loc: s.address || s.category || "",
           time: "10:00 ~ 11:00", // TODO: Add real time schedule fields
           dur: "1시간", // TODO: Add real duration
           score: s.photogenicScore ? `${s.photogenicScore}점` : "-",
@@ -325,6 +326,7 @@ function mapCourseToData(course: any) {
           lng: s.longitude || 129.118666,
           photo: s.thumbnailUrl || '',
           travelTimeMinutes: s.travelTimeMinutes,
+          travelTimeEstimated: s.travelTimeEstimated,
           navigation: s.navigation,
         };
       });
@@ -333,17 +335,34 @@ function mapCourseToData(course: any) {
     for (let j = 0; j < daySpots.length - 1; j++) {
       const current = daySpots[j];
       const next = daySpots[j + 1];
-      if (next.travelTimeMinutes != null) {
-        transports[`${current.id}__${next.id}`] = {
-          type: "car",
-          label: `차량 ${next.travelTimeMinutes}분`,
-        };
+      const driveMins = next.travelTimeMinutes;
+      const isEstimated = next.travelTimeEstimated;
+      const isCorrected = next.navigation?.status === "CORRECTED";
+      const isUnreachable = next.navigation?.status === "UNREACHABLE";
+
+      let label = "경로 확인 필요";
+      if (driveMins != null && driveMins > 0) {
+        const timeText = isEstimated ? `약 ${driveMins}분` : `${driveMins}분`;
+        if (isCorrected) {
+          label = `차량 ${timeText} + 도보 이동 필요`;
+        } else {
+          label = `차량 ${timeText}`;
+        }
+      } else if (isCorrected) {
+        label = `도보 이동 필요`;
+      } else if (isUnreachable) {
+        label = `차량 이동 불가`;
       } else {
-        transports[`${current.id}__${next.id}`] = {
-          type: "car",
-          label: `-`,
-        };
+        label = `경로 확인 필요`;
       }
+
+      transports[`${current.id}__${next.id}`] = {
+        type: (driveMins != null && driveMins > 0) ? "car" : (isCorrected ? "walk" : "car"),
+        label,
+        driveMins: driveMins ?? 0,
+        isEstimated,
+        isCorrected,
+      };
     }
 
     result[String(i)] = {
@@ -542,12 +561,14 @@ export default function TravelPlanScreen({ navigation, route }: any) {
             id: `new_${Date.now()}_${idx}`, // 임시 ID
             realSpotId: spot.id,
             name: spot.title || spot.name || `스팟 ${spot.id}`,
-            loc: spot.category || "기타",
+            address: spot.address || spot.loc || "",
+            loc: spot.address || spot.loc || spot.category || "",
             bg: "#ccc",
             lat: spot.latitude || spot.mapY || spot.lat,
             lng: spot.longitude || spot.mapX || spot.lng,
             photo: spot.imageUrl || spot.firstimage || spot.photo || '',
             travelTimeMinutes: null,
+            navigation: spot.navigation,
           }))
         ];
         
@@ -1031,13 +1052,22 @@ export default function TravelPlanScreen({ navigation, route }: any) {
                   </Text>
                 </View>
               </View>
-              <Text className="text-black/40 mb-2" style={{ fontSize: normalizeFontSize(12) }}>{item.loc}</Text>
-              <View className="flex-row items-center gap-1.5">
+              {Boolean(item.loc) && (
+                <Text
+                  className="text-black/40"
+                  style={{ fontSize: normalizeFontSize(12) }}
+                  numberOfLines={1}
+                >
+                  {item.loc}
+                </Text>
+              )}
+              {/* TODO: 추후 스팟별 방문 시간/체류 시간 기능 추가 시 활성화 */}
+              {/* <View className="flex-row items-center gap-1.5 mt-1">
                 <IconClock size={12} color="rgba(0,0,0,0.3)" />
                 <Text className="text-black/50" style={{ fontSize: normalizeFontSize(12) }}>
                   {item.time} <Text className="text-black/25">{item.dur}</Text>
                 </Text>
-              </View>
+              </View> */}
             </View>
 
             {isEditMode && (
@@ -1217,7 +1247,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
         visible={isDepartModalVisible}
         onClose={() => setIsDepartModalVisible(false)}
         spotName={currentData?.spots?.[currentData.spots.length - 1]?.name || currentData?.spots?.[0]?.name || ""}
-        address={currentData?.spots?.[currentData.spots.length - 1]?.loc || currentData?.spots?.[0]?.loc || ""}
+        address={currentData?.spots?.[currentData.spots.length - 1]?.address || currentData?.spots?.[currentData.spots.length - 1]?.loc || currentData?.spots?.[0]?.address || currentData?.spots?.[0]?.loc || ""}
         navigation={currentData?.spots?.[currentData.spots.length - 1]?.navigation}
         spots={(currentData?.spots || [])
           .map((s: any) => {

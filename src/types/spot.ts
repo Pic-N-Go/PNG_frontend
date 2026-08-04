@@ -37,7 +37,6 @@ export interface SpotNavigationDTO {
   longitude: number;
   name: string;
   status: NavigationStatus;
-  walkingMinutes?: number;
 }
 
 export interface SpotDetailInfo {
