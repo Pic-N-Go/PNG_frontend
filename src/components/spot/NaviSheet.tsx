@@ -3,7 +3,7 @@ import { Pressable, Text, View } from 'react-native';
 import Svg, { Circle, Line, Path } from 'react-native-svg';
 import { IconClock } from '@tabler/icons-react-native';
 import BottomSheet from '@/components/common/BottomSheet';
-import { BUTTON_RADIUS, GRID_PADDING } from '@/constants/layout';
+import { BADGE_RADIUS, BUTTON_RADIUS, GRID_PADDING } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import type { NaviAppId, SpotNavigationDTO } from '@/types/spot';
 import { openKakaoNavi, SpotLocation } from '@/utils/kakaoNavi';
@@ -54,7 +54,7 @@ export default function NaviSheet({ visible, onClose, spotName, address, spots, 
   const [selectedApp, setSelectedApp] = useState<NaviAppId | null>(null);
 
   const targetNav = navigation || (spots && spots.length > 0 ? spots[spots.length - 1].navigation : undefined);
-  const displayName = spotName;
+  const displayName = targetNav?.name || spotName;
   const navStatus = targetNav?.status;
 
   function handleClose() {
@@ -110,14 +110,20 @@ export default function NaviSheet({ visible, onClose, spotName, address, spots, 
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: normalizeFontSize(14), color: '#000' }}>{displayName}</Text>
               <Text allowFontScaling={false} style={{ fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.4)', marginTop: normalize(2) }}>{address}</Text>
               {navStatus === 'CORRECTED' && targetNav && (
-                <View style={{ marginTop: normalize(6), paddingHorizontal: normalize(8), paddingVertical: normalize(4), borderRadius: normalize(6), backgroundColor: '#FFF5E5', alignSelf: 'flex-start' }}>
+                <View
+                  className="mt-1.5 px-2 py-1 self-start bg-[#FFF5E5]"
+                  style={{ borderRadius: BADGE_RADIUS }}
+                >
                   <Text allowFontScaling={false} style={{ fontSize: normalizeFontSize(12), color: '#D97706', fontFamily: 'Pretendard-Medium' }}>
                     {targetNav.name}으로 안내 · 도보 이동 필요
                   </Text>
                 </View>
               )}
               {navStatus === 'UNREACHABLE' && (
-                <View style={{ marginTop: normalize(6), paddingHorizontal: normalize(8), paddingVertical: normalize(4), borderRadius: normalize(6), backgroundColor: '#FEF2F2', alignSelf: 'flex-start' }}>
+                <View
+                  className="mt-1.5 px-2 py-1 self-start bg-[#FEF2F2]"
+                  style={{ borderRadius: BADGE_RADIUS }}
+                >
                   <Text allowFontScaling={false} style={{ fontSize: normalizeFontSize(12), color: '#DC2626', fontFamily: 'Pretendard-Medium' }}>
                     차량 접근이 어려운 지역
                   </Text>
