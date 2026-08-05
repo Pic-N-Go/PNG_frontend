@@ -160,6 +160,9 @@ export function mapSpotDetail(dto: SpotDetailResponse): { info: SpotDetailInfo; 
       tags: dto.tags,
       heroPhotoCount: dto.stats.photoCount,
       myReviewId: dto.myReviewId,
+      latitude: dto.latitude,
+      longitude: dto.longitude,
+      navigation: dto.navigation,
     },
     convenience: mapConvenience(dto.convenience),
   };

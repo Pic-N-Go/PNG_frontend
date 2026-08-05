@@ -30,6 +30,15 @@ export interface CategoryItem {
 
 // ── 스팟 상세 화면 ──────────────────────────────
 
+export type NavigationStatus = 'DIRECT' | 'CORRECTED' | 'UNREACHABLE';
+
+export interface SpotNavigationDTO {
+  latitude: number;
+  longitude: number;
+  name: string;
+  status: NavigationStatus;
+}
+
 export interface SpotDetailInfo {
   id: string;
   badge: string | null;
@@ -41,6 +50,9 @@ export interface SpotDetailInfo {
   tags: string[];
   heroPhotoCount: number;
   myReviewId: number | null;
+  latitude?: number;
+  longitude?: number;
+  navigation?: SpotNavigationDTO;
 }
 
 export type PhotogenicFactorKey = 'weather' | 'goldenHour' | 'dust' | 'ozone' | 'season';
@@ -220,6 +232,7 @@ export interface SpotDetailResponse {
   imageUrl: string | null;
   latitude: number;
   longitude: number;
+  navigation?: SpotNavigationDTO;
   categories: string[];
   overview: string;
   tags: string[];
@@ -383,6 +396,20 @@ export interface SpotMapResponse {
   longitude: number;
   thumbnailUrl: string | null;
   photogenicScore: number;
+  badge: boolean;
+}
+
+export interface SpotSummaryResponse {
+  id: number;
+  name: string;
+  address: string;
+  category: string;
+  latitude: number;
+  longitude: number;
+  thumbnailUrl: string | null;
+  photogenicScore: number;
+  reviewAverage: number;
+  bookmarkCount: number;
   badge: boolean;
 }
 

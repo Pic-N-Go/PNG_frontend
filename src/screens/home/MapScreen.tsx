@@ -10,6 +10,8 @@ import SpotPopup from '@/components/travel/SpotPopup';
 import BottomSheet from '@/components/common/BottomSheet';
 import FilterBottomSheet, { FilterState, EMPTY_FILTER } from '@/components/home/FilterBottomSheet';
 import SearchModal from '@/components/common/SearchModal';
+import SaveToPlanSheet from '@/components/spot/SaveToPlanSheet';
+import Toast from '@/components/auth/Toast';
 import { StatusBar } from 'expo-status-bar';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { FONT_MD, BUTTON_HEIGHT, BUTTON_RADIUS, HEADER_HEIGHT } from '@/constants/layout';
@@ -78,6 +80,14 @@ export default function MapScreen() {
   const { selectedSpots, addSpot, removeSpot } = useCourseStore();
   const [activeSpot, setActiveSpot] = useState<Spot | null>(null);
   const [isCourseModalOpen, setCourseModalOpen] = useState(false);
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+
+  const showToast = (message: string) => {
+    setToastMessage(message);
+    setToastVisible(true);
+  };
+
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilterCount, setActiveFilterCount] = useState(0);
@@ -957,44 +967,17 @@ export default function MapScreen() {
         />
         )}
 
-        {/* Course Select Modal (Dummy) */}
-        {isCourseModalOpen && (
-          <View className="absolute inset-0 bg-black/40 items-center justify-center z-50">
-            <View className="bg-white rounded-2xl w-[80%] p-5 items-center">
-              <Text className="font-semibold text-black mb-4" style={{ fontSize: normalizeFontSize(18) }}>어떤 코스에 저장할까요?</Text>
+        <SaveToPlanSheet
+          visible={isCourseModalOpen}
+          onClose={() => setCourseModalOpen(false)}
+          spot={activeSpot}
+          onSaved={(message) => {
+            setCourseModalOpen(false);
+            showToast(message);
+          }}
+        />
 
-              <TouchableOpacity
-                onPress={() => {
-                  setCourseModalOpen(false);
-                  navigation.navigate('TravelTab', { screen: 'TravelNew' });
-                }}
-                className="w-full bg-[#f5f5f7] rounded-xl items-center justify-center mb-2"
-                style={{ height: BUTTON_HEIGHT }}
-              >
-                <Text className="text-black font-medium" style={{ fontSize: FONT_MD }}>+ 새 코스 만들기</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() => {
-                  setCourseModalOpen(false);
-                  if (activeSpot) addSpot(activeSpot);
-                  navigation.navigate('TravelTab', { screen: 'TravelNew' });
-                }}
-                className="w-full bg-[#E31B59] rounded-xl items-center justify-center"
-                style={{ height: BUTTON_HEIGHT }}
-              >
-                <Text className="text-white font-medium" style={{ fontSize: FONT_MD }}>현재 진행중인 코스</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() => setCourseModalOpen(false)}
-                className="mt-4 p-2"
-              >
-                <Text className="text-black/50" style={{ fontSize: normalizeFontSize(14) }}>취소</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
+        <Toast message={toastMessage} visible={toastVisible} onHide={() => setToastVisible(false)} />
 
         <SearchModal
           visible={isSearchModalVisible}

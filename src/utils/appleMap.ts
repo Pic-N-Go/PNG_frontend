@@ -23,12 +23,16 @@ export const openAppleMap = async (spots: SpotLocation[]) => {
 
   const validSpots: SpotLocation[] = [];
   spots.forEach((s) => {
-    const coord = parseValidCoordinate(s.latitude, s.longitude);
+    const targetLat = s.navigation?.latitude ?? s.latitude;
+    const targetLng = s.navigation?.longitude ?? s.longitude;
+    const targetName = s.navigation?.name || s.name || '스팟';
+    const coord = parseValidCoordinate(targetLat, targetLng);
     if (coord) {
       validSpots.push({
-        name: s.name || '스팟',
+        name: targetName,
         latitude: coord.latitude,
         longitude: coord.longitude,
+        navigation: s.navigation,
       });
     }
   });
