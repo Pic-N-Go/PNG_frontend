@@ -167,6 +167,8 @@ export default function CommunityFeedScreen() {
   const goToProfile = () => rootNavigation.navigate('CommunityDetailStack', { screen: 'UserProfile' });
   const goToContestResult = (_item: ContestPastItem) =>
     rootNavigation.navigate('CommunityDetailStack', { screen: 'ContestResult' });
+  const goToAllEntries = () =>
+    rootNavigation.navigate('CommunityDetailStack', { screen: 'ContestAllEntries' });
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right']}>
@@ -183,9 +185,12 @@ export default function CommunityFeedScreen() {
             <Text allowFontScaling={false} style={{ flex: 1, fontFamily: 'Pretendard-SemiBold', fontSize: FONT_2XL, color: '#000', letterSpacing: -1.2 }}>
               커뮤니티
             </Text>
-            <Pressable onPress={() => setSearchVisible(true)} className="items-center justify-center" style={{ width: normalize(38), height: normalize(38), borderRadius: normalize(19), backgroundColor: SURFACE }}>
-              <Search size={normalize(18)} color="#000" strokeWidth={1.8} />
-            </Pressable>
+            {/* 검색은 게시글·갤러리 콘텐츠 대상이라 콘테스트 탭에서는 숨긴다(대상이 없음). + 버튼은 유지. */}
+            {segment !== 'contest' && (
+              <Pressable onPress={() => setSearchVisible(true)} className="items-center justify-center" style={{ width: normalize(38), height: normalize(38), borderRadius: normalize(19), backgroundColor: SURFACE }}>
+                <Search size={normalize(18)} color="#000" strokeWidth={1.8} />
+              </Pressable>
+            )}
             <Pressable
               onPress={() => rootNavigation.navigate('CommunityDetailStack', { screen: 'CommunityWrite' })}
               className="items-center justify-center"
@@ -225,7 +230,7 @@ export default function CommunityFeedScreen() {
       </View>
 
       {segment === 'contest' ? (
-        <ContestSegment onSelectPastItem={goToContestResult} />
+        <ContestSegment onSelectPastItem={goToContestResult} onSeeAllEntries={goToAllEntries} />
       ) : (
         <ScrollView onScroll={handleScroll} scrollEventThrottle={16} contentContainerStyle={{ paddingBottom: normalize(20) }}>
           {segment === 'posts' && (

@@ -4,11 +4,15 @@ import ContestActiveTab from '@/components/community/ContestActiveTab';
 import ContestMyEntryTab from '@/components/community/ContestMyEntryTab';
 import ContestPastTab from '@/components/community/ContestPastTab';
 import SubmitEntrySheet from '@/components/community/SubmitEntrySheet';
+import Toast from '@/components/common/Toast';
+import { voteHaptic } from '@/utils/haptics';
 import { ContestGoalInfo, ContestPastItem, ContestSubmission, ContestVoteEntry } from '@/types/community';
 import { FONT_SM } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
 
 type SubtabKey = 'active' | 'mine' | 'past';
+
+const MAX_VOTES = 3;
 
 const SUBTABS: { key: SubtabKey; label: string }[] = [
   { key: 'active', label: '진행중' },
@@ -28,15 +32,15 @@ const CONTEST_GOAL: ContestGoalInfo = {
 
 const INITIAL_RANKING: ContestVoteEntry[] = [
   { id: '1', rank: 1, author: '@sunset_jk', place: '광안리 · 05:30', votes: 67, voted: false, gradient: ['#2b2338', '#7a3b4e', '#e0956d'] },
-  { id: '2', rank: 2, author: '@minsoo', votes: 42, voted: false, gradient: ['#12242a', '#2f5a5e', '#7fa39a'] },
-  { id: '3', rank: 3, author: '@yujin', votes: 31, voted: false, gradient: ['#2a1830', '#6b3a5e', '#c98b9c'] },
+  { id: '2', rank: 2, author: '@minsoo', place: '다대포', votes: 42, voted: false, gradient: ['#12242a', '#2f5a5e', '#7fa39a'] },
+  { id: '3', rank: 3, author: '@yujin', place: '청사포', votes: 31, voted: false, gradient: ['#2a1830', '#6b3a5e', '#c98b9c'] },
 ];
 
 const INITIAL_SUBMISSIONS: ContestVoteEntry[] = [
-  { id: '4', rank: 4, author: '@haneul', votes: 28, voted: false, gradient: ['#2b2a1c', '#6b6142', '#b5a173'] },
-  { id: '5', rank: 5, author: '@jin_00', votes: 24, voted: false, gradient: ['#0f2a22', '#2f6a52', '#6fae8c'] },
-  { id: '6', rank: 6, author: '@seoyeon', votes: 19, voted: false, gradient: ['#0d0b22', '#241f4a', '#4b4380'] },
-  { id: '7', rank: 7, author: '@dawnlee', votes: 15, voted: false, gradient: ['#2a1030', '#8b4438', '#f0c89a'] },
+  { id: '4', rank: 4, author: '@haneul', place: '송정', votes: 28, voted: false, gradient: ['#2b2a1c', '#6b6142', '#b5a173'] },
+  { id: '5', rank: 5, author: '@jin_00', place: '이기대', votes: 24, voted: false, gradient: ['#0f2a22', '#2f6a52', '#6fae8c'] },
+  { id: '6', rank: 6, author: '@seoyeon', place: '광안리', votes: 19, voted: false, gradient: ['#0d0b22', '#241f4a', '#4b4380'] },
+  { id: '7', rank: 7, author: '@dawnlee', place: '해운대', votes: 15, voted: false, gradient: ['#2a1030', '#8b4438', '#f0c89a'] },
 ];
 
 const MY_SUBMISSION: ContestSubmission = {
@@ -64,18 +68,22 @@ const PAST_ITEMS: ContestPastItem[] = [
 
 interface Props {
   onSelectPastItem: (item: ContestPastItem) => void;
+  onSeeAllEntries: () => void;
 }
 
-export default function ContestSegment({ onSelectPastItem }: Props) {
+export default function ContestSegment({ onSelectPastItem, onSeeAllEntries }: Props) {
   const [subtab, setSubtab] = useState<SubtabKey>('active');
   const [ranking, setRanking] = useState<ContestVoteEntry[]>(INITIAL_RANKING);
   const [submissions, setSubmissions] = useState<ContestVoteEntry[]>(INITIAL_SUBMISSIONS);
-  const [votesLeft, setVotesLeft] = useState(3);
+  const [votesLeft, setVotesLeft] = useState(MAX_VOTES);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastVisible, setToastVisible] = useState(false);
   const [submission, setSubmission] = useState<ContestSubmission>(MY_SUBMISSION);
   const [submitSheetVisible, setSubmitSheetVisible] = useState(false);
 
-  // 낙관적 업데이트: 투표 즉시 voted/votes 반영, 확인 모달 없음(핸드오프 "시안 1b" 기준).
+  // 낙관적 업데이트: 투표 즉시 voted/votes 반영, 확인 모달 없음.
   // id가 ranking/submissions 어느 배열에 있든 매칭되는 항목만 갈아끼운다.
+  // 표가 하루 3개뿐이라 소비된 감각이 즉시 보여야 해서, 색 반전에 더해 토스트와 햅틱으로 알린다.
   const toggleVote = (id: string) => {
     let votesLeftDelta = 0;
     const apply = (item: ContestVoteEntry): ContestVoteEntry => {
@@ -90,7 +98,16 @@ export default function ContestSegment({ onSelectPastItem }: Props) {
     };
     setRanking((prev) => prev.map(apply));
     setSubmissions((prev) => prev.map(apply));
-    setVotesLeft((v) => Math.max(0, Math.min(3, v + votesLeftDelta)));
+
+    const remaining = Math.max(0, Math.min(MAX_VOTES, votesLeft + votesLeftDelta));
+    setVotesLeft(remaining);
+
+    if (votesLeftDelta === -1) {
+      const target = [...ranking, ...submissions].find((item) => item.id === id);
+      voteHaptic();
+      setToastMessage(`${target?.author ?? ''} 님에게 투표했어요 · ${remaining}/${MAX_VOTES}`);
+      setToastVisible(true);
+    }
   };
 
   return (
@@ -118,7 +135,7 @@ export default function ContestSegment({ onSelectPastItem }: Props) {
           hasSubmitted={submission.hasEntry}
           onVote={toggleVote}
           onSubmit={() => setSubmitSheetVisible(true)}
-          onSeeAll={() => {}}
+          onSeeAll={onSeeAllEntries}
         />
       )}
       {subtab === 'mine' && (
@@ -132,6 +149,8 @@ export default function ContestSegment({ onSelectPastItem }: Props) {
         />
       )}
       {subtab === 'past' && <ContestPastTab items={PAST_ITEMS} onSelectItem={onSelectPastItem} />}
+
+      <Toast message={toastMessage} visible={toastVisible} onHide={() => setToastVisible(false)} />
 
       <SubmitEntrySheet
         visible={submitSheetVisible}

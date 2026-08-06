@@ -256,7 +256,7 @@ export default function SubmitEntrySheet({ visible, onClose, onSubmit }: Props) 
         )}
       </ScrollView>
 
-      <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(4) }}>
+      <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(16) }}>
         <Pressable
           onPress={handleSubmit}
           disabled={!photoUri}

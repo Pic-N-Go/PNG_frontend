@@ -369,39 +369,32 @@
       }
 
       /* ── 토스트 ── */
+      /* 액션 버튼이 없는 결과 통보라 스낵바가 아니라 토스트 규약을 따른다
+         (docs/guide/dev/ui-publishing.md "토스트 · 스낵바 패턴"). */
       .toast {
         position: absolute;
-        left: 28px;
-        right: 28px;
-        bottom: 28px;
-        height: 48px;
-        border-radius: 24px;
-        background: rgba(28, 28, 30, 0.94);
+        left: 50%;
+        bottom: 40px;
+        transform: translateX(-50%) translateY(16px);
+        z-index: 80;
+        height: 44px;
+        border-radius: 22px;
+        background: rgba(0, 0, 0, 0.75);
         display: flex;
         align-items: center;
-        padding: 0 18px;
-        gap: 10px;
+        padding: 0 20px;
+        color: #fff;
+        font-size: var(--font-base);
+        font-weight: 500;
+        letter-spacing: -0.2px;
+        white-space: nowrap;
         opacity: 0;
-        transform: translateY(8px);
-        transition: all 0.22s;
         pointer-events: none;
+        transition: opacity 0.3s, transform 0.3s;
       }
       .toast.is-open {
         opacity: 1;
-        transform: translateY(0);
-      }
-      .toast__text {
-        flex: 1;
-        font-size: var(--font-sm);
-        font-weight: 500;
-        color: #fff;
-        letter-spacing: -0.2px;
-      }
-      .toast__votes {
-        font-size: var(--font-xs);
-        font-weight: 600;
-        color: rgba(255, 255, 255, 0.6);
-        letter-spacing: -0.1px;
+        transform: translateX(-50%) translateY(0);
       }
 
       /* ── 상태 전환 (목업 확인용) ── */
@@ -544,10 +537,7 @@
         </div>
       </div>
 
-      <div class="toast" id="toast">
-        <span class="toast__text" id="toast-text">투표했어요</span>
-        <span class="toast__votes" id="toast-votes">남은 표 2/3</span>
-      </div>
+      <div class="toast" id="toast"><span id="toast-text">@rimi 님에게 투표했어요 · 2/3</span></div>
     </div>
 
     <script>
@@ -638,17 +628,19 @@
         btn.classList.add('is-voted');
         votesLeft -= 1;
         renderVotes();
-        showToast('투표했어요');
+        const name = btn.closest('.card').querySelector('.card__name').textContent;
+        showToast(name + ' 님에게 투표했어요 · ' + votesLeft + '/3');
       }
 
       let toastTimer = null;
+      /* 표가 하루 3개뿐이라 소비된 감각이 즉시 보여야 해서 남은 표를 문구에 함께 넣는다.
+         RN에서는 여기에 더해 Haptics.impactAsync(Light)가 함께 발생한다. */
       function showToast(text) {
         const toast = document.getElementById('toast');
         document.getElementById('toast-text').textContent = text;
-        document.getElementById('toast-votes').textContent = '남은 표 ' + votesLeft + '/3';
         toast.classList.add('is-open');
         clearTimeout(toastTimer);
-        toastTimer = setTimeout(() => toast.classList.remove('is-open'), 2200);
+        toastTimer = setTimeout(() => toast.classList.remove('is-open'), 2600);
       }
 
       function switchSort(next, el) {

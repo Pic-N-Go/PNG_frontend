@@ -166,6 +166,34 @@
       }
 
       /* ── Sub Tab (언더라인) ── */
+      /* ── Toast ── */
+      /* 액션 버튼이 없는 결과 통보 (docs/guide/dev/ui-publishing.md "토스트 · 스낵바 패턴") */
+      .toast {
+        position: absolute;
+        left: 50%;
+        bottom: 100px;
+        transform: translateX(-50%) translateY(16px);
+        z-index: 80;
+        height: 44px;
+        border-radius: 22px;
+        background: rgba(0, 0, 0, 0.75);
+        display: flex;
+        align-items: center;
+        padding: 0 20px;
+        color: #fff;
+        font-size: var(--font-base);
+        font-weight: 500;
+        letter-spacing: -0.2px;
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s, transform 0.3s;
+      }
+      .toast.is-open {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+
       /* 콘테스트 탭에서는 타이틀·세그먼트를 스크롤 아웃시키고 이 탭 행만 고정한다.
          헤더 전체(152px)를 물고 있으면 사진을 훑는 화면에서 손해라 핸드오프 2b가 이 방식이다. */
       .phone-scroll.is-contest .page-nav {
@@ -1638,7 +1666,9 @@
         </button>
         <div class="tab-bar__indicator"></div>
       </div>
+      <div class="toast" id="toast-vote"><span id="toast-vote-text"></span></div>
     </div>
+
 
     <script>
       /* ── 콜랩스 헤더 ── */
@@ -1727,9 +1757,18 @@
           })
           .join('');
       }
+      /* 표가 하루 3개뿐이라 소비된 감각이 즉시 보여야 해서 남은 표를 문구에 함께 넣는다.
+         RN에서는 여기에 더해 Haptics.impactAsync(Light)가 함께 발생한다. */
+      var contestVotesLeft = 3;
       function voteContestGrid(rank) {
+        if (contestVoted[rank] || contestVotesLeft <= 0) return;
         contestVoted[rank] = true;
+        contestVotesLeft -= 1;
         renderContestGrid();
+        var item = contestGridItems.filter(function (it) { return it.rank === rank; })[0];
+        document.getElementById('toast-vote-text').textContent =
+          item.user + ' 님에게 투표했어요 · ' + contestVotesLeft + '/3';
+        showToast('toast-vote');
       }
       renderContestGrid();
 
