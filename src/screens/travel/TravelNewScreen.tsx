@@ -24,7 +24,7 @@ import {
 
 import { StatusBar } from 'expo-status-bar';
 import { useCourseStore, Spot } from '@/store/useCourseStore';
-import Toast from '@/components/auth/Toast';
+import Toast from '@/components/common/Toast';
 
 import { BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';

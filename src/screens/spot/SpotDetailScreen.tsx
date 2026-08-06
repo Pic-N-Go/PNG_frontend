@@ -5,7 +5,7 @@ import Animated, { useAnimatedRef, useAnimatedScrollHandler, useSharedValue, run
 import { IconChevronLeft } from '@tabler/icons-react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { SpotStackParamList } from '@/navigation/stacks/SpotStack';
-import Toast from '@/components/auth/Toast';
+import Toast from '@/components/common/Toast';
 import SpotHero from '@/components/spot/SpotHero';
 import SpotInfoHeader from '@/components/spot/SpotInfoHeader';
 import SpotTabBar, { type SpotTabKey } from '@/components/spot/SpotTabBar';

@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconChevronLeft } from '@tabler/icons-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { FONT_SM } from '@/constants/layout';
-import Toast from '@/components/auth/Toast';
+import Toast from '@/components/common/Toast';
 
 type FollowTab = 'followers' | 'following';
 

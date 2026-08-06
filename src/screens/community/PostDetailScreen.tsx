@@ -9,7 +9,7 @@ import PostReportSheet from '@/components/community/PostReportSheet';
 import PhotoLightbox from '@/components/community/PhotoLightbox';
 import ConfirmModal from '@/components/common/ConfirmModal';
 import ShareSheet from '@/components/common/ShareSheet';
-import Toast from '@/components/auth/Toast';
+import Toast from '@/components/common/Toast';
 import { useKeyboardOverlap } from '@/hooks/useKeyboardHeight';
 import { CommunityDetailStackParamList } from '@/navigation/stacks/CommunityDetailStack';
 import { Comment, PostDetail, ReportReasonId } from '@/types/community';
