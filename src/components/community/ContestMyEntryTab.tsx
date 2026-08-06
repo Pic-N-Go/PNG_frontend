@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { Camera, Edit3, MapPin, RotateCcw, X } from 'lucide-react-native';
 import BottomSheet from '@/components/common/BottomSheet';
 import ConfirmModal from '@/components/common/ConfirmModal';
@@ -92,7 +92,8 @@ export default function ContestMyEntryTab({ submission, onUpdateCaption, onWithd
           {/* 출품작 있음 */}
           <View style={{ paddingHorizontal: GRID_PADDING, paddingBottom: normalize(20) }}>
             <View style={{ borderRadius: normalize(20), backgroundColor: SURFACE, overflow: 'hidden' }}>
-              <View style={{ width: '100%', aspectRatio: 4 / 3, backgroundColor: entry.photoGradient[0] }}>
+              <View style={{ width: '100%', aspectRatio: 4 / 3, backgroundColor: entry.photoGradient?.[0] ?? SURFACE }}>
+                {entry.photoUri && <Image source={{ uri: entry.photoUri }} resizeMode="cover" className="w-full h-full" />}
                 <View style={{ position: 'absolute', bottom: normalize(12), left: normalize(12), right: normalize(12) }}>
                   <Text
                     allowFontScaling={false}
@@ -257,7 +258,9 @@ export default function ContestMyEntryTab({ submission, onUpdateCaption, onWithd
         </View>
 
         <View className="flex-row items-center" style={{ paddingHorizontal: GRID_PADDING, paddingBottom: normalize(14), gap: normalize(12) }}>
-          <View style={{ width: normalize(64), height: normalize(64), borderRadius: normalize(12), backgroundColor: entry?.photoGradient[0] ?? SURFACE }} />
+          <View style={{ width: normalize(64), height: normalize(64), borderRadius: normalize(12), overflow: 'hidden', backgroundColor: entry?.photoGradient?.[0] ?? SURFACE }}>
+            {entry?.photoUri && <Image source={{ uri: entry.photoUri }} resizeMode="cover" className="w-full h-full" />}
+          </View>
           <View className="flex-1">
             <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, letterSpacing: -0.2, color: '#000' }}>
               {`${THEME_LABEL} · ${entry?.rank ?? ''}위`}

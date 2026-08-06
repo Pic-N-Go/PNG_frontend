@@ -140,7 +140,7 @@ export default function ContestSegment({ onSelectPastItem }: Props) {
           setSubmission({
             hasEntry: true,
             entry: {
-              photoGradient: payload.photoGradient,
+              photoUri: payload.photoUri,
               caption: payload.caption,
               rank: submissions.length + 4,
               voteCount: 0,

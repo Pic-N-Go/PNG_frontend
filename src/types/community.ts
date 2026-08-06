@@ -88,7 +88,10 @@ export interface ContestVoteEntry {
 export interface ContestSubmission {
   hasEntry: boolean;
   entry?: {
-    photoGradient: [string, string, string];
+    /** 목업 출품작용 대표색. 사용자가 직접 고른 사진은 photoUri를 쓴다(둘 중 하나만 존재). */
+    photoGradient?: [string, string, string];
+    /** 사용자가 갤러리에서 고른 사진의 로컬 uri. 업로드 연동 전까지는 기기 안에만 있다. */
+    photoUri?: string;
     caption: string;
     rank: number;
     voteCount: number;

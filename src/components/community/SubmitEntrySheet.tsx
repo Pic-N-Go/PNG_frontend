@@ -1,12 +1,13 @@
-import React, { useState } from 'react';
-import { Dimensions, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import React, { useRef, useState } from 'react';
+import { Alert, Dimensions, Image, Linking, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 import { Camera, Clock, Info, MapPin, Sun, X } from 'lucide-react-native';
 import BottomSheet from '@/components/common/BottomSheet';
 import { BUTTON_RADIUS, FONT_2XS, FONT_LG, FONT_MD, FONT_SM, FONT_XS, GRID_PADDING } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 
 export interface SubmitEntryPayload {
-  photoGradient: [string, string, string];
+  photoUri: string;
   caption: string;
   location: string;
 }
@@ -24,29 +25,16 @@ const CAPTION_MAX = 200;
 // 내부 스크롤 영역에 배정한다. BookmarkSheet.tsx의 SCROLL_MAX 산정 방식과 동일하다.
 const SCROLL_MAX = Dimensions.get('window').height * 0.8 - normalize(200);
 
-interface PhotoPreset {
-  photoGradient: [string, string, string];
-  timeLabel: string;
-  weatherLabel: string;
-  cameraLabel: string;
-  location: string;
-}
-
-// 실제 카메라/갤러리 연동은 이번 스코프가 아니라, 목업의 gradient 프리셋 중 고르는 UI로 대체한다.
-// 값은 ContestSegment의 목업 데이터와 겹치는 그라디언트를 재사용했다.
-const PHOTO_PRESETS: PhotoPreset[] = [
-  { photoGradient: ['#1a1530', '#b44a3a', '#f0c89a'], timeLabel: '05:32', weatherLabel: '맑음', cameraLabel: 'Sony A7IV · 24mm', location: '광안리 해수욕장' },
-  { photoGradient: ['#0f2027', '#203a43', '#e8a87c'], timeLabel: '17:48', weatherLabel: '맑음', cameraLabel: 'Canon R6II · 35mm', location: '경복궁' },
-  { photoGradient: ['#232526', '#8e7b5a', '#8e7b5a'], timeLabel: '17:42', weatherLabel: '맑음', cameraLabel: 'Sony A7IV · 24mm', location: '서울 종로 세운상가' },
-  { photoGradient: ['#8b4a6b', '#d4856a', '#f0c89a'], timeLabel: '18:05', weatherLabel: '맑음', cameraLabel: 'Fujifilm X-T5 · 23mm', location: '해운대 블루라인파크' },
-];
+// ponytail: EXIF 파싱(촬영일시·날씨·카메라·위치)은 API 담당자 몫이라 아직 없다.
+// 그때까지 자동 인식 항목은 전부 이 placeholder로 두고, 연동되면 값만 갈아끼운다.
+const EXIF_PENDING = '—';
 
 export default function SubmitEntrySheet({ visible, onClose, onSubmit }: Props) {
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
+  const [photoUri, setPhotoUri] = useState<string | null>(null);
   const [caption, setCaption] = useState('');
 
   const reset = () => {
-    setSelectedIndex(null);
+    setPhotoUri(null);
     setCaption('');
   };
 
@@ -55,11 +43,45 @@ export default function SubmitEntrySheet({ visible, onClose, onSubmit }: Props) 
     onClose();
   };
 
-  const selected = selectedIndex != null ? PHOTO_PRESETS[selectedIndex] : null;
+  // iOS PHPickerViewController는 앱 프로세스 밖에서 뜨므로 권한 요청이 필요 없다.
+  // Android에서만 물어보고, 거부한 사용자는 설정으로 안내한다(CommunityWriteScreen과 동일 패턴).
+  const picking = useRef(false);
+  const pickPhoto = async () => {
+    if (picking.current) return;
+    picking.current = true;
+    try {
+      if (Platform.OS === 'android') {
+        const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (!permission.granted) {
+          Alert.alert(
+            '사진 접근 권한 필요',
+            '설정에서 사진 접근을 허용해 주세요.',
+            permission.canAskAgain
+              ? [{ text: '확인' }]
+              : [{ text: '취소', style: 'cancel' }, { text: '설정 열기', onPress: () => Linking.openSettings() }],
+          );
+          return;
+        }
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsMultipleSelection: false,
+        quality: 0.8,
+        preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
+      });
+      if (result.canceled) return;
+
+      const picked = result.assets[0];
+      if (picked) setPhotoUri(picked.uri);
+    } finally {
+      picking.current = false;
+    }
+  };
 
   const handleSubmit = () => {
-    if (!selected) return;
-    onSubmit({ photoGradient: selected.photoGradient, caption: caption.trim(), location: selected.location });
+    if (!photoUri) return;
+    onSubmit({ photoUri, caption: caption.trim(), location: EXIF_PENDING });
     reset();
   };
 
@@ -87,11 +109,12 @@ export default function SubmitEntrySheet({ visible, onClose, onSubmit }: Props) 
       </View>
 
       <ScrollView style={{ maxHeight: SCROLL_MAX }} showsVerticalScrollIndicator={false}>
-        {selected ? (
+        {photoUri ? (
           <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(6), paddingBottom: normalize(14) }}>
-            <View style={{ width: '100%', aspectRatio: 4 / 3, borderRadius: normalize(16), overflow: 'hidden', backgroundColor: selected.photoGradient[0] }}>
+            <View style={{ width: '100%', aspectRatio: 4 / 3, borderRadius: normalize(16), overflow: 'hidden', backgroundColor: SURFACE }}>
+              <Image source={{ uri: photoUri }} resizeMode="cover" className="w-full h-full" />
               <Pressable
-                onPress={() => setSelectedIndex(null)}
+                onPress={pickPhoto}
                 accessibilityRole="button"
                 accessibilityLabel="사진 변경"
                 className="absolute flex-row items-center"
@@ -112,27 +135,56 @@ export default function SubmitEntrySheet({ visible, onClose, onSubmit }: Props) 
           </View>
         ) : (
           <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(6), paddingBottom: normalize(14) }}>
-            <View className="flex-row flex-wrap justify-between">
-              {PHOTO_PRESETS.map((preset, index) => (
-                <Pressable
-                  key={index}
-                  onPress={() => setSelectedIndex(index)}
-                  accessibilityRole="button"
-                  accessibilityLabel="사진 선택"
-                  style={{ width: '48%', aspectRatio: 4 / 3, borderRadius: normalize(14), backgroundColor: preset.photoGradient[0], marginBottom: normalize(10) }}
-                />
-              ))}
-            </View>
+            <Pressable
+              onPress={pickPhoto}
+              accessibilityRole="button"
+              accessibilityLabel="사진 선택"
+              className="items-center justify-center"
+              style={{
+                width: '100%',
+                aspectRatio: 4 / 3,
+                borderRadius: normalize(16),
+                backgroundColor: 'rgba(227,27,89,0.04)',
+                borderWidth: 1.5,
+                borderColor: 'rgba(227,27,89,0.25)',
+                gap: normalize(10),
+              }}
+            >
+              <View
+                className="items-center justify-center"
+                style={{ width: normalize(56), height: normalize(56), borderRadius: normalize(16), backgroundColor: 'rgba(227,27,89,0.1)' }}
+              >
+                <Camera size={normalize(26)} color={ACCENT} strokeWidth={1.7} />
+              </View>
+              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, letterSpacing: -0.2, color: ACCENT }}>
+                사진 선택
+              </Text>
+              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, letterSpacing: -0.1, color: 'rgba(0,0,0,0.4)' }}>
+                골든아워 주제에 어울리는 사진 1장
+              </Text>
+            </Pressable>
             <Text
               allowFontScaling={false}
-              style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, lineHeight: FONT_XS * 1.6, letterSpacing: -0.15, color: 'rgba(0,0,0,0.35)', textAlign: 'center', marginTop: normalize(4) }}
+              style={{
+                paddingVertical: normalize(14),
+                paddingHorizontal: normalize(14),
+                marginTop: normalize(14),
+                backgroundColor: SURFACE,
+                borderRadius: normalize(14),
+                fontFamily: 'Pretendard-Regular',
+                fontSize: FONT_XS,
+                lineHeight: FONT_XS * 1.6,
+                letterSpacing: -0.15,
+                color: 'rgba(0,0,0,0.35)',
+                textAlign: 'center',
+              }}
             >
               사진을 선택하면 촬영정보 · 위치가 자동으로 채워져요
             </Text>
           </View>
         )}
 
-        {selected && (
+        {photoUri && (
           <>
             <View style={{ paddingHorizontal: GRID_PADDING, paddingBottom: normalize(14) }}>
               <View style={{ paddingVertical: normalize(12), paddingHorizontal: normalize(14), backgroundColor: SURFACE, borderRadius: normalize(14) }}>
@@ -145,13 +197,13 @@ export default function SubmitEntrySheet({ visible, onClose, onSubmit }: Props) 
                     출품 후 수정 불가
                   </Text>
                 </View>
-                <InfoRow icon={<Clock size={normalize(14)} color="rgba(0,0,0,0.4)" strokeWidth={1.8} />} label="시간" value={selected.timeLabel} />
+                <InfoRow icon={<Clock size={normalize(14)} color="rgba(0,0,0,0.4)" strokeWidth={1.8} />} label="시간" value={EXIF_PENDING} />
                 <Divider />
-                <InfoRow icon={<Sun size={normalize(14)} color="rgba(0,0,0,0.4)" strokeWidth={1.8} />} label="날씨" value={selected.weatherLabel} />
+                <InfoRow icon={<Sun size={normalize(14)} color="rgba(0,0,0,0.4)" strokeWidth={1.8} />} label="날씨" value={EXIF_PENDING} />
                 <Divider />
-                <InfoRow icon={<Camera size={normalize(14)} color="rgba(0,0,0,0.4)" strokeWidth={1.8} />} label="카메라" value={selected.cameraLabel} />
+                <InfoRow icon={<Camera size={normalize(14)} color="rgba(0,0,0,0.4)" strokeWidth={1.8} />} label="카메라" value={EXIF_PENDING} />
                 <Divider />
-                <InfoRow icon={<MapPin size={normalize(14)} color={ACCENT} strokeWidth={1.8} />} label="위치" value={selected.location} />
+                <InfoRow icon={<MapPin size={normalize(14)} color={ACCENT} strokeWidth={1.8} />} label="위치" value={EXIF_PENDING} />
               </View>
             </View>
 
@@ -207,13 +259,13 @@ export default function SubmitEntrySheet({ visible, onClose, onSubmit }: Props) 
       <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(4) }}>
         <Pressable
           onPress={handleSubmit}
-          disabled={!selected}
+          disabled={!photoUri}
           accessibilityRole="button"
           accessibilityLabel="출품하기"
           className="items-center justify-center"
-          style={{ width: '100%', height: normalize(52), borderRadius: BUTTON_RADIUS, backgroundColor: selected ? ACCENT : SURFACE }}
+          style={{ width: '100%', height: normalize(52), borderRadius: BUTTON_RADIUS, backgroundColor: photoUri ? ACCENT : SURFACE }}
         >
-          <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, letterSpacing: -0.2, color: selected ? '#fff' : 'rgba(0,0,0,0.3)' }}>
+          <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, letterSpacing: -0.2, color: photoUri ? '#fff' : 'rgba(0,0,0,0.3)' }}>
             출품하기
           </Text>
         </Pressable>
