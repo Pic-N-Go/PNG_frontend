@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { useAnimatedRef, useAnimatedScrollHandler, useSharedValue, runOnJS } from 'react-native-reanimated';
 import { IconChevronLeft } from '@tabler/icons-react-native';
@@ -21,7 +21,8 @@ import NaviSheet from '@/components/spot/NaviSheet';
 import ShareSheet from '@/components/spot/ShareSheet';
 import BookmarkSheet from '@/components/spot/BookmarkSheet';
 import { useBookmarkCollections, useSpotDetail, useSpotPhotogenicScore } from '@/hooks/useSpot';
-import { BUTTON_RADIUS, GRID_PADDING, TAB_BAR_HEIGHT } from '@/constants/layout';
+import { useKeyboardOverlap } from '@/hooks/useKeyboardHeight';
+import { BUTTON_RADIUS, GRID_PADDING, SPACING_LG } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 
 // 히어로 이미지 갤러리는 사진 탭 담당자 스코프 — 실제 이미지 연동 전까지 플레이스홀더 페이지 수.
@@ -33,6 +34,7 @@ type Props = NativeStackScreenProps<SpotStackParamList, 'SpotDetail'>;
 export default function SpotDetailScreen({ navigation, route }: Props) {
   const { spotId } = route.params;
   const insets = useSafeAreaInsets();
+  const keyboardOverlap = useKeyboardOverlap();
   const scrollRef = useAnimatedRef<Animated.ScrollView>();
   const scrollY = useSharedValue(0);
 
@@ -150,14 +152,18 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
       {activeTab === 'chat' ? (
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+        // KeyboardAvoidingView를 쓰지 않는다 — Android의 KAV는 축소량이 정확하지 않고 키보드를
+        // 닫을 때 직전 값이 남는다. useKeyboardOverlap은 화면 하단부터 키보드 상단까지를 직접 재므로
+        // 열림·닫힘 양쪽이 확정적이다(기준 설명은 그 훅의 주석).
+        // 키보드가 열렸으면 insets.bottom을 쓰지 않는다 — 내비바 구간이 overlap에 이미 포함돼 있다.
+        <View style={{ flex: 1 }}>
           {renderBackButton()}
           {!chatInputFocused && <SpotInfoHeader spot={spot} />}
           <SpotTabBar activeTab={activeTab} onChange={handleTabChange} />
-          <View style={{ flex: 1, paddingBottom: insets.bottom }}>
+          <View style={{ flex: 1, paddingBottom: keyboardOverlap || insets.bottom }}>
             <ChatTab onFocusChange={setChatInputFocused} />
           </View>
-        </KeyboardAvoidingView>
+        </View>
       ) : (
         <Animated.ScrollView
           ref={scrollRef}
@@ -165,7 +171,11 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
           scrollEventThrottle={16}
           stickyHeaderIndices={[2]}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: TAB_BAR_HEIGHT + insets.bottom }}
+          // TAB_BAR_HEIGHT를 더하지 않는다 — SpotStack은 MainTab의 형제라(navigation/index.tsx)
+          // 이 화면에서는 탭바가 가려져 보이지 않는다. 더하면 없는 탭바 자리로 80dp가 비어,
+          // 리뷰 탭 CTA 아래에 커다란 흰 공백이 생긴다. 필요한 건 시스템 내비바·홈 인디케이터를
+          // 피하는 인셋과 최소 여백뿐이다.
+          contentContainerStyle={{ paddingBottom: SPACING_LG + insets.bottom }}
         >
           <SpotHero
             scrollY={scrollY}

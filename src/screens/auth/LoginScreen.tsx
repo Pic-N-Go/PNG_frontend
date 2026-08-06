@@ -20,6 +20,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { authApi, toErrorMessage } from "@/api/auth";
 import AuthInput from "@/components/auth/AuthInput";
 import Toast from "@/components/auth/Toast";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { normalizeFontSize } from "@/utils/normalize";
 import {
   BUTTON_HEIGHT,
@@ -62,6 +63,7 @@ function formatTimer(sec: number) {
 
 export default function LoginScreen({ navigation }: Props) {
   const setAuth = useAuthStore((s) => s.setAuth);
+  const insets = useSafeAreaInsets();
 
   const { height: SCREEN_H } = useWindowDimensions();
   const initialHeroHeightRef = useRef<number | null>(null);
@@ -561,9 +563,14 @@ export default function LoginScreen({ navigation }: Props) {
         statusBarTranslucent
         onRequestClose={closeSheet}
       >
+        {/* Android도 behavior가 필요하다 — 이유는 BottomSheet.tsx의 주석 참고(엣지투엣지라
+            adjustResize가 창을 줄이지 않는다). flex-end로 붙인 시트라 height가 맞다.
+            주의: 이 앱의 다른 화면 다수가 아직 Android에서 undefined다(ReviewWriteScreen·
+            SpotDetailScreen 채팅·ProfileEditScreen·ComposeInquiryScreen). 그건 옳아서가 아니라
+            아직 안 고친 것이다 — 복사하지 말 것. */}
         <KeyboardAvoidingView
           style={{ flex: 1 }}
-          behavior={Platform.OS === "ios" ? "padding" : undefined}
+          behavior={Platform.OS === "ios" ? "padding" : "height"}
         >
           <Pressable
             style={{
@@ -579,7 +586,9 @@ export default function LoginScreen({ navigation }: Props) {
                 backgroundColor: "#fff",
                 borderTopLeftRadius: 20,
                 borderTopRightRadius: 20,
-                paddingBottom: 40,
+                // 40 고정이면 안드로이드 내비바(48dp)를 못 덮어 인증코드 발송 버튼이 그 아래로 깔린다.
+                // 공용 BottomSheet.tsx와 같은 식으로 맞춘다.
+                paddingBottom: Math.max(insets.bottom, SPACING_LG),
               }}
             >
               {/* Handle */}

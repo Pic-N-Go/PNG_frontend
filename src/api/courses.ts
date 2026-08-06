@@ -26,7 +26,7 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
       signal: controller.signal,
     });
 
-    if (!res.ok) throw await toHttpError(res);
+    if (!res.ok) throw await toHttpError(res, token ?? undefined);
 
     const text = await res.text();
     return text ? JSON.parse(text) : undefined;

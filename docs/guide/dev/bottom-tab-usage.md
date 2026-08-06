@@ -15,7 +15,7 @@
 import React from 'react';
 import { ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { TAB_BAR_HEIGHT, CONTENT_PADDING } from '@/constants/layout';
+import { CONTENT_PADDING, SPACING_LG } from '@/constants/layout';
 
 export default function TravelListScreen() {
   const insets = useSafeAreaInsets();
@@ -24,8 +24,8 @@ export default function TravelListScreen() {
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
       <ScrollView
         showsVerticalScrollIndicator={false}
-        // ↓ 이 한 줄만 지키면 콘텐츠가 하단탭에 가려지지 않음
-        contentContainerStyle={{ paddingBottom: TAB_BAR_HEIGHT + insets.bottom }}
+        // ↓ 탭바 높이를 더하지 않는다. 마지막 콘텐츠와 탭바 사이 최소 여백만 준다.
+        contentContainerStyle={{ paddingBottom: SPACING_LG }}
       >
         <View style={{ paddingHorizontal: CONTENT_PADDING, paddingTop: insets.top }}>
           <Text>출사 화면 내용</Text>
@@ -45,11 +45,16 @@ export default function TravelListScreen() {
 
 ## 지켜야 할 규칙 2가지
 
-1. **스크롤 화면 하단 여백** — 콘텐츠가 탭바에 가려지지 않게 `TAB_BAR_HEIGHT`(`src/constants/layout.ts`)만큼 패딩:
+1. **스크롤 화면 하단 여백** — `TAB_BAR_HEIGHT`도 `insets.bottom`도 **더하지 않습니다**:
    ```tsx
-   contentContainerStyle={{ paddingBottom: TAB_BAR_HEIGHT + insets.bottom }}
+   contentContainerStyle={{ paddingBottom: SPACING_LG }}
    ```
+   `MainTab`은 기본(non-absolute) 하단 탭 내비게이터라 화면 영역이 **이미** 탭바 높이만큼 줄어든 상태로 잡힙니다. 시스템 내비바·홈 인디케이터는 탭바 자신의 `paddingBottom: insets.bottom`(`TabBar.tsx`)이 덮습니다. 여기서 또 더하면 그만큼 죽은 공백이 두 배로 생깁니다(안드로이드 기준 128dp).
+
+   여기서 필요한 건 마지막 콘텐츠가 탭바 경계선에 붙지 않게 하는 **최소 여백**뿐입니다.
    (참고: [`HomeScreen.tsx`](../../../src/screens/home/HomeScreen.tsx))
+
+   > **탭바가 없는 화면은 다릅니다.** `SpotStack`·`Wishlist`·`WishlistSetting`·`Map`처럼 `MainTab`의 형제로 루트 스택에 등록된 화면(`src/navigation/index.tsx`)은 탭바를 덮으므로 아무것도 자동으로 확보되지 않습니다. 그쪽은 `paddingBottom: SPACING_LG + insets.bottom`으로 직접 인셋을 챙겨야 합니다. (참고: [`SpotDetailScreen.tsx`](../../../src/screens/spot/SpotDetailScreen.tsx))
 
 2. **다른 탭으로 이동** — 스택 내부에서 탭 전환 시:
    ```ts

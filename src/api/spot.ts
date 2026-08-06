@@ -74,7 +74,7 @@ async function request<T>(path: string, opts: { method?: Method; body?: unknown;
       body: body !== undefined ? JSON.stringify(body) : undefined,
       signal: controller.signal,
     });
-    if (!res.ok) throw await toHttpError(res);
+    if (!res.ok) throw await toHttpError(res, token);
     return await parseBody<T>(res);
   } catch (err) {
     throw toApiError(err);
@@ -140,7 +140,7 @@ async function upload<T>(path: string, form: FormData, token: string): Promise<T
       body: form,
       signal: controller.signal,
     });
-    if (!res.ok) throw await toHttpError(res);
+    if (!res.ok) throw await toHttpError(res, token);
     return await parseBody<T>(res);
   } catch (err) {
     throw toApiError(err);
@@ -176,7 +176,11 @@ export const spotApi = {
   },
 
   // 4. 스팟 상세 정보 조회 (GET /spots/{id})
-  getDetail: (id: string | number) => request<SpotDetailResponse>(`/spots/${id}`),
+  // 비로그인도 조회되지만 토큰이 없으면 서버가 "나"를 몰라 myReviewId가 항상 null로 온다.
+  // 리뷰 탭의 작성/수정 분기가 이 값에 걸려 있어 로그인 상태면 반드시 보낸다.
+  // (응답의 isBookmarked도 유저별 값이지만 mapSpotDetail이 버리고 SpotDetailScreen이
+  //  useBookmarkCollections로 따로 구하므로 여기에 걸려 있지 않다.)
+  getDetail: (id: string | number, token?: string) => request<SpotDetailResponse>(`/spots/${id}`, { token }),
 
   // 5. 스팟 요약 카드 조회 (GET /spots/{id}/summary)
   getSummary: (id: string | number) => request<SpotSummaryResponse>(`/spots/${id}/summary`),

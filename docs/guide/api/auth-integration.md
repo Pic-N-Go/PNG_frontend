@@ -71,7 +71,7 @@ LoginScreen "비밀번호를 잊으셨나요?" 바텀시트 3단계: 이메일 �
 ### 이후
 
 - **기존 유저 이메일 미갱신**: `UserService.getOrCreateSocialUser()`가 기존 유저는 `updateSocialProfile(nickname, profileImageUrl)`만 호출하고 email은 갱신 안 함. 카카오 이메일이 바뀌어도 최초 가입 시점 값(또는 폴백값)이 계속 유지됨 — 의도된 정책인지 확인 필요
-- **토큰 만료 처리**: refresh token 없이 access token 1시간 만료 후 앱 동작 방침 합의
+- **토큰 만료 처리**: refresh token 없이 access token 1시간 만료 후 앱 동작 방침 합의 — 프론트는 임시로 "401 → 즉시 로그아웃"을 적용해 둠. 현재 동작과 리프레시 토큰 도입 시 작업 목록은 [`token-refresh-plan.md`](./token-refresh-plan.md) 참고
 - **닉네임 글자 수**: 백엔드 `@Size(max = 50)`, 프론트 최대 10자 — 기준 통일 필요
 - **관심테마 옵션 범위**: 백엔드 `SpotCategory` 15개 중 프론트가 10개만 노출 — 나머지 5개(`PARK/MOUNTAIN/CITY/FOREST/ETC`) 노출 여부 기획 확인
 

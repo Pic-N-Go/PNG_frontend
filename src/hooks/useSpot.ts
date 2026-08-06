@@ -11,9 +11,12 @@ import type { ReviewCreateRequest, ReviewSortApi } from '@/types/spot';
 const checklistKey = (id: string) => ['spot', id, 'checklist'] as const;
 
 export function useSpotDetail(id: string) {
+  // 응답에 유저별 값(myReviewId·isBookmarked)이 섞여 있어 토큰까지 키에 넣는다. 목록류와 같은 패턴.
+  // 무효화(invalidateReviewCaches)는 ['spot', id, 'detail'] prefix로 걸려 있어 그대로 매칭된다.
+  const token = useAuthStore((s) => s.accessToken);
   return useQuery({
-    queryKey: ['spot', id, 'detail'],
-    queryFn: () => spotApi.getDetail(id),
+    queryKey: ['spot', id, 'detail', token ?? 'guest'],
+    queryFn: () => spotApi.getDetail(id, token ?? undefined),
     enabled: !!id,
     select: mapSpotDetail,
   });

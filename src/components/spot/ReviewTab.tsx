@@ -238,7 +238,9 @@ export default function ReviewTab({ spotId, onWriteReview, onEditReview }: Props
 
       {/* 목업의 구분선(.review-write-sticky border-top)은 제외. 목업엔 CTA 하나뿐이라 목록과 갈라주는
           역할이 있었지만, 회색 더보기 + 핑크 CTA가 나란히 오면 선이 둘 사이를 끊어 간격만 어긋난다. */}
-      <View className="gap-2" style={{ paddingTop: normalize(12), paddingBottom: normalize(24) }}>
+      {/* 하단 여백은 두지 않는다 — 이 탭이 스크롤뷰의 마지막 요소라
+          SpotDetailScreen의 contentContainerStyle(24 + insets.bottom)과 겹쳐 두 겹이 된다. */}
+      <View className="gap-2" style={{ paddingTop: normalize(12) }}>
         {/* 더보기 — 부모가 Animated.ScrollView라 중첩 FlatList/무한 스크롤 대신 명시 버튼으로 페이지를 넘긴다. */}
         {hasNextPage && (
           <Pressable

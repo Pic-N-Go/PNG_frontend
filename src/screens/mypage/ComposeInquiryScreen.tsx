@@ -29,7 +29,7 @@ export default function ComposeInquiryScreen({ navigation }: Props) {
   };
 
   return (
-    <KeyboardAvoidingView className="flex-1 bg-white" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <KeyboardAvoidingView className="flex-1 bg-white" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       {/* Nav */}
       <View className="flex-row items-center justify-between" style={{ height: normalize(52), paddingHorizontal: normalize(12) }}>
         <Pressable onPress={() => navigation.goBack()} hitSlop={8} className="items-center justify-center rounded-full" style={{ width: normalize(36), height: normalize(36) }}>

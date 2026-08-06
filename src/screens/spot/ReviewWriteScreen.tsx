@@ -3,7 +3,7 @@ import {
   View, Text, TextInput, ScrollView, Pressable, Platform, Image,
   KeyboardAvoidingView, ActivityIndicator, Alert, Linking,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as ImagePicker from 'expo-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -44,6 +44,12 @@ const ICON_WEAK = '#ABABAD';   // SURFACE 위, 기존 rgba(0,0,0,0.25~0.3)
 
 // 서버가 code별 한국어 message를 주므로 그대로 노출한다(장수 초과·본인 리뷰 아님 등).
 const errorTextOf = (err: unknown) => (err instanceof ApiError ? err.message : '잠시 후 다시 시도해 주세요.');
+
+/**
+ * 401은 화면에서 알리지 않는다. useAuthStore의 401 핸들러가 이미 만료 Alert을 띄우고 로그아웃까지
+ * 하므로, 여기서 또 띄우면 같은 문구의 다이얼로그가 두 겹으로 쌓인다(그것도 화면이 언마운트되는 중에).
+ */
+const isExpired = (err: unknown) => err instanceof ApiError && err.status === 401;
 
 const CONTENT_MIN = 20;
 const CONTENT_MAX = 500;
@@ -125,6 +131,7 @@ const seedEquipmentOf = (joined: string | null) => {
 export default function ReviewWriteScreen({ route, navigation }: Props) {
   const { spotId, edit } = route.params;
   const isEdit = edit !== undefined;
+  const insets = useSafeAreaInsets();
   const { data: spot } = useSpotDetail(spotId);
   const createReview = useCreateReview(spotId);
   const updateReview = useUpdateReview(spotId);
@@ -150,6 +157,19 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
 
   const trimmed = content.trim();
   const canSubmit = rating > 0 && period !== null && trimmed.length >= CONTENT_MIN;
+
+  // 리뷰 입력창은 별점·날짜·시간대 아래라 키보드가 뜨면 가려진다. 포커스 시 그 위치로 스크롤한다.
+  // 150ms는 리사이즈를 기다리는 어림값이다 — iOS 키보드 애니메이션은 보통 250ms라 스크롤이
+  // 그 도중에 시작된다. 이 섹션 아래로 콘텐츠가 넉넉해(태그·사진·장비) 목표 y가 축소된 최대
+  // 스크롤 범위 안에 있으므로 결과는 같지만, 정확히 하려면 Keyboard.addListener로 바꿔야 한다.
+  // ponytail: 실기기에서 어긋나는 게 확인되기 전까지는 타이머로 둔다.
+  // 언마운트 후 실행돼도 scrollTo는 no-op이고 setState가 없어 정리(clearTimeout)는 생략한다.
+  const scrollRef = React.useRef<ScrollView>(null);
+  const contentSectionY = React.useRef(0);
+  const focusContent = () => {
+    setContentFocused(true);
+    setTimeout(() => scrollRef.current?.scrollTo({ y: Math.max(contentSectionY.current - normalize(12), 0), animated: true }), 150);
+  };
 
   // 등록·수정 성공으로 나가는 건 유실이 아니므로 확인창을 건너뛴다.
   // usePreventRemove는 렌더 시점의 boolean을 읽으므로 ref로는 잠금을 풀 수 없다. 상태로 두고,
@@ -345,7 +365,7 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
       uploadedIds.current.clear();
       photosTouched.current = true;
     } catch (err) {
-      Alert.alert('사진을 삭제하지 못했어요', errorTextOf(err));
+      if (!isExpired(err)) Alert.alert('사진을 삭제하지 못했어요', errorTextOf(err));
     }
   };
 
@@ -357,7 +377,7 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
       files.forEach((f) => uploadedIds.current.add(identityOf(f)));
       photosTouched.current = true;
     } catch (err) {
-      Alert.alert('사진을 추가하지 못했어요', errorTextOf(err));
+      if (!isExpired(err)) Alert.alert('사진을 추가하지 못했어요', errorTextOf(err));
     }
   };
 
@@ -405,7 +425,7 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
           ]);
           return;
         }
-        Alert.alert(isEdit ? '수정 실패' : '등록 실패', errorTextOf(err));
+        if (!isExpired(err)) Alert.alert(isEdit ? '수정 실패' : '등록 실패', errorTextOf(err));
       },
     };
 
@@ -451,8 +471,11 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
         </Text>
       </View>
 
-      <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+      {/* 안드로이드도 behavior가 필요하다 — 엣지투엣지(app.config.js)라 adjustResize가 창을
+          줄여 주지 않는다. 근거는 BottomSheet.tsx 주석 참고. */}
+      <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <ScrollView
+          ref={scrollRef}
           contentContainerStyle={{ paddingBottom: normalize(36) }}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
@@ -579,48 +602,50 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
             </View>
           </Section>
 
-          {/* 리뷰 본문 */}
-          <Section label="리뷰" required>
-            <TextInput
-              value={content}
-              onChangeText={setContent}
-              onFocus={() => setContentFocused(true)}
-              onBlur={() => setContentFocused(false)}
-              multiline
-              textAlignVertical="top"
-              maxLength={CONTENT_MAX}
-              placeholder={`촬영 팁, 혼잡도, 주차 정보 등 다른 사진가에게 도움이 될 내용을 자유롭게 작성해 주세요. (최소 ${CONTENT_MIN}자)`}
-              placeholderTextColor="rgba(0,0,0,0.28)"
-              style={{
-                height: normalize(130),
-                borderRadius: INPUT_RADIUS,
-                borderWidth: 1.5,
-                borderColor: contentFocused ? BRAND : 'transparent',
-                backgroundColor: contentFocused ? '#fff' : SURFACE,
-                paddingHorizontal: normalize(16),
-                paddingVertical: normalize(14),
-                fontFamily: 'Pretendard-Regular',
-                fontSize: FONT_MD,
-                lineHeight: FONT_MD * 1.6,
-                color: '#000',
-                letterSpacing: -0.2,
-              }}
-            />
-            <View className="flex-row items-center justify-between" style={{ marginTop: normalize(6) }}>
-              <Text
-                allowFontScaling={false}
-                style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: hintIsError ? ERR : 'rgba(0,0,0,0.3)', letterSpacing: -0.1 }}
-              >
-                {contentHint}
-              </Text>
-              <Text
-                allowFontScaling={false}
-                style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.25)' }}
-              >
-                {`${content.length}/${CONTENT_MAX}`}
-              </Text>
-            </View>
-          </Section>
+          {/* 리뷰 본문 — Section은 onLayout을 받지 않으므로 y를 재려고 한 겹 감싼다. */}
+          <View onLayout={(e) => { contentSectionY.current = e.nativeEvent.layout.y; }}>
+            <Section label="리뷰" required>
+              <TextInput
+                value={content}
+                onChangeText={setContent}
+                onFocus={focusContent}
+                onBlur={() => setContentFocused(false)}
+                multiline
+                textAlignVertical="top"
+                maxLength={CONTENT_MAX}
+                placeholder={`촬영 팁, 혼잡도, 주차 정보 등 다른 사진가에게 도움이 될 내용을 자유롭게 작성해 주세요. (최소 ${CONTENT_MIN}자)`}
+                placeholderTextColor="rgba(0,0,0,0.28)"
+                style={{
+                  height: normalize(130),
+                  borderRadius: INPUT_RADIUS,
+                  borderWidth: 1.5,
+                  borderColor: contentFocused ? BRAND : 'transparent',
+                  backgroundColor: contentFocused ? '#fff' : SURFACE,
+                  paddingHorizontal: normalize(16),
+                  paddingVertical: normalize(14),
+                  fontFamily: 'Pretendard-Regular',
+                  fontSize: FONT_MD,
+                  lineHeight: FONT_MD * 1.6,
+                  color: '#000',
+                  letterSpacing: -0.2,
+                }}
+              />
+              <View className="flex-row items-center justify-between" style={{ marginTop: normalize(6) }}>
+                <Text
+                  allowFontScaling={false}
+                  style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: hintIsError ? ERR : 'rgba(0,0,0,0.3)', letterSpacing: -0.1 }}
+                >
+                  {contentHint}
+                </Text>
+                <Text
+                  allowFontScaling={false}
+                  style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.25)' }}
+                >
+                  {`${content.length}/${CONTENT_MAX}`}
+                </Text>
+              </View>
+            </Section>
+          </View>
 
           <Section label="태그" hint={`선택 · 최대 ${MAX_REVIEW_TAGS}개`}>
             <View className="flex-row flex-wrap" style={{ gap: normalize(8) }}>
@@ -790,8 +815,14 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
 
         </ScrollView>
 
-        {/* 등록 — 스크롤 밖 고정 */}
-        <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(10), paddingBottom: normalize(14) }}>
+        {/* 등록 — 스크롤 밖 고정.
+            SafeAreaView의 edges에 bottom을 넣는 대신 인셋을 직접 더한다. edges 방식은 아래 14pt와
+            겹쳐 아이폰에서 48pt가 된다. Math.max면 안드로이드 내비바·아이폰 홈 인디케이터를 덮으면서
+            인셋이 0인 기기에서는 기존 여백 그대로다.
+            ponytail: 키보드가 열린 동안에는 이 인셋만큼 빈 공간이 남는다(iOS padding KAV·안드로이드
+            adjustResize 공통). 버튼을 가리지 않는 여백이라 키보드 리스너는 두지 않는다. 거슬리면
+            Keyboard 이벤트로 열림 여부를 받아 열렸을 때만 normalize(14)로 되돌리면 된다. */}
+        <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(10), paddingBottom: Math.max(insets.bottom, normalize(14)) }}>
           <Pressable
             onPress={onSubmit}
             disabled={!canSubmit || submitting}

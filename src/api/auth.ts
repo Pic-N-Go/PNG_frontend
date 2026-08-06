@@ -63,14 +63,37 @@ const MESSAGE_BY_STATUS: Record<number, string> = {
 };
 
 /**
+ * 401을 받았을 때 실행할 처리. 구현은 스토어 쪽에 있다(순환 참조 회피).
+ * 배경·설계 근거 → `docs/guide/api/token-refresh-plan.md`
+ *
+ * @param fn 인자는 그 401을 유발한 요청이 보낸 토큰. 모르면 생략 가능.
+ */
+let onUnauthorized: ((token?: string) => void) | null = null;
+export function setUnauthorizedHandler(fn: (token?: string) => void) {
+  onUnauthorized = fn;
+}
+
+/**
  * 실패 응답을 ApiError로 변환한다. 서버가 준 message를 항상 우선하고(백엔드 ErrorResponse의
  * message는 이미 사용자용 한국어다), 본문이 없을 때만 상태코드 기반 문구로 채운다.
  * 모든 api 모듈이 이 함수를 공유해 도메인마다 처리가 갈리지 않게 한다.
+ *
+ * 부수효과 있음: 401이면 onUnauthorized 핸들러를 부른다(= 로그아웃). 변환만 하는 함수가
+ * 아니므로 호출부를 옮길 때 주의할 것. 403은 대상이 아니다(토큰이 멀쩡해도 나는 정상 거절).
+ *
+ * @param requestToken 이 요청이 Authorization 헤더로 보낸 토큰. 알 수 있으면 넘긴다.
  */
-export async function toHttpError(res: Response): Promise<ApiError> {
+export async function toHttpError(res: Response, requestToken?: string): Promise<ApiError> {
   const body = (await res.json().catch(() => ({}))) as { message?: string };
   const message = body.message ?? MESSAGE_BY_STATUS[res.status] ?? `요청에 실패했어요. (${res.status})`;
+  if (res.status === 401) onUnauthorized?.(requestToken);
   return new ApiError(message, res.status);
+}
+
+/** Authorization 헤더에서 토큰만 꺼낸다. 헤더를 options로 받는 래퍼용. */
+export function tokenFromHeaders(headers: HeadersInit | undefined): string | undefined {
+  const value = new Headers(headers).get('Authorization');
+  return (value?.startsWith('Bearer ') ? value.slice(7) : undefined) || undefined;
 }
 
 async function post<T>(path: string, body: unknown): Promise<T> {
@@ -99,7 +122,7 @@ async function get<T>(path: string, accessToken?: string): Promise<T> {
       headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
       signal: controller.signal,
     });
-    if (!res.ok) throw await toHttpError(res);
+    if (!res.ok) throw await toHttpError(res, accessToken);
     return res.json() as Promise<T>;
   } finally {
     clearTimeout(timer);
