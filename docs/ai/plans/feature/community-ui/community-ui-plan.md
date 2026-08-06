@@ -13,7 +13,7 @@
 - **목업 재현 원칙**: 6개 목업은 근사 참고가 아닌 1:1 재현 대상 — 색상 hex/rgba, 텍스트, 수치를 그대로 이식하고 spacing/font/radius만 `CLAUDE.md` 변환표(`className` / `layout.ts` 상수 / `normalize`·`normalizeFontSize`)로 치환
 - **레퍼런스 패키지 활용 범위**: `~/Desktop/png-community-ui/phase1~4`는 상태 분기·아이콘 매핑·컴포넌트 경계(예: `PostActionSheet`가 `isMyPost` prop 하나로 내글/남글 분기) 참고용으로만 사용. 그 패키지의 인라인 `style` 객체는 그대로 가져오지 않고 전부 NativeWind `className`으로 재작성 (`StyleSheet.create()` 유사 패턴 금지, `CLAUDE.md` 최상위 규칙)
 - **아이콘 전략**: `lucide-react-native`(이미 설치, `^1.24.0`)로 통일. 레퍼런스 README의 아이콘 매핑표(Heart/Archive/MessageSquare/Share/MapPin/ThumbsUp/Trophy/Search/Plus/ChevronLeft/MoreHorizontal/Camera/Aperture/Maximize/Trash2/Send/CheckCircle 등) 그대로 적용. 날씨 Meteocons는 원격 URI `Image` 유지(아이콘 라이브러리 미보유)
-- **공통 컴포넌트 우선 확인**: `src/components/common/`에 이미 있는 `BottomSheet`/`Chip`/`StarRating`/`InitialAvatar`/`Skeleton`/`OptionSheet`를 먼저 재사용하고, 부족한 것(예: 액션시트형 바텀시트, 토스트)만 동일 원칙(2회 이상 실사용)으로 추가. 토스트는 `src/components/auth/Toast.tsx` 재사용 여부 먼저 확인
+- **공통 컴포넌트 우선 확인**: `src/components/common/`에 이미 있는 `BottomSheet`/`Chip`/`StarRating`/`InitialAvatar`/`Skeleton`/`OptionSheet`를 먼저 재사용하고, 부족한 것(예: 액션시트형 바텀시트, 토스트)만 동일 원칙(2회 이상 실사용)으로 추가. 토스트는 `src/components/common/Toast.tsx` 재사용 여부 먼저 확인(작성 당시 경로는 `auth/`)
 - **네비게이션 원칙**: 목업 구조를 그대로 따름(`CLAUDE.md` — 임의 네비게이션 변경 금지). 콘테스트는 `community-feed.html` 내부 세그먼트이므로 별도 push 화면이 아님 → 기존 `ContestScreen`/`Contest` 라우트는 `ContestResultScreen`(= `contest-result.html`의 실제 push 목적지)으로 재정의 (스펙 오픈 이슈 기본안)
 - 리스크: (1) 라이트박스(layer1) + EXIF(layer2) 중첩 오픈/클로즈 상태 관리, (2) 콘테스트 진행중 서브탭의 투표 확인/취소 모달 + undo 스낵바 조합 로직, (3) 5개 화면 분량이 커서 컴포넌트 경계를 잘못 잡으면 후반 태스크에서 재작업 발생
 - 리스크 완화: (1) `PostDetailScreen`에 `lightboxOpen`/`exifOpen` 2개의 독립 bool state로 관리(EXIF는 라이트박스 열려있을 때만 열림, 라이트박스 close가 EXIF도 함께 close), (2) 목업 JS 로직(투표 확인 모달 → 반영 → 스낵바 → 기간 내 undo는 모달 없이 즉시 되돌림, 남은 표 0에서 재투표 시 취소 모달만) 그대로 이식, (3) Task 1~2(타입/공통컴포넌트)를 먼저 끝내고 이후 화면 태스크에서 역추출 없이 바로 조립
@@ -34,7 +34,7 @@
 
 - 대상 파일:
   - `src/components/common/` (기존 `BottomSheet`/`Chip`/`StarRating`/`InitialAvatar`/`Skeleton`/`OptionSheet` 재사용 확인)
-  - `src/components/auth/Toast.tsx` (재사용 확인, 커뮤니티 전용 위치/스타일 요구 시에만 수정)
+  - `src/components/common/Toast.tsx` (재사용 확인, 커뮤니티 전용 위치/스타일 요구 시에만 수정. 작성 당시 경로는 `auth/`)
 - 변경 내용: 5개 목업을 훑어 반복되는 UI 조각(예: 액션시트 리스트형 바텀시트, 스낵바)이 기존 공통 컴포넌트로 커버 안 되면 신규 추가. 신규 컴포넌트는 실제 2회 이상 사용처가 확인된 것만
 - 완료 조건: Task 3 이후 화면 태스크에서 스타일 중복 없이 공통 컴포넌트만으로 조립 가능
 - 검증 방법: `pnpm exec tsc --noEmit` / `pnpm lint`
@@ -153,8 +153,14 @@
     로딩 스켈레톤/빈/에러 상태, 투표 토스트. 핸드오프 `ContestAllEntriesScreen.native.jsx` 참고
     (**주의**: 인라인 style 방식이라 NativeWind `className`으로 재작성 필요)
   - `ContestActiveTab`의 `onSeeAll`이 빈 함수라 "모두 보기" 버튼이 죽어 있음 → push 연결
+  - 투표 피드백: 색 반전만 있던 것에 토스트·햅틱 추가(expo-haptics, `src/utils/haptics.ts`)
 - 완료 조건: 목업 `contest-all-entries.html` / `community-feed.html` 콘테스트 탭과 1:1 동일, 죽은 버튼 없음
 - 검증 방법: `pnpm exec tsc --noEmit` / `pnpm lint`, 시뮬레이터에서 진행중 탭 → 모두 보기 → 투표 플로우
+- 진행 상황(2026-08-06): 위 항목 **완료**. 아래 2건은 기획 확정 대기로 **보류**
+  - 투표 취소 정책 — 카드 버튼은 취소 불가인데 `ContestPhotoLightbox.tsx`에는 "투표 취소"가 남아 규칙이 어긋남
+  - 출품 기간 / 투표 기간 분리 — 히어로의 `N일 남음`이 무엇의 마감인지, 출품 기간 중 투표 버튼·남은 표
+    인디케이터 노출 여부가 달라져 시안 재수령이 필요
+  - 하루 3표 제한은 여전히 화면별 로컬 state — 진행중 탭과 목록 화면이 서로 표를 공유하지 않음(서버 판정 대기)
 
 ## 4) 검증 체크포인트
 

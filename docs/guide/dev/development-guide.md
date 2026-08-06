@@ -103,7 +103,8 @@ src/
 │   └── common.ts
 │
 └── utils/
-    └── normalize.ts            # 기기 너비 스케일링 유틸
+    ├── normalize.ts            # 기기 너비 스케일링 유틸
+    └── haptics.ts              # 촉각 피드백 (expo-haptics 래퍼)
 ```
 
 ---
@@ -236,6 +237,23 @@ client.interceptors.request.use((config) => {
   return config;
 });
 ```
+
+### 촉각 피드백 (햅틱)
+
+되돌릴 수 없는 소비성 동작(콘테스트 투표 등)에는 화면 피드백과 함께 햅틱을 줍니다.
+`src/utils/haptics.ts`의 래퍼를 쓰고 `expo-haptics`를 화면에서 직접 import하지 않습니다.
+
+```tsx
+import { voteHaptic } from "@/utils/haptics";
+
+voteHaptic(); // Haptics.impactAsync(Light)
+```
+
+- 실패는 삼킵니다 — 진동이 꺼진 기기·시뮬레이터에서도 기능에 영향이 없어야 합니다
+- **시뮬레이터에는 Taptic Engine이 없어 느껴지지 않습니다.** 실기기에서만 검증됩니다
+- 네이티브 모듈이라 추가 후 `pod install` + 리빌드가 필요합니다 (JS 리로드로는 안 붙습니다)
+
+---
 
 ### Safe Area (기기 모서리)
 

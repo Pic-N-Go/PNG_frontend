@@ -26,7 +26,7 @@
 
 ### Task 2 — Toast.tsx: bottom 고정값 → safe area insets
 
-- 대상 파일: `src/components/auth/Toast.tsx`
+- 대상 파일: `src/components/auth/Toast.tsx` (이후 `src/components/common/Toast.tsx`로 이동)
 - 변경 내용:
   - `useSafeAreaInsets` import 추가 (`react-native-safe-area-context`)
   - `normalize` import 추가 (`@/utils/normalize`)

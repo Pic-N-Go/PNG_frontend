@@ -12,7 +12,7 @@
 - **목업 재현 원칙**: `spot-detail.html`은 근사 참고가 아닌 1:1 재현 대상. 색상 hex/rgba, 텍스트, 각 팩터의 수치(+18/+20/+15/92% 등)를 그대로 이식하고, spacing/font/radius만 `CLAUDE.md` 변환표(`className` vs `layout.ts` 상수 vs `normalize`/`normalizeFontSize`)를 적용
 - **아이콘 전략**: 목업 아이콘은 전부 Tabler Icons → 이미 설치된 `@tabler/icons-react-native`(`TabBar.tsx`에서 이미 사용 중)에서 동일 아이콘을 매칭. Tabler에 없는 커스텀 SVG(포토제닉 링, 다이나믹 아일랜드, 브랜드 로고 등)만 `react-native-svg` 직접 구현 (`HeroSection.tsx`/`MapBanner.tsx` 패턴 참고)
 - **공통 컴포넌트 우선 추출**: 이번 화면에서 2회 이상 쓰이는 UI 조각(`BottomSheet`, `Chip`, `StarRating`, `InitialAvatar`)은 스팟 전용 컴포넌트보다 먼저 `src/components/common/`에 구현하고, 이후 태스크에서 가져다 씀 (반대로 조립하면 나중에 역추출하며 각 사용처를 다시 고쳐야 함)
-- 재사용 자산: 바텀시트 공통 컴포넌트는 `FilterBottomSheet.tsx`의 `Modal(transparent, animationType="slide") + Pressable 백드롭` 패턴을 그대로 컴포넌트화. 액션 피드백은 `src/components/auth/Toast.tsx` 그대로 재사용 (이동/수정 없음)
+- 재사용 자산: 바텀시트 공통 컴포넌트는 `FilterBottomSheet.tsx`의 `Modal(transparent, animationType="slide") + Pressable 백드롭` 패턴을 그대로 컴포넌트화. 액션 피드백은 `src/components/common/Toast.tsx` 그대로 재사용 (수정 없음. 작성 당시 경로는 `src/components/auth/Toast.tsx`였고 이후 common/으로 이동)
 - 리스크: 콜랩싱 히어로 애니메이션(Reanimated) 구현 난이도, 사진 탭 무한 스크롤 mock 페이지네이션의 상태 관리 복잡도, 공통 컴포넌트의 props 설계가 4개 바텀시트/4개 칩 용도를 모두 커버해야 하는 부담
 - 리스크 완화: `development-guide.md`에 제시된 정확한 Reanimated 코드 스니펫을 그대로 적용. 사진 페이지네이션은 목업 JS 로직(`photoPage`, `photosPerPage`, `photoTotal`)을 그대로 React state로 이식. 공통 컴포넌트는 이번 화면의 실제 4개 사용처 요구사항만 커버하도록 설계(추측성 옵션 추가 금지)
 
@@ -104,7 +104,7 @@
   - `src/components/spot/NaviSheet.tsx` (내비 앱 선택)
   - `src/components/spot/ShareSheet.tsx` (공유 앱 그리드 + 액션 목록)
   - `src/components/spot/BookmarkSheet.tsx` (컬렉션 선택 패널 ↔ 저장됨 패널)
-- 변경 내용: 공통 `BottomSheet`로 4개 시트 조립. 각 시트의 확인 액션은 `Toast`(`src/components/auth/Toast.tsx`) 호출로 피드백. 내비 앱 실행은 `// TODO: Linking.openURL 딥링크 연동`으로 표시
+- 변경 내용: 공통 `BottomSheet`로 4개 시트 조립. 각 시트의 확인 액션은 `Toast`(`src/components/common/Toast.tsx`, 이전 경로 `auth/`) 호출로 피드백. 내비 앱 실행은 `// TODO: Linking.openURL 딥링크 연동`으로 표시
 - 완료 조건: AC8, AC9 충족
 - 검증 방법: `pnpm exec tsc --noEmit` / `pnpm lint`, 4개 시트 열림/닫힘 + 완료 플로우 수동 확인
 
