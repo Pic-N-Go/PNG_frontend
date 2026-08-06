@@ -13,7 +13,7 @@
 
   "auth/login.html": {
     "uiStatus": "완료",
-    "apiStatus": "미시작",
+    "apiStatus": "완료",
     "date": "2026-07-02",
     "note": "api 담당자 : 소영재"
   },
@@ -25,7 +25,7 @@
   },
   "auth/signup.html": {
     "uiStatus": "완료",
-    "apiStatus": "미시작",
+    "apiStatus": "완료",
     "date": "2026-07-02",
     "note": "api 담당자 : 소영재"
   },
@@ -47,41 +47,166 @@
     "date": "",
     "note": ""
   },
-  "home/home.html": { "uiStatus": "진행중", "apiStatus": "미시작", "date": "", "note": "일부 UI 추가 구현 필요" },
-  "home/map.html": { "uiStatus": "완료", "apiStatus": "미시작", "date": "2026-07-08", "note": "" },
-  "mypage/follow.html": { "uiStatus": "완료", "apiStatus": "미시작", "date": "", "note": "" },
-  "mypage/my-photos.html": { "uiStatus": "완료", "apiStatus": "미시작", "date": "", "note": "" },
-  "mypage/my-reviews.html": { "uiStatus": "완료", "apiStatus": "미시작", "date": "", "note": "" },
-  "mypage/mypage.html": { "uiStatus": "완료", "apiStatus": "미시작", "date": "", "note": "" },
-  "mypage/notification.html": { "uiStatus": "완료", "apiStatus": "미시작", "date": "", "note": "" },
-  "mypage/photo-map.html": { "uiStatus": "완료", "apiStatus": "미시작", "date": "", "note": "" },
-  "mypage/profile-edit.html": { "uiStatus": "완료", "apiStatus": "미시작", "date": "", "note": "" },
-  "mypage/setting.html": { "uiStatus": "완료", "apiStatus": "미시작", "date": "", "note": "여러 기능의 API가 혼재 — 기능 단위로 분리 필요" },
-  "mypage/faq.html": { "uiStatus": "미시작", "apiStatus": "미시작", "date": "", "note": "API 불필요" },
-  "mypage/terms.html": { "uiStatus": "미시작", "apiStatus": "미시작", "date": "", "note": "API 불필요" },
-  "mypage/privacy.html": { "uiStatus": "미시작", "apiStatus": "미시작", "date": "", "note": "API 불필요" },
-  "mypage/licenses.html": { "uiStatus": "미시작", "apiStatus": "미시작", "date": "", "note": "API 불필요" },
-  "mypage/inquiry-list.html": { "uiStatus": "미시작", "apiStatus": "미시작", "date": "", "note": "담당자 추가 배정 필요" },
-  "mypage/inquiry-detail.html": { "uiStatus": "미시작", "apiStatus": "미시작", "date": "", "note": "담당자 추가 배정 필요" },
-  "mypage/inquiry-write.html": { "uiStatus": "미시작", "apiStatus": "미시작", "date": "", "note": "담당자 추가 배정 필요" },
-  "spot/review-write.html": { "uiStatus": "미시작", "apiStatus": "미시작", "date": "", "note": "" },
-  "spot/spot-change.html": { "uiStatus": "미시작", "apiStatus": "미시작", "date": "", "note": "" },
+  "home/home.html": {
+    "uiStatus": "진행중",
+    "apiStatus": "미시작",
+    "date": "",
+    "note": "일부 UI 추가 구현 필요"
+  },
+  "home/map.html": {
+    "uiStatus": "완료",
+    "apiStatus": "미시작",
+    "date": "2026-07-08",
+    "note": ""
+  },
+  "mypage/follow.html": {
+    "uiStatus": "완료",
+    "apiStatus": "미시작",
+    "date": "",
+    "note": ""
+  },
+  "mypage/my-photos.html": {
+    "uiStatus": "완료",
+    "apiStatus": "미시작",
+    "date": "",
+    "note": ""
+  },
+  "mypage/my-reviews.html": {
+    "uiStatus": "완료",
+    "apiStatus": "미시작",
+    "date": "",
+    "note": ""
+  },
+  "mypage/mypage.html": {
+    "uiStatus": "완료",
+    "apiStatus": "미시작",
+    "date": "",
+    "note": ""
+  },
+  "mypage/notification.html": {
+    "uiStatus": "완료",
+    "apiStatus": "미시작",
+    "date": "",
+    "note": ""
+  },
+  "mypage/photo-map.html": {
+    "uiStatus": "완료",
+    "apiStatus": "미시작",
+    "date": "",
+    "note": ""
+  },
+  "mypage/profile-edit.html": {
+    "uiStatus": "완료",
+    "apiStatus": "미시작",
+    "date": "",
+    "note": ""
+  },
+  "mypage/setting.html": {
+    "uiStatus": "완료",
+    "apiStatus": "미시작",
+    "date": "",
+    "note": "여러 기능의 API가 혼재 — 기능 단위로 분리 필요"
+  },
+  "mypage/faq.html": {
+    "uiStatus": "완료",
+    "apiStatus": "미시작",
+    "date": "2026-08-01",
+    "note": "API 불필요"
+  },
+  "mypage/terms.html": {
+    "uiStatus": "완료",
+    "apiStatus": "미시작",
+    "date": "2026-08-01",
+    "note": "API 불필요"
+  },
+  "mypage/privacy.html": {
+    "uiStatus": "완료",
+    "apiStatus": "미시작",
+    "date": "2026-08-01",
+    "note": "API 불필요"
+  },
+  "mypage/licenses.html": {
+    "uiStatus": "완료",
+    "apiStatus": "미시작",
+    "date": "2026-08-01",
+    "note": "API 불필요"
+  },
+  "mypage/inquiry-list.html": {
+    "uiStatus": "완료",
+    "apiStatus": "미시작",
+    "date": "2026-08-01",
+    "note": "api 담당자 : 모정민"
+  },
+  "mypage/inquiry-detail.html": {
+    "uiStatus": "완료",
+    "apiStatus": "미시작",
+    "date": "2026-08-01",
+    "note": "api 담당자 : 모정민"
+  },
+  "mypage/inquiry-write.html": {
+    "uiStatus": "완료",
+    "apiStatus": "미시작",
+    "date": "2026-08-01",
+    "note": "api 담당자 : 모정민"
+  },
+  "spot/review-write.html": {
+    "uiStatus": "완료",
+    "apiStatus": "완료",
+    "date": "2026-08-01",
+    "note": ""
+  },
+  "spot/spot-change.html": {
+    "uiStatus": "미시작",
+    "apiStatus": "미시작",
+    "date": "",
+    "note": ""
+  },
   "spot/spot-detail.html": {
     "uiStatus": "완료",
     "apiStatus": "완료",
     "date": "2026-07-22",
     "note": "spot 이미지 외 api 연동 완료"
   },
-  "spot/spot-list.html": { "uiStatus": "미시작", "apiStatus": "미시작", "date": "", "note": "" },
-  "spot/spot-register.html": { "uiStatus": "미시작", "apiStatus": "미시작", "date": "", "note": "" },
-  "course/course-list.html": { "uiStatus": "완료", "apiStatus": "완료", "date": "2026-07-22", "note": "빈 상태: ?empty=1" },
-  "course/course-new.html": { "uiStatus": "완료", "apiStatus": "완료", "date": "2026-07-22", "note": "" },
-  "course/course-plan.html": { "uiStatus": "완료", "apiStatus": "완료", "date": "2026-07-22", "note": "" },
+  "spot/spot-list.html": {
+    "uiStatus": "미시작",
+    "apiStatus": "미시작",
+    "date": "",
+    "note": ""
+  },
+  "spot/spot-register.html": {
+    "uiStatus": "미시작",
+    "apiStatus": "미시작",
+    "date": "2026-08-01",
+    "note": "사용자 스팟 등록 기능 보류"
+  },
+  "course/course-list.html": {
+    "uiStatus": "완료",
+    "apiStatus": "완료",
+    "date": "2026-07-22",
+    "note": "빈 상태: ?empty=1"
+  },
+  "course/course-new.html": {
+    "uiStatus": "완료",
+    "apiStatus": "완료",
+    "date": "2026-07-22",
+    "note": ""
+  },
+  "course/course-plan.html": {
+    "uiStatus": "완료",
+    "apiStatus": "완료",
+    "date": "2026-07-22",
+    "note": ""
+  },
   "wishlist/wishlist-setting.html": {
     "uiStatus": "완료",
     "apiStatus": "완료",
     "date": "2026-07-22",
     "note": ""
   },
-  "wishlist/wishlist.html": { "uiStatus": "완료", "apiStatus": "완료", "date": "2026-07-22", "note": "빈 상태: ?empty=1" }
+  "wishlist/wishlist.html": {
+    "uiStatus": "완료",
+    "apiStatus": "완료",
+    "date": "2026-07-22",
+    "note": "빈 상태: ?empty=1"
+  }
 }
