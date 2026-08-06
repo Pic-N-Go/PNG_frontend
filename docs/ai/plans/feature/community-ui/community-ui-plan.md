@@ -5,12 +5,12 @@
 - 스펙 문서: `docs/ai/specs/feature/community-ui/community-ui.md`
 - 관련 도메인: `community`
 - 관련 목업: `src/components/ui/community/{community-feed,community-post,community-write,contest-result,user-profile}.html`
-- 완료 목표: 5개 목업의 모든 상태·모달·시트를 로컬 mock으로 목업과 1:1 동일하게 동작시키고, tsc/lint 통과 + 360~430dp 반응형 확인까지 완료
+- 완료 목표: 6개 목업의 모든 상태·모달·시트를 로컬 mock으로 목업과 1:1 동일하게 동작시키고, tsc/lint 통과 + 360~430dp 반응형 확인까지 완료
 
 ## 2) 구현 전략
 
 - 핵심 접근: `src/components/spot/`(spot-detail-ui) 선례를 그대로 따라 `src/components/community/` 아래 섹션/화면별 컴포넌트로 분리하고, 각 Screen은 조립 + 로컬 state 관리만 담당
-- **목업 재현 원칙**: 5개 목업은 근사 참고가 아닌 1:1 재현 대상 — 색상 hex/rgba, 텍스트, 수치를 그대로 이식하고 spacing/font/radius만 `CLAUDE.md` 변환표(`className` / `layout.ts` 상수 / `normalize`·`normalizeFontSize`)로 치환
+- **목업 재현 원칙**: 6개 목업은 근사 참고가 아닌 1:1 재현 대상 — 색상 hex/rgba, 텍스트, 수치를 그대로 이식하고 spacing/font/radius만 `CLAUDE.md` 변환표(`className` / `layout.ts` 상수 / `normalize`·`normalizeFontSize`)로 치환
 - **레퍼런스 패키지 활용 범위**: `~/Desktop/png-community-ui/phase1~4`는 상태 분기·아이콘 매핑·컴포넌트 경계(예: `PostActionSheet`가 `isMyPost` prop 하나로 내글/남글 분기) 참고용으로만 사용. 그 패키지의 인라인 `style` 객체는 그대로 가져오지 않고 전부 NativeWind `className`으로 재작성 (`StyleSheet.create()` 유사 패턴 금지, `CLAUDE.md` 최상위 규칙)
 - **아이콘 전략**: `lucide-react-native`(이미 설치, `^1.24.0`)로 통일. 레퍼런스 README의 아이콘 매핑표(Heart/Archive/MessageSquare/Share/MapPin/ThumbsUp/Trophy/Search/Plus/ChevronLeft/MoreHorizontal/Camera/Aperture/Maximize/Trash2/Send/CheckCircle 등) 그대로 적용. 날씨 Meteocons는 원격 URI `Image` 유지(아이콘 라이브러리 미보유)
 - **공통 컴포넌트 우선 확인**: `src/components/common/`에 이미 있는 `BottomSheet`/`Chip`/`StarRating`/`InitialAvatar`/`Skeleton`/`OptionSheet`를 먼저 재사용하고, 부족한 것(예: 액션시트형 바텀시트, 토스트)만 동일 원칙(2회 이상 실사용)으로 추가. 토스트는 `src/components/auth/Toast.tsx` 재사용 여부 먼저 확인
@@ -127,7 +127,7 @@
 - 대상 파일:
   - `src/navigation/stacks/CommunityStack.tsx`
 - 변경 내용: `CommunityFeed`(탭 루트) / `CommunityWrite` / `PostDetail` / `ContestResult` / `UserProfile` 라우트로 정리, 각 화면에서의 진입 네비게이션(피드→상세/작성/프로필/결과) 전부 연결 확인. 기존 `Contest` 라우트/`ContestScreen.tsx` 완전 제거
-- 완료 조건: 5개 목업의 모든 화면 전환 진입점이 실제로 연결됨(더미 버튼 없음)
+- 완료 조건: 6개 목업의 모든 화면 전환 진입점이 실제로 연결됨(더미 버튼 없음)
 - 검증 방법: `pnpm exec tsc --noEmit` / `pnpm lint`, 앱 내 전체 플로우 수동 탐색
 
 ### Task 13 - 반응형/최종 검증
@@ -135,7 +135,26 @@
 - 대상 파일: 없음 (검증 전용)
 - 변경 내용: 없음
 - 완료 조건: AC7, AC8 충족
-- 검증 방법: `pnpm exec tsc --noEmit`, `pnpm lint`, iPhone SE(375dp)/iPhone 15 Pro Max(430dp) 시뮬레이터에서 5개 화면 전체 시나리오(A~E) 수동 재확인
+- 검증 방법: `pnpm exec tsc --noEmit`, `pnpm lint`, iPhone SE(375dp)/iPhone 15 Pro Max(430dp) 시뮬레이터에서 6개 화면 전체 시나리오(A~E) 수동 재확인 (Task 14 포함)
+
+### Task 14 - 콘테스트 진행중 탭 시안 반영 + 전체 출품작 목록 화면 (2026-08-06 추가)
+
+- 대상 파일:
+  - `src/components/community/ContestActiveTab.tsx`
+  - `src/screens/community/ContestAllEntriesScreen.tsx` (신규)
+  - `src/components/community/ContestSegment.tsx`
+  - `src/navigation/stacks/CommunityStack.tsx`
+- 변경 내용:
+  - 히어로 372px → 280px(하단 정렬·스크림), 2·3위 개별 카드와 4~7위 그리드를 목록 화면과 같은
+    통일 카드(1:1 사진 + 아래 정보 영역 + 28px 원형 투표 버튼)로 병합, 좋아요 수 pill 제거
+  - 하단 CTA 바 높이 고정(72px) 제거 → 패딩 기반 + `insets.bottom` 반영
+    (`CommunityFeedScreen`의 `SafeAreaView edges`에 bottom이 없어 홈 인디케이터에 물림)
+  - `ContestAllEntriesScreen` 신규 — 정렬 3종(최신순 기본·득표순·랜덤), 무한스크롤,
+    로딩 스켈레톤/빈/에러 상태, 투표 토스트. 핸드오프 `ContestAllEntriesScreen.native.jsx` 참고
+    (**주의**: 인라인 style 방식이라 NativeWind `className`으로 재작성 필요)
+  - `ContestActiveTab`의 `onSeeAll`이 빈 함수라 "모두 보기" 버튼이 죽어 있음 → push 연결
+- 완료 조건: 목업 `contest-all-entries.html` / `community-feed.html` 콘테스트 탭과 1:1 동일, 죽은 버튼 없음
+- 검증 방법: `pnpm exec tsc --noEmit` / `pnpm lint`, 시뮬레이터에서 진행중 탭 → 모두 보기 → 투표 플로우
 
 ## 4) 검증 체크포인트
 
@@ -154,7 +173,7 @@
 
 - PR 제목(컨벤션): `feat(community): 커뮤니티 화면 UI 구현 (피드/게시글/작성/콘테스트/프로필)`
 - 변경 요약(3줄 이내):
-  - `community-feed`/`community-post`/`community-write`/`contest-result`/`user-profile` 5개 목업을 로컬 mock 기반 RN 화면으로 구현
+  - `community-feed`/`community-post`/`community-write`/`contest-all-entries`/`contest-result`/`user-profile` 6개 목업을 로컬 mock 기반 RN 화면으로 구현
   - 콘테스트를 독립 라우트에서 피드 내부 세그먼트로 재구성, `ContestResultScreen` 신설
   - 공통 컴포넌트(`BottomSheet`/`Chip`/`StarRating`/`InitialAvatar` 등) 재사용, 신규 필요분만 추가
 - 리뷰 요청 포인트:

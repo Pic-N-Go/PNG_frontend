@@ -28,6 +28,7 @@ src/components/ui/
     community-feed.html       # 커뮤니티 루트 (게시글·갤러리·콘테스트 세그먼트 / 콘테스트 하위 진행중·내 출품·지난 서브탭)
     community-post.html       # 게시글 상세 (액션시트·삭제·신고·토스트 / 사진 라이트박스 → EXIF 2중 레이어)
     community-write.html      # 게시물 작성 (위치·촬영 정보 바텀시트)
+    contest-all-entries.html  # 콘테스트 전체 출품작 목록 (정렬 3종·무한스크롤·투표 / 로딩·빈·에러 상태)
     contest-result.html       # 콘테스트 결과 상세 (결과 배너·최종 순위·전체 참여작 / 풀스크린)
     user-profile.html         # 다른 유저 프로필 (게시글·콘테스트·방문한 스팟 탭)
   spot/
@@ -191,7 +192,7 @@ src/components/ui/
 
 - 활성 탭: `is-active` 클래스 → `color: var(--color-accent)`
 - `map.html`은 탭바 `position: absolute` (풀스크린 지도 위 오버레이), 나머지는 `position: fixed`
-- **탭바는 탭 루트 화면에만 둡니다.** 다른 화면에서 push로 진입하는 목적지(`community-post`, `community-write`, `contest-result`, `user-profile`, `my-photos`, `travel-plan` 등)에는 탭바를 넣지 않습니다 — RN에서 이들은 스택 내부 화면이라 탭바가 가려지고, 목업에 탭바가 있으면 잘못된 네비게이션 상태를 표시하게 됩니다
+- **탭바는 탭 루트 화면에만 둡니다.** 다른 화면에서 push로 진입하는 목적지(`community-post`, `community-write`, `contest-all-entries`, `contest-result`, `user-profile`, `my-photos`, `travel-plan` 등)에는 탭바를 넣지 않습니다 — RN에서 이들은 스택 내부 화면이라 탭바가 가려지고, 목업에 탭바가 있으면 잘못된 네비게이션 상태를 표시하게 됩니다
 
 ---
 
@@ -243,9 +244,19 @@ src/components/ui/
     검색 히스토리 API(`src/api/search.ts` `getSearchHistory`) 확정 후 동작을 정의하세요
 - 인기순 정렬 드롭다운
 - 콘테스트 세그먼트 하위 언더라인 서브탭 3개 — `switchSubtab('active'|'mine'|'past', el)`
-  - 진행중: 히어로 배너 186px · 포디움 · 투표 확인/취소 모달 · undo 스낵바 · 라이트박스
+  - 콘테스트에서만 헤더 고정을 풀고 **서브탭 행만 sticky** (`.phone-scroll.is-contest`) —
+    타이틀·세그먼트까지 고정하면 152px을 항상 물고 있어 사진을 훑는 화면에서 손해입니다.
+    같은 이유로 콘테스트 탭에서는 헤더 검색 아이콘을 숨깁니다(검색 대상이 게시글·갤러리라 없음). `+` 버튼은 유지
+  - 진행중: 히어로 280px(하단 정렬·스크림 필수) · 1위 카드(사진 위 오버레이 유지) ·
+    **2~7위 통일 그리드**(목록 화면과 같은 카드 = 1:1 사진 + 아래 정보 영역 + 28px 원형 투표 버튼) ·
+    `출품작 128개 모두 보기` → `contest-all-entries.html`
+    - 사진 위에 얹는 것은 순위 배지뿐입니다. 좋아요 수 pill은 투표 버튼과 혼동돼 제거했고, 득표수는 메타 텍스트로 내렸습니다
+    - 투표는 낙관적 업데이트 · 확인 모달 없음 · **되돌리기 없음**
   - 내 출품: 컴팩트 배너 120px · 캡션 수정 시트 · 출품 취소 모달 · 출품하기 시트
   - 지난: 2열 그리드 카드 → `contest-result.html`
+- 하단 고정 CTA 바는 높이 고정이 아니라 `padding: 14px 28px calc(22px + env(safe-area-inset-bottom))`입니다 —
+  72px 고정이면 52px 버튼과 높이가 거의 같아 버튼만 비대해 보이고, 홈 인디케이터에도 물립니다.
+  부모(`.subview`)에 좌우 패딩이 없으므로 음수 마진 상쇄(`margin: 0 -28px`)를 쓰면 안 됩니다
 - 게시물 작성 버튼 → `community-write.html`
 - 카드 유저명 → `user-profile.html`
 - 인터랙션으로 도달 불가한 상태는 쿼리로 진입: `?empty=1` (내 출품 빈 상태)
@@ -257,6 +268,22 @@ src/components/ui/
 - 히어로 우측 상단 확대 → 라이트박스(layer 1) → `(i)` → EXIF(layer 2, 라이트박스 위에 겹침)
   - EXIF를 닫으면 라이트박스가 남는다. 라이트박스를 닫으면 둘 다 닫힌다
 - 하단은 탭바 대신 댓글 입력 바 (푸시 화면)
+
+### community/contest-all-entries.html
+- 콘테스트 전체 출품작 목록 — `community-feed` 진행중 탭의 `출품작 N개 모두 보기`로 push 진입
+- 히어로 없이 네비 타이틀(`전체 출품작` + 총 개수)만. **검색 없음** — 훑어보며 투표하는 화면이고 내 작품은 `내 출품` 탭에 있음
+- 정렬은 칩(pill)이 아니라 배경 없는 텍스트 3개(최신순 · 득표순 · 랜덤), 구분점 3px. 기본은 **최신순**
+  - 득표순이 기본이면 상위권만 표를 더 받는 구조라 새 출품작이 영영 노출되지 않습니다
+  - 랜덤은 세션 시드 고정(스크롤 중 순서 유지), 재진입 시 재추첨
+- 카드: 2열 · 좌우 28 · gap 20 · radius 16 · 배경 `#f5f5f7`. 1:1 정사각 사진 + 아래 정보 영역(패딩 9/12/11)
+  - **사진 위에 텍스트를 얹지 않습니다** — 사진 밝기에 따라 오버레이가 안 보이는 문제 때문.
+    예외는 득표순일 때의 순위 배지 하나뿐(배경 `rgba(255,255,255,.92)`)
+- 투표 버튼 28px 원형 3상태 — 기본 `#E31B59`+흰 vote / 완료 `rgba(227,27,89,.10)`+핑크 check / 소진 `#e6e6ea`+`#b8b8be`. 되돌리기 없음
+- 남은 표는 진행중 탭의 도트 인디케이터 재사용(7px · gap 4), 정렬 바 우측. 정렬 바 자체가 sticky
+  - 0표에서 카드 전체를 흐리지 않습니다 — 사진 감상이 목적인 화면이라 목록이 죽어 보입니다.
+    투표 버튼만 비활성 + 안내 배너 1줄
+- 상태 전환은 우상단 목업용 버튼으로 확인: 목록 · 로딩(스켈레톤 8장) · 빈 · 에러
+- 페이징은 무한스크롤 24개 단위, 마지막에 `출품작 N개를 모두 봤어요` 캡션
 
 ### community/contest-result.html
 - 콘테스트 결과 상세 — 결과 배너 · 최종 순위 가로 스크롤 · 전체 참여작 그리드
@@ -329,6 +356,7 @@ auth/login
             ├─ community/community-feed
             │    ├─ community/community-post
             │    ├─ community/community-write
+            │    ├─ community/contest-all-entries
             │    ├─ community/contest-result
             │    └─ community/user-profile
             └─ mypage/mypage

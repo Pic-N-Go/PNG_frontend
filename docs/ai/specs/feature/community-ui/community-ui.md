@@ -10,16 +10,18 @@
 
 ## 2) 문제와 목표
 
-- 해결하려는 문제: `src/components/ui/community/` 5개 목업(퍼블리싱 완료)에 대응하는 실제 화면이 대부분 빈 placeholder(`CommunityFeedScreen`/`CommunityWriteScreen`/`ContestScreen` 6줄 스텁)이거나 아예 없음(게시글 상세, 유저 프로필, 콘테스트 결과).
+- 해결하려는 문제: `src/components/ui/community/` 6개 목업(퍼블리싱 완료)에 대응하는 실제 화면이 대부분 빈 placeholder(`CommunityFeedScreen`/`CommunityWriteScreen`/`ContestScreen` 6줄 스텁)이거나 아예 없음(게시글 상세, 유저 프로필, 콘테스트 결과).
 - 사용자 가치: 커뮤니티 탭(피드→게시글 상세→작성, 콘테스트, 유저 프로필) 전체 플로우를 목업과 동일하게 조작 가능하게 해 QA/디자인 검토를 API 개발과 병렬 진행.
-- 완료 기준(한 줄): 5개 목업(`community-feed`, `community-post`, `community-write`, `contest-result`, `user-profile`)의 모든 상태·모달·시트가 로컬 mock 데이터로 목업과 1:1 동일하게 동작하되, 네트워크 호출은 없음.
+- 완료 기준(한 줄): 6개 목업(`community-feed`, `community-post`, `community-write`, `contest-all-entries`, `contest-result`, `user-profile`)의 모든 상태·모달·시트가 로컬 mock 데이터로 목업과 1:1 동일하게 동작하되, 네트워크 호출은 없음.
 
 ## 3) 범위
 
 - 포함(In Scope):
   - **`community-feed.html`** → `CommunityFeedScreen` (탭 루트, 네비게이션 헤더 없음)
     - 세그먼트 3종(게시글 · 갤러리 · 콘테스트), 게시글 피드 검색 인라인 확장(`search-overlay`)
-    - 콘테스트 세그먼트 내부 서브탭 3종(진행중 · 내 출품 · 지난): 진행중(히어로 배너·포디움·투표 확인/취소 모달·undo 스낵바·라이트박스), 내 출품(컴팩트 배너·캡션 수정 시트·출품 취소 모달·출품하기 시트, 빈 상태 포함), 지난(2열 그리드 카드)
+    - 콘테스트 세그먼트 내부 서브탭 3종(진행중 · 내 출품 · 지난): 진행중(히어로 280px·1위 카드·2~7위 통일 그리드·28px 원형 투표 버튼·라이트박스), 내 출품(컴팩트 배너·캡션 수정 시트·출품 취소 모달·출품하기 시트, 빈 상태 포함), 지난(2열 그리드 카드)
+      - 2026-08-06 시안 변경: 투표는 낙관적 업데이트이고 **확인 모달·undo 스낵바 없음**(되돌리기 미지원). 2·3위 개별 카드와 4~7위 그리드가 하나의 통일 카드 그리드로 합쳐짐
+    - 진행중 탭 `출품작 N개 모두 보기` → `ContestAllEntriesScreen`(push): 정렬 3종(최신순 기본·득표순·랜덤)·무한스크롤·28px 원형 투표 버튼·로딩 스켈레톤/빈/에러 상태
     - 작성 버튼 → `CommunityWriteScreen`, 게시글 유저명 → `UserProfileScreen`, 지난 콘테스트 카드 → `ContestResultScreen`
   - **`community-post.html`** → `PostDetailScreen` (push, 헤더 있음)
     - `⋯` 액션시트(내 글/남 글 분기), 삭제 확인 모달, 신고 사유 시트, 완료 토스트 2종
@@ -70,10 +72,11 @@
   - `src/components/ui/community/community-feed.html`
   - `src/components/ui/community/community-post.html`
   - `src/components/ui/community/community-write.html`
+  - `src/components/ui/community/contest-all-entries.html`
   - `src/components/ui/community/contest-result.html`
   - `src/components/ui/community/user-profile.html`
 - 참고 자료(구현 패턴 참고용, 소스 오브 트루스 아님): `~/Desktop/png-community-ui/phase1~4` — 동일 화면을 더 세분화한 HTML+RN(`.native.jsx`) 변환 샘플. **주의**: 해당 샘플은 인라인 `style` 객체 방식(`StyleSheet.create()`류)이라 이 프로젝트의 NativeWind `className` 규칙과 충돌 — 구조/아이콘 매핑/상태 분기 로직만 참고하고 스타일은 전부 `className`으로 재작성.
-- 화면 전환 규칙: `docs/guide/dev/ui-publishing.md`의 community 섹션(피드/상세/작성/콘테스트결과/프로필 흐름) 그대로 따름. `community-post`/`community-write`/`contest-result`/`user-profile`은 push 스택 화면이라 하단 탭바 미포함.
+- 화면 전환 규칙: `docs/guide/dev/ui-publishing.md`의 community 섹션(피드/상세/작성/콘테스트결과/프로필 흐름) 그대로 따름. `community-post`/`community-write`/`contest-all-entries`/`contest-result`/`user-profile`은 push 스택 화면이라 하단 탭바 미포함.
 - 빈 상태/에러 상태: 내 출품 빈 상태(`2h-empty` 상당), 콘테스트 지난 목록 빈 상태 — 목업 기준. API 에러 상태는 이번 스코프 제외(로컬 mock만 다룸).
 - 로딩 상태: 이번 스코프는 로컬 mock 즉시 렌더 기준이라 스켈레톤은 필요한 곳(사진 그리드 등)에만 최소 적용, 강제하지 않음.
 

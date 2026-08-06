@@ -1,0 +1,692 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>PNG - 콘테스트 전체 출품작</title>
+    <link rel="stylesheet" href="../common/fonts.css" />
+    <link rel="stylesheet" href="../common/common.css" />
+    <style>
+      /* ── Phone Frame ── */
+      .phone-frame {
+        width: 100%;
+        height: 100dvh;
+        background: var(--color-bg);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+      .phone-scroll {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
+
+      /* ── Status Bar ── */
+      .status-bar {
+        height: 54px;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 34px;
+        flex-shrink: 0;
+      }
+      .status-bar__time {
+        font-size: var(--font-md);
+        font-weight: 600;
+        letter-spacing: -0.3px;
+      }
+      .status-bar__icons {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      /* ── Nav ── */
+      .nav {
+        height: 52px;
+        padding: 0 20px 0 12px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        background: #fff;
+        flex-shrink: 0;
+      }
+      .nav__back {
+        width: 40px;
+        height: 40px;
+        border: none;
+        background: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
+      .nav__title {
+        font-size: var(--font-lg);
+        font-weight: 600;
+        letter-spacing: -0.4px;
+        color: #111;
+      }
+      .nav__count {
+        font-size: var(--font-lg);
+        font-weight: 600;
+        letter-spacing: -0.4px;
+        color: #c7c7cc;
+        margin-left: 6px;
+      }
+
+      /* ── 정렬 바 (sticky) ── */
+      .sortbar {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        background: #fff;
+        padding: 6px 0 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        border-bottom: 1px solid var(--color-border-light);
+      }
+      .sortbar__sorts {
+        height: 34px;
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding-left: 28px;
+      }
+      /* 칩(pill) 아님 — 배경 없는 텍스트. 터치 영역만 상하 12px 확장 */
+      .sort-btn {
+        border: none;
+        background: none;
+        padding: 12px 0;
+        font-family: var(--font-family);
+        font-size: var(--font-sm);
+        font-weight: 500;
+        letter-spacing: -0.2px;
+        color: #8e8e93;
+        cursor: pointer;
+      }
+      .sort-btn.is-active {
+        font-weight: 600;
+        color: var(--color-accent);
+      }
+      .sort-dot {
+        width: 3px;
+        height: 3px;
+        border-radius: 2px;
+        background: #dcdce0;
+        flex-shrink: 0;
+      }
+      .sortbar__votes {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding-right: 28px;
+        margin-left: auto;
+      }
+      .votes__label {
+        font-size: var(--font-sm);
+        color: #8e8e93;
+        letter-spacing: -0.2px;
+      }
+      .votes__dots {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+      }
+      .votes__dot {
+        width: 7px;
+        height: 7px;
+        border-radius: 4px;
+        background: #e6e6ea;
+      }
+      .votes__dot.is-left {
+        background: var(--color-accent);
+      }
+      .votes__count {
+        font-size: var(--font-sm);
+        font-weight: 600;
+        color: #111;
+        letter-spacing: -0.2px;
+      }
+      .is-spent .votes__label,
+      .is-spent .votes__count {
+        color: #c7c7cc;
+      }
+
+      /* ── 표 소진 안내 배너 ── */
+      .spent-banner {
+        display: none;
+        margin: 14px 28px 0;
+        padding: 12px 14px;
+        border-radius: 12px;
+        background: var(--color-surface);
+        font-size: var(--font-xs);
+        line-height: 1.5;
+        letter-spacing: -0.15px;
+        color: rgba(0, 0, 0, 0.45);
+      }
+      .is-spent .spent-banner {
+        display: block;
+      }
+
+      /* ── 그리드 · 카드 ── */
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        padding: 20px 28px;
+      }
+      .card {
+        border-radius: 16px;
+        overflow: hidden;
+        background: var(--color-surface);
+      }
+      /* 사진 위에 텍스트를 얹지 않는다. 예외는 득표순의 순위 배지 하나뿐 */
+      .card__photo {
+        position: relative;
+        aspect-ratio: 1 / 1;
+        background: #ededf1;
+      }
+      .card__rank {
+        display: none;
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        height: 22px;
+        padding: 0 8px;
+        border-radius: 11px;
+        background: rgba(255, 255, 255, 0.92);
+        align-items: center;
+        font-size: var(--font-2xs);
+        font-weight: 600;
+        color: #111;
+        letter-spacing: -0.1px;
+      }
+      .is-ranked .card__rank {
+        display: flex;
+      }
+      .card__info {
+        padding: 9px 12px 11px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .card__text {
+        flex: 1;
+        min-width: 0;
+      }
+      .card__name {
+        font-size: var(--font-sm);
+        font-weight: 600;
+        color: #111;
+        letter-spacing: -0.2px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      .card__meta {
+        font-size: var(--font-xs);
+        color: #8e8e93;
+        letter-spacing: -0.1px;
+        margin-top: 2px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      /* ── 투표 버튼 (28px 원형) ── */
+      .vote-btn {
+        width: 28px;
+        height: 28px;
+        border: none;
+        border-radius: 14px;
+        background: var(--color-accent);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        cursor: pointer;
+        padding: 0;
+      }
+      .vote-btn__voted,
+      .vote-btn.is-voted .vote-btn__default {
+        display: none;
+      }
+      .vote-btn.is-voted {
+        background: rgba(227, 27, 89, 0.1);
+      }
+      .vote-btn.is-voted .vote-btn__voted {
+        display: block;
+      }
+      /* 표 소진 — 카드 전체를 흐리지 않고 버튼만 비활성 */
+      .is-spent .vote-btn:not(.is-voted) {
+        background: #e6e6ea;
+        cursor: default;
+      }
+      .is-spent .vote-btn:not(.is-voted) .vote-btn__default {
+        stroke: #b8b8be;
+      }
+
+      /* ── 스켈레톤 ── */
+      @keyframes shimmer {
+        0% { opacity: 0.55; }
+        50% { opacity: 1; }
+        100% { opacity: 0.55; }
+      }
+      .skeleton {
+        border-radius: 16px;
+        overflow: hidden;
+        background: var(--color-surface);
+        animation: shimmer 1.4s ease-in-out infinite;
+      }
+      .skeleton__photo {
+        aspect-ratio: 1 / 1;
+        background: #ededf1;
+      }
+      .skeleton__info {
+        padding: 9px 12px 11px;
+      }
+      .skeleton__line {
+        height: 10px;
+        border-radius: 5px;
+        background: #e6e6ea;
+      }
+      .skeleton__line + .skeleton__line {
+        margin-top: 6px;
+        width: 60%;
+      }
+
+      /* ── 목록 끝 ── */
+      .list-end {
+        padding: 4px 28px 28px;
+        text-align: center;
+        font-size: var(--font-xs);
+        color: #c7c7cc;
+        letter-spacing: -0.1px;
+      }
+
+      /* ── 빈 상태 · 에러 ── */
+      .placeholder {
+        padding: 96px 28px 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+      }
+      .placeholder__icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 28px;
+        background: var(--color-surface);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 14px;
+      }
+      .placeholder__title {
+        font-size: var(--font-md);
+        font-weight: 600;
+        color: #111;
+        letter-spacing: -0.3px;
+        margin-top: 4px;
+      }
+      .placeholder__desc {
+        font-size: var(--font-sm);
+        color: #8e8e93;
+        letter-spacing: -0.2px;
+        margin-top: 6px;
+        line-height: 1.5;
+      }
+      .placeholder__cta {
+        height: 44px;
+        padding: 0 22px;
+        margin-top: 20px;
+        border: none;
+        border-radius: 22px;
+        font-family: var(--font-family);
+        font-size: var(--font-sm);
+        font-weight: 600;
+        letter-spacing: -0.2px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .placeholder__cta--accent {
+        background: var(--color-accent);
+        color: #fff;
+      }
+      .placeholder__cta--plain {
+        background: var(--color-surface);
+        color: #111;
+      }
+
+      /* ── 토스트 ── */
+      .toast {
+        position: absolute;
+        left: 28px;
+        right: 28px;
+        bottom: 28px;
+        height: 48px;
+        border-radius: 24px;
+        background: rgba(28, 28, 30, 0.94);
+        display: flex;
+        align-items: center;
+        padding: 0 18px;
+        gap: 10px;
+        opacity: 0;
+        transform: translateY(8px);
+        transition: all 0.22s;
+        pointer-events: none;
+      }
+      .toast.is-open {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .toast__text {
+        flex: 1;
+        font-size: var(--font-sm);
+        font-weight: 500;
+        color: #fff;
+        letter-spacing: -0.2px;
+      }
+      .toast__votes {
+        font-size: var(--font-xs);
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.6);
+        letter-spacing: -0.1px;
+      }
+
+      /* ── 상태 전환 (목업 확인용) ── */
+      .state-switch {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        z-index: 40;
+        display: flex;
+        gap: 4px;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 8px;
+        padding: 4px;
+      }
+      .state-switch button {
+        border: none;
+        background: var(--color-surface);
+        border-radius: 6px;
+        padding: 4px 7px;
+        font-family: var(--font-family);
+        font-size: var(--font-2xs);
+        color: rgba(0, 0, 0, 0.5);
+        cursor: pointer;
+      }
+      .state-switch button.is-active {
+        background: #111;
+        color: #fff;
+      }
+
+      .state { display: none; }
+      .state.is-active { display: block; }
+    </style>
+  </head>
+  <body>
+    <div class="phone-frame">
+      <!-- 목업 확인용 상태 전환 (실제 화면에는 없음) -->
+      <div class="state-switch">
+        <button class="is-active" onclick="switchState('list', this)">목록</button>
+        <button onclick="switchState('loading', this)">로딩</button>
+        <button onclick="switchState('empty', this)">빈</button>
+        <button onclick="switchState('error', this)">에러</button>
+      </div>
+
+      <div class="status-bar">
+        <span class="status-bar__time">9:41</span>
+        <span class="status-bar__icons">
+          <svg width="17" height="11" viewBox="0 0 17 11" fill="none"><rect x="0" y="7" width="3" height="4" rx="1" fill="#000"/><rect x="4.5" y="5" width="3" height="6" rx="1" fill="#000"/><rect x="9" y="2.5" width="3" height="8.5" rx="1" fill="#000"/><rect x="13.5" y="0" width="3" height="11" rx="1" fill="#000"/></svg>
+          <svg width="16" height="11" viewBox="0 0 16 11" fill="none"><path d="M8 9.5l2.5-2.5a3.5 3.5 0 00-5 0L8 9.5z" fill="#000"/><path d="M8 4a6.5 6.5 0 014.6 1.9l1.2-1.2A8.2 8.2 0 008 2.3 8.2 8.2 0 002.2 4.7l1.2 1.2A6.5 6.5 0 018 4z" fill="#000"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="21" height="11" rx="3" stroke="#000" stroke-opacity="0.35"/><rect x="2" y="2" width="18" height="8" rx="2" fill="#000"/><path d="M23 4v4a2 2 0 000-4z" fill="#000" fill-opacity="0.4"/></svg>
+        </span>
+      </div>
+
+      <!-- 네비 — 히어로 없이 타이틀 + 총 개수. 검색 없음 -->
+      <div class="nav">
+        <button class="nav__back" aria-label="뒤로" onclick="history.back()">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
+        </button>
+        <span class="nav__title">전체 출품작</span>
+        <span class="nav__count">128</span>
+      </div>
+
+      <!-- 목록 -->
+      <div class="state is-active" data-state="list">
+        <div class="phone-scroll" id="list-scroll">
+          <div class="sortbar">
+            <div class="sortbar__sorts">
+              <button class="sort-btn is-active" onclick="switchSort('latest', this)">최신순</button>
+              <span class="sort-dot"></span>
+              <button class="sort-btn" onclick="switchSort('ranked', this)">득표순</button>
+              <span class="sort-dot"></span>
+              <button class="sort-btn" onclick="switchSort('random', this)">랜덤</button>
+            </div>
+            <div class="sortbar__votes">
+              <span class="votes__label">남은 표</span>
+              <span class="votes__dots" id="vote-dots"></span>
+              <span class="votes__count" id="vote-count">3/3</span>
+            </div>
+          </div>
+
+          <!-- 표 소진 안내 (0/3에서만 노출) -->
+          <div class="spent-banner">오늘 쓸 수 있는 표를 모두 썼어요. 내일 다시 3표가 채워집니다.</div>
+
+          <div class="grid" id="entry-grid"></div>
+          <div class="list-end">출품작 128개를 모두 봤어요</div>
+        </div>
+      </div>
+
+      <!-- 로딩 스켈레톤 (첫 진입 8장) -->
+      <div class="state" data-state="loading">
+        <div class="phone-scroll">
+          <div class="sortbar">
+            <div class="sortbar__sorts">
+              <button class="sort-btn is-active">최신순</button>
+              <span class="sort-dot"></span>
+              <button class="sort-btn">득표순</button>
+              <span class="sort-dot"></span>
+              <button class="sort-btn">랜덤</button>
+            </div>
+            <div class="sortbar__votes">
+              <span class="votes__label">남은 표</span>
+              <span class="votes__dots">
+                <span class="votes__dot is-left"></span>
+                <span class="votes__dot is-left"></span>
+                <span class="votes__dot is-left"></span>
+              </span>
+              <span class="votes__count">3/3</span>
+            </div>
+          </div>
+          <div class="grid" id="skeleton-grid"></div>
+        </div>
+      </div>
+
+      <!-- 빈 상태 -->
+      <div class="state" data-state="empty">
+        <div class="placeholder">
+          <div class="placeholder__icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#b8b8be" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="9" cy="9" r="2"></circle><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path></svg>
+          </div>
+          <div class="placeholder__title">아직 출품작이 없어요</div>
+          <div class="placeholder__desc">첫 번째로 골든아워를 담아보세요</div>
+          <button class="placeholder__cta placeholder__cta--accent">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3Z"></path><circle cx="12" cy="13" r="3.5"></circle></svg>
+            출품하기
+          </button>
+        </div>
+      </div>
+
+      <!-- 에러 -->
+      <div class="state" data-state="error">
+        <div class="placeholder">
+          <div class="placeholder__icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#b8b8be" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4"></path><path d="M12 16h.01"></path></svg>
+          </div>
+          <div class="placeholder__title">목록을 불러오지 못했어요</div>
+          <div class="placeholder__desc">잠시 후 다시 시도해 주세요</div>
+          <button class="placeholder__cta placeholder__cta--plain" onclick="switchState('loading')">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"></path><path d="M21 3v5h-5"></path></svg>
+            다시 시도
+          </button>
+        </div>
+      </div>
+
+      <div class="toast" id="toast">
+        <span class="toast__text" id="toast-text">투표했어요</span>
+        <span class="toast__votes" id="toast-votes">남은 표 2/3</span>
+      </div>
+    </div>
+
+    <script>
+      /* ── mock 데이터 ── */
+      const GRADS = [
+        'linear-gradient(165deg,#1a1530,#5a3355 50%,#d4856a)',
+        'linear-gradient(165deg,#12333a,#2f5f5a 55%,#8fae9b)',
+        'linear-gradient(165deg,#241a33,#8b4a6b 60%,#e8a87c)',
+        'linear-gradient(165deg,#2d1b4e,#8b4a6b 55%,#f0c89a)',
+        'linear-gradient(165deg,#1c1c2b,#4a3a5e 50%,#c98f7a)',
+        'linear-gradient(165deg,#0f1f2e,#3f5a6b 55%,#d9a882)',
+        'linear-gradient(165deg,#301c28,#7a4152 55%,#e8a87c)',
+        'linear-gradient(165deg,#171d33,#4c4a72 55%,#caa27f)',
+      ];
+      const LATEST_NAMES = ['@rimi', '@dokyum', '@haneul', '@jiwoo_p', '@seora', '@taeho', '@nayeon', '@eunji'];
+      const RANKED_NAMES = ['@sunset_jk', '@minsoo', '@yujin', '@haneul', '@jiwoo_p', '@seora', '@taeho', '@nayeon'];
+      const SPOTS = ['다대포', '청사포', '송정', '이기대', '광안리', '해운대', '태종대', '감천'];
+      const RANKED_VOTES = [67, 42, 31, 28, 21, 17, 14, 9];
+      const LATEST_VOTES = [3, 2, 6, 1, 4, 0, 2, 5];
+
+      let sort = 'latest';
+      let votesLeft = 3;
+      /* 랜덤은 세션 시드 고정 — 스크롤 중 순서가 흔들리지 않고, 재진입 시에만 재추첨 */
+      const randomOrder = shuffle([0, 1, 2, 3, 4, 5, 6, 7]);
+
+      function shuffle(arr) {
+        const a = arr.slice();
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+      }
+
+      function buildItems() {
+        const order = sort === 'random' ? randomOrder : [0, 1, 2, 3, 4, 5, 6, 7];
+        return order.map((i, pos) => {
+          const ranked = sort === 'ranked';
+          const votes = ranked ? RANKED_VOTES[i] : LATEST_VOTES[i];
+          return {
+            name: ranked ? RANKED_NAMES[i] : LATEST_NAMES[i],
+            meta: ranked ? votes + '표 · ' + SPOTS[i] : SPOTS[i] + ' · ' + votes + '표',
+            rankLabel: pos + 1 + '위 · ' + votes + '표',
+            grad: GRADS[i],
+            voted: i === 2,
+          };
+        });
+      }
+
+      const VOTE_ICON =
+        '<svg class="vote-btn__default" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"></path><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"></path></svg>';
+      const CHECK_ICON =
+        '<svg class="vote-btn__voted" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#E31B59" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>';
+
+      function renderGrid() {
+        document.getElementById('entry-grid').innerHTML = buildItems()
+          .map(
+            (c) => `
+        <div class="card">
+          <div class="card__photo" style="background:${c.grad}">
+            <span class="card__rank">${c.rankLabel}</span>
+          </div>
+          <div class="card__info">
+            <div class="card__text">
+              <div class="card__name">${c.name}</div>
+              <div class="card__meta">${c.meta}</div>
+            </div>
+            <button class="vote-btn${c.voted ? ' is-voted' : ''}" aria-label="투표" onclick="vote(this)">
+              ${VOTE_ICON}${CHECK_ICON}
+            </button>
+          </div>
+        </div>`
+          )
+          .join('');
+      }
+
+      function renderVotes() {
+        document.getElementById('vote-dots').innerHTML = [0, 1, 2]
+          .map((i) => `<span class="votes__dot${i < votesLeft ? ' is-left' : ''}"></span>`)
+          .join('');
+        document.getElementById('vote-count').textContent = votesLeft + '/3';
+        document.querySelector('.phone-frame').classList.toggle('is-spent', votesLeft <= 0);
+      }
+
+      /* 되돌리기 없음 — 한 번 투표한 카드는 완료 상태로 고정 */
+      function vote(btn) {
+        if (btn.classList.contains('is-voted') || votesLeft <= 0) return;
+        btn.classList.add('is-voted');
+        votesLeft -= 1;
+        renderVotes();
+        showToast('투표했어요');
+      }
+
+      let toastTimer = null;
+      function showToast(text) {
+        const toast = document.getElementById('toast');
+        document.getElementById('toast-text').textContent = text;
+        document.getElementById('toast-votes').textContent = '남은 표 ' + votesLeft + '/3';
+        toast.classList.add('is-open');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => toast.classList.remove('is-open'), 2200);
+      }
+
+      function switchSort(next, el) {
+        sort = next;
+        el.parentElement.querySelectorAll('.sort-btn').forEach((b) => b.classList.remove('is-active'));
+        el.classList.add('is-active');
+        /* 순위 배지는 득표순에서만 노출 */
+        document.querySelector('.phone-frame').classList.toggle('is-ranked', next === 'ranked');
+        renderGrid();
+        document.getElementById('list-scroll').scrollTop = 0;
+      }
+
+      function switchState(state, el) {
+        document.querySelectorAll('.state').forEach((s) => {
+          s.classList.toggle('is-active', s.dataset.state === state);
+        });
+        if (el) {
+          el.parentElement.querySelectorAll('button').forEach((b) => b.classList.remove('is-active'));
+          el.classList.add('is-active');
+        }
+      }
+
+      /* 스켈레톤 8장 (사진 1:1 + 정보 영역 2줄) */
+      document.getElementById('skeleton-grid').innerHTML = Array.from({ length: 8 })
+        .map(
+          () => `
+      <div class="skeleton">
+        <div class="skeleton__photo"></div>
+        <div class="skeleton__info">
+          <div class="skeleton__line"></div>
+          <div class="skeleton__line"></div>
+        </div>
+      </div>`
+        )
+        .join('');
+
+      renderGrid();
+      renderVotes();
+    </script>
+  </body>
+</html>
