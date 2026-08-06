@@ -320,7 +320,7 @@ export default function PostDetailScreen() {
               <Pressable onPress={toggleSave} hitSlop={8} accessibilityLabel="저장">
                 <Archive size={normalize(16)} color={post.isSaved ? ACCENT : 'rgba(0,0,0,0.6)'} fill={post.isSaved ? ACCENT : 'none'} strokeWidth={1.8} />
               </Pressable>
-              <Pressable hitSlop={8} accessibilityLabel="공유">
+              <Pressable onPress={() => setShareSheetVisible(true)} hitSlop={8} accessibilityLabel="공유">
                 <Share2 size={normalize(16)} color="rgba(0,0,0,0.6)" strokeWidth={1.8} />
               </Pressable>
             </View>
