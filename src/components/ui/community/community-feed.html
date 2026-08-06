@@ -194,6 +194,110 @@
         transform: translateX(-50%) translateY(0);
       }
 
+      /* ── 콘테스트 단계 (출품 → 투표 → 결과) ── */
+      /* 7일 주기를 출품 4일 → 투표 2일 → 결과 1일로 나눈다. 진행중 탭은 단계마다 다른 화면이다. */
+      .phase { display: none; }
+      .phase.is-active { display: block; }
+      /* 목업 확인용 단계 전환 (실제 화면에는 없음 — 서버가 단계를 내려준다) */
+      .phase-switch {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        z-index: 40;
+        display: flex;
+        gap: 4px;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 8px;
+        padding: 4px;
+      }
+      .phase-switch button {
+        border: none;
+        background: var(--color-surface);
+        border-radius: 6px;
+        padding: 4px 8px;
+        font-family: var(--font-family);
+        font-size: var(--font-2xs);
+        color: rgba(0, 0, 0, 0.5);
+        cursor: pointer;
+      }
+      .phase-switch button.is-active {
+        background: #111;
+        color: #fff;
+      }
+
+      /* ── 순위 변동 섹션 (투표 기간에만) ── */
+      /* 정렬에서 득표순을 빼고 카드에서도 득표수를 지운 대신,
+         하루 3번(09:00·12:00·18:00) 집계된 1~3위만 여기서 공개한다. */
+      .rank-panel {
+        margin: 16px 28px 0;
+        border-radius: 16px;
+        background: var(--color-surface);
+        overflow: hidden;
+      }
+      .rank-summary {
+        height: 72px;
+        padding: 0 14px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        border: none;
+        background: none;
+        width: 100%;
+        font-family: var(--font-family);
+        text-align: left;
+        cursor: pointer;
+      }
+      .rank-thumbs {
+        display: flex;
+        align-items: center;
+      }
+      .rank-thumbs span {
+        width: 34px;
+        height: 34px;
+        border-radius: 17px;
+        border: 2px solid var(--color-surface);
+      }
+      .rank-thumbs span + span {
+        margin-left: -10px;
+      }
+      .rank-summary__chevron {
+        transition: transform 0.2s;
+      }
+      .rank-panel.is-open .rank-summary__chevron {
+        transform: rotate(180deg);
+      }
+      .rank-detail {
+        display: none;
+        padding: 0 14px 14px;
+      }
+      .rank-panel.is-open .rank-detail {
+        display: block;
+      }
+      /* 펼치면 히어로를 200px → 160px로 줄여 그래프가 첫 화면에 들어오게 한다 */
+      .vote-hero {
+        height: 200px;
+        transition: height 0.2s;
+      }
+      .phase[data-phase='vote'].is-expanded .vote-hero {
+        height: 160px;
+      }
+      .vote-sort {
+        border: none;
+        background: none;
+        padding: 0;
+        font-family: var(--font-family);
+        font-size: var(--font-sm);
+        font-weight: 500;
+        letter-spacing: -0.2px;
+        color: #8e8e93;
+        cursor: pointer;
+      }
+      .vote-sort.is-active {
+        font-weight: 600;
+        color: var(--color-accent);
+      }
+
+
       /* 콘테스트 탭에서는 타이틀·세그먼트를 스크롤 아웃시키고 이 탭 행만 고정한다.
          헤더 전체(152px)를 물고 있으면 사진을 훑는 화면에서 손해라 핸드오프 2b가 이 방식이다. */
       .phone-scroll.is-contest .page-nav {
@@ -1129,79 +1233,184 @@
             <button class="subtab__btn" onclick="switchSubtab('past', this)">지난</button>
           </div>
 
-          <!-- 진행중 (핸드오프 "시안 2a·2b" 반영, ~/Desktop/handoff/contest-all-entries-mockup.html) -->
+          <!-- 진행중 — 단계 3종 (핸드오프 시안 3a·5a·5b·3c, ~/Desktop/handoff/) -->
           <div class="subview is-active" data-subview="active">
-            <!-- 히어로 — 280px로 압축, 내용 하단 정렬.
-                 배경은 콘테스트 주제 사진이 원칙이고, 사진이 없으면 골든아워 그라데이션이 폴백. -->
-            <div style="position: relative; height: 280px; overflow: hidden; background: linear-gradient(160deg, #1a1530, #2d1b4e 30%, #8b4a6b 62%, #d4856a 84%, #f0c89a); border-radius: 0 0 24px 24px">
-              <div style="position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.15) 30%, rgba(20, 14, 32, 0.62) 62%, rgba(20, 14, 32, 0.88) 100%)"></div>
-              <div style="position: absolute; left: 28px; right: 28px; bottom: 20px; pointer-events: none">
-                <span style="display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 12px; background: rgba(255, 255, 255, 0.16); font-size: var(--font-2xs); font-weight: 600; letter-spacing: 1.6px; color: rgba(255, 255, 255, 0.92)">WEEKLY CONTEST</span>
-                <div style="font-size: var(--font-2xl); font-weight: 600; letter-spacing: -1px; color: #fff; margin-top: 10px">골든아워</div>
-                <div style="font-size: var(--font-sm); color: rgba(255, 255, 255, 0.78); letter-spacing: -0.2px; margin-top: 4px">해 뜨거나 지는 시간의 빛을 담아보세요</div>
-                <div style="display: flex; align-items: baseline; margin-top: 16px">
-                  <span style="flex: 1; font-size: var(--font-xs); color: rgba(255, 255, 255, 0.72); letter-spacing: -0.1px">128명 참여 · 목표 200명</span>
-                  <span style="font-size: var(--font-xs); font-weight: 600; color: #fff; letter-spacing: -0.1px">3일 남음</span>
-                </div>
-                <div style="margin-top: 8px; height: 3px; border-radius: 2px; background: rgba(255, 255, 255, 0.24); overflow: hidden">
-                  <div style="width: 64%; height: 3px; background: #fff"></div>
-                </div>
-              </div>
+            <!-- 목업 확인용 단계 전환 (실제로는 서버가 내려주는 단계에 따라 하나만 렌더) -->
+            <div class="phase-switch">
+              <button class="is-active" onclick="switchPhase('submit', this)">출품</button>
+              <button onclick="switchPhase('vote', this)">투표</button>
+              <button onclick="switchPhase('result', this)">결과</button>
             </div>
 
-            <!-- 현재 순위 -->
-            <div style="display: flex; align-items: center; justify-content: space-between; padding: 28px 28px 14px">
-              <span style="font-size: var(--font-lg); font-weight: 600; letter-spacing: -0.4px; color: #000">현재 순위</span>
-              <div style="display: flex; align-items: center; gap: 8px">
-                <span style="font-size: var(--font-sm); color: #8e8e93; letter-spacing: -0.2px">오늘 남은 표</span>
-                <div style="display: flex; align-items: center; gap: 4px">
-                  <span style="width: 7px; height: 7px; border-radius: 4px; background: var(--color-accent)"></span>
-                  <span style="width: 7px; height: 7px; border-radius: 4px; background: var(--color-accent)"></span>
-                  <span style="width: 7px; height: 7px; border-radius: 4px; background: var(--color-accent)"></span>
-                </div>
-                <span style="font-size: var(--font-sm); font-weight: 600; color: #111; letter-spacing: -0.2px">3/3</span>
-              </div>
-            </div>
-
-            <!-- 1위 -->
-            <div style="margin: 0 28px; position: relative; height: 238px; border-radius: 20px; overflow: hidden; background: #2b2338">
-              <div style="position: absolute; inset: 0; background: linear-gradient(180deg, #2b2338 0%, #7a3b4e 45%, #e0956d 100%)"></div>
-              <div style="position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(12, 9, 24, 0.3) 0%, rgba(12, 9, 24, 0) 26%, rgba(12, 9, 24, 0.86) 100%)"></div>
-              <div style="position: absolute; inset: 0; pointer-events: none; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; text-shadow: 0 1px 8px rgba(10, 7, 20, 0.5)">
-                <span style="align-self: flex-start; background: #fff; border-radius: 9px; padding: 5px 10px; font-size: var(--font-xs); font-weight: 600; color: #111; text-shadow: none">1위 · 67표</span>
-                <div style="display: flex; align-items: flex-end; justify-content: space-between">
-                  <div style="display: flex; flex-direction: column; gap: 3px">
-                    <span style="font-size: var(--font-md); font-weight: 600; color: #fff">@sunset_jk</span>
-                    <span style="font-size: var(--font-xs); color: rgba(255, 255, 255, 0.66)">광안리 · 05:30</span>
+            <!-- ═══ 출품 기간 (D-4 ~ D-1) — 시안 3a ═══
+                 순위도 투표 버튼도 없다. 아직 겨루는 단계가 아니라 모으는 단계다. -->
+            <div class="phase is-active" data-phase="submit">
+              <div style="position: relative; height: 280px; overflow: hidden; background: linear-gradient(160deg, #1a1530, #2d1b4e 30%, #8b4a6b 62%, #d4856a 84%, #f0c89a); border-radius: 0 0 24px 24px">
+                <div style="position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.15) 30%, rgba(20, 14, 32, 0.62) 62%, rgba(20, 14, 32, 0.88) 100%)"></div>
+                <div style="position: absolute; left: 28px; right: 28px; bottom: 20px; pointer-events: none">
+                  <span style="display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 12px; background: var(--color-accent); font-size: var(--font-2xs); font-weight: 600; letter-spacing: 1.6px; color: #fff">출품 기간</span>
+                  <div style="font-size: var(--font-2xl); font-weight: 600; letter-spacing: -1px; color: #fff; margin-top: 10px">골든아워</div>
+                  <div style="font-size: var(--font-sm); color: rgba(255, 255, 255, 0.78); letter-spacing: -0.2px; margin-top: 4px">해 뜨거나 지는 시간의 빛을 담아보세요</div>
+                  <div style="display: flex; align-items: baseline; margin-top: 16px">
+                    <span style="flex: 1; font-size: var(--font-xs); color: rgba(255, 255, 255, 0.72); letter-spacing: -0.1px">82명 출품 · 목표 200명</span>
+                    <span style="font-size: var(--font-xs); font-weight: 600; color: #fff; letter-spacing: -0.1px">출품 마감 2일 전</span>
                   </div>
-                  <span style="display: flex; align-items: center; height: 36px; padding: 0 18px; border-radius: 18px; background: var(--color-accent); font-size: var(--font-sm); font-weight: 600; color: #fff; text-shadow: none">투표</span>
+                  <div style="margin-top: 8px; height: 4px; border-radius: 2px; background: rgba(255, 255, 255, 0.24); overflow: hidden">
+                    <div style="width: 41%; height: 4px; background: #fff"></div>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <!-- 2~7위 — 목록 화면(contest-all-entries.html)과 같은 카드 컴포넌트.
-                 사진 위에는 순위 배지만 얹고, 닉네임·득표수·투표 버튼은 사진 아래 정보 영역에 둔다. -->
-            <div id="contest-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 20px 28px 0"></div>
-
-            <div style="padding: 20px 28px">
-              <button onclick="location.href='./contest-all-entries.html'" style="width: 100%; height: 52px; border: none; border-radius: 26px; background: var(--color-surface); color: #111; font-family: var(--font-family); font-size: var(--font-sm); font-weight: 600; letter-spacing: -0.2px; display: flex; align-items: center; justify-content: center; gap: 6px; cursor: pointer">
-                출품작 128개 모두 보기
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
-              </button>
-            </div>
-
-            <!-- 하단 고정 CTA (탭바 위) -->
-            <!-- 부모(.subview)에 좌우 패딩이 없으므로 음수 마진 상쇄를 쓰지 않는다.
-                 높이 고정(72px) 대신 패딩으로 잡아 52px 버튼 위아래 여백 14/22를 확보한다. -->
-            <div style="padding: 14px 28px calc(22px + env(safe-area-inset-bottom)); background: #fff; border-top: 1px solid rgba(0, 0, 0, 0.07); display: flex; align-items: center; justify-content: space-between">
-              <div style="display: flex; flex-direction: column; gap: 2px">
-                <span style="font-size: var(--font-xs); color: var(--color-text-secondary)">골든아워 · 3일 남음</span>
-                <span style="font-size: var(--font-sm); font-weight: 600; color: #000">아직 출품하지 않았어요</span>
+              <div style="padding: 20px 28px 12px; display: flex; align-items: baseline">
+                <span style="flex: 1; font-size: var(--font-xl); font-weight: 600; letter-spacing: -0.7px; color: #111">새로 올라온 출품작</span>
+                <span style="font-size: var(--font-sm); color: #8e8e93; letter-spacing: -0.2px">82</span>
               </div>
-              <button style="height: 52px; padding: 0 26px; border: none; border-radius: 26px; background: var(--color-accent); color: #fff; font-family: var(--font-family); display: flex; align-items: center; gap: 7px; cursor: pointer" onclick="openSheet('submit-sheet')">
-                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L8 6.5H4.5A1.5 1.5 0 0 0 3 8v10a1.5 1.5 0 0 0 1.5 1.5h15a1.5 1.5 0 0 0 1.5-1.5V8a1.5 1.5 0 0 0-1.5-1.5H16z"></path><circle cx="12" cy="12.5" r="3.4"></circle></svg>
-                <span style="font-size: var(--font-md); font-weight: 600; letter-spacing: -0.3px">출품하기</span>
-              </button>
+
+              <div style="margin: 0 28px 14px; padding: 11px 14px; background: var(--color-surface); border-radius: 12px; display: flex; align-items: center; gap: 8px">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5c5c60" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 2"></path></svg>
+                <span style="font-size: var(--font-sm); font-weight: 500; color: #5c5c60; letter-spacing: -0.2px">투표는 8월 10일부터 2일 동안 열려요</span>
+              </div>
+
+              <div id="submit-grid" style="padding: 0 28px; display: grid; grid-template-columns: 1fr 1fr; gap: 20px"></div>
+
+              <div style="padding: 24px 28px 0; margin-top: 4px; border-top: 1px solid rgba(0, 0, 0, 0.07); display: flex; align-items: center; justify-content: space-between">
+                <div style="display: flex; flex-direction: column; gap: 2px">
+                  <span style="font-size: var(--font-xs); color: #8e8e93; letter-spacing: -0.1px">골든아워 · 출품 마감 2일 전</span>
+                  <span style="font-size: var(--font-md); font-weight: 600; color: #111; letter-spacing: -0.3px">아직 출품하지 않았어요</span>
+                </div>
+                <button style="height: 44px; padding: 0 20px; border: none; border-radius: 22px; background: var(--color-accent); color: #fff; font-family: var(--font-family); display: flex; align-items: center; gap: 6px; cursor: pointer" onclick="openSheet('submit-sheet')">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L8 6.5H4.5A1.5 1.5 0 0 0 3 8v10a1.5 1.5 0 0 0 1.5 1.5h15a1.5 1.5 0 0 0 1.5-1.5V8a1.5 1.5 0 0 0-1.5-1.5H16z"></path><circle cx="12" cy="12.5" r="3.4"></circle></svg>
+                  <span style="font-size: var(--font-sm); font-weight: 600; letter-spacing: -0.2px">출품하기</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- ═══ 투표 기간 (D-2 ~ D-1) — 시안 5a(접힘) · 5b(펼침) ═══ -->
+            <div class="phase" data-phase="vote">
+              <div class="vote-hero" style="position: relative; overflow: hidden; background: linear-gradient(160deg, #1a1530, #2d1b4e 30%, #8b4a6b 62%, #d4856a 84%, #f0c89a); border-radius: 0 0 24px 24px">
+                <div style="position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.15) 30%, rgba(20, 14, 32, 0.62) 62%, rgba(20, 14, 32, 0.88) 100%)"></div>
+                <div style="position: absolute; left: 28px; right: 28px; bottom: 18px; pointer-events: none">
+                  <span style="display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 12px; background: var(--color-accent); font-size: var(--font-2xs); font-weight: 600; letter-spacing: 1.6px; color: #fff">투표 기간</span>
+                  <div style="font-size: var(--font-xl); font-weight: 600; letter-spacing: -0.7px; color: #fff; margin-top: 8px">골든아워 · 128개 출품</div>
+                  <div style="font-size: var(--font-sm); color: rgba(255, 255, 255, 0.78); letter-spacing: -0.2px; margin-top: 4px">투표 마감 1일 전</div>
+                </div>
+              </div>
+
+              <!-- 순위 변동 — 집계 직후 1시간은 자동 펼침 -->
+              <div class="rank-panel" id="rank-panel">
+                <button class="rank-summary" onclick="toggleRankPanel()">
+                  <span class="rank-thumbs">
+                    <span style="background: linear-gradient(165deg, #1a1530, #5a3355 50%, #d4856a)"></span>
+                    <span style="background: linear-gradient(165deg, #12333a, #2f5f5a 55%, #8fae9b)"></span>
+                    <span style="background: linear-gradient(165deg, #241a33, #8b4a6b 60%, #e8a87c)"></span>
+                  </span>
+                  <span style="flex: 1; min-width: 0">
+                    <span style="display: block; font-size: var(--font-sm); font-weight: 600; color: #111; letter-spacing: -0.2px">순위 변동</span>
+                    <span style="display: block; font-size: var(--font-xs); color: #8e8e93; letter-spacing: -0.1px; margin-top: 2px">12:00 기준 · @sunset_jk 1위</span>
+                  </span>
+                  <svg class="rank-summary__chevron" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"></path></svg>
+                </button>
+
+                <div class="rank-detail">
+                  <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 2px">
+                    <span style="height: 20px; padding: 0 8px; border-radius: 10px; background: rgba(227, 27, 89, 0.1); color: var(--color-accent); font-size: var(--font-2xs); font-weight: 600; letter-spacing: -0.1px; display: inline-flex; align-items: center">12:00 업데이트</span>
+                  </div>
+                  <!-- 3시점 × 1~3위. 마지막 집계 이후 실시간 득표수는 노출하지 않는다. -->
+                  <div style="margin-top: 12px; height: 150px; position: relative">
+                    <span style="position: absolute; left: 0; top: 20px; font-size: var(--font-xs); font-weight: 500; color: #c7c7cc">1</span>
+                    <span style="position: absolute; left: 0; top: 68px; font-size: var(--font-xs); font-weight: 500; color: #c7c7cc">2</span>
+                    <span style="position: absolute; left: 0; top: 116px; font-size: var(--font-xs); font-weight: 500; color: #c7c7cc">3</span>
+                    <svg width="100%" height="150" viewBox="0 0 306 150" preserveAspectRatio="none" style="position: absolute; left: 0; top: 0">
+                      <line x1="14" y1="26" x2="302" y2="26" stroke="#e9e9ed" stroke-width="1"></line>
+                      <line x1="14" y1="74" x2="302" y2="74" stroke="#e9e9ed" stroke-width="1"></line>
+                      <line x1="14" y1="122" x2="302" y2="122" stroke="#e9e9ed" stroke-width="1"></line>
+                      <line x1="161" y1="8" x2="161" y2="142" style="stroke: var(--color-accent)" stroke-width="1" stroke-dasharray="3 3" opacity="0.5"></line>
+                      <polyline points="48,26 161,26 274,26" fill="none" style="stroke: var(--color-accent)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"></polyline>
+                      <polyline points="48,122 161,74 274,74" fill="none" stroke="#b8b8be" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></polyline>
+                      <polyline points="48,74 161,122 274,122" fill="none" stroke="#d2d2d8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></polyline>
+                    </svg>
+                    <span style="position: absolute; left: 15.686%; top: 12px; transform: translateX(-50%); width: 28px; height: 28px; border-radius: 14px; border: 2px solid var(--color-surface); background: linear-gradient(165deg, #1a1530, #5a3355 50%, #d4856a)"></span>
+                    <span style="position: absolute; left: 52.614%; top: 12px; transform: translateX(-50%); width: 28px; height: 28px; border-radius: 14px; border: 2px solid var(--color-surface); background: linear-gradient(165deg, #1a1530, #5a3355 50%, #d4856a)"></span>
+                    <span style="position: absolute; left: 89.542%; top: 12px; transform: translateX(-50%); width: 28px; height: 28px; border-radius: 14px; border: 2px solid var(--color-surface); background: linear-gradient(165deg, #1a1530, #5a3355 50%, #d4856a)"></span>
+                    <span style="position: absolute; left: 15.686%; top: 108px; transform: translateX(-50%); width: 28px; height: 28px; border-radius: 14px; border: 2px solid var(--color-surface); background: linear-gradient(165deg, #12333a, #2f5f5a 55%, #8fae9b)"></span>
+                    <span style="position: absolute; left: 52.614%; top: 60px; transform: translateX(-50%); width: 28px; height: 28px; border-radius: 14px; border: 2px solid var(--color-surface); background: linear-gradient(165deg, #12333a, #2f5f5a 55%, #8fae9b)"></span>
+                    <span style="position: absolute; left: 89.542%; top: 60px; transform: translateX(-50%); width: 28px; height: 28px; border-radius: 14px; border: 2px solid var(--color-surface); background: linear-gradient(165deg, #12333a, #2f5f5a 55%, #8fae9b)"></span>
+                    <span style="position: absolute; left: 15.686%; top: 60px; transform: translateX(-50%); width: 28px; height: 28px; border-radius: 14px; border: 2px solid var(--color-surface); background: linear-gradient(165deg, #241a33, #8b4a6b 60%, #e8a87c)"></span>
+                    <span style="position: absolute; left: 52.614%; top: 108px; transform: translateX(-50%); width: 28px; height: 28px; border-radius: 14px; border: 2px solid var(--color-surface); background: linear-gradient(165deg, #241a33, #8b4a6b 60%, #e8a87c)"></span>
+                    <span style="position: absolute; left: 89.542%; top: 108px; transform: translateX(-50%); width: 28px; height: 28px; border-radius: 14px; border: 2px solid var(--color-surface); background: linear-gradient(165deg, #241a33, #8b4a6b 60%, #e8a87c)"></span>
+                  </div>
+                  <div style="margin-top: 10px; display: flex; align-items: center; gap: 6px">
+                    <span style="flex: 1; height: 32px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: var(--font-sm); font-weight: 500; color: #8e8e93; letter-spacing: -0.2px">09:00</span>
+                    <span style="flex: 1; height: 32px; border-radius: 16px; background: #fff; display: flex; align-items: center; justify-content: center; font-size: var(--font-sm); font-weight: 600; color: #111; letter-spacing: -0.2px">12:00</span>
+                    <span style="flex: 1; height: 32px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: var(--font-sm); color: #c7c7cc; letter-spacing: -0.2px">18:00</span>
+                  </div>
+                  <div id="rank-legend" style="margin-top: 14px; padding-top: 14px; border-top: 1px solid rgba(0, 0, 0, 0.07); display: flex; flex-direction: column; gap: 12px"></div>
+                </div>
+              </div>
+
+              <!-- 정렬 — 득표순 제외(순위는 위 섹션에서만 공개), 기본 랜덤 -->
+              <div style="padding: 14px 0; display: flex; align-items: center; border-bottom: 1px solid var(--color-border-light)">
+                <div style="height: 34px; display: flex; align-items: center; gap: 14px; padding-left: 28px">
+                  <button class="vote-sort is-active" onclick="switchVoteSort('random', this)">랜덤</button>
+                  <span style="width: 3px; height: 3px; border-radius: 2px; background: #dcdce0"></span>
+                  <button class="vote-sort" onclick="switchVoteSort('latest', this)">최신순</button>
+                </div>
+                <div style="flex: 1"></div>
+                <button onclick="openMyVotes()" style="border: none; background: none; display: flex; align-items: center; gap: 8px; padding: 0 28px 0 0; font-family: var(--font-family); cursor: pointer">
+                  <span style="font-size: var(--font-sm); color: #8e8e93; letter-spacing: -0.2px">남은 표</span>
+                  <span id="vote-dots" style="display: flex; align-items: center; gap: 4px"></span>
+                  <span id="vote-left" style="font-size: var(--font-sm); font-weight: 600; color: #111; letter-spacing: -0.2px">3/3</span>
+                </button>
+              </div>
+
+              <div id="vote-grid" style="padding: 20px 28px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 20px"></div>
+
+              <div style="padding: 24px 28px 0; margin-top: 20px; border-top: 1px solid rgba(0, 0, 0, 0.07); display: flex; align-items: center; justify-content: space-between">
+                <div style="display: flex; flex-direction: column; gap: 2px">
+                  <span style="font-size: var(--font-xs); color: #8e8e93; letter-spacing: -0.1px">골든아워 · 투표 마감 1일 전</span>
+                  <button onclick="openMyVotes()" style="border: none; background: none; padding: 0; display: flex; align-items: center; gap: 4px; font-family: var(--font-family); font-size: var(--font-md); font-weight: 600; color: #111; letter-spacing: -0.3px; cursor: pointer">
+                    내가 투표한 작품
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
+                  </button>
+                </div>
+                <button style="height: 44px; padding: 0 20px; border: none; border-radius: 22px; background: var(--color-surface); color: #111; font-family: var(--font-family); font-size: var(--font-sm); font-weight: 600; letter-spacing: -0.2px; cursor: pointer" onclick="location.href='./contest-all-entries.html'">모두 보기</button>
+              </div>
+            </div>
+
+            <!-- ═══ 결과 발표 (D-day) — 시안 3c ═══
+                 여기서만 순위 배지와 득표수를 다시 쓴다. -->
+            <div class="phase" data-phase="result">
+              <div style="position: relative; height: 180px; overflow: hidden; background: linear-gradient(160deg, #1a1530, #2d1b4e 30%, #8b4a6b 62%, #d4856a 84%, #f0c89a); border-radius: 0 0 24px 24px">
+                <div style="position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.15) 30%, rgba(20, 14, 32, 0.62) 62%, rgba(20, 14, 32, 0.88) 100%)"></div>
+                <div style="position: absolute; left: 28px; right: 28px; bottom: 18px; pointer-events: none">
+                  <span style="display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 12px; background: rgba(255, 255, 255, 0.16); font-size: var(--font-2xs); font-weight: 600; letter-spacing: 1.6px; color: #fff">결과 발표</span>
+                  <div style="font-size: var(--font-xl); font-weight: 600; letter-spacing: -0.7px; color: #fff; margin-top: 8px">골든아워 최종 순위</div>
+                  <div style="font-size: var(--font-sm); color: rgba(255, 255, 255, 0.78); letter-spacing: -0.2px; margin-top: 4px">128명 출품 · 1,204표</div>
+                </div>
+              </div>
+
+              <div style="margin: 20px 28px 0; padding: 14px 16px; border-radius: 16px; background: var(--color-surface); display: flex; align-items: center; gap: 12px">
+                <span style="width: 44px; height: 44px; border-radius: 10px; background: linear-gradient(165deg, #241a33, #8b4a6b 60%, #e8a87c)"></span>
+                <div style="flex: 1">
+                  <div style="font-size: var(--font-xs); color: #8e8e93; letter-spacing: -0.1px">내 출품작</div>
+                  <div style="font-size: var(--font-md); font-weight: 600; color: #111; letter-spacing: -0.3px; margin-top: 2px">14위 · 23표</div>
+                </div>
+                <button style="height: 34px; padding: 0 14px; border: none; border-radius: 17px; background: #fff; font-family: var(--font-family); font-size: var(--font-sm); font-weight: 600; color: #111; letter-spacing: -0.2px; cursor: pointer">공유</button>
+              </div>
+
+              <div style="padding: 20px 28px 12px; font-size: var(--font-xl); font-weight: 600; color: #111; letter-spacing: -0.7px">최종 순위</div>
+
+              <div style="margin: 0 28px; border-radius: 16px; overflow: hidden; background: var(--color-surface)">
+                <div style="position: relative; aspect-ratio: 334 / 200; background: linear-gradient(165deg, #1a1530, #5a3355 50%, #d4856a)">
+                  <span style="position: absolute; top: 12px; left: 12px; height: 24px; padding: 0 10px; border-radius: 12px; background: var(--color-accent); display: flex; align-items: center; font-size: var(--font-xs); font-weight: 600; color: #fff; letter-spacing: -0.1px">1위 · 214표</span>
+                </div>
+                <div style="padding: 11px 14px 13px">
+                  <div style="font-size: var(--font-md); font-weight: 600; color: #111; letter-spacing: -0.3px">@sunset_jk</div>
+                  <div style="font-size: var(--font-xs); color: #8e8e93; letter-spacing: -0.1px; margin-top: 2px">광안리 · 05:30</div>
+                </div>
+              </div>
+
+              <div id="result-grid" style="padding: 20px 28px 0; display: grid; grid-template-columns: 1fr 1fr; gap: 20px"></div>
             </div>
           </div>
 
@@ -1533,6 +1742,39 @@
       </div>
 
       <!-- 출품하기 시트 (사진 미선택이 초기 상태) -->
+      <!-- 내가 투표한 작품 시트 — 시안 6a(2표 사용) · 6b(빈 상태)
+           하단 바 "내가 투표한 작품 >" 또는 목록 화면의 남은 표 도트로 열린다.
+           취소는 다이얼로그 없이 즉시 반영하고 토스트로만 알린다. -->
+      <div class="sheet-backdrop" id="myvotes-sheet" onclick="closeSheet('myvotes-sheet')">
+        <div class="sheet" style="padding: 10px 28px 28px" onclick="event.stopPropagation()">
+          <div class="sheet__handle" style="background: #e6e6ea; margin-bottom: 0"></div>
+          <div style="margin-top: 18px; display: flex; align-items: baseline; gap: 6px">
+            <span id="myvotes-title" style="font-size: var(--font-lg); font-weight: 600; color: #111; letter-spacing: -0.4px">오늘 투표한 작품</span>
+            <span id="myvotes-count" style="font-size: var(--font-lg); font-weight: 600; color: #c7c7cc; letter-spacing: -0.4px">0</span>
+          </div>
+
+          <div id="myvotes-list" style="margin-top: 18px; display: flex; flex-direction: column; gap: 16px"></div>
+
+          <!-- 빈 상태 -->
+          <div id="myvotes-empty" style="display: none">
+            <div style="padding: 36px 0 30px; display: flex; flex-direction: column; align-items: center; gap: 8px">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"></path><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"></path></svg>
+              <span style="font-size: var(--font-md); font-weight: 600; color: #111; letter-spacing: -0.3px; margin-top: 4px">아직 투표한 작품이 없어요</span>
+              <span style="font-size: var(--font-sm); color: #8e8e93; letter-spacing: -0.2px">오늘 3표를 쓸 수 있어요</span>
+            </div>
+            <button style="width: 100%; height: 52px; border: none; border-radius: 26px; background: var(--color-accent); color: #fff; font-family: var(--font-family); font-size: var(--font-md); font-weight: 600; letter-spacing: -0.3px; cursor: pointer" onclick="closeSheet('myvotes-sheet')">출품작 보러 가기</button>
+          </div>
+
+          <!-- 푸터 — 표가 하나라도 있을 때만 -->
+          <div id="myvotes-footer" style="margin-top: 22px; padding-top: 16px; border-top: 1px solid rgba(0, 0, 0, 0.07); display: flex; align-items: center; gap: 8px">
+            <span style="font-size: var(--font-sm); color: #8e8e93; letter-spacing: -0.2px">남은 표</span>
+            <span id="myvotes-dots" style="display: flex; align-items: center; gap: 4px"></span>
+            <span id="myvotes-left" style="font-size: var(--font-sm); font-weight: 600; color: #111; letter-spacing: -0.2px">3/3</span>
+            <div style="flex: 1"></div>
+            <span style="font-size: var(--font-xs); color: #c7c7cc; letter-spacing: -0.1px">내일 0시에 3표로 초기화</span>
+          </div>
+        </div>
+      </div>
       <div class="sheet-backdrop" id="submit-sheet" onclick="closeSheet('submit-sheet')">
         <div class="sheet" style="padding: 8px 0 20px" onclick="event.stopPropagation()">
           <div class="sheet__handle"></div>
@@ -1720,57 +1962,221 @@
         });
       }
 
-      /* ── 순위 그리드 (2위~) — 핸드오프 "시안 2b" 기준. 목록 화면과 같은 카드 컴포넌트.
-         사진 위에 얹는 것은 순위 배지뿐이고, 좋아요 수 pill은 제거(투표 버튼과 혼동됨).
-         득표수는 정보 영역 메타 텍스트로 내렸다. 낙관적 업데이트(확인 모달 없음). ── */
-      var contestGridItems = [
-        { rank: 2, user: '@minsoo', votes: 42, spot: '다대포', bg: 'linear-gradient(165deg, #12333a, #2f5f5a 55%, #8fae9b)' },
-        { rank: 3, user: '@yujin', votes: 31, spot: '청사포', bg: 'linear-gradient(165deg, #241a33, #8b4a6b 60%, #e8a87c)' },
-        { rank: 4, user: '@haneul', votes: 28, spot: '송정', bg: 'linear-gradient(165deg, #2d1b4e, #8b4a6b 55%, #f0c89a)' },
-        { rank: 5, user: '@jin_00', votes: 24, spot: '이기대', bg: 'linear-gradient(165deg, #1c1c2b, #4a3a5e 50%, #c98f7a)' },
-        { rank: 6, user: '@seoyeon', votes: 19, spot: '광안리', bg: 'linear-gradient(165deg, #0f1f2e, #3f5a6b 55%, #d9a882)' },
-        { rank: 7, user: '@dawnlee', votes: 15, spot: '해운대', bg: 'linear-gradient(165deg, #301c28, #7a4152 55%, #e8a87c)' },
+      /* ── 콘테스트 단계 전환 (목업 확인용 — 실제로는 서버가 단계를 내려준다) ── */
+      function switchPhase(phase, el) {
+        document.querySelectorAll('.phase').forEach(function (p) {
+          p.classList.toggle('is-active', p.dataset.phase === phase);
+        });
+        el.parentElement.querySelectorAll('button').forEach(function (b) {
+          b.classList.toggle('is-active', b === el);
+        });
+      }
+
+      /* ── 순위 변동 패널 ── */
+      /* 펼치면 히어로가 줄어 그래프가 첫 화면에 들어온다.
+         실제 앱에서는 집계 직후 1시간 동안 자동으로 펼쳐진 상태로 진입한다. */
+      function toggleRankPanel() {
+        var panel = document.getElementById('rank-panel');
+        var open = panel.classList.toggle('is-open');
+        document.querySelector('.phase[data-phase="vote"]').classList.toggle('is-expanded', open);
+      }
+
+      /* ── mock 데이터 ── */
+      var GRADS = [
+        'linear-gradient(165deg, #1a1530, #5a3355 50%, #d4856a)',
+        'linear-gradient(165deg, #12333a, #2f5f5a 55%, #8fae9b)',
+        'linear-gradient(165deg, #241a33, #8b4a6b 60%, #e8a87c)',
+        'linear-gradient(165deg, #2d1b4e, #8b4a6b 55%, #f0c89a)',
+        'linear-gradient(165deg, #1c1c2b, #4a3a5e 50%, #c98f7a)',
+        'linear-gradient(165deg, #0f1f2e, #3f5a6b 55%, #d9a882)',
       ];
-      var contestVoted = {};
-      function renderContestGrid() {
-        document.getElementById('contest-grid').innerHTML = contestGridItems
+
+      /* 출품 기간 — 투표 버튼도 순위도 없다. 메타는 올라온 시각 */
+      var submitItems = [
+        { user: '@rimi', when: '12분 전', g: 0 },
+        { user: '@dokyum', when: '38분 전', g: 1 },
+        { user: '@haneul', when: '2시간 전', g: 2 },
+        { user: '@jiwoo_p', when: '4시간 전', g: 3 },
+      ];
+      document.getElementById('submit-grid').innerHTML = submitItems
+        .map(function (it) {
+          return (
+            '<div style="border-radius: 16px; overflow: hidden; background: var(--color-surface)">' +
+            '<div style="aspect-ratio: 1 / 1; background: ' + GRADS[it.g] + '"></div>' +
+            '<div style="padding: 9px 12px 11px">' +
+            '<div style="font-size: var(--font-sm); font-weight: 600; color: #111; letter-spacing: -0.2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">' + it.user + '</div>' +
+            '<div style="font-size: var(--font-xs); color: #8e8e93; letter-spacing: -0.1px; margin-top: 2px">' + it.when + '</div>' +
+            '</div></div>'
+          );
+        })
+        .join('');
+
+      /* 투표 기간 — 순위 배지·득표수 없음. 메타는 "스팟 · 출품 시각" */
+      var voteItems = [
+        { user: '@rimi', meta: '다대포 · 05:32', g: 0 },
+        { user: '@dokyum', meta: '청사포 · 18:04', g: 1 },
+        { user: '@haneul', meta: '송정 · 05:48', g: 2 },
+        { user: '@jiwoo_p', meta: '이기대 · 19:12', g: 3 },
+        { user: '@seora', meta: '광안리 · 05:21', g: 4 },
+        { user: '@taeho', meta: '해운대 · 18:37', g: 5 },
+      ];
+      var MAX_VOTES = 3;
+      var votesLeft = MAX_VOTES;
+      var votedUsers = {};
+
+      var THUMBS_UP =
+        '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"></path><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"></path></svg>';
+      var CHECK =
+        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="stroke: var(--color-accent)" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>';
+
+      function renderVoteGrid() {
+        document.getElementById('vote-grid').innerHTML = voteItems
           .map(function (it) {
-            var on = !!contestVoted[it.rank];
-            var count = it.votes + (on ? 1 : 0);
-            /* 기본 #E31B59 + 흰 vote / 투표 완료 rgba(227,27,89,.10) + 핑크 check (되돌리기 없음) */
-            var icon = on
-              ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#E31B59" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>'
-              : '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"></path><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"></path></svg>';
+            var on = !!votedUsers[it.user];
+            var spent = !on && votesLeft <= 0;
+            var bg = on ? 'rgba(227, 27, 89, 0.1)' : spent ? '#e6e6ea' : 'var(--color-accent)';
+            var icon = on ? CHECK : THUMBS_UP.replace('#fff', spent ? '#b8b8be' : '#fff');
             return (
               '<div style="border-radius: 16px; overflow: hidden; background: var(--color-surface)">' +
-              '<div style="position: relative; aspect-ratio: 1 / 1; background: ' + it.bg + '">' +
-              '<span style="position: absolute; top: 10px; left: 10px; height: 22px; padding: 0 8px; border-radius: 11px; background: rgba(255, 255, 255, 0.92); display: flex; align-items: center; font-size: var(--font-2xs); font-weight: 600; color: #111; letter-spacing: -0.1px">' + it.rank + '위</span>' +
-              '</div>' +
+              '<div style="aspect-ratio: 1 / 1; background: ' + GRADS[it.g] + '"></div>' +
               '<div style="padding: 9px 12px 11px; display: flex; align-items: center; gap: 8px">' +
               '<div style="flex: 1; min-width: 0">' +
               '<div style="font-size: var(--font-sm); font-weight: 600; color: #111; letter-spacing: -0.2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">' + it.user + '</div>' +
-              '<div style="font-size: var(--font-xs); color: #8e8e93; letter-spacing: -0.1px; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">' + count + '표 · ' + it.spot + '</div>' +
+              '<div style="font-size: var(--font-xs); color: #8e8e93; letter-spacing: -0.1px; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">' + it.meta + '</div>' +
               '</div>' +
-              '<button onclick="voteContestGrid(' + it.rank + ')" aria-label="투표" style="width: 28px; height: 28px; border: none; border-radius: 14px; background: ' + (on ? 'rgba(227, 27, 89, 0.1)' : 'var(--color-accent)') + '; display: flex; align-items: center; justify-content: center; flex-shrink: 0; padding: 0; cursor: pointer">' + icon + '</button>' +
+              '<button onclick="toggleVote(\'' + it.user + '\')" aria-label="투표" style="width: 28px; height: 28px; border: none; border-radius: 14px; background: ' + bg + '; display: flex; align-items: center; justify-content: center; flex-shrink: 0; padding: 0; cursor: pointer">' + icon + '</button>' +
               '</div></div>'
             );
           })
           .join('');
       }
-      /* 표가 하루 3개뿐이라 소비된 감각이 즉시 보여야 해서 남은 표를 문구에 함께 넣는다.
-         RN에서는 여기에 더해 Haptics.impactAsync(Light)가 함께 발생한다. */
-      var contestVotesLeft = 3;
-      function voteContestGrid(rank) {
-        if (contestVoted[rank] || contestVotesLeft <= 0) return;
-        contestVoted[rank] = true;
-        contestVotesLeft -= 1;
-        renderContestGrid();
-        var item = contestGridItems.filter(function (it) { return it.rank === rank; })[0];
-        document.getElementById('toast-vote-text').textContent =
-          item.user + ' 님에게 투표했어요 · ' + contestVotesLeft + '/3';
+
+      function renderVotesLeft() {
+        var dots = '';
+        for (var i = 0; i < MAX_VOTES; i++) {
+          dots += '<span style="width: 7px; height: 7px; border-radius: 4px; background: ' + (i < votesLeft ? 'var(--color-accent)' : '#e6e6ea') + '"></span>';
+        }
+        document.getElementById('vote-dots').innerHTML = dots;
+        document.getElementById('vote-left').textContent = votesLeft + '/' + MAX_VOTES;
+      }
+
+      /* 투표 기간 안에서는 취소 자유 — 완료 버튼 재탭으로 표 1개 복구. 기간 종료 시 확정 */
+      function toggleVote(user) {
+        if (votedUsers[user]) {
+          delete votedUsers[user];
+          delete votedAt[user];
+          votesLeft += 1;
+          renderVoteGrid();
+          renderVotesLeft();
+          renderMyVotes();
+          document.getElementById('toast-vote-text').textContent = user + ' 투표를 취소했어요 · ' + votesLeft + '/' + MAX_VOTES;
+          showToast('toast-vote');
+          return;
+        }
+        if (votesLeft <= 0) return;
+        votedUsers[user] = true;
+        votedAt[user] = '오늘 14:20';
+        votesLeft -= 1;
+        renderVoteGrid();
+        renderVotesLeft();
+        renderMyVotes();
+        document.getElementById('toast-vote-text').textContent = user + ' 님에게 투표했어요 · ' + votesLeft + '/' + MAX_VOTES;
         showToast('toast-vote');
       }
-      renderContestGrid();
+
+
+      /* ── 내가 투표한 작품 시트 (시안 6a·6b) ── */
+      /* 취소는 다이얼로그 없이 즉시 반영하고 토스트로만 알린다.
+         기간이 끝나면 취소 버튼을 없애고 제목을 "내가 투표한 작품"으로 바꾼다. */
+      var votedAt = {};
+
+      function openMyVotes() {
+        renderMyVotes();
+        openSheet('myvotes-sheet');
+      }
+
+      function renderMyVotes() {
+        var mine = voteItems.filter(function (it) { return votedUsers[it.user]; });
+        document.getElementById('myvotes-count').textContent = mine.length;
+        document.getElementById('myvotes-empty').style.display = mine.length ? 'none' : 'block';
+        document.getElementById('myvotes-footer').style.display = mine.length ? 'flex' : 'none';
+        document.getElementById('myvotes-list').innerHTML = mine
+          .map(function (it) {
+            return (
+              '<div style="display: flex; align-items: center; gap: 12px">' +
+              '<span style="width: 44px; height: 44px; border-radius: 11px; flex-shrink: 0; background: ' + GRADS[it.g] + '"></span>' +
+              '<div style="flex: 1; min-width: 0">' +
+              '<div style="font-size: var(--font-sm); font-weight: 600; color: #111; letter-spacing: -0.2px">' + it.user + '</div>' +
+              '<div style="font-size: var(--font-xs); color: #8e8e93; letter-spacing: -0.1px; margin-top: 2px">' + (votedAt[it.user] || '방금') + ' · ' + it.meta.split(' · ')[0] + '</div>' +
+              '</div>' +
+              '<button onclick="toggleVote(\'' + it.user + '\')" style="height: 32px; padding: 0 14px; border: none; border-radius: 16px; background: var(--color-surface); font-family: var(--font-family); font-size: var(--font-sm); font-weight: 600; color: #111; letter-spacing: -0.2px; cursor: pointer">취소</button>' +
+              '</div>'
+            );
+          })
+          .join('');
+
+        var dots = '';
+        for (var i = 0; i < MAX_VOTES; i++) {
+          dots += '<span style="width: 7px; height: 7px; border-radius: 4px; background: ' + (i < votesLeft ? 'var(--color-accent)' : '#e6e6ea') + '"></span>';
+        }
+        document.getElementById('myvotes-dots').innerHTML = dots;
+        document.getElementById('myvotes-left').textContent = votesLeft + '/' + MAX_VOTES;
+      }
+
+      function switchVoteSort(sort, el) {
+        el.parentElement.querySelectorAll('.vote-sort').forEach(function (b) {
+          b.classList.toggle('is-active', b === el);
+        });
+        if (sort === 'random') {
+          voteItems.sort(function () { return Math.random() - 0.5; });
+        } else {
+          voteItems.sort(function (a, b) { return a.g - b.g; });
+        }
+        renderVoteGrid();
+      }
+
+      /* 순위 변동 범례 — 1위만 핑크, 나머지는 회색 계열 */
+      document.getElementById('rank-legend').innerHTML = [
+        { name: '@sunset_jk', meta: '광안리 · 05:30', rank: '1위', g: 0 },
+        { name: '@minsoo', meta: '다대포 · 18:20', rank: '2위', g: 1 },
+        { name: '@yujin', meta: '청사포 · 05:44', rank: '3위', g: 2 },
+      ]
+        .map(function (e) {
+          return (
+            '<div style="display: flex; align-items: center; gap: 12px">' +
+            '<span style="width: 40px; height: 40px; border-radius: 11px; flex-shrink: 0; background: ' + GRADS[e.g] + '"></span>' +
+            '<div style="flex: 1; min-width: 0">' +
+            '<div style="font-size: var(--font-sm); font-weight: 600; color: #111; letter-spacing: -0.2px">' + e.name + '</div>' +
+            '<div style="font-size: var(--font-xs); color: #8e8e93; letter-spacing: -0.1px; margin-top: 2px">' + e.meta + '</div>' +
+            '</div>' +
+            '<span style="font-size: var(--font-sm); font-weight: 600; color: #111; letter-spacing: -0.2px">' + e.rank + '</span>' +
+            '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>' +
+            '</div>'
+          );
+        })
+        .join('');
+
+      /* 결과 발표 — 이 단계에서만 순위 배지와 득표수를 다시 쓴다 */
+      document.getElementById('result-grid').innerHTML = [
+        { user: '@minsoo', rank: '2위', meta: '187표 · 다대포', g: 1 },
+        { user: '@yujin', rank: '3위', meta: '156표 · 청사포', g: 2 },
+      ]
+        .map(function (it) {
+          return (
+            '<div style="border-radius: 16px; overflow: hidden; background: var(--color-surface)">' +
+            '<div style="position: relative; aspect-ratio: 1 / 1; background: ' + GRADS[it.g] + '">' +
+            '<span style="position: absolute; top: 10px; left: 10px; height: 22px; padding: 0 8px; border-radius: 11px; background: rgba(255, 255, 255, 0.92); display: flex; align-items: center; font-size: var(--font-2xs); font-weight: 600; color: #111; letter-spacing: -0.1px">' + it.rank + '</span>' +
+            '</div>' +
+            '<div style="padding: 9px 12px 11px">' +
+            '<div style="font-size: var(--font-sm); font-weight: 600; color: #111; letter-spacing: -0.2px">' + it.user + '</div>' +
+            '<div style="font-size: var(--font-xs); color: #8e8e93; letter-spacing: -0.1px; margin-top: 2px">' + it.meta + '</div>' +
+            '</div></div>'
+          );
+        })
+        .join('');
+
+      renderVoteGrid();
+      renderVotesLeft();
 
       /* ── 시트 · 모달 · 토스트 공통 ── */
       function openSheet(id) {

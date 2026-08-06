@@ -156,11 +156,35 @@
   - 투표 피드백: 색 반전만 있던 것에 토스트·햅틱 추가(expo-haptics, `src/utils/haptics.ts`)
 - 완료 조건: 목업 `contest-all-entries.html` / `community-feed.html` 콘테스트 탭과 1:1 동일, 죽은 버튼 없음
 - 검증 방법: `pnpm exec tsc --noEmit` / `pnpm lint`, 시뮬레이터에서 진행중 탭 → 모두 보기 → 투표 플로우
-- 진행 상황(2026-08-06): 위 항목 **완료**. 아래 2건은 기획 확정 대기로 **보류**
-  - 투표 취소 정책 — 카드 버튼은 취소 불가인데 `ContestPhotoLightbox.tsx`에는 "투표 취소"가 남아 규칙이 어긋남
-  - 출품 기간 / 투표 기간 분리 — 히어로의 `N일 남음`이 무엇의 마감인지, 출품 기간 중 투표 버튼·남은 표
-    인디케이터 노출 여부가 달라져 시안 재수령이 필요
+- 진행 상황(2026-08-06): 위 항목 **완료**
   - 하루 3표 제한은 여전히 화면별 로컬 state — 진행중 탭과 목록 화면이 서로 표를 공유하지 않음(서버 판정 대기)
+
+### Task 15 - 콘테스트 기간 분리 (출품 → 투표 → 결과) RN 적용
+
+핸드오프 TURN 3~5 시안. **퍼블리싱은 완료(`community-feed.html`·`contest-all-entries.html`), RN 미적용.**
+
+- 대상 파일:
+  - `src/components/community/ContestActiveTab.tsx` (단계 3종 분기)
+  - `src/components/community/ContestSegment.tsx` (단계 state, 투표 취소)
+  - `src/components/community/ContestRankPanel.tsx` (신규 — 순위 변동 접힘/펼침·그래프)
+  - `src/screens/community/ContestAllEntriesScreen.tsx` (정렬 2종·배지 제거·취소·지난 콘테스트 변형)
+  - `src/components/community/MyVotesSheet.tsx` (신규 — 내가 투표한 작품 시트, 두 화면 공용)
+  - `src/components/community/ContestPhotoLightbox.tsx` (투표 취소 규칙 정합)
+  - `src/types/community.ts` (단계 타입)
+- 변경 내용:
+  - 7일 주기를 출품 4일 → 투표 2일 → 결과 1일로 분리. 진행중 탭이 단계별 3화면
+    - 출품: 순위·투표 버튼 없음, 최신순 그리드 + "투표는 N일부터" 배너
+    - 투표: 순위 변동 섹션(하루 3번 집계된 1~3위만 공개) + 정렬 랜덤·최신순
+    - 결과: 내 결과 요약 → 1위 큰 카드 → 2·3위 그리드. 이 단계에서만 순위 배지·득표수 사용
+  - **투표 취소 허용으로 정책 변경** — 완료 버튼 재탭으로 표 복구, 기간 종료 시 확정.
+    기존 "되돌리기 없음"은 폐기. 라이트박스의 "투표 취소"도 이 규칙으로 통일
+  - 그래프 점 좌표는 비율로(360dp에서 고정 px는 넘침)
+  - 내가 투표한 작품 시트(TURN 6) — 하단 CTA와 남은 표 도트 두 곳에서 열리고, 행별 취소는 즉시 반영
+  - 지난 콘테스트 변형 — 결과 확정 후에는 득표순·순위 배지를 다시 쓰고 투표 버튼·남은 표를 감춤
+- 완료 조건: 목업 두 파일과 1:1 동일, 세 단계 모두 동작
+- 검증 방법: `pnpm exec tsc --noEmit` / `pnpm lint` / `python3 scripts/check-mockups.py`,
+  시뮬레이터에서 단계별 확인
+- 선행 필요: 단계 판정은 서버가 내려줘야 함(현재는 목업의 `.phase-switch`로만 전환)
 
 ## 4) 검증 체크포인트
 
