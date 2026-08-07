@@ -159,32 +159,59 @@
 - 진행 상황(2026-08-06): 위 항목 **완료**
   - 하루 3표 제한은 여전히 화면별 로컬 state — 진행중 탭과 목록 화면이 서로 표를 공유하지 않음(서버 판정 대기)
 
-### Task 15 - 콘테스트 기간 분리 (출품 → 투표 → 결과) RN 적용
+### Task 15 - 콘테스트 월간 주기 최종안 RN 적용
 
-핸드오프 TURN 3~5 시안. **퍼블리싱은 완료(`community-feed.html`·`contest-all-entries.html`), RN 미적용.**
+핸드오프 최종안(`contest-final-mockup.html` + `spec/` 11개 문서).
+**퍼블리싱 완료(목업 5개), RN 미적용.** RN은 이전 주간 주기 시안(TURN 1~6)에서 멈춰 있습니다.
 
-- 대상 파일:
-  - `src/components/community/ContestActiveTab.tsx` (단계 3종 분기)
-  - `src/components/community/ContestSegment.tsx` (단계 state, 투표 취소)
-  - `src/components/community/ContestRankPanel.tsx` (신규 — 순위 변동 접힘/펼침·그래프)
-  - `src/screens/community/ContestAllEntriesScreen.tsx` (정렬 2종·배지 제거·취소·지난 콘테스트 변형)
-  - `src/components/community/MyVotesSheet.tsx` (신규 — 내가 투표한 작품 시트, 두 화면 공용)
-  - `src/components/community/ContestPhotoLightbox.tsx` (투표 취소 규칙 정합)
-  - `src/types/community.ts` (단계 타입)
-- 변경 내용:
-  - 7일 주기를 출품 4일 → 투표 2일 → 결과 1일로 분리. 진행중 탭이 단계별 3화면
-    - 출품: 순위·투표 버튼 없음, 최신순 그리드 + "투표는 N일부터" 배너
-    - 투표: 순위 변동 섹션(하루 3번 집계된 1~3위만 공개) + 정렬 랜덤·최신순
-    - 결과: 내 결과 요약 → 1위 큰 카드 → 2·3위 그리드. 이 단계에서만 순위 배지·득표수 사용
-  - **투표 취소 허용으로 정책 변경** — 완료 버튼 재탭으로 표 복구, 기간 종료 시 확정.
-    기존 "되돌리기 없음"은 폐기. 라이트박스의 "투표 취소"도 이 규칙으로 통일
-  - 그래프 점 좌표는 비율로(360dp에서 고정 px는 넘침)
-  - 내가 투표한 작품 시트(TURN 6) — 하단 CTA와 남은 표 도트 두 곳에서 열리고, 행별 취소는 즉시 반영
-  - 지난 콘테스트 변형 — 결과 확정 후에는 득표순·순위 배지를 다시 쓰고 투표 버튼·남은 표를 감춤
-- 완료 조건: 목업 두 파일과 1:1 동일, 세 단계 모두 동작
+> **주의 — Task 15의 이전 버전(7일 주기: 출품 4일 → 투표 2일 → 결과 1일)은 폐기됐습니다.**
+> 최종안은 월간이고, 그에 따라 표 정책·집계 주기·정렬이 전부 바뀌었습니다.
+
+#### 바뀐 전제
+
+| 항목 | 이전(RN 현재) | 최종안 |
+|---|---|---|
+| 주기 | 7일 | **월간** — 1~14일 출품 / 15일~말일 투표 / 다음 달 1일 결과(그 달 내내) |
+| phase | 3종 | **4종** `SUBMITTING` · `VOTING` · `RESULT` · `ENDED` (서버 계산) |
+| 표 | 하루 3표, 매일 리셋 | **기간 통틀어 3표**, 리셋 없음 |
+| 집계 | 하루 3회(09/12/18) | **매일 자정 1회**, 그래프는 최근 7일 |
+| 정렬 | 랜덤·최신순(기본 랜덤) | **최신순(기본)·득표순** — API가 LATEST/VOTES 2개라 랜덤 삭제, seed 파라미터도 불필요 |
+| 출품 | 1건 | **1인 3장**, 수정 불가(삭제 후 재출품), 투표 기간에도 삭제는 가능 |
+| 결과 | 독립 1일 | 다음 주기와 겹침 → 진행중 탭에 **항상 두 콘테스트 공존** |
+
+#### 대상 파일
+
+| 파일 | 할 일 |
+|---|---|
+| `src/types/community.ts` | `ContestPhase` 4종 추가 |
+| `src/components/community/ContestSegment.tsx` | phase state, 기간 총 3표로 정책 변경 |
+| `src/components/community/ContestActiveTab.tsx` | phase 분기 + 지난 달 수상작 요약 행(상시) |
+| `src/components/community/ContestRankPanel.tsx` | **신규** — 자정 1회·최근 7일·권외 밴드·마지막 점 썸네일 |
+| `src/components/community/MyVotesSheet.tsx` | **신규** — 남은 표 pill 하나로 열림(두 화면 공용) |
+| `src/components/community/MyEntriesSheet.tsx` | **신규** — 내 출품작 시트(8d·8f) + 삭제 확인(8e) |
+| `src/screens/community/ContestSubmitScreen.tsx` | **신규** — 출품 작성(13a~13e), 스팟 검색 포함 |
+| `src/screens/community/ContestEntryDetailScreen.tsx` | **신규** — 출품작 상세(14a~14g). 라이트박스가 아니라 push 화면 |
+| `src/screens/community/ContestAllEntriesScreen.tsx` | 정렬 2종(기본 최신순)·배지 제거·취소·남은 표 pill·1b 변형 |
+| `src/components/community/ContestPastTab.tsx` | 2열 → **1열** 회차 카드 리스트(15a·15b) |
+| `src/components/community/ContestMyEntryTab.tsx` | 8a·8b로 재구성 — 카드 하나(숫자 3 + 그래프) + 회차별 기록 |
+| `src/screens/community/ContestResultScreen.tsx` | 10a·10b·10d·10f. 고정 바 없이 리스트 행으로 |
+| `src/components/community/ContestPhotoLightbox.tsx` | **삭제 검토** — 출품작 상세가 push 화면이 되면서 역할이 사라짐 |
+| `src/navigation/stacks/CommunityDetailStack.tsx` | `ContestSubmit` · `ContestEntryDetail` 라우트 추가 |
+
+#### 핵심 규칙 (놓치기 쉬운 것)
+
+- **순위 그래프 점 좌표는 비율**로 둡니다. 고정 px면 지원 하한 360dp에서 우측 점이 화면 밖으로 나갑니다
+- **권외 밴드(12a)가 있으면 그래프 높이가 150 → 190px**로 커지고 좌측에 30px 거터가 생깁니다
+- 투표 아이콘은 lucide **`ThumbsUp`** — 핸드오프 README의 `Vote`는 15px에서 안 읽힙니다
+- **하단 바는 화면 고정이 아니라 스크롤 흐름의 마지막**입니다
+- 결과 화면에는 **고정 바를 두지 않습니다** — 탭바와 두 겹이면 150px가 잠깁니다
+- 토스트는 공용 `src/components/common/Toast.tsx`(44px 한 줄). 업로드 실패만 `다시 시도` 액션이 붙어 48px 스낵바
+- 출품작 상세는 **게시글 상세를 따르지 않습니다** — 댓글·팔로우·저장·EXIF 없음
+
+- 완료 조건: 목업 5개와 1:1 동일, phase 4종 모두 동작
 - 검증 방법: `pnpm exec tsc --noEmit` / `pnpm lint` / `python3 scripts/check-mockups.py`,
-  시뮬레이터에서 단계별 확인
-- 선행 필요: 단계 판정은 서버가 내려줘야 함(현재는 목업의 `.phase-switch`로만 전환)
+  시뮬레이터에서 phase별 확인
+- 선행 필요: phase 판정은 서버가 내려줘야 함(목업은 우상단 `.phase-switch`로만 전환)
 
 ## 4) 검증 체크포인트
 

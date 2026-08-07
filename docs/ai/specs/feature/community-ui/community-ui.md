@@ -24,7 +24,20 @@
       - 2026-08-06 기간 분리(핸드오프 TURN 3~5): 진행중 탭이 **출품 4일 → 투표 2일 → 결과 1일** 3단계로 갈림.
         투표 취소는 **기간 안에서 자유**(완료 버튼 재탭, 기간 종료 시 확정)로 변경 — "되돌리기 없음"은 폐기.
         투표 기간 정렬은 랜덤·최신순 2종이고 순위는 순위 변동 섹션에서만 공개. 퍼블리싱만 완료, RN은 plan Task 15
+      - 2026-08-07 **월간 주기 최종안**(핸드오프 `contest-final-mockup.html` + `spec/` 11개): 위 기간 분리안을 대체.
+        매달 1~14일 출품 / 15일~말일 투표 / 다음 달 1일 결과 발표(그 달 내내 노출), phase는
+        `SUBMITTING`·`VOTING`·`RESULT`·`ENDED` 4종을 서버가 계산. 결과가 다음 주기와 겹치므로
+        진행중 탭에 항상 두 콘테스트가 공존한다(이번 달 진행중 + 지난 달 수상작 요약 행)
+        - 표는 **콘테스트 기간 통틀어 3표**(일일 리셋 없음), 집계는 **매일 자정 1회**·그래프는 최근 7일
+        - 정렬은 **최신순(기본)·득표순** — API 옵션이 LATEST/VOTES 2개로 확정돼 랜덤 삭제, 페이징 seed도 불필요
+        - 출품은 **1인 3장**, 수정 불가(삭제 후 재출품). 투표 기간에도 삭제는 가능하고 추가 출품만 막힌다
+        - 폐기: 캡션 수정 시트 · 출품 취소 모달 · 출품하기 시트(→ `contest-submit.html` 별도 화면) ·
+          라이트박스(→ `contest-entry-detail.html` push 화면)
+        - 신규 목업 2개(`contest-submit.html`·`contest-entry-detail.html`), 내 출품/지난 탭 재구성,
+          결과 화면(`contest-result.html`) 전면 재작성. **퍼블리싱만 완료, RN은 plan Task 15**
     - 진행중 탭 `출품작 N개 모두 보기` → `ContestAllEntriesScreen`(push): 정렬 3종(최신순 기본·득표순·랜덤)·무한스크롤·28px 원형 투표 버튼·로딩 스켈레톤/빈/에러 상태
+      - 2026-08-07 최종안: 정렬 **2종**(최신순 기본·득표순, 랜덤 삭제), 남은 표는 도트 → pill(→ 내가 투표한 작품 시트),
+        카드 탭 → `ContestEntryDetailScreen`
     - 작성 버튼 → `CommunityWriteScreen`, 게시글 유저명 → `UserProfileScreen`, 지난 콘테스트 카드 → `ContestResultScreen`
   - **`community-post.html`** → `PostDetailScreen` (push, 헤더 있음)
     - `⋯` 액션시트(내 글/남 글 분기), 삭제 확인 모달, 신고 사유 시트, 완료 토스트 2종
@@ -56,14 +69,17 @@
   - When: `⋯` → 액션시트(내 글용) → 삭제 → 확인 모달에서 확인
   - Then: 삭제 완료 토스트 노출 후 피드로 돌아감(mock에서는 목록에서 제거)
   - 시나리오 A: [[spot-detail-api-remaining-work]]와 무관, 독립 시나리오
-- 시나리오 C: 콘테스트 투표
-  - Given: 콘테스트 세그먼트 · 진행중 서브탭, 남은 표 3장
-  - When: 포디움/리스트에서 사진 투표 → 확인 모달 확인
-  - Then: 투표 반영 + undo 스낵바 노출, 스낵바 기간 내 실행취소 시 취소 모달 없이 즉시 되돌림, 남은 표 0이면 이후 투표 시 취소 모달만 노출
-- 시나리오 D: 내 출품 캡션 수정 / 출품 취소
-  - Given: 내 출품 서브탭, 출품 사진 있음(`hasEntry=true`)
-  - When: 캡션 수정 시트에서 텍스트 변경 후 저장 / 또는 출품 취소 모달에서 확인
-  - Then: 캡션 즉시 반영 / 출품 취소 시 빈 상태(`hasEntry=false`, 출품하기 시트 유도)로 전환
+- 시나리오 C: 콘테스트 투표 *(2026-08-07 최종안 기준으로 갱신 — 확인 모달·undo 스낵바는 폐기)*
+  - Given: 콘테스트 세그먼트 · 진행중 서브탭 `VOTING`, 남은 표 3장(콘테스트 기간 통틀어 3표)
+  - When: 카드의 28px 원형 버튼으로 투표 → 같은 버튼을 다시 탭
+  - Then: 확인 모달 없이 즉시 반영(색 반전 + 토스트 + 햅틱), 재탭 시 표 1개 복구.
+    남은 표 0이면 미투표 카드의 버튼만 비활성 + 안내 배너, 이미 투표한 카드는 눌러서 취소 가능.
+    남은 표 pill → 내가 투표한 작품 시트에서 행별 취소도 즉시 반영
+- 시나리오 D: 내 출품작 삭제 *(2026-08-07 최종안 기준으로 갱신 — 수정 불가 정책이라 캡션 수정은 폐기)*
+  - Given: 진행중 탭 `SUBMITTING`, 내 출품작 2/3
+  - When: `내 출품작 2/3 ›` pill → 시트에서 행 삭제 → 확인 다이얼로그에서 삭제
+  - Then: 행 제거 + pill 카운트 갱신, 3/3이던 경우 하단 CTA가 다시 활성.
+    `VOTING`에서는 추가 출품 CTA가 사라지고 다이얼로그 문구가 "다시 출품할 수 없어요"로 바뀜
 - 시나리오 E: 유저 프로필 탭 전환 + 팔로우
   - Given: `UserProfileScreen`, 게시글 탭
   - When: 콘테스트/방문한 스팟 탭으로 전환, 팔로우 버튼 토글
@@ -75,12 +91,16 @@
   - `src/components/ui/community/community-feed.html`
   - `src/components/ui/community/community-post.html`
   - `src/components/ui/community/community-write.html`
+  - `src/components/ui/community/contest-submit.html` *(2026-08-07 추가)*
+  - `src/components/ui/community/contest-entry-detail.html` *(2026-08-07 추가)*
   - `src/components/ui/community/contest-all-entries.html`
   - `src/components/ui/community/contest-result.html`
   - `src/components/ui/community/user-profile.html`
 - 참고 자료(구현 패턴 참고용, 소스 오브 트루스 아님): `~/Desktop/png-community-ui/phase1~4` — 동일 화면을 더 세분화한 HTML+RN(`.native.jsx`) 변환 샘플. **주의**: 해당 샘플은 인라인 `style` 객체 방식(`StyleSheet.create()`류)이라 이 프로젝트의 NativeWind `className` 규칙과 충돌 — 구조/아이콘 매핑/상태 분기 로직만 참고하고 스타일은 전부 `className`으로 재작성.
-- 화면 전환 규칙: `docs/guide/dev/ui-publishing.md`의 community 섹션(피드/상세/작성/콘테스트결과/프로필 흐름) 그대로 따름. `community-post`/`community-write`/`contest-all-entries`/`contest-result`/`user-profile`은 push 스택 화면이라 하단 탭바 미포함.
+- 화면 전환 규칙: `docs/guide/dev/ui-publishing.md`의 community 섹션(피드/상세/작성/콘테스트결과/프로필 흐름) 그대로 따름. `community-post`/`community-write`/`contest-submit`/`contest-entry-detail`/`contest-all-entries`/`contest-result`/`user-profile`은 push 스택 화면이라 하단 탭바 미포함.
 - 빈 상태/에러 상태: 내 출품 빈 상태(`2h-empty` 상당), 콘테스트 지난 목록 빈 상태 — 목업 기준. API 에러 상태는 이번 스코프 제외(로컬 mock만 다룸).
+  - 2026-08-07 최종안: 콘테스트 빈 상태가 4종으로 늘어남 — 출품 0개(9d) · 진행중 콘테스트 없음(7a·7b) ·
+    내 출품 기록 없음(8b) · 지난 콘테스트 없음(15b)
 - 로딩 상태: 이번 스코프는 로컬 mock 즉시 렌더 기준이라 스켈레톤은 필요한 곳(사진 그리드 등)에만 최소 적용, 강제하지 않음.
 
 ## 6) 데이터/API 요구사항
@@ -109,7 +129,13 @@
 ## 9) 수용 기준 (Acceptance Criteria)
 
 - [ ] AC1: `CommunityFeedScreen`에서 게시글/갤러리/콘테스트 세그먼트 전환 및 검색 인라인 확장이 목업과 동일
-- [ ] AC2: 콘테스트 세그먼트의 진행중/내 출품/지난 서브탭과 각 상태(투표 확인/취소 모달, undo 스낵바, 캡션 시트, 출품 취소 모달, 출품하기 시트, 빈 상태)가 모두 동작
+- [ ] AC2: 콘테스트 세그먼트의 진행중/내 출품/지난 서브탭과 각 상태가 모두 동작
+      — 2026-08-07 최종안 기준으로 갱신. 진행중은 phase 4종(`SUBMITTING`·`VOTING`·`RESULT`·`ENDED`) + 출품 0개 변형,
+      순위 변동 3변형(기본·집계 전·권외), 내가 투표한 작품 시트, 내 출품작 시트(+삭제 확인), 각 탭 빈 상태.
+      (이전 판정 항목이던 투표 확인/취소 모달 · undo 스낵바 · 캡션 시트 · 출품 취소 모달 · 출품하기 시트는 폐기됨)
+- [ ] AC2-1: `ContestSubmitScreen`(출품 작성)의 썸네일 스트립·장별 입력·스팟 검색/직접 입력·업로드 중/실패 상태가 목업과 동일
+- [ ] AC2-2: `ContestEntryDetailScreen`(출품작 상세)의 투표 CTA 3상태·표 소진 안내·⋯ 액션시트(남/내 작품 분기)·
+      결과 발표 후 순위 블록이 목업과 동일
 - [ ] AC3: `PostDetailScreen`의 액션시트(내 글/남 글 분기)·삭제 확인·신고 시트·토스트 2종·라이트박스+EXIF 중첩 오픈/클로즈 규칙 정확히 동작
 - [ ] AC4: `CommunityWriteScreen`에서 사진 첨부(`expo-image-picker`), 위치 시트, 카메라/렌즈 시트가 목업과 동일
 - [ ] AC5: `ContestResultScreen`이 풀스크린 push 화면으로 목업과 동일 렌더링

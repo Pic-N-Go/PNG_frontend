@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>PNG - 콘테스트 출품작 상세</title>
+    <link rel="stylesheet" href="../common/fonts.css" />
+    <link rel="stylesheet" href="../common/common.css" />
+    <style>
+      /* ── Phone Frame ── */
+      .phone-frame {
+        width: 100%;
+        height: 100dvh;
+        background: var(--color-bg);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+      .phone-scroll {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
+
+      /* ── 사진이 화면을 지배한다 ── */
+      /* 사진 위에 스팟 pill이나 투표 pill을 올리지 않는다 — 사진을 판단하는 화면이라
+         사진을 가리는 요소를 두지 않는다. 상단 스크림은 뒤로가기와 ⋯ 를 띄우기 위한 것뿐. */
+      .hero {
+        position: relative;
+        height: 600px;
+        flex-shrink: 0;
+        background: linear-gradient(165deg, #1a1530, #5a3355 50%, #d4856a);
+      }
+      .hero__scrim {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 150px;
+        pointer-events: none;
+        background: linear-gradient(180deg, rgba(0, 0, 0, 0.42), rgba(0, 0, 0, 0));
+      }
+      .hero__bar {
+        position: absolute;
+        top: 54px;
+        left: 12px;
+        right: 12px;
+        height: 52px;
+        display: flex;
+        align-items: center;
+      }
+      .hero__btn {
+        width: 40px;
+        height: 40px;
+        border: none;
+        background: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        padding: 0;
+      }
+
+      /* ── 정보 블록 — 시트가 아니라 화면의 콘텐츠 영역 ── */
+      /* 라운드를 주면 ⋯ 액션 시트가 열렸을 때 시트가 두 겹으로 겹쳐 보인다 */
+      .info {
+        border-top: 1px solid var(--color-border-light);
+        padding: 22px 24px 24px;
+        background: #fff;
+      }
+      .info__head {
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+      }
+      .info__name {
+        font-size: var(--font-lg);
+        font-weight: 600;
+        color: #000;
+        letter-spacing: -0.4px;
+      }
+      .info__date {
+        font-size: var(--font-xs);
+        color: #8e8e93;
+        letter-spacing: -0.1px;
+      }
+      .info__caption {
+        margin-top: 10px;
+        font-size: var(--font-md);
+        line-height: 1.6;
+        letter-spacing: -0.25px;
+        color: #000;
+      }
+      .info__divider {
+        height: 1px;
+        background: var(--color-border-light);
+        margin: 18px 0;
+      }
+      .info__spot {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .info__spot-name {
+        flex: 1;
+        min-width: 0;
+        font-size: var(--font-md);
+        color: #000;
+        letter-spacing: -0.25px;
+      }
+      /* 스팟 DB에서 고른 경우에만 붙는다. 직접 입력한 장소는 행을 지우지 않고 이 링크만 감춘다 */
+      .info__spot-link {
+        border: none;
+        background: none;
+        padding: 0;
+        font-family: var(--font-family);
+        font-size: var(--font-sm);
+        font-weight: 600;
+        color: var(--color-accent);
+        letter-spacing: -0.2px;
+        cursor: pointer;
+      }
+
+      /* ── 표 소진 안내 — 0/3일 때만 ── */
+      .hint {
+        display: none;
+        margin-top: 20px;
+        padding: 11px 14px;
+        border-radius: 12px;
+        background: var(--color-surface);
+        font-size: var(--font-sm);
+        color: #5c5c60;
+        letter-spacing: -0.2px;
+      }
+      .is-spent .hint {
+        display: block;
+      }
+
+      /* ── 투표 CTA — 56px 전체 폭 ── */
+      /* 득표수는 어디에도 붙이지 않는다 — 투표 기간에는 비공개 */
+      .cta {
+        width: 100%;
+        height: 56px;
+        margin-top: 20px;
+        border: none;
+        border-radius: 28px;
+        background: var(--color-accent);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-family: var(--font-family);
+        font-size: var(--font-md);
+        font-weight: 600;
+        color: #fff;
+        letter-spacing: -0.3px;
+        cursor: pointer;
+      }
+      .cta__voted,
+      .cta.is-voted .cta__default {
+        display: none;
+      }
+      .cta.is-voted {
+        background: rgba(227, 27, 89, 0.1);
+        color: var(--color-accent);
+      }
+      .cta.is-voted .cta__voted {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      /* 표를 다 썼고 아직 투표하지 않은 작품 */
+      .is-spent .cta:not(.is-voted) {
+        background: #e6e6ea;
+        color: #b8b8be;
+        cursor: default;
+      }
+      /* 자기 작품에는 투표할 수 없다 */
+      .cta.is-mine {
+        background: #e6e6ea;
+        color: #b8b8be;
+        cursor: default;
+      }
+
+      /* ── 결과 발표 후 — CTA 자리가 순위 블록으로 ── */
+      /* 크기·radius를 투표 CTA와 같은 52/26으로 맞춰 자리가 흔들리지 않게 한다 */
+      .rank {
+        display: none;
+        margin-top: 20px;
+        height: 52px;
+        border-radius: 26px;
+        background: var(--color-surface);
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+      }
+      .rank__value {
+        font-size: var(--font-md);
+        font-weight: 600;
+        color: #000;
+        letter-spacing: -0.3px;
+      }
+      .rank__meta {
+        font-size: var(--font-base);
+        color: #8e8e93;
+        letter-spacing: -0.2px;
+      }
+      /* 1~3위는 배경과 글자를 모두 핑크로 */
+      .rank.is-award {
+        background: rgba(227, 27, 89, 0.1);
+      }
+      .rank.is-award .rank__value,
+      .rank.is-award .rank__meta {
+        color: var(--color-accent);
+      }
+      .is-ended .cta,
+      .is-ended .hint {
+        display: none;
+      }
+      .is-ended .rank {
+        display: flex;
+      }
+
+      /* ── ⋯ 액션 시트 ── */
+      .sheet-backdrop {
+        display: none;
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.42);
+        z-index: 60;
+      }
+      .sheet-backdrop.is-open {
+        display: block;
+      }
+      .sheet {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: #fff;
+        border-radius: 24px 24px 0 0;
+        padding: 10px 0 20px;
+      }
+      .sheet__handle {
+        width: 36px;
+        height: 4px;
+        border-radius: 2px;
+        background: #e6e6ea;
+        margin: 0 auto 8px;
+      }
+      .sheet__row {
+        width: 100%;
+        height: 56px;
+        border: none;
+        background: none;
+        padding: 0 28px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-family: var(--font-family);
+        font-size: var(--font-md);
+        font-weight: 500;
+        color: #000;
+        letter-spacing: -0.3px;
+        cursor: pointer;
+      }
+      .sheet__row + .sheet__row {
+        border-top: 1px solid var(--color-border-light);
+      }
+      /* 파괴적 액션임을 알리되 버튼처럼 도드라지지 않게 — 글자만 핑크, 배경은 칠하지 않는다 */
+      .sheet__row--danger {
+        color: var(--color-accent);
+      }
+      .sheet__note {
+        margin: 12px 28px 0;
+        padding: 11px 14px;
+        border-radius: 12px;
+        background: var(--color-surface);
+        font-size: var(--font-sm);
+        line-height: 1.5;
+        color: #5c5c60;
+        letter-spacing: -0.2px;
+      }
+      .sheet__close {
+        width: calc(100% - 56px);
+        height: 52px;
+        margin: 14px 28px 0;
+        border: none;
+        border-radius: 26px;
+        background: var(--color-surface);
+        font-family: var(--font-family);
+        font-size: var(--font-md);
+        font-weight: 600;
+        color: #000;
+        letter-spacing: -0.3px;
+        cursor: pointer;
+      }
+
+      /* ── 토스트 ── */
+      .toast {
+        position: absolute;
+        left: 50%;
+        bottom: 40px;
+        transform: translateX(-50%) translateY(16px);
+        z-index: 80;
+        height: 44px;
+        border-radius: 22px;
+        background: rgba(0, 0, 0, 0.75);
+        display: flex;
+        align-items: center;
+        padding: 0 20px;
+        color: #fff;
+        font-size: var(--font-base);
+        font-weight: 500;
+        letter-spacing: -0.2px;
+        white-space: nowrap;
+        opacity: 0;
+        pointer-events: none;
+        transition: opacity 0.3s, transform 0.3s;
+      }
+      .toast.is-open {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+      }
+
+      /* ── 목업 확인용 상태 전환 (실제 화면에는 없음) ── */
+      .state-switch {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        z-index: 90;
+        display: flex;
+        gap: 4px;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 8px;
+        padding: 4px;
+      }
+      .state-switch button {
+        border: none;
+        background: var(--color-surface);
+        border-radius: 6px;
+        padding: 4px 7px;
+        font-family: var(--font-family);
+        font-size: var(--font-2xs);
+        color: rgba(0, 0, 0, 0.5);
+        cursor: pointer;
+      }
+      .state-switch button.is-active {
+        background: #000;
+        color: #fff;
+      }
+
+      /* 내 작품이면 ⋯ 메뉴에 삭제가 들어가고 투표 CTA가 비활성이 된다 */
+      .menu-mine {
+        display: none;
+      }
+      .is-mine-entry .menu-mine {
+        display: block;
+      }
+      .is-mine-entry .menu-other {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="phone-frame" id="frame">
+      <!-- 목업 확인용 상태 전환 (실제 화면에는 없음) -->
+      <div class="state-switch">
+        <button class="is-active" onclick="switchState('vote', this)">14a</button>
+        <button onclick="switchState('spent', this)">14b</button>
+        <button onclick="switchState('mine', this)">14e</button>
+        <button onclick="switchState('ranked', this)">14f</button>
+        <button onclick="switchState('award', this)">14g</button>
+      </div>
+
+      <div class="phone-scroll">
+        <div class="hero">
+          <div class="hero__scrim"></div>
+          <div class="hero__bar">
+            <button class="hero__btn" aria-label="뒤로" onclick="history.back()">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
+            </button>
+            <div style="flex: 1"></div>
+            <button class="hero__btn" aria-label="더보기" onclick="openSheet('action-sheet')">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- 아바타와 팔로우 버튼은 두지 않는다 — 콘테스트에서 중요한 것은 작품이지 작성자 관계가 아니다 -->
+        <div class="info">
+          <div class="info__head">
+            <span class="info__name" id="entry-name">sunset_jk</span>
+            <span class="info__date" id="entry-date">8월 6일 출품</span>
+          </div>
+          <div class="info__caption" id="entry-caption">해가 넘어가기 직전의 광안대교. 바람이 잔잔해서 물 반영도 깨끗하게 담겼습니다.</div>
+
+          <div class="info__divider"></div>
+
+          <div class="info__spot">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+            <span class="info__spot-name">광안리 해수욕장</span>
+            <button class="info__spot-link" onclick="location.href = '../spot/spot-detail.html'">스팟 보기</button>
+          </div>
+
+          <!-- 이미 투표한 작품이면 취소 방법을, 아니면 표를 되찾는 방법을 알린다 -->
+          <div class="hint" id="hint">남은 표 0/3 · 투표를 취소하면 다시 쓸 수 있어요</div>
+
+          <button class="cta" id="cta" onclick="toggleVote()">
+            <span class="cta__default" style="display: flex; align-items: center; gap: 8px">
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"></path><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"></path></svg>
+              <span id="cta-label">투표하기</span>
+            </span>
+            <span class="cta__voted">
+              <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg>
+              투표함
+            </span>
+          </button>
+
+          <!-- 결과 발표 후 — 누를 수 없다. 지난 콘테스트의 작품은 항상 이 상태로 열린다 -->
+          <div class="rank" id="rank">
+            <span class="rank__value" id="rank-value">18위</span>
+            <span class="rank__meta" id="rank-meta">214명 중 · 33표</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ⋯ 액션 시트 (14d 남의 작품 · 14e 내 작품) -->
+      <div class="sheet-backdrop" id="action-sheet" onclick="closeSheet('action-sheet')">
+        <div class="sheet" onclick="event.stopPropagation()">
+          <div class="sheet__handle"></div>
+          <button class="sheet__row" onclick="closeSheet('action-sheet')">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><path d="m16 6-4-4-4 4"></path><path d="M12 2v13"></path></svg>
+            공유하기
+          </button>
+          <button class="sheet__row menu-other" onclick="reportEntry()">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><path d="M4 22v-7"></path></svg>
+            신고하기
+          </button>
+          <button class="sheet__row sheet__row--danger menu-mine" onclick="closeSheet('action-sheet')">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"></path><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path></svg>
+            출품 삭제
+          </button>
+          <div class="sheet__note menu-mine">수정은 할 수 없어요. 삭제하면 받은 표도 함께 사라집니다.</div>
+          <button class="sheet__close" onclick="closeSheet('action-sheet')">닫기</button>
+        </div>
+      </div>
+
+      <div class="toast" id="toast"><span id="toast-text"></span></div>
+    </div>
+
+    <script>
+      var MAX_VOTES = 3;
+      var votesLeft = 2;
+
+      /* 투표 취소는 투표 기간 내 자유 — 확인 다이얼로그 없이 토스트만 */
+      function toggleVote() {
+        var frame = document.getElementById('frame');
+        var cta = document.getElementById('cta');
+        if (frame.classList.contains('is-ended') || cta.classList.contains('is-mine')) return;
+        if (cta.classList.contains('is-voted')) {
+          cta.classList.remove('is-voted');
+          votesLeft = Math.min(MAX_VOTES, votesLeft + 1);
+          showToast('투표를 취소했어요 · ' + votesLeft + '/' + MAX_VOTES);
+        } else {
+          if (votesLeft <= 0) return;
+          cta.classList.add('is-voted');
+          votesLeft -= 1;
+          showToast('투표했어요 · ' + votesLeft + '/' + MAX_VOTES);
+        }
+        syncSpent();
+      }
+
+      function syncSpent() {
+        document.getElementById('frame').classList.toggle('is-spent', votesLeft <= 0);
+        document.getElementById('hint').textContent = document
+          .getElementById('cta')
+          .classList.contains('is-voted')
+          ? '남은 표 0/3 · 다시 누르면 취소돼요'
+          : '남은 표 0/3 · 투표를 취소하면 다시 쓸 수 있어요';
+      }
+
+      /* 신고는 앱에 이미 있는 플로우를 그대로 재사용한다 — 신고한 작품을 목록에서 숨기지는 않는다 */
+      function reportEntry() {
+        closeSheet('action-sheet');
+        showToast('신고했어요. 검토 후 처리됩니다');
+      }
+
+      function openSheet(id) {
+        document.getElementById(id).classList.add('is-open');
+      }
+      function closeSheet(id) {
+        document.getElementById(id).classList.remove('is-open');
+      }
+
+      var toastTimer;
+      function showToast(text) {
+        var t = document.getElementById('toast');
+        document.getElementById('toast-text').textContent = text;
+        t.classList.add('is-open');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(function () {
+          t.classList.remove('is-open');
+        }, 2600);
+      }
+
+      /* ── 목업 상태 전환 ── */
+      function switchState(state, el) {
+        var frame = document.getElementById('frame');
+        var cta = document.getElementById('cta');
+        frame.className = 'phone-frame';
+        cta.classList.remove('is-voted', 'is-mine');
+
+        if (state === 'spent') {
+          votesLeft = 0;
+          cta.classList.add('is-voted');
+          frame.classList.add('is-spent');
+          document.getElementById('hint').textContent = '남은 표 0/3 · 다시 누르면 취소돼요';
+        } else if (state === 'mine') {
+          votesLeft = 2;
+          frame.classList.add('is-mine-entry');
+          cta.classList.add('is-mine');
+          document.getElementById('cta-label').textContent = '내 출품작';
+          openSheet('action-sheet');
+        } else if (state === 'ranked') {
+          frame.classList.add('is-ended');
+          document.getElementById('rank').classList.remove('is-award');
+          document.getElementById('rank-value').textContent = '18위';
+          document.getElementById('rank-meta').textContent = '214명 중 · 33표';
+        } else if (state === 'award') {
+          frame.classList.add('is-ended');
+          document.getElementById('rank').classList.add('is-award');
+          document.getElementById('rank-value').textContent = '8월 1위';
+          document.getElementById('rank-meta').textContent = '214표';
+        } else {
+          votesLeft = 2;
+          document.getElementById('cta-label').textContent = '투표하기';
+        }
+
+        if (el) {
+          el.parentElement.querySelectorAll('button').forEach(function (b) {
+            b.classList.toggle('is-active', b === el);
+          });
+        }
+      }
+
+      syncSpent();
+    </script>
+  </body>
+</html>

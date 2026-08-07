@@ -71,7 +71,7 @@
         font-size: var(--font-lg);
         font-weight: 600;
         letter-spacing: -0.4px;
-        color: #111;
+        color: #000;
       }
       .nav__count {
         font-size: var(--font-lg);
@@ -123,12 +123,21 @@
         background: #dcdce0;
         flex-shrink: 0;
       }
+      /* 남은 표 pill — 눌리는 것임을 배경과 chevron으로 표시한다.
+         하단 바에는 "모두 보기" 하나만 두고, 투표 현황은 표 상태가 이미 있는 이 자리로 모았다. */
       .sortbar__votes {
         display: flex;
         align-items: center;
         gap: 8px;
-        padding-right: 28px;
+        height: 32px;
+        padding: 0 10px 0 12px;
+        margin-right: 28px;
         margin-left: auto;
+        border: none;
+        border-radius: 16px;
+        background: var(--color-surface);
+        font-family: var(--font-family);
+        cursor: pointer;
       }
       .votes__label {
         font-size: var(--font-sm);
@@ -152,7 +161,7 @@
       .votes__count {
         font-size: var(--font-sm);
         font-weight: 600;
-        color: #111;
+        color: #000;
         letter-spacing: -0.2px;
       }
       .is-spent .votes__label,
@@ -208,7 +217,7 @@
         align-items: center;
         font-size: var(--font-2xs);
         font-weight: 600;
-        color: #111;
+        color: #000;
         letter-spacing: -0.1px;
       }
       .card__info {
@@ -224,7 +233,7 @@
       .card__name {
         font-size: var(--font-sm);
         font-weight: 600;
-        color: #111;
+        color: #000;
         letter-spacing: -0.2px;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -332,7 +341,7 @@
       .placeholder__title {
         font-size: var(--font-md);
         font-weight: 600;
-        color: #111;
+        color: #000;
         letter-spacing: -0.3px;
         margin-top: 4px;
       }
@@ -364,7 +373,7 @@
       }
       .placeholder__cta--plain {
         background: var(--color-surface);
-        color: #111;
+        color: #000;
       }
 
       /* ── 내가 투표한 작품 시트 (시안 6a·6b) ── */
@@ -445,7 +454,7 @@
         cursor: pointer;
       }
       .state-switch button.is-active {
-        background: #111;
+        background: #000;
         color: #fff;
       }
 
@@ -476,33 +485,36 @@
       <!-- 네비 — 히어로 없이 타이틀 + 총 개수. 검색 없음 -->
       <div class="nav">
         <button class="nav__back" aria-label="뒤로" onclick="history.back()">
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
         </button>
         <span class="nav__title">전체 출품작</span>
-        <span class="nav__count">128</span>
+        <span class="nav__count">214</span>
       </div>
 
       <!-- 목록 -->
       <div class="state is-active" data-state="list">
         <div class="phone-scroll" id="list-scroll">
+          <!-- API 정렬 옵션이 LATEST / VOTES 2개라 랜덤은 없다.
+               투표 기간 기본은 최신순 — 득표순을 기본으로 두면 상위 작품에 표가 더 몰린다. -->
           <div class="sortbar">
             <div class="sortbar__sorts">
-              <button class="sort-btn is-active" onclick="switchSort('random', this)">랜덤</button>
+              <button class="sort-btn is-active" onclick="switchSort('latest', this)">최신순</button>
               <span class="sort-dot"></span>
-              <button class="sort-btn" onclick="switchSort('latest', this)">최신순</button>
+              <button class="sort-btn" onclick="switchSort('votes', this)">득표순</button>
             </div>
-            <button class="sortbar__votes" onclick="openMyVotes()" style="border: none; background: none; font-family: var(--font-family); cursor: pointer">
+            <button class="sortbar__votes" onclick="openMyVotes()">
               <span class="votes__label">남은 표</span>
               <span class="votes__dots" id="vote-dots"></span>
               <span class="votes__count" id="vote-count">3/3</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
             </button>
           </div>
 
-          <!-- 표 소진 안내 (0/3에서만 노출) -->
-          <div class="spent-banner">오늘 쓸 수 있는 표를 모두 썼어요. 내일 다시 3표가 채워집니다.</div>
+          <!-- 표 소진 안내 (0/3에서만 노출) — 표는 기간 총 3개고 매일 리셋되지 않는다 -->
+          <div class="spent-banner">표 3개를 모두 썼어요. 투표를 취소하면 다시 쓸 수 있어요</div>
 
           <div class="grid" id="entry-grid"></div>
-          <div class="list-end">출품작 128개를 모두 봤어요</div>
+          <div class="list-end">출품작 214개를 모두 봤어요</div>
         </div>
       </div>
 
@@ -519,11 +531,11 @@
             </div>
             <div style="flex: 1"></div>
             <div style="padding-right: 28px">
-              <span style="font-size: var(--font-sm); color: #8e8e93; letter-spacing: -0.2px">8월 12일 마감</span>
+              <span style="font-size: var(--font-sm); color: #8e8e93; letter-spacing: -0.2px">7월 31일 종료</span>
             </div>
           </div>
           <div class="grid" id="past-grid"></div>
-          <div class="list-end">출품작 128개를 모두 봤어요</div>
+          <div class="list-end">출품작 214개를 모두 봤어요</div>
         </div>
       </div>
 
@@ -532,9 +544,9 @@
         <div class="phone-scroll">
           <div class="sortbar">
             <div class="sortbar__sorts">
-              <button class="sort-btn is-active">랜덤</button>
+              <button class="sort-btn is-active">최신순</button>
               <span class="sort-dot"></span>
-              <button class="sort-btn">최신순</button>
+              <button class="sort-btn">득표순</button>
             </div>
             <div class="sortbar__votes">
               <span class="votes__label">남은 표</span>
@@ -544,6 +556,7 @@
                 <span class="votes__dot is-left"></span>
               </span>
               <span class="votes__count">3/3</span>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
             </div>
           </div>
           <div class="grid" id="skeleton-grid"></div>
@@ -557,8 +570,8 @@
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#b8b8be" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"></rect><circle cx="9" cy="9" r="2"></circle><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"></path></svg>
           </div>
           <div class="placeholder__title">아직 출품작이 없어요</div>
-          <div class="placeholder__desc">첫 번째로 골든아워를 담아보세요</div>
-          <button class="placeholder__cta placeholder__cta--accent">
+          <div class="placeholder__desc">첫 번째로 골든아워 사진을 올려보세요</div>
+          <button class="placeholder__cta placeholder__cta--accent" onclick="location.href = './contest-submit.html'">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3Z"></path><circle cx="12" cy="13" r="3.5"></circle></svg>
             출품하기
           </button>
@@ -572,22 +585,22 @@
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#b8b8be" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v4"></path><path d="M12 16h.01"></path></svg>
           </div>
           <div class="placeholder__title">목록을 불러오지 못했어요</div>
-          <div class="placeholder__desc">잠시 후 다시 시도해 주세요</div>
+          <div class="placeholder__desc">네트워크 상태를 확인하고 다시 시도해주세요</div>
           <button class="placeholder__cta placeholder__cta--plain" onclick="switchState('loading')">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"></path><path d="M21 3v5h-5"></path></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-3-6.7L21 8"></path><path d="M21 3v5h-5"></path></svg>
             다시 시도
           </button>
         </div>
       </div>
 
       <!-- 내가 투표한 작품 시트 — 시안 6a(2표 사용) · 6b(빈 상태)
-           하단 바 "내가 투표한 작품 >" 또는 목록 화면의 남은 표 도트로 열린다.
+           정렬 바의 남은 표 pill 하나로 열린다(진행중 탭과 목록 화면 모두 같은 경로).
            취소는 다이얼로그 없이 즉시 반영하고 토스트로만 알린다. -->
       <div class="sheet-backdrop" id="myvotes-sheet" onclick="closeSheet('myvotes-sheet')">
         <div class="sheet" style="padding: 10px 28px 28px" onclick="event.stopPropagation()">
           <div class="sheet__handle" style="background: #e6e6ea; margin-bottom: 0"></div>
           <div style="margin-top: 18px; display: flex; align-items: baseline; gap: 6px">
-            <span id="myvotes-title" style="font-size: var(--font-lg); font-weight: 600; color: #111; letter-spacing: -0.4px">오늘 투표한 작품</span>
+            <span id="myvotes-title" style="font-size: var(--font-lg); font-weight: 600; color: #000; letter-spacing: -0.4px">내가 투표한 작품</span>
             <span id="myvotes-count" style="font-size: var(--font-lg); font-weight: 600; color: #c7c7cc; letter-spacing: -0.4px">0</span>
           </div>
 
@@ -597,19 +610,21 @@
           <div id="myvotes-empty" style="display: none">
             <div style="padding: 36px 0 30px; display: flex; flex-direction: column; align-items: center; gap: 8px">
               <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#c7c7cc" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M7 10v12"></path><path d="M15 5.88 14 10h5.83a2 2 0 0 1 1.92 2.56l-2.33 8A2 2 0 0 1 17.5 22H4a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h2.76a2 2 0 0 0 1.79-1.11L12 2a3.13 3.13 0 0 1 3 3.88Z"></path></svg>
-              <span style="font-size: var(--font-md); font-weight: 600; color: #111; letter-spacing: -0.3px; margin-top: 4px">아직 투표한 작품이 없어요</span>
-              <span style="font-size: var(--font-sm); color: #8e8e93; letter-spacing: -0.2px">오늘 3표를 쓸 수 있어요</span>
+              <span style="font-size: var(--font-md); font-weight: 600; color: #000; letter-spacing: -0.3px; margin-top: 4px">아직 투표한 작품이 없어요</span>
+              <span style="font-size: var(--font-sm); color: #8e8e93; letter-spacing: -0.2px">이번 콘테스트에 3표를 쓸 수 있어요</span>
             </div>
             <button style="width: 100%; height: 52px; border: none; border-radius: 26px; background: var(--color-accent); color: #fff; font-family: var(--font-family); font-size: var(--font-md); font-weight: 600; letter-spacing: -0.3px; cursor: pointer" onclick="closeSheet('myvotes-sheet')">출품작 보러 가기</button>
           </div>
 
-          <!-- 푸터 — 표가 하나라도 있을 때만 -->
+          <!-- 푸터 — 표가 하나라도 있을 때만.
+               2주에 3표뿐이라 신중해지므로 취소가 자유롭다는 점을 한 줄로 안내한다.
+               날짜 리셋 관련 문구는 어디에도 두지 않는다. -->
           <div id="myvotes-footer" style="margin-top: 22px; padding-top: 16px; border-top: 1px solid rgba(0, 0, 0, 0.07); display: flex; align-items: center; gap: 8px">
             <span style="font-size: var(--font-sm); color: #8e8e93; letter-spacing: -0.2px">남은 표</span>
             <span id="myvotes-dots" style="display: flex; align-items: center; gap: 4px"></span>
-            <span id="myvotes-left" style="font-size: var(--font-sm); font-weight: 600; color: #111; letter-spacing: -0.2px">3/3</span>
+            <span id="myvotes-left" style="font-size: var(--font-sm); font-weight: 600; color: #000; letter-spacing: -0.2px">3/3</span>
             <div style="flex: 1"></div>
-            <span style="font-size: var(--font-xs); color: #c7c7cc; letter-spacing: -0.1px">내일 0시에 3표로 초기화</span>
+            <span style="font-size: var(--font-xs); color: #c7c7cc; letter-spacing: -0.1px">투표 마감 전까지 언제든 바꿀 수 있어요</span>
           </div>
         </div>
       </div>
@@ -633,23 +648,15 @@
       /* 투표 기간에는 득표수를 노출하지 않는다. 메타는 "스팟 · 출품 시각" */
       const SHOT_TIMES = ['05:32', '18:04', '05:48', '19:12', '05:21', '18:37', '05:44', '19:02'];
 
-      let sort = 'random';
+      /* 표는 콘테스트 기간(2주) 통틀어 3개이고 매일 리셋되지 않는다 */
+      let sort = 'latest';
       let votesLeft = 3;
       const voted = {};
-      /* 랜덤은 세션 시드 고정 — 스크롤 중 순서가 흔들리지 않고, 재진입 시에만 재추첨 */
-      const randomOrder = shuffle([0, 1, 2, 3, 4, 5, 6, 7]);
-
-      function shuffle(arr) {
-        const a = arr.slice();
-        for (let i = a.length - 1; i > 0; i--) {
-          const j = Math.floor(Math.random() * (i + 1));
-          [a[i], a[j]] = [a[j], a[i]];
-        }
-        return a;
-      }
+      /* 랜덤이 없어지면서 커서 페이징의 seed 파라미터도 필요 없어졌다 */
+      const VOTE_ORDER = [4, 0, 2, 6, 1, 5, 3, 7];
 
       function buildItems() {
-        const order = sort === 'random' ? randomOrder : [0, 1, 2, 3, 4, 5, 6, 7];
+        const order = sort === 'votes' ? VOTE_ORDER : [0, 1, 2, 3, 4, 5, 6, 7];
         return order.map((i) => ({
           id: String(i),
           name: LATEST_NAMES[i],
@@ -668,9 +675,9 @@
           .map(
             (c) => `
         <div class="card">
-          <div class="card__photo" style="background:${c.grad}"></div>
+          <div class="card__photo" style="background:${c.grad}" onclick="openEntry()"></div>
           <div class="card__info">
-            <div class="card__text">
+            <div class="card__text" onclick="openEntry()">
               <div class="card__name">${c.name}</div>
               <div class="card__meta">${c.meta}</div>
             </div>
@@ -691,9 +698,14 @@
         document.querySelector('.phone-frame').classList.toggle('is-spent', votesLeft <= 0);
       }
 
-      /* 되돌리기 없음 — 한 번 투표한 카드는 완료 상태로 고정 */
+      /* 카드·그래프 점·범례 행·투표 시트 행 모두 출품작 상세로 온다.
+         돌아오면 진입한 화면의 스크롤 위치로 복귀하고, 투표 결과는 즉시 반영된다. */
+      function openEntry() {
+        location.href = './contest-entry-detail.html';
+      }
+
       /* 투표 기간 안에서는 취소 자유 — 완료 버튼을 다시 누르면 표 1개가 복구된다.
-         기간이 끝나면 그때 확정된다. */
+         투표 마감(말일)이 지나면 확정되고 버튼은 비활성으로 고정된다. */
       function toggleVote(id) {
         const item = buildItems().find((c) => c.id === id);
         if (voted[id]) {
@@ -750,10 +762,10 @@
         <div style="display: flex; align-items: center; gap: 12px">
           <span style="width: 44px; height: 44px; border-radius: 11px; flex-shrink: 0; background: ${c.grad}"></span>
           <div style="flex: 1; min-width: 0">
-            <div style="font-size: var(--font-sm); font-weight: 600; color: #111; letter-spacing: -0.2px">${c.name}</div>
+            <div style="font-size: var(--font-sm); font-weight: 600; color: #000; letter-spacing: -0.2px">${c.name}</div>
             <div style="font-size: var(--font-xs); color: #8e8e93; letter-spacing: -0.1px; margin-top: 2px">${votedAt[c.id] || '방금'} · ${c.meta.split(' · ')[0]}</div>
           </div>
-          <button onclick="toggleVote('${c.id}')" style="height: 32px; padding: 0 14px; border: none; border-radius: 16px; background: var(--color-surface); font-family: var(--font-family); font-size: var(--font-sm); font-weight: 600; color: #111; letter-spacing: -0.2px; cursor: pointer">취소</button>
+          <button onclick="toggleVote('${c.id}')" style="height: 32px; padding: 0 14px; border: none; border-radius: 16px; background: var(--color-surface); font-family: var(--font-family); font-size: var(--font-sm); font-weight: 600; color: #000; letter-spacing: -0.2px; cursor: pointer">취소</button>
         </div>`
           )
           .join('');
