@@ -40,9 +40,10 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
   const { data: heroPhotos } = useSpotPhotos(spotId);
   // 히어로에 보이는 대표 이미지가 항상 뷰어의 1번째 사진이 되도록 맨 앞에 고정 + 갤러리(유저 업로드 제외) 나머지를 뒤에 이어붙임.
   // 갤러리 API가 비어있거나 로딩 중이어도 대표 이미지 1장은 항상 풀스크린으로 볼 수 있게 fallback.
-  const viewerPhotos = spot?.imageUrl
-    ? [spot.imageUrl, ...(heroPhotos ?? []).filter((url) => url !== spot.imageUrl)]
-    : heroPhotos ?? [];
+  // Set으로 대표 이미지뿐 아니라 갤러리 내부 중복 URL까지 제거 (뷰어 중복 페이지·카운터 부풀림 방지)
+  const viewerPhotos = Array.from(
+    new Set([...(spot?.imageUrl ? [spot.imageUrl] : []), ...(heroPhotos ?? [])]),
+  );
   const [photoViewerVisible, setPhotoViewerVisible] = useState(false);
 
   const [activeTab, setActiveTab] = useState<SpotTabKey>('info');

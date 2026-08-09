@@ -62,34 +62,39 @@ export default function SpotHero({
   }));
 
   if (!hasImage) {
+    // 대표 이미지가 없거나 로드에 실패해도 갤러리 사진이 있으면 뷰어는 열 수 있어야 함.
+    // 중첩 Pressable에서 헤더 버튼(뒤로/공유/저장)이 우선 처리되므로 그대로 동작한다.
+    const canOpenViewer = !!onPressPhoto && heroPhotoCount > 0;
     return (
       <Animated.View style={[{ height: HERO_HEIGHT, overflow: 'hidden' }, heroStyle]}>
-        <SpotHeroPlaceholder
-          categories={categories}
-          regionLabel={regionLabel}
-          height={HERO_HEIGHT}
-          headerLeft={
-            <HeroActionButton>
-              <Pressable onPress={onBack} hitSlop={8}>
-                <IconChevronLeft size={normalize(20)} color="#111" strokeWidth={2} />
-              </Pressable>
-            </HeroActionButton>
-          }
-          headerRight={
-            <>
+        <Pressable onPress={onPressPhoto} disabled={!canOpenViewer} style={{ flex: 1 }}>
+          <SpotHeroPlaceholder
+            categories={categories}
+            regionLabel={regionLabel}
+            height={HERO_HEIGHT}
+            headerLeft={
               <HeroActionButton>
-                <Pressable onPress={onShare} hitSlop={8}>
-                  <IconShare size={normalize(19)} color="#111" strokeWidth={2} />
+                <Pressable onPress={onBack} hitSlop={8}>
+                  <IconChevronLeft size={normalize(20)} color="#111" strokeWidth={2} />
                 </Pressable>
               </HeroActionButton>
-              <HeroActionButton>
-                <Pressable onPress={onBookmark} hitSlop={8}>
-                  <IconBookmark size={normalize(19)} color="#111" strokeWidth={2} fill={isBookmarked ? '#111' : 'none'} />
-                </Pressable>
-              </HeroActionButton>
-            </>
-          }
-        />
+            }
+            headerRight={
+              <>
+                <HeroActionButton>
+                  <Pressable onPress={onShare} hitSlop={8}>
+                    <IconShare size={normalize(19)} color="#111" strokeWidth={2} />
+                  </Pressable>
+                </HeroActionButton>
+                <HeroActionButton>
+                  <Pressable onPress={onBookmark} hitSlop={8}>
+                    <IconBookmark size={normalize(19)} color="#111" strokeWidth={2} fill={isBookmarked ? '#111' : 'none'} />
+                  </Pressable>
+                </HeroActionButton>
+              </>
+            }
+          />
+        </Pressable>
       </Animated.View>
     );
   }

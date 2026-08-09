@@ -538,7 +538,8 @@ export default function TravelPlanScreen({ navigation, route }: any) {
             id: `new_${Date.now()}_${idx}`, // 임시 ID
             realSpotId: spot.id,
             name: spot.title || spot.name || `스팟 ${spot.id}`,
-            loc: spot.categories?.[0] || "기타",
+            // useTravelStore의 Spot은 categories가 아니라 tags로 카테고리를 담는다 (MapScreen에서 매핑)
+            loc: spot.tags?.[0] || "기타",
             bg: "#ccc",
             lat: spot.latitude || spot.mapY || spot.lat,
             lng: spot.longitude || spot.mapX || spot.lng,

@@ -218,7 +218,7 @@ export function mapReview(dto: ReviewDTO): Review {
     badge: dto.timePeriod ? TIMESLOT_LABEL[dto.timePeriod] : undefined,
     date: formatReviewDate(dto),
     text: dto.content,
-    photos: dto.photos.length > 0 ? dto.photos.map((p) => p.url) : undefined,
+    photos: dto.photos?.length ? dto.photos.map((p) => p.url) : undefined,
     equipment: dto.equipmentInfo ?? undefined,
   };
 }
@@ -303,6 +303,9 @@ if (__DEV__) {
   // 백엔드 photos는 {photoId,url} 객체 배열 → url만 뽑아야 함
   const withPhotos = mapReview({ ...base, timePeriod: null, photos: [{ photoId: 7, url: 'https://x/1.jpg' }] });
   console.assert(withPhotos.photos?.[0] === 'https://x/1.jpg', 'review photos url 추출 오류');
+  // photos 필드 자체가 누락돼도 리뷰 목록 매핑이 죽지 않아야 함
+  const noPhotosKey = { ...base, timePeriod: null } as ReviewDTO;
+  console.assert(mapReview(noPhotosKey).photos === undefined, 'photos 누락 시 방어 실패');
 
   const pgBase = { score: 69, grade: '좋음', weather: { label: '맑음', score: 30 }, fineDust: { label: '좋음', score: 20 }, ozone: { label: '보통', score: 6 }, season: { label: '벚꽃 47%', score: 7 } };
   const active = mapPhotogenicScore({ ...pgBase, goldenHour: { label: '골든아워', score: 5, minutesUntilStart: null, startTime: null } });

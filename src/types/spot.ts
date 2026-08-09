@@ -238,7 +238,8 @@ export interface ReviewDTO {
   timePeriod: ReviewTimeSlot | null;
   content: string;
   equipmentInfo: string | null;
-  photos: ReviewPhotoDTO[];
+  /** 현재 백엔드는 사진이 없어도 항상 빈 배열을 주지만, 응답 누락 시 리뷰 탭 전체가 죽으므로 optional로 방어 */
+  photos?: ReviewPhotoDTO[];
   visitedAt: string | null;
   createdAt: string;
 }
