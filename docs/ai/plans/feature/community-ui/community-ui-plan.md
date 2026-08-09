@@ -161,11 +161,23 @@
 
 ### Task 15 - 콘테스트 월간 주기 최종안 RN 적용
 
-핸드오프 최종안(`contest-final-mockup.html` + `spec/` 11개 문서).
-**퍼블리싱 완료(목업 5개), RN 미적용.** RN은 이전 주간 주기 시안(TURN 1~6)에서 멈춰 있습니다.
+핸드오프 최종안(`~/Desktop/handoff_community/contest-final-mockup.html` + `spec/` 11개 문서 + 변환 샘플
+`ContestEntriesScreen.native.jsx`/`ContestEntryDetailScreen.native.jsx`).
+**퍼블리싱 완료(목업 8개: community-feed/contest-submit/contest-entry-detail/contest-all-entries/
+contest-result 등), RN 미적용.** RN은 이전 주간 주기 시안(TURN 1~6)에서 멈춰 있습니다.
 
 > **주의 — Task 15의 이전 버전(7일 주기: 출품 4일 → 투표 2일 → 결과 1일)은 폐기됐습니다.**
 > 최종안은 월간이고, 그에 따라 표 정책·집계 주기·정렬이 전부 바뀌었습니다.
+
+- 재확인(2026-08-09): 대상 신규 파일(`ContestRankPanel`/`MyVotesSheet`/`MyEntriesSheet`/
+  `ContestSubmitScreen`/`ContestEntryDetailScreen`) 전부 미생성 상태 그대로. `SubmitEntrySheet.tsx`
+  (이전 바텀시트 방식)와 `ContestPhotoLightbox.tsx`(이전 라이트박스 방식)가 대체 대상으로 남아있음.
+  오늘 목업에 추가로 반영된 폴리시(밤의 도시/골든아워 히어로 카드 좌우 인셋, 내 출품 통계 카드 중앙
+  정렬, 출품 작성 설명 필드 자동 높이조절+80자 방어, 전체 출품작 목록의 웹 전용 flex 스크롤 버그)는
+  아래 세부 태스크에 반영. `mypage/notification.html`의 콘테스트 알림 4종은 `NotificationScreen.tsx`에
+  아직 미반영이나 **Task 15 스코프 밖**(별도 후속 태스크로 분리 권장, 15) 참고 표로 남김)
+- 레퍼런스 파일 주의: `.native.jsx` 두 개는 `StyleSheet.create()` 기반 인라인 스타일이라 그대로 가져오면
+  안 됨 — phase 분기/props 경계/아이콘 매핑만 참고하고 스타일은 전부 `className`으로 재작성
 
 #### 바뀐 전제
 
@@ -179,25 +191,6 @@
 | 출품 | 1건 | **1인 3장**, 수정 불가(삭제 후 재출품), 투표 기간에도 삭제는 가능 |
 | 결과 | 독립 1일 | 다음 주기와 겹침 → 진행중 탭에 **항상 두 콘테스트 공존** |
 
-#### 대상 파일
-
-| 파일 | 할 일 |
-|---|---|
-| `src/types/community.ts` | `ContestPhase` 4종 추가 |
-| `src/components/community/ContestSegment.tsx` | phase state, 기간 총 3표로 정책 변경 |
-| `src/components/community/ContestActiveTab.tsx` | phase 분기 + 지난 달 수상작 요약 행(상시) |
-| `src/components/community/ContestRankPanel.tsx` | **신규** — 자정 1회·최근 7일·권외 밴드·마지막 점 썸네일 |
-| `src/components/community/MyVotesSheet.tsx` | **신규** — 남은 표 pill 하나로 열림(두 화면 공용) |
-| `src/components/community/MyEntriesSheet.tsx` | **신규** — 내 출품작 시트(8d·8f) + 삭제 확인(8e) |
-| `src/screens/community/ContestSubmitScreen.tsx` | **신규** — 출품 작성(13a~13e), 스팟 검색 포함 |
-| `src/screens/community/ContestEntryDetailScreen.tsx` | **신규** — 출품작 상세(14a~14g). 라이트박스가 아니라 push 화면 |
-| `src/screens/community/ContestAllEntriesScreen.tsx` | 정렬 2종(기본 최신순)·배지 제거·취소·남은 표 pill·1b 변형 |
-| `src/components/community/ContestPastTab.tsx` | 2열 → **1열** 회차 카드 리스트(15a·15b) |
-| `src/components/community/ContestMyEntryTab.tsx` | 8a·8b로 재구성 — 카드 하나(숫자 3 + 그래프) + 회차별 기록 |
-| `src/screens/community/ContestResultScreen.tsx` | 10a·10b·10d·10f. 고정 바 없이 리스트 행으로 |
-| `src/components/community/ContestPhotoLightbox.tsx` | **삭제 검토** — 출품작 상세가 push 화면이 되면서 역할이 사라짐 |
-| `src/navigation/stacks/CommunityDetailStack.tsx` | `ContestSubmit` · `ContestEntryDetail` 라우트 추가 |
-
 #### 핵심 규칙 (놓치기 쉬운 것)
 
 - **순위 그래프 점 좌표는 비율**로 둡니다. 고정 px면 지원 하한 360dp에서 우측 점이 화면 밖으로 나갑니다
@@ -207,11 +200,157 @@
 - 결과 화면에는 **고정 바를 두지 않습니다** — 탭바와 두 겹이면 150px가 잠깁니다
 - 토스트는 공용 `src/components/common/Toast.tsx`(44px 한 줄). 업로드 실패만 `다시 시도` 액션이 붙어 48px 스낵바
 - 출품작 상세는 **게시글 상세를 따르지 않습니다** — 댓글·팔로우·저장·EXIF 없음
+- 출품 작성 설명 입력은 웹 목업에서 `textarea` 높이를 `scrollHeight`로 자동 조절(오늘 수정)했으므로,
+  RN에서는 `TextInput multiline` + `onContentSizeChange`로 동일 효과를 내고 `maxLength={80}`은
+  네이티브 `TextInput`이 안전하게 강제하므로 웹처럼 별도 슬라이스 방어는 불필요
+- 전체 출품작 목록의 "스크롤 안 됨" 버그는 웹 CSS(`flex` `min-height:auto`) 전용 이슈 — RN은
+  `FlatList`/`ScrollView`를 쓰므로 동일 버그 자체가 발생하지 않음(포팅 대상 아님, 확인만)
 
-- 완료 조건: 목업 5개와 1:1 동일, phase 4종 모두 동작
+#### Task Breakdown (30~90분 단위)
+
+**15.1 — 타입/정책 갱신**
+- 대상 파일: `src/types/community.ts`
+- 변경 내용: `ContestPhase = 'SUBMITTING' | 'VOTING' | 'RESULT' | 'ENDED'` 추가, `ContestEntry`에
+  캡션/스팟/득표수/순위 필드 정리, 기존 7일 주기 전용 타입(있다면) 제거
+- 완료 조건: 이후 태스크에서 import하는 모든 타입이 이 파일 하나로 해결됨
+- 검증 방법: `pnpm exec tsc --noEmit`
+
+**15.2 — `ContestSegment.tsx` phase/표 정책 교체**
+- 대상 파일: `src/components/community/ContestSegment.tsx`
+- 변경 내용: phase state를 4종으로, "하루 3표" 로컬 로직을 "기간 통틀어 3표"로 교체(리셋 타이머 제거)
+- 완료 조건: 하위 탭(`ContestActiveTab` 등)에 phase가 정상 전파됨
+- 검증 방법: `pnpm exec tsc --noEmit`, 시뮬레이터에서 phase 전환 시 하위 탭 리렌더 확인
+
+**15.3 — `ContestActiveTab.tsx` phase 4종 분기**
+- 대상 파일: `src/components/community/ContestActiveTab.tsx`
+- 변경 내용: `SUBMITTING`/`VOTING`/`RESULT`/`ENDED` 4분기 렌더 + 지난 달 수상작 요약 행 상시 노출
+  (오늘 확인된 밤의 도시/골든아워 히어로 카드 좌우 28px 인셋·제목-설명 간격 12px 반영)
+- 완료 조건: `community-feed.html` 콘테스트 진행중 탭과 4개 phase 모두 1:1 동일
+- 검증 방법: `pnpm exec tsc --noEmit` / `pnpm lint`, 시뮬레이터에서 phase-switch 상당 동작 목업과 대조
+
+**15.4 — `ContestRankPanel.tsx` 신규**
+- 대상 파일: `src/components/community/ContestRankPanel.tsx` (신규)
+- 변경 내용: 순위 변동 패널 — 접힘 요약행 + 펼침(자정 1회 집계·최근 7일·점 좌표 비율)·집계 전·권외 밴드
+  (150→190px) 3variant. 핸드오프 `spec/06-ranking-history.md`, `spec/07-rank-enter-exit.md` 기준
+- 완료 조건: `community-feed.html` 투표 phase의 순위 변동 3개 시안(11a/11b/12a)과 1:1 동일
+- 검증 방법: `pnpm exec tsc --noEmit` / `pnpm lint`, 360dp 하한에서 우측 점 안 잘리는지 확인
+
+**15.5 — `MyEntriesSheet.tsx` 신규 (+ `SubmitEntrySheet.tsx` 정리)**
+- 대상 파일: `src/components/community/MyEntriesSheet.tsx`(신규), `src/components/community/SubmitEntrySheet.tsx`(삭제 검토)
+- 변경 내용: 내 출품작 시트(8d 출품 기간·8f 투표 기간) + 행 삭제 확인 다이얼로그(8e). 옛 캡션수정/
+  출품하기 시트 로직(`SubmitEntrySheet`)은 신규 `ContestSubmitScreen`(15.7)으로 역할이 이전되므로 제거
+- 완료 조건: 진행중 탭 "내 출품작 N/3" pill → 시트 오픈, 삭제 시 카운트/CTA 활성 갱신
+- 검증 방법: `pnpm exec tsc --noEmit` / `pnpm lint`, 시나리오 D 수동 검증
+
+**15.6 — `ContestSubmitScreen.tsx` 신규**
+- 대상 파일: `src/screens/community/ContestSubmitScreen.tsx`(신규), `src/navigation/stacks/CommunityDetailStack.tsx`
+- 변경 내용: `contest-submit.html`(13a~13e) 1:1 구현 — 썸네일 스트립, 설명 `TextInput multiline`
+  자동 높이조절(`onContentSizeChange`, `maxLength={80}`), 스팟 검색 연결, 업로드 중/실패 상태.
+  라우트 `ContestSubmit` 추가
+- 완료 조건: 목업과 1:1 동일, 자리 3장 제한/실패 재시도 동작
+- 검증 방법: `pnpm exec tsc --noEmit` / `pnpm lint`, 시뮬레이터에서 출품 플로우 전체 확인
+
+**15.7 — `ContestEntryDetailScreen.tsx` 신규**
+- 대상 파일: `src/screens/community/ContestEntryDetailScreen.tsx`(신규), `CommunityDetailStack.tsx`
+- 변경 내용: `contest-entry-detail.html`(14a~14g) 1:1 구현. 핸드오프
+  `ContestEntryDetailScreen.native.jsx`의 phase 분기(`ActionBlock`)·props 경계만 참고, 스타일은
+  `className`으로 재작성. `⋯` 액션시트(내 글이면 삭제, 남 글이면 신고). 라우트 `ContestEntryDetail` 추가
+- 완료 조건: 목업과 1:1 동일, 댓글/팔로우/저장/EXIF 없음(게시글 상세와 골격 다름) 확인
+- 검증 방법: `pnpm exec tsc --noEmit` / `pnpm lint`, 시뮬레이터에서 상세 진입·투표·액션시트 확인
+
+**15.8 — `MyVotesSheet.tsx` 신규**
+- 대상 파일: `src/components/community/MyVotesSheet.tsx`(신규)
+- 변경 내용: 남은 표 pill(진행중 탭 + 전체 목록 화면 공용) 탭 시 열리는 "내가 투표한 작품" 시트,
+  행별 취소 즉시 반영. `spec/05-my-votes-sheet.md` 기준
+- 완료 조건: 두 화면에서 동일 컴포넌트로 열리고 취소 시 양쪽 남은 표 카운트 동기화
+- 검증 방법: `pnpm exec tsc --noEmit` / `pnpm lint`, 진행중 탭/전체 목록 양쪽에서 오픈·취소 확인
+
+**15.9 — `ContestAllEntriesScreen.tsx` 갱신**
+- 대상 파일: `src/screens/community/ContestAllEntriesScreen.tsx`
+- 변경 내용: 정렬 3종(랜덤 포함)→2종(최신순 기본·득표순), 좋아요 배지 제거, 투표 취소, 남은 표
+  pill→`MyVotesSheet` 연결, 지난 콘테스트 변형(1b: 득표순 기본·투표 UI 없음). 핸드오프
+  `ContestEntriesScreen.native.jsx` 참고(스타일은 재작성)
+- 완료 조건: `contest-all-entries.html`의 두 용도(투표 기간/지난 콘테스트)와 1:1 동일
+- 검증 방법: `pnpm exec tsc --noEmit` / `pnpm lint`, 무한스크롤·정렬 전환·투표 취소 확인
+
+**15.10 — `ContestPastTab.tsx` 레이아웃 변경**
+- 대상 파일: `src/components/community/ContestPastTab.tsx`
+- 변경 내용: 2열 그리드 → 1열 회차 카드 리스트(15a·15b), 빈 상태 포함
+- 완료 조건: `community-feed.html` 지난 탭과 1:1 동일
+- 검증 방법: `pnpm exec tsc --noEmit` / `pnpm lint`
+
+**15.11 — `ContestMyEntryTab.tsx` 재구성**
+- 대상 파일: `src/components/community/ContestMyEntryTab.tsx`
+- 변경 내용: 8a(기록 있음)·8b(기록 없음)로 재구성 — 통계 카드(출품/최고 순위/받은 표, 오늘 확인된
+  중앙 정렬 반영) + 순위 추이 그래프 + 회차별 기록 리스트
+- 완료 조건: `community-feed.html` 내 출품 탭과 1:1 동일
+- 검증 방법: `pnpm exec tsc --noEmit` / `pnpm lint`
+
+**15.12 — `ContestResultScreen.tsx` 갱신**
+- 대상 파일: `src/screens/community/ContestResultScreen.tsx`
+- 변경 내용: 10a(요약)·10b(수상작 상세)·10d(축하)·10f(순위권 밖) 반영, 고정 바 제거(탭바와 겹쳐
+  150px 잠기는 회귀 재발 방지)
+- 완료 조건: `contest-result.html`과 1:1 동일
+- 검증 방법: `pnpm exec tsc --noEmit` / `pnpm lint`, 탭바와 겹치지 않는지 실기기 확인
+
+**15.13 — 정리: `ContestPhotoLightbox.tsx` 삭제, 참조 제거**
+- 대상 파일: `src/components/community/ContestPhotoLightbox.tsx`, 해당 컴포넌트를 import하던 모든 파일
+- 변경 내용: 출품작 상세가 push 화면(15.7)이 되며 라이트박스 역할 소멸 → 삭제, import 참조 정리
+- 완료 조건: `grep -r ContestPhotoLightbox src` 결과 없음, 빌드 영향 없음
+- 검증 방법: `pnpm exec tsc --noEmit` / `pnpm lint`
+
+**15.14 — (참고, 별도 후속 권장) 콘테스트 알림 4종 → `NotificationScreen.tsx`**
+- 대상 파일: `src/screens/mypage/NotificationScreen.tsx`
+- 변경 내용: `mypage/notification.html`에 오늘 추가된 콘테스트 알림 4종(시작·마감 임박·투표 시작·
+  결과 발표)을 "커뮤니티" 필터에 통합
+- 완료 조건: (Task 15 스코프 아님) 별도 태스크로 분리해 진행 권장
+- 검증 방법: 해당 태스크 진행 시 별도 지정
+
+- 완료 조건(Task 15 전체): 목업 8개와 1:1 동일, phase 4종 모두 동작
 - 검증 방법: `pnpm exec tsc --noEmit` / `pnpm lint` / `python3 scripts/check-mockups.py`,
   시뮬레이터에서 phase별 확인
 - 선행 필요: phase 판정은 서버가 내려줘야 함(목업은 우상단 `.phase-switch`로만 전환)
+
+- 진행 상황(2026-08-09): 15.1~15.13 **완료**. 15.14는 스코프 밖이라 미착수(아래 참고).
+  - 신규 파일: `ContestRankPanel`·`MyVotesSheet`·`MyEntriesSheet`·`ContestSubmitScreen`·`ContestEntryDetailScreen`
+  - 전면 재작성: `ContestSegment`·`ContestActiveTab`(4-phase 분기)·`ContestMyEntryTab`(8a/8b)·
+    `ContestPastTab`(1열)·`ContestAllEntriesScreen`(정렬 2종+지난 변형)·`ContestResultScreen`(10a/10b/10d, 10f는 대안 export)
+  - 삭제: `SubmitEntrySheet.tsx`·`ContestPhotoLightbox.tsx`(역할 소멸), 구 타입 4종(`ContestGoalInfo`/
+    `ContestVoteEntry`/`ContestSubmission`/`ContestPastItem`) 제거
+  - `pnpm exec tsc --noEmit` / `pnpm lint` 매 단계 통과 확인
+  - `python3 scripts/check-mockups.py` 통과(8개 파일) — 단, 이 스크립트는 HTML 목업 자체의
+    토큰/구조 정합성만 검사하고 RN 코드와의 1:1 대응은 검증하지 않음(수동 확인 필요)
+
+### 코드 리뷰 반영 (2026-08-09, superpowers 리뷰어)
+
+판정은 "수정 후 머지 가능". 아래는 반영 완료분이고, 미반영 항목은 그 아래 목록에 남긴다.
+
+- **C1(Critical) 투표 취소 불가** — `ContestAllEntriesScreen`의 투표 버튼이 `disabled={disabled || voted}`라
+  한 번 투표하면 버튼이 죽어 취소가 불가능했다. 같은 버튼이 진행중 탭에서는 정상 동작해 화면 간 동작이
+  갈렸고, 그 화면 배너가 "투표를 취소하면 다시 쓸 수 있어요"라고 안내하던 상태. `disabled={spent}`로 수정
+- **I5 3장 상한 미강제** — 출품 CTA가 3/3에서도 활성이었고 `goToContestSubmit`이 파라미터를 안 넘겨
+  출품 화면이 기본값 3장으로 열렸다. `ContestSubmitTarget`(theme·monthLabel·remainingSlots)을 넘기도록
+  경로를 만들고 `Footbar`에 `ctaDisabled` 추가
+- **I1 순위 그래프 좌표계** — 0~100 정규화를 목업 viewBox(11a `0 0 306 150` / 12a `0 0 306 190`)로 교체.
+  권외 거터 20→44, 순위 y 26/74/122 고정, 끝점을 SVG 원 대신 30px 썸네일 View(X는 %·Y는 px)로.
+  `RankSeries`에 `strokeColor`/`strokeWidth` 추가 — 선 색은 순위 서열이고 사진색과 별개다
+- **I2 추이 그래프 끝점 잘림** — `viewBox="0 0 294 110"` + 목업 좌표(18~276)로 교체
+- **I3 정렬 컨트롤 무반응** — `Text` → `Pressable`, 정렬 상태를 `ContestSegment`로 승격.
+  `voteEntries` 자체를 재배열하면 투표 상태가 섞이므로 표시 순서만 `useMemo`로 파생시킨다
+- **I6 투표 히어로 토큰** — `FONT_LG`(17) → `FONT_XL`(22). 출품 히어로(28px)와 의도적으로 다른 값
+- **I9 정렬 활성색** — 목업은 accent였으나 **CLAUDE.md의 블랙이 맞다**고 결론(00-context.md가 CLAUDE.md를
+  단일 기준으로 지정). "정렬 칩" 규칙은 채워진 칩만 가리킨다고 좁게 읽었던 판단을 뒤집음.
+  목업 쪽 오류이므로 `design-handoff-brief.md`에 판단 기준 전문 + "형태 무관, 정렬은 블랙"을 명시
+- **I11 도달 불가 분기** — `DevStateSwitch`(`__DEV__` 전용, 목업 `.phase-switch` 대응) 신규.
+  진행중 탭 7종(출품/0개/투표/집계전/권외/발표/없음) · 내 출품 2종 · 지난 2종 ·
+  전체 출품작 3종(목록/빈/에러) · 결과 3종(10a/10d/10f). `RANK_HISTORY_OUT`·`ContestAllEntriesEmpty`·
+  `ContestAllEntriesError`·`ContestResultOutrank`가 모두 실제 렌더 경로를 갖게 되어 dead export 0건
+- 회귀 검증용 `scripts/check-rank-graph.js` 추가 — 360/390/430dp에서 끝점 잘림·권외 라벨 겹침 계산 검증.
+  수정 전후: 권외 라벨 여백 0.6px→18.5px, 3위–권외 간격 15.8px→44.2px
+
+**미반영(다음 작업)**: I4(업로드 실패 스낵바 — 계획·목업은 폼 유지 + 48px 스낵바인데 화면 교체로 구현됨) ·
+I7(onPress 없는 버튼 4개) · I8(결과 상세가 라우트가 아니라 화면 내 state라 뒤로가기 제스처가 어긋남) ·
+I10(SidePill 투표 도트 누락) · I12(표시 문자열 파싱 5곳 — API 연동 시 깨짐) · I13 · I14 · Minor 목록
 
 ## 4) 검증 체크포인트
 

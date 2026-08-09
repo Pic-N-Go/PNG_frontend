@@ -9,7 +9,7 @@ import SearchOverlay from '@/components/community/SearchOverlay';
 import ContestSegment from '@/components/community/ContestSegment';
 import OptionSheet from '@/components/common/OptionSheet';
 import type { RootStackParamList } from '@/navigation';
-import { ContestPastItem, Post } from '@/types/community';
+import { ContestPastMonthItem, ContestSubmitTarget, Post } from '@/types/community';
 import { FONT_LG, FONT_SM, FONT_2XL, GRID_PADDING } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
 import { layoutGalleryGrid } from '@/utils/galleryGrid';
@@ -165,10 +165,19 @@ export default function CommunityFeedScreen() {
   const goToPost = (post: Post) =>
     rootNavigation.navigate('CommunityDetailStack', { screen: 'PostDetail', params: { isMyPost: post.isMine } });
   const goToProfile = () => rootNavigation.navigate('CommunityDetailStack', { screen: 'UserProfile' });
-  const goToContestResult = (_item: ContestPastItem) =>
-    rootNavigation.navigate('CommunityDetailStack', { screen: 'ContestResult' });
-  const goToAllEntries = () =>
-    rootNavigation.navigate('CommunityDetailStack', { screen: 'ContestAllEntries' });
+  const goToContestResult = (item: ContestPastMonthItem) =>
+    rootNavigation.navigate('CommunityDetailStack', {
+      screen: 'ContestResult',
+      params: { monthLabel: item.monthLabel, myRank: item.myRank },
+    });
+  const goToAllEntries = (submitTarget: ContestSubmitTarget) =>
+    rootNavigation.navigate('CommunityDetailStack', { screen: 'ContestAllEntries', params: { submitTarget } });
+  const goToContestSubmit = (target: ContestSubmitTarget) =>
+    rootNavigation.navigate('CommunityDetailStack', { screen: 'ContestSubmit', params: target });
+  const goToContestEntry = (entryId: string) =>
+    rootNavigation.navigate('CommunityDetailStack', { screen: 'ContestEntryDetail', params: { entryId } });
+  const goToContestResultByRank = (monthLabel: string, myRank: number | null) =>
+    rootNavigation.navigate('CommunityDetailStack', { screen: 'ContestResult', params: { monthLabel, myRank } });
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right']}>
@@ -230,7 +239,13 @@ export default function CommunityFeedScreen() {
       </View>
 
       {segment === 'contest' ? (
-        <ContestSegment onSelectPastItem={goToContestResult} onSeeAllEntries={goToAllEntries} />
+        <ContestSegment
+          onSelectPastItem={goToContestResult}
+          onSeeAllEntries={goToAllEntries}
+          onOpenSubmit={goToContestSubmit}
+          onOpenEntry={goToContestEntry}
+          onOpenResult={goToContestResultByRank}
+        />
       ) : (
         <ScrollView onScroll={handleScroll} scrollEventThrottle={16} contentContainerStyle={{ paddingBottom: normalize(20) }}>
           {segment === 'posts' && (

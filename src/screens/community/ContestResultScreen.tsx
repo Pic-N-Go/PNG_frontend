@@ -1,178 +1,375 @@
-import React from 'react';
-import { Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronLeft, Share } from 'lucide-react-native';
+import { ChevronLeft, ChevronRight, MapPin } from 'lucide-react-native';
+import DevStateSwitch from '@/components/common/DevStateSwitch';
+import ShareSheet from '@/components/common/ShareSheet';
+import Toast from '@/components/common/Toast';
 import { CommunityDetailStackParamList } from '@/navigation/stacks/CommunityDetailStack';
-import { ContestResultDetail } from '@/types/community';
-import { FONT_2XS, FONT_XS, FONT_SM, FONT_MD, FONT_LG, FONT_XL, GRID_PADDING } from '@/constants/layout';
-import { normalize } from '@/utils/normalize';
+import type { RootStackParamList } from '@/navigation';
+import { ContestPhotoEntry } from '@/types/community';
+import { CONTENT_PADDING, FONT_2XS, FONT_LG, FONT_MD, FONT_SM, FONT_XL, FONT_XS } from '@/constants/layout';
+import { normalize, normalizeFontSize } from '@/utils/normalize';
 
+/**
+ * 콘테스트 결과 — 목업 contest-result.html 1:1. 시안 10a(요약)·10b(수상작 상세)·10d(축하)·10f(순위권 밖).
+ * 고정 바 없음 — 탭바와 두 겹이면 150px가 잠기므로 "전체 순위 보기"는 리스트 마지막 행(rowlink)이다.
+ *
+ * 10a와 10f는 둘 다 "출품했지만 3위 밖"인데 표현이 다르다(10a는 한 줄 요약, 10f는 분포 바까지).
+ * 어느 쪽을 쓸지는 아직 정해지지 않아 __DEV__ 스위처로 둘 다 확인할 수 있게 열어둔다.
+ */
+
+const ACCENT = '#E31B59';
 const SURFACE = '#f5f5f7';
-const TEXT_SECONDARY = 'rgba(0,0,0,0.4)';
-const ENTRY_GAP = normalize(8);
+const SUB = '#8e8e93';
 
-// 이번 스코프에서는 특정 회차와 동적으로 연결되지 않는 정적 목업 데이터
-const RESULT: ContestResultDetail = {
-  theme: '숲 산책',
-  dateRangeLabel: '2026.06.30 – 07.06',
-  participantCount: 65,
-  podium: [
-    { id: 'r1', rank: 1, author: { handle: '@forestday' }, captionMeta: '축령산 · 아침 6:20', gradient: ['#0a1a0f', '#4a8060', '#a8c090'], voteCount: 89 },
-    { id: 'r2', rank: 2, author: { handle: '@moss.walk' }, captionMeta: '남해 편백숲', gradient: ['#1a1510', '#a08060', '#a08060'], voteCount: 54 },
-    { id: 'r3', rank: 3, author: { handle: '@quiet.grove' }, captionMeta: '한라산 성판악', gradient: ['#020010', '#1a1545', '#1a1545'], voteCount: 37 },
-  ],
-  entries: [
-    { id: 'r4', rank: 4, author: { handle: '' }, captionMeta: '', gradient: ['#0a1520', '#3a708a', '#3a708a'], voteCount: 28 },
-    { id: 'r5', rank: 5, author: { handle: '' }, captionMeta: '', gradient: ['#232526', '#8e7b5a', '#8e7b5a'], voteCount: 22 },
-    { id: 'r6', rank: 6, author: { handle: '' }, captionMeta: '', gradient: ['#1a0a0a', '#8a3030', '#8a3030'], voteCount: 18 },
-    { id: 'r7', rank: 7, author: { handle: '' }, captionMeta: '', gradient: ['#0a2020', '#40a090', '#40a090'], voteCount: 14 },
-  ],
-};
-
-const PODIUM_WIDTHS = [normalize(158), normalize(140), normalize(140)];
-
-function rankBadgeColors(rank: number): [string, string] {
-  if (rank === 2) return ['#c0c0c0', '#8a8a8a'];
-  if (rank === 3) return ['#cd8c52', '#8a6030'];
-  return ['#f0c89a', '#d4856a'];
-}
+const WINNER: ContestPhotoEntry = { id: 'w1', rank: 1, author: { handle: '@sunset_jk' }, captionMeta: '광안리 · 05:30', gradient: ['#1a1530', '#5a3355', '#d4856a'], voteCount: 214, caption: '비가 그친 직후 하늘이 열리는 순간을 기다렸습니다. 삼각대 없이 난간에 기대서 찍었어요.' };
+const PODIUM_2_3: ContestPhotoEntry[] = [
+  { id: 'w2', rank: 2, author: { handle: '@minsoo' }, captionMeta: '187표 · 다대포', gradient: ['#12333a', '#2f5f5a', '#8fae9b'], voteCount: 187 },
+  { id: 'w3', rank: 3, author: { handle: '@yujin' }, captionMeta: '156표 · 청사포', gradient: ['#241a33', '#8b4a6b', '#e8a87c'], voteCount: 156 },
+];
+const RANK_LIST: ContestPhotoEntry[] = [
+  { id: 'w1', rank: 1, author: { handle: '@sunset_jk' }, captionMeta: '광안리 · 05:30', gradient: ['#1a1530', '#5a3355', '#d4856a'], voteCount: 214 },
+  { id: 'w2', rank: 2, author: { handle: '@minsoo' }, captionMeta: '다대포 · 18:20', gradient: ['#12333a', '#2f5f5a', '#8fae9b'], voteCount: 187 },
+  { id: 'w3', rank: 3, author: { handle: '@yujin' }, captionMeta: '청사포 · 05:44', gradient: ['#241a33', '#8b4a6b', '#e8a87c'], voteCount: 156 },
+  { id: 'w4', rank: 4, author: { handle: '@haneul' }, captionMeta: '송정 · 05:48', gradient: ['#2d1b4e', '#8b4a6b', '#f0c89a'], voteCount: 98 },
+  { id: 'w5', rank: 5, author: { handle: '@seora' }, captionMeta: '이기대 · 19:12', gradient: ['#1c1c2b', '#4a3a5e', '#c98f7a'], voteCount: 74 },
+];
 
 export default function ContestResultScreen() {
-  const navigation = useNavigation<NativeStackNavigationProp<CommunityDetailStackParamList>>();
-  const { width: windowWidth } = useWindowDimensions();
-  // width:'%' + aspectRatio를 같은 노드에 함께 주면 flexWrap 컨테이너 안에서 높이가
-  // 제대로 계산되지 않는 RN(Yoga) 이슈가 있어 실제 너비 기준 픽셀 크기를 직접 계산한다(2열).
-  const entryCardSize = (windowWidth - GRID_PADDING * 2 - ENTRY_GAP) / 2;
+  const navigation = useNavigation<NativeStackNavigationProp<CommunityDetailStackParamList & RootStackParamList>>();
+  const route = useRoute<RouteProp<CommunityDetailStackParamList, 'ContestResult'>>();
+  const monthLabel = route.params?.monthLabel ?? '7월';
+  const participantCount = route.params?.participantCount ?? 96;
+  const totalVotes = route.params?.totalVotes ?? 871;
+
+  const [detailEntry, setDetailEntry] = useState<ContestPhotoEntry | null>(null);
+  // 내 순위는 진입 경로(지난 탭 카드 등)가 넘겨준다. 스위처는 그 값을 __DEV__에서만 덮어쓴다.
+  const [devVariant, setDevVariant] = useState<'route' | 'award' | 'outrank'>('route');
+  const [shareVisible, setShareVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+  const [toastVisible, setToastVisible] = useState(false);
+  const myRank = devVariant === 'award' ? 1 : devVariant === 'outrank' ? 42 : route.params?.myRank;
+  const myVotes = devVariant === 'award' ? 214 : devVariant === 'outrank' ? 23 : (route.params?.myVotes ?? 0);
+
+  const isAward = myRank != null && myRank <= 3;
+  const hasEntry = myRank != null;
+
+  // 수상작 상세(10b)는 별도 라우트가 아니라 이 화면 안의 상태다 — 그대로 두면 iOS 스와이프·안드로이드
+  // 하드웨어 백이 결과 화면째로 빠져나간다. 상세가 열려 있는 동안엔 pop을 가로채 상세만 닫는다.
+  useEffect(() => {
+    if (!detailEntry) return;
+    return navigation.addListener('beforeRemove', (e) => {
+      e.preventDefault();
+      setDetailEntry(null);
+    });
+  }, [navigation, detailEntry]);
+
+  if (detailEntry) {
+    return <EntryDetailView entry={detailEntry} monthLabel={monthLabel} onBack={() => setDetailEntry(null)} onOpenSpot={() => navigation.navigate('SpotStack', { screen: 'SpotDetail', params: { spotId: 'spot-1' } })} />;
+  }
 
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right']}>
-      <View
-        className="flex-row items-center"
-        style={{ height: normalize(52), paddingHorizontal: normalize(20), gap: normalize(8), borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)' }}
-      >
-        <Pressable onPress={() => navigation.goBack()} className="items-center justify-center" style={{ width: normalize(32), height: normalize(32) }}>
-          <ChevronLeft size={normalize(24)} color="#000" strokeWidth={1.8} />
+    <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right', 'bottom']}>
+      <DevStateSwitch
+        options={[
+          { key: 'route', label: '10a 요약' },
+          { key: 'award', label: '10d 축하' },
+          { key: 'outrank', label: '10f 권외' },
+        ]}
+        value={devVariant}
+        onChange={setDevVariant}
+      />
+
+      <View className="flex-row items-center" style={{ height: normalize(52), paddingLeft: normalize(12), paddingRight: normalize(28), gap: normalize(4) }}>
+        <Pressable onPress={() => navigation.goBack()} hitSlop={8} accessibilityRole="button" accessibilityLabel="뒤로" className="items-center justify-center" style={{ width: normalize(40), height: normalize(40) }}>
+          <ChevronLeft size={normalize(22)} color="#000" strokeWidth={2} />
         </Pressable>
-        <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_LG, color: '#000', letterSpacing: -0.4 }}>
-          콘테스트 결과
+        <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_LG, letterSpacing: -0.4, color: '#000' }}>
+          {`${monthLabel} 수상작`}
         </Text>
-        <Pressable className="items-center justify-center" style={{ width: normalize(32), height: normalize(32), marginLeft: 'auto' }}>
-          <Share size={normalize(18)} color="#000" strokeWidth={1.8} />
-        </Pressable>
+        <Text allowFontScaling={false} style={{ marginLeft: 'auto', fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, letterSpacing: -0.2, color: SUB }}>
+          {`${participantCount}명 · ${totalVotes}표`}
+        </Text>
       </View>
 
-      <ScrollView contentContainerStyle={{ paddingBottom: normalize(24) }}>
-        {/* 결과 배너 */}
-        <View style={{ paddingHorizontal: normalize(20), paddingTop: normalize(16), paddingBottom: normalize(12) }}>
-          <LinearGradient
-            colors={['#0a1a0f', '#4a8060', '#a8c090']}
-            locations={[0, 0.55, 1]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={{ paddingHorizontal: normalize(20), paddingVertical: normalize(18), borderRadius: normalize(16) }}
-          >
-            <View className="items-center justify-center self-start" style={{ height: normalize(22), paddingHorizontal: normalize(10), borderRadius: normalize(11), backgroundColor: 'rgba(255,255,255,0.2)' }}>
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_2XS, color: '#fff', letterSpacing: 1 }}>
-                종료
+      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: normalize(28) }}>
+        {isAward ? (
+          <View style={{ margin: normalize(18), marginHorizontal: CONTENT_PADDING, padding: normalize(20), borderRadius: normalize(20), backgroundColor: 'rgba(227,27,89,0.06)' }}>
+            <View style={{ alignSelf: 'flex-start', height: normalize(24), paddingHorizontal: normalize(10), borderRadius: normalize(12), backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center' }}>
+              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, letterSpacing: -0.1, color: '#fff' }}>
+                {`${myRank}위`}
               </Text>
             </View>
-            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XL, color: '#fff', letterSpacing: -0.6, marginTop: normalize(8) }}>
-              {RESULT.theme}
+            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XL, letterSpacing: -0.7, color: '#000', marginTop: normalize(10) }}>
+              {`축하해요, ${monthLabel}의 ${myRank}위예요`}
             </Text>
-            <View className="flex-row items-center" style={{ gap: normalize(8), marginTop: normalize(4) }}>
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(255,255,255,0.85)', letterSpacing: -0.15 }}>
-                {RESULT.dateRangeLabel}
-              </Text>
-              <View style={{ width: normalize(2), height: normalize(2), borderRadius: normalize(1), backgroundColor: 'rgba(255,255,255,0.4)' }} />
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(255,255,255,0.85)', letterSpacing: -0.15 }}>
-                참여 {RESULT.participantCount}명
-              </Text>
+            <View style={{ marginTop: normalize(14), aspectRatio: 294 / 196, borderRadius: normalize(14), backgroundColor: WINNER.gradient[0], overflow: 'hidden' }}>
+              <LinearGradient colors={WINNER.gradient} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
             </View>
-          </LinearGradient>
-        </View>
+            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, letterSpacing: -0.3, color: ACCENT, marginTop: normalize(12) }}>
+              {`${myVotes}표`}
+            </Text>
+            <Pressable onPress={() => setShareVisible(true)} style={{ width: '100%', height: normalize(40), marginTop: normalize(14), borderRadius: normalize(20), backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center' }}>
+              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, letterSpacing: -0.2, color: '#fff' }}>
+                공유하기
+              </Text>
+            </Pressable>
+          </View>
+        ) : devVariant === 'outrank' ? (
+          <ContestResultOutrank rank={myRank ?? 0} totalCount={participantCount} votes={myVotes} deltaLabel="지난 달보다 5계단 올랐어요" />
+        ) : (
+          hasEntry && (
+            // 출품하지 않은 달이면 이 카드를 감춘다
+            <View style={{ margin: normalize(18), marginHorizontal: CONTENT_PADDING, padding: normalize(14), paddingHorizontal: normalize(16), borderRadius: normalize(16), backgroundColor: SURFACE, flexDirection: 'row', alignItems: 'center', gap: normalize(12) }}>
+              <View style={{ width: normalize(44), height: normalize(44), borderRadius: normalize(11), backgroundColor: '#8b4a6b', flexShrink: 0 }} />
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, letterSpacing: -0.1, color: SUB }}>
+                  내 출품작
+                </Text>
+                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, letterSpacing: -0.3, color: '#000', marginTop: normalize(2) }}>
+                  {`${myRank}위 · ${myVotes}표`}
+                </Text>
+              </View>
+              <Pressable onPress={() => setShareVisible(true)} style={{ height: normalize(34), paddingHorizontal: normalize(14), borderRadius: normalize(17), backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' }}>
+                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, letterSpacing: -0.2, color: '#000' }}>
+                  공유
+                </Text>
+              </Pressable>
+            </View>
+          )
+        )}
 
-        {/* 최종 순위 */}
-        <View style={{ paddingHorizontal: normalize(20), paddingBottom: normalize(6) }}>
-          <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, color: '#000', letterSpacing: -0.2 }}>
-            최종 순위
-          </Text>
-        </View>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: normalize(20), paddingTop: normalize(10), paddingBottom: normalize(8), gap: normalize(8) }}
+        {!isAward && (
+          <>
+            <Text allowFontScaling={false} style={{ paddingHorizontal: normalize(28), paddingTop: normalize(24), paddingBottom: normalize(12), fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XL, letterSpacing: -0.7, color: '#000' }}>
+              최종 순위
+            </Text>
+
+            <Pressable onPress={() => setDetailEntry(WINNER)} style={{ marginHorizontal: normalize(28), borderRadius: normalize(16), overflow: 'hidden', backgroundColor: SURFACE }}>
+              <View style={{ position: 'relative', aspectRatio: 334 / 220, backgroundColor: WINNER.gradient[0] }}>
+                <LinearGradient colors={WINNER.gradient} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
+                <View style={{ position: 'absolute', top: normalize(12), left: normalize(12), height: normalize(24), paddingHorizontal: normalize(10), borderRadius: normalize(12), backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center' }}>
+                  <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, letterSpacing: -0.1, color: '#fff' }}>
+                    {`1위 · ${WINNER.voteCount}표`}
+                  </Text>
+                </View>
+              </View>
+              <View style={{ padding: normalize(14), paddingBottom: normalize(13) }}>
+                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, letterSpacing: -0.3, color: '#000' }}>
+                  {WINNER.author.handle}
+                </Text>
+                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, letterSpacing: -0.1, color: SUB, marginTop: normalize(2) }}>
+                  {WINNER.captionMeta}
+                </Text>
+              </View>
+            </Pressable>
+
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: normalize(20), paddingHorizontal: normalize(28), paddingTop: normalize(20) }}>
+              {PODIUM_2_3.map((entry) => (
+                <Pressable key={entry.id} onPress={() => setDetailEntry(entry)} style={{ width: '48%', borderRadius: normalize(16), overflow: 'hidden', backgroundColor: SURFACE }}>
+                  <View style={{ position: 'relative', aspectRatio: 1, backgroundColor: entry.gradient[0] }}>
+                    <LinearGradient colors={entry.gradient} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
+                    <View style={{ position: 'absolute', top: normalize(10), left: normalize(10), height: normalize(22), paddingHorizontal: normalize(8), borderRadius: normalize(11), backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' }}>
+                      <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_2XS, letterSpacing: -0.1, color: '#000' }}>
+                        {`${entry.rank}위`}
+                      </Text>
+                    </View>
+                  </View>
+                  <View style={{ paddingTop: normalize(9), paddingHorizontal: normalize(12), paddingBottom: normalize(11) }}>
+                    <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, letterSpacing: -0.2, color: '#000' }}>
+                      {entry.author.handle}
+                    </Text>
+                    <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, letterSpacing: -0.1, color: SUB, marginTop: normalize(2) }}>
+                      {entry.captionMeta}
+                    </Text>
+                  </View>
+                </Pressable>
+              ))}
+            </View>
+          </>
+        )}
+
+        {isAward && (
+          <>
+            <Text allowFontScaling={false} style={{ paddingHorizontal: normalize(28), paddingTop: normalize(24), paddingBottom: normalize(12), fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XL, letterSpacing: -0.7, color: '#000' }}>
+              최종 순위
+            </Text>
+            <RankList entries={RANK_LIST} myRank={myRank} onPress={setDetailEntry} />
+          </>
+        )}
+
+        <Pressable
+          onPress={() => navigation.navigate('ContestAllEntries', { mode: 'past' })}
+          style={{ margin: normalize(24), marginTop: normalize(24), marginHorizontal: normalize(28), height: normalize(56), paddingHorizontal: normalize(16), borderRadius: normalize(16), backgroundColor: SURFACE, flexDirection: 'row', alignItems: 'center', gap: normalize(8) }}
         >
-          {RESULT.podium.map((entry, index) => (
-            <LinearGradient
-              key={entry.id}
-              colors={entry.gradient}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 0, y: 1 }}
-              style={{ width: PODIUM_WIDTHS[index], height: normalize(198), borderRadius: normalize(14), padding: normalize(10) }}
-            >
-              <LinearGradient
-                colors={rankBadgeColors(entry.rank)}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={{ position: 'absolute', top: normalize(10), left: normalize(10), width: normalize(26), height: normalize(26), borderRadius: normalize(13), alignItems: 'center', justifyContent: 'center' }}
-              >
-                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, color: '#fff' }}>
-                  {entry.rank}
-                </Text>
-              </LinearGradient>
-              <View style={{ position: 'absolute', bottom: normalize(10), left: normalize(10), right: normalize(10) }}>
-                <Text allowFontScaling={false} numberOfLines={1} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, color: '#fff', letterSpacing: -0.15 }}>
-                  {entry.author.handle}
-                </Text>
-                <Text allowFontScaling={false} numberOfLines={1} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(255,255,255,0.75)', marginTop: normalize(3) }}>
-                  {entry.captionMeta}
-                </Text>
-                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, color: '#fff', marginTop: normalize(4), letterSpacing: -0.15 }}>
-                  {entry.voteCount}표
-                </Text>
-              </View>
-            </LinearGradient>
-          ))}
-        </ScrollView>
-
-        {/* 전체 참여작 */}
-        <View className="flex-row items-baseline justify-between" style={{ paddingHorizontal: normalize(20), paddingTop: normalize(20), paddingBottom: normalize(12) }}>
-          <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, color: '#000', letterSpacing: -0.2 }}>
-            전체 참여작
+          <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, letterSpacing: -0.3, color: '#000' }}>
+            전체 순위 보기
           </Text>
-          <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: TEXT_SECONDARY, letterSpacing: -0.1 }}>
-            {RESULT.participantCount}개
+          <Text allowFontScaling={false} style={{ marginLeft: 'auto', fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, letterSpacing: -0.2, color: SUB }}>
+            {`${participantCount}명`}
           </Text>
-        </View>
-        <View className="flex-row flex-wrap" style={{ paddingHorizontal: normalize(20), gap: ENTRY_GAP }}>
-          {RESULT.entries.map((entry) => (
-            <View key={entry.id} style={{ width: entryCardSize, height: entryCardSize, borderRadius: normalize(12), backgroundColor: entry.gradient[0], position: 'relative' }}>
-              <View className="items-center justify-center absolute" style={{ top: normalize(8), left: normalize(8), height: normalize(20), paddingHorizontal: normalize(8), borderRadius: normalize(10), backgroundColor: 'rgba(0,0,0,0.35)' }}>
-                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_2XS, color: '#fff' }}>
-                  {entry.rank}
-                </Text>
-              </View>
-              <View className="items-center justify-center absolute" style={{ top: normalize(8), right: normalize(8), height: normalize(20), paddingHorizontal: normalize(8), borderRadius: normalize(10), backgroundColor: 'rgba(0,0,0,0.35)' }}>
-                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_2XS, color: '#fff' }}>
-                  {entry.voteCount}표
-                </Text>
-              </View>
-            </View>
-          ))}
-        </View>
+          <ChevronRight size={normalize(18)} color="#c7c7cc" strokeWidth={2} />
+        </Pressable>
+      </ScrollView>
 
-        {/* 전체 보기 */}
-        <View style={{ paddingHorizontal: normalize(20), paddingTop: normalize(12) }}>
-          <View className="items-center justify-center" style={{ height: normalize(44), borderRadius: normalize(22), backgroundColor: SURFACE }}>
-            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, color: '#000', letterSpacing: -0.2 }}>
-              전체 {RESULT.participantCount}개 보기
+      <ShareSheet
+        visible={shareVisible}
+        onClose={() => setShareVisible(false)}
+        onShared={(message) => {
+          setToastMessage(message);
+          setToastVisible(true);
+        }}
+      />
+      <Toast message={toastMessage} visible={toastVisible} onHide={() => setToastVisible(false)} />
+    </SafeAreaView>
+  );
+}
+
+function RankList({ entries, myRank, onPress }: { entries: ContestPhotoEntry[]; myRank?: number | null; onPress: (entry: ContestPhotoEntry) => void }) {
+  return (
+    <View style={{ paddingHorizontal: normalize(28) }}>
+      {entries.map((entry, index) => (
+        <Pressable
+          key={entry.id}
+          onPress={() => onPress(entry)}
+          style={{ height: normalize(68), flexDirection: 'row', alignItems: 'center', gap: normalize(12), borderTopWidth: index === 0 ? 0 : 1, borderTopColor: 'rgba(0,0,0,0.06)' }}
+        >
+          <Text allowFontScaling={false} style={{ width: normalize(26), fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, letterSpacing: -0.3, color: entry.rank === myRank ? ACCENT : '#000' }}>
+            {entry.rank}
+          </Text>
+          <View style={{ width: normalize(44), height: normalize(44), borderRadius: normalize(11), backgroundColor: entry.gradient[0] }} />
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, letterSpacing: -0.2, color: '#000' }}>
+              {entry.author.handle}
             </Text>
+            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, letterSpacing: -0.1, color: SUB, marginTop: normalize(2) }}>
+              {entry.captionMeta}
+            </Text>
+          </View>
+          <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, letterSpacing: -0.2, color: '#000' }}>
+            {`${entry.voteCount}표`}
+          </Text>
+        </Pressable>
+      ))}
+    </View>
+  );
+}
+
+/** 수상작 상세(10b) — 출품작 상세(14g)와 같은 화면. 사진 위엔 뒤로가기만, 팔로우 버튼은 여기에만 있다. */
+function EntryDetailView({ entry, monthLabel, onBack, onOpenSpot }: { entry: ContestPhotoEntry; monthLabel: string; onBack: () => void; onOpenSpot: () => void }) {
+  const [following, setFollowing] = useState(false);
+  return (
+    <View style={{ flex: 1, backgroundColor: '#fff' }}>
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <View style={{ height: normalize(470), backgroundColor: entry.gradient[0] }}>
+          <LinearGradient colors={entry.gradient} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
+          <LinearGradient colors={['rgba(0,0,0,0.42)', 'rgba(0,0,0,0)']} style={{ position: 'absolute', top: 0, left: 0, right: 0, height: normalize(140) }} pointerEvents="none" />
+          <SafeAreaView edges={['top']}>
+            <Pressable onPress={onBack} hitSlop={8} accessibilityRole="button" accessibilityLabel="뒤로" style={{ margin: normalize(12), width: normalize(40), height: normalize(40), alignItems: 'center', justifyContent: 'center' }}>
+              <ChevronLeft size={normalize(22)} color="#fff" strokeWidth={2} />
+            </Pressable>
+          </SafeAreaView>
+        </View>
+
+        <View style={{ padding: normalize(20), paddingHorizontal: normalize(28), paddingBottom: normalize(28) }}>
+          <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: normalize(8) }}>
+            <View style={{ height: normalize(24), paddingHorizontal: normalize(10), borderRadius: normalize(12), backgroundColor: 'rgba(227,27,89,0.1)', alignItems: 'center', justifyContent: 'center' }}>
+              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, letterSpacing: -0.1, color: ACCENT }}>
+                {`${monthLabel} ${entry.rank}위`}
+              </Text>
+            </View>
+            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, letterSpacing: -0.3, color: ACCENT }}>
+              {`${entry.voteCount}표`}
+            </Text>
+          </View>
+
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(10), marginTop: normalize(16) }}>
+            <View style={{ width: normalize(40), height: normalize(40), borderRadius: normalize(20), backgroundColor: entry.gradient[0], flexShrink: 0 }} />
+            <View style={{ minWidth: 0 }}>
+              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, letterSpacing: -0.3, color: '#000' }}>
+                {entry.author.handle}
+              </Text>
+              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, letterSpacing: -0.1, color: SUB, marginTop: normalize(2) }}>
+                {entry.captionMeta}
+              </Text>
+            </View>
+            <Pressable
+              onPress={() => setFollowing((v) => !v)}
+              style={{ marginLeft: 'auto', height: normalize(32), paddingHorizontal: normalize(16), borderRadius: normalize(16), backgroundColor: following ? SURFACE : ACCENT, alignItems: 'center', justifyContent: 'center' }}
+            >
+              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, letterSpacing: -0.2, color: following ? '#000' : '#fff' }}>
+                {following ? '팔로잉' : '팔로우'}
+              </Text>
+            </Pressable>
+          </View>
+
+          {entry.caption && (
+            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_MD, lineHeight: FONT_MD * 1.6, letterSpacing: -0.25, color: '#000', marginTop: normalize(16) }}>
+              {entry.caption}
+            </Text>
+          )}
+
+          <View style={{ height: 1, backgroundColor: 'rgba(0,0,0,0.06)', marginVertical: normalize(18) }} />
+
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(8) }}>
+            <MapPin size={normalize(17)} color={SUB} strokeWidth={1.8} />
+            <Text allowFontScaling={false} style={{ flex: 1, minWidth: 0, fontFamily: 'Pretendard-Regular', fontSize: FONT_MD, letterSpacing: -0.25, color: '#000' }}>
+              광안리 해수욕장
+            </Text>
+            <Pressable onPress={onOpenSpot}>
+              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, letterSpacing: -0.2, color: ACCENT }}>
+                스팟 보기
+              </Text>
+            </Pressable>
           </View>
         </View>
       </ScrollView>
-    </SafeAreaView>
+    </View>
+  );
+}
+
+/**
+ * 10f — 순위권 밖 전용 하이라이트(분포 바 포함). 10a가 이미 담당하는 케이스라 기본 흐름에는
+ * 연결하지 않고, 필요해지면 ContestResultScreen 대신 이 컴포넌트를 렌더하도록 바꾼다.
+ */
+function ContestResultOutrank({ rank, totalCount, votes, deltaLabel }: { rank: number; totalCount: number; votes: number; deltaLabel: string }) {
+  // totalCount가 0이면 width가 NaN%가 되어 바가 사라진다
+  const percentile = totalCount > 0 ? Math.round((rank / totalCount) * 100) : 0;
+  return (
+    <View style={{ margin: normalize(18), marginHorizontal: CONTENT_PADDING, padding: normalize(14), paddingHorizontal: normalize(16), borderRadius: normalize(16), backgroundColor: SURFACE }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(12) }}>
+        <View style={{ width: normalize(48), height: normalize(48), borderRadius: normalize(12), backgroundColor: '#12333a', flexShrink: 0 }} />
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, letterSpacing: -0.1, color: SUB }}>
+            내 출품작
+          </Text>
+          <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_LG, letterSpacing: -0.4, color: '#000' }}>
+            {`${rank}위`}
+          </Text>
+        </View>
+        {/* 목업 .outrank__meta는 --font-base(14px) — 상수가 없는 유일한 크기 */}
+        <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(14), letterSpacing: -0.2, color: SUB }}>
+          {`${totalCount}명 중 · ${votes}표`}
+        </Text>
+      </View>
+
+      {/* 왼쪽이 1위, 오른쪽이 꼴찌. 채운 구간 끝에 점을 찍어 내 위치를 정확히 가리킨다 */}
+      <View style={{ position: 'relative', height: normalize(8), borderRadius: normalize(4), backgroundColor: '#e6e6ea', marginTop: normalize(16) }}>
+        <View style={{ width: `${percentile}%`, height: '100%', borderRadius: normalize(4), backgroundColor: 'rgba(227,27,89,0.28)' }} />
+        <View style={{ position: 'absolute', left: `${percentile}%`, marginLeft: -normalize(4), top: 0, width: normalize(8), height: normalize(8), borderRadius: normalize(4), backgroundColor: ACCENT }} />
+      </View>
+      <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: normalize(8), marginTop: normalize(10) }}>
+        <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, letterSpacing: -0.1, color: SUB }}>
+          {`상위 ${percentile}% · 1위 ← → ${totalCount}위`}
+        </Text>
+        <Text allowFontScaling={false} style={{ marginLeft: 'auto', fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, letterSpacing: -0.1, color: SUB }}>
+          {deltaLabel}
+        </Text>
+      </View>
+    </View>
   );
 }
