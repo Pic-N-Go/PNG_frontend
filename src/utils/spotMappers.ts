@@ -197,6 +197,7 @@ export function mapSpotDetail(dto: SpotDetailResponse): { info: SpotDetailInfo; 
       tags: dto.tags,
       categories: dto.categories,
       regionLabel: regionLabelFrom(dto.address),
+      checklist: dto.checklist,
     },
     convenience: mapConvenience(dto.convenience),
   };

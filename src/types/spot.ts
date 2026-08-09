@@ -43,6 +43,12 @@ export interface SpotDetailInfo {
   categories: string[];
   /** 대표 이미지 없을 때 ETC 폴백 라벨로 쓰는 행정구역 (예: '서울 중구'). address에서 파생, 없으면 null */
   regionLabel: string | null;
+  /**
+   * 카테고리별 기본 체크리스트 프리셋 전체(숨김 필터링 없음).
+   * GET /spots/{id}/checklist의 defaultItems와 같은 원본 목록이며, defaultItemId = 이 배열의 1-based 순번.
+   * → 이 둘을 대조해 "사용자가 숨긴 기본 항목"을 클라에서 계산한다 (ChecklistSection).
+   */
+  checklist: string[];
 }
 
 export type PhotogenicFactorKey = 'weather' | 'goldenHour' | 'dust' | 'ozone' | 'season';

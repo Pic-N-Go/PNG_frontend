@@ -100,6 +100,18 @@ export function useHideDefaultChecklistItem(id: string) {
   });
 }
 
+export function useRestoreDefaultChecklistItem(id: string) {
+  const token = useAuthStore((s) => s.accessToken);
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (defaultItemId: number) => {
+      if (!token) return Promise.reject(new ApiError('로그인이 필요합니다.'));
+      return spotApi.restoreDefaultChecklistItem(id, defaultItemId, token);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: checklistKey(id) }),
+  });
+}
+
 const bookmarkKey = (id: string) => ['bookmark-collections', id] as const;
 
 // 화면(별표)과 시트가 같은 키로 공유 → 한 번만 fetch, 캐시 공유

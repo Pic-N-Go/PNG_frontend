@@ -81,6 +81,10 @@ export const spotApi = {
   hideDefaultChecklistItem: (id: string | number, defaultItemId: number, token: string) =>
     request<void>(`/spots/${id}/checklist/default/${defaultItemId}`, { method: 'DELETE', token }),
 
+  // 숨긴 기본 항목 복원 (멱등, 204). 숨겨져 있지 않은 항목이어도 204.
+  restoreDefaultChecklistItem: (id: string | number, defaultItemId: number, token: string) =>
+    request<void>(`/spots/${id}/checklist/default/${defaultItemId}/restore`, { method: 'POST', token }),
+
   getPhotogenicScore: (id: string | number, { date, time }: { date?: string; time?: string } = {}) => {
     const qs: string[] = [];
     if (date) qs.push(`date=${date}`);

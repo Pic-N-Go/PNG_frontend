@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { ActivityIndicator, Pressable, Text, TextInput, View } from 'react-native';
-import { Check, Plus, X } from 'lucide-react-native';
+import { Check, ChevronDown, ChevronUp, Plus, X } from 'lucide-react-native';
 import { toErrorMessage } from '@/api/auth';
-import { useAddChecklistItem, useChecklist, useDeleteChecklistItem, useHideDefaultChecklistItem } from '@/hooks/useSpot';
+import { useAddChecklistItem, useChecklist, useDeleteChecklistItem, useHideDefaultChecklistItem, useRestoreDefaultChecklistItem, useSpotDetail } from '@/hooks/useSpot';
 import { FONT_SM, GRID_PADDING } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 
@@ -27,9 +27,14 @@ export default function ChecklistSection({ spotId }: Props) {
   const addItem = useAddChecklistItem(spotId);
   const deleteItem = useDeleteChecklistItem(spotId);
   const hideDefault = useHideDefaultChecklistItem(spotId);
+  const restoreDefault = useRestoreDefaultChecklistItem(spotId);
+  // 스팟 상세는 같은 화면에서 이미 조회됨 → 같은 쿼리키 캐시 재사용, 추가 요청 없음
+  const { data: detail } = useSpotDetail(spotId);
 
   const [checkedKeys, setCheckedKeys] = useState<Set<string>>(new Set());
   const [input, setInput] = useState('');
+  // 숨긴 항목은 접어둔 상태가 기본 — 숨긴 의도(정리)를 깨지 않기 위함
+  const [showHidden, setShowHidden] = useState(false);
 
   function toggleChecked(key: string) {
     setCheckedKeys((prev) => {
@@ -81,7 +86,15 @@ export default function ChecklistSection({ spotId }: Props) {
     ...data.defaultItems.map((d) => ({ kind: 'default' as const, key: `d:${d.defaultItemId}`, content: d.content, defaultItemId: d.defaultItemId })),
     ...data.userItems.map((u) => ({ kind: 'user' as const, key: `u:${u.id}`, content: u.content, id: u.id })),
   ];
-  const deleting = deleteItem.isPending || hideDefault.isPending;
+  // 숨긴 기본 항목 = 프리셋 전체(spot.checklist) - 현재 보이는 기본 항목.
+  // defaultItemId는 프리셋 배열의 1-based 순번이라는 백엔드 규약에 기댄다(HiddenChecklistDefault).
+  // ponytail: 백엔드가 숨김 목록을 안 내려줘서 클라에서 역산 — 응답에 hiddenDefaultItems가 생기면 이 블록은 지운다.
+  const visibleDefaultIds = new Set(data.defaultItems.map((d) => d.defaultItemId));
+  const hiddenDefaults = (detail?.info.checklist ?? [])
+    .map((content, i) => ({ defaultItemId: i + 1, content }))
+    .filter((p) => !visibleDefaultIds.has(p.defaultItemId));
+
+  const deleting = deleteItem.isPending || hideDefault.isPending || restoreDefault.isPending;
   const canAdd = input.trim().length > 0 && data.userItems.length < MAX_USER_ITEMS && !addItem.isPending;
   const doneCount = rows.filter((r) => checkedKeys.has(r.key)).length;
 
@@ -166,7 +179,60 @@ export default function ChecklistSection({ spotId }: Props) {
         </View>
       </View>
 
-      {(addItem.isError || deleteItem.isError || hideDefault.isError) && (
+      {hiddenDefaults.length > 0 && (
+        <View style={{ marginTop: normalize(12) }}>
+          <Pressable
+            onPress={() => setShowHidden((v) => !v)}
+            hitSlop={8}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(6) }}
+          >
+            <Text
+              allowFontScaling={false}
+              style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: C.labelMuted, letterSpacing: -0.2 }}
+            >
+              {`숨긴 기본 항목 ${hiddenDefaults.length}개`}
+            </Text>
+            {showHidden ? (
+              <ChevronUp size={normalize(15)} color={C.labelMuted} strokeWidth={2} />
+            ) : (
+              <ChevronDown size={normalize(15)} color={C.labelMuted} strokeWidth={2} />
+            )}
+          </Pressable>
+
+          {showHidden && (
+            <View style={{ gap: normalize(8), marginTop: normalize(10) }}>
+              {hiddenDefaults.map((item) => (
+                <View
+                  key={`h:${item.defaultItemId}`}
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(12), backgroundColor: '#F7F6F4', borderRadius: normalize(13), paddingVertical: normalize(12), paddingHorizontal: normalize(15) }}
+                >
+                  <Text
+                    allowFontScaling={false}
+                    numberOfLines={1}
+                    style={{ flex: 1, fontFamily: 'Pretendard-Medium', fontSize: normalizeFontSize(15), color: C.muted, letterSpacing: -0.2 }}
+                  >
+                    {item.content}
+                  </Text>
+                  <Pressable
+                    onPress={() => restoreDefault.mutate(item.defaultItemId)}
+                    disabled={deleting}
+                    hitSlop={8}
+                  >
+                    <Text
+                      allowFontScaling={false}
+                      style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, color: ACCENT, letterSpacing: -0.2 }}
+                    >
+                      되돌리기
+                    </Text>
+                  </Pressable>
+                </View>
+              ))}
+            </View>
+          )}
+        </View>
+      )}
+
+      {(addItem.isError || deleteItem.isError || hideDefault.isError || restoreDefault.isError) && (
         <Text
           allowFontScaling={false}
           style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: '#FF453A', letterSpacing: -0.2, marginTop: normalize(8) }}
@@ -175,7 +241,9 @@ export default function ChecklistSection({ spotId }: Props) {
             ? toErrorMessage(addItem.error, '항목 추가에 실패했어요.')
             : deleteItem.isError
               ? toErrorMessage(deleteItem.error, '항목 삭제에 실패했어요.')
-              : toErrorMessage(hideDefault.error, '기본 항목 삭제에 실패했어요.')}
+              : hideDefault.isError
+                ? toErrorMessage(hideDefault.error, '기본 항목 삭제에 실패했어요.')
+                : toErrorMessage(restoreDefault.error, '되돌리기에 실패했어요.')}
         </Text>
       )}
     </View>
