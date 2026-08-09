@@ -265,31 +265,29 @@
         letter-spacing: -0.1px;
         margin-top: 2px;
       }
-      /* 목업 확인용 단계 전환 (실제 화면에는 없음 — 서버가 단계를 내려준다) */
+      /* 목업 확인용 단계 전환 (실제 화면에는 없음 — 서버가 단계를 내려준다)
+         히어로 위에 겹치지 않도록 흐름 안에서 렌더 — 다크 바로 화면 상단에 붙인다 */
       .phase-switch {
-        position: absolute;
-        top: 8px;
-        right: 8px;
-        z-index: 40;
         display: flex;
         gap: 4px;
-        background: rgba(255, 255, 255, 0.9);
-        border-radius: 8px;
-        padding: 4px;
+        overflow-x: auto;
+        background: #000;
+        padding: 6px 8px;
       }
       .phase-switch button {
+        flex-shrink: 0;
         border: none;
-        background: var(--color-surface);
+        background: rgba(255, 255, 255, 0.12);
         border-radius: 6px;
         padding: 4px 8px;
         font-family: var(--font-family);
         font-size: var(--font-2xs);
-        color: rgba(0, 0, 0, 0.5);
+        color: rgba(255, 255, 255, 0.55);
         cursor: pointer;
       }
       .phase-switch button.is-active {
-        background: #000;
-        color: #fff;
+        background: #fff;
+        color: #000;
       }
 
       /* ── 순위 변동 섹션 (투표 기간에만) ── */
@@ -1136,6 +1134,7 @@
       }
       .stat-card__num {
         flex: 1;
+        text-align: center;
       }
       .stat-card__label {
         font-size: var(--font-xs);
@@ -1616,7 +1615,7 @@
                 <div style="position: absolute; left: 28px; right: 28px; bottom: 20px; pointer-events: none">
                   <span style="display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 12px; background: var(--color-accent); font-size: var(--font-2xs); font-weight: 600; letter-spacing: 1.6px; color: #fff">8월 · 출품 기간</span>
                   <div style="font-size: var(--font-2xl); font-weight: 600; letter-spacing: -1px; color: #fff; margin-top: 10px">골든아워</div>
-                  <div style="font-size: var(--font-sm); color: rgba(255, 255, 255, 0.88); letter-spacing: -0.2px; margin-top: 4px">해 뜨거나 지는 시간의 빛을 담아보세요</div>
+                  <div style="font-size: var(--font-sm); color: rgba(255, 255, 255, 0.88); letter-spacing: -0.2px; margin-top: 12px">해 뜨거나 지는 시간의 빛을 담아보세요</div>
                   <div style="display: flex; align-items: baseline; margin-top: 16px">
                     <span style="flex: 1; font-size: var(--font-xs); color: rgba(255, 255, 255, 0.86); letter-spacing: -0.1px" id="submit-count">82명 · 214개 출품</span>
                     <span style="font-size: var(--font-xs); font-weight: 600; color: #fff; letter-spacing: -0.1px">출품 마감 8월 14일</span>
@@ -1679,7 +1678,7 @@
                 <div style="position: absolute; left: 28px; right: 28px; bottom: 20px; pointer-events: none">
                   <span style="display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 12px; background: var(--color-accent); font-size: var(--font-2xs); font-weight: 600; letter-spacing: 1.6px; color: #fff">8월 · 출품 기간</span>
                   <div style="font-size: var(--font-2xl); font-weight: 600; letter-spacing: -1px; color: #fff; margin-top: 10px">골든아워</div>
-                  <div style="font-size: var(--font-sm); color: rgba(255, 255, 255, 0.88); letter-spacing: -0.2px; margin-top: 4px">해 뜨거나 지는 시간의 빛을 담아보세요</div>
+                  <div style="font-size: var(--font-sm); color: rgba(255, 255, 255, 0.88); letter-spacing: -0.2px; margin-top: 12px">해 뜨거나 지는 시간의 빛을 담아보세요</div>
                   <div style="display: flex; align-items: baseline; margin-top: 16px">
                     <span style="flex: 1; font-size: var(--font-xs); color: rgba(255, 255, 255, 0.86); letter-spacing: -0.1px">오늘 시작했어요</span>
                     <span style="font-size: var(--font-xs); font-weight: 600; color: #fff; letter-spacing: -0.1px">출품 마감 8월 14일</span>
@@ -1856,12 +1855,12 @@
                 </button>
               </div>
 
-              <div style="position: relative; height: 280px; overflow: hidden; margin-top: 16px; background: linear-gradient(160deg, #0d0b22, #241f4a 32%, #4b4380 64%, #8a7fb0 88%, #c9bfe0); border-radius: 24px 24px 24px 24px; margin-left: 0; margin-right: 0">
+              <div style="position: relative; height: 280px; overflow: hidden; margin: 16px 28px 0; background: linear-gradient(160deg, #0d0b22, #241f4a 32%, #4b4380 64%, #8a7fb0 88%, #c9bfe0); border-radius: 24px 24px 24px 24px">
                 <div style="position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(0, 0, 0, 0) 0%, rgba(0, 0, 0, 0.18) 28%, rgba(20, 14, 32, 0.74) 58%, rgba(20, 14, 32, 0.92) 100%)"></div>
-                <div style="position: absolute; left: 28px; right: 28px; bottom: 20px; pointer-events: none">
+                <div style="position: absolute; left: 20px; right: 20px; bottom: 20px; pointer-events: none">
                   <span style="display: inline-flex; align-items: center; height: 24px; padding: 0 10px; border-radius: 12px; background: var(--color-accent); font-size: var(--font-2xs); font-weight: 600; letter-spacing: 1.6px; color: #fff">9월 · 출품 기간</span>
                   <div style="font-size: var(--font-2xl); font-weight: 600; letter-spacing: -1px; color: #fff; margin-top: 10px">밤의 도시</div>
-                  <div style="font-size: var(--font-sm); color: rgba(255, 255, 255, 0.88); letter-spacing: -0.2px; margin-top: 4px">해가 진 뒤의 거리와 불빛을 담아보세요</div>
+                  <div style="font-size: var(--font-sm); color: rgba(255, 255, 255, 0.88); letter-spacing: -0.2px; margin-top: 12px">해가 진 뒤의 거리와 불빛을 담아보세요</div>
                   <div style="display: flex; align-items: baseline; margin-top: 16px">
                     <span style="flex: 1; font-size: var(--font-xs); color: rgba(255, 255, 255, 0.86); letter-spacing: -0.1px">3명 · 4개 출품</span>
                     <span style="font-size: var(--font-xs); font-weight: 600; color: #fff; letter-spacing: -0.1px">출품 마감 9월 14일</span>

@@ -477,31 +477,29 @@
         cursor: pointer;
       }
 
-      /* ── 목업 확인용 상태 전환 (실제 화면에는 없음) ── */
+      /* ── 목업 확인용 상태 전환 (실제 화면에는 없음) — 흐름 안에서 렌더, 다크 바로 화면 상단에 붙인다 ── */
       .state-switch {
-        position: absolute;
-        top: 8px;
-        right: 8px;
-        z-index: 90;
+        flex-shrink: 0;
         display: flex;
         gap: 4px;
-        background: rgba(255, 255, 255, 0.9);
-        border-radius: 8px;
-        padding: 4px;
+        overflow-x: auto;
+        background: #000;
+        padding: 6px 8px;
       }
       .state-switch button {
+        flex-shrink: 0;
         border: none;
-        background: var(--color-surface);
+        background: rgba(255, 255, 255, 0.12);
         border-radius: 6px;
         padding: 4px 7px;
         font-family: var(--font-family);
         font-size: var(--font-2xs);
-        color: rgba(0, 0, 0, 0.5);
+        color: rgba(255, 255, 255, 0.55);
         cursor: pointer;
       }
       .state-switch button.is-active {
-        background: #000;
-        color: #fff;
+        background: #fff;
+        color: #000;
       }
 
       .state {

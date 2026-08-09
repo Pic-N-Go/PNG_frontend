@@ -150,7 +150,7 @@
       /* 밑줄은 텍스트 블록 전체 아래에 하나만 — 줄마다 긋지 않는다 */
       .field__box {
         margin-top: 8px;
-        padding-bottom: 10px;
+        padding-bottom: 2px;
         border-bottom: 1px solid #e6e6ea;
       }
       .field__input {
@@ -159,6 +159,7 @@
         background: none;
         outline: none;
         resize: none;
+        overflow: hidden;
         font-family: var(--font-family);
         font-size: var(--font-md);
         line-height: 1.55;
@@ -418,31 +419,29 @@
         display: none;
       }
 
-      /* ── 목업 확인용 상태 전환 (실제 화면에는 없음) ── */
+      /* ── 목업 확인용 상태 전환 (실제 화면에는 없음) — 흐름 안에서 렌더, 다크 바로 화면 상단에 붙인다 ── */
       .state-switch {
-        position: absolute;
-        top: 8px;
-        right: 8px;
-        z-index: 90;
+        flex-shrink: 0;
         display: flex;
         gap: 4px;
-        background: rgba(255, 255, 255, 0.9);
-        border-radius: 8px;
-        padding: 4px;
+        overflow-x: auto;
+        background: #000;
+        padding: 6px 8px;
       }
       .state-switch button {
+        flex-shrink: 0;
         border: none;
-        background: var(--color-surface);
+        background: rgba(255, 255, 255, 0.12);
         border-radius: 6px;
         padding: 4px 7px;
         font-family: var(--font-family);
         font-size: var(--font-2xs);
-        color: rgba(0, 0, 0, 0.5);
+        color: rgba(255, 255, 255, 0.55);
         cursor: pointer;
       }
       .state-switch button.is-active {
-        background: #000;
-        color: #fff;
+        background: #fff;
+        color: #000;
       }
 
       /* 업로드 중·실패에 따라 하단 자리만 바뀐다 */
@@ -511,7 +510,7 @@
         <div class="field">
           <div class="field__label">설명</div>
           <div class="field__box">
-            <textarea class="field__input" id="caption" rows="3" maxlength="80" placeholder="이 사진에 대해 한 줄 남겨보세요" oninput="countCaption(this)">비가 그친 직후 하늘이 열리는 순간을 기다렸습니다. 삼각대 없이 난간에 기대서 찍었어요.</textarea>
+            <textarea class="field__input" id="caption" rows="1" maxlength="80" placeholder="이 사진에 대해 한 줄 남겨보세요" oninput="countCaption(this)">비가 그친 직후 하늘이 열리는 순간을 기다렸습니다. 삼각대 없이 난간에 기대서 찍었어요.</textarea>
           </div>
           <div class="field__counter" id="caption-count">48/80</div>
         </div>
@@ -680,7 +679,11 @@
       }
 
       function countCaption(el) {
+        /* 모바일 자동완성·IME 입력은 maxlength를 우회할 때가 있어 한 번 더 잘라낸다 */
+        if (el.value.length > 80) el.value = el.value.slice(0, 80);
         document.getElementById('caption-count').textContent = el.value.length + '/80';
+        el.style.height = 'auto';
+        el.style.height = el.scrollHeight + 'px';
       }
 
       /* ── 업로드 ── */
@@ -701,6 +704,7 @@
       }
 
       renderSpots(SPOTS);
+      countCaption(document.getElementById('caption'));
     </script>
   </body>
 </html>

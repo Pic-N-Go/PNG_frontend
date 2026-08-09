@@ -45,7 +45,7 @@ src/components/ui/
     photo-map.html            # 사진 지도 (my-photos에서 연결)
     profile-edit.html         # 프로필 편집
     setting.html              # 설정 (알림·계정·로그아웃)
-    notification.html         # 알림 목록
+    notification.html         # 알림 목록 (커뮤니티 필터에 콘테스트 알림 4종 포함 — 시작·마감 임박·투표 시작·결과 발표)
     follow.html               # 팔로워/팔로잉 목록 — 미퍼블리싱
   wishlist/
     wishlist.html             # 촬영 조건 알림 설정 목록 (날씨·골든아워·미세먼지 조건, 빈 상태 ?empty=1)
