@@ -132,6 +132,21 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
     }
   }, [initData]);
 
+  useEffect(() => {
+    if (route.params?.newSpot) {
+      const newSpot = route.params.newSpot;
+      setSelectedSpot({
+        id: newSpot.id,
+        name: newSpot.name || newSpot.spotName || newSpot.title,
+        loc: newSpot.loc || newSpot.address || newSpot.location || '위치 정보 없음',
+        score: newSpot.score || newSpot.photogenicScore || 90,
+        bg: '#2b2a29',
+        tags: newSpot.tags || ['#스팟', '#출사'],
+      });
+      setDirty(true);
+    }
+  }, [route.params?.newSpot]);
+
   const [dirty, setDirty] = useState(false);
   const [spotSheetVisible, setSpotSheetVisible] = useState(false);
 

@@ -79,6 +79,7 @@ export default function MapScreen() {
   const [mapReady, setMapReady] = useState(false);
   const { selectedSpots, addSpot, removeSpot } = useCourseStore();
   const [activeSpot, setActiveSpot] = useState<Spot | null>(null);
+  const [mapSearchText, setMapSearchText] = useState('');
   const [isCourseModalOpen, setCourseModalOpen] = useState(false);
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
@@ -579,7 +580,7 @@ export default function MapScreen() {
         {/* 상단 오버레이 (검색창 + 뒤로가기) */}
         {mode === 'wishlist-change' ? (
           <View className="bg-[#E31B59] pt-14 pb-4 px-5 z-20 absolute top-0 left-0 right-0 w-full pointer-events-auto shadow-md">
-            <View className="flex-row items-center justify-between mb-5">
+            <View className="flex-row items-center justify-between mb-3">
               <TouchableOpacity onPress={handleBackNavigation} className="bg-white/20 items-center justify-center rounded-full" style={{ width: normalize(32), height: normalize(32) }}>
                 <IconChevronLeft size={normalize(20)} color="#fff" />
               </TouchableOpacity>
@@ -588,9 +589,21 @@ export default function MapScreen() {
                 <IconX size={normalize(16)} color="#fff" />
               </TouchableOpacity>
             </View>
-            <View className="bg-[#f5f5f7] rounded-xl flex-row items-center px-4" style={{ height: normalize(44) }}>
+            <View className="bg-white rounded-xl flex-row items-center px-4" style={{ height: normalize(44) }}>
               <IconSearch size={normalize(18)} color="rgba(0,0,0,0.3)" />
-              <Text className="ml-2 text-black/30" style={{ fontSize: normalizeFontSize(14) }}>스팟 이름으로 검색</Text>
+              <TextInput
+                value={mapSearchText}
+                onChangeText={setMapSearchText}
+                placeholder="스팟 이름으로 검색"
+                placeholderTextColor="rgba(0,0,0,0.3)"
+                className="flex-1 ml-2 text-black font-medium"
+                style={{ fontSize: normalizeFontSize(14), padding: 0 }}
+              />
+              {mapSearchText.length > 0 && (
+                <TouchableOpacity onPress={() => setMapSearchText('')} hitSlop={8}>
+                  <IconX size={normalize(16)} color="rgba(0,0,0,0.4)" />
+                </TouchableOpacity>
+              )}
             </View>
           </View>
         ) : (
