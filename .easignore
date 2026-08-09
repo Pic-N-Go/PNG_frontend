@@ -3,6 +3,7 @@
 
 # Ignore dependencies and build outputs
 node_modules/
+package-lock.json
 .expo/
 dist/
 web-build/
