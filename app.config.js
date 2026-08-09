@@ -83,5 +83,10 @@ module.exports = {
       '@react-native-firebase/app',
       '@react-native-firebase/messaging',
     ],
+    extra: {
+      eas: {
+        projectId: '317ea14c-6bb0-414c-9a26-5c056df50f93',
+      },
+    },
   },
 };
