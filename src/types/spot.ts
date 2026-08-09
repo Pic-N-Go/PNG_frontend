@@ -40,7 +40,9 @@ export interface SpotDetailInfo {
   reviewCount: number;
   photoCount: number;
   tags: string[];
-  heroPhotoCount: number;
+  categories: string[];
+  /** 대표 이미지 없을 때 ETC 폴백 라벨로 쓰는 행정구역 (예: '서울 중구'). address에서 파생, 없으면 null */
+  regionLabel: string | null;
 }
 
 export type PhotogenicFactorKey = 'weather' | 'goldenHour' | 'dust' | 'ozone' | 'season';
@@ -200,6 +202,18 @@ export interface SpotDetailResponse {
   stats: { avgRating: number; reviewCount: number; photoCount: number };
   checklist: string[];
   isBookmarked: boolean;
+}
+
+// GET /spots/{id}/photos — TourAPI 사진만 포함 (유저 업로드 제외), stats.photoCount보다 적을 수 있음
+export interface SpotPhotoDTO {
+  originUrl: string;
+  thumbnailUrl: string | null;
+  imgName: string | null;
+}
+
+export interface SpotPhotosResponse {
+  spotId: number;
+  photos: SpotPhotoDTO[];
 }
 
 export interface ReviewDTO {

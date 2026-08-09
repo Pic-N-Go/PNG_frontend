@@ -20,13 +20,10 @@ import SaveToPlanSheet from '@/components/spot/SaveToPlanSheet';
 import NaviSheet from '@/components/spot/NaviSheet';
 import ShareSheet from '@/components/spot/ShareSheet';
 import BookmarkSheet from '@/components/spot/BookmarkSheet';
-import { useBookmarkCollections, useSpotDetail, useSpotPhotogenicScore } from '@/hooks/useSpot';
+import PhotoViewerModal from '@/components/spot/PhotoViewerModal';
+import { useBookmarkCollections, useSpotDetail, useSpotPhotogenicScore, useSpotPhotos } from '@/hooks/useSpot';
 import { BUTTON_RADIUS, GRID_PADDING, TAB_BAR_HEIGHT } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-
-// 히어로 이미지 갤러리는 사진 탭 담당자 스코프 — 실제 이미지 연동 전까지 플레이스홀더 페이지 수.
-// TODO(사진 API): GET /spots/{id}/photos 연동 시 실제 이미지/개수로 대체.
-const HERO_PLACEHOLDER_PAGES = 5;
 
 type Props = NativeStackScreenProps<SpotStackParamList, 'SpotDetail'>;
 
@@ -40,6 +37,13 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
   const spot = detail?.info;
   const convenience = detail?.convenience;
   const { data: photogenic } = useSpotPhotogenicScore(spotId);
+  const { data: heroPhotos } = useSpotPhotos(spotId);
+  // 히어로에 보이는 대표 이미지가 항상 뷰어의 1번째 사진이 되도록 맨 앞에 고정 + 갤러리(유저 업로드 제외) 나머지를 뒤에 이어붙임.
+  // 갤러리 API가 비어있거나 로딩 중이어도 대표 이미지 1장은 항상 풀스크린으로 볼 수 있게 fallback.
+  const viewerPhotos = spot?.imageUrl
+    ? [spot.imageUrl, ...(heroPhotos ?? []).filter((url) => url !== spot.imageUrl)]
+    : heroPhotos ?? [];
+  const [photoViewerVisible, setPhotoViewerVisible] = useState(false);
 
   const [activeTab, setActiveTab] = useState<SpotTabKey>('info');
   const [photoLoadSignal, setPhotoLoadSignal] = useState(0);
@@ -157,9 +161,12 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
         >
           <SpotHero
             scrollY={scrollY}
-            photoTotal={HERO_PLACEHOLDER_PAGES}
             isBookmarked={isBookmarked}
             imageUrl={spot.imageUrl}
+            categories={spot.categories}
+            regionLabel={spot.regionLabel}
+            heroPhotoCount={viewerPhotos.length}
+            onPressPhoto={viewerPhotos.length ? () => setPhotoViewerVisible(true) : undefined}
             onBack={() => navigation.goBack()}
             onShare={() => setShareSheetVisible(true)}
             onBookmark={() => setBookmarkSheetVisible(true)}
@@ -183,7 +190,7 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
                       newSpot: {
                         id: spot.id,
                         name: spot.name,
-                        loc: spot.address?.split(' ').slice(0, 2).join(' ') ?? '',
+                        loc: spot.regionLabel ?? '',
                         score: photogenic?.score ?? 0,
                       }
                     });
@@ -251,6 +258,12 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
           setBookmarkSheetVisible(false);
           showToast(count > 0 ? `${count}개 컬렉션에 저장됐어요` : '즐겨찾기에서 제거됐어요');
         }}
+      />
+
+      <PhotoViewerModal
+        visible={photoViewerVisible}
+        photos={viewerPhotos}
+        onClose={() => setPhotoViewerVisible(false)}
       />
 
       <Toast message={toastMessage} visible={toastVisible} onHide={() => setToastVisible(false)} />

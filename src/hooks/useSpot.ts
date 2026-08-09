@@ -18,6 +18,16 @@ export function useSpotDetail(id: string) {
   });
 }
 
+// 히어로 풀스크린 뷰어용 실제 사진 URL 목록 (TourAPI 사진만, stats.photoCount보다 적을 수 있음)
+export function useSpotPhotos(id: string) {
+  return useQuery({
+    queryKey: ['spot', id, 'photos'],
+    queryFn: () => spotApi.getPhotos(id),
+    enabled: !!id,
+    select: (res) => res.photos.map((p) => p.originUrl),
+  });
+}
+
 export function useSpots() {
   return useQuery({
     queryKey: ['spots', 'list'],

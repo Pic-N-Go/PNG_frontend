@@ -9,6 +9,7 @@ import type {
   ReviewListResponse,
   ReviewSortApi,
   SpotDetailResponse,
+  SpotPhotosResponse,
   PageSpotResponse,
 } from '@/types/spot';
 
@@ -61,6 +62,8 @@ export const spotApi = {
   },
 
   getDetail: (id: string | number) => request<SpotDetailResponse>(`/spots/${id}`),
+
+  getPhotos: (id: string | number) => request<SpotPhotosResponse>(`/spots/${id}/photos`),
 
   getReviews: (id: string | number, { sort = 'LATEST', page = 0, size = 20 }: ReviewQuery = {}) =>
     request<ReviewListResponse>(`/spots/${id}/reviews?sort=${sort}&page=${page}&size=${size}`),
