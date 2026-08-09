@@ -151,7 +151,7 @@ export default function SettingScreen({ navigation }: Props) {
               icon={IconBell}
               iconBg="#fde3ec"
               iconColor={BRAND}
-              label="위시리스트 알림"
+              label="출사 알림"
               desc="조건 충족 시 알림"
               toggle
               toggleValue={settings.wishlist}

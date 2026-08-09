@@ -26,15 +26,15 @@ type TabKey = 'all' | 'wishlist' | 'weather' | 'community';
 
 const TABS: { key: TabKey; label: string }[] = [
   { key: 'all', label: '전체' },
-  { key: 'wishlist', label: '위시리스트' },
+  { key: 'wishlist', label: '출사 알림' },
   { key: 'weather', label: '날씨' },
   { key: 'community', label: '커뮤니티' },
 ];
 
 function getCategoryInfo(type: string) {
   const upper = (type || '').toUpperCase();
-  if (upper.includes('WISHLIST')) {
-    return { label: '위시리스트 달성', icon: IconBell, key: 'wishlist' };
+  if (upper.includes('WISHLIST') || upper.includes('SPOT_ALERT')) {
+    return { label: '출사 조건 달성', icon: IconBell, key: 'wishlist' };
   }
   if (upper.includes('WEATHER') || upper.includes('GOLDEN')) {
     return { label: '날씨 예보', icon: IconSun, key: 'weather' };
@@ -308,7 +308,7 @@ export default function NotificationScreen({ navigation }: Props) {
                 letterSpacing: -0.1,
               }}
             >
-              위시리스트 조건이 충족되면 알려드려요
+              출사 조건이 충족되면 알려드려요
             </Text>
           </View>
         ) : (
