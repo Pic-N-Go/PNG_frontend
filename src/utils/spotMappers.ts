@@ -23,7 +23,7 @@ import type {
 
 const TIMESLOT_LABEL: Record<ReviewTimeSlot, string> = {
   SUNRISE: '일출',
-  DAY: '낮',
+  DAYTIME: '낮',
   SUNSET: '일몰',
   NIGHT: '야간',
 };
@@ -215,10 +215,10 @@ export function mapReview(dto: ReviewDTO): Review {
     avatarInitial: dto.nickname.trim().charAt(0) || '?',
     avatarColor: avatarColorFor(dto.nickname),
     rating: dto.rating,
-    badge: dto.timeSlot ? TIMESLOT_LABEL[dto.timeSlot] : undefined,
+    badge: dto.timePeriod ? TIMESLOT_LABEL[dto.timePeriod] : undefined,
     date: formatReviewDate(dto),
     text: dto.content,
-    photos: dto.photos.length > 0 ? dto.photos : undefined,
+    photos: dto.photos.length > 0 ? dto.photos.map((p) => p.url) : undefined,
     equipment: dto.equipmentInfo ?? undefined,
   };
 }
@@ -296,9 +296,13 @@ if (__DEV__) {
   console.assert(sum.distribution.find((d) => d.star === 5)?.percent === 25, 'percent 계산 오류');
   console.assert(mapReviewSummary({ avgRating: 0, totalCount: 0, distribution: {} }).distribution[0].percent === 0, 'div-by-zero 처리 오류');
   const base = { id: 1, userId: 1, nickname: '홍길동', rating: 5, content: 'x', equipmentInfo: null, photos: [], visitedAt: '2026-06-15', createdAt: '2026-06-16T10:30:00' };
-  console.assert(mapReview({ ...base, timeSlot: 'NIGHT' }).badge === '야간', 'timeSlot 라벨 오류');
-  console.assert(mapReview({ ...base, timeSlot: null }).badge === undefined, 'timeSlot null 배지 오류');
-  console.assert(mapReview({ ...base, timeSlot: null }).date === '2026.06.15', 'date 포맷 오류');
+  console.assert(mapReview({ ...base, timePeriod: 'NIGHT' }).badge === '야간', 'timePeriod 라벨 오류');
+  console.assert(mapReview({ ...base, timePeriod: 'DAYTIME' }).badge === '낮', 'DAYTIME 라벨 오류(DAY 아님)');
+  console.assert(mapReview({ ...base, timePeriod: null }).badge === undefined, 'timePeriod null 배지 오류');
+  console.assert(mapReview({ ...base, timePeriod: null }).date === '2026.06.15', 'date 포맷 오류');
+  // 백엔드 photos는 {photoId,url} 객체 배열 → url만 뽑아야 함
+  const withPhotos = mapReview({ ...base, timePeriod: null, photos: [{ photoId: 7, url: 'https://x/1.jpg' }] });
+  console.assert(withPhotos.photos?.[0] === 'https://x/1.jpg', 'review photos url 추출 오류');
 
   const pgBase = { score: 69, grade: '좋음', weather: { label: '맑음', score: 30 }, fineDust: { label: '좋음', score: 20 }, ozone: { label: '보통', score: 6 }, season: { label: '벚꽃 47%', score: 7 } };
   const active = mapPhotogenicScore({ ...pgBase, goldenHour: { label: '골든아워', score: 5, minutesUntilStart: null, startTime: null } });
