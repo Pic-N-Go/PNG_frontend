@@ -5,20 +5,13 @@ import { FONT_SM, BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING } from '@/consta
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { 
   IconChevronLeft, IconTrash, IconX, IconCheck, IconSearch, 
-  IconSun, IconCloud, IconCloudRain, IconCloudSnow, IconCloudFog, IconCloudStorm,
-  IconSunHigh, IconSunLow, IconSunrise, IconSunset, IconMoon, IconClock
+  IconSun, IconCloud, IconCloudRain, IconCloudSnow, IconCloudFog, IconCloudStorm
 } from '@tabler/icons-react-native';
 
 import BottomSheet from '@/components/common/BottomSheet';
 import { useSpotAlert } from '@/hooks/useSpotAlert';
+import { useSpots, useSearchSpots } from '@/hooks/useSpot';
 import { WEATHER_API_TO_UI, WEATHER_UI_TO_API, TIME_API_TO_UI, TIME_UI_TO_API, DUST_API_TO_UI, DUST_UI_TO_API } from '@/utils/wishlistMapper';
-
-const MOCK_SPOTS = [
-  { id: 1, name: '경복궁 근정전', loc: '서울 종로구', score: 98, bg: '#2b2a29', tags: ['#한옥', '#고궁'] },
-  { id: 2, name: '성산일출봉', loc: '제주 서귀포시', score: 96, bg: '#1c2826', tags: ['#일출', '#자연'] },
-  { id: 3, name: '부산 감천문화마을', loc: '부산 사하구', score: 91, bg: '#2a2233', tags: ['#야경', '#마을'] },
-  { id: 4, name: '여수 돌산대교', loc: '전남 여수시', score: 89, bg: '#1e2430', tags: ['#야경', '#바다'] },
-];
 
 const WEATHERS = [
   { id: '맑음', label: '맑음' },
@@ -73,7 +66,15 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
   const { useSpotAlertDetailQuery, useUpdateSpotAlertMutation, useDeleteSpotAlertMutation } = useSpotAlert();
   const { data: initData, isLoading } = useSpotAlertDetailQuery(existingSpotId);
 
-  const [selectedSpot, setSelectedSpot] = useState(MOCK_SPOTS[0]);
+  const [selectedSpot, setSelectedSpot] = useState<any>({
+    id: 1,
+    name: '경복궁 근정전',
+    loc: '서울 종로구',
+    score: 98,
+    bg: '#2b2a29',
+    tags: ['#한옥', '#고궁'],
+  });
+
   const [selectedWeathers, setSelectedWeathers] = useState<string[]>(['맑음']);
   const [selectedDust, setSelectedDust] = useState('좋음');
   const [selectedTimes, setSelectedTimes] = useState<string[]>(['일몰', '야간']);
@@ -82,6 +83,25 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
   const [dndStart, setDndStart] = useState('22:00');
   const [dndEnd, setDndEnd] = useState('07:00');
   const [memo, setMemo] = useState('');
+
+  // 스팟 변경 바텀시트 실시간 검색 관련 상태
+  const [searchText, setSearchText] = useState('');
+  const isSearching = searchText.trim().length > 0;
+
+  const { data: defaultSpotsData, isLoading: isDefaultSpotsLoading } = useSpots({ size: 20 }, { enabled: !isSearching });
+  const { data: searchSpotsData, isLoading: isSearchSpotsLoading } = useSearchSpots({ keyword: searchText, size: 20 }, { enabled: isSearching });
+
+  const rawSpotsList = isSearching ? searchSpotsData?.content : defaultSpotsData?.content;
+  const isSpotsLoading = isSearching ? isSearchSpotsLoading : isDefaultSpotsLoading;
+
+  const spotsList = (rawSpotsList || []).map((spot: any) => ({
+    id: spot.id,
+    name: spot.spotName || spot.title || spot.name || '스팟',
+    loc: spot.address || spot.location || spot.district || '위치 정보 없음',
+    score: spot.photogenicScore || spot.score || 90,
+    bg: '#2b2a29',
+    tags: spot.tags || ['#스팟', '#출사'],
+  }));
 
   useEffect(() => {
     if (initData) {
@@ -114,9 +134,6 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
 
   const [dirty, setDirty] = useState(false);
   const [spotSheetVisible, setSpotSheetVisible] = useState(false);
-  const [timingSheetVisible, setTimingSheetVisible] = useState(false);
-  const [dndSheetVisible, setDndSheetVisible] = useState(false);
-  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
 
   const scrollViewRef = useRef<ScrollView>(null);
   const updateMutation = useUpdateSpotAlertMutation();
@@ -162,7 +179,6 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
   };
 
   const handleDelete = () => {
-    setDeleteModalVisible(false);
     deleteMutation.mutate(selectedSpot.id, {
       onSuccess: () => {
         navigation.goBack();
@@ -200,7 +216,7 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
           <IconChevronLeft size={normalize(24)} color="rgba(0,0,0,0.5)" />
         </TouchableOpacity>
         <Text className="font-semibold text-black tracking-tight" style={{ fontSize: normalizeFontSize(18) }}>출사 알림 설정</Text>
-        <TouchableOpacity onPress={() => setDeleteModalVisible(true)} className="items-center justify-center rounded-full" style={{ width: normalize(36), height: normalize(36) }}>
+        <TouchableOpacity onPress={handleDelete} className="items-center justify-center rounded-full" style={{ width: normalize(36), height: normalize(36) }}>
           <IconTrash size={normalize(20)} color="#ff453a" />
         </TouchableOpacity>
       </View>
@@ -304,16 +320,6 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
               thumbColor="#fff"
             />
           </View>
-
-          <TouchableOpacity onPress={() => setTimingSheetVisible(true)} className="flex-row items-center justify-between bg-[#f5f5f7] rounded-2xl mb-2" style={{ padding: normalize(16) }}>
-            <Text className="font-medium text-black" style={{ fontSize: normalizeFontSize(14) }}>알림 시점</Text>
-            <Text className="font-medium text-[#E31B59]" style={{ fontSize: normalizeFontSize(14) }}>{notifTiming} →</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity onPress={() => setDndSheetVisible(true)} className="flex-row items-center justify-between bg-[#f5f5f7] rounded-2xl" style={{ padding: normalize(16) }}>
-            <Text className="font-medium text-black" style={{ fontSize: normalizeFontSize(14) }}>방해 금지 시간</Text>
-            <Text className="font-medium text-black/40" style={{ fontSize: normalizeFontSize(14) }}>{dndStart} ~ {dndEnd} →</Text>
-          </TouchableOpacity>
         </View>
 
         {/* Section 5: Memo */}
@@ -355,26 +361,6 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
         </TouchableOpacity>
       </View>
 
-      {/* Delete Confirm Modal */}
-      <Modal visible={deleteModalVisible} transparent animationType="fade">
-        <View className="flex-1 bg-black/40 items-center justify-center px-5">
-          <View className="bg-white rounded-3xl w-full max-w-sm p-6 items-center">
-            <Text className="font-semibold text-black mb-2" style={{ fontSize: normalizeFontSize(18) }}>알림 설정 삭제</Text>
-            <Text className="text-black/50 text-center mb-6 leading-relaxed" style={{ fontSize: normalizeFontSize(14) }}>
-              이 스팟의 출사 알림 설정을 삭제하시겠어요?{'\n'}설정한 조건이 모두 초기화됩니다.
-            </Text>
-            <View className="flex-row gap-3 w-full">
-              <TouchableOpacity onPress={() => setDeleteModalVisible(false)} className="flex-1 bg-[#f5f5f7] items-center justify-center rounded-2xl" style={{ height: normalize(48) }}>
-                <Text className="font-medium text-black/60" style={{ fontSize: normalizeFontSize(15) }}>취소</Text>
-              </TouchableOpacity>
-              <TouchableOpacity onPress={handleDelete} className="flex-1 bg-[#ff453a] items-center justify-center rounded-2xl" style={{ height: normalize(48) }}>
-                <Text className="font-medium text-white" style={{ fontSize: normalizeFontSize(15) }}>삭제</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
-
       {/* Spot Change Sheet */}
       <BottomSheet visible={spotSheetVisible} onClose={() => setSpotSheetVisible(false)}>
         <View className="flex-row items-center justify-between px-5 pb-3">
@@ -388,42 +374,62 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
           <View className="flex-row items-center bg-[#f5f5f7] rounded-xl px-3" style={{ height: normalize(44) }}>
             <IconSearch size={normalize(18)} color="rgba(0,0,0,0.3)" />
             <TextInput 
+              value={searchText}
+              onChangeText={setSearchText}
               placeholder="스팟 이름으로 검색" 
               placeholderTextColor="rgba(0,0,0,0.3)"
               className="flex-1 ml-2 text-black"
               style={{ fontSize: normalizeFontSize(14), padding: 0 }}
             />
+            {searchText.length > 0 && (
+              <TouchableOpacity onPress={() => setSearchText('')} hitSlop={8}>
+                <IconX size={normalize(16)} color="rgba(0,0,0,0.4)" />
+              </TouchableOpacity>
+            )}
           </View>
         </View>
 
-        <ScrollView className="px-5" style={{ maxHeight: normalize(400) }}>
-          <Text className="text-black/30 mb-2" style={{ fontSize: normalizeFontSize(12) }}>최근 본 스팟</Text>
+        <ScrollView className="px-5" style={{ maxHeight: normalize(400) }} showsVerticalScrollIndicator={false}>
+          <Text className="text-black/30 mb-2" style={{ fontSize: normalizeFontSize(12) }}>
+            {isSearching ? '검색 결과' : '스팟 목록'}
+          </Text>
 
-          {MOCK_SPOTS.map((s) => {
-            const isSelected = String(s.id) === String(selectedSpot.id);
-            return (
-              <TouchableOpacity 
-                key={s.id} 
-                onPress={() => { setSelectedSpot(s); setSpotSheetVisible(false); markDirty(); }} 
-                className={`flex-row items-center rounded-2xl mb-2 ${isSelected ? 'bg-white border border-[#E31B59]' : 'bg-[#f5f5f7]'}`} 
-                style={{ padding: normalize(14) }}
-              >
-                <View className="rounded-xl mr-3" style={{ width: normalize(48), height: normalize(48), backgroundColor: s.bg }} />
-                <View className="flex-1">
-                  <Text className="font-semibold text-black mb-1" style={{ fontSize: normalizeFontSize(16) }}>{s.name}</Text>
-                  <Text className="text-black/40 mb-1" style={{ fontSize: normalizeFontSize(12) }}>{s.loc}</Text>
-                  <View className="self-start rounded-full items-center justify-center" style={{ backgroundColor: isSelected ? 'rgba(227,27,89,0.1)' : 'rgba(0,0,0,0.05)', paddingHorizontal: normalize(6), paddingVertical: normalize(2) }}>
-                    <Text style={{ fontSize: normalizeFontSize(9), color: isSelected ? '#E31B59' : 'rgba(0,0,0,0.3)', fontWeight: '600' }}>포토제닉 {s.score}</Text>
+          {isSpotsLoading ? (
+            <View className="py-8 items-center">
+              <ActivityIndicator color="#E31B59" size="small" />
+              <Text className="text-black/40 text-xs mt-2">스팟을 불러오는 중...</Text>
+            </View>
+          ) : spotsList.length === 0 ? (
+            <View className="py-8 items-center">
+              <Text className="text-black/40 text-sm">검색 결과가 없습니다.</Text>
+            </View>
+          ) : (
+            spotsList.map((s: any) => {
+              const isSelected = String(s.id) === String(selectedSpot.id);
+              return (
+                <TouchableOpacity 
+                  key={s.id} 
+                  onPress={() => { setSelectedSpot(s); setSpotSheetVisible(false); markDirty(); }} 
+                  className={`flex-row items-center rounded-2xl mb-2 ${isSelected ? 'bg-white border border-[#E31B59]' : 'bg-[#f5f5f7]'}`} 
+                  style={{ padding: normalize(14) }}
+                >
+                  <View className="rounded-xl mr-3" style={{ width: normalize(48), height: normalize(48), backgroundColor: s.bg }} />
+                  <View className="flex-1">
+                    <Text className="font-semibold text-black mb-1" style={{ fontSize: normalizeFontSize(16) }}>{s.name}</Text>
+                    <Text className="text-black/40 mb-1" style={{ fontSize: normalizeFontSize(12) }}>{s.loc}</Text>
+                    <View className="self-start rounded-full items-center justify-center" style={{ backgroundColor: isSelected ? 'rgba(227,27,89,0.1)' : 'rgba(0,0,0,0.05)', paddingHorizontal: normalize(6), paddingVertical: normalize(2) }}>
+                      <Text style={{ fontSize: normalizeFontSize(9), color: isSelected ? '#E31B59' : 'rgba(0,0,0,0.3)', fontWeight: '600' }}>포토제닉 {s.score}점</Text>
+                    </View>
                   </View>
-                </View>
-                {isSelected && (
-                  <View className="items-center justify-center bg-[#E31B59] rounded-full" style={{ width: normalize(22), height: normalize(22) }}>
-                    <IconCheck size={normalize(14)} color="#fff" strokeWidth={3} />
-                  </View>
-                )}
-              </TouchableOpacity>
-            );
-          })}
+                  {isSelected && (
+                    <View className="items-center justify-center bg-[#E31B59] rounded-full" style={{ width: normalize(22), height: normalize(22) }}>
+                      <IconCheck size={normalize(14)} color="#fff" strokeWidth={3} />
+                    </View>
+                  )}
+                </TouchableOpacity>
+              );
+            })
+          )}
 
         </ScrollView>
         <View className="px-5 pt-3 pb-2 bg-white">
@@ -431,7 +437,7 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
             setSpotSheetVisible(false);
             navigation.push('Map', { source: 'wishlist-change' });
           }} className="items-center py-2">
-            <Text className="font-medium text-[#E31B59]" style={{ fontSize: normalizeFontSize(14) }}>전체 스팟에서 검색 →</Text>
+            <Text className="font-medium text-[#E31B59]" style={{ fontSize: normalizeFontSize(14) }}>전체 스팟 지도에서 검색 →</Text>
           </TouchableOpacity>
         </View>
       </BottomSheet>
