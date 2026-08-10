@@ -185,7 +185,9 @@ const SCENARIOS: Record<DevScenario, { phase: ContestPhase; rankVariant: RankVar
   none7b: { phase: 'ENDED', rankVariant: 'normal', emptyFeed: false },
 };
 
-// ponytail: 테스트용 임시 복원 — 확인 끝나면 SCENARIO_OPTIONS·setScenario·DevStateSwitch 3곳 같이 삭제
+// ponytail: 서버가 phase를 내려주기 전까지만 두는 임시 스위처.
+// API 연동 시 SCENARIO_OPTIONS·setScenario·DevStateSwitch 3곳을 같이 삭제한다
+// (렌더만 지우면 setScenario가 미사용으로 남아 lint에 걸린다).
 const SCENARIO_OPTIONS: { key: DevScenario; label: string }[] = [
   { key: 'submit', label: '출품' },
   { key: 'submit0', label: '0개' },
@@ -348,6 +350,7 @@ export default function ContestSegment({ onSelectPastItem, onSeeAllEntries, onOp
           votesLeft={votesLeft}
           maxVotes={MAX_VOTES}
           myEntryCount={myEntries.length}
+          myEntryGradients={myEntries.map((entry) => entry.gradient)}
           maxEntries={MAX_ENTRIES}
           nextContest={NEXT_CONTEST}
           nextScheduled={scenario !== 'none7b'}

@@ -41,6 +41,9 @@ const HAIRLINE = 'rgba(0,0,0,0.07)';
 const FEED_PREVIEW_LIMIT = 4;
 const VOTE_PREVIEW_LIMIT = 8;
 
+/** 투표 하단 버튼 두 개의 좌우 끝 요소(썸네일·chevron) 여백 — pill이라 radius만큼 안쪽으로 들인다 */
+const BUTTON_SIDE_INSET = normalize(16);
+
 const SORT_OPTIONS: { key: ContestSortKey; label: string }[] = [
   { key: 'latest', label: '최신순' },
   { key: 'votes', label: '득표순' },
@@ -231,6 +234,8 @@ interface Props {
   votesLeft: number;
   maxVotes: number;
   myEntryCount: number;
+  /** 투표 기간 "내 출품작" 버튼의 겹침 썸네일 — 개수만으로는 무엇을 냈는지 알 수 없다 */
+  myEntryGradients: [string, string, string][];
   maxEntries: number;
   nextContest: ContestInfo;
   /**
@@ -267,6 +272,7 @@ export default function ContestActiveTab({
   votesLeft,
   maxVotes,
   myEntryCount,
+  myEntryGradients,
   maxEntries,
   nextContest,
   nextScheduled = true,
@@ -430,12 +436,32 @@ export default function ContestActiveTab({
             <Pressable
               onPress={onOpenMyEntries}
               accessibilityRole="button"
-              style={{ marginHorizontal: CONTENT_PADDING, marginTop: normalize(20), height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS, backgroundColor: FILL, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: normalize(8) }}
+              style={{ marginHorizontal: CONTENT_PADDING, marginTop: normalize(20), height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS, backgroundColor: FILL, alignItems: 'center', justifyContent: 'center' }}
             >
+              {/* 썸네일·chevron은 흐름에서 빼 좌우 끝에 고정한다 — 흐름에 두면 그 폭만큼 문구가 밀려
+                  아래 "모두 보기" 버튼의 문구와 축이 어긋난다(양옆 요소 크기가 서로 다르다) */}
+              <View style={{ position: 'absolute', left: BUTTON_SIDE_INSET, flexDirection: 'row', alignItems: 'center' }} pointerEvents="none">
+                {myEntryGradients.map((gradient, index) => (
+                  <LinearGradient
+                    key={index}
+                    colors={gradient}
+                    start={{ x: 0.15, y: 0 }}
+                    end={{ x: 0.85, y: 1 }}
+                    style={{
+                      width: normalize(28),
+                      height: normalize(28),
+                      borderRadius: normalize(8),
+                      borderWidth: 2,
+                      borderColor: FILL,
+                      marginLeft: index === 0 ? 0 : -normalize(9),
+                    }}
+                  />
+                ))}
+              </View>
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, letterSpacing: -0.3, color: INK }}>
                 {`내 출품작 ${myEntryCount}개`}
               </Text>
-              <ChevronRight size={normalize(18)} color="#c7c7cc" strokeWidth={2} />
+              <ChevronRight size={normalize(18)} color="#c7c7cc" strokeWidth={2} style={{ position: 'absolute', right: BUTTON_SIDE_INSET }} />
             </Pressable>
           )}
 
@@ -444,12 +470,13 @@ export default function ContestActiveTab({
           <Pressable
             onPress={onSeeAll}
             accessibilityRole="button"
-            style={{ marginHorizontal: CONTENT_PADDING, marginTop: normalize(12), height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS, backgroundColor: PINK, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: normalize(8) }}
+            style={{ marginHorizontal: CONTENT_PADDING, marginTop: normalize(12), height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS, backgroundColor: PINK, alignItems: 'center', justifyContent: 'center' }}
           >
             <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, letterSpacing: -0.3, color: '#fff' }}>
               {`${contest.entryCount}개 출품 모두 보기`}
             </Text>
-            <ChevronRight size={normalize(18)} color="#fff" strokeWidth={2} />
+            {/* 위 "내 출품작" 버튼과 같은 위치에 — 흐름에 두면 chevron 폭만큼 문구가 왼쪽으로 밀린다 */}
+            <ChevronRight size={normalize(18)} color="#fff" strokeWidth={2} style={{ position: 'absolute', right: BUTTON_SIDE_INSET }} />
           </Pressable>
         </>
       )}

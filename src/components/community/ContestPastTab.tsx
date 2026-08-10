@@ -73,7 +73,8 @@ export default function ContestPastTab({ items, onSelectItem }: Props) {
               }}
             >
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, letterSpacing: -0.1, color: item.kind === 'award' ? ACCENT : item.kind === 'none' ? SUB : '#000' }}>
-                {item.myRank == null ? '미출품' : `내 ${item.myRank}위`}
+                {/* 진행중 탭 "없음" 화면의 지난 콘테스트 행과 같은 문구를 쓴다 — 같은 뜻을 두 표현으로 쓰지 않는다 */}
+                {item.myRank == null ? '출품하지 않음' : `내 순위 ${item.myRank}위`}
               </Text>
             </View>
           </View>
