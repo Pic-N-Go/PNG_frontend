@@ -30,8 +30,12 @@ export default function SpotAlertPreview() {
           <Text className="font-semibold tracking-tight text-black" style={{ fontSize: normalizeFontSize(20) }}>
             출사 알림 스팟
           </Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Wishlist')}>
-            <Text className="tracking-tight" style={{ fontSize: FONT_SM, color: '#e31b59' }}>
+          <TouchableOpacity 
+            onPress={() => navigation.navigate('Wishlist')}
+            hitSlop={{ top: 12, bottom: 12, left: 16, right: 16 }}
+            style={{ paddingVertical: normalize(4), paddingHorizontal: normalize(6) }}
+          >
+            <Text className="tracking-tight font-medium" style={{ fontSize: FONT_SM, color: '#e31b59' }}>
               설정
             </Text>
           </TouchableOpacity>
