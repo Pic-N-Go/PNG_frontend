@@ -38,6 +38,10 @@
     - 진행중 탭 `출품작 N개 모두 보기` → `ContestAllEntriesScreen`(push): 정렬 3종(최신순 기본·득표순·랜덤)·무한스크롤·28px 원형 투표 버튼·로딩 스켈레톤/빈/에러 상태
       - 2026-08-07 최종안: 정렬 **2종**(최신순 기본·득표순, 랜덤 삭제), 남은 표는 도트 → pill(→ 내가 투표한 작품 시트),
         카드 탭 → `ContestEntryDetailScreen`
+      - 2026-08-10: 진행중 탭의 출품작 그리드는 **미리보기**로 한정 — 출품 기간 **4개**·투표 기간 **8개**.
+        전체 목록과 무한스크롤은 `ContestAllEntriesScreen`이 전담한다(상한이 없으면 하단
+        "N개 출품 모두 보기" CTA가 목록이 길수록 멀어져 도달할 수 없다).
+        서버 `limit` 파라미터 확정 전까지는 클라이언트에서 자른다
     - 작성 버튼 → `CommunityWriteScreen`, 게시글 유저명 → `UserProfileScreen`, 지난 콘테스트 카드 → `ContestResultScreen`
   - **`community-post.html`** → `PostDetailScreen` (push, 헤더 있음)
     - `⋯` 액션시트(내 글/남 글 분기), 삭제 확인 모달, 신고 사유 시트, 완료 토스트 2종
