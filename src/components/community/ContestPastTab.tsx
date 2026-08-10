@@ -2,7 +2,7 @@ import React from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { CalendarDays } from 'lucide-react-native';
 import { ContestPastMonthItem } from '@/types/community';
-import { FONT_LG, FONT_MD, FONT_SM, FONT_XS } from '@/constants/layout';
+import { CONTENT_PADDING, FONT_LG, FONT_MD, FONT_SM, FONT_XS } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
 
 /**
@@ -22,7 +22,7 @@ interface Props {
 export default function ContestPastTab({ items, onSelectItem }: Props) {
   if (items.length === 0) {
     return (
-      <View style={{ flex: 1, paddingTop: normalize(96), paddingHorizontal: normalize(28), alignItems: 'center' }}>
+      <View style={{ flex: 1, paddingTop: normalize(96), paddingHorizontal: CONTENT_PADDING, alignItems: 'center' }}>
         <View style={{ width: normalize(56), height: normalize(56), borderRadius: normalize(28), backgroundColor: SURFACE, alignItems: 'center', justifyContent: 'center', marginBottom: normalize(16) }}>
           <CalendarDays size={normalize(24)} color="#b8b8be" strokeWidth={1.7} />
         </View>

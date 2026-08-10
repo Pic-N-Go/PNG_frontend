@@ -12,7 +12,7 @@ import {
   ContestSortKey,
   RankHistory,
 } from '@/types/community';
-import { FONT_2XL, FONT_2XS, FONT_LG, FONT_MD, FONT_SM, FONT_XL, FONT_XS } from '@/constants/layout';
+import { CARD_RADIUS, CONTENT_PADDING, FONT_2XL, FONT_2XS, FONT_LG, FONT_MD, FONT_SM, FONT_XL, FONT_XS } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
 
 /**
@@ -58,7 +58,7 @@ function HeroScrim() {
 function SectionHeader({ title, right }: { title: string; right?: React.ReactNode }) {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'baseline', paddingTop: normalize(22), paddingBottom: normalize(12) }}>
-      <Text allowFontScaling={false} style={{ flex: 1, paddingLeft: normalize(28), fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XL, letterSpacing: -0.7, color: INK }}>
+      <Text allowFontScaling={false} style={{ flex: 1, paddingLeft: CONTENT_PADDING, fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XL, letterSpacing: -0.7, color: INK }}>
         {title}
       </Text>
       {right}
@@ -71,7 +71,7 @@ function AwardRow({ award, onPress }: { award: ContestAwardSummary; onPress: () 
   return (
     <Pressable
       onPress={onPress}
-      style={{ margin: normalize(16), marginTop: normalize(16), marginHorizontal: normalize(28), height: normalize(72), paddingHorizontal: normalize(14), borderRadius: normalize(16), backgroundColor: FILL, flexDirection: 'row', alignItems: 'center', gap: normalize(12) }}
+      style={{ margin: normalize(16), marginTop: normalize(16), marginHorizontal: CONTENT_PADDING, height: normalize(72), paddingHorizontal: normalize(14), borderRadius: CARD_RADIUS, backgroundColor: FILL, flexDirection: 'row', alignItems: 'center', gap: normalize(12) }}
     >
       {/* 1~3위 썸네일을 10씩 겹친다 — 뒤 순위가 위로 올라오도록 목업과 같은 순서로 렌더 */}
       <View style={{ flexDirection: 'row', alignItems: 'center', flexShrink: 0 }}>
@@ -155,7 +155,7 @@ function Footbar({ topic, state, ctaLabel, ctaIcon, onPressCta, ctaDisabled }: {
 /** 출품 기간 · 결과 발표일 그리드 — 투표 버튼 없음, 탭하면 상세로 */
 function PlainEntryCard({ entry, onPress }: { entry: ContestEntry; onPress: () => void }) {
   return (
-    <Pressable onPress={onPress} style={{ width: '48%', borderRadius: normalize(16), overflow: 'hidden', backgroundColor: FILL }}>
+    <Pressable onPress={onPress} style={{ width: '48%', borderRadius: CARD_RADIUS, overflow: 'hidden', backgroundColor: FILL }}>
       <View style={{ width: '100%', aspectRatio: 1 }}>
         <LinearGradient colors={entry.gradient} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
       </View>
@@ -175,7 +175,7 @@ function PlainEntryCard({ entry, onPress }: { entry: ContestEntry; onPress: () =
 function VoteEntryCard({ entry, votesLeft, onVote, onPress }: { entry: ContestEntry; votesLeft: number; onVote: () => void; onPress: () => void }) {
   const spent = !entry.voted && votesLeft <= 0;
   return (
-    <View style={{ width: '48%', borderRadius: normalize(16), overflow: 'hidden', backgroundColor: FILL }}>
+    <View style={{ width: '48%', borderRadius: CARD_RADIUS, overflow: 'hidden', backgroundColor: FILL }}>
       <Pressable onPress={onPress} style={{ width: '100%', aspectRatio: 1 }}>
         <LinearGradient colors={entry.gradient} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
       </Pressable>
@@ -314,7 +314,7 @@ export default function ContestActiveTab({
 
           {submitFeed.length === 0 ? (
             // flex: 1은 남는 공간만 채운다 — 히어로·수상작 행이 화면을 거의 채우면 거의 안 늘어나므로 최소 높이를 따로 준다
-            <View style={{ flex: 1, minHeight: normalize(260), justifyContent: 'center', paddingHorizontal: normalize(28), alignItems: 'center' }}>
+            <View style={{ flex: 1, minHeight: normalize(260), justifyContent: 'center', paddingHorizontal: CONTENT_PADDING, alignItems: 'center' }}>
               <View style={{ width: normalize(56), height: normalize(56), borderRadius: normalize(28), backgroundColor: FILL, alignItems: 'center', justifyContent: 'center', marginBottom: normalize(16) }}>
                 <Camera size={normalize(24)} color="#b8b8be" strokeWidth={1.7} />
               </View>
@@ -331,7 +331,7 @@ export default function ContestActiveTab({
                 title="새로 올라온 출품작"
                 right={<SidePill label="내 출품작" value={`${myEntryCount}/${maxEntries}`} onPress={onOpenMyEntries} />}
               />
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: normalize(20), paddingHorizontal: normalize(28) }}>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: normalize(20), paddingHorizontal: CONTENT_PADDING }}>
                 {submitFeed.map((entry) => (
                   <PlainEntryCard key={entry.id} entry={entry} onPress={() => onOpenEntry(entry.id)} />
                 ))}
@@ -374,7 +374,7 @@ export default function ContestActiveTab({
           <ContestRankPanel history={rankHistory} open={rankPanelOpen} onToggle={() => setRankPanelOpen((v) => !v)} onOpenEntry={onOpenEntry} />
 
           <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: normalize(14), borderBottomWidth: 1, borderBottomColor: HAIRLINE }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', height: normalize(34), paddingLeft: normalize(28), gap: normalize(14) }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', height: normalize(34), paddingLeft: CONTENT_PADDING, gap: normalize(14) }}>
               {/* 정렬은 "무엇을 보는가"라 활성색이 블랙 — CLAUDE.md 색상 규칙.
                   목업(.vote-sort.is-active)은 accent를 쓰지만 그건 목업 쪽 오류다. */}
               {SORT_OPTIONS.map((option, index) => (
@@ -406,7 +406,7 @@ export default function ContestActiveTab({
             <SidePill label="남은 표" value={`${votesLeft}/${maxVotes}`} dots={{ total: maxVotes, left: votesLeft }} onPress={onOpenMyVotes} />
           </View>
 
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: normalize(20), paddingHorizontal: normalize(28), paddingTop: normalize(20) }}>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: normalize(20), paddingHorizontal: CONTENT_PADDING, paddingTop: normalize(20) }}>
             {voteEntries.map((entry) => (
               <VoteEntryCard key={entry.id} entry={entry} votesLeft={votesLeft} onVote={() => onVote(entry.id)} onPress={() => onOpenEntry(entry.id)} />
             ))}
@@ -414,7 +414,7 @@ export default function ContestActiveTab({
 
           {/* 투표 기간에도 내 출품작은 확인·삭제할 수 있다(추가 출품만 막힌다) — 시트 8f로 가는 유일한 경로 */}
           {myEntryCount > 0 && (
-            <Pressable onPress={onOpenMyEntries} style={{ marginHorizontal: normalize(28), marginTop: normalize(20), height: normalize(44), paddingHorizontal: normalize(16), borderRadius: normalize(22), backgroundColor: FILL, flexDirection: 'row', alignItems: 'center', gap: normalize(8) }}>
+            <Pressable onPress={onOpenMyEntries} style={{ marginHorizontal: CONTENT_PADDING, marginTop: normalize(20), height: normalize(44), paddingHorizontal: normalize(16), borderRadius: normalize(22), backgroundColor: FILL, flexDirection: 'row', alignItems: 'center', gap: normalize(8) }}>
               <Text allowFontScaling={false} style={{ flex: 1, fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, letterSpacing: -0.2, color: INK }}>
                 {`내 출품작 ${myEntryCount}개`}
               </Text>
@@ -433,7 +433,7 @@ export default function ContestActiveTab({
 
       {phase === 'RESULT' && (
         <>
-          <View style={{ marginHorizontal: normalize(28), marginTop: normalize(16) }}>
+          <View style={{ marginHorizontal: CONTENT_PADDING, marginTop: normalize(16) }}>
             <Pressable onPress={openAward} style={{ width: '100%', padding: normalize(18), paddingHorizontal: normalize(20), borderRadius: normalize(20), backgroundColor: 'rgba(227,27,89,0.06)', flexDirection: 'row', alignItems: 'center', gap: normalize(14) }}>
               <View style={{ width: normalize(56), height: normalize(56), borderRadius: normalize(14), backgroundColor: '#5a3355', flexShrink: 0 }} />
               <View style={{ flex: 1, minWidth: 0 }}>
@@ -451,7 +451,7 @@ export default function ContestActiveTab({
             </Pressable>
           </View>
 
-          <View style={{ position: 'relative', height: normalize(280), overflow: 'hidden', margin: normalize(16), marginTop: normalize(16), marginHorizontal: normalize(28), borderRadius: normalize(24) }}>
+          <View style={{ position: 'relative', height: normalize(280), overflow: 'hidden', margin: normalize(16), marginTop: normalize(16), marginHorizontal: CONTENT_PADDING, borderRadius: normalize(24) }}>
             <LinearGradient colors={['#0d0b22', '#241f4a', '#4b4380', '#8a7fb0', '#c9bfe0']} locations={[0, 0.32, 0.64, 0.88, 1]} start={{ x: 0.15, y: 0 }} end={{ x: 0.85, y: 1 }} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
             <HeroScrim />
             <View style={{ position: 'absolute', left: normalize(20), right: normalize(20), bottom: normalize(20) }}>
@@ -480,7 +480,7 @@ export default function ContestActiveTab({
             </View>
           </View>
 
-          <View style={{ flexDirection: 'row', alignItems: 'baseline', paddingHorizontal: normalize(28), paddingTop: normalize(22), paddingBottom: normalize(12) }}>
+          <View style={{ flexDirection: 'row', alignItems: 'baseline', paddingHorizontal: CONTENT_PADDING, paddingTop: normalize(22), paddingBottom: normalize(12) }}>
             <Text allowFontScaling={false} style={{ flex: 1, fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XL, letterSpacing: -0.7, color: INK }}>
               새로 올라온 출품작
             </Text>
@@ -488,7 +488,7 @@ export default function ContestActiveTab({
               {submitFeed.length}
             </Text>
           </View>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: normalize(20), paddingHorizontal: normalize(28) }}>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: normalize(20), paddingHorizontal: CONTENT_PADDING }}>
             {submitFeed.map((entry) => (
               <PlainEntryCard key={entry.id} entry={entry} onPress={() => onOpenEntry(entry.id)} />
             ))}
@@ -507,7 +507,7 @@ export default function ContestActiveTab({
 
       {phase === 'ENDED' && (
         <>
-          <View style={{ margin: normalize(18), marginTop: normalize(18), marginHorizontal: normalize(28), padding: normalize(28), paddingHorizontal: normalize(24), borderRadius: normalize(20), backgroundColor: FILL, alignItems: 'center' }}>
+          <View style={{ margin: normalize(18), marginTop: normalize(18), marginHorizontal: CONTENT_PADDING, padding: normalize(28), paddingHorizontal: normalize(24), borderRadius: normalize(20), backgroundColor: FILL, alignItems: 'center' }}>
             <View style={{ height: normalize(24), paddingHorizontal: normalize(12), borderRadius: normalize(12), backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' }}>
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, letterSpacing: -0.1, color: nextScheduled ? SUB : GRAY_DISABLED }}>
                 다음 콘테스트
@@ -563,17 +563,17 @@ export default function ContestActiveTab({
           </View>
 
           <View style={{ flexDirection: 'row', alignItems: 'baseline', paddingTop: normalize(20), paddingBottom: normalize(12) }}>
-            <Text allowFontScaling={false} style={{ flex: 1, paddingLeft: normalize(28), fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, letterSpacing: -0.3, color: INK }}>
+            <Text allowFontScaling={false} style={{ flex: 1, paddingLeft: CONTENT_PADDING, fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, letterSpacing: -0.3, color: INK }}>
               지난 콘테스트
             </Text>
-            <Pressable onPress={onSeeAllPast} style={{ paddingRight: normalize(28) }}>
+            <Pressable onPress={onSeeAllPast} style={{ paddingRight: CONTENT_PADDING }}>
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, letterSpacing: -0.2, color: PINK }}>
                 전체 보기
               </Text>
             </Pressable>
           </View>
           {pastItems.map((item) => (
-            <Pressable key={item.id} onPress={() => onSelectPastItem(item)} style={{ width: '100%', height: normalize(84), paddingHorizontal: normalize(28), flexDirection: 'row', alignItems: 'center', gap: normalize(12) }}>
+            <Pressable key={item.id} onPress={() => onSelectPastItem(item)} style={{ width: '100%', height: normalize(84), paddingHorizontal: CONTENT_PADDING, flexDirection: 'row', alignItems: 'center', gap: normalize(12) }}>
               <View style={{ width: normalize(60), height: normalize(60), borderRadius: normalize(14), flexShrink: 0, backgroundColor: item.gradient[0] }} />
               <View style={{ flex: 1, minWidth: 0 }}>
                 <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, letterSpacing: -0.3, color: INK }}>

@@ -14,7 +14,7 @@ import LocationSheet, { LocationOption } from '@/components/community/LocationSh
 import GearSheet from '@/components/community/GearSheet';
 import { CommunityDetailStackParamList } from '@/navigation/stacks/CommunityDetailStack';
 import { GearSheetKind } from '@/types/community';
-import { FONT_2XS, FONT_LG, FONT_MD, FONT_SM, FONT_XS } from '@/constants/layout';
+import { INPUT_HEIGHT, HEADER_HEIGHT, CONTENT_PADDING, FONT_2XS, FONT_LG, FONT_MD, FONT_SM, FONT_XS } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
 
 const ACCENT = '#E31B59';
@@ -184,7 +184,7 @@ export default function CommunityWriteScreen() {
       {/* 헤더 */}
       <View
         className="flex-row items-center"
-        style={{ height: normalize(52), paddingHorizontal: normalize(16), borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)' }}
+        style={{ height: HEADER_HEIGHT, paddingHorizontal: normalize(16), borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)' }}
       >
         <Pressable onPress={() => navigation.goBack()} hitSlop={8} className="items-center justify-center" style={{ width: normalize(36), height: normalize(36) }}>
           <ChevronLeft size={normalize(22)} color="#000" strokeWidth={2} />
@@ -263,7 +263,7 @@ export default function CommunityWriteScreen() {
           </View>
 
           {/* 폼 */}
-          <View style={{ paddingHorizontal: normalize(28) }}>
+          <View style={{ paddingHorizontal: CONTENT_PADDING }}>
             {/* 캡션 */}
             <View style={{ paddingTop: normalize(20), paddingBottom: normalize(8), borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)' }}>
               <TextInput
@@ -276,7 +276,7 @@ export default function CommunityWriteScreen() {
                 placeholderTextColor="rgba(0,0,0,0.28)"
                 allowFontScaling={false}
                 style={{
-                  minHeight: normalize(52),
+                  minHeight: INPUT_HEIGHT,
                   fontFamily: 'Pretendard-Medium',
                   fontSize: FONT_MD,
                   letterSpacing: -0.2,

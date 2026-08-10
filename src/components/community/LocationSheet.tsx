@@ -3,7 +3,7 @@ import { Dimensions, Pressable, ScrollView, Text, TextInput, View } from 'react-
 import { Check, Clock, MapPin, Search } from 'lucide-react-native';
 import BottomSheet from '@/components/common/BottomSheet';
 import { BUTTON_HEIGHT, BUTTON_RADIUS, FONT_2XS, FONT_LG, FONT_MD, FONT_SM, FONT_XS, GRID_PADDING } from '@/constants/layout';
-import { normalize, normalizeFontSize } from '@/utils/normalize';
+import { normalize } from '@/utils/normalize';
 
 const ACCENT = '#E31B59';
 const SURFACE = '#f5f5f7';
@@ -62,7 +62,7 @@ function Row({ option, isSelected, onPress }: { option: LocationOption; isSelect
         <Icon size={normalize(16)} color={isSelected ? ACCENT : 'rgba(0,0,0,0.4)'} strokeWidth={1.8} />
       </View>
       <View style={{ flex: 1, minWidth: 0 }}>
-        <Text allowFontScaling={false} numberOfLines={1} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(15), color: '#000', letterSpacing: -0.2 }}>
+        <Text allowFontScaling={false} numberOfLines={1} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, color: '#000', letterSpacing: -0.2 }}>
           {option.name}
         </Text>
         <Text allowFontScaling={false} numberOfLines={1} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.45)', letterSpacing: -0.1, marginTop: normalize(1) }}>

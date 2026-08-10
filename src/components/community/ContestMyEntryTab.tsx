@@ -246,7 +246,7 @@ export default function ContestMyEntryTab({ phase, contest, entryCount, maxEntri
         </View>
       </View>
 
-      <Text allowFontScaling={false} style={{ paddingHorizontal: normalize(28), paddingTop: normalize(24), paddingBottom: normalize(8), fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, letterSpacing: -0.3, color: '#000' }}>
+      <Text allowFontScaling={false} style={{ paddingHorizontal: CONTENT_PADDING, paddingTop: normalize(24), paddingBottom: normalize(8), fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, letterSpacing: -0.3, color: '#000' }}>
         회차별 기록
       </Text>
       {HISTORY.map((item) => (

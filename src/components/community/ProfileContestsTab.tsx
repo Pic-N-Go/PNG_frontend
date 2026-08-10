@@ -2,7 +2,7 @@ import React from 'react';
 import { Text, View } from 'react-native';
 import { Trophy } from 'lucide-react-native';
 import { ProfileContestItem } from '@/types/community';
-import { FONT_2XS, FONT_XS } from '@/constants/layout';
+import { GRID_PADDING, FONT_2XS, FONT_XS } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 
 const ACCENT = '#E31B59';
@@ -20,7 +20,7 @@ function statusLabel(item: ProfileContestItem): string {
 
 export default function ProfileContestsTab({ items }: Props) {
   return (
-    <View style={{ paddingHorizontal: normalize(20), paddingTop: normalize(16), paddingBottom: normalize(24), gap: normalize(8) }}>
+    <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(16), paddingBottom: normalize(24), gap: normalize(8) }}>
       {items.map((item) => {
         const isTop = item.rank === 1;
         return (

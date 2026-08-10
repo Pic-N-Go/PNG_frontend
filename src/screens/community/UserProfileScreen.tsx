@@ -7,7 +7,7 @@ import ProfilePostsTab from '@/components/community/ProfilePostsTab';
 import ProfileContestsTab from '@/components/community/ProfileContestsTab';
 import ProfileSpotsTab from '@/components/community/ProfileSpotsTab';
 import { ProfileContestItem, ProfilePostItem, ProfileSpotItem, ProfileTabKey, UserProfileSummary } from '@/types/community';
-import { FONT_2XS, FONT_LG, FONT_SM, FONT_XS } from '@/constants/layout';
+import { FONT_XL, HEADER_HEIGHT, CONTENT_PADDING, FONT_2XS, FONT_LG, FONT_SM, FONT_XS } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 
 const ACCENT = '#E31B59';
@@ -74,7 +74,7 @@ export default function UserProfileScreen() {
     <SafeAreaView className="flex-1" style={{ backgroundColor: '#fff' }} edges={['top', 'left', 'right']}>
       <View
         className="flex-row items-center"
-        style={{ height: normalize(52), paddingHorizontal: normalize(20), gap: normalize(8), borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)' }}
+        style={{ height: HEADER_HEIGHT, paddingHorizontal: normalize(20), gap: normalize(8), borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)' }}
       >
         <Pressable
           onPress={() => navigation.goBack()}
@@ -89,13 +89,13 @@ export default function UserProfileScreen() {
       </View>
 
       <ScrollView contentContainerStyle={{ paddingBottom: normalize(24) }}>
-        <View style={{ paddingHorizontal: normalize(28), paddingTop: normalize(24), paddingBottom: normalize(16) }}>
+        <View style={{ paddingHorizontal: CONTENT_PADDING, paddingTop: normalize(24), paddingBottom: normalize(16) }}>
           <View className="flex-row items-center" style={{ gap: normalize(16), marginBottom: normalize(16) }}>
             <View
               className="items-center justify-center"
               style={{ width: normalize(80), height: normalize(80), borderRadius: normalize(40), backgroundColor: MOCK_PROFILE.avatarGradient[0] }}
             >
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(22), color: 'rgba(255,255,255,0.85)', letterSpacing: -0.5 }}>
+              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XL, color: 'rgba(255,255,255,0.85)', letterSpacing: -0.5 }}>
                 {MOCK_PROFILE.initials}
               </Text>
             </View>
@@ -181,7 +181,7 @@ export default function UserProfileScreen() {
           </View>
         </View>
 
-        <View className="flex-row" style={{ paddingHorizontal: normalize(28), gap: normalize(20), borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.08)' }}>
+        <View className="flex-row" style={{ paddingHorizontal: CONTENT_PADDING, gap: normalize(20), borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.08)' }}>
           {SUBTABS.map((tab) => {
             const isActive = tab.key === activeTab;
             return (

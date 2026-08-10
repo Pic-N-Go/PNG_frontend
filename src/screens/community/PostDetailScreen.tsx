@@ -13,7 +13,7 @@ import Toast from '@/components/common/Toast';
 import { useKeyboardOverlap } from '@/hooks/useKeyboardHeight';
 import { CommunityDetailStackParamList } from '@/navigation/stacks/CommunityDetailStack';
 import { Comment, PostDetail, ReportReasonId } from '@/types/community';
-import { FONT_2XS, FONT_LG, FONT_MD, FONT_SM, FONT_XS } from '@/constants/layout';
+import { HEADER_HEIGHT, CONTENT_PADDING, FONT_2XS, FONT_LG, FONT_MD, FONT_SM, FONT_XS } from '@/constants/layout';
 import { normalize, normalizeHeight } from '@/utils/normalize';
 
 const ACCENT = '#E31B59';
@@ -163,7 +163,7 @@ export default function PostDetailScreen() {
       <SafeAreaView edges={['top']} style={{ backgroundColor: '#fff' }}>
         <View
           className="flex-row items-center"
-          style={{ height: normalize(52), paddingHorizontal: normalize(20), gap: normalize(8), borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)' }}
+          style={{ height: HEADER_HEIGHT, paddingHorizontal: normalize(20), gap: normalize(8), borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)' }}
         >
           <Pressable
             onPress={() => navigation.goBack()}
@@ -223,7 +223,7 @@ export default function PostDetailScreen() {
           </Pressable>
 
           {/* 본문 */}
-          <View style={{ paddingHorizontal: normalize(28), paddingTop: normalize(16) }}>
+          <View style={{ paddingHorizontal: CONTENT_PADDING, paddingTop: normalize(16) }}>
             {/* 유저 행 */}
             <View className="flex-row items-center" style={{ gap: normalize(11), marginBottom: normalize(14) }}>
               <View
@@ -385,7 +385,7 @@ export default function PostDetailScreen() {
           className="flex-row items-center"
           style={{
             gap: normalize(8),
-            paddingHorizontal: normalize(28),
+            paddingHorizontal: CONTENT_PADDING,
             paddingTop: normalize(10),
             paddingBottom: keyboardOverlap > 0 ? normalize(10) : insets.bottom + normalize(10),
             backgroundColor: 'rgba(255,255,255,0.96)',

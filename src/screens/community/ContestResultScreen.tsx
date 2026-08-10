@@ -12,7 +12,7 @@ import Toast from '@/components/common/Toast';
 import { CommunityDetailStackParamList } from '@/navigation/stacks/CommunityDetailStack';
 import type { RootStackParamList } from '@/navigation';
 import { ContestPhotoEntry } from '@/types/community';
-import { CONTENT_PADDING, FONT_2XS, FONT_LG, FONT_MD, FONT_SM, FONT_XL, FONT_XS } from '@/constants/layout';
+import { CARD_RADIUS, HEADER_HEIGHT, CONTENT_PADDING, FONT_2XS, FONT_LG, FONT_MD, FONT_SM, FONT_XL, FONT_XS } from '@/constants/layout';
 import { normalize, normalizeFontSize, normalizeHeight } from '@/utils/normalize';
 import { awardHaptic } from '@/utils/haptics';
 
@@ -95,7 +95,7 @@ export default function ContestResultScreen() {
         onChange={setDevVariant}
       />
 
-      <View className="flex-row items-center" style={{ height: normalize(52), paddingLeft: normalize(12), paddingRight: normalize(28), gap: normalize(4) }}>
+      <View className="flex-row items-center" style={{ height: HEADER_HEIGHT, paddingLeft: normalize(12), paddingRight: CONTENT_PADDING, gap: normalize(4) }}>
         <Pressable onPress={() => navigation.goBack()} hitSlop={8} accessibilityRole="button" accessibilityLabel="뒤로" className="items-center justify-center" style={{ width: normalize(40), height: normalize(40) }}>
           <ChevronLeft size={normalize(22)} color="#000" strokeWidth={2} />
         </Pressable>
@@ -148,11 +148,11 @@ export default function ContestResultScreen() {
 
         {!isAward && (
           <>
-            <Text allowFontScaling={false} style={{ paddingHorizontal: normalize(28), paddingTop: normalize(24), paddingBottom: normalize(12), fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XL, letterSpacing: -0.7, color: '#000' }}>
+            <Text allowFontScaling={false} style={{ paddingHorizontal: CONTENT_PADDING, paddingTop: normalize(24), paddingBottom: normalize(12), fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XL, letterSpacing: -0.7, color: '#000' }}>
               최종 순위
             </Text>
 
-            <Pressable onPress={() => setDetailEntry(WINNER)} style={{ marginHorizontal: normalize(28), borderRadius: normalize(16), overflow: 'hidden', backgroundColor: SURFACE }}>
+            <Pressable onPress={() => setDetailEntry(WINNER)} style={{ marginHorizontal: CONTENT_PADDING, borderRadius: CARD_RADIUS, overflow: 'hidden', backgroundColor: SURFACE }}>
               <View style={{ position: 'relative', aspectRatio: 334 / 220, backgroundColor: WINNER.gradient[0] }}>
                 <LinearGradient colors={WINNER.gradient} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
                 <View style={{ position: 'absolute', top: normalize(12), left: normalize(12), height: normalize(24), paddingHorizontal: normalize(10), borderRadius: normalize(12), backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center' }}>
@@ -171,9 +171,9 @@ export default function ContestResultScreen() {
               </View>
             </Pressable>
 
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: normalize(20), paddingHorizontal: normalize(28), paddingTop: normalize(20) }}>
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: normalize(20), paddingHorizontal: CONTENT_PADDING, paddingTop: normalize(20) }}>
               {PODIUM_2_3.map((entry) => (
-                <Pressable key={entry.id} onPress={() => setDetailEntry(entry)} style={{ width: '48%', borderRadius: normalize(16), overflow: 'hidden', backgroundColor: SURFACE }}>
+                <Pressable key={entry.id} onPress={() => setDetailEntry(entry)} style={{ width: '48%', borderRadius: CARD_RADIUS, overflow: 'hidden', backgroundColor: SURFACE }}>
                   <View style={{ position: 'relative', aspectRatio: 1, backgroundColor: entry.gradient[0] }}>
                     <LinearGradient colors={entry.gradient} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
                     <View style={{ position: 'absolute', top: normalize(10), left: normalize(10), height: normalize(22), paddingHorizontal: normalize(8), borderRadius: normalize(11), backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' }}>
@@ -198,7 +198,7 @@ export default function ContestResultScreen() {
 
         {isAward && (
           <>
-            <Text allowFontScaling={false} style={{ paddingHorizontal: normalize(28), paddingTop: normalize(24), paddingBottom: normalize(12), fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XL, letterSpacing: -0.7, color: '#000' }}>
+            <Text allowFontScaling={false} style={{ paddingHorizontal: CONTENT_PADDING, paddingTop: normalize(24), paddingBottom: normalize(12), fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XL, letterSpacing: -0.7, color: '#000' }}>
               최종 순위
             </Text>
             <RankList entries={RANK_LIST} myRank={myRank} onPress={setDetailEntry} />
@@ -207,7 +207,7 @@ export default function ContestResultScreen() {
 
         <Pressable
           onPress={() => navigation.navigate('ContestAllEntries', { mode: 'past' })}
-          style={{ margin: normalize(24), marginTop: normalize(24), marginHorizontal: normalize(28), height: normalize(56), paddingHorizontal: normalize(16), borderRadius: normalize(16), backgroundColor: SURFACE, flexDirection: 'row', alignItems: 'center', gap: normalize(8) }}
+          style={{ margin: normalize(24), marginTop: normalize(24), marginHorizontal: CONTENT_PADDING, height: normalize(56), paddingHorizontal: normalize(16), borderRadius: CARD_RADIUS, backgroundColor: SURFACE, flexDirection: 'row', alignItems: 'center', gap: normalize(8) }}
         >
           <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, letterSpacing: -0.3, color: '#000' }}>
             전체 순위 보기
@@ -234,7 +234,7 @@ export default function ContestResultScreen() {
 
 function RankList({ entries, myRank, onPress }: { entries: ContestPhotoEntry[]; myRank?: number | null; onPress: (entry: ContestPhotoEntry) => void }) {
   return (
-    <View style={{ paddingHorizontal: normalize(28) }}>
+    <View style={{ paddingHorizontal: CONTENT_PADDING }}>
       {entries.map((entry, index) => (
         <Pressable
           key={entry.id}
@@ -278,7 +278,7 @@ function EntryDetailView({ entry, monthLabel, onBack, onOpenSpot }: { entry: Con
           </SafeAreaView>
         </View>
 
-        <View style={{ padding: normalize(20), paddingHorizontal: normalize(28), paddingBottom: normalize(28) }}>
+        <View style={{ padding: normalize(20), paddingHorizontal: CONTENT_PADDING, paddingBottom: normalize(28) }}>
           <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: normalize(8) }}>
             <View style={{ height: normalize(24), paddingHorizontal: normalize(10), borderRadius: normalize(12), backgroundColor: 'rgba(227,27,89,0.1)', alignItems: 'center', justifyContent: 'center' }}>
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, letterSpacing: -0.1, color: ACCENT }}>
@@ -344,7 +344,7 @@ function ContestResultOutrank({ rank, totalCount, votes, deltaLabel }: { rank: n
   // totalCount가 0이면 width가 NaN%가 되어 바가 사라진다
   const percentile = totalCount > 0 ? Math.round((rank / totalCount) * 100) : 0;
   return (
-    <View style={{ margin: normalize(18), marginHorizontal: CONTENT_PADDING, padding: normalize(14), paddingHorizontal: normalize(16), borderRadius: normalize(16), backgroundColor: SURFACE }}>
+    <View style={{ margin: normalize(18), marginHorizontal: CONTENT_PADDING, padding: normalize(14), paddingHorizontal: normalize(16), borderRadius: CARD_RADIUS, backgroundColor: SURFACE }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(12) }}>
         <View style={{ width: normalize(48), height: normalize(48), borderRadius: normalize(12), backgroundColor: '#12333a', flexShrink: 0 }} />
         <View style={{ flex: 1, minWidth: 0 }}>

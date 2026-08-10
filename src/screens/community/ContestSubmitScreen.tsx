@@ -7,7 +7,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { Camera, ChevronLeft, Info, MapPin, Plus, Search, X } from 'lucide-react-native';
 import DevStateSwitch from '@/components/common/DevStateSwitch';
 import { CommunityDetailStackParamList } from '@/navigation/stacks/CommunityDetailStack';
-import { BUTTON_HEIGHT, BUTTON_RADIUS, FONT_LG, FONT_MD, FONT_SM, FONT_XS } from '@/constants/layout';
+import { CARD_RADIUS, HEADER_HEIGHT, CONTENT_PADDING, BUTTON_HEIGHT, BUTTON_RADIUS, FONT_LG, FONT_MD, FONT_SM, FONT_XS } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 
 /**
@@ -167,14 +167,14 @@ export default function ContestSubmitScreen() {
       <Header title="출품하기" onClose={() => navigation.goBack()} disabled={uploadState === 'uploading'} />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: normalize(28) }}>
-        <Text allowFontScaling={false} style={{ paddingHorizontal: normalize(28), paddingBottom: normalize(14), fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, letterSpacing: -0.2, color: '#8e8e93' }}>
+        <Text allowFontScaling={false} style={{ paddingHorizontal: CONTENT_PADDING, paddingBottom: normalize(14), fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, letterSpacing: -0.2, color: '#8e8e93' }}>
           {`${theme} · ${monthLabel} 콘테스트 · 남은 자리 ${remainingSlots}장`}
         </Text>
 
         {photos.length === 0 ? (
           <Pressable
             onPress={pickPhotos}
-            style={{ marginHorizontal: normalize(28), aspectRatio: 334 / 188, borderRadius: normalize(16), backgroundColor: 'rgba(227,27,89,0.04)', borderWidth: 2, borderColor: 'rgba(227,27,89,0.25)', alignItems: 'center', justifyContent: 'center', gap: normalize(10) }}
+            style={{ marginHorizontal: CONTENT_PADDING, aspectRatio: 334 / 188, borderRadius: CARD_RADIUS, backgroundColor: 'rgba(227,27,89,0.04)', borderWidth: 2, borderColor: 'rgba(227,27,89,0.25)', alignItems: 'center', justifyContent: 'center', gap: normalize(10) }}
           >
             <View style={{ width: normalize(56), height: normalize(56), borderRadius: normalize(16), backgroundColor: 'rgba(227,27,89,0.1)', alignItems: 'center', justifyContent: 'center' }}>
               <Camera size={normalize(26)} color={ACCENT} strokeWidth={1.7} />
@@ -189,7 +189,7 @@ export default function ContestSubmitScreen() {
         ) : (
           <>
             {photos.length > 1 && (
-              <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: normalize(28), paddingBottom: normalize(14), gap: normalize(8) }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: CONTENT_PADDING, paddingBottom: normalize(14), gap: normalize(8) }}>
                 {photos.map((photo, index) => (
                   <Pressable
                     key={photo.id}
@@ -211,7 +211,7 @@ export default function ContestSubmitScreen() {
               </View>
             )}
 
-            <View style={{ marginHorizontal: normalize(28), aspectRatio: 334 / 188, borderRadius: normalize(16), overflow: 'hidden', backgroundColor: SURFACE }}>
+            <View style={{ marginHorizontal: CONTENT_PADDING, aspectRatio: 334 / 188, borderRadius: CARD_RADIUS, overflow: 'hidden', backgroundColor: SURFACE }}>
               <Image source={{ uri: currentPhoto.uri }} resizeMode="cover" style={{ width: '100%', height: '100%' }} />
               <Pressable
                 onPress={removeCurrentPhoto}
@@ -224,7 +224,7 @@ export default function ContestSubmitScreen() {
               </Pressable>
             </View>
 
-            <View style={{ paddingHorizontal: normalize(28), paddingTop: normalize(22) }}>
+            <View style={{ paddingHorizontal: CONTENT_PADDING, paddingTop: normalize(22) }}>
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, letterSpacing: -0.1, color: '#8e8e93' }}>
                 설명
               </Text>
@@ -251,7 +251,7 @@ export default function ContestSubmitScreen() {
               </Text>
             </View>
 
-            <View style={{ paddingHorizontal: normalize(28), paddingTop: normalize(22) }}>
+            <View style={{ paddingHorizontal: CONTENT_PADDING, paddingTop: normalize(22) }}>
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, letterSpacing: -0.1, color: '#8e8e93' }}>
                 촬영 장소
               </Text>
@@ -263,14 +263,14 @@ export default function ContestSubmitScreen() {
               </Pressable>
             </View>
 
-            <View style={{ margin: normalize(22), marginTop: normalize(22), marginHorizontal: normalize(28), padding: normalize(12), paddingHorizontal: normalize(14), borderRadius: normalize(12), backgroundColor: SURFACE, flexDirection: 'row', alignItems: 'flex-start', gap: normalize(8) }}>
+            <View style={{ margin: normalize(22), marginTop: normalize(22), marginHorizontal: CONTENT_PADDING, padding: normalize(12), paddingHorizontal: normalize(14), borderRadius: normalize(12), backgroundColor: SURFACE, flexDirection: 'row', alignItems: 'flex-start', gap: normalize(8) }}>
               <Info size={normalize(15)} color="#8e8e93" strokeWidth={1.8} style={{ marginTop: normalize(2) }} />
               <Text allowFontScaling={false} style={{ flex: 1, fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, lineHeight: FONT_SM * 1.5, letterSpacing: -0.2, color: '#5c5c60' }}>
                 출품 후에는 수정할 수 없어요. 삭제하고 다시 출품해야 해요.
               </Text>
             </View>
 
-            <View style={{ paddingHorizontal: normalize(28), paddingTop: normalize(24), flexDirection: 'row', gap: normalize(8) }}>
+            <View style={{ paddingHorizontal: CONTENT_PADDING, paddingTop: normalize(24), flexDirection: 'row', gap: normalize(8) }}>
               {photos.length > 1 && uploadState !== 'failed' && (
                 <Pressable onPress={nextPhoto} style={{ flex: 1, height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS, backgroundColor: SURFACE, alignItems: 'center', justifyContent: 'center' }}>
                   <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, letterSpacing: -0.3, color: '#000' }}>
@@ -296,7 +296,7 @@ export default function ContestSubmitScreen() {
         // 루트 SafeAreaView의 패딩 박스를 기준으로 절대 배치되므로 이미 상태바 아래다 —
         // 여기서 SafeAreaView로 인셋을 또 주면 노치 높이만큼 헤더가 내려간다
         <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#fff' }}>
-          <View style={{ height: normalize(52), paddingLeft: normalize(12), paddingRight: normalize(20), flexDirection: 'row', alignItems: 'center', gap: normalize(8) }}>
+          <View style={{ height: HEADER_HEIGHT, paddingLeft: normalize(12), paddingRight: normalize(20), flexDirection: 'row', alignItems: 'center', gap: normalize(8) }}>
             <Pressable onPress={() => setSearchVisible(false)} hitSlop={8} style={{ width: normalize(40), height: normalize(40), alignItems: 'center', justifyContent: 'center' }}>
               <ChevronLeft size={normalize(22)} color="#000" strokeWidth={2} />
             </Pressable>
@@ -315,7 +315,7 @@ export default function ContestSubmitScreen() {
 
           <ScrollView>
             {filteredSpots.length === 0 && (
-              <View style={{ paddingTop: normalize(26), paddingHorizontal: normalize(28) }}>
+              <View style={{ paddingTop: normalize(26), paddingHorizontal: CONTENT_PADDING }}>
                 <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, letterSpacing: -0.3, color: '#000' }}>
                   일치하는 스팟이 없어요
                 </Text>
@@ -326,7 +326,7 @@ export default function ContestSubmitScreen() {
             )}
 
             {filteredSpots.map((spot) => (
-              <Pressable key={spot.name} onPress={() => selectSpot(spot.name)} style={{ width: '100%', paddingVertical: normalize(13), paddingHorizontal: normalize(28), flexDirection: 'row', alignItems: 'center', gap: normalize(12) }}>
+              <Pressable key={spot.name} onPress={() => selectSpot(spot.name)} style={{ width: '100%', paddingVertical: normalize(13), paddingHorizontal: CONTENT_PADDING, flexDirection: 'row', alignItems: 'center', gap: normalize(12) }}>
                 <View style={{ width: normalize(34), height: normalize(34), borderRadius: normalize(17), backgroundColor: SURFACE, alignItems: 'center', justifyContent: 'center' }}>
                   <MapPin size={normalize(17)} color="#8e8e93" strokeWidth={1.8} />
                 </View>
@@ -345,7 +345,7 @@ export default function ContestSubmitScreen() {
             <Pressable
               onPress={() => selectSpot(searchQuery)}
               disabled={!searchQuery}
-              style={{ width: '100%', paddingVertical: normalize(13), paddingHorizontal: normalize(28), flexDirection: 'row', alignItems: 'center', gap: normalize(12), borderTopWidth: filteredSpots.length > 0 ? 1 : 0, borderTopColor: 'rgba(0,0,0,0.06)', marginTop: filteredSpots.length > 0 ? normalize(6) : 0 }}
+              style={{ width: '100%', paddingVertical: normalize(13), paddingHorizontal: CONTENT_PADDING, flexDirection: 'row', alignItems: 'center', gap: normalize(12), borderTopWidth: filteredSpots.length > 0 ? 1 : 0, borderTopColor: 'rgba(0,0,0,0.06)', marginTop: filteredSpots.length > 0 ? normalize(6) : 0 }}
             >
               <View style={{ width: normalize(34), height: normalize(34), borderRadius: normalize(17), backgroundColor: filteredSpots.length === 0 && searchQuery ? 'rgba(227,27,89,0.1)' : SURFACE, alignItems: 'center', justifyContent: 'center' }}>
                 <Plus size={normalize(18)} color="#8e8e93" strokeWidth={2} />
@@ -397,7 +397,7 @@ export default function ContestSubmitScreen() {
 
 function Header({ title, onClose, disabled }: { title: string; onClose: () => void; disabled: boolean }) {
   return (
-    <View style={{ height: normalize(52), paddingLeft: normalize(12), paddingRight: normalize(20), flexDirection: 'row', alignItems: 'center', gap: normalize(4) }}>
+    <View style={{ height: HEADER_HEIGHT, paddingLeft: normalize(12), paddingRight: normalize(20), flexDirection: 'row', alignItems: 'center', gap: normalize(4) }}>
       <Pressable onPress={disabled ? undefined : onClose} disabled={disabled} hitSlop={8} accessibilityRole="button" accessibilityLabel="닫기" style={{ width: normalize(40), height: normalize(40), alignItems: 'center', justifyContent: 'center' }}>
         <X size={normalize(20)} color={disabled ? '#c7c7cc' : '#000'} strokeWidth={2} />
       </Pressable>

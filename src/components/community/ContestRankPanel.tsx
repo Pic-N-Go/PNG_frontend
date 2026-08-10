@@ -3,7 +3,7 @@ import { Pressable, Text, View } from 'react-native';
 import Svg, { Circle, Line } from 'react-native-svg';
 import { ChevronDown, ChevronRight, Clock } from 'lucide-react-native';
 import { RankHistory } from '@/types/community';
-import { FONT_2XS, FONT_SM, FONT_XS } from '@/constants/layout';
+import { CARD_RADIUS, CONTENT_PADDING, FONT_2XS, FONT_SM, FONT_XS } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
 
 /**
@@ -58,7 +58,7 @@ export default function ContestRankPanel({
     dayCount <= 1 ? geo.xStart : geo.xStart + ((geo.xEnd - geo.xStart) * index) / (dayCount - 1);
 
   return (
-    <View style={{ margin: normalize(16), marginTop: normalize(16), marginHorizontal: normalize(28), borderRadius: normalize(16), backgroundColor: FILL, overflow: 'hidden' }}>
+    <View style={{ margin: normalize(16), marginTop: normalize(16), marginHorizontal: CONTENT_PADDING, borderRadius: CARD_RADIUS, backgroundColor: FILL, overflow: 'hidden' }}>
       <Pressable onPress={onToggle} style={{ height: normalize(72), paddingHorizontal: normalize(14), flexDirection: 'row', alignItems: 'center', gap: normalize(12) }}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           {history.legend.slice(0, 3).map((entry, index) => (

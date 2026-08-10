@@ -10,7 +10,7 @@ import ContestSegment from '@/components/community/ContestSegment';
 import OptionSheet from '@/components/common/OptionSheet';
 import type { RootStackParamList } from '@/navigation';
 import { ContestPastMonthItem, ContestSubmitTarget, Post } from '@/types/community';
-import { FONT_LG, FONT_SM, FONT_2XL, FONT_2XS, GRID_PADDING } from '@/constants/layout';
+import { CONTENT_PADDING, FONT_LG, FONT_SM, FONT_2XL, FONT_2XS, GRID_PADDING } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
 import { layoutGalleryGrid } from '@/utils/galleryGrid';
 
@@ -182,7 +182,7 @@ export default function CommunityFeedScreen() {
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right']}>
       <View style={{ backgroundColor: '#fff', zIndex: 5 }}>
-        <View style={{ height: normalize(36), paddingHorizontal: normalize(28), alignItems: 'center', justifyContent: 'center' }}>
+        <View style={{ height: normalize(36), paddingHorizontal: CONTENT_PADDING, alignItems: 'center', justifyContent: 'center' }}>
           {isScrolled && (
             <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_LG, color: '#000', letterSpacing: -0.4 }}>
               커뮤니티
@@ -190,7 +190,7 @@ export default function CommunityFeedScreen() {
           )}
         </View>
         {!isScrolled && (
-          <View className="flex-row items-center" style={{ paddingHorizontal: normalize(28), paddingTop: normalize(6), paddingBottom: normalize(10), gap: normalize(10) }}>
+          <View className="flex-row items-center" style={{ paddingHorizontal: CONTENT_PADDING, paddingTop: normalize(6), paddingBottom: normalize(10), gap: normalize(10) }}>
             <Text allowFontScaling={false} style={{ flex: 1, fontFamily: 'Pretendard-SemiBold', fontSize: FONT_2XL, color: '#000', letterSpacing: -1.2 }}>
               커뮤니티
             </Text>
@@ -209,7 +209,7 @@ export default function CommunityFeedScreen() {
             </Pressable>
           </View>
         )}
-        <View className="flex-row items-center" style={{ paddingHorizontal: normalize(28), paddingBottom: normalize(14), gap: normalize(10) }}>
+        <View className="flex-row items-center" style={{ paddingHorizontal: CONTENT_PADDING, paddingBottom: normalize(14), gap: normalize(10) }}>
           <View className="flex-1 flex-row" style={{ backgroundColor: SURFACE, borderRadius: normalize(22), padding: normalize(3), height: normalize(36) }}>
             {SEGMENTS.map((seg) => {
               const isActive = seg.key === segment;
@@ -249,7 +249,7 @@ export default function CommunityFeedScreen() {
       ) : (
         <ScrollView onScroll={handleScroll} scrollEventThrottle={16} contentContainerStyle={{ paddingBottom: normalize(20) }}>
           {segment === 'posts' && (
-            <View style={{ paddingHorizontal: normalize(20), gap: normalize(20) }}>
+            <View style={{ paddingHorizontal: GRID_PADDING, gap: normalize(20) }}>
               {displayedPosts.length === 0 ? (
                 <View style={{ paddingVertical: normalize(48), alignItems: 'center' }}>
                   <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: 'rgba(0,0,0,0.4)', letterSpacing: -0.2 }}>

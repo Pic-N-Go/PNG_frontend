@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { Camera, ChevronDown, ChevronRight, MapPin } from 'lucide-react-native';
 import { ProfileSpotItem } from '@/types/community';
-import { FONT_2XS, FONT_MD, FONT_SM, FONT_XS } from '@/constants/layout';
+import { GRID_PADDING, FONT_2XS, FONT_MD, FONT_SM, FONT_XS } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
 
 const SURFACE = '#f5f5f7';
@@ -20,7 +20,7 @@ export default function ProfileSpotsTab({ items, totalCount, onSelectSpot }: Pro
 
   return (
     <View>
-      <View className="flex-row items-center" style={{ paddingHorizontal: normalize(20), paddingVertical: normalize(12), gap: normalize(8) }}>
+      <View className="flex-row items-center" style={{ paddingHorizontal: GRID_PADDING, paddingVertical: normalize(12), gap: normalize(8) }}>
         <View className="flex-row items-center" style={{ gap: normalize(3) }}>
           <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: 'rgba(0,0,0,0.5)', letterSpacing: -0.2 }}>
             자주 간 순
@@ -46,7 +46,7 @@ export default function ProfileSpotsTab({ items, totalCount, onSelectSpot }: Pro
         </View>
       </View>
 
-      <View style={{ paddingHorizontal: normalize(20), paddingBottom: normalize(12), gap: normalize(8) }}>
+      <View style={{ paddingHorizontal: GRID_PADDING, paddingBottom: normalize(12), gap: normalize(8) }}>
         {items.map((item) => (
           <Pressable
             key={item.id}
@@ -90,7 +90,7 @@ export default function ProfileSpotsTab({ items, totalCount, onSelectSpot }: Pro
         ))}
       </View>
 
-      <View style={{ paddingHorizontal: normalize(20), paddingBottom: normalize(24) }}>
+      <View style={{ paddingHorizontal: GRID_PADDING, paddingBottom: normalize(24) }}>
         <Pressable
           className="items-center justify-center"
           style={{ width: '100%', height: normalize(44), borderRadius: normalize(22), backgroundColor: SURFACE }}

@@ -20,7 +20,7 @@ import {
   RankHistory,
   RankVariant,
 } from '@/types/community';
-import { FONT_SM } from '@/constants/layout';
+import { CONTENT_PADDING, FONT_SM } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
 
 const ACCENT = '#E31B59';
@@ -300,7 +300,7 @@ export default function ContestSegment({ onSelectPastItem, onSeeAllEntries, onOp
 
   return (
     <View style={{ flex: 1 }}>
-      <View className="flex-row" style={{ paddingHorizontal: normalize(28), gap: normalize(20), borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.08)' }}>
+      <View className="flex-row" style={{ paddingHorizontal: CONTENT_PADDING, gap: normalize(20), borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.08)' }}>
         {SUBTABS.map((tab) => {
           const isActive = tab.key === subtab;
           return (

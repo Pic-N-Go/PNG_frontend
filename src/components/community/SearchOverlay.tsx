@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { Clock, X } from 'lucide-react-native';
-import { FONT_2XS, FONT_SM, FONT_XS } from '@/constants/layout';
+import { GRID_PADDING, FONT_2XS, FONT_SM, FONT_XS } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 
 const ACCENT = '#E31B59';
@@ -29,7 +29,7 @@ export default function SearchOverlay({ visible, onClose }: Props) {
   return (
     <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#fff', zIndex: 40 }}>
       <ScrollView contentContainerStyle={{ paddingBottom: normalize(80) }}>
-        <View className="flex-row items-center" style={{ paddingHorizontal: normalize(20), paddingTop: normalize(6), paddingBottom: normalize(12), gap: normalize(12) }}>
+        <View className="flex-row items-center" style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(6), paddingBottom: normalize(12), gap: normalize(12) }}>
           <View className="flex-1 flex-row items-center" style={{ height: normalize(40), paddingHorizontal: normalize(14), borderRadius: normalize(20), backgroundColor: SURFACE, gap: normalize(10) }}>
             <TextInput
               value={query}
@@ -57,7 +57,7 @@ export default function SearchOverlay({ visible, onClose }: Props) {
           </Pressable>
         </View>
 
-        <View className="flex-row" style={{ paddingHorizontal: normalize(20), paddingBottom: normalize(14), gap: normalize(6) }}>
+        <View className="flex-row" style={{ paddingHorizontal: GRID_PADDING, paddingBottom: normalize(14), gap: normalize(6) }}>
           {CATEGORY_CHIPS.map((chip) => {
             const isActive = chip === activeChip;
             return (
@@ -76,7 +76,7 @@ export default function SearchOverlay({ visible, onClose }: Props) {
 
         {recentSearches.length > 0 && (
           <>
-            <View className="flex-row items-center justify-between" style={{ paddingHorizontal: normalize(20), paddingTop: normalize(8), paddingBottom: normalize(4) }}>
+            <View className="flex-row items-center justify-between" style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(8), paddingBottom: normalize(4) }}>
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, color: 'rgba(0,0,0,0.45)', letterSpacing: 0.4 }}>
                 최근 검색
               </Text>
@@ -86,7 +86,7 @@ export default function SearchOverlay({ visible, onClose }: Props) {
                 </Text>
               </Pressable>
             </View>
-            <View style={{ paddingHorizontal: normalize(20), paddingBottom: normalize(8) }}>
+            <View style={{ paddingHorizontal: GRID_PADDING, paddingBottom: normalize(8) }}>
               {recentSearches.map((term) => (
                 <View key={term} className="flex-row items-center" style={{ gap: normalize(12), paddingVertical: normalize(11) }}>
                   <Clock size={normalize(16)} color="rgba(0,0,0,0.35)" strokeWidth={1.8} />
@@ -102,12 +102,12 @@ export default function SearchOverlay({ visible, onClose }: Props) {
           </>
         )}
 
-        <View style={{ paddingHorizontal: normalize(20), paddingTop: normalize(8), paddingBottom: normalize(4) }}>
+        <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(8), paddingBottom: normalize(4) }}>
           <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, color: 'rgba(0,0,0,0.45)', letterSpacing: 0.4 }}>
             인기 검색어
           </Text>
         </View>
-        <View className="flex-row flex-wrap" style={{ paddingHorizontal: normalize(20), paddingBottom: normalize(8), gap: normalize(6) }}>
+        <View className="flex-row flex-wrap" style={{ paddingHorizontal: GRID_PADDING, paddingBottom: normalize(8), gap: normalize(6) }}>
           {POPULAR_KEYWORDS.map((keyword, index) => {
             const rank = index + 1;
             const isTop = rank <= 3;
@@ -128,12 +128,12 @@ export default function SearchOverlay({ visible, onClose }: Props) {
           })}
         </View>
 
-        <View style={{ paddingHorizontal: normalize(20), paddingTop: normalize(8), paddingBottom: normalize(4) }}>
+        <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(8), paddingBottom: normalize(4) }}>
           <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, color: 'rgba(0,0,0,0.45)', letterSpacing: 0.4 }}>
             추천 스팟
           </Text>
         </View>
-        <View className="flex-row flex-wrap" style={{ paddingHorizontal: normalize(20), paddingBottom: normalize(24), gap: normalize(8) }}>
+        <View className="flex-row flex-wrap" style={{ paddingHorizontal: GRID_PADDING, paddingBottom: normalize(24), gap: normalize(8) }}>
           {RECOMMENDED_SPOTS.map((spot) => (
             <View key={spot.id} style={{ width: '47%', gap: normalize(8) }}>
               <View style={{ height: normalize(100), borderRadius: normalize(12), backgroundColor: spot.gradient }} />

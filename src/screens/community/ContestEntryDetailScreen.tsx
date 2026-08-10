@@ -12,7 +12,7 @@ import Toast from '@/components/common/Toast';
 import DevStateSwitch from '@/components/common/DevStateSwitch';
 import { CommunityDetailStackParamList } from '@/navigation/stacks/CommunityDetailStack';
 import type { RootStackParamList } from '@/navigation';
-import { BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING, FONT_LG, FONT_MD, FONT_SM, FONT_XS } from '@/constants/layout';
+import { HEADER_HEIGHT, BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING, FONT_LG, FONT_MD, FONT_SM, FONT_XS } from '@/constants/layout';
 import { normalize, normalizeFontSize, normalizeHeight } from '@/utils/normalize';
 
 /**
@@ -102,7 +102,7 @@ export default function ContestEntryDetailScreen() {
           <LinearGradient colors={MOCK_ENTRY.gradient} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
           <LinearGradient colors={['rgba(0,0,0,0.42)', 'rgba(0,0,0,0)']} style={{ position: 'absolute', top: 0, left: 0, right: 0, height: normalize(150) }} pointerEvents="none" />
           <View style={{ paddingTop: __DEV__ ? 0 : insets.top }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: normalize(12), height: normalize(52), marginTop: normalize(2) }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: normalize(12), height: HEADER_HEIGHT, marginTop: normalize(2) }}>
               <Pressable onPress={() => navigation.goBack()} hitSlop={8} accessibilityRole="button" accessibilityLabel="뒤로" style={{ width: normalize(40), height: normalize(40), alignItems: 'center', justifyContent: 'center' }}>
                 <ChevronLeft size={normalize(22)} color="#fff" strokeWidth={2} />
               </Pressable>
@@ -161,7 +161,7 @@ export default function ContestEntryDetailScreen() {
 
           {isEnded ? (
             /* 결과 발표 후 — 누를 수 없다. 1~3위만 핑크로 강조 */
-            <View style={{ marginTop: normalize(20), height: normalize(52), borderRadius: normalize(26), backgroundColor: isAward ? 'rgba(227,27,89,0.1)' : SURFACE, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: normalize(8) }}>
+            <View style={{ marginTop: normalize(20), height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS, backgroundColor: isAward ? 'rgba(227,27,89,0.1)' : SURFACE, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: normalize(8) }}>
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, letterSpacing: -0.3, color: isAward ? ACCENT : '#000' }}>
                 {isAward ? `8월 ${rank}위` : `${rank}위`}
               </Text>

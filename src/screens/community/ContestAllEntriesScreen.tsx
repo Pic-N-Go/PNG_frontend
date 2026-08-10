@@ -10,7 +10,7 @@ import Toast from '@/components/common/Toast';
 import DevStateSwitch from '@/components/common/DevStateSwitch';
 import { CommunityDetailStackParamList } from '@/navigation/stacks/CommunityDetailStack';
 import { ContestEntry, ContestSortKey, MyVoteEntry } from '@/types/community';
-import { BUTTON_RADIUS, CONTENT_PADDING, FONT_2XS, FONT_LG, FONT_MD, FONT_SM, FONT_XS } from '@/constants/layout';
+import { CARD_RADIUS, HEADER_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING, FONT_2XS, FONT_LG, FONT_MD, FONT_SM, FONT_XS } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
 import { voteHaptic } from '@/utils/haptics';
 
@@ -133,7 +133,7 @@ function EntryCard({
   onPress: () => void;
 }) {
   return (
-    <Pressable onPress={onPress} style={{ width, borderRadius: normalize(16), overflow: 'hidden', backgroundColor: FILL }}>
+    <Pressable onPress={onPress} style={{ width, borderRadius: CARD_RADIUS, overflow: 'hidden', backgroundColor: FILL }}>
       {/* 투표 기간에는 사진 위에 아무것도 얹지 않는다. 지난 콘테스트만 순위 배지 예외 */}
       <View style={{ width: '100%', aspectRatio: 1, backgroundColor: '#ededf1' }}>
         <LinearGradient colors={item.gradient} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
@@ -165,7 +165,7 @@ function EntryCard({
 
 function SkeletonCard({ width }: { width: number }) {
   return (
-    <View style={{ width, borderRadius: normalize(16), overflow: 'hidden', backgroundColor: FILL, opacity: 0.7 }}>
+    <View style={{ width, borderRadius: CARD_RADIUS, overflow: 'hidden', backgroundColor: FILL, opacity: 0.7 }}>
       <View style={{ width: '100%', aspectRatio: 1, backgroundColor: '#ededf1' }} />
       <View style={{ paddingTop: normalize(9), paddingHorizontal: normalize(12), paddingBottom: normalize(11) }}>
         <View style={{ height: normalize(10), borderRadius: normalize(5), backgroundColor: GRAY_SPENT }} />
@@ -309,7 +309,7 @@ export default function ContestAllEntriesScreen() {
       />
 
       {/* 네비 — 히어로 없이 타이틀 + 총 개수. 검색 없음 */}
-      <View className="flex-row items-center" style={{ height: normalize(52), paddingLeft: normalize(12), paddingRight: normalize(20), gap: normalize(4) }}>
+      <View className="flex-row items-center" style={{ height: HEADER_HEIGHT, paddingLeft: normalize(12), paddingRight: normalize(20), gap: normalize(4) }}>
         <Pressable
           onPress={() => navigation.goBack()}
           hitSlop={8}
