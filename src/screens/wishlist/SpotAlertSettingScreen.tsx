@@ -1,83 +1,69 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, TextInput, Switch, Modal, Pressable, ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { FONT_SM, BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING } from '@/constants/layout';
+import { View, Text, TouchableOpacity, ScrollView, TextInput, Switch, ActivityIndicator, Alert, Keyboard } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
+import { useKeyboardOverlap } from '@/hooks/useKeyboardHeight';
 import { 
-  IconChevronLeft, IconTrash, IconX, IconCheck, IconSearch, 
-  IconSun, IconCloud, IconCloudRain, IconCloudSnow, IconCloudFog, IconCloudStorm
+  IconChevronLeft, IconTrash, IconX, IconCheck, IconSearch,
+  IconSun, IconCloud, IconCloudRain, IconCloudSnow
 } from '@tabler/icons-react-native';
 
 import BottomSheet from '@/components/common/BottomSheet';
 import { useSpotAlert } from '@/hooks/useSpotAlert';
 import { useSpots, useSearchSpots } from '@/hooks/useSpot';
-import { WEATHER_API_TO_UI, WEATHER_UI_TO_API, TIME_API_TO_UI, TIME_UI_TO_API, DUST_API_TO_UI, DUST_UI_TO_API } from '@/utils/wishlistMapper';
+import { WEATHER_API_TO_UI, TIME_API_TO_UI, DUST_API_TO_UI } from '@/utils/wishlistMapper';
+import type { WeatherCondition, TimeCondition, AirQualityCondition } from '@/api/spotAlert';
 
-const WEATHERS = [
-  { id: '맑음', label: '맑음' },
-  { id: '흐림', label: '구름조금' },
-  { id: '비', label: '흐림' },
-  { id: '눈', label: '비/눈' },
-];
+// 칩은 API enum을 그대로 id로 쓴다. 라벨은 *_API_TO_UI 한 곳에서만 정의한다 —
+// 예전처럼 화면 상수가 별도 한글 id를 들면 매퍼 키와 어긋나 조용히 다른 값으로 저장된다.
+// NONE("조건 없음")은 칩으로 노출하지 않는다. 아무것도 고르지 않은 상태가 곧 조건 없음이다.
+const WEATHER_CHIPS: WeatherCondition[] = ['CLEAR', 'CLOUDY', 'RAINY', 'SNOWY'];
+const TIME_CHIPS: TimeCondition[] = ['DAWN', 'SUNRISE', 'MORNING', 'AFTERNOON', 'SUNSET', 'NIGHT'];
+const DUST_CHIPS: AirQualityCondition[] = ['GOOD', 'NORMAL_OR_BETTER', 'NONE'];
 
-const DUSTS = [
-  { id: '좋음', label: '좋음' },
-  { id: '보통', label: '보통 이상' },
-  { id: '상관없음', label: '상관없음' },
-];
+const DEFAULT_WEATHERS: WeatherCondition[] = ['CLEAR'];
+const DEFAULT_TIMES: TimeCondition[] = ['SUNSET', 'NIGHT'];
+const DEFAULT_DUST: AirQualityCondition = 'GOOD';
 
-const TIMES = [
-  { id: '일출', label: '일출' },
-  { id: '주간', label: '낮' },
-  { id: '일몰', label: '일몰' },
-  { id: '야간', label: '야간' },
-];
+const uniq = <T,>(arr: T[]): T[] => Array.from(new Set(arr));
 
-const getWeatherIcon = (id: string, selected: boolean) => {
+const getWeatherIcon = (id: WeatherCondition, selected: boolean) => {
   let IconComponent = IconSun;
   let activeColor = '#E31B59';
   switch (id) {
-    case '맑음': 
+    case 'CLEAR':
       IconComponent = IconSun;
       activeColor = '#FBBF24';
       break;
-    case '흐림': 
+    case 'CLOUDY':
       IconComponent = IconCloud;
       break;
-    case '비': 
+    case 'RAINY':
       IconComponent = IconCloudRain;
       break;
-    case '눈': 
+    case 'SNOWY':
       IconComponent = IconCloudSnow;
-      break;
-    case '안개': 
-      IconComponent = IconCloudFog;
-      break;
-    case '뇌우': 
-      IconComponent = IconCloudStorm;
-      activeColor = '#FBBF24';
       break;
   }
   return <IconComponent size={normalize(22)} color={selected ? activeColor : 'rgba(0,0,0,0.25)'} style={{ marginBottom: normalize(2) }} />;
 };
 
 export default function SpotAlertSettingScreen({ navigation, route }: any) {
-  const existingSpotId = route.params?.id;
+  const insets = useSafeAreaInsets();
+  const keyboardOverlap = useKeyboardOverlap();
   const { useSpotAlertDetailQuery, useUpdateSpotAlertMutation, useDeleteSpotAlertMutation } = useSpotAlert();
-  const { data: initData, isLoading } = useSpotAlertDetailQuery(existingSpotId);
 
-  const [selectedSpot, setSelectedSpot] = useState<any>({
-    id: 1,
-    name: '경복궁 근정전',
-    loc: '서울 종로구',
-    score: 98,
-    bg: '#2b2a29',
-    tags: ['#한옥', '#고궁'],
-  });
+  const [selectedSpot, setSelectedSpot] = useState<any>(null);
 
-  const [selectedWeathers, setSelectedWeathers] = useState<string[]>(['맑음']);
-  const [selectedDust, setSelectedDust] = useState('좋음');
-  const [selectedTimes, setSelectedTimes] = useState<string[]>(['일몰', '야간']);
+  // 조회 대상은 "현재 화면이 편집 중인 스팟"이어야 한다. 진입 시점의 route.params.id로
+  // 고정해 두면 스팟을 바꿔도 이전 스팟의 조건이 폼에 남아 새 스팟에 덮어써진다.
+  const targetSpotId = selectedSpot?.id ?? route.params?.id;
+  const { data: initData, isLoading } = useSpotAlertDetailQuery(targetSpotId);
+
+  const [selectedWeathers, setSelectedWeathers] = useState<WeatherCondition[]>(DEFAULT_WEATHERS);
+  const [selectedDust, setSelectedDust] = useState<AirQualityCondition>(DEFAULT_DUST);
+  const [selectedTimes, setSelectedTimes] = useState<TimeCondition[]>(DEFAULT_TIMES);
   const [notifEnabled, setNotifEnabled] = useState(true);
   const [notifTiming, setNotifTiming] = useState('1일 전');
   const [dndStart, setDndStart] = useState('22:00');
@@ -103,6 +89,20 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
     tags: spot.tags || ['#스팟', '#출사'],
   }));
 
+  // 편집 대상 스팟이 바뀌면 폼을 먼저 기본값으로 되돌린다. 그 스팟에 저장된 설정이 있으면
+  // 바로 아래 initData 이펙트가 곧이어 덮어쓴다. 이 리셋이 없으면 알림이 없는 스팟으로
+  // 바꿨을 때 이전 스팟의 조건이 그대로 남아 저장된다.
+  useEffect(() => {
+    setSelectedWeathers(DEFAULT_WEATHERS);
+    setSelectedTimes(DEFAULT_TIMES);
+    setSelectedDust(DEFAULT_DUST);
+    setNotifEnabled(true);
+    setNotifTiming('1일 전');
+    setDndStart('22:00');
+    setDndEnd('07:00');
+    setMemo('');
+  }, [targetSpotId]);
+
   useEffect(() => {
     if (initData) {
       setSelectedSpot({
@@ -113,14 +113,16 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
         bg: '#2b2a29',
         tags: initData.tags || [],
       });
+      // 칩으로 노출하지 않는 값(NONE 등)과 중복은 여기서 걷어낸다. 예전에는 매핑 실패한
+      // 값이 raw enum 문자열로 state에 남았다가 저장 시 기본값으로 붕괴해 중복을 만들었다.
       if (initData.weatherConditions) {
-        setSelectedWeathers(initData.weatherConditions.map(c => WEATHER_API_TO_UI[c] || c));
+        setSelectedWeathers(uniq(initData.weatherConditions.filter(c => WEATHER_CHIPS.includes(c))));
       }
       if (initData.timeConditions) {
-        setSelectedTimes(initData.timeConditions.map(c => TIME_API_TO_UI[c] || c));
+        setSelectedTimes(uniq(initData.timeConditions.filter(c => TIME_CHIPS.includes(c))));
       }
       if (initData.airQualityCondition) {
-        setSelectedDust(DUST_API_TO_UI[initData.airQualityCondition] || '좋음');
+        setSelectedDust(DUST_CHIPS.includes(initData.airQualityCondition) ? initData.airQualityCondition : DEFAULT_DUST);
       }
       setNotifEnabled(initData.isAlertEnabled ?? true);
       if (initData.alertTimingDays) {
@@ -168,11 +170,17 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
   };
 
   const handleSave = () => {
+    if (!selectedSpot?.id) {
+      Alert.alert('스팟을 선택해 주세요', '알림을 설정할 스팟을 먼저 골라 주세요.');
+      return;
+    }
+
     const apiData = {
       memo,
-      weatherConditions: selectedWeathers.map(w => WEATHER_UI_TO_API[w] || 'CLEAR'),
-      timeConditions: selectedTimes.map(t => TIME_UI_TO_API[t] || 'SUNSET'),
-      airQualityCondition: DUST_UI_TO_API[selectedDust] || 'GOOD',
+      // state가 이미 API enum이라 변환이 없다. 명세상 uniqueItems: true라 중복만 제거한다.
+      weatherConditions: uniq(selectedWeathers),
+      timeConditions: uniq(selectedTimes),
+      airQualityCondition: selectedDust,
       isAlertEnabled: notifEnabled,
       alertTimingDays: parseInt(notifTiming.replace(/[^0-9]/g, '')) || 1,
       dndStartTime: dndStart,
@@ -194,6 +202,7 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
   };
 
   const handleDelete = () => {
+    if (!selectedSpot?.id) return;
     deleteMutation.mutate(selectedSpot.id, {
       onSuccess: () => {
         navigation.goBack();
@@ -204,17 +213,18 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
     });
   };
 
-  const toggleWeather = (w: string) => {
+  const toggleWeather = (w: WeatherCondition) => {
     setSelectedWeathers(prev => prev.includes(w) ? prev.filter(x => x !== w) : [...prev, w]);
     markDirty();
   };
 
-  const toggleTime = (t: string) => {
+  const toggleTime = (t: TimeCondition) => {
     setSelectedTimes(prev => prev.includes(t) ? prev.filter(x => x !== t) : [...prev, t]);
     markDirty();
   };
 
-  if (existingSpotId && isLoading) {
+  // 전체 화면 스피너는 최초 진입 때만. 스팟을 바꿀 때마다 화면이 통째로 날아가면 안 된다.
+  if (!selectedSpot && isLoading) {
     return (
       <SafeAreaView className="flex-1 bg-white items-center justify-center" edges={['top', 'left', 'right', 'bottom']}>
         <ActivityIndicator size="large" color="#E31B59" />
@@ -223,8 +233,10 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
     );
   }
 
+  // SafeAreaView edges에서 'bottom'을 뺀다 — 키보드가 올라오면 내비바 자리를 키보드가 덮으므로
+  // insets.bottom과 keyboardOverlap이 이중으로 더해지면 안 된다. 저장 바에서 직접 처리한다.
   return (
-    <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right', 'bottom']}>
+    <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right']}>
       {/* Navigation */}
       <View className="flex-row items-center justify-between border-b border-black/5 bg-white z-20" style={{ height: normalize(54), paddingHorizontal: normalize(12) }}>
         <TouchableOpacity onPress={handleBack} className="items-center justify-center rounded-full" style={{ width: normalize(36), height: normalize(36) }}>
@@ -236,7 +248,15 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
         </TouchableOpacity>
       </View>
 
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} keyboardVerticalOffset={Platform.OS === 'ios' ? normalize(54) : 0} style={{ flex: 1 }}>
+      {/* 키보드 대응은 useKeyboardOverlap 하나로만 한다.
+          예전에는 여기에 KeyboardAvoidingView(behavior='height')가 걸려 있었는데, 이 앱은
+          엣지투엣지라 창이 리사이즈되지 않아 KAV의 창(window) 기준 계산이 맞지 않는다.
+          KAV는 state.bottom이 정확히 0으로 돌아와야만 원래 레이아웃을 복구하는데
+          (RN KeyboardAvoidingView.js: bottom > 0인 동안 flex를 0으로 고정),
+          좌표계가 어긋나 0에 안착하지 못하면 고정 height로 굳어 버린다. 그러면 이 컨테이너
+          바깥에 있던 저장 바가 화면 아래로 밀려 반쯤 잘렸다.
+          컨테이너를 keyboardOverlap만큼 줄이면 스크롤 영역과 저장 바가 함께 키보드 위로 올라온다. */}
+      <View style={{ flex: 1, paddingBottom: keyboardOverlap }}>
         <ScrollView ref={scrollViewRef} className="flex-1" contentContainerStyle={{ paddingHorizontal: CONTENT_PADDING, paddingBottom: normalize(40) }} showsVerticalScrollIndicator={false}>
         
         {/* Spot Card */}
@@ -244,12 +264,14 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
           activeOpacity={0.9}
           onPress={() => setSpotSheetVisible(true)}
           className="overflow-hidden relative" 
-          style={{ backgroundColor: selectedSpot.bg, marginTop: normalize(16), marginBottom: normalize(28), borderRadius: normalize(16), padding: normalize(18), paddingBottom: normalize(14) }}
+          style={{ backgroundColor: selectedSpot?.bg || '#2b2a29', marginTop: normalize(16), marginBottom: normalize(28), borderRadius: normalize(16), padding: normalize(18), paddingBottom: normalize(14) }}
         >
-          <Text className="font-semibold text-white tracking-tight mb-1" style={{ fontSize: normalizeFontSize(18) }}>{selectedSpot.name}</Text>
-          <Text className="text-white/50 mb-2.5" style={{ fontSize: normalizeFontSize(12) }}>{selectedSpot.loc} · 포토제닉 {selectedSpot.score}점</Text>
+          <Text className="font-semibold text-white tracking-tight mb-1" style={{ fontSize: normalizeFontSize(18) }}>{selectedSpot?.name || '스팟을 선택해 주세요'}</Text>
+          <Text className="text-white/50 mb-2.5" style={{ fontSize: normalizeFontSize(12) }}>
+            {selectedSpot ? `${selectedSpot.loc} · 포토제닉 ${selectedSpot.score}점` : '아래 버튼으로 알림을 받을 스팟을 고르세요'}
+          </Text>
           <View className="flex-row gap-1.5 z-0">
-            {(selectedSpot.tags || []).map((tag: string) => (
+            {(selectedSpot?.tags || []).map((tag: string) => (
               <View key={tag} className="bg-white/10 items-center justify-center rounded-full" style={{ paddingVertical: normalize(2), paddingHorizontal: normalize(12) }}>
                 <Text className="text-white/75" style={{ fontSize: normalizeFontSize(10) }}>{tag}</Text>
               </View>
@@ -265,17 +287,17 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
           <Text className="font-semibold text-black tracking-tight mb-1" style={{ fontSize: normalizeFontSize(16) }}>선호 날씨</Text>
           <Text className="text-black/40 mb-3" style={{ fontSize: normalizeFontSize(12) }}>중복 선택 가능 · 아무것도 안 고르면 날씨 조건 없음</Text>
           <View className="flex-row gap-2">
-            {WEATHERS.map((w) => {
-              const selected = selectedWeathers.includes(w.id);
+            {WEATHER_CHIPS.map((w) => {
+              const selected = selectedWeathers.includes(w);
               return (
-                <TouchableOpacity 
-                  key={w.id} 
-                  onPress={() => toggleWeather(w.id)} 
-                  className={`flex-1 items-center justify-center rounded-2xl border ${selected ? 'bg-[#E31B59]/5 border-[#E31B59]' : 'bg-[#f5f5f7] border-transparent'}`} 
+                <TouchableOpacity
+                  key={w}
+                  onPress={() => toggleWeather(w)}
+                  className={`flex-1 items-center justify-center rounded-2xl border ${selected ? 'bg-[#E31B59]/5 border-[#E31B59]' : 'bg-[#f5f5f7] border-transparent'}`}
                   style={{ paddingVertical: normalize(12), paddingHorizontal: normalize(4) }}
                 >
-                  {getWeatherIcon(w.id, selected)}
-                  <Text className={`font-medium ${selected ? 'text-[#E31B59]' : 'text-black/40'}`} style={{ fontSize: normalizeFontSize(11) }}>{w.label}</Text>
+                  {getWeatherIcon(w, selected)}
+                  <Text className={`font-medium ${selected ? 'text-[#E31B59]' : 'text-black/40'}`} style={{ fontSize: normalizeFontSize(11) }}>{WEATHER_API_TO_UI[w]}</Text>
                 </TouchableOpacity>
               );
             })}
@@ -287,16 +309,16 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
           <Text className="font-semibold text-black tracking-tight mb-1" style={{ fontSize: normalizeFontSize(16) }}>선호 시간대</Text>
           <Text className="text-black/40 mb-3" style={{ fontSize: normalizeFontSize(12) }}>골든아워 또는 특정 촬영 시간대</Text>
           <View className="flex-row gap-2">
-            {TIMES.map((t) => {
-              const selected = selectedTimes.includes(t.id);
+            {TIME_CHIPS.map((t) => {
+              const selected = selectedTimes.includes(t);
               return (
-                <TouchableOpacity 
-                  key={t.id} 
-                  onPress={() => toggleTime(t.id)} 
-                  className={`flex-1 items-center justify-center rounded-2xl border ${selected ? 'bg-[#E31B59]/5 border-[#E31B59]' : 'bg-[#f5f5f7] border-transparent'}`} 
+                <TouchableOpacity
+                  key={t}
+                  onPress={() => toggleTime(t)}
+                  className={`flex-1 items-center justify-center rounded-2xl border ${selected ? 'bg-[#E31B59]/5 border-[#E31B59]' : 'bg-[#f5f5f7] border-transparent'}`}
                   style={{ paddingVertical: normalize(12), paddingHorizontal: normalize(4) }}
                 >
-                  <Text className={`font-medium ${selected ? 'text-[#E31B59]' : 'text-black/40'}`} style={{ fontSize: normalizeFontSize(11) }}>{t.label}</Text>
+                  <Text className={`font-medium ${selected ? 'text-[#E31B59]' : 'text-black/40'}`} style={{ fontSize: normalizeFontSize(11) }}>{TIME_API_TO_UI[t]}</Text>
                 </TouchableOpacity>
               );
             })}
@@ -308,16 +330,16 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
           <Text className="font-semibold text-black tracking-tight mb-1" style={{ fontSize: normalizeFontSize(16) }}>미세먼지 조건</Text>
           <Text className="text-black/40 mb-3" style={{ fontSize: normalizeFontSize(12) }}>시야 확보를 위한 공기질 조건</Text>
           <View className="flex-row gap-2">
-            {DUSTS.map((d) => {
-              const selected = selectedDust === d.id;
+            {DUST_CHIPS.map((d) => {
+              const selected = selectedDust === d;
               return (
-                <TouchableOpacity 
-                  key={d.id} 
-                  onPress={() => { setSelectedDust(d.id); markDirty(); }} 
-                  className={`flex-1 items-center justify-center rounded-2xl border ${selected ? 'bg-[#E31B59]/5 border-[#E31B59]' : 'bg-[#f5f5f7] border-transparent'}`} 
+                <TouchableOpacity
+                  key={d}
+                  onPress={() => { setSelectedDust(d); markDirty(); }}
+                  className={`flex-1 items-center justify-center rounded-2xl border ${selected ? 'bg-[#E31B59]/5 border-[#E31B59]' : 'bg-[#f5f5f7] border-transparent'}`}
                   style={{ paddingVertical: normalize(12), paddingHorizontal: normalize(4) }}
                 >
-                  <Text className={`font-medium ${selected ? 'text-[#E31B59]' : 'text-black/40'}`} style={{ fontSize: normalizeFontSize(11) }}>{d.label}</Text>
+                  <Text className={`font-medium ${selected ? 'text-[#E31B59]' : 'text-black/40'}`} style={{ fontSize: normalizeFontSize(11) }}>{DUST_API_TO_UI[d]}</Text>
                 </TouchableOpacity>
               );
             })}
@@ -363,22 +385,26 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
         </View>
 
         </ScrollView>
-      </KeyboardAvoidingView>
 
-      {/* Floating Save Button */}
-      <View className="px-5 py-3 border-t border-black/5 bg-white">
-        <TouchableOpacity 
-          onPress={handleSave} 
-          disabled={updateMutation.isPending}
-          className="bg-[#E31B59] items-center justify-center" 
-          style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}
+        {/* Floating Save Button
+            키보드가 올라와 있으면 내비바 자리는 이미 키보드가 덮고 있으므로 insets.bottom을 더하지 않는다. */}
+        <View
+          className="px-5 border-t border-black/5 bg-white"
+          style={{ paddingTop: normalize(12), paddingBottom: normalize(12) + (keyboardOverlap > 0 ? 0 : insets.bottom) }}
         >
-          {updateMutation.isPending ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text className="font-medium text-white" style={{ fontSize: normalizeFontSize(16) }}>저장하기</Text>
-          )}
-        </TouchableOpacity>
+          <TouchableOpacity
+            onPress={handleSave}
+            disabled={updateMutation.isPending}
+            className="bg-[#E31B59] items-center justify-center"
+            style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}
+          >
+            {updateMutation.isPending ? (
+              <ActivityIndicator color="#fff" />
+            ) : (
+              <Text className="font-medium text-white" style={{ fontSize: normalizeFontSize(16) }}>저장하기</Text>
+            )}
+          </TouchableOpacity>
+        </View>
       </View>
 
       {/* Spot Change Sheet */}
@@ -428,7 +454,7 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
             </View>
           ) : (
             spotsList.map((s: any) => {
-              const isSelected = String(s.id) === String(selectedSpot.id);
+              const isSelected = String(s.id) === String(selectedSpot?.id);
               return (
                 <TouchableOpacity 
                   key={s.id} 
