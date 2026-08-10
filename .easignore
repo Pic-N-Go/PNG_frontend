@@ -28,5 +28,4 @@ Thumbs.db
 # Do NOT ignore configuration files required for build
 !google-services.json
 !GoogleService-Info.plist
-!.env
 !.npmrc

@@ -596,8 +596,8 @@ export default function MapScreen() {
                 onChangeText={setMapSearchText}
                 placeholder="스팟 이름으로 검색"
                 placeholderTextColor="rgba(0,0,0,0.3)"
-                className="flex-1 ml-2 text-black font-medium"
-                style={{ fontSize: normalizeFontSize(14), padding: 0 }}
+                className="flex-1 ml-2 text-black font-medium p-0"
+                style={{ fontSize: normalizeFontSize(14) }}
               />
               {mapSearchText.length > 0 && (
                 <TouchableOpacity onPress={() => setMapSearchText('')} hitSlop={8}>
