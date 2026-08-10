@@ -35,20 +35,22 @@ const HISTORY: HistoryItem[] = [
 
 /**
  * 순위 추이 — 위가 1위, 아래로 갈수록 하위. 최근 6회.
- * 좌표는 목업의 viewBox(`0 0 294 110`)를 그대로 쓴다. 0~100으로 정규화하면 첫 점과 끝 점이
- * 경계에 딱 붙어 원이 반쪽 잘리므로, 목업처럼 양 끝에 여백(18 / 276)을 둔 좌표를 유지한다.
+ * viewBox는 목업의 `0 0 294 110`을 그대로 쓰되, x는 아래 X축 라벨 6등분 칸의 중앙(294/12의 홀수배)에
+ * 둔다. 목업 좌표(18·73·128·183·238·276)는 마지막 간격만 38이라 점과 라벨이 최대 6% 어긋난다.
+ * 양 끝 여백이 24.5로 균등해져 원(r=5.5)이 잘릴 일도 없다.
  */
 const TREND_VIEW_W = 294;
 const TREND_VIEW_H = 110;
-const RANK_TREND: { x: number; y: number }[] = [
-  { x: 18, y: 84 },
-  { x: 73, y: 58 },
-  { x: 128, y: 22 },
-  { x: 183, y: 44 },
-  { x: 238, y: 66 },
-  { x: 276, y: 38 },
+const RANK_TREND: { x: number; y: number; monthLabel: string; theme: string }[] = [
+  { x: 24.5, y: 84, monthLabel: '3월', theme: '안개' },
+  { x: 73.5, y: 58, monthLabel: '4월', theme: '벚꽃' },
+  { x: 122.5, y: 44, monthLabel: '5월', theme: '숲 산책' },
+  { x: 171.5, y: 22, monthLabel: '6월', theme: '밤하늘' },
+  { x: 220.5, y: 66, monthLabel: '7월', theme: '비 오는 날' },
+  { x: 269.5, y: 38, monthLabel: '8월', theme: '골든아워' },
 ];
-const BEST_RANK_INDEX = 2;
+// 회차별 기록의 최고 순위(6월 밤하늘 2위)와 같은 지점을 가리켜야 한다
+const BEST_RANK_INDEX = 3;
 
 function HistoryRow({ item, onPress }: { item: HistoryItem; onPress: () => void }) {
   return (
@@ -100,7 +102,8 @@ export default function ContestMyEntryTab({ phase, contest, entryCount, maxEntri
 
   if (!hasHistory) {
     return (
-      <ScrollView contentContainerStyle={{ paddingBottom: normalize(24) }} showsVerticalScrollIndicator={false}>
+      // flexGrow: 1 — 내용이 화면보다 짧을 때 빈 상태가 남은 공간을 차지해 세로 중앙에 설 수 있게 한다
+      <ScrollView contentContainerStyle={{ flexGrow: 1, paddingBottom: normalize(24) }} showsVerticalScrollIndicator={false}>
         {entryCount < maxEntries && (
           <View style={{ margin: normalize(18), marginTop: normalize(18), marginHorizontal: CONTENT_PADDING, padding: normalize(20), borderRadius: normalize(20), backgroundColor: SURFACE }}>
             <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, letterSpacing: -0.1, color: ACCENT }}>
@@ -120,7 +123,7 @@ export default function ContestMyEntryTab({ phase, contest, entryCount, maxEntri
           </View>
         )}
 
-        <View style={{ paddingTop: normalize(44), paddingHorizontal: CONTENT_PADDING, alignItems: 'center' }}>
+        <View style={{ flex: 1, minHeight: normalize(260), justifyContent: 'center', paddingHorizontal: CONTENT_PADDING, alignItems: 'center' }}>
           <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, letterSpacing: -0.3, color: '#000' }}>
             아직 출품 기록이 없어요
           </Text>
@@ -163,7 +166,8 @@ export default function ContestMyEntryTab({ phase, contest, entryCount, maxEntri
         </View>
 
         <View style={{ marginTop: normalize(18), paddingTop: normalize(18), borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.07)' }}>
-          <View style={{ flexDirection: 'row', alignItems: 'baseline', marginBottom: normalize(10) }}>
+          {/* 배지가 그래프 위로 12 올라오므로 제목과 부딪히지 않게 여백을 그만큼 더 준다 */}
+          <View style={{ flexDirection: 'row', alignItems: 'baseline', marginBottom: normalize(20) }}>
             <Text allowFontScaling={false} style={{ flex: 1, fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, letterSpacing: -0.2, color: '#000' }}>
               순위 추이
             </Text>
@@ -199,7 +203,8 @@ export default function ContestMyEntryTab({ phase, contest, entryCount, maxEntri
               style={{
                 position: 'absolute',
                 left: `${(RANK_TREND[BEST_RANK_INDEX].x / TREND_VIEW_W) * 100}%`,
-                top: 0,
+                // 최고점 원과 겹치지 않게 그래프 위쪽으로 빼낸다
+                top: -normalize(12),
                 transform: [{ translateX: -normalize(28) }],
                 height: normalize(22),
                 paddingHorizontal: normalize(8),
@@ -213,6 +218,30 @@ export default function ContestMyEntryTab({ phase, contest, entryCount, maxEntri
                 최고 2위
               </Text>
             </View>
+          </View>
+
+          {/* X축 라벨 — 점 좌표(18~276)는 등간격이 아니지만 라벨은 등분해 배치한다. 마지막 칸만 약 7pt 어긋난다 */}
+          <View style={{ flexDirection: 'row', marginTop: normalize(10) }}>
+            {RANK_TREND.map((point, index) => {
+              const isBest = index === BEST_RANK_INDEX;
+              return (
+                <View key={point.monthLabel} style={{ flex: 1, alignItems: 'center' }}>
+                  <Text
+                    allowFontScaling={false}
+                    style={{ fontFamily: isBest ? 'Pretendard-SemiBold' : 'Pretendard-Regular', fontSize: FONT_2XS, letterSpacing: -0.1, color: isBest ? ACCENT : '#8e8e93' }}
+                  >
+                    {point.monthLabel}
+                  </Text>
+                  <Text
+                    allowFontScaling={false}
+                    numberOfLines={1}
+                    style={{ fontFamily: isBest ? 'Pretendard-SemiBold' : 'Pretendard-Regular', fontSize: FONT_2XS, letterSpacing: -0.1, color: isBest ? ACCENT : '#c7c7cc', marginTop: normalize(2) }}
+                  >
+                    {point.theme}
+                  </Text>
+                </View>
+              );
+            })}
           </View>
         </View>
       </View>

@@ -19,7 +19,8 @@ export default function ProfilePostsTab({ items }: Props) {
   const cellSize = (windowWidth - GRID_PADDING * 2 - CELL_GAP * 2) / 3;
 
   return (
-    <View className="flex-row flex-wrap" style={{ paddingHorizontal: normalize(20), paddingTop: normalize(14), paddingBottom: normalize(20), gap: CELL_GAP }}>
+    // cellSize가 GRID_PADDING 기준으로 계산되므로 실제 패딩도 같은 상수를 써야 한다 — 리터럴이면 상수 조정 시 3열이 줄바꿈된다
+    <View className="flex-row flex-wrap" style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(14), paddingBottom: normalize(20), gap: CELL_GAP }}>
       {items.map((item) => {
         return (
           <View key={item.id} style={{ width: cellSize, height: cellSize, position: 'relative' }}>

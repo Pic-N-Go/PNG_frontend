@@ -14,7 +14,7 @@ import { useKeyboardOverlap } from '@/hooks/useKeyboardHeight';
 import { CommunityDetailStackParamList } from '@/navigation/stacks/CommunityDetailStack';
 import { Comment, PostDetail, ReportReasonId } from '@/types/community';
 import { FONT_2XS, FONT_LG, FONT_MD, FONT_SM, FONT_XS } from '@/constants/layout';
-import { normalize } from '@/utils/normalize';
+import { normalize, normalizeHeight } from '@/utils/normalize';
 
 const ACCENT = '#E31B59';
 const SURFACE = '#f5f5f7';
@@ -192,7 +192,7 @@ export default function PostDetailScreen() {
       <View style={{ flex: 1, paddingBottom: keyboardOverlap }}>
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: normalize(24) }}>
           {/* 히어로 사진 */}
-          <Pressable onPress={() => setLightboxOpen(true)} style={{ height: normalize(320), backgroundColor: post.photoGradient[0], position: 'relative' }}>
+          <Pressable onPress={() => setLightboxOpen(true)} style={{ height: normalizeHeight(320), backgroundColor: post.photoGradient[0], position: 'relative' }}>
             <View
               className="flex-row items-center absolute"
               style={{ left: normalize(14), bottom: normalize(14), gap: normalize(5), height: normalize(30), paddingHorizontal: normalize(12), borderRadius: normalize(15), backgroundColor: 'rgba(0,0,0,0.4)' }}

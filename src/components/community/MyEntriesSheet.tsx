@@ -102,21 +102,22 @@ export default function MyEntriesSheet({ visible, onClose, phase, contest, maxEn
             </Text>
           )}
         </View>
-      </BottomSheet>
 
-      <ConfirmModal
-        visible={pendingDeleteId != null}
-        title="이 작품을 삭제할까요?"
-        body={
-          voting
-            ? '받은 표도 함께 사라지고 되돌릴 수 없어요. 삭제해도 다시 출품할 수 없어요.'
-            : '받은 표도 함께 사라지고 되돌릴 수 없어요. 출품 마감 전이라면 다시 출품할 수 있어요.'
-        }
-        confirmLabel="삭제"
-        onConfirm={confirmDelete}
-        cancelLabel="취소"
-        onCancel={() => setPendingDeleteId(null)}
-      />
+        {/* BottomSheet 안에 둔다 — iOS는 이미 뜬 Modal 위에 형제 Modal을 올리면 조용히 무시한다(중첩이어야 뜬다) */}
+        <ConfirmModal
+          visible={pendingDeleteId != null}
+          title="이 작품을 삭제할까요?"
+          body={
+            voting
+              ? '받은 표도 함께 사라지고 되돌릴 수 없어요.\n삭제해도 다시 출품할 수 없어요.'
+              : '받은 표도 함께 사라지고 되돌릴 수 없어요.\n출품 마감 전이라면 다시 출품할 수 있어요.'
+          }
+          confirmLabel="삭제"
+          onConfirm={confirmDelete}
+          cancelLabel="취소"
+          onCancel={() => setPendingDeleteId(null)}
+        />
+      </BottomSheet>
     </>
   );
 }

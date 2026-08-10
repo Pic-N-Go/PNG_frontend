@@ -10,7 +10,7 @@ import ContestSegment from '@/components/community/ContestSegment';
 import OptionSheet from '@/components/common/OptionSheet';
 import type { RootStackParamList } from '@/navigation';
 import { ContestPastMonthItem, ContestSubmitTarget, Post } from '@/types/community';
-import { FONT_LG, FONT_SM, FONT_2XL, GRID_PADDING } from '@/constants/layout';
+import { FONT_LG, FONT_SM, FONT_2XL, FONT_2XS, GRID_PADDING } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
 import { layoutGalleryGrid } from '@/utils/galleryGrid';
 
@@ -291,7 +291,7 @@ export default function CommunityFeedScreen() {
                     {isPopular && (
                       <>
                         <View style={{ position: 'absolute', top: normalize(10), left: normalize(10), height: normalize(22), paddingHorizontal: normalize(9), borderRadius: normalize(11), backgroundColor: 'rgba(255,255,255,0.9)', alignItems: 'center', justifyContent: 'center' }}>
-                          <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalize(10), color: ACCENT, letterSpacing: 0.3 }}>
+                          <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_2XS, color: ACCENT, letterSpacing: 0.3 }}>
                             인기
                           </Text>
                         </View>

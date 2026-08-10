@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { Camera, ChevronDown, ChevronRight, MapPin } from 'lucide-react-native';
 import { ProfileSpotItem } from '@/types/community';
-import { FONT_MD, FONT_SM, FONT_XS } from '@/constants/layout';
+import { FONT_2XS, FONT_MD, FONT_SM, FONT_XS } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
 
 const SURFACE = '#f5f5f7';
@@ -60,7 +60,7 @@ export default function ProfileSpotsTab({ items, totalCount, onSelectSpot }: Pro
                 style={{ bottom: normalize(5), right: normalize(5), gap: normalize(3), height: normalize(18), paddingHorizontal: normalize(6), borderRadius: normalize(9), backgroundColor: 'rgba(0,0,0,0.5)' }}
               >
                 <Camera size={normalize(8)} color="#fff" strokeWidth={2} />
-                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalize(10), color: '#fff' }}>
+                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_2XS, color: '#fff' }}>
                   {item.photoCount}
                 </Text>
               </View>

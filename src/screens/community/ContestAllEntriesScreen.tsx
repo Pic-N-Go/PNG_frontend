@@ -196,7 +196,8 @@ function Placeholder({
   onPressCta?: () => void;
 }) {
   return (
-    <View className="items-center" style={{ paddingTop: normalize(96), paddingHorizontal: CONTENT_PADDING }}>
+    // 네비 아래 영역의 기하학적 중앙은 화면 전체로 보면 아래로 치우친다 — paddingBottom만큼 끌어올려 시각 중앙에 맞춘다
+    <View className="flex-1 items-center justify-center" style={{ paddingHorizontal: CONTENT_PADDING, paddingBottom: normalize(96) }}>
       <View className="items-center justify-center" style={{ width: normalize(56), height: normalize(56), borderRadius: normalize(28), backgroundColor: FILL, marginBottom: normalize(14) }}>
         {icon}
       </View>

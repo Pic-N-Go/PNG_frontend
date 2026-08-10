@@ -8,3 +8,8 @@ import * as Haptics from 'expo-haptics';
 export function voteHaptic() {
   Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => {});
 }
+
+/** 수상(1~3위) 결과 진입 축하. voteHaptic과 같은 이유로 실패를 삼킨다. */
+export function awardHaptic() {
+  Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+}

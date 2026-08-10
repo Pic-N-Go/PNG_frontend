@@ -220,9 +220,16 @@
         border-radius: 20px;
         background: rgba(227, 27, 89, 0.06);
       }
+      /* 배지와 축하 문구는 한 행 — 카드 안쪽 294px에 들어가야 하므로 문구는 --font-md */
+      .congrats__head {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
       .congrats__badge {
         display: inline-flex;
         align-items: center;
+        flex-shrink: 0;
         height: 24px;
         padding: 0 10px;
         border-radius: 12px;
@@ -233,31 +240,46 @@
         letter-spacing: -0.1px;
       }
       .congrats__title {
-        font-size: var(--font-xl);
+        font-size: var(--font-md);
         font-weight: 600;
         color: #000;
-        letter-spacing: -0.7px;
-        margin-top: 10px;
+        letter-spacing: -0.3px;
       }
       .congrats__photo {
         margin-top: 14px;
         border-radius: 14px;
         aspect-ratio: 294 / 196;
       }
-      .congrats__votes {
+      /* 득표수·촬영 정보는 왼쪽, 공유는 오른쪽 pill — 전체 폭 버튼이 아니다 */
+      .congrats__foot {
+        display: flex;
+        align-items: center;
+        gap: 12px;
         margin-top: 12px;
+      }
+      .congrats__votes {
         font-size: var(--font-md);
         font-weight: 600;
-        color: var(--color-accent);
+        color: #000;
         letter-spacing: -0.3px;
       }
+      .congrats__meta {
+        margin-top: 3px;
+        font-size: var(--font-xs);
+        color: #8e8e93;
+        letter-spacing: -0.1px;
+      }
       .congrats__share {
-        width: 100%;
+        margin-left: auto;
+        flex-shrink: 0;
         height: 40px;
-        margin-top: 14px;
+        padding: 0 18px;
         border: none;
         border-radius: 20px;
         background: var(--color-accent);
+        display: flex;
+        align-items: center;
+        gap: 6px;
         font-family: var(--font-family);
         font-size: var(--font-sm);
         font-weight: 600;
@@ -529,7 +551,9 @@
         </span>
       </div>
 
-      <!-- ═══ 10a 지난 달 수상작 — 출품했지만 순위권 밖(요약만) ═══ -->
+      <!-- ═══ 10a 지난 달 수상작 — 출품했지만 순위권 밖(요약만) ═══
+           미채택 시안. 같은 케이스는 10f(분포 바)로 확정됐고 RN에는 10f만 구현돼 있다.
+           비교용으로 남겨두는 것이라 여기서 스타일을 고쳐도 앱에는 반영되지 않는다. -->
       <div class="state is-active" data-state="a">
         <div class="nav">
           <button class="nav__back" aria-label="뒤로" onclick="history.back()">
@@ -584,12 +608,21 @@
 
         <div class="phone-scroll">
           <div class="congrats">
-            <span class="congrats__badge">1위</span>
-            <div class="congrats__title">축하해요, 8월의 1위예요</div>
+            <div class="congrats__head">
+              <span class="congrats__badge">1위</span>
+              <div class="congrats__title">축하해요, 8월의 1위예요</div>
+            </div>
             <div class="congrats__photo" style="background: linear-gradient(165deg, #1a1530, #5a3355 50%, #d4856a)"></div>
-            <div class="congrats__votes">214표</div>
-            <div style="font-size: var(--font-xs); color: #8e8e93; letter-spacing: -0.1px; margin-top: 4px">광안리 · 8월 12일 05:30</div>
-            <button class="congrats__share">공유하기</button>
+            <div class="congrats__foot">
+              <div>
+                <div class="congrats__votes">214표</div>
+                <div class="congrats__meta">광안리 · 8월 12일 05:30</div>
+              </div>
+              <button class="congrats__share">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path><path d="M16 6l-4-4-4 4"></path><path d="M12 2v13"></path></svg>
+                공유
+              </button>
+            </div>
           </div>
 
           <div class="section-title">최종 순위</div>

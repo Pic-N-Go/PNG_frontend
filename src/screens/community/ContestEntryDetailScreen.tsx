@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -13,7 +13,7 @@ import DevStateSwitch from '@/components/common/DevStateSwitch';
 import { CommunityDetailStackParamList } from '@/navigation/stacks/CommunityDetailStack';
 import type { RootStackParamList } from '@/navigation';
 import { BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING, FONT_LG, FONT_MD, FONT_SM, FONT_XS } from '@/constants/layout';
-import { normalize, normalizeFontSize } from '@/utils/normalize';
+import { normalize, normalizeFontSize, normalizeHeight } from '@/utils/normalize';
 
 /**
  * 콘테스트 출품작 상세 (시안 14a·14b·14d·14e·14f·14g) — 게시글 상세와 골격이 다르다.
@@ -36,7 +36,7 @@ const MOCK_ENTRY = {
 };
 
 export default function ContestEntryDetailScreen() {
-  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<NativeStackNavigationProp<CommunityDetailStackParamList & RootStackParamList>>();
   const route = useRoute<RouteProp<CommunityDetailStackParamList, 'ContestEntryDetail'>>();
   // 내 작품 여부·종료 여부는 진입 경로가 넘긴다. 아직 넘기는 곳이 없어 __DEV__ 스위처로도 연다.
   const [devVariant, setDevVariant] = useState<'route' | 'mine' | 'ended'>('route');
@@ -82,20 +82,26 @@ export default function ContestEntryDetailScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
-      <DevStateSwitch
-        options={[
-          { key: 'route', label: '14a 투표' },
-          { key: 'mine', label: '14e 내 작품' },
-          { key: 'ended', label: '14f 결과' },
-        ]}
-        value={devVariant}
-        onChange={setDevVariant}
-      />
+      {/* 이 화면만 사진이 상태바 아래까지 꽉 차서 스위처가 흐름 맨 앞에 온다 — 인셋을 안 주면 상태바 글자와 겹친다.
+          대신 상단 인셋을 여기서 소비하므로 아래 사진 위 네비는 인셋을 다시 주지 않는다(두 번 밀리면 버튼이 화면 중앙까지 내려온다) */}
+      {__DEV__ && (
+        <View style={{ paddingTop: insets.top, backgroundColor: '#000' }}>
+          <DevStateSwitch
+            options={[
+              { key: 'route', label: '14a 투표' },
+              { key: 'mine', label: '14e 내 작품' },
+              { key: 'ended', label: '14f 결과' },
+            ]}
+            value={devVariant}
+            onChange={setDevVariant}
+          />
+        </View>
+      )}
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom }}>
-        <View style={{ height: normalize(600), backgroundColor: MOCK_ENTRY.gradient[0] }}>
+        <View style={{ height: normalizeHeight(600), backgroundColor: MOCK_ENTRY.gradient[0] }}>
           <LinearGradient colors={MOCK_ENTRY.gradient} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
           <LinearGradient colors={['rgba(0,0,0,0.42)', 'rgba(0,0,0,0)']} style={{ position: 'absolute', top: 0, left: 0, right: 0, height: normalize(150) }} pointerEvents="none" />
-          <SafeAreaView edges={['top']}>
+          <View style={{ paddingTop: __DEV__ ? 0 : insets.top }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: normalize(12), height: normalize(52), marginTop: normalize(2) }}>
               <Pressable onPress={() => navigation.goBack()} hitSlop={8} accessibilityRole="button" accessibilityLabel="뒤로" style={{ width: normalize(40), height: normalize(40), alignItems: 'center', justifyContent: 'center' }}>
                 <ChevronLeft size={normalize(22)} color="#fff" strokeWidth={2} />
@@ -105,7 +111,7 @@ export default function ContestEntryDetailScreen() {
                 <MoreHorizontal size={normalize(22)} color="#fff" strokeWidth={2} />
               </Pressable>
             </View>
-          </SafeAreaView>
+          </View>
         </View>
 
         {/* 아바타·팔로우 버튼 없음 — 콘테스트에서 중요한 건 작품이지 작성자 관계가 아니다 */}
@@ -171,8 +177,8 @@ export default function ContestEntryDetailScreen() {
               style={{
                 marginTop: normalize(20),
                 width: '100%',
-                height: normalize(56),
-                borderRadius: normalize(28),
+                height: BUTTON_HEIGHT,
+                borderRadius: BUTTON_RADIUS,
                 flexDirection: 'row',
                 alignItems: 'center',
                 justifyContent: 'center',
@@ -245,21 +251,22 @@ export default function ContestEntryDetailScreen() {
             </Text>
           </Pressable>
         </View>
-      </BottomSheet>
 
-      <ConfirmModal
-        visible={deleteModalVisible}
-        title="이 작품을 삭제할까요?"
-        body="받은 표도 함께 사라지고 되돌릴 수 없어요."
-        confirmLabel="삭제"
-        onConfirm={() => {
-          setDeleteModalVisible(false);
-          setActionSheetVisible(false);
-          navigation.goBack();
-        }}
-        cancelLabel="취소"
-        onCancel={() => setDeleteModalVisible(false)}
-      />
+        {/* BottomSheet 안에 둔다 — iOS는 이미 뜬 Modal 위에 형제 Modal을 올리면 조용히 무시한다(중첩이어야 뜬다) */}
+        <ConfirmModal
+          visible={deleteModalVisible}
+          title="이 작품을 삭제할까요?"
+          body="받은 표도 함께 사라지고 되돌릴 수 없어요."
+          confirmLabel="삭제"
+          onConfirm={() => {
+            setDeleteModalVisible(false);
+            setActionSheetVisible(false);
+            navigation.goBack();
+          }}
+          cancelLabel="취소"
+          onCancel={() => setDeleteModalVisible(false)}
+        />
+      </BottomSheet>
 
       <ShareSheet visible={shareSheetVisible} onClose={() => setShareSheetVisible(false)} onShared={(message) => showToast(message)} />
 

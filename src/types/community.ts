@@ -170,6 +170,8 @@ export interface ContestAwardSummary {
   theme: string;
   winnerHandle: string;
   voteCount: number;
+  /** 1~3위 썸네일 — 목업 .award-row__thumbs처럼 겹쳐 보여준다. 수상작이 3개 미만인 달도 있어 길이는 가변 */
+  podiumGradients: [string, string, string][];
 }
 
 export interface RankLegendEntry {

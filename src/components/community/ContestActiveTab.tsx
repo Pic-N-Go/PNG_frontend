@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Camera, Check, ChevronRight, ThumbsUp } from 'lucide-react-native';
+import { Bell, BellOff, Calendar, Camera, Check, ChevronRight, ThumbsUp } from 'lucide-react-native';
 import ContestRankPanel from '@/components/community/ContestRankPanel';
 import {
   ContestEntry,
@@ -24,6 +24,7 @@ import { normalize } from '@/utils/normalize';
 
 const PINK = '#E31B59';
 const INK = '#000000';
+const GRAY_DISABLED = '#c7c7cc';
 const SUB = '#8e8e93';
 const FILL = '#f5f5f7';
 const HAIRLINE = 'rgba(0,0,0,0.07)';
@@ -72,7 +73,25 @@ function AwardRow({ award, onPress }: { award: ContestAwardSummary; onPress: () 
       onPress={onPress}
       style={{ margin: normalize(16), marginTop: normalize(16), marginHorizontal: normalize(28), height: normalize(72), paddingHorizontal: normalize(14), borderRadius: normalize(16), backgroundColor: FILL, flexDirection: 'row', alignItems: 'center', gap: normalize(12) }}
     >
-      <View style={{ width: normalize(34), height: normalize(34), borderRadius: normalize(9), backgroundColor: '#8b4a6b' }} />
+      {/* 1~3위 썸네일을 10씩 겹친다 — 뒤 순위가 위로 올라오도록 목업과 같은 순서로 렌더 */}
+      <View style={{ flexDirection: 'row', alignItems: 'center', flexShrink: 0 }}>
+        {award.podiumGradients.map((gradient, index) => (
+          <LinearGradient
+            key={index}
+            colors={gradient}
+            start={{ x: 0.15, y: 0 }}
+            end={{ x: 0.85, y: 1 }}
+            style={{
+              width: normalize(34),
+              height: normalize(34),
+              borderRadius: normalize(9),
+              borderWidth: 2,
+              borderColor: FILL,
+              marginLeft: index === 0 ? 0 : -normalize(10),
+            }}
+          />
+        ))}
+      </View>
       <View style={{ flex: 1, minWidth: 0 }}>
         <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, letterSpacing: -0.2, color: INK }}>
           {award.monthLabel} 수상작
@@ -109,7 +128,8 @@ function SidePill({ label, value, dots, onPress }: { label: string; value: strin
 
 function Footbar({ topic, state, ctaLabel, ctaIcon, onPressCta, ctaDisabled }: { topic: string; state: string; ctaLabel: string; ctaIcon?: React.ReactNode; onPressCta: () => void; ctaDisabled?: boolean }) {
   return (
-    <View style={{ margin: normalize(28), marginTop: normalize(24), paddingTop: normalize(24), borderTopWidth: 1, borderTopColor: HAIRLINE, flexDirection: 'row', alignItems: 'center', gap: normalize(12) }}>
+    // 아래 여백은 ScrollView의 contentContainer paddingBottom이 담당한다 — 여기서 또 주면 CTA 밑에 빈 흰 영역이 남는다
+    <View style={{ margin: normalize(28), marginTop: normalize(24), marginBottom: 0, paddingTop: normalize(24), borderTopWidth: 1, borderTopColor: HAIRLINE, flexDirection: 'row', alignItems: 'center', gap: normalize(12) }}>
       <View style={{ flex: 1, minWidth: 0 }}>
         <Text allowFontScaling={false} numberOfLines={1} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, letterSpacing: -0.1, color: SUB }}>
           {topic}
@@ -201,6 +221,14 @@ interface Props {
   myEntryCount: number;
   maxEntries: number;
   nextContest: ContestInfo;
+  /**
+   * 7b — 다음 콘테스트의 주제·일정이 아직 정해지지 않은 상태. ENDED에서만 의미가 있다.
+   * nextContest를 nullable로 두면 RESULT(발표 당일)에서도 null 검사를 강요받는데,
+   * 그쪽은 새 주기가 반드시 있으므로 플래그로 분리한다.
+   */
+  nextScheduled?: boolean;
+  /** 알림 신청 완료 — 신청 후에는 CTA가 물러난다 */
+  subscribed?: boolean;
   pastItems: ContestPastMonthItem[];
   onVote: (id: string) => void;
   onOpenEntry: (id: string) => void;
@@ -229,6 +257,8 @@ export default function ContestActiveTab({
   myEntryCount,
   maxEntries,
   nextContest,
+  nextScheduled = true,
+  subscribed = false,
   pastItems,
   onVote,
   onOpenEntry,
@@ -247,7 +277,8 @@ export default function ContestActiveTab({
   const [rankPanelOpen, setRankPanelOpen] = React.useState(false);
 
   return (
-    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: normalize(24) }}>
+    // flexGrow: 1 — 내용이 화면보다 짧을 때 빈 상태가 남은 공간을 차지해 세로 중앙에 설 수 있게 한다
+    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1, paddingBottom: normalize(24) }}>
       {phase === 'SUBMITTING' && (
         <>
           <View style={{ height: normalize(280), overflow: 'hidden', borderBottomLeftRadius: normalize(24), borderBottomRightRadius: normalize(24) }}>
@@ -282,7 +313,8 @@ export default function ContestActiveTab({
           <AwardRow award={lastMonthAward} onPress={openAward} />
 
           {submitFeed.length === 0 ? (
-            <View style={{ paddingTop: normalize(56), paddingHorizontal: normalize(28), alignItems: 'center' }}>
+            // flex: 1은 남는 공간만 채운다 — 히어로·수상작 행이 화면을 거의 채우면 거의 안 늘어나므로 최소 높이를 따로 준다
+            <View style={{ flex: 1, minHeight: normalize(260), justifyContent: 'center', paddingHorizontal: normalize(28), alignItems: 'center' }}>
               <View style={{ width: normalize(56), height: normalize(56), borderRadius: normalize(28), backgroundColor: FILL, alignItems: 'center', justifyContent: 'center', marginBottom: normalize(16) }}>
                 <Camera size={normalize(24)} color="#b8b8be" strokeWidth={1.7} />
               </View>
@@ -477,27 +509,55 @@ export default function ContestActiveTab({
         <>
           <View style={{ margin: normalize(18), marginTop: normalize(18), marginHorizontal: normalize(28), padding: normalize(28), paddingHorizontal: normalize(24), borderRadius: normalize(20), backgroundColor: FILL, alignItems: 'center' }}>
             <View style={{ height: normalize(24), paddingHorizontal: normalize(12), borderRadius: normalize(12), backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' }}>
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, letterSpacing: -0.1, color: SUB }}>
+              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, letterSpacing: -0.1, color: nextScheduled ? SUB : GRAY_DISABLED }}>
                 다음 콘테스트
               </Text>
             </View>
             <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XL, letterSpacing: -0.7, color: INK, marginTop: normalize(12) }}>
-              {nextContest.theme}
+              {nextScheduled ? nextContest.theme : '준비 중이에요'}
             </Text>
             <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, letterSpacing: -0.2, color: SUB, marginTop: normalize(6), textAlign: 'center', lineHeight: FONT_SM * 1.5 }}>
-              {nextContest.themeDesc}
+              {nextScheduled ? nextContest.themeDesc : '주제와 일정이 정해지면 알려드릴게요'}
             </Text>
-            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, letterSpacing: -0.2, color: INK, marginTop: normalize(14) }}>
-              {`${nextContest.monthLabel} 1일 시작`}
-            </Text>
+            {/* 7b는 약속할 날짜가 없다 — 아이콘·글자를 한 단계 낮추고 굵기도 뺀다 */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(8), marginTop: normalize(14) }}>
+              <Calendar size={normalize(15)} color={nextScheduled ? INK : GRAY_DISABLED} strokeWidth={2} />
+              <Text
+                allowFontScaling={false}
+                style={{ fontFamily: nextScheduled ? 'Pretendard-SemiBold' : 'Pretendard-Regular', fontSize: FONT_SM, letterSpacing: -0.2, color: nextScheduled ? INK : SUB }}
+              >
+                {nextScheduled ? `${nextContest.monthLabel} 1일 시작` : '일정 미정'}
+              </Text>
+            </View>
             {/* 알림 신청은 데이터를 바꾸는 동작이라 accent — 목업은 블랙이지만 CLAUDE.md 규칙이 우선한다
-                (정렬 색상과 같은 판단: 어디로 가는가·무엇을 바꾸는가 → 핑크) */}
+                (정렬 색상과 같은 판단: 어디로 가는가·무엇을 바꾸는가 → 핑크).
+                신청 완료·7b는 흰 배경으로 물러난다 — 카드 배경이 FILL이라 FILL을 쓰면 버튼이 사라진다 */}
             <Pressable
               onPress={onSubscribe}
-              style={{ width: '100%', height: normalize(44), marginTop: normalize(18), borderRadius: normalize(22), backgroundColor: PINK, alignItems: 'center', justifyContent: 'center' }}
+              accessibilityRole="button"
+              accessibilityState={{ selected: subscribed }}
+              style={{
+                width: '100%',
+                height: normalize(44),
+                marginTop: normalize(18),
+                borderRadius: normalize(22),
+                backgroundColor: subscribed || !nextScheduled ? '#fff' : PINK,
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: normalize(7),
+              }}
             >
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, letterSpacing: -0.2, color: '#fff' }}>
-                시작하면 알림 받기
+              {subscribed ? (
+                <BellOff size={normalize(16)} color={SUB} strokeWidth={2} />
+              ) : (
+                <Bell size={normalize(16)} color={nextScheduled ? '#fff' : INK} strokeWidth={2} />
+              )}
+              <Text
+                allowFontScaling={false}
+                style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, letterSpacing: -0.2, color: subscribed ? SUB : nextScheduled ? '#fff' : INK }}
+              >
+                {subscribed ? '알림 받는 중' : nextScheduled ? '시작하면 알림 받기' : '열리면 알림 받기'}
               </Text>
             </Pressable>
           </View>

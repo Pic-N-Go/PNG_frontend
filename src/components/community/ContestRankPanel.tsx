@@ -110,8 +110,9 @@ export default function ContestRankPanel({
                 {history.variant === 'out' ? (
                   <Line x1={geo.xStart} y1={BAND_Y} x2={geo.xEnd} y2={BAND_Y} stroke="#d2d2d8" strokeWidth={1} strokeDasharray="2 3" />
                 ) : (
-                  /* 오늘 자리를 세로 점선으로 표시 — 마지막 집계가 어제라는 걸 알린다 */
-                  <Line x1={geo.xEnd} y1={8} x2={geo.xEnd} y2={geo.height - 8} stroke={ACCENT} strokeWidth={1} strokeDasharray="3 3" opacity={0.5} />
+                  /* 오늘 자리를 세로 점선으로 표시 — 마지막 집계가 어제라는 걸 알린다.
+                     1~3위 원 중심 사이로만 긋는다 — 그래프 높이 전체로 그으면 3위 원 아래로 꼬리가 남는다 */
+                  <Line x1={geo.xEnd} y1={RANK_Y[1]} x2={geo.xEnd} y2={RANK_Y[3]} stroke={ACCENT} strokeWidth={1} strokeDasharray="3 3" opacity={0.5} />
                 )}
 
                 {history.series.map((series, seriesIndex) =>

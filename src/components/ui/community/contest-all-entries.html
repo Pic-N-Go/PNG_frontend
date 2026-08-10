@@ -112,9 +112,10 @@
         color: #8e8e93;
         cursor: pointer;
       }
+      /* 정렬은 화면을 옮기지 않고 같은 목록의 순서만 바꾼다 → 활성색 블랙 (CLAUDE.md: 어디로 가는가 핑크 / 무엇을 보는가 블랙) */
       .sort-btn.is-active {
         font-weight: 600;
-        color: var(--color-accent);
+        color: var(--color-text-primary);
       }
       .sort-dot {
         width: 3px;
@@ -321,11 +322,14 @@
       }
 
       /* ── 빈 상태 · 에러 ── */
+      /* 네비 아래 영역의 기하학적 중앙은 화면 전체로 보면 아래로 치우친다 — padding-bottom만큼 끌어올려 시각 중앙에 맞춘다 */
       .placeholder {
-        padding: 96px 28px 0;
+        flex: 1;
+        padding: 0 28px 96px;
         display: flex;
         flex-direction: column;
         align-items: center;
+        justify-content: center;
         text-align: center;
       }
       .placeholder__icon {

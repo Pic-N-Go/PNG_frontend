@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Alert, Image, Linking, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -44,6 +44,13 @@ export default function ContestSubmitScreen() {
   const theme = route.params?.theme ?? '골든아워';
   const monthLabel = route.params?.monthLabel ?? '8월';
   const remainingSlots = route.params?.remainingSlots ?? 3;
+
+  // 3/3을 채우면 호출부가 이미 CTA를 막지만, 0으로 열리면 "남은 자리 0장" + 동작 안 하는 피커가 남는다.
+  // 진입 경로가 늘어나도(딥링크 등) 여기서 한 번 더 끊는다.
+  useEffect(() => {
+    if (remainingSlots > 0) return;
+    Alert.alert('출품 자리가 없어요', '이번 달은 이미 3장을 모두 출품했어요.', [{ text: '확인', onPress: () => navigation.goBack() }]);
+  }, [remainingSlots, navigation]);
 
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [drafts, setDrafts] = useState<Record<string, Draft>>({});
@@ -225,9 +232,12 @@ export default function ContestSubmitScreen() {
                 <TextInput
                   value={currentDraft.caption}
                   onChangeText={handleCaptionChange}
-                  onContentSizeChange={(e) =>
-                    setCaptionHeights((prev) => ({ ...prev, [currentPhoto.id]: Math.max(normalize(23), e.nativeEvent.contentSize.height) }))
-                  }
+                  onContentSizeChange={(e) => {
+                    // Fabric에선 리마운트 타이밍에 nativeEvent 없이 이벤트가 도착한다(타입은 non-null이라 tsc로 안 잡힘)
+                    const height = e?.nativeEvent?.contentSize?.height;
+                    if (height == null) return;
+                    setCaptionHeights((prev) => ({ ...prev, [currentPhoto.id]: Math.max(normalize(23), height) }));
+                  }}
                   maxLength={CAPTION_MAX}
                   multiline
                   textAlignVertical="top"
@@ -283,25 +293,25 @@ export default function ContestSubmitScreen() {
       </ScrollView>
 
       {searchVisible && (
+        // 루트 SafeAreaView의 패딩 박스를 기준으로 절대 배치되므로 이미 상태바 아래다 —
+        // 여기서 SafeAreaView로 인셋을 또 주면 노치 높이만큼 헤더가 내려간다
         <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#fff' }}>
-          <SafeAreaView edges={['top']}>
-            <View style={{ height: normalize(52), paddingLeft: normalize(12), paddingRight: normalize(20), flexDirection: 'row', alignItems: 'center', gap: normalize(8) }}>
-              <Pressable onPress={() => setSearchVisible(false)} hitSlop={8} style={{ width: normalize(40), height: normalize(40), alignItems: 'center', justifyContent: 'center' }}>
-                <ChevronLeft size={normalize(22)} color="#000" strokeWidth={2} />
-              </Pressable>
-              <View style={{ flex: 1, height: normalize(40), paddingHorizontal: normalize(14), borderRadius: normalize(12), backgroundColor: SURFACE, flexDirection: 'row', alignItems: 'center', gap: normalize(8) }}>
-                <Search size={normalize(15)} color="#8e8e93" strokeWidth={1.8} />
-                <TextInput
-                  value={searchQuery}
-                  onChangeText={setSearchQuery}
-                  placeholder="촬영 장소 검색"
-                  placeholderTextColor="#8e8e93"
-                  autoFocus
-                  style={{ flex: 1, fontFamily: 'Pretendard-Regular', fontSize: FONT_MD, letterSpacing: -0.2, color: '#000' }}
-                />
-              </View>
+          <View style={{ height: normalize(52), paddingLeft: normalize(12), paddingRight: normalize(20), flexDirection: 'row', alignItems: 'center', gap: normalize(8) }}>
+            <Pressable onPress={() => setSearchVisible(false)} hitSlop={8} style={{ width: normalize(40), height: normalize(40), alignItems: 'center', justifyContent: 'center' }}>
+              <ChevronLeft size={normalize(22)} color="#000" strokeWidth={2} />
+            </Pressable>
+            <View style={{ flex: 1, height: normalize(40), paddingHorizontal: normalize(14), borderRadius: normalize(12), backgroundColor: SURFACE, flexDirection: 'row', alignItems: 'center', gap: normalize(8) }}>
+              <Search size={normalize(15)} color="#8e8e93" strokeWidth={1.8} />
+              <TextInput
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                placeholder="촬영 장소 검색"
+                placeholderTextColor="#8e8e93"
+                autoFocus
+                style={{ flex: 1, fontFamily: 'Pretendard-Regular', fontSize: FONT_MD, letterSpacing: -0.2, color: '#000' }}
+              />
             </View>
-          </SafeAreaView>
+          </View>
 
           <ScrollView>
             {filteredSpots.length === 0 && (

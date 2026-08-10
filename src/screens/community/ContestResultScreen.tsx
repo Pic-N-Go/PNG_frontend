@@ -3,8 +3,9 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import Animated, { FadeInDown, ZoomIn } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronLeft, ChevronRight, MapPin } from 'lucide-react-native';
+import { ChevronLeft, ChevronRight, MapPin, Share2 } from 'lucide-react-native';
 import DevStateSwitch from '@/components/common/DevStateSwitch';
 import ShareSheet from '@/components/common/ShareSheet';
 import Toast from '@/components/common/Toast';
@@ -12,19 +13,24 @@ import { CommunityDetailStackParamList } from '@/navigation/stacks/CommunityDeta
 import type { RootStackParamList } from '@/navigation';
 import { ContestPhotoEntry } from '@/types/community';
 import { CONTENT_PADDING, FONT_2XS, FONT_LG, FONT_MD, FONT_SM, FONT_XL, FONT_XS } from '@/constants/layout';
-import { normalize, normalizeFontSize } from '@/utils/normalize';
+import { normalize, normalizeFontSize, normalizeHeight } from '@/utils/normalize';
+import { awardHaptic } from '@/utils/haptics';
 
 /**
- * 콘테스트 결과 — 목업 contest-result.html 1:1. 시안 10a(요약)·10b(수상작 상세)·10d(축하)·10f(순위권 밖).
+ * 콘테스트 결과 — 목업 contest-result.html 1:1. 시안 10b(수상작 상세)·10d(축하)·10f(순위권 밖).
  * 고정 바 없음 — 탭바와 두 겹이면 150px가 잠기므로 "전체 순위 보기"는 리스트 마지막 행(rowlink)이다.
  *
- * 10a와 10f는 둘 다 "출품했지만 3위 밖"인데 표현이 다르다(10a는 한 줄 요약, 10f는 분포 바까지).
- * 어느 쪽을 쓸지는 아직 정해지지 않아 __DEV__ 스위처로 둘 다 확인할 수 있게 열어둔다.
+ * "출품했지만 3위 밖"은 10f(분포 바)로 확정 — 같은 케이스를 다루던 10a(한 줄 요약)는 미채택.
  */
 
 const ACCENT = '#E31B59';
 const SURFACE = '#f5f5f7';
 const SUB = '#8e8e93';
+
+// TODO(API): 지난 달 대비 순위 변화. 서버가 안 내려주는 회차(첫 출품 등)에는 넘기지 않는다.
+const RANK_DELTA_LABEL = '지난 달보다 5계단 올랐어요';
+// TODO(API): 수상 카드의 내 출품작 스팟·촬영시각
+const MY_ENTRY_META = '광안리 · 8월 12일 05:30';
 
 const WINNER: ContestPhotoEntry = { id: 'w1', rank: 1, author: { handle: '@sunset_jk' }, captionMeta: '광안리 · 05:30', gradient: ['#1a1530', '#5a3355', '#d4856a'], voteCount: 214, caption: '비가 그친 직후 하늘이 열리는 순간을 기다렸습니다. 삼각대 없이 난간에 기대서 찍었어요.' };
 const PODIUM_2_3: ContestPhotoEntry[] = [
@@ -56,7 +62,12 @@ export default function ContestResultScreen() {
   const myVotes = devVariant === 'award' ? 214 : devVariant === 'outrank' ? 23 : (route.params?.myVotes ?? 0);
 
   const isAward = myRank != null && myRank <= 3;
-  const hasEntry = myRank != null;
+
+  // 수상일 때만 진입 축하 — 컨페티·모달은 쓰지 않는다는 결정(ui-publishing.md)에 맞춰
+  // 햅틱 한 번과 카드 등장 애니메이션으로만 표현한다. 시뮬레이터에선 햅틱이 나지 않는다.
+  useEffect(() => {
+    if (isAward) awardHaptic();
+  }, [isAward]);
 
   // 수상작 상세(10b)는 별도 라우트가 아니라 이 화면 안의 상태다 — 그대로 두면 iOS 스와이프·안드로이드
   // 하드웨어 백이 결과 화면째로 빠져나간다. 상세가 열려 있는 동안엔 pop을 가로채 상세만 닫는다.
@@ -76,7 +87,7 @@ export default function ContestResultScreen() {
     <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right', 'bottom']}>
       <DevStateSwitch
         options={[
-          { key: 'route', label: '10a 요약' },
+          { key: 'route', label: '기본' },
           { key: 'award', label: '10d 축하' },
           { key: 'outrank', label: '10f 권외' },
         ]}
@@ -99,48 +110,40 @@ export default function ContestResultScreen() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: normalize(28) }}>
         {isAward ? (
           <View style={{ margin: normalize(18), marginHorizontal: CONTENT_PADDING, padding: normalize(20), borderRadius: normalize(20), backgroundColor: 'rgba(227,27,89,0.06)' }}>
-            <View style={{ alignSelf: 'flex-start', height: normalize(24), paddingHorizontal: normalize(10), borderRadius: normalize(12), backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center' }}>
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, letterSpacing: -0.1, color: '#fff' }}>
-                {`${myRank}위`}
-              </Text>
-            </View>
-            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XL, letterSpacing: -0.7, color: '#000', marginTop: normalize(10) }}>
-              {`축하해요, ${monthLabel}의 ${myRank}위예요`}
-            </Text>
-            <View style={{ marginTop: normalize(14), aspectRatio: 294 / 196, borderRadius: normalize(14), backgroundColor: WINNER.gradient[0], overflow: 'hidden' }}>
-              <LinearGradient colors={WINNER.gradient} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
-            </View>
-            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, letterSpacing: -0.3, color: ACCENT, marginTop: normalize(12) }}>
-              {`${myVotes}표`}
-            </Text>
-            <Pressable onPress={() => setShareVisible(true)} style={{ width: '100%', height: normalize(40), marginTop: normalize(14), borderRadius: normalize(20), backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center' }}>
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, letterSpacing: -0.2, color: '#fff' }}>
-                공유하기
-              </Text>
-            </Pressable>
-          </View>
-        ) : devVariant === 'outrank' ? (
-          <ContestResultOutrank rank={myRank ?? 0} totalCount={participantCount} votes={myVotes} deltaLabel="지난 달보다 5계단 올랐어요" />
-        ) : (
-          hasEntry && (
-            // 출품하지 않은 달이면 이 카드를 감춘다
-            <View style={{ margin: normalize(18), marginHorizontal: CONTENT_PADDING, padding: normalize(14), paddingHorizontal: normalize(16), borderRadius: normalize(16), backgroundColor: SURFACE, flexDirection: 'row', alignItems: 'center', gap: normalize(12) }}>
-              <View style={{ width: normalize(44), height: normalize(44), borderRadius: normalize(11), backgroundColor: '#8b4a6b', flexShrink: 0 }} />
-              <View style={{ flex: 1, minWidth: 0 }}>
-                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, letterSpacing: -0.1, color: SUB }}>
-                  내 출품작
+            {/* 등수 배지와 축하 문구는 같은 행 — 카드 안쪽 294px에 들어가야 해서 문구는 FONT_MD */}
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(8) }}>
+              <Animated.View entering={ZoomIn.delay(120).duration(320)} style={{ height: normalize(24), paddingHorizontal: normalize(10), borderRadius: normalize(12), backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, letterSpacing: -0.1, color: '#fff' }}>
+                  {`${myRank}위`}
                 </Text>
-                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, letterSpacing: -0.3, color: '#000', marginTop: normalize(2) }}>
-                  {`${myRank}위 · ${myVotes}표`}
+              </Animated.View>
+              <Text allowFontScaling={false} numberOfLines={1} style={{ flex: 1, minWidth: 0, fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, letterSpacing: -0.3, color: '#000' }}>
+                {`축하해요, ${monthLabel}의 ${myRank}위예요`}
+              </Text>
+            </View>
+            <Animated.View entering={FadeInDown.delay(200).duration(360)} style={{ width: '100%', marginTop: normalize(14), aspectRatio: 294 / 196, borderRadius: normalize(14), backgroundColor: WINNER.gradient[0], overflow: 'hidden' }}>
+              <LinearGradient colors={WINNER.gradient} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
+            </Animated.View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(12), marginTop: normalize(12) }}>
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, letterSpacing: -0.3, color: '#000' }}>
+                  {`${myVotes}표`}
+                </Text>
+                <Text allowFontScaling={false} numberOfLines={1} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, letterSpacing: -0.1, color: SUB, marginTop: normalize(3) }}>
+                  {MY_ENTRY_META}
                 </Text>
               </View>
-              <Pressable onPress={() => setShareVisible(true)} style={{ height: normalize(34), paddingHorizontal: normalize(14), borderRadius: normalize(17), backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center' }}>
-                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, letterSpacing: -0.2, color: '#000' }}>
+              <Pressable onPress={() => setShareVisible(true)} style={{ height: normalize(40), paddingHorizontal: normalize(18), borderRadius: normalize(20), backgroundColor: ACCENT, flexDirection: 'row', alignItems: 'center', gap: normalize(6), flexShrink: 0 }}>
+                <Share2 size={normalize(16)} color="#fff" strokeWidth={2} />
+                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, letterSpacing: -0.2, color: '#fff' }}>
                   공유
                 </Text>
               </Pressable>
             </View>
-          )
+          </View>
+        ) : (
+          // 출품하지 않은 달이면 이 카드를 감춘다
+          myRank != null && <ContestResultOutrank rank={myRank} totalCount={participantCount} votes={myVotes} deltaLabel={RANK_DELTA_LABEL} />
         )}
 
         {!isAward && (
@@ -265,7 +268,7 @@ function EntryDetailView({ entry, monthLabel, onBack, onOpenSpot }: { entry: Con
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={{ height: normalize(470), backgroundColor: entry.gradient[0] }}>
+        <View style={{ height: normalizeHeight(470), backgroundColor: entry.gradient[0] }}>
           <LinearGradient colors={entry.gradient} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
           <LinearGradient colors={['rgba(0,0,0,0.42)', 'rgba(0,0,0,0)']} style={{ position: 'absolute', top: 0, left: 0, right: 0, height: normalize(140) }} pointerEvents="none" />
           <SafeAreaView edges={['top']}>
@@ -289,11 +292,12 @@ function EntryDetailView({ entry, monthLabel, onBack, onOpenSpot }: { entry: Con
 
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(10), marginTop: normalize(16) }}>
             <View style={{ width: normalize(40), height: normalize(40), borderRadius: normalize(20), backgroundColor: entry.gradient[0], flexShrink: 0 }} />
-            <View style={{ minWidth: 0 }}>
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, letterSpacing: -0.3, color: '#000' }}>
+            {/* flex: 1이 없으면 minWidth: 0은 무의미하다 — 긴 핸들이 내재 폭으로 커져 팔로우 버튼을 화면 밖으로 민다 */}
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text allowFontScaling={false} numberOfLines={1} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, letterSpacing: -0.3, color: '#000' }}>
                 {entry.author.handle}
               </Text>
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, letterSpacing: -0.1, color: SUB, marginTop: normalize(2) }}>
+              <Text allowFontScaling={false} numberOfLines={1} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, letterSpacing: -0.1, color: SUB, marginTop: normalize(2) }}>
                 {entry.captionMeta}
               </Text>
             </View>
@@ -333,10 +337,10 @@ function EntryDetailView({ entry, monthLabel, onBack, onOpenSpot }: { entry: Con
 }
 
 /**
- * 10f — 순위권 밖 전용 하이라이트(분포 바 포함). 10a가 이미 담당하는 케이스라 기본 흐름에는
- * 연결하지 않고, 필요해지면 ContestResultScreen 대신 이 컴포넌트를 렌더하도록 바꾼다.
+ * 10f — 4위 이하 결과 카드(분포 바 포함). 공유 버튼은 두지 않는다 — 42위를 공유하라고 권하는 건 무례하다.
+ * 순위가 떨어진 달이어도 deltaLabel은 사실만 적고 빨강으로 강조하지 않는다(ui-publishing.md).
  */
-function ContestResultOutrank({ rank, totalCount, votes, deltaLabel }: { rank: number; totalCount: number; votes: number; deltaLabel: string }) {
+function ContestResultOutrank({ rank, totalCount, votes, deltaLabel }: { rank: number; totalCount: number; votes: number; deltaLabel?: string }) {
   // totalCount가 0이면 width가 NaN%가 되어 바가 사라진다
   const percentile = totalCount > 0 ? Math.round((rank / totalCount) * 100) : 0;
   return (
@@ -366,9 +370,11 @@ function ContestResultOutrank({ rank, totalCount, votes, deltaLabel }: { rank: n
         <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, letterSpacing: -0.1, color: SUB }}>
           {`상위 ${percentile}% · 1위 ← → ${totalCount}위`}
         </Text>
-        <Text allowFontScaling={false} style={{ marginLeft: 'auto', fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, letterSpacing: -0.1, color: SUB }}>
-          {deltaLabel}
-        </Text>
+        {deltaLabel && (
+          <Text allowFontScaling={false} style={{ marginLeft: 'auto', fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, letterSpacing: -0.1, color: SUB }}>
+            {deltaLabel}
+          </Text>
+        )}
       </View>
     </View>
   );

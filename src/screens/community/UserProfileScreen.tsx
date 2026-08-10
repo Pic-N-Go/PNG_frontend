@@ -7,7 +7,7 @@ import ProfilePostsTab from '@/components/community/ProfilePostsTab';
 import ProfileContestsTab from '@/components/community/ProfileContestsTab';
 import ProfileSpotsTab from '@/components/community/ProfileSpotsTab';
 import { ProfileContestItem, ProfilePostItem, ProfileSpotItem, ProfileTabKey, UserProfileSummary } from '@/types/community';
-import { FONT_LG, FONT_SM, FONT_XS } from '@/constants/layout';
+import { FONT_2XS, FONT_LG, FONT_SM, FONT_XS } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 
 const ACCENT = '#E31B59';
@@ -173,7 +173,7 @@ export default function UserProfileScreen() {
                 className="absolute items-center justify-center"
                 style={{ top: normalize(-6), right: normalize(6), height: normalize(16), paddingHorizontal: normalize(6), borderRadius: normalize(8), backgroundColor: ACCENT }}
               >
-                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalize(9), color: '#fff', letterSpacing: 0.5 }}>
+                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_2XS, color: '#fff', letterSpacing: 0.5 }}>
                   BETA
                 </Text>
               </View>

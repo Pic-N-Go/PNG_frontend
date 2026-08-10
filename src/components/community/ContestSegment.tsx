@@ -61,7 +61,19 @@ const NEXT_CONTEST: ContestInfo = {
 };
 
 /** 결과 발표 당일(매달 1일)에만 진행중 탭 상단에 뜨는 지난 달 요약 — 지난 탭 목록과는 별도 데이터 */
-const LAST_MONTH_AWARD: ContestAwardSummary = { monthLabel: '7월', rank: 1, theme: '비 오는 날', winnerHandle: '@rainy.frame', voteCount: 1032 };
+const LAST_MONTH_AWARD: ContestAwardSummary = {
+  monthLabel: '7월',
+  rank: 1,
+  theme: '비 오는 날',
+  winnerHandle: '@rainy.frame',
+  voteCount: 1032,
+  // 목업 community-feed.html의 .award-row__thumbs 3개와 같은 그라디언트(1·2·3위 순)
+  podiumGradients: [
+    ['#1a1530', '#5a3355', '#d4856a'],
+    ['#12333a', '#2f5f5a', '#8fae9b'],
+    ['#241a33', '#8b4a6b', '#e8a87c'],
+  ],
+};
 
 const SUBMIT_FEED: ContestEntry[] = [
   { id: 's1', author: '@rimi', createdAgoLabel: '12분 전', votes: 0, voted: false, gradient: ['#1a1530', '#5a3355', '#d4856a'] },
@@ -159,7 +171,7 @@ const PAST_ITEMS: ContestPastMonthItem[] = [
  * 목업 `.phase-switch`의 7개 버튼과 1:1. phase 하나로는 표현이 안 되는 분기가 있어
  * (같은 VOTING 안에서도 집계 전·권외가 갈리고, SUBMITTING 안에서 출품 0개가 갈린다) 시나리오로 묶는다.
  */
-type DevScenario = 'submit' | 'submit0' | 'vote' | 'voteFirst' | 'voteOut' | 'result' | 'none';
+type DevScenario = 'submit' | 'submit0' | 'vote' | 'voteFirst' | 'voteOut' | 'result' | 'none' | 'none7b';
 
 const SCENARIOS: Record<DevScenario, { phase: ContestPhase; rankVariant: RankVariant; emptyFeed: boolean }> = {
   submit: { phase: 'SUBMITTING', rankVariant: 'normal', emptyFeed: false },
@@ -169,8 +181,11 @@ const SCENARIOS: Record<DevScenario, { phase: ContestPhase; rankVariant: RankVar
   voteOut: { phase: 'VOTING', rankVariant: 'out', emptyFeed: false },
   result: { phase: 'RESULT', rankVariant: 'normal', emptyFeed: false },
   none: { phase: 'ENDED', rankVariant: 'normal', emptyFeed: false },
+  // 7b — phase는 같은 ENDED고 다음 주기 예고만 없다
+  none7b: { phase: 'ENDED', rankVariant: 'normal', emptyFeed: false },
 };
 
+// ponytail: 테스트용 임시 복원 — 확인 끝나면 SCENARIO_OPTIONS·setScenario·DevStateSwitch 3곳 같이 삭제
 const SCENARIO_OPTIONS: { key: DevScenario; label: string }[] = [
   { key: 'submit', label: '출품' },
   { key: 'submit0', label: '0개' },
@@ -178,7 +193,8 @@ const SCENARIO_OPTIONS: { key: DevScenario; label: string }[] = [
   { key: 'voteFirst', label: '집계전' },
   { key: 'voteOut', label: '권외' },
   { key: 'result', label: '발표' },
-  { key: 'none', label: '없음' },
+  { key: 'none', label: '없음 7a' },
+  { key: 'none7b', label: '없음 7b' },
 ];
 
 const RANK_HISTORY_BY_VARIANT: Record<RankVariant, RankHistory> = {
@@ -201,7 +217,7 @@ export default function ContestSegment({ onSelectPastItem, onSeeAllEntries, onOp
   const [subtab, setSubtab] = useState<SubtabKey>('active');
 
   // 서버가 phase를 내려주기 전까지는 SUBMITTING 하나만 실제로 도달 가능하다.
-  // 나머지 분기는 __DEV__ 스위처(목업의 .phase-switch)로만 열리고, 릴리즈에서는 항상 기본값이다.
+  // 나머지 분기는 __DEV__ 스위처로만 열리고, 릴리즈에서는 항상 기본값이다. 서버 연동 시 응답값으로 교체.
   const [scenario, setScenario] = useState<DevScenario>('submit');
   const [mineHasHistory, setMineHasHistory] = useState(true);
   const [pastHasItems, setPastHasItems] = useState(true);
@@ -220,6 +236,8 @@ export default function ContestSegment({ onSelectPastItem, onSeeAllEntries, onOp
   const [toastVisible, setToastVisible] = useState(false);
   const [myVotesSheetVisible, setMyVotesSheetVisible] = useState(false);
   const [myEntriesSheetVisible, setMyEntriesSheetVisible] = useState(false);
+  // TODO(API): 다음 콘테스트 알림 구독 여부. 서버 연동 전까지는 화면 안에서만 유지된다
+  const [subscribed, setSubscribed] = useState(false);
 
   const rankHistory = RANK_HISTORY_BY_VARIANT[rankVariant];
 
@@ -332,6 +350,8 @@ export default function ContestSegment({ onSelectPastItem, onSeeAllEntries, onOp
           myEntryCount={myEntries.length}
           maxEntries={MAX_ENTRIES}
           nextContest={NEXT_CONTEST}
+          nextScheduled={scenario !== 'none7b'}
+          subscribed={subscribed}
           pastItems={PAST_ITEMS}
           onVote={toggleVote}
           onOpenEntry={onOpenEntry}
@@ -342,7 +362,9 @@ export default function ContestSegment({ onSelectPastItem, onSeeAllEntries, onOp
           onSelectPastItem={onSelectPastItem}
           onSeeAllPast={() => setSubtab('past')}
           onSubscribe={() => {
-            setToastMessage('시작하면 알려드릴게요');
+            // 탭하면 즉시 토글된다 — 별도 시트나 확인 다이얼로그를 두지 않는다(목업 subscribeContest)
+            setSubscribed((prev) => !prev);
+            setToastMessage(subscribed ? '알림을 껐어요' : '시작하면 알려드릴게요');
             setToastVisible(true);
           }}
         />
