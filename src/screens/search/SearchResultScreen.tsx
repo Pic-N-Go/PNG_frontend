@@ -17,10 +17,11 @@ import {
   IconChevronDown,
 } from '@tabler/icons-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
 import { HomeStackParamList } from '@/navigation/stacks/HomeStack';
+import type { RootStackParamList } from '@/navigation';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { FONT_MD, FONT_SM, GRID_PADDING, SPACING_MD, TAB_BAR_HEIGHT } from '@/constants/layout';
+import { FONT_MD, FONT_SM, GRID_PADDING, SPACING_LG, SPACING_MD } from '@/constants/layout';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'SearchResult'>;
 
@@ -168,7 +169,8 @@ export default function SearchResultScreen({ route, navigation }: Props) {
       {!submitted && (
         <ScrollView
           keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{ paddingBottom: TAB_BAR_HEIGHT + insets.bottom }}
+          // 탭바 높이·인셋을 더하지 않는다 — 화면 영역에서 이미 빠져 있다(HomeScreen 주석 참고).
+          contentContainerStyle={{ paddingBottom: SPACING_LG }}
         >
           <>
               {/* 최근 검색어 */}
@@ -271,7 +273,9 @@ export default function SearchResultScreen({ route, navigation }: Props) {
           <View style={{ height: 1, backgroundColor: 'rgba(0,0,0,0.06)' }} />
 
           {results.length === 0 ? (
-            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingBottom: TAB_BAR_HEIGHT + insets.bottom, gap: normalize(12) }}>
+            // paddingBottom을 두지 않는다 — 탭바가 빠진 영역 안에서 그냥 가운데 정렬하면 된다.
+            // 탭바 높이를 더하면 빈 상태가 위로 치우쳐 보인다.
+            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: normalize(12) }}>
               <IconSearch size={normalize(48)} color="rgba(0,0,0,0.12)" strokeWidth={1} />
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(16), color: 'rgba(0,0,0,0.5)' }}>
                 검색 결과가 없어요
@@ -285,10 +289,14 @@ export default function SearchResultScreen({ route, navigation }: Props) {
               data={results}
               keyExtractor={(item) => item.id}
               keyboardShouldPersistTaps="handled"
-              contentContainerStyle={{ paddingHorizontal: GRID_PADDING, paddingBottom: TAB_BAR_HEIGHT + insets.bottom }}
+              // 탭바 높이·인셋을 더하지 않는다 — 화면 영역에서 이미 빠져 있다(HomeScreen 주석 참고).
+              contentContainerStyle={{ paddingHorizontal: GRID_PADDING, paddingBottom: SPACING_LG }}
               renderItem={({ item }) => (
-                // TODO: 스팟 상세 네비게이션 파라미터 확정 후 onPress 연결
                 <Pressable
+                  onPress={() => {
+                    const rootNavigation = navigation as unknown as NativeStackNavigationProp<RootStackParamList>;
+                    rootNavigation.navigate('SpotStack', { screen: 'SpotDetail', params: { spotId: item.id } });
+                  }}
                   style={{ flexDirection: 'row', gap: normalize(14), paddingVertical: normalize(14), borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)' }}
                 >
                   <View style={{ width: normalize(80), height: normalize(80), borderRadius: normalize(12), backgroundColor: '#F5F5F7', flexShrink: 0 }} />

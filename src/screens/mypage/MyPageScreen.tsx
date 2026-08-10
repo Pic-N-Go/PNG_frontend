@@ -6,7 +6,7 @@ import ProfileHeader from './components/ProfileHeader';
 import PhotoMapPreview from './components/PhotoMapPreview';
 import RecentAlbums from './components/RecentAlbums';
 import PhotogenicReport from './components/PhotogenicReport';
-import WishlistPreview from './components/WishlistPreview';
+import SpotAlertPreview from './components/SpotAlertPreview';
 import EquipmentSection from './components/EquipmentSection';
 
 export default function MyPageScreen({ navigation }: any) {
@@ -23,7 +23,7 @@ export default function MyPageScreen({ navigation }: any) {
           <PhotoMapPreview />
           <RecentAlbums />
           <PhotogenicReport />
-          <WishlistPreview />
+          <SpotAlertPreview />
           <EquipmentSection />
         </View>
       </ScrollView>

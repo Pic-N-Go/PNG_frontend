@@ -29,7 +29,7 @@
     /* 카테고리 칩 */
     .map-filters{display:flex;gap:6px;padding:10px 0 0;overflow-x:auto}
     .map-filter{flex-shrink:0;height:32px;padding:0 14px;border-radius:16px;border:none;background:var(--color-surface);font-family:var(--font-family);font-size:12px;font-weight:500;color:rgba(0,0,0,0.55);cursor:pointer;transition:all 0.18s}
-    .map-filter.is-active{background:var(--color-text-primary);color:#fff}
+    .map-filter.is-active{background:#000;color:#fff}
 
     /* ── 지도 영역 ── */
     .map-canvas{position:absolute;inset:0;background:#e8e8ed}
@@ -77,7 +77,7 @@
     .spot-popup__name{font-size: var(--font-lg);font-weight:600;color:#000;letter-spacing:-0.3px}
     .spot-popup__rating{font-size:12px;color:var(--color-warning);margin-bottom:8px}
     .spot-popup__rating span{color:rgba(0,0,0,0.35);margin-left:3px;font-size: var(--font-xs)}
-    .spot-popup__loc{font-size:12px;color:rgba(0,0,0,0.4);margin-bottom:10px;display:flex;align-items:center;gap:4px}
+    .spot-popup__loc{font-size:12px;color:var(--color-text-secondary);margin-bottom:10px;display:flex;align-items:center;gap:4px}
     .spot-popup__tags{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:14px}
     .spot-popup__tag{height:22px;padding:0 9px;border-radius:11px;background:var(--color-surface);font-size: var(--font-xs);color:rgba(0,0,0,0.45);display:flex;align-items:center}
     .spot-popup__actions{display:flex;gap:8px}
@@ -88,7 +88,7 @@
     .spot-popup__btn--primary:hover{background:var(--color-accent-hover)}
 
     /* ── 탭바 ── */
-    .tab-bar{position:absolute;bottom:0;left:0;right:0;height:80px;background:#fff;border-top:0.5px solid rgba(0,0,0,0.08);display:flex;align-items:flex-start;justify-content:space-around;padding-top:8px;z-index:20}
+    .tab-bar{position:absolute;bottom:0;left:0;right:0;height:80px;background:#fff;border-top:0.5px solid var(--color-border);display:flex;align-items:flex-start;justify-content:space-around;padding-top:8px;z-index:20}
     /* .tab / .tab__icon / .tab__label / .tab-bar__indicator → common.css */
 
       /* ── 스크롤바 숨김 ── */
@@ -280,7 +280,7 @@
       <svg class="tab__icon" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 7l6 -3l6 3l6 -3v13l-6 3l-6 -3l-6 3v-13" /><path d="M9 4v13" /><path d="M15 7v13" /></svg>
       <span class="tab__label">지도</span>
     </button>
-    <button class="tab" onclick="location.href='../travel/travel-list.html'">
+    <button class="tab" onclick="location.href='../course/course-list.html'">
       <svg class="tab__icon" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="6" cy="19" r="2"/><circle cx="18" cy="5" r="2"/><path d="M12 19h4.5a3.5 3.5 0 0 0 0 -7h-8a3.5 3.5 0 0 1 0 -7h3.5"/></svg>
       <span class="tab__label">출사</span>
     </button>

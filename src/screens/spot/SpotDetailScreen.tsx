@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { useAnimatedRef, useAnimatedScrollHandler, useSharedValue, runOnJS } from 'react-native-reanimated';
 import { IconChevronLeft } from '@tabler/icons-react-native';
@@ -12,7 +12,7 @@ import SpotTabBar, { type SpotTabKey } from '@/components/spot/SpotTabBar';
 import PhotogenicScoreCard from '@/components/spot/PhotogenicScoreCard';
 import ConvenienceInfoSection from '@/components/spot/ConvenienceInfoSection';
 import ChecklistSection from '@/components/spot/ChecklistSection';
-import SpotWishlistBanner from '@/components/spot/SpotWishlistBanner';
+import SpotAlertBanner from '@/components/spot/SpotAlertBanner';
 import PhotoGridTab from '@/components/spot/PhotoGridTab';
 import ReviewTab from '@/components/spot/ReviewTab';
 import ChatTab from '@/components/spot/ChatTab';
@@ -20,9 +20,10 @@ import SaveToPlanSheet from '@/components/spot/SaveToPlanSheet';
 import NaviSheet from '@/components/spot/NaviSheet';
 import ShareSheet from '@/components/spot/ShareSheet';
 import BookmarkSheet from '@/components/spot/BookmarkSheet';
-import PhotoViewerModal from '@/components/spot/PhotoViewerModal';
+import PhotoLightbox from '@/components/spot/PhotoLightbox';
 import { useBookmarkCollections, useSpotDetail, useSpotPhotogenicScore, useSpotPhotos } from '@/hooks/useSpot';
-import { BUTTON_RADIUS, GRID_PADDING, TAB_BAR_HEIGHT } from '@/constants/layout';
+import { useKeyboardOverlap } from '@/hooks/useKeyboardHeight';
+import { BUTTON_RADIUS, GRID_PADDING, SPACING_LG } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 
 type Props = NativeStackScreenProps<SpotStackParamList, 'SpotDetail'>;
@@ -30,6 +31,7 @@ type Props = NativeStackScreenProps<SpotStackParamList, 'SpotDetail'>;
 export default function SpotDetailScreen({ navigation, route }: Props) {
   const { spotId } = route.params;
   const insets = useSafeAreaInsets();
+  const keyboardOverlap = useKeyboardOverlap();
   const scrollRef = useAnimatedRef<Animated.ScrollView>();
   const scrollY = useSharedValue(0);
 
@@ -140,17 +142,33 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
     );
   }
 
+  // 길안내 좌표는 보정 좌표(navigation)를 우선 사용한다. 0도 유효한 좌표라 falsy 체크 대신 isFinite로 검증.
+  const naviLat = spot.navigation?.latitude ?? spot.latitude;
+  const naviLng = spot.navigation?.longitude ?? spot.longitude;
+  const naviSpots = Number.isFinite(naviLat) && Number.isFinite(naviLng)
+    ? [{
+        name: spot.navigation?.name || spot.name,
+        latitude: naviLat as number,
+        longitude: naviLng as number,
+        navigation: spot.navigation,
+      }]
+    : undefined;
+
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
       {activeTab === 'chat' ? (
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
+        // KeyboardAvoidingView를 쓰지 않는다 — Android의 KAV는 축소량이 정확하지 않고 키보드를
+        // 닫을 때 직전 값이 남는다. useKeyboardOverlap은 화면 하단부터 키보드 상단까지를 직접 재므로
+        // 열림·닫힘 양쪽이 확정적이다(기준 설명은 그 훅의 주석).
+        // 키보드가 열렸으면 insets.bottom을 쓰지 않는다 — 내비바 구간이 overlap에 이미 포함돼 있다.
+        <View style={{ flex: 1 }}>
           {renderBackButton()}
           {!chatInputFocused && <SpotInfoHeader spot={spot} />}
           <SpotTabBar activeTab={activeTab} onChange={handleTabChange} />
-          <View style={{ flex: 1, paddingBottom: insets.bottom }}>
+          <View style={{ flex: 1, paddingBottom: keyboardOverlap || insets.bottom }}>
             <ChatTab onFocusChange={setChatInputFocused} />
           </View>
-        </KeyboardAvoidingView>
+        </View>
       ) : (
         <Animated.ScrollView
           ref={scrollRef}
@@ -158,7 +176,11 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
           scrollEventThrottle={16}
           stickyHeaderIndices={[2]}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: TAB_BAR_HEIGHT + insets.bottom }}
+          // TAB_BAR_HEIGHT를 더하지 않는다 — SpotStack은 MainTab의 형제라(navigation/index.tsx)
+          // 이 화면에서는 탭바가 가려져 보이지 않는다. 더하면 없는 탭바 자리로 80dp가 비어,
+          // 리뷰 탭 CTA 아래에 커다란 흰 공백이 생긴다. 필요한 건 시스템 내비바·홈 인디케이터를
+          // 피하는 인셋과 최소 여백뿐이다.
+          contentContainerStyle={{ paddingBottom: SPACING_LG + insets.bottom }}
         >
           <SpotHero
             scrollY={scrollY}
@@ -184,7 +206,7 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
                 <View style={{ height: 1, backgroundColor: 'rgba(0,0,0,0.06)', marginHorizontal: GRID_PADDING, marginVertical: normalize(24) }} />
                 <ChecklistSection spotId={spot.id} />
                 <View style={{ height: normalize(24) }} />
-                <SpotWishlistBanner
+                <SpotAlertBanner
                   onPress={() => {
                     // @ts-ignore
                     navigation.navigate('WishlistSetting', { 
@@ -222,7 +244,11 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
             {activeTab === 'photo' && <PhotoGridTab loadMoreSignal={photoLoadSignal} />}
 
             {activeTab === 'review' && (
-              <ReviewTab spotId={spot.id} onWriteReview={() => navigation.navigate('ReviewWrite', { spotId: spot.id })} />
+              <ReviewTab
+                spotId={spot.id}
+                onWriteReview={() => navigation.navigate('ReviewWrite', { spotId: spot.id })}
+                onEditReview={(edit) => navigation.navigate('ReviewWrite', { spotId: spot.id, edit })}
+              />
             )}
           </View>
         </Animated.ScrollView>
@@ -231,6 +257,7 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
       <SaveToPlanSheet
         visible={saveSheetVisible}
         onClose={() => setSaveSheetVisible(false)}
+        spot={spot}
         onSaved={(message) => {
           setSaveSheetVisible(false);
           showToast(message);
@@ -241,6 +268,8 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
         onClose={() => setNaviSheetVisible(false)}
         spotName={spot.name}
         address={spot.address}
+        navigation={spot.navigation}
+        spots={naviSpots}
         onLaunched={(message) => {
           setNaviSheetVisible(false);
           showToast(message);
@@ -261,9 +290,10 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
         }}
       />
 
-      <PhotoViewerModal
+      <PhotoLightbox
         visible={photoViewerVisible}
         photos={viewerPhotos}
+        initialIndex={0}
         onClose={() => setPhotoViewerVisible(false)}
       />
 

@@ -1,15 +1,13 @@
 import React from 'react';
-import {
-  View, Text, TextInput, ScrollView, Pressable, Alert,
-  KeyboardAvoidingView, Platform,
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Text, TextInput, ScrollView, Pressable, Alert } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useKeyboardOverlap } from '@/hooks/useKeyboardHeight';
 import { LinearGradient } from 'expo-linear-gradient';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { IconChevronLeft, IconUser, IconPencil, IconCheck } from '@tabler/icons-react-native';
 import { MyPageStackParamList } from '@/navigation/stacks/MyPageStack';
 import { normalize } from '@/utils/normalize';
-import { FONT_XS, FONT_SM, FONT_MD, FONT_LG, BUTTON_HEIGHT, BUTTON_RADIUS } from '@/constants/layout';
+import { FONT_XS, FONT_SM, FONT_MD, FONT_LG, BUTTON_HEIGHT, BUTTON_RADIUS, TAB_BAR_HEIGHT } from '@/constants/layout';
 
 type Props = NativeStackScreenProps<MyPageStackParamList, 'ProfileEdit'>;
 
@@ -41,6 +39,22 @@ const HELP: Record<'nick' | 'handle', Record<Status, string>> = {
 };
 
 export default function ProfileEditScreen({ navigation }: Props) {
+  const insets = useSafeAreaInsets();
+  const keyboardOverlap = useKeyboardOverlap();
+
+  // useKeyboardOverlap은 **화면 하단** 기준인데, 이 화면은 MainTab(비-absolute 하단탭) 안에 있어
+  // 컨테이너 하단이 화면 하단보다 탭바(TabBar.tsx: TAB_BAR_HEIGHT + insets.bottom)만큼 위에 있다.
+  // 그 밴드를 빼지 않으면 저장 버튼이 키보드보다 그만큼(약 104~114dp) 더 뜬다.
+  // ponytail: 이 화면에서 탭바를 숨기게 되면 보정도 같이 지운다.
+  const keyboardLift = Math.max(0, keyboardOverlap - (TAB_BAR_HEIGHT + insets.bottom));
+
+  // 자기소개는 ScrollView의 마지막 요소라 y를 재지 않고 끝으로 보내면 된다.
+  // 컨테이너가 줄어든 뒤에 스크롤해야 목표 위치가 맞아 한 박자 늦춘다.
+  const scrollRef = React.useRef<ScrollView>(null);
+  const focusBio = () => {
+    setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 150);
+  };
+
   const [nick, setNick] = React.useState(ORIGINAL.nick);
   const [handle, setHandle] = React.useState(ORIGINAL.handle);
   const [bio, setBio] = React.useState(ORIGINAL.bio);
@@ -97,8 +111,10 @@ export default function ProfileEditScreen({ navigation }: Props) {
         <Text className="flex-1 text-center font-semibold text-black tracking-tight" style={{ fontSize: FONT_LG, marginRight: normalize(40) }}>프로필 편집</Text>
       </View>
 
-      <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <ScrollView contentContainerStyle={{ paddingBottom: normalize(24) }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
+      {/* KeyboardAvoidingView를 쓰지 않는다 — 축소량이 부정확해 자기소개 입력창이 계속 잘렸다.
+          키보드 상단까지를 직접 재서 그만큼 컨테이너를 줄인다(keyboardLift 주석). */}
+      <View className="flex-1" style={{ paddingBottom: keyboardLift }}>
+        <ScrollView ref={scrollRef} style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: normalize(24) }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           {/* 아바타 */}
           <View className="items-center" style={{ paddingTop: normalize(16), paddingHorizontal: normalize(20), paddingBottom: normalize(16) }}>
             <Pressable onPress={onChangeAvatar} style={{ marginBottom: normalize(12) }}>
@@ -160,6 +176,7 @@ export default function ProfileEditScreen({ navigation }: Props) {
               <TextInput
                 value={bio}
                 onChangeText={setBio}
+                onFocus={focusBio}
                 maxLength={BIO_MAX}
                 multiline
                 placeholder="나를 표현하는 한 줄을 적어주세요"
@@ -175,6 +192,8 @@ export default function ProfileEditScreen({ navigation }: Props) {
         </ScrollView>
 
         {/* 저장 */}
+        {/* insets.bottom을 더하지 않는다 — 탭바가 자기 paddingBottom으로 이미 덮는다
+            (docs/guide/dev/bottom-tab-usage.md 규칙 1). */}
         <View style={{ paddingHorizontal: normalize(20), paddingTop: normalize(10), paddingBottom: normalize(14) }}>
           <Pressable
             onPress={onSave}
@@ -185,7 +204,7 @@ export default function ProfileEditScreen({ navigation }: Props) {
             <Text className="font-semibold" style={{ fontSize: FONT_MD, color: canSave ? '#fff' : '#c7c7cc' }}>저장</Text>
           </Pressable>
         </View>
-      </KeyboardAvoidingView>
+      </View>
     </SafeAreaView>
   );
 }

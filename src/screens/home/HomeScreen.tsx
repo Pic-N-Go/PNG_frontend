@@ -3,11 +3,10 @@ import React, { useState } from 'react';
 
 import { ScrollView, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
 import { HomeStackParamList } from '@/navigation/stacks/HomeStack';
 import type { RootStackParamList } from '@/navigation';
-import { CONTENT_PADDING, FONT_SM, FONT_XL, TAB_BAR_HEIGHT } from '@/constants/layout';
+import { CONTENT_PADDING, FONT_SM, FONT_XL, SPACING_LG } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
 import HeroSection from '@/components/home/HeroSection';
 import SearchBar from '@/components/home/SearchBar';
@@ -15,25 +14,31 @@ import CategoryFilter from '@/components/home/CategoryFilter';
 import MapBanner from '@/components/home/MapBanner';
 import PopularSpotsSection from '@/components/home/PopularSpotsSection';
 import CalendarSection from '@/components/home/CalendarSection';
-import WishlistBanner from '@/components/home/WishlistBanner';
+import SpotAlertBanner from '@/components/home/SpotAlertBanner';
 import FilterBottomSheet from '@/components/home/FilterBottomSheet';
-import { useNotificationStore, selectHasUnread } from '@/store/useNotificationStore';
+import { useNotification } from '@/hooks/useNotification';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'Home'>;
 
 export default function HomeScreen({ navigation }: Props) {
-  const insets = useSafeAreaInsets();
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [activeFilterCount, setActiveFilterCount] = useState(0);
   const [filterVisible, setFilterVisible] = useState(false);
-  const hasUnread = useNotificationStore(selectHasUnread);
+
+  const { useNotificationsQuery } = useNotification();
+  const { data: notifications = [] } = useNotificationsQuery();
+  const hasUnread = notifications.some((item) => !item.isRead);
 
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
       <ScrollView
         bounces={false}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: TAB_BAR_HEIGHT + insets.bottom }}
+        // TAB_BAR_HEIGHT·insets.bottom을 더하지 않는다 — MainTab이 기본(non-absolute) 하단 탭
+        // 내비게이터라 화면 영역이 이미 탭바 높이를 뺀 크기로 잡히고, 시스템 내비바는 탭바 자신의
+        // paddingBottom(TabBar.tsx)이 덮는다. 여기서 또 더하면 그만큼 죽은 공백이 두 배로 생긴다.
+        // 필요한 건 마지막 콘텐츠와 탭바 사이의 최소 여백뿐이다.
+        contentContainerStyle={{ paddingBottom: SPACING_LG }}
       >
         <HeroSection onNotificationPress={() => navigation.navigate('Notification')} hasUnread={hasUnread} />
 
@@ -81,7 +86,7 @@ export default function HomeScreen({ navigation }: Props) {
         />
 
         <CalendarSection />
-        <WishlistBanner onPress={() => (navigation as any).navigate('Wishlist')} />
+        <SpotAlertBanner onPress={() => (navigation as any).navigate('Wishlist')} />
 
       </ScrollView>
 

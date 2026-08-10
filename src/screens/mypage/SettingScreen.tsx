@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, ScrollView, Pressable, Switch, Alert } from 'react-native';
+import { View, Text, ScrollView, Pressable, Switch, Alert, Linking, AppState, Platform, PermissionsAndroid } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -11,14 +11,14 @@ import {
   IconMessage2Question, IconInfoCircle, IconLogout, IconTrash,
   IconX, IconCheck, IconRefresh,
 } from '@tabler/icons-react-native';
-import { getMessaging, AuthorizationStatus } from '@react-native-firebase/messaging';
+import { getMessaging, hasPermission, AuthorizationStatus } from '@react-native-firebase/messaging';
 import BottomSheet from '@/components/common/BottomSheet';
 import { MyPageStackParamList } from '@/navigation/stacks/MyPageStack';
 import { useNotificationSettings, DndRepeatPreset } from '@/hooks/useNotificationSettings';
 import { useInquiries } from '@/hooks/useInquiries';
 import { useAuthStore } from '@/store/useAuthStore';
 import { normalize } from '@/utils/normalize';
-import { FONT_2XS, FONT_XS, FONT_SM, FONT_MD, FONT_LG, FONT_XL, GRID_PADDING, SPACING_LG, SPACING_SM, CARD_RADIUS, BUTTON_HEIGHT, BUTTON_RADIUS } from '@/constants/layout';
+import { FONT_2XS, FONT_XS, FONT_SM, FONT_MD, FONT_LG, FONT_XL, GRID_PADDING, SPACING_LG, SPACING_SM, CARD_RADIUS, BUTTON_HEIGHT, BUTTON_RADIUS, WHEEL_WIDTH, WHEEL_ITEM_HEIGHT, WHEEL_VISIBLE_HEIGHT, WHEEL_SELECTION_RADIUS } from '@/constants/layout';
 
 type Props = NativeStackScreenProps<MyPageStackParamList, 'Setting'>;
 
@@ -35,29 +35,70 @@ export default function SettingScreen({ navigation }: Props) {
   const [dndRepeatSheetVisible, setDndRepeatSheetVisible] = React.useState(false);
   const [versionSheetVisible, setVersionSheetVisible] = React.useState(false);
 
-  const isPushEnabled = React.useCallback(async () => {
-    const authStatus = await getMessaging().hasPermission();
-    return (
-      authStatus === AuthorizationStatus.AUTHORIZED ||
-      authStatus === AuthorizationStatus.PROVISIONAL
-    );
+  const [hasSystemPermission, setHasSystemPermission] = React.useState<boolean>(true);
+
+  const checkPushPermission = React.useCallback(async () => {
+    try {
+      if (Platform.OS === 'android') {
+        if (Platform.Version >= 33) {
+          const hasPermission = await PermissionsAndroid.check(
+            PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS
+          );
+          setHasSystemPermission(hasPermission);
+          return hasPermission;
+        }
+        setHasSystemPermission(true);
+        return true;
+      }
+
+      const authStatus = await hasPermission(getMessaging());
+      const granted =
+        authStatus === AuthorizationStatus.AUTHORIZED ||
+        authStatus === AuthorizationStatus.PROVISIONAL;
+      setHasSystemPermission(granted);
+      return granted;
+    } catch (error) {
+      console.error('[SettingScreen] checkPushPermission error:', error);
+      setHasSystemPermission(false);
+      return false;
+    }
   }, []);
 
-  // 마운트 시 시스템 푸시 권한이 없으면 알림 토글을 모두 끔
   React.useEffect(() => {
-    (async () => {
-      if (!(await isPushEnabled())) {
-        setWishlist(false);
-        setGolden(false);
-        setCommunity(false);
-      }
-    })();
-  }, [isPushEnabled, setWishlist, setGolden, setCommunity]);
+    void checkPushPermission();
 
-  // 알림 토글: 켤 때만 시스템 권한 확인, 없으면 안내 후 중단
-  const toggleNotif = async (value: boolean, apply: (v: boolean) => void) => {
-    if (value && !(await isPushEnabled())) {
-      Alert.alert('알림', '시스템 설정에서 앱의 알림 권한을 허용해주세요.');
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      if (nextState === 'active') {
+        void checkPushPermission();
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [checkPushPermission]);
+
+
+  const openSystemNotifSettingsAlert = () => {
+    Alert.alert(
+      '알림 권한 필요',
+      '알림을 받으려면 기기 설정에서 알림 권한을 허용해야 합니다.',
+      [
+        { text: '취소', style: 'cancel' },
+        {
+          text: '설정으로 이동',
+          onPress: () => {
+            void Linking.openSettings();
+          },
+        },
+      ]
+    );
+  };
+
+  // 알림 토글: 시스템 권한이 없으면 안내 후 중단
+  const toggleNotif = (value: boolean, apply: (v: boolean) => void) => {
+    if (!hasSystemPermission) {
+      openSystemNotifSettingsAlert();
       return;
     }
     apply(value);
@@ -106,9 +147,42 @@ export default function SettingScreen({ navigation }: Props) {
         <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: SPACING_LG }}>
           <SectionLabel text="알림" />
           <Card>
-            <SettingRow icon={IconBell} iconBg="#fde3ec" iconColor={BRAND} label="위시리스트 알림" desc="조건 충족 시 알림" toggle toggleValue={settings.wishlist} onToggle={(v) => toggleNotif(v, setWishlist)} />
-            <SettingRow icon={IconSun} iconBg="#fdecd0" iconColor="#d99334" label="골든아워 알림" desc="일출·일몰 30분 전" toggle toggleValue={settings.golden} onToggle={(v) => toggleNotif(v, setGolden)} />
-            <SettingRow icon={IconMessageCircle} iconBg="#e0e7ff" iconColor="#5b6dff" label="커뮤니티 알림" desc="좋아요, 댓글, 팔로우" toggle toggleValue={settings.community} onToggle={(v) => toggleNotif(v, setCommunity)} />
+            <SettingRow
+              icon={IconBell}
+              iconBg="#fde3ec"
+              iconColor={BRAND}
+              label="출사 알림"
+              desc="조건 충족 시 알림"
+              toggle
+              toggleValue={settings.wishlist}
+              onToggle={(v) => toggleNotif(v, setWishlist)}
+              disabled={!hasSystemPermission}
+              disabledPress={openSystemNotifSettingsAlert}
+            />
+            <SettingRow
+              icon={IconSun}
+              iconBg="#fdecd0"
+              iconColor="#d99334"
+              label="골든아워 알림"
+              desc="일출·일몰 30분 전"
+              toggle
+              toggleValue={settings.golden}
+              onToggle={(v) => toggleNotif(v, setGolden)}
+              disabled={!hasSystemPermission}
+              disabledPress={openSystemNotifSettingsAlert}
+            />
+            <SettingRow
+              icon={IconMessageCircle}
+              iconBg="#e0e7ff"
+              iconColor="#5b6dff"
+              label="커뮤니티 알림"
+              desc="좋아요, 댓글, 팔로우"
+              toggle
+              toggleValue={settings.community}
+              onToggle={(v) => toggleNotif(v, setCommunity)}
+              disabled={!hasSystemPermission}
+              disabledPress={openSystemNotifSettingsAlert}
+            />
           </Card>
         </View>
 
@@ -135,7 +209,7 @@ export default function SettingScreen({ navigation }: Props) {
             />
           </Card>
           <Text style={{ fontSize: FONT_XS, color: 'rgba(0,0,0,0.35)', marginTop: normalize(8), lineHeight: normalize(18) }}>
-            이 시간에는 위시리스트·골든아워·커뮤니티 알림이 모두 오지 않아요.
+            이 시간에는 출사 알림·골든아워·커뮤니티 알림이 모두 오지 않아요.
           </Text>
         </View>
 
@@ -158,7 +232,7 @@ export default function SettingScreen({ navigation }: Props) {
           <SectionLabel text="자주 묻는 질문" actionLabel="전체 보기" onActionPress={() => navigation.navigate('FAQ')} />
           <Card>
             <SettingRow label="포토제닉 점수는 어떻게 계산되나요?" chevron onPress={() => navigation.navigate('FAQ')} />
-            <SettingRow label="위시리스트 알림이 오지 않아요." chevron onPress={() => navigation.navigate('FAQ')} />
+            <SettingRow label="출사 알림이 오지 않아요." chevron onPress={() => navigation.navigate('FAQ')} />
             <SettingRow label="게시물이나 댓글을 신고하려면?" chevron onPress={() => navigation.navigate('FAQ')} />
           </Card>
         </View>
@@ -270,17 +344,34 @@ interface SettingRowProps {
   onToggle?: (value: boolean) => void;
   onPress?: () => void;
   indent?: boolean;
+  disabled?: boolean;
+  disabledPress?: () => void;
 }
 
 function SettingRow({
   icon: Icon, iconBg, iconColor, label, labelColor, desc, right,
   chevron, chevronColor, toggle, toggleValue, onToggle, onPress, indent,
+  disabled, disabledPress,
 }: SettingRowProps) {
+  const handlePress = () => {
+    if (disabled) {
+      disabledPress?.();
+      return;
+    }
+    onPress?.();
+  };
+
   return (
     <Pressable
-      onPress={onPress}
+      onPress={handlePress}
       className="flex-row items-center"
-      style={{ gap: normalize(12), paddingHorizontal: normalize(16), paddingVertical: normalize(14), minHeight: normalize(64) }}
+      style={{
+        gap: normalize(12),
+        paddingHorizontal: normalize(16),
+        paddingVertical: normalize(14),
+        minHeight: normalize(64),
+        opacity: disabled ? 0.45 : 1,
+      }}
     >
       {Icon && (
         <View
@@ -307,7 +398,14 @@ function SettingRow({
 
       {right}
       {toggle && (
-        <Switch value={toggleValue} onValueChange={onToggle} trackColor={{ true: '#34C759' }} />
+        <View pointerEvents={disabled ? 'none' : 'auto'}>
+          <Switch
+            value={disabled ? false : toggleValue}
+            onValueChange={onToggle}
+            disabled={disabled}
+            trackColor={{ true: '#34C759' }}
+          />
+        </View>
       )}
       {chevron && (
         <IconChevronRight size={normalize(14)} color={chevronColor ?? 'rgba(0,0,0,0.2)'} strokeWidth={1.75} />
@@ -318,8 +416,6 @@ function SettingRow({
 
 /* ---------- 방해 금지 시간 시트 (v2: 위아래 행 + 휠 피커) ---------- */
 
-const ITEM_H = normalize(40);
-const WHEEL_VISIBLE_HEIGHT = ITEM_H * 3;
 const HOURS = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, '0'));
 const MINUTES = Array.from({ length: 12 }, (_, i) => String(i * 5).padStart(2, '0'));
 
@@ -429,38 +525,87 @@ function TimeRow({ label, value, onChange }: { label: string; value: string; onC
 }
 
 function Wheel({ items, value, onChange }: { items: string[]; value: string; onChange: (v: string) => void }) {
+  const scrollRef = React.useRef<ScrollView>(null);
+  const isMomentumRef = React.useRef(false);
+  const dragTimerRef = React.useRef<NodeJS.Timeout | null>(null);
   const idx = Math.max(0, items.indexOf(value));
+
+  const handleScrollEnd = (e: any) => {
+    const y = e.nativeEvent.contentOffset.y;
+    const i = Math.round(y / WHEEL_ITEM_HEIGHT);
+    const validIndex = Math.max(0, Math.min(items.length - 1, i));
+    const v = items[validIndex];
+    if (v && v !== value) {
+      onChange(v);
+    }
+  };
+
+  const handleMomentumScrollBegin = () => {
+    isMomentumRef.current = true;
+    if (dragTimerRef.current) {
+      clearTimeout(dragTimerRef.current);
+      dragTimerRef.current = null;
+    }
+  };
+
+  const handleMomentumScrollEnd = (e: any) => {
+    isMomentumRef.current = false;
+    if (dragTimerRef.current) {
+      clearTimeout(dragTimerRef.current);
+      dragTimerRef.current = null;
+    }
+    handleScrollEnd(e);
+  };
+
+  const handleScrollEndDrag = (e: any) => {
+    if (dragTimerRef.current) clearTimeout(dragTimerRef.current);
+    const nativeEvent = e.nativeEvent;
+    dragTimerRef.current = setTimeout(() => {
+      if (!isMomentumRef.current) {
+        handleScrollEnd({ nativeEvent });
+      }
+    }, 100);
+  };
+
   return (
-    <View style={{ width: normalize(56), height: WHEEL_VISIBLE_HEIGHT, overflow: 'hidden', position: 'relative' }}>
+    <View className="relative overflow-hidden" style={{ width: WHEEL_WIDTH, height: WHEEL_VISIBLE_HEIGHT }}>
       <View
         pointerEvents="none"
-        style={{ position: 'absolute', top: ITEM_H, left: 0, right: 0, height: ITEM_H, backgroundColor: 'rgba(0,0,0,0.05)', borderRadius: normalize(8) }}
+        className="absolute left-0 right-0 bg-black/5"
+        style={{ top: WHEEL_ITEM_HEIGHT, height: WHEEL_ITEM_HEIGHT, borderRadius: WHEEL_SELECTION_RADIUS }}
       />
       <ScrollView
+        ref={scrollRef}
         showsVerticalScrollIndicator={false}
-        snapToInterval={ITEM_H}
+        snapToInterval={WHEEL_ITEM_HEIGHT}
         decelerationRate="fast"
-        contentOffset={{ x: 0, y: idx * ITEM_H }}
-        onMomentumScrollEnd={(e) => {
-          const i = Math.round(e.nativeEvent.contentOffset.y / ITEM_H);
-          const v = items[Math.max(0, Math.min(items.length - 1, i))];
-          if (v && v !== value) onChange(v);
-        }}
-        contentContainerStyle={{ paddingVertical: ITEM_H }}
+        contentOffset={{ x: 0, y: idx * WHEEL_ITEM_HEIGHT }}
+        onMomentumScrollBegin={handleMomentumScrollBegin}
+        onMomentumScrollEnd={handleMomentumScrollEnd}
+        onScrollEndDrag={handleScrollEndDrag}
+        contentContainerStyle={{ paddingVertical: WHEEL_ITEM_HEIGHT }}
       >
-        {items.map((it) => {
+        {items.map((it, itemIdx) => {
           const active = it === value;
           return (
-            <View key={it} style={{ height: ITEM_H, alignItems: 'center', justifyContent: 'center' }}>
+            <Pressable
+              key={it}
+              onPress={() => {
+                onChange(it);
+                scrollRef.current?.scrollTo({ y: itemIdx * WHEEL_ITEM_HEIGHT, animated: true });
+              }}
+              className="items-center justify-center"
+              style={{ height: WHEEL_ITEM_HEIGHT }}
+            >
               <Text style={{ fontSize: active ? FONT_XL : FONT_MD, fontWeight: active ? '600' : '400', color: active ? '#111111' : '#c7c7cc' }}>
                 {it}
               </Text>
-            </View>
+            </Pressable>
           );
         })}
       </ScrollView>
-      <LinearGradient pointerEvents="none" colors={['#f5f5f7', 'rgba(245,245,247,0)']} style={{ position: 'absolute', left: 0, right: 0, top: 0, height: ITEM_H }} />
-      <LinearGradient pointerEvents="none" colors={['rgba(245,245,247,0)', '#f5f5f7']} style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: ITEM_H }} />
+      <LinearGradient pointerEvents="none" colors={['#f5f5f7', 'rgba(245,245,247,0)']} className="absolute left-0 right-0 top-0" style={{ height: WHEEL_ITEM_HEIGHT }} />
+      <LinearGradient pointerEvents="none" colors={['rgba(245,245,247,0)', '#f5f5f7']} className="absolute left-0 right-0 bottom-0" style={{ height: WHEEL_ITEM_HEIGHT }} />
     </View>
   );
 }

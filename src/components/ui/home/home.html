@@ -203,7 +203,7 @@
         margin-top: var(--space-xl);
       }
       .hero__title {
-        font-size: 30px;
+        font-size: 30px; /* token-exempt — display 텍스트, 8토큰 스케일 밖 */
         font-weight: 600;
         color: #fff;
         letter-spacing: -0.6px;
@@ -382,7 +382,7 @@
       }
       .section__subtitle {
         font-size: var(--font-sm);
-        color: rgba(0, 0, 0, 0.4);
+        color: var(--color-text-secondary);
         letter-spacing: -0.1px;
         margin-bottom: 14px;
       }
@@ -552,7 +552,7 @@
       }
       .spot-card__loc {
         font-size: 12px;
-        color: rgba(0, 0, 0, 0.4);
+        color: var(--color-text-secondary);
         margin-bottom: 10px;
       }
       .spot-card__rating {
@@ -561,7 +561,7 @@
         margin-bottom: 10px;
       }
       .spot-card__rating span {
-        color: rgba(0, 0, 0, 0.3);
+        color: var(--color-text-tertiary);
         margin-left: 4px;
       }
       .spot-card__score {
@@ -575,7 +575,7 @@
       }
       .spot-card__score-label {
         font-size: var(--font-xs);
-        color: rgba(0, 0, 0, 0.4);
+        color: var(--color-text-secondary);
       }
       .spot-card__score-value {
         font-size: var(--font-base);
@@ -636,7 +636,7 @@
       }
       .cal-card__tip {
         font-size: 12px;
-        color: rgba(0, 0, 0, 0.4);
+        color: var(--color-text-secondary);
         margin-bottom: 10px;
       }
       .cal-card__score {
@@ -657,7 +657,7 @@
         border-radius: 11px;
         background: #fff;
         font-size: var(--font-2xs);
-        color: rgba(0, 0, 0, 0.4);
+        color: var(--color-text-secondary);
       }
 
       /* ── 위시리스트 배너 ── */
@@ -697,7 +697,7 @@
       }
       .wishlist-banner__desc {
         font-size: 12px;
-        color: rgba(0, 0, 0, 0.4);
+        color: var(--color-text-secondary);
         margin-top: 1px;
       }
       .wishlist-banner__arrow {
@@ -712,7 +712,7 @@
         width: 100%;
         height: 80px;
         background: #fff;
-        border-top: 0.5px solid rgba(0, 0, 0, 0.08);
+        border-top: 0.5px solid var(--color-border);
         display: flex;
         align-items: flex-start;
         justify-content: space-around;
@@ -775,7 +775,7 @@
         font-size: var(--font-md); color: #000;
         letter-spacing: -0.2px;
       }
-      .sp-nav__input::placeholder { color: rgba(0,0,0,0.3); }
+      .sp-nav__input::placeholder { color: var(--color-text-tertiary); }
       .sp-nav__clear {
         flex-shrink: 0;
         width: 18px; height: 18px;
@@ -869,7 +869,7 @@
         flex-shrink: 0;
       }
       .sr-meta__count {
-        font-size: var(--font-sm); color: rgba(0,0,0,0.4);
+        font-size: var(--font-sm); color: var(--color-text-secondary);
       }
       .sr-meta__count strong { color: #000; font-weight: 600; }
       .sr-sort {
@@ -884,7 +884,7 @@
       .sr-card {
         display: flex; gap: 14px;
         padding: 14px 0;
-        border-bottom: 0.5px solid rgba(0,0,0,0.06);
+        border-bottom: 0.5px solid var(--color-border-light);
         cursor: pointer;
       }
       .sr-card:last-child { border-bottom: none; }
@@ -911,7 +911,7 @@
         margin-bottom: 3px;
       }
       .sr-card__addr {
-        font-size: 12px; color: rgba(0,0,0,0.4);
+        font-size: 12px; color: var(--color-text-secondary);
         margin-bottom: 8px;
       }
       .sr-card__bottom { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
@@ -922,7 +922,7 @@
         padding: 2px 8px; border-radius: 8px;
       }
       .sr-card__tag {
-        font-size: 12px; color: rgba(0,0,0,0.4);
+        font-size: 12px; color: var(--color-text-secondary);
         background: var(--color-surface);
         padding: 2px 8px; border-radius: 8px;
       }
@@ -936,7 +936,7 @@
       }
       .sr-empty__icon { color: rgba(0,0,0,0.12); }
       .sr-empty__title { font-size: 16px; font-weight: 600; color: rgba(0,0,0,0.5); }
-      .sr-empty__sub { font-size: var(--font-base); color: rgba(0,0,0,0.3); text-align: center; line-height: 1.5; }
+      .sr-empty__sub { font-size: var(--font-base); color: var(--color-text-tertiary); text-align: center; line-height: 1.5; }
 
       /* ── 스크롤바 숨김 ── */
     </style>
@@ -1305,7 +1305,7 @@
           </svg>
           <span class="tab__label">지도</span>
         </button>
-        <button class="tab" onclick="location.href = '../travel/travel-list.html'">
+        <button class="tab" onclick="location.href = '../course/course-list.html'">
           <svg
             class="tab__icon"
             viewBox="0 0 24 24"
@@ -1698,7 +1698,7 @@
 
       function clearAllRecent() {
         document.getElementById('recentList').innerHTML =
-          '<div style="padding:var(--space-md) 0;font-size: var(--font-base);color:rgba(0,0,0,0.3)">최근 검색어가 없어요</div>';
+          '<div style="padding:var(--space-md) 0;font-size: var(--font-base);color:var(--color-text-tertiary)">최근 검색어가 없어요</div>';
       }
 
       function emptyState() {

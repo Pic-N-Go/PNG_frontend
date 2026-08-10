@@ -1,9 +1,11 @@
+import { toHttpError } from '@/api/auth';
 import { useAuthStore } from '@/store/useAuthStore';
+import type { SpotNavigationDTO } from '@/types/spot';
 
 const BASE = process.env.EXPO_PUBLIC_API_URL ?? '';
 const TIMEOUT_MS = 30_000;
 
-export class ApiError extends Error {}
+export { ApiError } from '@/api/auth';
 
 async function fetchWithAuth(url: string, options: RequestInit = {}) {
   const token = useAuthStore.getState().accessToken;
@@ -24,10 +26,7 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
       signal: controller.signal,
     });
 
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new ApiError(err.message ?? `HTTP Error ${res.status}`);
-    }
+    if (!res.ok) throw await toHttpError(res, token ?? undefined);
 
     const text = await res.text();
     return text ? JSON.parse(text) : undefined;
@@ -36,20 +35,22 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
   }
 }
 
-// 백엔드 CourseSpotResponse DTO. 실제 스팟 정보를 함께 내려줌 (actualSpot 없으면 null)
 export type SpotInCourse = {
   id: number;
   spotId: number;
-  spotName: string | null;
-  latitude: number | null;
-  longitude: number | null;
-  categories: string[] | null;
-  thumbnailUrl: string | null;
-  photogenicScore: number | null;
+  spotName?: string;
+  address?: string;
+  category?: string;
+  latitude?: number;
+  longitude?: number;
+  thumbnailUrl?: string | null;
+  photogenicScore?: number;
+  navigation?: SpotNavigationDTO;
   dayNumber: number;
   sequenceOrder: number;
-  memo: string | null;
+  memo: string;
   travelTimeMinutes: number | null;
+  travelTimeEstimated?: boolean;
 };
 
 export type CourseChecklist = {

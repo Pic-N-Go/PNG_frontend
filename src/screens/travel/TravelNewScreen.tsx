@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { coursesApi } from '@/api/courses';
 import {
@@ -23,7 +23,7 @@ import {
 } from '@tabler/icons-react-native';
 
 import { StatusBar } from 'expo-status-bar';
-import { useTravelStore, Spot } from '@/store/useTravelStore';
+import { useCourseStore, Spot } from '@/store/useCourseStore';
 import Toast from '@/components/auth/Toast';
 
 import { BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING } from '@/constants/layout';
@@ -33,6 +33,11 @@ import { normalize, normalizeFontSize } from '@/utils/normalize';
 type ChipType = '당일치기' | '1박 2일' | '2박 3일' | '3박 이상';
 
 const MAX_TRIP_DAYS = 15;
+
+// Date를 로컬 기준 YYYY-MM-DD로 변환한다.
+// toISOString()은 UTC로 바꾸므로 KST(UTC+9)에서 자정에 만든 Date가 하루 전으로 밀린다.
+const toLocalDateString = (date: Date) =>
+  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 
 export default function TravelNewScreen() {
   const navigation = useNavigation<any>();
@@ -63,7 +68,7 @@ export default function TravelNewScreen() {
   const [daysCount, setDaysCount] = useState(1); // How many days are created
 
   // Zustand Store Integration
-  const { selectedSpots, clearSpots } = useTravelStore();
+  const { selectedSpots, clearSpots } = useCourseStore();
 
   useFocusEffect(
     React.useCallback(() => {
@@ -135,18 +140,31 @@ export default function TravelNewScreen() {
     markDirty();
   };
 
+  // 코스 생성은 createCourse → syncSpots 2단계다. 1단계만 성공한 뒤 실패하면
+  // 코스는 이미 만들어진 상태이므로, 재시도 시 생성을 건너뛰지 않으면 코스가 또 생긴다.
+  const createdCourseIdRef = useRef<number | null>(null);
+
   const createCourseMutation = useMutation({
     mutationFn: async () => {
       if (!startDate || !endDate || !tripName.trim()) {
         throw new Error('이름과 날짜를 모두 입력해주세요.');
       }
 
-      // 1. 코스 생성
-      const course = await coursesApi.createCourse({
+      const payload = {
         title: tripName.trim(),
-        startDate: startDate.toISOString().split('T')[0],
-        endDate: endDate.toISOString().split('T')[0],
-      });
+        startDate: toLocalDateString(startDate),
+        endDate: toLocalDateString(endDate),
+      };
+
+      // 1. 코스 생성 (재시도라면 기존 코스를 재사용하고 입력값만 반영)
+      let courseId = createdCourseIdRef.current;
+      if (courseId === null) {
+        const course = await coursesApi.createCourse(payload);
+        createdCourseIdRef.current = course.id;
+        courseId = course.id;
+      } else {
+        await coursesApi.updateCourse(courseId, payload);
+      }
 
       // 2. 스팟 추가
       const allSpots = Object.entries(daySpots).flatMap(([dayStr, spots]) => {
@@ -159,8 +177,8 @@ export default function TravelNewScreen() {
         }));
       });
 
-      await coursesApi.syncSpots(course.id, { spots: allSpots });
-      return course;
+      await coursesApi.syncSpots(courseId, { spots: allSpots });
+      return courseId;
     },
     onSuccess: () => {
       navigation.goBack();
@@ -185,13 +203,18 @@ export default function TravelNewScreen() {
     },
   });
 
+  // 코스 생성은 createCourse → syncSpots 두 번의 왕복이라 응답까지 시간이 걸린다.
+  // 그 사이 저장 버튼이 계속 눌리면 누른 횟수만큼 코스가 생성되므로 진행 중에는 막는다.
+  const isSaving = createCourseMutation.isPending || updateCourseMutation.isPending;
+
   const handleSave = () => {
+    if (isSaving) return;
     if (!startDate || !endDate || !tripName.trim()) {
       showToast('이름과 날짜를 모두 입력해주세요.');
       return;
     }
-    const sDate = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}-${String(startDate.getDate()).padStart(2, '0')}`;
-    const eDate = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, '0')}-${String(endDate.getDate()).padStart(2, '0')}`;
+    const sDate = toLocalDateString(startDate);
+    const eDate = toLocalDateString(endDate);
 
     if (editMode) {
       updateCourseMutation.mutate({
@@ -513,12 +536,14 @@ export default function TravelNewScreen() {
             <Text className="font-medium text-black" style={{ fontSize: normalizeFontSize(16) }}>이 날 삭제</Text>
           </TouchableOpacity>
         )}
-        <TouchableOpacity 
-          disabled={!tripName}
+        <TouchableOpacity
+          disabled={!tripName || isSaving}
           onPress={handleSave}
-          className={`flex-1 h-[52px] rounded-full items-center justify-center ${tripName ? 'bg-[#e31b59]' : 'bg-[#f5f5f7]'}`}
+          className={`flex-1 h-[52px] rounded-full items-center justify-center ${tripName && !isSaving ? 'bg-[#e31b59]' : 'bg-[#f5f5f7]'}`}
         >
-          <Text className={`font-medium ${tripName ? 'text-white' : 'text-black/25'}`} style={{ fontSize: normalizeFontSize(16) }}>저장하기</Text>
+          <Text className={`font-medium ${tripName && !isSaving ? 'text-white' : 'text-black/25'}`} style={{ fontSize: normalizeFontSize(16) }}>
+            {isSaving ? '저장 중...' : '저장하기'}
+          </Text>
         </TouchableOpacity>
       </View>
 

@@ -133,6 +133,9 @@ UI 기능이면 추가로: `docs/guide/dev/ui-publishing.md`
   - 스킬 파일: `.claude/skills/handoff-summary-writer/SKILL.md`
 - `/png-handoff-clean`: `docs/ai/handoffs/`의 handoff 문서 삭제
   - 커맨드 파일: `.claude/commands/png-handoff-clean.md`
+- `/png-filelist`: `filelist-data.json` 진행 상태(uiStatus/apiStatus/date/note)를 카테고리→파일 선택(방향키) 또는 일괄 입력으로 갱신 후 `pnpm filelist`로 재생성
+  - 커맨드 파일: `.claude/commands/png-filelist.md`
+  - 스킬 파일: `.claude/skills/filelist-updater/SKILL.md`
 
 ---
 

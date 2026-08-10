@@ -3,9 +3,12 @@ import { Pressable, Text, View } from 'react-native';
 import Svg, { Circle, Line, Path } from 'react-native-svg';
 import { IconClock } from '@tabler/icons-react-native';
 import BottomSheet from '@/components/common/BottomSheet';
-import { BUTTON_RADIUS, GRID_PADDING } from '@/constants/layout';
+import { BADGE_RADIUS, BUTTON_RADIUS, GRID_PADDING } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import type { NaviAppId } from '@/types/spot';
+import type { NaviAppId, SpotNavigationDTO } from '@/types/spot';
+import { openKakaoNavi, SpotLocation } from '@/utils/kakaoNavi';
+import { openNaverMap } from '@/utils/naverMap';
+import { openAppleMap } from '@/utils/appleMap';
 
 const NAVI_APPS: { id: NaviAppId; label: string; bg: string }[] = [
   { id: 'kakao', label: '카카오맵', bg: '#FEE500' },
@@ -42,11 +45,17 @@ interface Props {
   onClose: () => void;
   spotName: string;
   address: string;
+  spots?: SpotLocation[];
+  navigation?: SpotNavigationDTO;
   onLaunched: (message: string) => void;
 }
 
-export default function NaviSheet({ visible, onClose, spotName, address, onLaunched }: Props) {
+export default function NaviSheet({ visible, onClose, spotName, address, spots, navigation, onLaunched }: Props) {
   const [selectedApp, setSelectedApp] = useState<NaviAppId | null>(null);
+
+  const targetNav = navigation || (spots && spots.length > 0 ? spots[spots.length - 1].navigation : undefined);
+  const displayName = targetNav?.name || spotName;
+  const navStatus = targetNav?.status;
 
   function handleClose() {
     setSelectedApp(null);
@@ -56,8 +65,28 @@ export default function NaviSheet({ visible, onClose, spotName, address, onLaunc
   function handleLaunch() {
     const app = NAVI_APPS.find((a) => a.id === selectedApp);
     if (!app) return;
-    onLaunched(`${app.label}으로 안내를 시작합니다`);
+
+    const targetSpots = spots && spots.length > 0
+      ? spots
+      : [{
+          name: targetNav?.name || spotName,
+          latitude: targetNav?.latitude ?? 0,
+          longitude: targetNav?.longitude ?? 0,
+          navigation: targetNav,
+        }];
+
+    if (selectedApp === 'kakao') {
+      openKakaoNavi(targetSpots);
+    } else if (selectedApp === 'naver') {
+      openNaverMap(targetSpots);
+    } else if (selectedApp === 'apple') {
+      openAppleMap(targetSpots);
+    } else {
+      onLaunched(`${app.label}으로 안내를 시작합니다`);
+    }
+
     setSelectedApp(null);
+    onClose();
   }
 
   return (
@@ -77,9 +106,29 @@ export default function NaviSheet({ visible, onClose, spotName, address, onLaunc
           <View style={{ marginLeft: normalize(4), width: 1, height: normalize(18), backgroundColor: 'rgba(0,0,0,0.12)' }} />
           <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: normalize(10) }}>
             <View style={{ width: normalize(10), height: normalize(10), borderRadius: normalize(5), backgroundColor: '#E31B59', marginTop: normalize(3) }} />
-            <View>
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: normalizeFontSize(14), color: '#000' }}>{spotName}</Text>
+            <View style={{ flex: 1 }}>
+              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: normalizeFontSize(14), color: '#000' }}>{displayName}</Text>
               <Text allowFontScaling={false} style={{ fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.4)', marginTop: normalize(2) }}>{address}</Text>
+              {navStatus === 'CORRECTED' && targetNav && (
+                <View
+                  className="mt-1.5 px-2 py-1 self-start bg-[#FFF5E5]"
+                  style={{ borderRadius: BADGE_RADIUS }}
+                >
+                  <Text allowFontScaling={false} style={{ fontSize: normalizeFontSize(12), color: '#D97706', fontFamily: 'Pretendard-Medium' }}>
+                    {targetNav.name}으로 안내 · 도보 이동 필요
+                  </Text>
+                </View>
+              )}
+              {navStatus === 'UNREACHABLE' && (
+                <View
+                  className="mt-1.5 px-2 py-1 self-start bg-[#FEF2F2]"
+                  style={{ borderRadius: BADGE_RADIUS }}
+                >
+                  <Text allowFontScaling={false} style={{ fontSize: normalizeFontSize(12), color: '#DC2626', fontFamily: 'Pretendard-Medium' }}>
+                    차량 접근이 어려운 지역
+                  </Text>
+                </View>
+              )}
             </View>
           </View>
         </View>

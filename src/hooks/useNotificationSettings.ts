@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
-import { useMutation } from '@tanstack/react-query';
-import { notificationApi, NotificationSettingUpdateRequest } from '@/api/notification';
+import { Alert } from 'react-native';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { notificationApi, NotificationSettingUpdateRequest, NotificationSettingResponse } from '@/api/notification';
 import { useAuthStore } from '@/store/useAuthStore';
 
 export type DndRepeatPreset = 'daily' | 'weekday' | 'weekend' | 'custom';
@@ -23,7 +24,7 @@ export interface NotificationSettings {
 const DEFAULT_SETTINGS: NotificationSettings = {
   wishlist: true,
   golden: true,
-  community: false,
+  community: true,
   dnd: {
     enabled: true,
     start: '22:00',
@@ -33,8 +34,14 @@ const DEFAULT_SETTINGS: NotificationSettings = {
   },
 };
 
+const parseLocalTime = (timeStr?: string | null) => {
+  if (!timeStr) return undefined;
+  return timeStr.substring(0, 5);
+};
+
 export function useNotificationSettings(initial?: Partial<NotificationSettings>) {
   const accessToken = useAuthStore((state) => state.accessToken);
+  const queryClient = useQueryClient();
 
   const [settings, setSettings] = useState<NotificationSettings>({
     ...DEFAULT_SETTINGS,
@@ -43,32 +50,114 @@ export function useNotificationSettings(initial?: Partial<NotificationSettings>)
   });
 
   const latestSettingsRef = useRef(settings);
+  const previousSettingsRef = useRef(settings);
+
   useEffect(() => {
     latestSettingsRef.current = settings;
   }, [settings]);
 
-  const updateApiMutation = useMutation({
-    mutationFn: (data: NotificationSettingUpdateRequest) => {
-      if (!accessToken) return Promise.resolve();
-      return notificationApi.updateSettings(data, accessToken);
+  // 1. GET /notifications/settings 수신 설정 데이터 조회 (Hydration)
+  const { data: serverSettings } = useQuery<NotificationSettingResponse>({
+    queryKey: ['notificationSettings', accessToken],
+    queryFn: () => {
+      if (!accessToken) return Promise.reject(new Error('AccessToken missing'));
+      return notificationApi.getSettings(accessToken);
     },
+    enabled: !!accessToken,
   });
+
+  const currentTokenRef = useRef(accessToken);
 
   const syncTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const syncSettingsToApi = useCallback((newSettings: NotificationSettings) => {
+  useEffect(() => {
+    currentTokenRef.current = accessToken;
+    // accessToken 변경 시 (로그아웃 / 계정 전환 등) 큐에 대기 중인 동기화 타이머 취소
     if (syncTimerRef.current) {
       clearTimeout(syncTimerRef.current);
+      syncTimerRef.current = null;
     }
+  }, [accessToken]);
+
+  // 2. PUT /notifications/settings 수신 설정 동기화
+  const updateApiMutation = useMutation({
+    mutationFn: ({ requestToken, ...data }: NotificationSettingUpdateRequest & { requestToken?: string }) => {
+      if (!requestToken) return Promise.resolve();
+      return notificationApi.updateSettings(data, requestToken);
+    },
+    onMutate: (variables) => {
+      // API 전송 실패 시 롤백용 스냅샷 및 당시 토큰 기록
+      return { previousSettings: previousSettingsRef.current, requestToken: variables.requestToken };
+    },
+    onError: (_err, _variables, context) => {
+      // 계정 전환 없이 동일한 로그인 세션일 때만 Rollback 수행
+      if (context?.requestToken && context.requestToken === currentTokenRef.current) {
+        if (context?.previousSettings) {
+          setSettings(context.previousSettings);
+          latestSettingsRef.current = context.previousSettings;
+        }
+        Alert.alert(
+          '설정 저장 실패',
+          '네트워크 오류로 알림 수신 설정 변경에 실패했습니다. 이전 설정으로 되돌아갑니다.'
+        );
+      }
+    },
+    onSettled: (_data, _error, _variables, context) => {
+      if (context?.requestToken && context.requestToken === currentTokenRef.current) {
+        queryClient.invalidateQueries({ queryKey: ['notificationSettings', context.requestToken] });
+      }
+    },
+  });
+
+  useEffect(() => {
+    // 동기화 타이머 대기 중이거나 API 요청 중일 때는 하이드레이션 스킵
+    if (serverSettings && !syncTimerRef.current && !updateApiMutation.isPending) {
+      const hasDnd = serverSettings.isDndEnabled ?? !!(serverSettings.dndStartTime && serverSettings.dndEndTime);
+      setSettings((prev) => ({
+        ...prev,
+        wishlist: serverSettings.isSpotAlertPushEnabled ?? prev.wishlist,
+        golden: serverSettings.isGoldenHourPushEnabled ?? prev.golden,
+        community: serverSettings.isCommunityPushEnabled ?? prev.community,
+        dnd: {
+          ...prev.dnd,
+          enabled: hasDnd,
+          start: parseLocalTime(serverSettings.dndStartTime) ?? prev.dnd.start,
+          end: parseLocalTime(serverSettings.dndEndTime) ?? prev.dnd.end,
+        },
+      }));
+    }
+  }, [serverSettings, updateApiMutation.isPending]);
+
+  const formatLocalTime = (timeStr?: string) => {
+    if (!timeStr) return undefined;
+    return timeStr.length === 5 ? `${timeStr}:00` : timeStr;
+  };
+
+  const syncSettingsToApi = useCallback((newSettings: NotificationSettings) => {
+    if (!accessToken) return;
+
+    // 첫 디바운스 시작 시점(타이머가 아직 없는 상태)에서만 롤백 스냅샷 캡처
+    if (!syncTimerRef.current) {
+      previousSettingsRef.current = latestSettingsRef.current;
+    } else {
+      clearTimeout(syncTimerRef.current);
+    }
+
+    const tokenForRequest = accessToken;
+
     syncTimerRef.current = setTimeout(() => {
-      const isAllPushEnabled = newSettings.wishlist || newSettings.golden || newSettings.community;
+      syncTimerRef.current = null;
       updateApiMutation.mutate({
-        isAllPushEnabled,
-        dndStartTime: newSettings.dnd.enabled ? newSettings.dnd.start : '',
-        dndEndTime: newSettings.dnd.enabled ? newSettings.dnd.end : '',
+        requestToken: tokenForRequest,
+        isSpotAlertPushEnabled: newSettings.wishlist,
+        isGoldenHourPushEnabled: newSettings.golden,
+        isCommunityPushEnabled: newSettings.community,
+        isDndEnabled: newSettings.dnd.enabled,
+        dndStartTime: newSettings.dnd.enabled ? formatLocalTime(newSettings.dnd.start) : undefined,
+        dndEndTime: newSettings.dnd.enabled ? formatLocalTime(newSettings.dnd.end) : undefined,
       });
     }, 300);
-  }, [updateApiMutation]);
+  }, [accessToken, updateApiMutation]);
 
   useEffect(() => {
     return () => {
@@ -78,6 +167,7 @@ export function useNotificationSettings(initial?: Partial<NotificationSettings>)
     };
   }, []);
 
+  // 3. 독립 토글 업데이트 함수
   const setWishlist = useCallback((value: boolean) => {
     const next = { ...latestSettingsRef.current, wishlist: value };
     setSettings(next);

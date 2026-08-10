@@ -1,23 +1,54 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Platform, PermissionsAndroid, BackHandler, Image } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Platform, PermissionsAndroid, BackHandler, Image, TextInput } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { IconChevronLeft, IconSearch, IconAdjustmentsHorizontal, IconFocus2, IconX } from '@tabler/icons-react-native';
 import { useNavigation, useRoute, useFocusEffect, CommonActions } from '@react-navigation/native';
-import { useTravelStore, Spot } from '@/store/useTravelStore';
-import { useSpots } from '@/hooks/useSpot';
-import type { SpotResponse } from '@/types/spot';
+import { useCourseStore, Spot } from '@/store/useCourseStore';
+import { useSpots, useMapSpots, useSearchSpots } from '@/hooks/useSpot';
+import { useDebounce } from '@/hooks/useDebounce';
 import SpotPopup from '@/components/travel/SpotPopup';
 import BottomSheet from '@/components/common/BottomSheet';
 import FilterBottomSheet, { FilterState, EMPTY_FILTER } from '@/components/home/FilterBottomSheet';
+import SearchModal from '@/components/common/SearchModal';
+import SaveToPlanSheet from '@/components/spot/SaveToPlanSheet';
+import Toast from '@/components/auth/Toast';
 import { StatusBar } from 'expo-status-bar';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { FONT_MD, BUTTON_HEIGHT, BUTTON_RADIUS, HEADER_HEIGHT } from '@/constants/layout';
 
 const KAKAO_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_API_KEY;
 
+const CATEGORY_MAP: Record<string, string> = {
+  '야경': 'NIGHT_VIEW',
+  '바다': 'BEACH',
+  '한옥': 'HANOK',
+  '꽃': 'FLOWER',
+  '카페': 'CAFE',
+  '숲': 'FOREST',
+  '축제': 'FESTIVAL',
+  '공원': 'PARK',
+  '산': 'MOUNTAIN',
+  '유적지': 'HERITAGE',
+  '도시': 'CITY',
+  '일출일몰': 'SUNRISE_SUNSET',
+  '은하수': 'MILKY_WAY',
+  '기타': 'ETC',
+};
 
+type MapBounds = {
+  southWestLat: number;
+  southWestLng: number;
+  northEastLat: number;
+  northEastLng: number;
+};
 
-
+// 지도가 첫 bounds를 알려주기 전까지 쓰는 기본값 (대한민국 전체 영역)
+const DEFAULT_BOUNDS: MapBounds = {
+  southWestLat: 33.0,
+  southWestLng: 124.0,
+  northEastLat: 38.8,
+  northEastLng: 132.0,
+};
 
 const CATEGORIES = [
   { id: 'all', label: '전체' },
@@ -28,6 +59,12 @@ const CATEGORIES = [
   { id: '카페', label: '카페' },
   { id: '숲', label: '숲' },
   { id: '축제', label: '축제' },
+  { id: '공원', label: '공원' },
+  { id: '산', label: '산' },
+  { id: '유적지', label: '유적지' },
+  { id: '도시', label: '도시' },
+  { id: '일출일몰', label: '일출/일몰' },
+  { id: '은하수', label: '은하수' },
 ];
 
 export default function MapScreen() {
@@ -39,33 +76,100 @@ export default function MapScreen() {
              : 'view';
 
   const webViewRef = useRef<any>(null);
-  const { selectedSpots, addSpot, removeSpot } = useTravelStore();
+  const [mapReady, setMapReady] = useState(false);
+  const { selectedSpots, addSpot, removeSpot } = useCourseStore();
   const [activeSpot, setActiveSpot] = useState<Spot | null>(null);
   const [isCourseModalOpen, setCourseModalOpen] = useState(false);
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+
+  const showToast = (message: string) => {
+    setToastMessage(message);
+    setToastVisible(true);
+  };
+
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [searchQuery, setSearchQuery] = useState('');
   const [activeFilterCount, setActiveFilterCount] = useState(0);
   const [filterVisible, setFilterVisible] = useState(false);
+  const [isSearchModalVisible, setSearchModalVisible] = useState(false);
   const [detailFilter, setDetailFilter] = useState<FilterState>(EMPTY_FILTER);
   const [currentPlanDay, setCurrentPlanDay] = useState<string>(route.params?.initialDay || '1');
+  // 지도가 idle될 때마다 WebView가 알려주는 현재 화면 영역
+  const [mapBounds, setMapBounds] = useState<MapBounds | null>(null);
+  const debouncedKeyword = useDebounce(searchQuery, 500);
+  const debouncedMapBounds = useDebounce(mapBounds, 500);
 
-  const { data: spotsPage } = useSpots();
+  const apiCategory = CATEGORY_MAP[selectedCategory] || (selectedCategory !== 'all' ? selectedCategory : undefined);
+  const hasKeyword = debouncedKeyword.trim().length > 0;
+  // 코스 보기/스팟 목록을 파라미터로 받은 경우엔 API 조회가 필요 없다.
+  const usesRouteSpots = mode === 'plan-view' || Array.isArray(route.params?.spots);
+
+  // 1. 지도 영역 핀 목록 (GET /spots/map) — 지도 드래그/확대 축소가 멈춘 뒤 500ms 후에 API 호출
+  const { data: mapSpotsData, error: mapError } = useMapSpots(
+    { ...(debouncedMapBounds ?? DEFAULT_BOUNDS), category: apiCategory, size: 200 },
+    { enabled: !usesRouteSpots && !hasKeyword },
+  );
+
+  // 2. 키워드 검색 목록 (GET /spots/search) — 키워드가 있을 때만 실행된다.
+  const { data: searchSpotsData, error: searchError } = useSearchSpots(
+    { keyword: debouncedKeyword, category: apiCategory, size: 50 },
+    { enabled: !usesRouteSpots },
+  );
+
+  // 3. 백업 스팟 목록 (GET /spots) — 지도 조회가 실패했을 때만 받아온다.
+  // 결과가 비어있는 건 "그 영역에 스팟이 없다"는 정상 응답이므로 전국 목록으로 대체하지 않는다.
+  const needsFallback = !usesRouteSpots && !hasKeyword && !!mapError;
+  const { data: spotsPageData, error: spotsError } = useSpots(
+    { category: apiCategory, size: 50 },
+    { enabled: needsFallback },
+  );
+
+  useEffect(() => {
+    if (mapError) console.error('[MapScreen] mapSpots API error:', mapError);
+    if (searchError) console.error('[MapScreen] searchSpots API error:', searchError);
+    if (spotsError) console.error('[MapScreen] spotsPage API error:', spotsError);
+  }, [mapError, searchError, spotsError]);
 
   const apiSpots = useMemo(() => {
-    if (!spotsPage?.content) return [];
-    const mapped = spotsPage.content.map((spot: SpotResponse) => ({
-      id: String(spot.id),
-      name: spot.name,
-      lat: spot.latitude,
-      lng: spot.longitude,
-      tags: spot.categories ?? [],
-      score: spot.photogenicScore,
-      loc: spot.address,
-      photo: spot.thumbnailUrl || spot.imageUrl || ''
-    }));
-    return mapped;
-  }, [spotsPage]);
+    let rawList: any[] = [];
+    if (hasKeyword) {
+      rawList = searchSpotsData?.content || [];
+    } else if (mapSpotsData && Array.isArray(mapSpotsData) && mapSpotsData.length > 0) {
+      rawList = mapSpotsData;
+    } else if (needsFallback && spotsPageData?.content && Array.isArray(spotsPageData.content)) {
+      // 비활성 쿼리도 캐시가 남아 있으면 data를 돌려주므로, 폴백 조건일 때만 사용한다.
+      // (그렇지 않으면 "이 영역에 스팟 없음"인 정상 응답을 이전 전국 목록이 덮어쓴다)
+      rawList = spotsPageData.content;
+    }
 
-  const isSelected = activeSpot ? selectedSpots.some(s => s.id === activeSpot.id) : false;
+    return rawList.map((spot: any) => {
+      const tags = Array.isArray(spot.categories) && spot.categories.length > 0
+        ? spot.categories
+        : (spot.category ? [spot.category] : []);
+
+      return {
+        id: String(spot.id),
+        name: spot.name,
+        lat: spot.latitude,
+        lng: spot.longitude,
+        tags,
+        score: spot.photogenicScore ?? 0,
+        loc: spot.address ?? '',
+        photo: spot.thumbnailUrl || spot.imageUrl || '',
+        badge: spot.badge ?? false,
+      };
+    });
+  }, [hasKeyword, needsFallback, mapSpotsData, searchSpotsData, spotsPageData]);
+
+  // 현재 코스(선택 목록)에 담긴 스팟인지 판단 — id 타입 불일치(number/string) 방지
+  const isSpotSaved = useCallback(
+    (spotId: string) => selectedSpots.some((s) => String(s.id) === String(spotId)),
+    [selectedSpots]
+  );
+
+
+
 
   useEffect(() => {
     if (route.params?.initialDay) {
@@ -74,13 +178,18 @@ export default function MapScreen() {
   }, [route.params?.initialDay]);
 
   const handleBackNavigation = useCallback(() => {
+    if (searchQuery || activeSpot) {
+      setSearchQuery('');
+      setActiveSpot(null);
+      return true;
+    }
     if (navigation.canGoBack()) {
       navigation.goBack();
     } else {
       navigation.navigate('HomeTab');
     }
     return true; // prevent default behavior
-  }, [navigation]);
+  }, [searchQuery, activeSpot, navigation]);
 
   useFocusEffect(
     useCallback(() => {
@@ -106,6 +215,20 @@ export default function MapScreen() {
         setActiveSpot(prev => (prev?.id === parsed.data.id ? prev : parsed.data));
       } else if (parsed.type === 'MAP_CLICK') {
         setActiveSpot(null);
+      } else if (parsed.type === 'MAP_READY') {
+        setMapReady(true);
+      } else if (parsed.type === 'BOUNDS_CHANGED') {
+        const next = parsed.data as MapBounds;
+        // 같은 영역이면 쿼리 키가 흔들리지 않도록 갱신을 건너뛴다.
+        setMapBounds((prev) =>
+          prev &&
+          prev.southWestLat === next.southWestLat &&
+          prev.southWestLng === next.southWestLng &&
+          prev.northEastLat === next.northEastLat &&
+          prev.northEastLng === next.northEastLng
+            ? prev
+            : next,
+        );
       }
     } catch (e) {
       console.log('WebView Message Parse Error:', e);
@@ -178,7 +301,10 @@ export default function MapScreen() {
     return baseSpots.filter((spot: any) => {
       // 1. 카테고리 필터링
       if (selectedCategory !== 'all' && selectedCategory !== '전체') {
-        const matchesCategory = spot.tags.some((t: string) => t.includes(selectedCategory));
+        const targetEnum = CATEGORY_MAP[selectedCategory] || selectedCategory;
+        const matchesCategory = spot.tags.some(
+          (t: string) => t === targetEnum || t === selectedCategory || (typeof t === 'string' && t.includes(selectedCategory))
+        );
         if (!matchesCategory) return false;
       }
 
@@ -204,15 +330,21 @@ export default function MapScreen() {
   }, [baseSpots, selectedCategory, detailFilter]);
 
   // filteredSpots가 변경될 때마다 WebView에 메시지를 보내 마커 갱신
+  // 단, 팝업이 열린 상태(activeSpot !== null)에서는 마커 재그리기 생략
+  // → 마커 재그리기 시 발생하는 map click 이벤트가 팝업을 닫는 부작용 방지
   useEffect(() => {
-    if (webViewRef.current) {
+    if (webViewRef.current && mapReady && !activeSpot) {
+      // 검색 결과일 때만 카메라를 결과 위치로 옮긴다.
+      // (지도 이동으로 받아온 핀까지 따라가면 사용자가 보던 영역이 계속 튄다)
       webViewRef.current.injectJavaScript(`
         if (window.updateMarkers) {
-          window.updateMarkers(${JSON.stringify(JSON.stringify(filteredSpots))});
+          window.updateMarkers(${JSON.stringify(filteredSpots)}, ${hasKeyword});
         }
+        true;
       `);
     }
-  }, [filteredSpots, apiSpots]);
+  }, [filteredSpots, mapReady, activeSpot, hasKeyword]);
+
   const HTML = useMemo(() => {
     const initialSpots = (mode === 'plan-view' && route.params?.planData)
       ? (route.params.planData[route.params.initialDay || '1']?.spots || [])
@@ -224,16 +356,26 @@ export default function MapScreen() {
 <html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
-  <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_KEY}&autoload=false"></script>
+  <!-- baseUrl을 https로 주면 카카오 SDK가 내부 라이브러리를 https로 받는다(iOS ATS 통과).
+       단 Referer가 붙으면 미등록 도메인이라 401이 되므로 no-referrer로 억제한다. -->
+  <meta name="referrer" content="no-referrer">
+  <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_KEY}&libraries=clusterer&autoload=false"></script>
   <style>
     body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #e8e8ed; }
-    #map { width: 100%; height: 100%; }
-    .custom-marker {
-      width: 32px; height: 32px; border-radius: 50%; background: #E31B59;
+    #map { width: 100%; height: 100%; -webkit-transform: translateZ(0); transform: translateZ(0); will-change: transform; }
+    .marker-touch-wrap {
+      width: 44px; height: 44px;
       display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 3px 8px rgba(0,0,0,0.3); border: 2.5px solid white;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+      transform: translateZ(0);
     }
-    .custom-marker svg { width: 16px; height: 16px; fill: white; }
+    .custom-marker {
+      width: 24px; height: 24px; border-radius: 50%; background: #E31B59;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 2px 6px rgba(227, 27, 89, 0.35); border: 2px solid white;
+    }
+    .custom-marker svg { width: 12px; height: 12px; fill: white; pointer-events: none; }
   </style>
 </head>
 <body>
@@ -248,32 +390,51 @@ export default function MapScreen() {
         }
 
         var mapOption = {
-            center: new kakao.maps.LatLng(36.5, 127.5),
-            level: 13
+            center: new kakao.maps.LatLng(33.4996, 126.5312),
+            level: 10
         };
         var map = new kakao.maps.Map(mapContainer, mapOption);
         window.kakaoMap = map;
 
-      // 마커(오버레이) 탭 시 kakao가 지도 'click'도 함께 발생시켜 '열자마자 닫힘' 깜빡임이 생긴다.
-      // 지도 클릭에 의한 닫기(MAP_CLICK)를 살짝 지연시키고, 그 사이 마커 탭이 오면 취소한다(순서 무관).
-      var pendingMapClose = null;
-      function scheduleMapClose() {
-        if (pendingMapClose) clearTimeout(pendingMapClose);
-        pendingMapClose = setTimeout(function () {
-          pendingMapClose = null;
-          window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'MAP_CLICK' }));
-        }, 80);
+        var clusterer = new kakao.maps.MarkerClusterer({
+            map: map,
+            averageCenter: true,
+            minLevel: 5,
+            gridSize: 50,
+            styles: [{
+                width: '34px', height: '34px',
+                background: '#E31B59',
+                borderRadius: '17px',
+                color: '#FFFFFF',
+                textAlign: 'center',
+                lineHeight: '34px',
+                fontWeight: '700',
+                fontSize: '12px',
+                boxShadow: '0 2px 8px rgba(227, 27, 89, 0.4)',
+                border: '2px solid #FFFFFF'
+            }]
+        });
+
+      // 마커(오버레이) 탭 시 kakao가 지도 'click'도 함께 발생시켜 '열자마자 닫힘'이 생긴다.
+      // 이전에는 MAP_CLICK을 80ms 지연시키고 마커 탭이 오면 취소했는데, 지도 click이 마커 click
+      // '뒤에' 오면 취소 후 다시 예약되어 팝업이 닫혔다. 취소가 아니라 '억제'로 바꿔 순서에 무관하게 만든다.
+      // (touchstart는 항상 click보다 먼저 오므로 마커 탭 시각을 기록해두면 판별이 가능하다)
+      var MARKER_TAP_GUARD_MS = 400;
+      var lastMarkerTapAt = 0;
+      function markMarkerTapped() {
+        lastMarkerTapAt = Date.now();
       }
-      function cancelMapClose() {
-        if (pendingMapClose) { clearTimeout(pendingMapClose); pendingMapClose = null; }
+      function closePopupFromMapClick() {
+        if (Date.now() - lastMarkerTapAt < MARKER_TAP_GUARD_MS) return; // 마커 탭에 딸려온 지도 클릭
+        window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'MAP_CLICK' }));
       }
 
       var spots = ${JSON.stringify(initialSpots).replace(/</g, '\\u003c')};
       var isCourseView = ${isCourseView};
 
-      var bounds = new kakao.maps.LatLngBounds();
       var activeOverlays = [];
       var activePolyline = null;
+      var initialBoundsSet = false;  // 최초 1회만 bounds 맞춤, 이후 updateMarkers 호출 시 지도 이동 방지
 
       function drawPolyline(targetSpots) {
         if (activePolyline) {
@@ -293,47 +454,63 @@ export default function MapScreen() {
         }
       }
 
-      function drawMarkers(targetSpots) {
-        // 기존 오버레이 모두 제거
+      function drawMarkers(targetSpots, fitBounds) {
+        // 기존 오버레이 및 클러스터 제거
         activeOverlays.forEach(function(o) { o.setMap(null); });
         activeOverlays = [];
+        if (clusterer) {
+          clusterer.clear();
+        }
 
         var markerBounds = new kakao.maps.LatLngBounds();
+        var clusterMarkers = [];
 
         targetSpots.forEach(function(spot, index) {
           var markerPosition = new kakao.maps.LatLng(spot.lat, spot.lng);
+
+          var wrap = document.createElement('div');
+          wrap.className = 'marker-touch-wrap';
 
           var content = document.createElement('div');
           content.className = 'custom-marker';
           // isCourseView일 때는 숫자, 아닐 때는 하트 아이콘
           if (isCourseView) {
-            content.innerHTML = '<span style="color:white; font-size:14px; font-weight:bold;">' + (index + 1) + '</span>';
+            content.innerHTML = '<span style="color:white; font-size:12px; font-weight:bold;">' + (index + 1) + '</span>';
           } else {
             content.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>';
           }
+          wrap.appendChild(content);
 
-          content.onclick = function(e) {
+          wrap.onclick = function(e) {
               e.stopPropagation();
-              cancelMapClose();
+              markMarkerTapped();
               window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'SPOT_CLICK', data: spot }));
           };
-          // 터치 환경에서 지도 click이 마커 onclick보다 먼저 예약되는 경우까지 대비
-          content.addEventListener('touchstart', function(e) { e.stopPropagation(); cancelMapClose(); }, { passive: true });
+          wrap.addEventListener('touchstart', function(e) { e.stopPropagation(); markMarkerTapped(); }, { passive: true });
 
           var customOverlay = new kakao.maps.CustomOverlay({
               position: markerPosition,
-              content: content,
-              yAnchor: 1
+              content: wrap,
+              xAnchor: 0.5,
+              yAnchor: 0.5
           });
-          customOverlay.setMap(map);
+
+          clusterMarkers.push(customOverlay);
           activeOverlays.push(customOverlay);
           markerBounds.extend(markerPosition);
         });
 
-        if (targetSpots.length > 0) {
-          map.setBounds(markerBounds);
+        if (clusterer && clusterMarkers.length > 0) {
+          clusterer.addMarkers(clusterMarkers);
         }
-        
+
+        // 최초 1회, 그리고 검색 결과를 그릴 때만 지도 범위를 맞춘다.
+        // (그 외에는 setBounds를 생략해야 사용자가 보던 영역이 유지된다)
+        if ((fitBounds || !initialBoundsSet) && targetSpots.length > 0) {
+          map.setBounds(markerBounds);
+          initialBoundsSet = true;
+        }
+
         drawPolyline(targetSpots);
       }
 
@@ -341,17 +518,40 @@ export default function MapScreen() {
       drawMarkers(spots);
 
       // 외부(React Native)에서 호출 가능한 마커 갱신 함수 노출
-      window.updateMarkers = function(spotsJson) {
+      window.updateMarkers = function(spotsJson, fitBounds) {
         try {
-          var parsed = JSON.parse(spotsJson);
-          drawMarkers(parsed);
+          var parsed = typeof spotsJson === 'string' ? JSON.parse(spotsJson) : spotsJson;
+          drawMarkers(parsed, fitBounds);
         } catch (e) {
           console.error("updateMarkers Error: ", e);
         }
       };
 
+      // 현재 화면 영역을 React Native에 전달 → /spots/map 재조회 트리거
+      function postBounds() {
+        var b = map.getBounds();
+        var sw = b.getSouthWest();
+        var ne = b.getNorthEast();
+        window.ReactNativeWebView.postMessage(JSON.stringify({
+          type: 'BOUNDS_CHANGED',
+          data: {
+            southWestLat: sw.getLat(),
+            southWestLng: sw.getLng(),
+            northEastLat: ne.getLat(),
+            northEastLng: ne.getLng()
+          }
+        }));
+      }
+
+      // 카카오맵 + updateMarkers 준비 완료 → React Native에 알림
+      window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'MAP_READY' }));
+      postBounds();
+
+      // 이동/확대가 멈춘 시점에만 발생하므로 별도 디바운스 없이 그대로 사용
+      kakao.maps.event.addListener(map, 'idle', postBounds);
+
       kakao.maps.event.addListener(map, 'click', function() {
-          scheduleMapClose();
+          closePopupFromMapClick();
       });
       }
       initMap();
@@ -363,7 +563,7 @@ export default function MapScreen() {
   }, [route.params?.spots, route.params?.planData, route.params?.initialDay, mode]);
 
   // source 객체도 HTML 문자열이 바뀔 때만 새로 만들어 WebView가 재로딩되지 않게 한다.
-  const mapSource = useMemo(() => ({ html: HTML }), [HTML]);
+  const mapSource = useMemo(() => ({ html: HTML, baseUrl: 'https://localhost' }), [HTML]);
 
   if (!KAKAO_KEY) {
     return (
@@ -379,7 +579,7 @@ export default function MapScreen() {
         {/* 상단 오버레이 (검색창 + 뒤로가기) */}
         {mode === 'wishlist-change' ? (
           <View className="bg-[#E31B59] pt-14 pb-4 px-5 z-20 absolute top-0 left-0 right-0 w-full pointer-events-auto shadow-md">
-            <View className="flex-row items-center justify-between mb-5">
+            <View className="flex-row items-center justify-between mb-3">
               <TouchableOpacity onPress={handleBackNavigation} className="bg-white/20 items-center justify-center rounded-full" style={{ width: normalize(32), height: normalize(32) }}>
                 <IconChevronLeft size={normalize(20)} color="#fff" />
               </TouchableOpacity>
@@ -388,9 +588,21 @@ export default function MapScreen() {
                 <IconX size={normalize(16)} color="#fff" />
               </TouchableOpacity>
             </View>
-            <View className="bg-[#f5f5f7] rounded-xl flex-row items-center px-4" style={{ height: normalize(44) }}>
+            <View className="bg-white rounded-xl flex-row items-center px-4" style={{ height: normalize(44) }}>
               <IconSearch size={normalize(18)} color="rgba(0,0,0,0.3)" />
-              <Text className="ml-2 text-black/30" style={{ fontSize: normalizeFontSize(14) }}>스팟 이름으로 검색</Text>
+              <TextInput
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                placeholder="스팟 이름으로 검색"
+                placeholderTextColor="rgba(0,0,0,0.3)"
+                className="flex-1 ml-2 text-black font-medium p-0"
+                style={{ fontSize: normalizeFontSize(14) }}
+              />
+              {searchQuery.length > 0 && (
+                <TouchableOpacity onPress={() => setSearchQuery('')} hitSlop={8}>
+                  <IconX size={normalize(16)} color="rgba(0,0,0,0.4)" />
+                </TouchableOpacity>
+              )}
             </View>
           </View>
         ) : (
@@ -440,23 +652,29 @@ export default function MapScreen() {
                 }}
               >
                 <TouchableOpacity
-                  activeOpacity={0.9}
-                  onPress={() => navigation.navigate('SearchResult', { query: '' })}
+                  onPress={() => setSearchModalVisible(true)}
                   style={{ flex: 1, flexDirection: 'row', alignItems: 'center', height: '100%', paddingRight: normalize(32) }}
+                  activeOpacity={0.8}
                 >
                   <IconSearch size={normalize(18)} color="rgba(0,0,0,0.3)" strokeWidth={1.5} />
                   <Text
-                    allowFontScaling={false}
+                    numberOfLines={1}
                     style={{
+                      flex: 1,
                       marginLeft: normalize(8),
                       fontSize: FONT_MD,
-                      color: 'rgba(0,0,0,0.3)',
+                      color: searchQuery ? '#111' : 'rgba(0,0,0,0.3)',
                       fontFamily: 'Pretendard-Regular',
                       letterSpacing: -0.2,
                     }}
                   >
-                    장소, 테마, 키워드 검색
+                    {searchQuery || '장소, 테마, 키워드 검색'}
                   </Text>
+                  {searchQuery.length > 0 && (
+                    <TouchableOpacity onPress={() => setSearchQuery('')} hitSlop={8} style={{ padding: 4 }}>
+                      <IconX size={normalize(16)} color="rgba(0,0,0,0.4)" strokeWidth={1.5} />
+                    </TouchableOpacity>
+                  )}
                 </TouchableOpacity>
 
                 {/* 필터 조절 아이콘 */}
@@ -573,11 +791,17 @@ export default function MapScreen() {
           ref={webViewRef}
           source={mapSource}
           onMessage={handleMessage}
+          onError={(syntheticEvent: any) => console.error('[WebView Error]', syntheticEvent.nativeEvent)}
           style={{ flex: 1 }}
           javaScriptEnabled={true}
           domStorageEnabled={true}
           geolocationEnabled={true}
           originWhitelist={['*']}
+          androidLayerType="hardware"
+          androidHardwareAccelerationDisabled={false}
+          overScrollMode="never"
+          showsHorizontalScrollIndicator={false}
+          showsVerticalScrollIndicator={false}
         />
 
         {/* 우측 지도 편의 컨트롤 */}
@@ -710,80 +934,92 @@ export default function MapScreen() {
           <SpotPopup
             activeSpot={activeSpot}
             onClose={closeSheet}
-            renderButtons={() => (
+            renderButtons={(popupSpot) => {
+              const saved = mode === 'plan' && isSpotSaved(popupSpot.id);
+              return (
               <View className="flex-row gap-2 mt-4">
                 {mode !== 'plan-view' && (
                   <TouchableOpacity
                     onPress={() => {
-                      if (mode === 'plan') {
-                        if (isSelected) {
-                          removeSpot(activeSpot!.id);
-                        } else {
-                          addSpot(activeSpot!);
-                        }
-                      } else {
+                      if (mode !== 'plan') {
                         setCourseModalOpen(true);
+                        return;
+                      }
+                      // 렌더 시점 파생값(saved) 대신 스토어 최신 상태를 직접 읽어 판단한다.
+                      // 렌더가 한 박자 늦으면 첫 탭이 removeSpot(목록에 없어 no-op)으로 새어
+                      // "두 번 눌러야 저장되는" 현상이 생기기 때문.
+                      const alreadySaved = useCourseStore
+                        .getState()
+                        .selectedSpots.some((s) => String(s.id) === String(popupSpot.id));
+                      if (alreadySaved) {
+                        removeSpot(popupSpot.id);
+                      } else {
+                        addSpot(popupSpot);
                       }
                     }}
-                    className={`flex-1 items-center justify-center ${isSelected && mode === 'plan' ? 'bg-[#E31B59]' : 'bg-[#f5f5f7]'}`}
+                    className={`flex-1 items-center justify-center ${saved ? 'bg-[#E31B59]' : 'bg-[#f5f5f7]'}`}
                     style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}
                   >
-                    <Text className={`font-semibold ${isSelected && mode === 'plan' ? 'text-white' : 'text-black/60'}`} style={{ fontSize: FONT_MD }}>
-                      {mode === 'plan' ? (isSelected ? '현재 코스에 저장됨' : '현재 코스에 저장') : '코스에 저장'}
+                    <Text className={`font-semibold ${saved ? 'text-white' : 'text-black/60'}`} style={{ fontSize: FONT_MD }}>
+                      {mode === 'plan' ? (saved ? '현재 코스에 저장됨' : '현재 코스에 저장') : '코스에 저장'}
                     </Text>
                   </TouchableOpacity>
                 )}
 
               <TouchableOpacity
-                onPress={() => navigation.navigate('SpotStack', { screen: 'SpotDetail', params: { spotId: activeSpot!.id } })}
+                onPress={() => navigation.navigate('SpotStack', { screen: 'SpotDetail', params: { spotId: popupSpot.id } })}
                 className="flex-1 bg-[#E31B59] items-center justify-center"
                 style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}
               >
                 <Text className="font-semibold text-white" style={{ fontSize: FONT_MD }}>상세 보기</Text>
               </TouchableOpacity>
             </View>
-          )}
+            );
+          }}
         />
         )}
 
-        {/* Course Select Modal (Dummy) */}
-        {isCourseModalOpen && (
-          <View className="absolute inset-0 bg-black/40 items-center justify-center z-50">
-            <View className="bg-white rounded-2xl w-[80%] p-5 items-center">
-              <Text className="font-semibold text-black mb-4" style={{ fontSize: normalizeFontSize(18) }}>어떤 코스에 저장할까요?</Text>
+        <SaveToPlanSheet
+          visible={isCourseModalOpen}
+          onClose={() => setCourseModalOpen(false)}
+          spot={activeSpot}
+          onSaved={(message) => {
+            setCourseModalOpen(false);
+            showToast(message);
+          }}
+        />
 
-              <TouchableOpacity
-                onPress={() => {
-                  setCourseModalOpen(false);
-                  navigation.navigate('TravelTab', { screen: 'TravelNew' });
-                }}
-                className="w-full bg-[#f5f5f7] rounded-xl items-center justify-center mb-2"
-                style={{ height: BUTTON_HEIGHT }}
-              >
-                <Text className="text-black font-medium" style={{ fontSize: FONT_MD }}>+ 새 코스 만들기</Text>
-              </TouchableOpacity>
+        <Toast message={toastMessage} visible={toastVisible} onHide={() => setToastVisible(false)} />
 
-              <TouchableOpacity
-                onPress={() => {
-                  setCourseModalOpen(false);
-                  addSpot(activeSpot!);
-                  navigation.navigate('TravelTab', { screen: 'TravelNew' });
-                }}
-                className="w-full bg-[#E31B59] rounded-xl items-center justify-center"
-                style={{ height: BUTTON_HEIGHT }}
-              >
-                <Text className="text-white font-medium" style={{ fontSize: FONT_MD }}>현재 진행중인 코스</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() => setCourseModalOpen(false)}
-                className="mt-4 p-2"
-              >
-                <Text className="text-black/50" style={{ fontSize: normalizeFontSize(14) }}>취소</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
+        <SearchModal
+          visible={isSearchModalVisible}
+          onClose={() => setSearchModalVisible(false)}
+          defaultCategory="spot"
+          onSelectSpot={(spot) => {
+            setSearchQuery(spot.name);
+            setActiveSpot(spot);
+            const lat = Number(spot.lat);
+            const lng = Number(spot.lng);
+            const isValidCoord =
+              Number.isFinite(lat) &&
+              Number.isFinite(lng) &&
+              lat >= -90 &&
+              lat <= 90 &&
+              lng >= -180 &&
+              lng <= 180;
+            if (webViewRef.current && isValidCoord) {
+              webViewRef.current.injectJavaScript(`
+                if (window.kakaoMap) {
+                  window.kakaoMap.setCenter(new kakao.maps.LatLng(${JSON.stringify(lat)}, ${JSON.stringify(lng)}));
+                  window.kakaoMap.setLevel(3);
+                }
+              `);
+            }
+          }}
+          onSelectKeyword={(keyword) => {
+            setSearchQuery(keyword);
+          }}
+        />
 
         <FilterBottomSheet
           visible={filterVisible}

@@ -123,7 +123,7 @@
         display: flex;
         gap: 8px;
         padding: 10px 16px 12px;
-        border-bottom: 0.5px solid rgba(0,0,0,0.08);
+        border-bottom: 0.5px solid var(--color-border);
       }
       .section-tab {
         display: flex;
@@ -186,7 +186,7 @@
       }
       .empty-state__desc {
         font-size: var(--font-sm);
-        color: rgba(0,0,0,0.4);
+        color: var(--color-text-secondary);
         letter-spacing: -0.1px;
         line-height: 1.6;
         margin-bottom: 28px;
@@ -218,12 +218,12 @@
       .section-header__title {
         font-size: var(--font-sm);
         font-weight: 600;
-        color: rgba(0, 0, 0, 0.3);
+        color: var(--color-text-tertiary);
         letter-spacing: 0.3px;
       }
       .section-header__count {
         font-size: var(--font-sm);
-        color: rgba(0, 0, 0, 0.3);
+        color: var(--color-text-tertiary);
       }
 
       /* ── 출사 계획 카드 ── */
@@ -328,7 +328,7 @@
       }
       .plan-card__date {
         font-size: 12px;
-        color: rgba(0, 0, 0, 0.38);
+        color: var(--color-text-secondary);
         margin-bottom: 10px;
         display: flex;
         align-items: center;
@@ -343,7 +343,7 @@
         align-items: center;
         gap: 4px;
         font-size: 12px;
-        color: rgba(0, 0, 0, 0.4);
+        color: var(--color-text-secondary);
       }
       .plan-card__stat svg {
         flex-shrink: 0;
@@ -402,7 +402,7 @@
       .new-plan-card__label {
         font-size: var(--font-md);
         font-weight: 500;
-        color: rgba(0, 0, 0, 0.3);
+        color: var(--color-text-tertiary);
         transition: color 0.2s;
       }
       .new-plan-card:hover .new-plan-card__label {
@@ -422,7 +422,7 @@
         right: 0;
         height: 80px;
         background: #fff;
-        border-top: 0.5px solid rgba(0, 0, 0, 0.08);
+        border-top: 0.5px solid var(--color-border);
         display: flex;
         align-items: flex-start;
         justify-content: space-around;
@@ -468,7 +468,7 @@
         <!-- 큰 타이틀 행 -->
         <div class="page-nav__large">
           <span class="page-nav__large-title">출사 계획</span>
-          <button class="page-nav__compose" aria-label="새 계획" onclick="location.href='./travel-new.html'">
+          <button class="page-nav__compose" aria-label="새 계획" onclick="location.href='./course-new.html'">
             <svg width="22" height="22" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5l0 14"/><path d="M5 12l14 0"/></svg>
           </button>
         </div>
@@ -496,7 +496,7 @@
         </div>
         <div class="empty-state__title">첫 출사 계획을 세워볼까요?</div>
         <div class="empty-state__desc">가고 싶은 스팟을 모아 날짜와 일정을<br>한 번에 계획할 수 있어요.</div>
-        <button class="empty-state__btn" onclick="location.href='./travel-new.html'">
+        <button class="empty-state__btn" onclick="location.href='./course-new.html'">
           <svg width="16" height="16" viewBox="0 0 24 24" stroke="currentColor"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5v14"/><path d="M5 12h14"/></svg>
           새 출사 계획 만들기
         </button>
@@ -505,7 +505,7 @@
       <div class="content">
         <!-- 진행 중 -->
         <div class="section" id="section-active">
-        <div class="plan-card" onclick="location.href = './travel-plan.html'">
+        <div class="plan-card" onclick="location.href = './course-plan.html'">
           <!--
             [썸네일] 사용자가 직접 업로드하는 사진이 아닙니다.
             출사 계획에 추가된 스팟의 대표 사진을 앞에서 최대 3장 자동으로 가져옵니다.
@@ -568,7 +568,7 @@
 
         <!-- 예정된 출사 -->
         <div class="section" id="section-upcoming">
-          <div class="plan-card" onclick="location.href = './travel-plan.html'">
+          <div class="plan-card" onclick="location.href = './course-plan.html'">
             <div class="plan-card__thumb">
               <div
                 class="plan-card__thumb-img"
@@ -615,7 +615,7 @@
 
         <!-- 지난 출사 -->
         <div class="section" id="section-past">
-          <div class="plan-card" onclick="location.href = './travel-plan.html'">
+          <div class="plan-card" onclick="location.href = './course-plan.html'">
             <div class="plan-card__thumb">
               <div
                 class="plan-card__thumb-img"
@@ -653,7 +653,7 @@
             </div>
           </div>
 
-          <div class="plan-card" onclick="location.href = './travel-plan.html'">
+          <div class="plan-card" onclick="location.href = './course-plan.html'">
             <div class="plan-card__thumb">
               <div
                 class="plan-card__thumb-img"
