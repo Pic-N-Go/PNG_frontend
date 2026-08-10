@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, TextInput, Switch, Modal, Pressable, ActivityIndicator, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, TextInput, Switch, Modal, Pressable, ActivityIndicator, Alert, KeyboardAvoidingView, Platform, Keyboard } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FONT_SM, BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
@@ -409,7 +409,10 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
           </View>
         </View>
 
-        <ScrollView className="px-5" style={{ height: normalize(360) }} showsVerticalScrollIndicator={false}>
+        {/* keyboardShouldPersistTaps 기본값('never')이면 키보드가 올라온 상태의 첫 탭을
+            ScrollView가 키보드 닫는 데 써버려 아래 항목의 onPress가 실행되지 않는다.
+            시트는 안 닫힌 채 키보드만 내려가며 높이가 재계산돼 깜빡이는 것처럼 보인다. */}
+        <ScrollView className="px-5" style={{ height: normalize(360) }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           <Text className="text-black/30 mb-2" style={{ fontSize: normalizeFontSize(12) }}>
             {isSearching ? '검색 결과' : '최신순'}
           </Text>
@@ -429,7 +432,7 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
               return (
                 <TouchableOpacity 
                   key={s.id} 
-                  onPress={() => { setSelectedSpot(s); setSpotSheetVisible(false); markDirty(); }} 
+                  onPress={() => { Keyboard.dismiss(); setSelectedSpot(s); setSpotSheetVisible(false); markDirty(); }}
                   className={`flex-row items-center rounded-2xl mb-2 ${isSelected ? 'bg-white border border-[#E31B59]' : 'bg-[#f5f5f7]'}`} 
                   style={{ padding: normalize(14) }}
                 >
