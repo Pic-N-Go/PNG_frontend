@@ -409,9 +409,9 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
           </View>
         </View>
 
-        <ScrollView className="px-5" style={{ maxHeight: normalize(400) }} showsVerticalScrollIndicator={false}>
+        <ScrollView className="px-5" style={{ height: normalize(360) }} showsVerticalScrollIndicator={false}>
           <Text className="text-black/30 mb-2" style={{ fontSize: normalizeFontSize(12) }}>
-            {isSearching ? '검색 결과' : '스팟 목록'}
+            {isSearching ? '검색 결과' : '최신순'}
           </Text>
 
           {isSpotsLoading ? (
