@@ -14,7 +14,7 @@ import CategoryFilter from '@/components/home/CategoryFilter';
 import MapBanner from '@/components/home/MapBanner';
 import PopularSpotsSection from '@/components/home/PopularSpotsSection';
 import CalendarSection from '@/components/home/CalendarSection';
-import WishlistBanner from '@/components/home/WishlistBanner';
+import SpotAlertBanner from '@/components/home/SpotAlertBanner';
 import FilterBottomSheet from '@/components/home/FilterBottomSheet';
 import { useNotification } from '@/hooks/useNotification';
 
@@ -86,7 +86,7 @@ export default function HomeScreen({ navigation }: Props) {
         />
 
         <CalendarSection />
-        <WishlistBanner onPress={() => (navigation as any).navigate('Wishlist')} />
+        <SpotAlertBanner onPress={() => (navigation as any).navigate('Wishlist')} />
 
       </ScrollView>
 
