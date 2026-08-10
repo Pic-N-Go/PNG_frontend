@@ -94,10 +94,14 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
     tags: spot.tags || ['#스팟', '#출사'],
   }));
 
+  const [dirty, setDirty] = useState(false);
+  const hydratedSpotIdRef = useRef<number | null>(null);
+
   // 편집 대상 스팟이 바뀌면 폼을 먼저 기본값으로 되돌린다. 그 스팟에 저장된 설정이 있으면
   // 바로 아래 initData 이펙트가 곧이어 덮어쓴다. 이 리셋이 없으면 알림이 없는 스팟으로
   // 바꿨을 때 이전 스팟의 조건이 그대로 남아 저장된다.
   useEffect(() => {
+    hydratedSpotIdRef.current = null;
     setSelectedWeathers(DEFAULT_WEATHERS);
     setSelectedTimes(DEFAULT_TIMES);
     setSelectedDust(DEFAULT_DUST);
@@ -109,7 +113,8 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
   }, [targetSpotId]);
 
   useEffect(() => {
-    if (initData) {
+    if (initData && hydratedSpotIdRef.current !== initData.spotId && !dirty) {
+      hydratedSpotIdRef.current = initData.spotId;
       setSelectedSpot({
         id: initData.spotId,
         name: initData.spotName,
@@ -137,7 +142,7 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
       if (initData.dndEndTime) setDndEnd(initData.dndEndTime);
       if (initData.memo) setMemo(initData.memo);
     }
-  }, [initData]);
+  }, [initData, dirty]);
 
   useEffect(() => {
     if (route.params?.newSpot) {
@@ -228,14 +233,27 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
 
   const handleDelete = () => {
     if (!selectedSpot?.id) return;
-    deleteMutation.mutate(selectedSpot.id, {
-      onSuccess: () => {
-        navigation.goBack();
-      },
-      onError: () => {
-        Alert.alert('삭제 실패', '알림 설정을 삭제하지 못했습니다.');
-      }
-    });
+    Alert.alert(
+      '알림 삭제',
+      '이 스팟의 출사 알림 설정을 삭제하시겠습니까?',
+      [
+        { text: '취소', style: 'cancel' },
+        {
+          text: '삭제',
+          style: 'destructive',
+          onPress: () => {
+            deleteMutation.mutate(selectedSpot.id, {
+              onSuccess: () => {
+                navigation.goBack();
+              },
+              onError: () => {
+                Alert.alert('삭제 실패', '알림 설정을 삭제하지 못했습니다.');
+              },
+            });
+          },
+        },
+      ]
+    );
   };
 
   const toggleWeather = (w: WeatherCondition) => {

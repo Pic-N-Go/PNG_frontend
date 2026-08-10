@@ -62,22 +62,28 @@ export const mapSpotAlertToUI = (data: SpotAlertSettingResponse) => {
 
   const conditions = [
     ...uniq(data.weatherConditions || [])
-      .filter((w) => !!WEATHER_API_TO_UI[w])
+      .filter((w) => w !== 'NONE' && !!WEATHER_API_TO_UI[w])
       .map((w) => ({
         type: 'weather',
         text: WEATHER_API_TO_UI[w] as string,
         active: true,
       })),
-    ...uniq(data.timeConditions || []).map((t) => ({
-      type: 'time',
-      text: TIME_API_TO_UI[t] || t,
-      active: true,
-    })),
-    {
-      type: 'dust',
-      text: `미세먼지 ${DUST_API_TO_UI[data.airQualityCondition] || '좋음'}`,
-      active: true,
-    },
+    ...uniq(data.timeConditions || [])
+      .filter((t) => t !== 'NONE' && !!TIME_API_TO_UI[t])
+      .map((t) => ({
+        type: 'time',
+        text: TIME_API_TO_UI[t] as string,
+        active: true,
+      })),
+    ...(data.airQualityCondition && data.airQualityCondition !== 'NONE' && DUST_API_TO_UI[data.airQualityCondition]
+      ? [
+          {
+            type: 'dust',
+            text: `미세먼지 ${DUST_API_TO_UI[data.airQualityCondition]}`,
+            active: true,
+          },
+        ]
+      : []),
   ];
 
   const forecast = (data.expectedMatchDays || []).map((d) => ({

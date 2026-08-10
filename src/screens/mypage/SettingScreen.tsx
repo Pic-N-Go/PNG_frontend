@@ -209,7 +209,7 @@ export default function SettingScreen({ navigation }: Props) {
             />
           </Card>
           <Text style={{ fontSize: FONT_XS, color: 'rgba(0,0,0,0.35)', marginTop: normalize(8), lineHeight: normalize(18) }}>
-            이 시간에는 위시리스트·골든아워·커뮤니티 알림이 모두 오지 않아요.
+            이 시간에는 출사 알림·골든아워·커뮤니티 알림이 모두 오지 않아요.
           </Text>
         </View>
 
@@ -232,7 +232,7 @@ export default function SettingScreen({ navigation }: Props) {
           <SectionLabel text="자주 묻는 질문" actionLabel="전체 보기" onActionPress={() => navigation.navigate('FAQ')} />
           <Card>
             <SettingRow label="포토제닉 점수는 어떻게 계산되나요?" chevron onPress={() => navigation.navigate('FAQ')} />
-            <SettingRow label="위시리스트 알림이 오지 않아요." chevron onPress={() => navigation.navigate('FAQ')} />
+            <SettingRow label="출사 알림이 오지 않아요." chevron onPress={() => navigation.navigate('FAQ')} />
             <SettingRow label="게시물이나 댓글을 신고하려면?" chevron onPress={() => navigation.navigate('FAQ')} />
           </Card>
         </View>
