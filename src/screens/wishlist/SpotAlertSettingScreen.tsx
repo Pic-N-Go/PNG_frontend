@@ -168,10 +168,18 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
     setNotifEnabled(value);
     markDirty();
     if (targetSpotId) {
-      toggleActiveMutation.mutate({
-        spotId: Number(targetSpotId),
-        isAlertEnabled: value,
-      });
+      toggleActiveMutation.mutate(
+        {
+          spotId: Number(targetSpotId),
+          isAlertEnabled: value,
+        },
+        {
+          onError: () => {
+            setNotifEnabled(!value);
+            Alert.alert('알림 설정 실패', '알림 상태를 변경하지 못했습니다.');
+          },
+        }
+      );
     }
   };
 

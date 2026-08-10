@@ -79,7 +79,6 @@ export default function MapScreen() {
   const [mapReady, setMapReady] = useState(false);
   const { selectedSpots, addSpot, removeSpot } = useCourseStore();
   const [activeSpot, setActiveSpot] = useState<Spot | null>(null);
-  const [mapSearchText, setMapSearchText] = useState('');
   const [isCourseModalOpen, setCourseModalOpen] = useState(false);
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
@@ -592,15 +591,15 @@ export default function MapScreen() {
             <View className="bg-white rounded-xl flex-row items-center px-4" style={{ height: normalize(44) }}>
               <IconSearch size={normalize(18)} color="rgba(0,0,0,0.3)" />
               <TextInput
-                value={mapSearchText}
-                onChangeText={setMapSearchText}
+                value={searchQuery}
+                onChangeText={setSearchQuery}
                 placeholder="스팟 이름으로 검색"
                 placeholderTextColor="rgba(0,0,0,0.3)"
                 className="flex-1 ml-2 text-black font-medium p-0"
                 style={{ fontSize: normalizeFontSize(14) }}
               />
-              {mapSearchText.length > 0 && (
-                <TouchableOpacity onPress={() => setMapSearchText('')} hitSlop={8}>
+              {searchQuery.length > 0 && (
+                <TouchableOpacity onPress={() => setSearchQuery('')} hitSlop={8}>
                   <IconX size={normalize(16)} color="rgba(0,0,0,0.4)" />
                 </TouchableOpacity>
               )}

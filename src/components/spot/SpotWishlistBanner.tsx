@@ -1,3 +1,3 @@
-import SpotAlertBanner from './SpotAlertBanner';
+import SpotAlertBanner from '@/components/spot/SpotAlertBanner';
 
 export default SpotAlertBanner;

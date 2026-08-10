@@ -45,7 +45,11 @@ export const useSpotAlert = () => {
         spotAlertApi.toggleSpotAlertActive(spotId, isAlertEnabled, accessToken!),
       onMutate: async ({ spotId, isAlertEnabled }) => {
         await queryClient.cancelQueries({ queryKey: ['spotAlerts'] });
+        await queryClient.cancelQueries({ queryKey: ['spotAlert', spotId] });
+
         const previousSpotAlerts = queryClient.getQueryData<any[]>(['spotAlerts']);
+        const previousSpotAlertDetail = queryClient.getQueryData<any>(['spotAlert', spotId]);
+
         if (previousSpotAlerts) {
           queryClient.setQueryData<any[]>(
             ['spotAlerts'],
@@ -54,11 +58,20 @@ export const useSpotAlert = () => {
             )
           );
         }
-        return { previousSpotAlerts };
+        if (previousSpotAlertDetail) {
+          queryClient.setQueryData<any>(['spotAlert', spotId], {
+            ...previousSpotAlertDetail,
+            isAlertEnabled,
+          });
+        }
+        return { previousSpotAlerts, previousSpotAlertDetail };
       },
       onError: (err, variables, context) => {
         if (context?.previousSpotAlerts) {
           queryClient.setQueryData(['spotAlerts'], context.previousSpotAlerts);
+        }
+        if (context?.previousSpotAlertDetail) {
+          queryClient.setQueryData(['spotAlert', variables.spotId], context.previousSpotAlertDetail);
         }
       },
       onSettled: (_, __, variables) => {
