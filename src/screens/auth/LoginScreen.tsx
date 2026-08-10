@@ -116,7 +116,15 @@ export default function LoginScreen({ navigation }: Props) {
     onError: (e: unknown) => {
       if ((e as { code?: string })?.code === "E_CANCELLED") return;
       console.error("[KakaoLogin Error]", e);
-      const rawMsg = e instanceof Error ? e.message : (typeof e === "object" ? JSON.stringify(e) : String(e));
+      let rawMsg: string | undefined;
+      if (e instanceof Error && typeof e.message === "string" && e.message.trim()) {
+        rawMsg = e.message.trim();
+      } else if (typeof e === "object" && e !== null && "message" in e && typeof (e as { message?: unknown }).message === "string") {
+        const msg = ((e as { message: string }).message || "").trim();
+        if (msg) rawMsg = msg;
+      } else if (typeof e === "string" && e.trim() && e !== "{}") {
+        rawMsg = e.trim();
+      }
       showToast(rawMsg || "카카오 로그인에 실패했어요");
     },
   });
