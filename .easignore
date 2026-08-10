@@ -1,0 +1,31 @@
+# EAS Build upload rules
+# This file overrides .gitignore for EAS Build tarball upload.
+
+# Ignore dependencies and build outputs
+node_modules/
+package-lock.json
+.expo/
+dist/
+web-build/
+.kotlin/
+android/app/build/
+android/.gradle/
+ios/Pods/
+
+# Ignore debug logs
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+.pnpm-store/
+.pnpm-debug.log*
+
+# Ignore IDE and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Do NOT ignore configuration files required for build
+!google-services.json
+!GoogleService-Info.plist
+!.npmrc
