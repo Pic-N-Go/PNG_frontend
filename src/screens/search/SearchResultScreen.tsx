@@ -17,8 +17,9 @@ import {
   IconChevronDown,
 } from '@tabler/icons-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
 import { HomeStackParamList } from '@/navigation/stacks/HomeStack';
+import type { RootStackParamList } from '@/navigation';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { FONT_MD, FONT_SM, GRID_PADDING, SPACING_LG, SPACING_MD } from '@/constants/layout';
 
@@ -291,8 +292,11 @@ export default function SearchResultScreen({ route, navigation }: Props) {
               // 탭바 높이·인셋을 더하지 않는다 — 화면 영역에서 이미 빠져 있다(HomeScreen 주석 참고).
               contentContainerStyle={{ paddingHorizontal: GRID_PADDING, paddingBottom: SPACING_LG }}
               renderItem={({ item }) => (
-                // TODO: 스팟 상세 네비게이션 파라미터 확정 후 onPress 연결
                 <Pressable
+                  onPress={() => {
+                    const rootNavigation = navigation as unknown as NativeStackNavigationProp<RootStackParamList>;
+                    rootNavigation.navigate('SpotStack', { screen: 'SpotDetail', params: { spotId: item.id } });
+                  }}
                   style={{ flexDirection: 'row', gap: normalize(14), paddingVertical: normalize(14), borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)' }}
                 >
                   <View style={{ width: normalize(80), height: normalize(80), borderRadius: normalize(12), backgroundColor: '#F5F5F7', flexShrink: 0 }} />

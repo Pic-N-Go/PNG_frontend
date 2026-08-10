@@ -5,9 +5,13 @@ import { IconChevronLeft, IconSearch, IconAdjustmentsHorizontal, IconFocus2, Ico
 import { useNavigation, useRoute, useFocusEffect, CommonActions } from '@react-navigation/native';
 import { useCourseStore, Spot } from '@/store/useCourseStore';
 import { useSpots, useMapSpots, useSearchSpots } from '@/hooks/useSpot';
+import { useDebounce } from '@/hooks/useDebounce';
 import SpotPopup from '@/components/travel/SpotPopup';
 import BottomSheet from '@/components/common/BottomSheet';
 import FilterBottomSheet, { FilterState, EMPTY_FILTER } from '@/components/home/FilterBottomSheet';
+import SearchModal from '@/components/common/SearchModal';
+import SaveToPlanSheet from '@/components/spot/SaveToPlanSheet';
+import Toast from '@/components/common/Toast';
 import { StatusBar } from 'expo-status-bar';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { FONT_MD, BUTTON_HEIGHT, BUTTON_RADIUS, HEADER_HEIGHT } from '@/constants/layout';
@@ -76,31 +80,34 @@ export default function MapScreen() {
   const { selectedSpots, addSpot, removeSpot } = useCourseStore();
   const [activeSpot, setActiveSpot] = useState<Spot | null>(null);
   const [isCourseModalOpen, setCourseModalOpen] = useState(false);
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+
+  const showToast = (message: string) => {
+    setToastMessage(message);
+    setToastVisible(true);
+  };
+
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [debouncedKeyword, setDebouncedKeyword] = useState('');
   const [activeFilterCount, setActiveFilterCount] = useState(0);
   const [filterVisible, setFilterVisible] = useState(false);
+  const [isSearchModalVisible, setSearchModalVisible] = useState(false);
   const [detailFilter, setDetailFilter] = useState<FilterState>(EMPTY_FILTER);
   const [currentPlanDay, setCurrentPlanDay] = useState<string>(route.params?.initialDay || '1');
   // 지도가 idle될 때마다 WebView가 알려주는 현재 화면 영역
   const [mapBounds, setMapBounds] = useState<MapBounds | null>(null);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedKeyword(searchQuery);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [searchQuery]);
+  const debouncedKeyword = useDebounce(searchQuery, 500);
+  const debouncedMapBounds = useDebounce(mapBounds, 500);
 
   const apiCategory = CATEGORY_MAP[selectedCategory] || (selectedCategory !== 'all' ? selectedCategory : undefined);
   const hasKeyword = debouncedKeyword.trim().length > 0;
   // 코스 보기/스팟 목록을 파라미터로 받은 경우엔 API 조회가 필요 없다.
   const usesRouteSpots = mode === 'plan-view' || Array.isArray(route.params?.spots);
 
-  // 1. 지도 영역 핀 목록 (GET /spots/map) — 검색 중에는 검색 결과가 우선이라 끈다.
+  // 1. 지도 영역 핀 목록 (GET /spots/map) — 지도 드래그/확대 축소가 멈춘 뒤 500ms 후에 API 호출
   const { data: mapSpotsData, error: mapError } = useMapSpots(
-    { ...(mapBounds ?? DEFAULT_BOUNDS), category: apiCategory, size: 200 },
+    { ...(debouncedMapBounds ?? DEFAULT_BOUNDS), category: apiCategory, size: 200 },
     { enabled: !usesRouteSpots && !hasKeyword },
   );
 
@@ -171,13 +178,18 @@ export default function MapScreen() {
   }, [route.params?.initialDay]);
 
   const handleBackNavigation = useCallback(() => {
+    if (searchQuery || activeSpot) {
+      setSearchQuery('');
+      setActiveSpot(null);
+      return true;
+    }
     if (navigation.canGoBack()) {
       navigation.goBack();
     } else {
       navigation.navigate('HomeTab');
     }
     return true; // prevent default behavior
-  }, [navigation]);
+  }, [searchQuery, activeSpot, navigation]);
 
   useFocusEffect(
     useCallback(() => {
@@ -567,7 +579,7 @@ export default function MapScreen() {
         {/* 상단 오버레이 (검색창 + 뒤로가기) */}
         {mode === 'wishlist-change' ? (
           <View className="bg-[#E31B59] pt-14 pb-4 px-5 z-20 absolute top-0 left-0 right-0 w-full pointer-events-auto shadow-md">
-            <View className="flex-row items-center justify-between mb-5">
+            <View className="flex-row items-center justify-between mb-3">
               <TouchableOpacity onPress={handleBackNavigation} className="bg-white/20 items-center justify-center rounded-full" style={{ width: normalize(32), height: normalize(32) }}>
                 <IconChevronLeft size={normalize(20)} color="#fff" />
               </TouchableOpacity>
@@ -576,9 +588,21 @@ export default function MapScreen() {
                 <IconX size={normalize(16)} color="#fff" />
               </TouchableOpacity>
             </View>
-            <View className="bg-[#f5f5f7] rounded-xl flex-row items-center px-4" style={{ height: normalize(44) }}>
+            <View className="bg-white rounded-xl flex-row items-center px-4" style={{ height: normalize(44) }}>
               <IconSearch size={normalize(18)} color="rgba(0,0,0,0.3)" />
-              <Text className="ml-2 text-black/30" style={{ fontSize: normalizeFontSize(14) }}>스팟 이름으로 검색</Text>
+              <TextInput
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                placeholder="스팟 이름으로 검색"
+                placeholderTextColor="rgba(0,0,0,0.3)"
+                className="flex-1 ml-2 text-black font-medium p-0"
+                style={{ fontSize: normalizeFontSize(14) }}
+              />
+              {searchQuery.length > 0 && (
+                <TouchableOpacity onPress={() => setSearchQuery('')} hitSlop={8}>
+                  <IconX size={normalize(16)} color="rgba(0,0,0,0.4)" />
+                </TouchableOpacity>
+              )}
             </View>
           </View>
         ) : (
@@ -627,31 +651,31 @@ export default function MapScreen() {
                   elevation: 3,
                 }}
               >
-                <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', height: '100%', paddingRight: normalize(32) }}>
+                <TouchableOpacity
+                  onPress={() => setSearchModalVisible(true)}
+                  style={{ flex: 1, flexDirection: 'row', alignItems: 'center', height: '100%', paddingRight: normalize(32) }}
+                  activeOpacity={0.8}
+                >
                   <IconSearch size={normalize(18)} color="rgba(0,0,0,0.3)" strokeWidth={1.5} />
-                  <TextInput
-                    value={searchQuery}
-                    onChangeText={setSearchQuery}
-                    placeholder="장소, 테마, 키워드 검색"
-                    placeholderTextColor="rgba(0,0,0,0.3)"
-                    allowFontScaling={false}
-                    returnKeyType="search"
+                  <Text
+                    numberOfLines={1}
                     style={{
                       flex: 1,
                       marginLeft: normalize(8),
                       fontSize: FONT_MD,
-                      color: '#111',
+                      color: searchQuery ? '#111' : 'rgba(0,0,0,0.3)',
                       fontFamily: 'Pretendard-Regular',
                       letterSpacing: -0.2,
-                      padding: 0,
                     }}
-                  />
+                  >
+                    {searchQuery || '장소, 테마, 키워드 검색'}
+                  </Text>
                   {searchQuery.length > 0 && (
                     <TouchableOpacity onPress={() => setSearchQuery('')} hitSlop={8} style={{ padding: 4 }}>
                       <IconX size={normalize(16)} color="rgba(0,0,0,0.4)" strokeWidth={1.5} />
                     </TouchableOpacity>
                   )}
-                </View>
+                </TouchableOpacity>
 
                 {/* 필터 조절 아이콘 */}
                 <TouchableOpacity
@@ -955,44 +979,47 @@ export default function MapScreen() {
         />
         )}
 
-        {/* Course Select Modal (Dummy) */}
-        {isCourseModalOpen && (
-          <View className="absolute inset-0 bg-black/40 items-center justify-center z-50">
-            <View className="bg-white rounded-2xl w-[80%] p-5 items-center">
-              <Text className="font-semibold text-black mb-4" style={{ fontSize: normalizeFontSize(18) }}>어떤 코스에 저장할까요?</Text>
+        <SaveToPlanSheet
+          visible={isCourseModalOpen}
+          onClose={() => setCourseModalOpen(false)}
+          spot={activeSpot}
+          onSaved={(message) => {
+            setCourseModalOpen(false);
+            showToast(message);
+          }}
+        />
 
-              <TouchableOpacity
-                onPress={() => {
-                  setCourseModalOpen(false);
-                  navigation.navigate('TravelTab', { screen: 'TravelNew' });
-                }}
-                className="w-full bg-[#f5f5f7] rounded-xl items-center justify-center mb-2"
-                style={{ height: BUTTON_HEIGHT }}
-              >
-                <Text className="text-black font-medium" style={{ fontSize: FONT_MD }}>+ 새 코스 만들기</Text>
-              </TouchableOpacity>
+        <Toast message={toastMessage} visible={toastVisible} onHide={() => setToastVisible(false)} />
 
-              <TouchableOpacity
-                onPress={() => {
-                  setCourseModalOpen(false);
-                  if (activeSpot) addSpot(activeSpot);
-                  navigation.navigate('TravelTab', { screen: 'TravelNew' });
-                }}
-                className="w-full bg-[#E31B59] rounded-xl items-center justify-center"
-                style={{ height: BUTTON_HEIGHT }}
-              >
-                <Text className="text-white font-medium" style={{ fontSize: FONT_MD }}>현재 진행중인 코스</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                onPress={() => setCourseModalOpen(false)}
-                className="mt-4 p-2"
-              >
-                <Text className="text-black/50" style={{ fontSize: normalizeFontSize(14) }}>취소</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
+        <SearchModal
+          visible={isSearchModalVisible}
+          onClose={() => setSearchModalVisible(false)}
+          defaultCategory="spot"
+          onSelectSpot={(spot) => {
+            setSearchQuery(spot.name);
+            setActiveSpot(spot);
+            const lat = Number(spot.lat);
+            const lng = Number(spot.lng);
+            const isValidCoord =
+              Number.isFinite(lat) &&
+              Number.isFinite(lng) &&
+              lat >= -90 &&
+              lat <= 90 &&
+              lng >= -180 &&
+              lng <= 180;
+            if (webViewRef.current && isValidCoord) {
+              webViewRef.current.injectJavaScript(`
+                if (window.kakaoMap) {
+                  window.kakaoMap.setCenter(new kakao.maps.LatLng(${JSON.stringify(lat)}, ${JSON.stringify(lng)}));
+                  window.kakaoMap.setLevel(3);
+                }
+              `);
+            }
+          }}
+          onSelectKeyword={(keyword) => {
+            setSearchQuery(keyword);
+          }}
+        />
 
         <FilterBottomSheet
           visible={filterVisible}

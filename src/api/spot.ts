@@ -15,6 +15,7 @@ import type {
   SpotDetailResponse,
   PageSpotResponse,
   SpotMapResponse,
+  SpotSummaryResponse,
 } from '@/types/spot';
 
 /** RN이 파일 파트로 인식하는 최소 형태 (expo/RN 이미지 피커 결과 그대로) */
@@ -180,6 +181,9 @@ export const spotApi = {
   // (응답의 isBookmarked도 유저별 값이지만 mapSpotDetail이 버리고 SpotDetailScreen이
   //  useBookmarkCollections로 따로 구하므로 여기에 걸려 있지 않다.)
   getDetail: (id: string | number, token?: string) => request<SpotDetailResponse>(`/spots/${id}`, { token }),
+
+  // 5. 스팟 요약 카드 조회 (GET /spots/{id}/summary)
+  getSummary: (id: string | number) => request<SpotSummaryResponse>(`/spots/${id}/summary`),
 
   getReviews: (id: string | number, { sort = 'LATEST', page = 0, size = 20 }: ReviewQuery = {}) =>
     request<ReviewListResponse>(`/spots/${id}/reviews?sort=${sort}&page=${page}&size=${size}`),

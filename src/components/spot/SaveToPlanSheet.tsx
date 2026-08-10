@@ -1,37 +1,108 @@
 import React, { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useNavigation } from '@react-navigation/native';
+import { useQuery } from '@tanstack/react-query';
 import { IconCheck, IconChevronLeft, IconPlus } from '@tabler/icons-react-native';
 import BottomSheet from '@/components/common/BottomSheet';
-import { BUTTON_RADIUS, GRID_PADDING } from '@/constants/layout';
+import { BUTTON_HEIGHT, BUTTON_RADIUS, GRID_PADDING } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import type { TravelPlanOption } from '@/types/spot';
+import { coursesApi } from '@/api/courses';
+import { useAddSpotToCourse } from '@/hooks/useCourses';
+import { useCourseStore } from '@/store/useCourseStore';
 
-export const MOCK_TRAVEL_PLANS: TravelPlanOption[] = [
-  { id: 'busan', name: '부산 2박 3일 여행', meta: '5월 24일–26일 · 스팟 7개', days: ['5월 24일', '5월 25일', '5월 26일'], thumbGradient: ['#f59e0b', '#c2410c'] },
-  { id: 'jeju', name: '제주 힐링 여행', meta: '6월 7일–9일 · 스팟 5개', days: ['6월 7일', '6월 8일', '6월 9일'], thumbGradient: ['#3b82f6', '#1d4ed8'] },
-  { id: 'seoul', name: '서울 포토스팟 투어', meta: '미정 · 스팟 3개', days: null, thumbGradient: ['#10b981', '#065f46'] },
-  { id: 'jeonju', name: '전주 한옥마을 여행', meta: '7월 12일–13일 · 스팟 4개', days: ['7월 12일', '7월 13일'], thumbGradient: ['#a78bfa', '#7c3aed'] },
+const GRADIENT_PALETTES: [string, string][] = [
+  ['#f59e0b', '#c2410c'],
+  ['#3b82f6', '#1d4ed8'],
+  ['#10b981', '#065f46'],
+  ['#a78bfa', '#7c3aed'],
+  ['#ec4899', '#be185d'],
+  ['#06b6d4', '#0e7490'],
 ];
+
+/** 'YYYY-MM-DD' 문자열을 UTC가 아닌 로컬 달력 날짜(자정)로 파싱 */
+function parseLocalDate(dateString: string): Date {
+  const [year, month, day] = dateString.split('-').map(Number);
+  return new Date(year, month - 1, day);
+}
+
+function isCourseCompleted(endDate: string): boolean {
+  if (!endDate) return false;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const end = parseLocalDate(endDate);
+  return today > end;
+}
+
+function getCourseDays(startDate: string, endDate: string) {
+  if (!startDate || !endDate) return [{ label: 'DAY 1', dateStr: '당일', dayNumber: 1 }];
+  const start = parseLocalDate(startDate);
+  const end = parseLocalDate(endDate);
+  const days: { label: string; dateStr: string; dayNumber: number }[] = [];
+  const cur = new Date(start);
+  let dayNum = 1;
+  while (cur <= end) {
+    days.push({
+      label: `DAY ${dayNum}`,
+      dateStr: `${cur.getMonth() + 1}월 ${cur.getDate()}일`,
+      dayNumber: dayNum,
+    });
+    cur.setDate(cur.getDate() + 1);
+    dayNum++;
+  }
+  return days.length > 0 ? days : [{ label: 'DAY 1', dateStr: '당일', dayNumber: 1 }];
+}
+
+export interface SaveSpotTarget {
+  id: number | string;
+  name?: string;
+  loc?: string;
+  address?: string;
+  lat?: number;
+  lng?: number;
+  latitude?: number;
+  longitude?: number;
+  photo?: string;
+  imageUrl?: string;
+  category?: string;
+  score?: string;
+  tags?: string[];
+}
 
 interface Props {
   visible: boolean;
   onClose: () => void;
-  onSaved: (message: string) => void;
+  spot?: SaveSpotTarget | null;
+  onSaved?: (message: string) => void;
 }
 
-export default function SaveToPlanSheet({ visible, onClose, onSaved }: Props) {
-  const [step, setStep] = useState<1 | 2>(1);
-  const [selectedPlanId, setSelectedPlanId] = useState<string | null>(null);
-  const [selectedDay, setSelectedDay] = useState<string | null>(null);
+export default function SaveToPlanSheet({ visible, onClose, spot, onSaved }: Props) {
+  const navigation = useNavigation<any>();
 
-  const selectedPlan = MOCK_TRAVEL_PLANS.find((p) => p.id === selectedPlanId) ?? null;
-  const multiDay = (selectedPlan?.days?.length ?? 0) > 1;
+  const [step, setStep] = useState<1 | 2>(1);
+  const [selectedCourseId, setSelectedCourseId] = useState<number | null>(null);
+  const [selectedDayNumber, setSelectedDayNumber] = useState<number>(1);
+
+  const { mutateAsync: addSpotToCourse, isPending: isSaving } = useAddSpotToCourse();
+
+  // 실시간 생성된 코스 목록 조회
+  const { data: courses = [], isLoading } = useQuery({
+    queryKey: ['courses'],
+    queryFn: coursesApi.getCourses,
+    enabled: visible,
+  });
+
+  // 완료된 코스(종료일 < 오늘) 제외
+  const activeCourses = courses.filter((c) => !isCourseCompleted(c.endDate));
+
+  const selectedCourse = activeCourses.find((c) => c.id === selectedCourseId) ?? null;
+  const courseDays = selectedCourse ? getCourseDays(selectedCourse.startDate, selectedCourse.endDate) : [];
+  const isMultiDay = courseDays.length > 1;
 
   function reset() {
     setStep(1);
-    setSelectedPlanId(null);
-    setSelectedDay(null);
+    setSelectedCourseId(null);
+    setSelectedDayNumber(1);
   }
 
   function handleClose() {
@@ -39,19 +110,53 @@ export default function SaveToPlanSheet({ visible, onClose, onSaved }: Props) {
     onClose();
   }
 
+  function handleCreateNewCourse() {
+    if (spot) {
+      const store = useCourseStore.getState();
+      store.clearSpots();
+      store.addSpot({
+        id: String(spot.id),
+        name: spot.name || `스팟 ${spot.id}`,
+        loc: spot.loc || spot.address || spot.category || '위치 정보 없음',
+        lat: spot.lat ?? spot.latitude ?? 0,
+        lng: spot.lng ?? spot.longitude ?? 0,
+        tags: spot.tags || [],
+        score: spot.score || '-',
+        photo: spot.photo || spot.imageUrl || '',
+      });
+    }
+    handleClose();
+    navigation.navigate('TravelTab', { screen: 'TravelNew' });
+  }
+
+  async function handleExecuteSave(dayNum: number) {
+    if (!selectedCourse || !spot || isSaving) return;
+
+    try {
+      await addSpotToCourse({
+        courseId: selectedCourse.id,
+        spotId: Number(spot.id),
+        dayNumber: dayNum,
+      });
+      onSaved?.(`'${selectedCourse.title}' 코스에 저장했습니다`);
+      handleClose();
+    } catch (err: any) {
+      Alert.alert('저장 실패', err?.message || '코스에 스팟을 저장하는 중 오류가 발생했습니다.');
+    }
+  }
+
   function handlePrimaryStep1() {
-    if (!selectedPlan) return;
-    if (multiDay) {
+    if (!selectedCourse) return;
+    if (isMultiDay) {
+      setSelectedDayNumber(1);
       setStep(2);
     } else {
-      onSaved('코스에 저장했습니다');
-      reset();
+      handleExecuteSave(1);
     }
   }
 
   function handleSaveDay() {
-    onSaved('코스에 저장했습니다');
-    reset();
+    handleExecuteSave(selectedDayNumber);
   }
 
   return (
@@ -60,82 +165,122 @@ export default function SaveToPlanSheet({ visible, onClose, onSaved }: Props) {
         <>
           <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(16), paddingBottom: normalize(12) }}>
             <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(18), color: '#000', letterSpacing: -0.35 }}>
-              코스에 저장
+              어떤 코스에 저장할까요?
             </Text>
           </View>
-          <View style={{ paddingHorizontal: GRID_PADDING }}>
-            {MOCK_TRAVEL_PLANS.map((plan) => {
-              const isSelected = selectedPlanId === plan.id;
-              return (
-                <Pressable
-                  key={plan.id}
-                  onPress={() => setSelectedPlanId(plan.id)}
-                  style={{
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: normalize(12),
-                    padding: normalize(14),
-                    borderRadius: normalize(16),
-                    backgroundColor: isSelected ? 'rgba(227,27,89,0.03)' : '#F5F5F7',
-                    borderWidth: 1.5,
-                    borderColor: isSelected ? '#E31B59' : 'transparent',
-                    marginBottom: normalize(8),
-                  }}
-                >
-                  <LinearGradient colors={plan.thumbGradient} style={{ width: normalize(56), height: normalize(56), borderRadius: normalize(12) }} />
-                  <View style={{ flex: 1 }}>
-                    <Text allowFontScaling={false} numberOfLines={1} style={{ fontFamily: 'Pretendard-Medium', fontSize: normalizeFontSize(15), color: '#000', letterSpacing: -0.2 }}>
-                      {plan.name}
-                    </Text>
-                    <Text allowFontScaling={false} style={{ fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.4)', marginTop: normalize(2) }}>{plan.meta}</Text>
-                  </View>
-                  <View
-                    style={{
-                      width: normalize(24),
-                      height: normalize(24),
-                      borderRadius: normalize(12),
-                      borderWidth: 1.5,
-                      borderColor: isSelected ? '#E31B59' : 'rgba(0,0,0,0.15)',
-                      backgroundColor: isSelected ? '#E31B59' : 'transparent',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    {isSelected && <IconCheck size={normalize(12)} color="#fff" strokeWidth={2.5} />}
-                  </View>
-                </Pressable>
-              );
-            })}
 
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: normalize(12),
-                padding: normalize(14),
-                borderRadius: normalize(16),
-                borderWidth: 1.5,
-                borderColor: 'rgba(227,27,89,0.3)',
-                borderStyle: 'dashed',
-                marginTop: normalize(4),
-                marginBottom: normalize(8),
-              }}
-            >
-              <View style={{ width: normalize(56), height: normalize(56), borderRadius: normalize(12), backgroundColor: 'rgba(227,27,89,0.06)', alignItems: 'center', justifyContent: 'center' }}>
-                <IconPlus size={normalize(22)} color="#e31b59" strokeWidth={2} />
-              </View>
-              <Text allowFontScaling={false} style={{ fontSize: normalizeFontSize(14), color: '#000' }}>새 여행 계획 만들기</Text>
+          <ScrollView style={{ maxHeight: normalize(320) }} showsVerticalScrollIndicator={false}>
+            <View style={{ paddingHorizontal: GRID_PADDING }}>
+              {isLoading ? (
+                <View style={{ paddingVertical: normalize(36), alignItems: 'center', justifyContent: 'center' }}>
+                  <ActivityIndicator size="small" color="#E31B59" />
+                  <Text allowFontScaling={false} style={{ fontSize: normalizeFontSize(13), color: 'rgba(0,0,0,0.4)', marginTop: normalize(8) }}>
+                    코스 목록을 불러오는 중...
+                  </Text>
+                </View>
+              ) : activeCourses.length === 0 ? (
+                <View style={{ paddingVertical: normalize(20), alignItems: 'center', justifyContent: 'center' }}>
+                  <Text allowFontScaling={false} style={{ fontSize: normalizeFontSize(14), color: 'rgba(0,0,0,0.45)', textAlign: 'center', lineHeight: normalize(20) }}>
+                    진행 중이거나 예정된 코스가 없습니다.{'\n'}새로운 코스를 만들어보세요!
+                  </Text>
+                </View>
+              ) : (
+                activeCourses.map((course, idx) => {
+                  const isSelected = selectedCourseId === course.id;
+                  const gradient = GRADIENT_PALETTES[idx % GRADIENT_PALETTES.length];
+                  const dateFormatted = `${course.startDate.replace(/-/g, '.')} ~ ${course.endDate.substring(5).replace(/-/g, '.')}`;
+                  const spotsCount = course.spots?.length ?? 0;
+
+                  return (
+                    <Pressable
+                      key={course.id}
+                      onPress={() => setSelectedCourseId(course.id)}
+                      style={{
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: normalize(12),
+                        padding: normalize(14),
+                        borderRadius: normalize(16),
+                        backgroundColor: isSelected ? 'rgba(227,27,89,0.03)' : '#F5F5F7',
+                        borderWidth: 1.5,
+                        borderColor: isSelected ? '#E31B59' : 'transparent',
+                        marginBottom: normalize(8),
+                      }}
+                    >
+                      <LinearGradient colors={gradient} style={{ width: normalize(52), height: normalize(52), borderRadius: normalize(12) }} />
+                      <View style={{ flex: 1 }}>
+                        <Text allowFontScaling={false} numberOfLines={1} style={{ fontFamily: 'Pretendard-Medium', fontSize: normalizeFontSize(15), color: '#000', letterSpacing: -0.2 }}>
+                          {course.title}
+                        </Text>
+                        <Text allowFontScaling={false} style={{ fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.4)', marginTop: normalize(2) }}>
+                          {dateFormatted} · 스팟 {spotsCount}개
+                        </Text>
+                      </View>
+                      <View
+                        style={{
+                          width: normalize(24),
+                          height: normalize(24),
+                          borderRadius: normalize(12),
+                          borderWidth: 1.5,
+                          borderColor: isSelected ? '#E31B59' : 'rgba(0,0,0,0.15)',
+                          backgroundColor: isSelected ? '#E31B59' : 'transparent',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        {isSelected && <IconCheck size={normalize(12)} color="#fff" strokeWidth={2.5} />}
+                      </View>
+                    </Pressable>
+                  );
+                })
+              )}
+
+              {/* 새 코스 만들기 버튼 */}
+              <Pressable
+                onPress={handleCreateNewCourse}
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: normalize(12),
+                  padding: normalize(14),
+                  borderRadius: normalize(16),
+                  borderWidth: 1.5,
+                  borderColor: 'rgba(227,27,89,0.3)',
+                  borderStyle: 'dashed',
+                  marginTop: normalize(4),
+                  marginBottom: normalize(12),
+                }}
+              >
+                <View style={{ width: normalize(52), height: normalize(52), borderRadius: normalize(12), backgroundColor: 'rgba(227,27,89,0.06)', alignItems: 'center', justifyContent: 'center' }}>
+                  <IconPlus size={normalize(22)} color="#E31B59" strokeWidth={2} />
+                </View>
+                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: normalizeFontSize(14), color: '#E31B59' }}>
+                  + 새 코스 만들기
+                </Text>
+              </Pressable>
             </View>
-          </View>
-          <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(12), paddingBottom: normalize(12) }}>
+          </ScrollView>
+
+          <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(8), paddingBottom: normalize(16) }}>
             <Pressable
               onPress={handlePrimaryStep1}
-              disabled={!selectedPlan}
-              style={{ width: '100%', height: normalize(52), borderRadius: BUTTON_RADIUS, alignItems: 'center', justifyContent: 'center', backgroundColor: selectedPlan ? '#E31B59' : 'rgba(0,0,0,0.08)' }}
+              disabled={!selectedCourse || isSaving}
+              style={{
+                width: '100%',
+                height: BUTTON_HEIGHT,
+                borderRadius: BUTTON_RADIUS,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: selectedCourse && !isSaving ? '#E31B59' : 'rgba(0,0,0,0.08)',
+              }}
             >
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(16), color: selectedPlan ? '#fff' : 'rgba(0,0,0,0.25)' }}>
-                {multiDay ? '다음' : '저장하기'}
-              </Text>
+              {isSaving ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(16), color: selectedCourse ? '#fff' : 'rgba(0,0,0,0.25)' }}>
+                  {isMultiDay ? '다음' : '저장하기'}
+                </Text>
+              )}
             </Pressable>
           </View>
         </>
@@ -149,17 +294,19 @@ export default function SaveToPlanSheet({ visible, onClose, onSaved }: Props) {
               DAY 선택
             </Text>
           </View>
+
           <View style={{ paddingHorizontal: GRID_PADDING }}>
             <Text allowFontScaling={false} style={{ fontSize: normalizeFontSize(13), color: 'rgba(0,0,0,0.45)', letterSpacing: -0.15, lineHeight: normalizeFontSize(13) * 1.5, marginBottom: normalize(16) }}>
-              <Text style={{ fontFamily: 'Pretendard-SemiBold', color: '#000' }}>{selectedPlan?.name}</Text>에서{'\n'}이 스팟을 추가할 날을 선택해 주세요
+              <Text style={{ fontFamily: 'Pretendard-SemiBold', color: '#000' }}>{selectedCourse?.title}</Text>에서{'\n'}이 스팟을 추가할 날을 선택해 주세요
             </Text>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: normalize(8), marginBottom: normalize(8) }}>
-              {selectedPlan?.days?.map((date, idx) => {
-                const isSelected = selectedDay === date;
+
+            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: normalize(8), marginBottom: normalize(16) }}>
+              {courseDays.map((dayItem) => {
+                const isSelected = selectedDayNumber === dayItem.dayNumber;
                 return (
                   <Pressable
-                    key={date}
-                    onPress={() => setSelectedDay(date)}
+                    key={dayItem.dayNumber}
+                    onPress={() => setSelectedDayNumber(dayItem.dayNumber)}
                     style={{
                       minWidth: normalize(76),
                       alignItems: 'center',
@@ -172,25 +319,37 @@ export default function SaveToPlanSheet({ visible, onClose, onSaved }: Props) {
                     }}
                   >
                     <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(11), color: isSelected ? '#E31B59' : 'rgba(0,0,0,0.4)', letterSpacing: -0.1, marginBottom: normalize(2) }}>
-                      {`DAY ${idx + 1}`}
+                      {dayItem.label}
                     </Text>
                     <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: normalizeFontSize(14), color: isSelected ? '#E31B59' : '#000', letterSpacing: -0.25 }}>
-                      {date}
+                      {dayItem.dateStr}
                     </Text>
                   </Pressable>
                 );
               })}
             </View>
           </View>
-          <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(12), paddingBottom: normalize(12) }}>
+
+          <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(8), paddingBottom: normalize(16) }}>
             <Pressable
               onPress={handleSaveDay}
-              disabled={!selectedDay}
-              style={{ width: '100%', height: normalize(52), borderRadius: BUTTON_RADIUS, alignItems: 'center', justifyContent: 'center', backgroundColor: selectedDay ? '#E31B59' : 'rgba(0,0,0,0.08)' }}
+              disabled={isSaving}
+              style={{
+                width: '100%',
+                height: BUTTON_HEIGHT,
+                borderRadius: BUTTON_RADIUS,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: isSaving ? 'rgba(0,0,0,0.08)' : '#E31B59',
+              }}
             >
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(16), color: selectedDay ? '#fff' : 'rgba(0,0,0,0.25)' }}>
-                저장하기
-              </Text>
+              {isSaving ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(16), color: '#fff' }}>
+                  저장하기
+                </Text>
+              )}
             </Pressable>
           </View>
         </>

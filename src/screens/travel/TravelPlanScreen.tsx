@@ -311,20 +311,27 @@ function mapCourseToData(course: any) {
       .filter((s: any) => s.dayNumber === i)
       .sort((a: any, b: any) => a.sequenceOrder - b.sequenceOrder)
       .map((s: any) => {
+        // 보정 좌표(navigation)가 유효하면 그것을 쓰고, 아니면 원본 스팟 좌표로 폴백한다.
+        const navLat = s.navigation?.latitude;
+        const navLng = s.navigation?.longitude;
+        const hasNavCoord = Number.isFinite(navLat) && Number.isFinite(navLng);
         return {
           id: String(s.id),
           realSpotId: s.spotId,
           name: s.spotName || `스팟 ${s.spotId}`,
-          loc: s.category || "위치 정보 없음",
+          address: s.address || "",
+          loc: s.address || s.category || "",
           time: "10:00 ~ 11:00", // TODO: Add real time schedule fields
           dur: "1시간", // TODO: Add real duration
           score: s.photogenicScore ? `${s.photogenicScore}점` : "-",
           scoreColor: s.photogenicScore && s.photogenicScore > 90 ? "#e31b59" : s.photogenicScore && s.photogenicScore > 80 ? "#ff9f0a" : "#34c759",
           bg: "#2c6e91", // Default background color
-          lat: s.latitude || 35.1531696,
-          lng: s.longitude || 129.118666,
+          lat: hasNavCoord ? navLat : (s.latitude || 35.1531696),
+          lng: hasNavCoord ? navLng : (s.longitude || 129.118666),
           photo: s.thumbnailUrl || '',
           travelTimeMinutes: s.travelTimeMinutes,
+          travelTimeEstimated: s.travelTimeEstimated,
+          navigation: s.navigation,
         };
       });
 
@@ -332,17 +339,34 @@ function mapCourseToData(course: any) {
     for (let j = 0; j < daySpots.length - 1; j++) {
       const current = daySpots[j];
       const next = daySpots[j + 1];
-      if (next.travelTimeMinutes != null) {
-        transports[`${current.id}__${next.id}`] = {
-          type: "car",
-          label: `차량 ${next.travelTimeMinutes}분`,
-        };
+      const driveMins = next.travelTimeMinutes;
+      const isEstimated = next.travelTimeEstimated;
+      const isCorrected = next.navigation?.status === "CORRECTED";
+      const isUnreachable = next.navigation?.status === "UNREACHABLE";
+
+      let label = "경로 확인 필요";
+      if (driveMins != null && driveMins > 0) {
+        const timeText = isEstimated ? `약 ${driveMins}분` : `${driveMins}분`;
+        if (isCorrected) {
+          label = `차량 ${timeText} + 도보 이동 필요`;
+        } else {
+          label = `차량 ${timeText}`;
+        }
+      } else if (isCorrected) {
+        label = `도보 이동 필요`;
+      } else if (isUnreachable) {
+        label = `차량 이동 불가`;
       } else {
-        transports[`${current.id}__${next.id}`] = {
-          type: "car",
-          label: `-`,
-        };
+        label = `경로 확인 필요`;
       }
+
+      transports[`${current.id}__${next.id}`] = {
+        type: (driveMins != null && driveMins > 0) ? "car" : (isCorrected ? "walk" : "car"),
+        label,
+        driveMins: driveMins ?? 0,
+        isEstimated,
+        isCorrected,
+      };
     }
 
     result[String(i)] = {
@@ -402,27 +426,29 @@ export default function TravelPlanScreen({ navigation, route }: any) {
     let distance = 0;
     let durationMins = 0;
     
-    // Each spot defaults to 60 mins stay
-    durationMins += currentData.spots.length * 60;
-    
     for (let i = 0; i < currentData.spots.length; i++) {
       const current = currentData.spots[i];
       if (i < currentData.spots.length - 1) {
         const next = currentData.spots[i + 1];
         if (current.lat && current.lng && next.lat && next.lng) {
-          distance += getDistanceFromLatLonInKm(current.lat, current.lng, next.lat, next.lng);
-        }
-        if (next.travelTimeMinutes != null) {
+          const legDist = getDistanceFromLatLonInKm(current.lat, current.lng, next.lat, next.lng);
+          distance += legDist;
+          if (next.travelTimeMinutes != null) {
+            durationMins += next.travelTimeMinutes;
+          } else if (legDist > 0) {
+            durationMins += Math.max(1, Math.round((legDist / 35) * 60));
+          }
+        } else if (next.travelTimeMinutes != null) {
           durationMins += next.travelTimeMinutes;
-        } else {
-          durationMins += 30;
         }
       }
     }
     
     const h = Math.floor(durationMins / 60);
     const m = durationMins % 60;
-    const durStr = h > 0 ? (m > 0 ? `${h}시간 ${m}분` : `${h}시간`) : `${m}분`;
+    const durStr = durationMins > 0
+      ? (h > 0 ? (m > 0 ? `약 ${h}시간 ${m}분` : `약 ${h}시간`) : `약 ${m}분`)
+      : "0분";
     return { totalDistance: Math.round(distance), totalDurationFormatted: durStr };
   }, [currentData]);
 
@@ -539,12 +565,14 @@ export default function TravelPlanScreen({ navigation, route }: any) {
             id: `new_${Date.now()}_${idx}`, // 임시 ID
             realSpotId: spot.id,
             name: spot.title || spot.name || `스팟 ${spot.id}`,
-            loc: spot.category || "기타",
+            address: spot.address || spot.loc || "",
+            loc: spot.address || spot.loc || spot.category || "",
             bg: "#ccc",
             lat: spot.latitude || spot.mapY || spot.lat,
             lng: spot.longitude || spot.mapX || spot.lng,
             photo: spot.imageUrl || spot.firstimage || spot.photo || '',
             travelTimeMinutes: null,
+            navigation: spot.navigation,
           }))
         ];
         
@@ -786,7 +814,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
                 <IconClock size={normalize(14)} color="#e31b59" />
               </View>
               <Text className="font-semibold text-black tracking-tight" style={{ fontSize: normalizeFontSize(14) }}>{totalDurationFormatted}</Text>
-              <Text className="text-black/30 tracking-tight" style={{ fontSize: normalizeFontSize(12) }}>예상 소요</Text>
+              <Text className="text-black/30 tracking-tight" style={{ fontSize: normalizeFontSize(12) }}>총 이동시간</Text>
             </View>
           </View>
 
@@ -1028,13 +1056,22 @@ export default function TravelPlanScreen({ navigation, route }: any) {
                   </Text>
                 </View>
               </View>
-              <Text className="text-black/40 mb-2" style={{ fontSize: normalizeFontSize(12) }}>{item.loc}</Text>
-              <View className="flex-row items-center gap-1.5">
+              {Boolean(item.loc) && (
+                <Text
+                  className="text-black/40"
+                  style={{ fontSize: normalizeFontSize(12) }}
+                  numberOfLines={1}
+                >
+                  {item.loc}
+                </Text>
+              )}
+              {/* TODO: 추후 스팟별 방문 시간/체류 시간 기능 추가 시 활성화 */}
+              {/* <View className="flex-row items-center gap-1.5 mt-1">
                 <IconClock size={12} color="rgba(0,0,0,0.3)" />
                 <Text className="text-black/50" style={{ fontSize: normalizeFontSize(12) }}>
                   {item.time} <Text className="text-black/25">{item.dur}</Text>
                 </Text>
-              </View>
+              </View> */}
             </View>
 
             {isEditMode && (
@@ -1213,18 +1250,20 @@ export default function TravelPlanScreen({ navigation, route }: any) {
       <NaviSheet
         visible={isDepartModalVisible}
         onClose={() => setIsDepartModalVisible(false)}
-        spotName={currentData?.spots?.[0]?.name || ""}
-        address={currentData?.spots?.[0]?.loc || ""}
+        spotName={currentData?.spots?.[currentData.spots.length - 1]?.name || currentData?.spots?.[0]?.name || ""}
+        address={currentData?.spots?.[currentData.spots.length - 1]?.address || currentData?.spots?.[currentData.spots.length - 1]?.loc || currentData?.spots?.[0]?.address || currentData?.spots?.[0]?.loc || ""}
+        navigation={currentData?.spots?.[currentData.spots.length - 1]?.navigation}
         spots={(currentData?.spots || [])
           .map((s: any) => {
-            const rawLat = s.lat ?? s.latitude ?? s.y ?? s.mapY;
-            const rawLng = s.lng ?? s.longitude ?? s.x ?? s.mapX;
+            const rawLat = s.navigation?.latitude ?? s.lat ?? s.latitude ?? s.y ?? s.mapY;
+            const rawLng = s.navigation?.longitude ?? s.lng ?? s.longitude ?? s.x ?? s.mapX;
             const coord = parseValidCoordinate(rawLat, rawLng);
             if (!coord) return null;
             return {
-              name: s.name || s.spotName || "스팟",
+              name: s.navigation?.name || s.name || s.spotName || "스팟",
               latitude: coord.latitude,
               longitude: coord.longitude,
+              navigation: s.navigation,
             };
           })
           .filter(Boolean)}

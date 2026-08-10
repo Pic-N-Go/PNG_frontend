@@ -40,8 +40,7 @@
         <action android:name="android.intent.action.VIEW"/>
         <category android:name="android.intent.category.DEFAULT"/>
         <category android:name="android.intent.category.BROWSABLE"/>
-        <data android:scheme="kakao064f119585ac3464d0933271679fff60"/>
-        <data android:scheme="kakaoa9f0a957cdf5c7793d2ee0c38474d39c"/>
+        <data android:scheme="kakaofd7f9b8d273c9b33fbf31e8ba7cb4dc6"/>
       </intent-filter>
     </activity>
     <activity android:name="com.kakao.sdk.auth.AuthCodeHandlerActivity" android:exported="true">
@@ -49,7 +48,7 @@
         <action android:name="android.intent.action.VIEW"/>
         <category android:name="android.intent.category.DEFAULT"/>
         <category android:name="android.intent.category.BROWSABLE"/>
-        <data android:host="oauth" android:scheme="kakaoa9f0a957cdf5c7793d2ee0c38474d39c"/>
+        <data android:host="oauth" android:scheme="kakaofd7f9b8d273c9b33fbf31e8ba7cb4dc6"/>
       </intent-filter>
     </activity>
   </application>

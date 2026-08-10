@@ -2941,7 +2941,7 @@
           </div>
 
           <!-- 새 여행 계획 만들기 -->
-          <div class="plan-new-card" onclick="location.href='../travel/travel-plan.html'">
+          <div class="plan-new-card" onclick="location.href='../course/course-new.html'">
             <div class="plan-new-icon">
               <svg width="22" height="22" viewBox="0 0 24 24" stroke="#e31b59">
                 <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
@@ -3298,13 +3298,13 @@
 
     <script>
       /* ── 뒤로가기 ── */
-      // #from=travel  → travel-plan.html
+      // #from=course  → course-plan.html
       // #from=map     → map.html
       // 그 외 / 없음  → history.back() → home.html fallback
       function goBack() {
         var from = location.hash.replace('#', '').split('=')[1];
-        if (from === 'travel') {
-          location.href = '../travel/travel-plan.html';
+        if (from === 'course' || from === 'travel') {
+          location.href = '../course/course-plan.html';
         } else if (from === 'map') {
           location.href = '../home/map.html';
         } else if (history.length > 1) {

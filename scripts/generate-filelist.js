@@ -5,118 +5,119 @@
  * 실행: node scripts/generate-filelist.js
  */
 
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
-const SCAN_ROOT  = path.resolve(__dirname, '../src/components/ui');
-const OUT_DIR    = path.resolve(__dirname, '../src/html');
-const OUT_FILE   = path.join(OUT_DIR, 'filelist.html');
-const DATA_FILE  = path.resolve(__dirname, 'filelist-data.json');
-const EXCLUDE    = new Set(['filelist.html', 'index.html']);
-const TODAY      = new Date().toISOString().slice(0, 10);
+const SCAN_ROOT = path.resolve(__dirname, "../src/components/ui");
+const OUT_DIR = path.resolve(__dirname, "../src/html");
+const OUT_FILE = path.join(OUT_DIR, "filelist.html");
+const DATA_FILE = path.resolve(__dirname, "filelist-data.json");
+const EXCLUDE = new Set(["filelist.html", "index.html"]);
+const TODAY = new Date().toISOString().slice(0, 10);
 
 /* filelist-data.json 로드 (없으면 빈 객체) */
 const fileData = fs.existsSync(DATA_FILE)
-  ? JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'))
+  ? JSON.parse(fs.readFileSync(DATA_FILE, "utf8"))
   : {};
 
 /* ── 분류 맵 ── */
 const CATEGORY_KO = {
-  auth:       '인증',
-  community:  '커뮤니티',
-  home:       '홈',
-  mypage:     '마이페이지',
-  spot:       '스팟',
-  travel:     '여행',
-  wishlist:   '위시리스트',
+  auth: "인증",
+  community: "커뮤니티",
+  home: "홈",
+  mypage: "마이페이지",
+  spot: "스팟",
+  course: "코스",
+  wishlist: "위시리스트",
 };
 
 /* 소분류: 폴더+파일명 기반 */
 function subCategory(folder, base) {
   const map = {
-    'auth/login':                  '로그인',
-    'auth/signup':                 '회원가입',
-    'auth/oauth-onboarding':       'OAuth 온보딩',
-    'community/community-feed':    '피드',
-    'community/community-post':    '게시글 상세',
-    'community/community-write':   '게시글 작성',
-    'home/home':                   '홈',
-    'home/map':                    '지도',
-    'mypage/mypage':               '마이페이지',
-    'mypage/profile-edit':         '프로필 편집',
-    'mypage/notification':         '알림',
-    'mypage/follow':               '팔로우',
-    'mypage/photo-map':            '포토맵',
-    'mypage/my-photos':            '내 사진',
-    'mypage/my-reviews':           '내 리뷰',
-    'mypage/setting':              '설정',
-    'mypage/inquiry-list':         '1:1 문의 목록',
-    'mypage/inquiry-detail':       '1:1 문의 상세',
-    'mypage/inquiry-write':        '1:1 문의 작성',
-    'mypage/faq':                  '자주 묻는 질문',
-    'mypage/terms':                '이용약관',
-    'mypage/privacy':              '개인정보 처리방침',
-    'mypage/licenses':             '오픈소스 라이선스',
-    'spot/spot-list':              '목록',
-    'spot/spot-detail':            '상세',
-    'spot/spot-change':            '수정',
-    'spot/spot-register':          '등록',
-    'spot/review-write':           '리뷰 작성',
-    'travel/travel-list':          '코스 목록',
-    'travel/travel-new':           '코스 생성',
-    'travel/travel-plan':          '코스 상세',
-    'wishlist/wishlist':           '위시리스트',
-    'wishlist/wishlist-setting':   '위시리스트 설정',
+    "auth/login": "로그인",
+    "auth/signup": "회원가입",
+    "auth/oauth-onboarding": "OAuth 온보딩",
+    "community/community-feed": "피드",
+    "community/community-post": "게시글 상세",
+    "community/community-write": "게시글 작성",
+    "home/home": "홈",
+    "home/map": "지도",
+    "mypage/mypage": "마이페이지",
+    "mypage/profile-edit": "프로필 편집",
+    "mypage/notification": "알림",
+    "mypage/follow": "팔로우",
+    "mypage/photo-map": "포토맵",
+    "mypage/my-photos": "내 사진",
+    "mypage/my-reviews": "내 리뷰",
+    "mypage/setting": "설정",
+    "mypage/inquiry-list": "1:1 문의 목록",
+    "mypage/inquiry-detail": "1:1 문의 상세",
+    "mypage/inquiry-write": "1:1 문의 작성",
+    "mypage/faq": "자주 묻는 질문",
+    "mypage/terms": "이용약관",
+    "mypage/privacy": "개인정보 처리방침",
+    "mypage/licenses": "오픈소스 라이선스",
+    "spot/spot-list": "목록",
+    "spot/spot-detail": "상세",
+    "spot/spot-change": "수정",
+    "spot/spot-register": "등록",
+    "spot/review-write": "리뷰 작성",
+    "course/course-list": "코스 목록",
+    "course/course-new": "코스 생성",
+    "course/course-plan": "코스 상세",
+    "wishlist/wishlist": "위시리스트",
+    "wishlist/wishlist-setting": "위시리스트 설정",
   };
   return map[`${folder}/${base}`] || base;
 }
 
 /* 담당자 맵 */
 const ASSIGNEE = {
-  'auth/login':                '박예은',
-  'auth/signup':               '박예은',
-  'auth/oauth-onboarding':     '박예은',
-  'community/community-feed':  '소영재',
-  'community/community-post':  '소영재',
-  'community/community-write': '소영재',
-  'home/home':                 '박예은',
-  'home/map':                  '박예은',
-  'mypage/follow':             '이예인',
-  'mypage/my-photos':          '모정민',
-  'mypage/my-reviews':         '모정민',
-  'mypage/mypage':             '모정민',
-  'mypage/faq':                '박예은',
-  'mypage/terms':              '박예은',
-  'mypage/privacy':            '박예은',
-  'mypage/licenses':           '박예은',
-  'mypage/notification':       '박예은',
-  'mypage/photo-map':          '모정민',
-  'mypage/profile-edit':       '모정민',
-  'mypage/setting':            '전체',
-  'spot/photo-detail':         '소영재',
-  'spot/review-write':         '박예은',
-  'spot/spot-change':          '모정민',
-  'spot/spot-detail':          '박예은',
-  'spot/spot-list':            '이예인',
-  'spot/spot-register':        '소영재',
-  'travel/travel-list':        '모정민',
-  'travel/travel-new':         '모정민',
-  'travel/travel-plan':        '모정민',
-  'wishlist/wishlist':         '모정민',
-  'wishlist/wishlist-setting': '모정민',
+  "auth/login": "박예은",
+  "auth/signup": "박예은",
+  "auth/oauth-onboarding": "박예은",
+  "community/community-feed": "박예은",
+  "community/community-post": "박예은",
+  "community/community-write": "박예은",
+  "community/contest-result": "박예은",
+  "community/user-profile": "박예은",
+  "home/home": "박예은",
+  "home/map": "박예은",
+  "mypage/follow": "이예인",
+  "mypage/my-photos": "모정민",
+  "mypage/my-reviews": "모정민",
+  "mypage/mypage": "모정민",
+  "mypage/faq": "박예은",
+  "mypage/terms": "박예은",
+  "mypage/privacy": "박예은",
+  "mypage/licenses": "박예은",
+  "mypage/notification": "박예은",
+  "mypage/photo-map": "모정민",
+  "mypage/profile-edit": "모정민",
+  "mypage/setting": "전체",
+  "spot/photo-detail": "박예은",
+  "spot/review-write": "박예은",
+  "spot/spot-change": "모정민",
+  "spot/spot-detail": "박예은",
+  "spot/spot-list": "이예인",
+  "course/course-list": "모정민",
+  "course/course-new": "모정민",
+  "course/course-plan": "모정민",
+  "wishlist/wishlist": "모정민",
+  "wishlist/wishlist-setting": "모정민",
 };
 
 /* 상태 → CSS 클래스 */
 function statusClass(s) {
-  if (s === '완료')  return 'done';
-  if (s === '진행중') return 'wip';
-  return 'todo';
+  if (s === "완료") return "done";
+  if (s === "진행중") return "wip";
+  return "todo";
 }
 
 /* 구분 판별: 파일명/경로에 modal 포함 → MODAL, 아니면 PAGE */
 function pageType(folder, filename) {
-  if (/modal/i.test(filename) || /modal/i.test(folder)) return 'MODAL';
-  return 'PAGE';
+  if (/modal/i.test(filename) || /modal/i.test(folder)) return "MODAL";
+  return "PAGE";
 }
 
 /* ── 파일 스캔 ── */
@@ -126,7 +127,7 @@ function scan(dir) {
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) {
       results.push(...scan(full));
-    } else if (entry.name.endsWith('.html') && !EXCLUDE.has(entry.name)) {
+    } else if (entry.name.endsWith(".html") && !EXCLUDE.has(entry.name)) {
       results.push(full);
     }
   }
@@ -138,45 +139,51 @@ const files = scan(SCAN_ROOT).sort();
 /* filelist.html → scanRoot 상대경로 계산용 */
 const relBase = path.relative(OUT_DIR, SCAN_ROOT); // '../../src/components/ui' 아니라 '../components/ui'
 
-const rows = files.map(fp => {
-  const rel      = path.relative(SCAN_ROOT, fp);          // e.g. auth/login.html
-  const parts    = rel.split(path.sep);
-  const folder   = parts.slice(0, -1).join('/');           // e.g. auth
+const rows = files.map((fp) => {
+  const rel = path.relative(SCAN_ROOT, fp); // e.g. auth/login.html
+  const parts = rel.split(path.sep);
+  const folder = parts.slice(0, -1).join("/"); // e.g. auth
   const filename = parts[parts.length - 1];
-  const base     = filename.replace('.html', '');
-  const href     = path.join(relBase, rel).replace(/\\/g, '/'); // Windows 호환
+  const base = filename.replace(".html", "");
+  const href = path.join(relBase, rel).replace(/\\/g, "/"); // Windows 호환
 
   return {
     cat1: CATEGORY_KO[folder] || folder,
     cat2: folder,
     cat3: subCategory(folder, base),
     type: pageType(folder, filename),
-    assignee: ASSIGNEE[`${folder}/${base}`] || '',
+    assignee: ASSIGNEE[`${folder}/${base}`] || "",
     href,
     filename,
     rel,
-    ...{ uiStatus: '미시작', apiStatus: '미시작', date: '', note: '' },
-    ...(fileData[rel.replace(/\\/g, '/')] ?? {}),
+    ...{ uiStatus: "미시작", apiStatus: "미시작", date: "", note: "" },
+    ...(fileData[rel.replace(/\\/g, "/")] ?? {}),
   };
 });
 
 /* ── HTML 생성 ── */
 function escapeHtml(s) {
-  return String(s ?? '').replace(/[&<>"']/g, c =>
-    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  return String(s ?? "").replace(
+    /[&<>"']/g,
+    (c) =>
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[
+        c
+      ],
+  );
 }
 
 function rowHtml(r) {
-  const typeBadge = r.type === 'MODAL'
-    ? `<span class="badge badge--modal">MODAL</span>`
-    : `<span class="badge badge--page">PAGE</span>`;
+  const typeBadge =
+    r.type === "MODAL"
+      ? `<span class="badge badge--modal">MODAL</span>`
+      : `<span class="badge badge--page">PAGE</span>`;
   return `
     <tr>
       <td>${escapeHtml(r.cat1)}</td>
       <td>${escapeHtml(r.cat2)}</td>
       <td>${escapeHtml(r.cat3)}</td>
       <td>${typeBadge}</td>
-      <td><a href="${r.href}" target="_blank" rel="noopener">${escapeHtml(r.rel.replace(/\\/g, '/'))}</a></td>
+      <td><a href="${r.href}" target="_blank" rel="noopener">${escapeHtml(r.rel.replace(/\\/g, "/"))}</a></td>
       <td>${escapeHtml(r.assignee)}</td>
       <td><span class="status status--${statusClass(r.uiStatus)}">${escapeHtml(r.uiStatus)}</span></td>
       <td><span class="status status--${statusClass(r.apiStatus)}">${escapeHtml(r.apiStatus)}</span></td>
@@ -309,9 +316,12 @@ const html = `<!doctype html>
 
   <div class="filters">
     <button class="filter-btn is-active" onclick="filterAll(this)">전체</button>
-    ${[...new Set(rows.map(r => r.cat1))].map(c =>
-      `<button class="filter-btn" onclick="filterCat(this,'${c}')">${c}</button>`
-    ).join('\n    ')}
+    ${[...new Set(rows.map((r) => r.cat1))]
+      .map(
+        (c) =>
+          `<button class="filter-btn" onclick="filterCat(this,'${c}')">${c}</button>`,
+      )
+      .join("\n    ")}
   </div>
 
   <div class="table-wrap">
@@ -331,7 +341,7 @@ const html = `<!doctype html>
         </tr>
       </thead>
       <tbody>
-        ${rows.map(rowHtml).join('')}
+        ${rows.map(rowHtml).join("")}
       </tbody>
     </table>
   </div>
@@ -393,8 +403,8 @@ const html = `<!doctype html>
 </html>`;
 
 fs.mkdirSync(OUT_DIR, { recursive: true });
-fs.writeFileSync(OUT_FILE, html, 'utf8');
+fs.writeFileSync(OUT_FILE, html, "utf8");
 
 console.log(`\n✓ 생성 완료: ${OUT_FILE}`);
 console.log(`  파일 수: ${rows.length}개`);
-rows.forEach(r => console.log(`  - ${r.rel}`));
+rows.forEach((r) => console.log(`  - ${r.rel}`));

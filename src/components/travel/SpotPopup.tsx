@@ -1,9 +1,11 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { View, Text, TouchableOpacity, Image, Animated, Easing, PanResponder, Dimensions } from 'react-native';
 import { FONT_SM, BOTTOM_SHEET_RADIUS } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { IconMapPin, IconX, IconStarFilled, IconHeart, IconBookmark } from '@tabler/icons-react-native';
+import { IconMapPin, IconX, IconHeart, IconBookmark } from '@tabler/icons-react-native';
+import StarRating from '@/components/common/StarRating';
 import { Spot } from '@/store/useCourseStore';
+import { useSpotSummary } from '@/hooks/useSpot';
 
 interface Props {
   activeSpot: Spot | null;
@@ -29,6 +31,24 @@ export default function SpotPopup({ activeSpot, onClose, renderButtons }: Props)
   }
 
   const displaySpot = activeSpot || lastSpot.current;
+  const { data: summary } = useSpotSummary(displaySpot?.id);
+
+  const effectiveSpot: Spot | null = useMemo(() => {
+    if (!displaySpot) return null;
+    const name = summary?.name || displaySpot.name;
+    const loc = summary?.address || displaySpot.loc || '';
+    const score = summary?.photogenicScore !== undefined ? String(summary.photogenicScore) : displaySpot.score;
+    const photo = summary?.thumbnailUrl || displaySpot.photo;
+    const tags = displaySpot.tags?.length ? displaySpot.tags : (summary?.category ? [summary.category] : []);
+    return {
+      ...displaySpot,
+      name,
+      loc,
+      score,
+      photo,
+      tags,
+    };
+  }, [displaySpot, summary]);
 
   useEffect(() => {
     if (activeSpot) {
@@ -91,6 +111,9 @@ export default function SpotPopup({ activeSpot, onClose, renderButtons }: Props)
     });
   }
 
+  const currentSpot = effectiveSpot || displaySpot;
+  const rating = summary?.reviewAverage ?? 0;
+
   return (
     <Animated.View
       style={{
@@ -117,15 +140,15 @@ export default function SpotPopup({ activeSpot, onClose, renderButtons }: Props)
           />
         </View>
 
-        {displaySpot && (
+        {currentSpot && (
           <>
             {/* Photos */}
             <View className="w-full relative bg-gray-200" style={{ height: normalize(140) }}>
-              {displaySpot.photo ? (
+              {currentSpot.photo ? (
                 <View className="flex-row w-full h-full gap-[2px] bg-white">
-                  <Image source={{ uri: displaySpot.photo }} className="flex-1 h-full bg-gray-200" resizeMode="cover" />
-                  <Image source={{ uri: displaySpot.photo }} className="flex-1 h-full bg-gray-200" resizeMode="cover" />
-                  <Image source={{ uri: displaySpot.photo }} className="flex-1 h-full bg-gray-200" resizeMode="cover" />
+                  <Image source={{ uri: currentSpot.photo }} className="flex-1 h-full bg-gray-200" resizeMode="cover" />
+                  <Image source={{ uri: currentSpot.photo }} className="flex-1 h-full bg-gray-200" resizeMode="cover" />
+                  <Image source={{ uri: currentSpot.photo }} className="flex-1 h-full bg-gray-200" resizeMode="cover" />
                 </View>
               ) : (
                 <View className="w-full h-full items-center justify-center">
@@ -138,30 +161,33 @@ export default function SpotPopup({ activeSpot, onClose, renderButtons }: Props)
               </TouchableOpacity>
 
               <View className="absolute top-3 left-3 h-7 px-3 rounded-full bg-[#E31B59] items-center justify-center z-10 shadow-sm shadow-[#E31B59]/30">
-                <Text className="font-semibold text-white" style={{ fontSize: FONT_SM }}>{displaySpot.score}점</Text>
+                <Text className="font-semibold text-white" style={{ fontSize: FONT_SM }}>{currentSpot.score}점</Text>
               </View>
             </View>
 
             {/* Body */}
             <View className="px-4 pt-5 pb-6">
               <View className="flex-row justify-between items-start">
-                <View className="flex-1">
-                  <Text className="font-semibold text-black" style={{ fontSize: normalizeFontSize(20) }}>{displaySpot.name}</Text>
+                <View className="flex-1 mr-2">
+                  <Text className="font-semibold text-black" style={{ fontSize: normalizeFontSize(20) }}>{currentSpot.name}</Text>
 
                   <View className="flex-row items-center mt-1.5">
-                    <View className="flex-row mr-1.5">
-                      <IconStarFilled size={14} color="#FBBF24" />
-                      <IconStarFilled size={14} color="#FBBF24" />
-                      <IconStarFilled size={14} color="#FBBF24" />
-                      <IconStarFilled size={14} color="#FBBF24" />
-                      <IconStarFilled size={14} color="#FBBF24" />
-                    </View>
-                    <Text className="text-black/40" style={{ fontSize: FONT_SM }}>{displaySpot.score} · 리뷰 324건</Text>
+                    <StarRating rating={rating} size={normalizeFontSize(14)} />
+                    <Text className="font-semibold text-black ml-1.5" style={{ fontSize: FONT_SM }}>
+                      {rating > 0 ? rating.toFixed(1) : '0.0'}
+                    </Text>
+                    {summary?.bookmarkCount !== undefined && summary.bookmarkCount > 0 && (
+                      <Text className="text-black/40 ml-1" style={{ fontSize: FONT_SM }}>
+                        {` · 저장 ${summary.bookmarkCount.toLocaleString()}`}
+                      </Text>
+                    )}
                   </View>
 
                   <View className="flex-row items-center mt-2.5 mb-1">
                     <IconMapPin size={14} color="rgba(0,0,0,0.4)" />
-                    <Text className="text-black/50 ml-1" style={{ fontSize: FONT_SM }}>{displaySpot.loc}</Text>
+                    <Text className="text-black/50 ml-1 flex-1" style={{ fontSize: FONT_SM }} numberOfLines={1}>
+                      {currentSpot.loc || '주소 정보 없음'}
+                    </Text>
                   </View>
                 </View>
 
@@ -171,14 +197,14 @@ export default function SpotPopup({ activeSpot, onClose, renderButtons }: Props)
               </View>
 
               <View className="flex-row flex-wrap gap-1.5 mt-3 mb-1">
-                {(displaySpot.tags || []).map((tag: string) => (
+                {(currentSpot.tags || []).map((tag: string) => (
                   <View key={tag} className="px-2.5 py-1 bg-[#f5f5f7] rounded-full">
                     <Text className="text-black/50" style={{ fontSize: normalizeFontSize(12) }}>{tag}</Text>
                   </View>
                 ))}
               </View>
 
-              {renderButtons && renderButtons(displaySpot)}
+              {renderButtons && renderButtons(currentSpot)}
             </View>
           </>
         )}

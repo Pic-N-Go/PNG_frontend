@@ -6,8 +6,9 @@ export const INPUT_HEIGHT = normalize(52);
 export const BUTTON_RADIUS = normalize(26);   // pill shape (height / 2)
 export const INPUT_RADIUS = normalize(12);
 
-// ── 카드 ─────────────────────────────────────
+// ── 카드 / 배지 ───────────────────────────────
 export const CARD_RADIUS = normalize(16);
+export const BADGE_RADIUS = normalize(6);
 
 // ── 레이아웃 패딩 ─────────────────────────────
 export const CONTENT_PADDING = normalize(28); // 페이지 콘텐츠 좌우
