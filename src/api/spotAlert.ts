@@ -94,6 +94,18 @@ export const spotAlertApi = {
       headers: { Authorization: `Bearer ${accessToken}` },
     });
   },
+
+  toggleSpotAlertActive: async (spotId: number, isAlertEnabled: boolean, accessToken: string): Promise<{ spotId: number; isAlertEnabled: boolean }> => {
+    const res = await fetchWithTimeout(`${BASE}/spot-alerts/${spotId}/active`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({ isAlertEnabled }),
+    });
+    return res.json();
+  },
 };
 
 // 하위 호환성 객체

@@ -52,7 +52,12 @@ const getWeatherIcon = (id: WeatherCondition, selected: boolean) => {
 export default function SpotAlertSettingScreen({ navigation, route }: any) {
   const insets = useSafeAreaInsets();
   const keyboardOverlap = useKeyboardOverlap();
-  const { useSpotAlertDetailQuery, useUpdateSpotAlertMutation, useDeleteSpotAlertMutation } = useSpotAlert();
+  const { 
+    useSpotAlertDetailQuery, 
+    useUpdateSpotAlertMutation, 
+    useDeleteSpotAlertMutation,
+    useToggleSpotAlertActiveMutation 
+  } = useSpotAlert();
 
   const [selectedSpot, setSelectedSpot] = useState<any>(null);
 
@@ -155,8 +160,20 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
   const scrollViewRef = useRef<ScrollView>(null);
   const updateMutation = useUpdateSpotAlertMutation();
   const deleteMutation = useDeleteSpotAlertMutation();
+  const toggleActiveMutation = useToggleSpotAlertActiveMutation();
 
   const markDirty = () => setDirty(true);
+
+  const handleToggleNotif = (value: boolean) => {
+    setNotifEnabled(value);
+    markDirty();
+    if (targetSpotId) {
+      toggleActiveMutation.mutate({
+        spotId: Number(targetSpotId),
+        isAlertEnabled: value,
+      });
+    }
+  };
 
   const handleBack = () => {
     if (dirty) {
@@ -357,7 +374,7 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
             </View>
             <Switch 
               value={notifEnabled} 
-              onValueChange={(v) => { setNotifEnabled(v); markDirty(); }} 
+              onValueChange={handleToggleNotif} 
               trackColor={{ false: '#e9e9ea', true: '#E31B59' }} 
               thumbColor="#fff"
             />

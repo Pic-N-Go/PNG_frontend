@@ -9,14 +9,15 @@ import { mapSpotAlertToUI } from '@/utils/spotAlertMapper';
 
 export default function SpotAlertPreview() {
   const navigation = useNavigation<any>();
-  const { useSpotAlertsQuery, useUpdateSpotAlertMutation } = useSpotAlert();
+  const { useSpotAlertsQuery, useToggleSpotAlertActiveMutation } = useSpotAlert();
   const { data: spotAlerts, isLoading } = useSpotAlertsQuery();
-  const updateMutation = useUpdateSpotAlertMutation();
+  const toggleMutation = useToggleSpotAlertActiveMutation();
 
   const toggleAlarm = (item: any) => {
-    updateMutation.mutate({
-      spotId: item.spotId,
-      data: { isAlertEnabled: !item.isAlertEnabled }
+    const spotId = item.id || item.spotId || item.rawData?.spotId;
+    toggleMutation.mutate({
+      spotId,
+      isAlertEnabled: !item.isAlertEnabled,
     });
   };
 
@@ -89,7 +90,7 @@ export default function SpotAlertPreview() {
                     </Text>
                   </View>
                   <TouchableOpacity
-                    onPress={() => toggleAlarm(item.rawData)}
+                    onPress={() => toggleAlarm(item)}
                     hitSlop={8}
                     style={{
                       width: normalize(28),
