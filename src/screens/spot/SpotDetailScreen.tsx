@@ -12,7 +12,7 @@ import SpotTabBar, { type SpotTabKey } from '@/components/spot/SpotTabBar';
 import PhotogenicScoreCard from '@/components/spot/PhotogenicScoreCard';
 import ConvenienceInfoSection from '@/components/spot/ConvenienceInfoSection';
 import ChecklistSection from '@/components/spot/ChecklistSection';
-import SpotWishlistBanner from '@/components/spot/SpotWishlistBanner';
+import SpotAlertBanner from '@/components/spot/SpotAlertBanner';
 import PhotoGridTab from '@/components/spot/PhotoGridTab';
 import ReviewTab from '@/components/spot/ReviewTab';
 import ChatTab from '@/components/spot/ChatTab';
@@ -197,7 +197,7 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
                 <View style={{ height: 1, backgroundColor: 'rgba(0,0,0,0.06)', marginHorizontal: GRID_PADDING, marginVertical: normalize(24) }} />
                 <ChecklistSection spotId={spot.id} />
                 <View style={{ height: normalize(24) }} />
-                <SpotWishlistBanner
+                <SpotAlertBanner
                   onPress={() => {
                     // @ts-ignore
                     navigation.navigate('WishlistSetting', { 
