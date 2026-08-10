@@ -18,6 +18,10 @@ pnpm web              # run in browser
 
 > **bare workflow 주의**: 이 프로젝트는 `expo prebuild`로 bare workflow 전환됨. `pnpm ios` 실행 전 `pnpm start`로 Metro를 먼저 실행하거나, Xcode에서 직접 빌드할 것. Expo Go 앱으로는 실행 불가.
 
+> **CocoaPods**: 버전은 루트 `Gemfile`에 고정(cocoapods 1.17.0, xcodeproj 1.28.1). **`bundle install`을 최초 1회 반드시 실행할 것** (Ruby 3.2+ 필요). 이후 pod은 항상 `bundle exec pod install`로 실행.
+>
+> `bundle install`을 건너뛰면 `pnpm ios`가 **경고 없이** 시스템 `pod`으로 폴백해 고정이 무효화되고, `Podfile.lock`·`project.pbxproj` diff 노이즈가 되살아남 (expo CLI가 `bundle exec pod --version` 실패 시 조용히 우회). 어느 쪽이 실행됐는지는 `EXPO_DEBUG=1 pnpm ios` 로그의 `> bundle exec pod install` 줄로 확인.
+
 `pnpm lint` is configured. Test scripts are not configured yet.
 
 ## Architecture

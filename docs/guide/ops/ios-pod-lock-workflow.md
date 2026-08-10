@@ -2,6 +2,12 @@
 
 `pnpm ios` 실행 시 `ios/Podfile.lock`이 자동 변경되는 상황을 팀에서 일관되게 처리하기 위한 문서입니다.
 
+## 선행 조건: `bundle install` (필수)
+
+CocoaPods 버전은 루트 `Gemfile`에 고정되어 있습니다(cocoapods 1.17.0, xcodeproj 1.28.1). **최초 1회 `bundle install`을 실행해야** 고정이 적용됩니다(Ruby 3.2+ 필요).
+
+건너뛰면 `pnpm ios`가 **경고 없이** 시스템 `pod`으로 폴백해 각자의 버전으로 pod을 돌리고, 아래에서 말하는 lockfile noise가 그대로 되살아납니다. 즉 **이 문서의 noise 처리 절차를 자주 쓰게 된다면 `bundle install`을 건너뛴 것이 원인일 가능성이 높습니다.** 실행 경로 확인은 `EXPO_DEBUG=1 pnpm ios` 로그의 `> bundle exec pod install` 줄로.
+
 ## 왜 바뀌는가
 
 - `pnpm ios` (`expo run:ios`) 과정에서 내부적으로 CocoaPods 설치/동기화가 수행됩니다.
@@ -55,12 +61,13 @@ git diff -- ios/Podfile.lock
 # 원본 브랜치 기준 비교
 git diff feature/course -- ios/Podfile.lock
 
-# 불필요한 자동 변경 되돌리기
+# 불필요한 자동 변경 되돌리기 (상시 처방이 아니라 예외 처리 — 위 '선행 조건' 참고)
 git restore ios/Podfile.lock .claude/launch.json
 ```
 
-## 환경 정렬 권장사항
+## 환경 정렬
 
 - Node 버전은 `.nvmrc` 기준으로 통일합니다.
-- 팀 내 CocoaPods/Xcode 버전 차이가 lockfile noise를 만들 수 있으므로 환경 버전 공유를 권장합니다.
-- 가능한 한 `pod update` 대신 `pod install` 중심으로 운영합니다.
+- **CocoaPods 버전은 루트 `Gemfile`로 고정**되어 있습니다(위 '선행 조건' 참고). 버전 차이로 인한 lockfile noise는 여기서 차단됩니다.
+- 단, `Gemfile.lock`의 `RUBY VERSION` / `BUNDLED WITH` 2줄은 각자의 ruby·bundler 버전에 따라 갱신될 수 있습니다. 기능과 무관한 이 2줄 변경은 커밋하지 않습니다(bundler 2.6 미만에서는 `CHECKSUMS` 블록까지 사라질 수 있으니, 그 경우도 커밋하지 말고 `git restore Gemfile.lock`).
+- 가능한 한 `pod update` 대신 `bundle exec pod install` 중심으로 운영합니다.
