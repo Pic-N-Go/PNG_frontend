@@ -12,7 +12,7 @@ import {
   ContestSortKey,
   RankHistory,
 } from '@/types/community';
-import { CARD_RADIUS, CONTENT_PADDING, FONT_2XL, FONT_2XS, FONT_LG, FONT_MD, FONT_SM, FONT_XL, FONT_XS } from '@/constants/layout';
+import { BUTTON_HEIGHT, BUTTON_RADIUS, CARD_RADIUS, CONTENT_PADDING, FONT_2XL, FONT_2XS, FONT_LG, FONT_MD, FONT_SM, FONT_XL, FONT_XS } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
 
 /**
@@ -25,9 +25,21 @@ import { normalize } from '@/utils/normalize';
 const PINK = '#E31B59';
 const INK = '#000000';
 const GRAY_DISABLED = '#c7c7cc';
+
 const SUB = '#8e8e93';
 const FILL = '#f5f5f7';
 const HAIRLINE = 'rgba(0,0,0,0.07)';
+
+/**
+ * 진행중 탭의 출품작 그리드는 전부 미리보기다 — 전체 목록과 무한 스크롤은 ContestAllEntries가 맡는다.
+ * 여기서 상한을 두지 않으면 출품 200개인 달에 카드 200개가 한 번에 마운트되고,
+ * 그보다 나쁜 건 하단의 "N개 출품 모두 보기"가 목록이 길수록 멀어져 도달할 수 없게 되는 것이다.
+ * 둘 다 2열 그리드라 짝수로 끊는다.
+ *
+ * TODO(API): 서버가 limit 파라미터를 받으면 그쪽으로 옮긴다. 지금은 다 받아놓고 자르는 형태다.
+ */
+const FEED_PREVIEW_LIMIT = 4;
+const VOTE_PREVIEW_LIMIT = 8;
 
 const SORT_OPTIONS: { key: ContestSortKey; label: string }[] = [
   { key: 'latest', label: '최신순' },
@@ -332,7 +344,7 @@ export default function ContestActiveTab({
                 right={<SidePill label="내 출품작" value={`${myEntryCount}/${maxEntries}`} onPress={onOpenMyEntries} />}
               />
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: normalize(20), paddingHorizontal: CONTENT_PADDING }}>
-                {submitFeed.map((entry) => (
+                {submitFeed.slice(0, FEED_PREVIEW_LIMIT).map((entry) => (
                   <PlainEntryCard key={entry.id} entry={entry} onPress={() => onOpenEntry(entry.id)} />
                 ))}
               </View>
@@ -407,27 +419,38 @@ export default function ContestActiveTab({
           </View>
 
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: normalize(20), paddingHorizontal: CONTENT_PADDING, paddingTop: normalize(20) }}>
-            {voteEntries.map((entry) => (
+            {voteEntries.slice(0, VOTE_PREVIEW_LIMIT).map((entry) => (
               <VoteEntryCard key={entry.id} entry={entry} votesLeft={votesLeft} onVote={() => onVote(entry.id)} onPress={() => onOpenEntry(entry.id)} />
             ))}
           </View>
 
-          {/* 투표 기간에도 내 출품작은 확인·삭제할 수 있다(추가 출품만 막힌다) — 시트 8f로 가는 유일한 경로 */}
+          {/* 투표 기간에도 내 출품작은 확인·삭제할 수 있다(추가 출품만 막힌다) — 시트 8f로 가는 유일한 경로.
+              아래 "모두 보기" 버튼과 같은 규격 — 높이·radius·글자 크기·chevron 위치까지 맞춘다 */}
           {myEntryCount > 0 && (
-            <Pressable onPress={onOpenMyEntries} style={{ marginHorizontal: CONTENT_PADDING, marginTop: normalize(20), height: normalize(44), paddingHorizontal: normalize(16), borderRadius: normalize(22), backgroundColor: FILL, flexDirection: 'row', alignItems: 'center', gap: normalize(8) }}>
-              <Text allowFontScaling={false} style={{ flex: 1, fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, letterSpacing: -0.2, color: INK }}>
+            <Pressable
+              onPress={onOpenMyEntries}
+              accessibilityRole="button"
+              style={{ marginHorizontal: CONTENT_PADDING, marginTop: normalize(20), height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS, backgroundColor: FILL, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: normalize(8) }}
+            >
+              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, letterSpacing: -0.3, color: INK }}>
                 {`내 출품작 ${myEntryCount}개`}
               </Text>
-              <ChevronRight size={normalize(16)} color="#c7c7cc" strokeWidth={2} />
+              <ChevronRight size={normalize(18)} color="#c7c7cc" strokeWidth={2} />
             </Pressable>
           )}
 
-          <Footbar
-            topic={`${contest.theme} · 투표 마감 ${contest.voteDeadlineLabel}`}
-            state={`내 출품작 ${myEntryCount}개`}
-            ctaLabel={`${contest.entryCount}개 출품 모두 보기`}
-            onPressCta={onSeeAll}
-          />
+          {/* 투표 기간 하단은 버튼 두 줄만 — 주제·마감일은 이미 히어로에 있어 Footbar의 정보 텍스트는 중복이었다.
+              구분선도 두지 않는다(시안 9b). 출품·발표 단계는 성격이 달라 Footbar를 그대로 쓴다. */}
+          <Pressable
+            onPress={onSeeAll}
+            accessibilityRole="button"
+            style={{ marginHorizontal: CONTENT_PADDING, marginTop: normalize(12), height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS, backgroundColor: PINK, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: normalize(8) }}
+          >
+            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, letterSpacing: -0.3, color: '#fff' }}>
+              {`${contest.entryCount}개 출품 모두 보기`}
+            </Text>
+            <ChevronRight size={normalize(18)} color="#fff" strokeWidth={2} />
+          </Pressable>
         </>
       )}
 
@@ -489,7 +512,7 @@ export default function ContestActiveTab({
             </Text>
           </View>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: normalize(20), paddingHorizontal: CONTENT_PADDING }}>
-            {submitFeed.map((entry) => (
+            {submitFeed.slice(0, FEED_PREVIEW_LIMIT).map((entry) => (
               <PlainEntryCard key={entry.id} entry={entry} onPress={() => onOpenEntry(entry.id)} />
             ))}
           </View>

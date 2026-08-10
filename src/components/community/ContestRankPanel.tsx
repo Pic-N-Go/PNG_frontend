@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 import Svg, { Circle, Line } from 'react-native-svg';
-import { ChevronDown, ChevronRight, Clock } from 'lucide-react-native';
+import { ChevronDown, ChevronRight, ChevronUp, Clock } from 'lucide-react-native';
 import { RankHistory } from '@/types/community';
 import { CARD_RADIUS, CONTENT_PADDING, FONT_2XS, FONT_SM, FONT_XS } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
@@ -76,7 +76,12 @@ export default function ContestRankPanel({
             {history.subtitle}
           </Text>
         </View>
-        <ChevronDown size={normalize(18)} color="#c7c7cc" strokeWidth={2} style={{ transform: [{ rotate: open ? '180deg' : '0deg' }] }} />
+        {/* SVG에 걸린 transform은 Fabric에서 반영되지 않는 경우가 있어 아이콘 자체를 바꾼다 */}
+        {open ? (
+          <ChevronUp size={normalize(18)} color="#c7c7cc" strokeWidth={2} />
+        ) : (
+          <ChevronDown size={normalize(18)} color="#c7c7cc" strokeWidth={2} />
+        )}
       </Pressable>
 
       {open && (
