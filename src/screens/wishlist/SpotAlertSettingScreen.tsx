@@ -157,9 +157,8 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
       });
       setDirty(true);
     }
-  }, [route.params?.newSpot]);
+  }, [route.params?.newSpot, setDirty]);
 
-  const [dirty, setDirty] = useState(false);
   const [spotSheetVisible, setSpotSheetVisible] = useState(false);
 
   const scrollViewRef = useRef<ScrollView>(null);
