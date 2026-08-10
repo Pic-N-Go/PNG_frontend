@@ -8,11 +8,13 @@
       "distribution": "internal"
     },
     "preview": {
+      "environment": "preview",
       "distribution": "internal",
       "node": "20.19.4",
       "pnpm": "10.10.0",
       "env": {
         "CI": "false",
+        "API_URL": "https://api.picngo.site",
         "EXPO_PUBLIC_API_URL": "https://api.picngo.site",
         "EXPO_PUBLIC_KAKAO_MAP_API_KEY": "8a06e632ca4a44d036eecfb1eecdf17f",
         "EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY": "fd7f9b8d273c9b33fbf31e8ba7cb4dc6",
