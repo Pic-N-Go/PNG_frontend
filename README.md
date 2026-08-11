@@ -35,6 +35,7 @@ pnpm install
 
 # 2. iOS pod 버전 고정 (Mac, 최초 1회 — 건너뛰면 lockfile diff 노이즈 발생)
 bundle install
+bundle exec pod install   # 최초 1회 (또는 이전에 다른 pod 버전으로 빌드한 적 있으면)
 
 # 3. 실행 (Metro는 자동 실행됨)
 pnpm ios       # iOS 시뮬레이터

@@ -20,6 +20,8 @@ pnpm web              # run in browser
 
 > **CocoaPods**: 버전은 루트 `Gemfile`에 고정(cocoapods 1.17.0, xcodeproj 1.28.1). **`bundle install`을 최초 1회 반드시 실행할 것** (Ruby 3.2+ 필요). 이후 pod은 항상 `bundle exec pod install`로 실행.
 >
+> `bundle install` 직후 첫 빌드는 `bundle exec pod install`도 한 번 수동 실행. 이전에 다른 pod 버전으로 빌드한 적이 있으면 `ios/Pods/Manifest.lock`이 그 버전이라 `The sandbox is not in sync with the Podfile.lock` 에러가 나는데, `expo run:ios`는 `ios/Pods/`가 있으면 pod install을 건너뛰어 자동 복구가 안 됨. 상세 → `docs/guide/ops/ios-pod-lock-workflow.md`
+>
 > `bundle install`을 건너뛰면 `pnpm ios`가 **경고 없이** 시스템 `pod`으로 폴백해 고정이 무효화되고, `Podfile.lock`·`project.pbxproj` diff 노이즈가 되살아남 (expo CLI가 `bundle exec pod --version` 실패 시 조용히 우회). 어느 쪽이 실행됐는지는 `EXPO_DEBUG=1 pnpm ios` 로그의 `> bundle exec pod install` 줄로 확인.
 
 `pnpm lint` is configured. Test scripts are not configured yet.

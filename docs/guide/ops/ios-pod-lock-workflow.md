@@ -8,6 +8,20 @@ CocoaPods 버전은 루트 `Gemfile`에 고정되어 있습니다(cocoapods 1.17
 
 건너뛰면 `pnpm ios`가 **경고 없이** 시스템 `pod`으로 폴백해 각자의 버전으로 pod을 돌리고, 아래에서 말하는 lockfile noise가 그대로 되살아납니다. 즉 **이 문서의 noise 처리 절차를 자주 쓰게 된다면 `bundle install`을 건너뛴 것이 원인일 가능성이 높습니다.** 실행 경로 확인은 `EXPO_DEBUG=1 pnpm ios` 로그의 `> bundle exec pod install` 줄로.
 
+### `bundle install` 직후 1회는 `bundle exec pod install`도 수동 실행
+
+이전에 다른 pod 버전으로 빌드한 적이 있다면 `ios/Pods/Manifest.lock`에 그 버전이 박혀 있어, 고정 버전으로 바꾼 뒤 첫 빌드가 아래처럼 실패합니다.
+
+```
+error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.
+```
+
+`expo run:ios`는 `ios/Pods/`가 이미 있으면 `pod install`을 건너뛰므로 스스로 복구하지 못합니다. `bundle exec pod install`을 한 번 직접 실행해 샌드박스를 맞춰주세요. 이때 `ios/Podfile.lock`·`project.pbxproj`는 변하지 않아야 정상입니다(변한다면 pod 버전 고정이 안 걸린 것). 진단은 아래 두 줄 비교:
+
+```bash
+grep 'COCOAPODS:' ios/Podfile.lock ios/Pods/Manifest.lock
+```
+
 ## 왜 바뀌는가
 
 - `pnpm ios` (`expo run:ios`) 과정에서 내부적으로 CocoaPods 설치/동기화가 수행됩니다.
