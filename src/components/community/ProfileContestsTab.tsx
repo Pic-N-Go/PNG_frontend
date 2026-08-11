@@ -25,7 +25,7 @@ export default function ProfileContestsTab({ items }: Props) {
         const isTop = item.rank === 1;
         return (
           <View key={item.id} className="flex-row" style={{ gap: normalize(12), padding: normalize(12), backgroundColor: SURFACE, borderRadius: normalize(14) }}>
-            <View style={{ width: normalize(64), height: normalize(64), borderRadius: normalize(12), backgroundColor: item.gradient[0], position: 'relative' }}>
+            <View className="relative" style={{ width: normalize(64), height: normalize(64), borderRadius: normalize(12), backgroundColor: item.gradient[0] }}>
               <View
                 className="absolute items-center justify-center"
                 style={{ top: normalize(4), left: normalize(4), height: normalize(16), paddingHorizontal: normalize(5), borderRadius: normalize(8), backgroundColor: isTop ? ACCENT : 'rgba(0,0,0,0.4)' }}
@@ -35,7 +35,7 @@ export default function ProfileContestsTab({ items }: Props) {
                 </Text>
               </View>
             </View>
-            <View style={{ flex: 1, minWidth: 0 }}>
+            <View className="flex-1 min-w-0">
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(14), color: '#000', letterSpacing: -0.2 }}>
                 {item.theme}
               </Text>
@@ -44,9 +44,8 @@ export default function ProfileContestsTab({ items }: Props) {
               </Text>
               {(item.status === 'active' || item.status === 'won') && (
                 <View
-                  className="flex-row items-center"
+                  className="flex-row items-center self-start"
                   style={{
-                    alignSelf: 'flex-start',
                     gap: normalize(4),
                     marginTop: normalize(6),
                     height: normalize(20),

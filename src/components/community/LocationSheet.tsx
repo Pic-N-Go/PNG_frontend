@@ -61,7 +61,7 @@ function Row({ option, isSelected, onPress }: { option: LocationOption; isSelect
       >
         <Icon size={normalize(16)} color={isSelected ? ACCENT : 'rgba(0,0,0,0.4)'} strokeWidth={1.8} />
       </View>
-      <View style={{ flex: 1, minWidth: 0 }}>
+      <View className="flex-1 min-w-0">
         <Text allowFontScaling={false} numberOfLines={1} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, color: '#000', letterSpacing: -0.2 }}>
           {option.name}
         </Text>
@@ -147,8 +147,8 @@ export default function LocationSheet({ visible, selected, onSelect, onClose }: 
 
         <Pressable
           onPress={onClose}
-          className="items-center justify-center"
-          style={{ width: '100%', height: BUTTON_HEIGHT, marginTop: normalize(12), borderRadius: BUTTON_RADIUS, backgroundColor: ACCENT }}
+          className="w-full items-center justify-center"
+          style={{ height: BUTTON_HEIGHT, marginTop: normalize(12), borderRadius: BUTTON_RADIUS, backgroundColor: ACCENT }}
         >
           <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, color: '#fff', letterSpacing: -0.2 }}>
             확인

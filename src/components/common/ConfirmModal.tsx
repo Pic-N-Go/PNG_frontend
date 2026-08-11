@@ -3,23 +3,29 @@ import { Modal, Pressable, Text, View } from 'react-native';
 import { FONT_MD, FONT_SM } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
 
-interface Props {
+interface BaseProps {
   visible: boolean;
   title: string;
   body: React.ReactNode;
   confirmLabel: string;
   onConfirm: () => void;
-  /** 생략하면 확인 버튼 1개만 노출 (vote-limit-modal 패턴) */
-  cancelLabel?: string;
-  onCancel?: () => void;
 }
 
+// 취소 라벨만 있고 핸들러가 없으면 아무 동작 없는 버튼이 된다 — 짝으로만 받는다.
+// 둘 다 생략하면 확인 버튼 1개만 노출 (vote-limit-modal 같은 안내형).
+type Props = BaseProps &
+  ({ cancelLabel: string; onCancel: () => void } | { cancelLabel?: never; onCancel?: never });
+
 export default function ConfirmModal({ visible, title, body, confirmLabel, onConfirm, cancelLabel, onCancel }: Props) {
+  // 취소가 없는 모달(안내형)에서 배경 탭·뒤로가기가 onConfirm으로 떨어지면 삭제 같은 확정 동작이
+  // 명시적 확인 없이 실행된다. 취소가 없으면 닫히지 않게 두고 확인 버튼만 유일한 출구로 남긴다.
+  const handleDismiss = onCancel ?? (() => {});
+
   return (
-    <Modal visible={visible} transparent animationType="fade" statusBarTranslucent onRequestClose={onCancel ?? onConfirm}>
+    <Modal visible={visible} transparent animationType="fade" statusBarTranslucent onRequestClose={handleDismiss}>
       <Pressable
         style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: normalize(40) }}
-        onPress={onCancel ?? onConfirm}
+        onPress={handleDismiss}
       >
         <Pressable
           onPress={() => {}}
