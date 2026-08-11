@@ -69,6 +69,10 @@ docs/ai/doc-sync-reports/
 # 아니라 깨진 gitlink 하나가 커밋된다. .claude/commands 등은 계속 추적해야 하므로 이 경로만 무시.
 .claude/worktrees/
 
+# Ruby / CocoaPods (bundle config set --local path 사용 시 생성)
+.bundle/
+/vendor/bundle/
+
 # Firebase (API 키 포함 — 절대 원격에 올리지 않음)
 google-services.json
 GoogleService-Info.plist
