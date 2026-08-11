@@ -63,7 +63,8 @@ export interface SaveSpotTarget {
   latitude?: number;
   longitude?: number;
   photo?: string;
-  imageUrl?: string;
+  /** 대표 이미지 없는 스팟은 null로 온다 (SpotDetailInfo.imageUrl) */
+  imageUrl?: string | null;
   category?: string;
   score?: string;
   tags?: string[];

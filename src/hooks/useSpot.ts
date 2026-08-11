@@ -22,6 +22,16 @@ export function useSpotDetail(id: string) {
   });
 }
 
+// 히어로 풀스크린 뷰어용 실제 사진 URL 목록 (TourAPI 사진만, stats.photoCount보다 적을 수 있음)
+export function useSpotPhotos(id: string) {
+  return useQuery({
+    queryKey: ['spot', id, 'photos'],
+    queryFn: () => spotApi.getPhotos(id),
+    enabled: !!id,
+    select: (res) => res.photos.map((p) => p.originUrl),
+  });
+}
+
 export function useSpotSummary(id?: string | number | null) {
   return useQuery({
     queryKey: ['spot', id ? String(id) : null, 'summary'],
@@ -267,6 +277,18 @@ export function useHideDefaultChecklistItem(id: string) {
     mutationFn: (defaultItemId: number) => {
       if (!token) return Promise.reject(new ApiError('로그인이 필요합니다.'));
       return spotApi.hideDefaultChecklistItem(id, defaultItemId, token);
+    },
+    onSuccess: () => qc.invalidateQueries({ queryKey: checklistKey(id) }),
+  });
+}
+
+export function useRestoreDefaultChecklistItem(id: string) {
+  const token = useAuthStore((s) => s.accessToken);
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (defaultItemId: number) => {
+      if (!token) return Promise.reject(new ApiError('로그인이 필요합니다.'));
+      return spotApi.restoreDefaultChecklistItem(id, defaultItemId, token);
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: checklistKey(id) }),
   });

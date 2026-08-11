@@ -42,12 +42,22 @@ export interface SpotNavigationDTO {
 export interface SpotDetailInfo {
   id: string;
   badge: string | null;
+  imageUrl: string | null;
   name: string;
   address: string;
   rating: number;
   reviewCount: number;
   photoCount: number;
   tags: string[];
+  categories: string[];
+  /** 대표 이미지 없을 때 ETC 폴백 라벨로 쓰는 행정구역 (예: '서울 중구'). address에서 파생, 없으면 null */
+  regionLabel: string | null;
+  /**
+   * 카테고리별 기본 체크리스트 프리셋 전체(숨김 필터링 없음).
+   * GET /spots/{id}/checklist의 defaultItems와 같은 원본 목록이며, defaultItemId = 이 배열의 1-based 순번.
+   * → 이 둘을 대조해 "사용자가 숨긴 기본 항목"을 클라에서 계산한다 (ChecklistSection).
+   */
+  checklist: string[];
   heroPhotoCount: number;
   myReviewId: number | null;
   latitude?: number;
@@ -210,6 +220,7 @@ export interface ReviewPhotoDTO {
   photoId: number;
   url: string;
 }
+
 export type ReviewSortApi = 'LATEST' | 'RATING_HIGH' | 'RATING_LOW';
 
 // 실데이터상 각 필드는 null·빈문자열·HTML(usetime)이 섞여 옴 → 전부 nullable
@@ -244,6 +255,18 @@ export interface SpotDetailResponse {
   myReviewId: number | null;
 }
 
+// GET /spots/{id}/photos — TourAPI 사진만 포함 (유저 업로드 제외), stats.photoCount보다 적을 수 있음
+export interface SpotPhotoDTO {
+  originUrl: string;
+  thumbnailUrl: string | null;
+  imgName: string | null;
+}
+
+export interface SpotPhotosResponse {
+  spotId: number;
+  photos: SpotPhotoDTO[];
+}
+
 export interface ReviewDTO {
   id: number;
   userId: number;
@@ -251,6 +274,7 @@ export interface ReviewDTO {
   /** 소셜 로그인 프로필 이미지. LOCAL 가입·이미지 미동의 유저는 null */
   profileImageUrl: string | null;
   rating: number;
+  /** 백엔드 필드명은 timePeriod (timeSlot 아님) */
   timePeriod: TimePeriodApi | null;
   content: string;
   equipmentInfo: string | null;
@@ -413,16 +437,18 @@ export interface SpotSummaryResponse {
   badge: boolean;
 }
 
+// 백엔드 SpotResponse DTO — /spots 목록·검색·인기 응답 아이템
+// zipcode·overview·source: 응답에서 누락되기도 하고 null로 오기도 해 optional + nullable 둘 다 받는다
 export interface SpotResponse {
   id: number;
   name: string;
   address: string;
-  zipcode?: string;
-  overview?: string;
+  zipcode?: string | null;
+  overview?: string | null;
   latitude: number;
   longitude: number;
   categories: string[];
-  source?: string;
+  source?: string | null;
   badge: boolean;
   imageUrl: string | null;
   thumbnailUrl: string | null;

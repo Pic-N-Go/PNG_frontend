@@ -147,17 +147,61 @@ export function mapConvenience(c: ConvenienceDTO): ConvenienceInfo {
   };
 }
 
+// 시·도 정식명 → 축약형 (예: 서울특별시 → 서울). 개편 전후 명칭(강원도/강원특별자치도 등) 모두 대응.
+const SIDO_ABBR: Record<string, string> = {
+  서울특별시: '서울',
+  부산광역시: '부산',
+  대구광역시: '대구',
+  인천광역시: '인천',
+  광주광역시: '광주',
+  대전광역시: '대전',
+  울산광역시: '울산',
+  세종특별자치시: '세종',
+  경기도: '경기',
+  강원도: '강원',
+  강원특별자치도: '강원',
+  충청북도: '충북',
+  충청남도: '충남',
+  전라북도: '전북',
+  전북특별자치도: '전북',
+  전라남도: '전남',
+  경상북도: '경북',
+  경상남도: '경남',
+  제주도: '제주',
+  제주특별자치도: '제주',
+};
+
+// 대표 이미지 없을 때 ETC 카테고리 폴백 라벨: 시·도(축약형) + 시·군·구까지만
+function regionLabelFrom(address: string): string | null {
+  const [sido, sigungu] = address.trim().split(' ');
+  if (!sido) return null;
+  const shortSido = SIDO_ABBR[sido] ?? sido;
+  return sigungu ? `${shortSido} ${sigungu}` : shortSido;
+}
+
+// ponytail: dev 전용 self-check — 시·도 축약 회귀 방지 (프로덕션 no-op)
+if (__DEV__) {
+  console.assert(regionLabelFrom('서울특별시 강남구 압구정로 161') === '서울 강남구', '서울특별시 축약 오류');
+  console.assert(regionLabelFrom('강원특별자치도 속초시 중앙로') === '강원 속초시', '강원특별자치도 축약 오류');
+  console.assert(regionLabelFrom('제주특별자치도 서귀포시') === '제주 서귀포시', '제주특별자치도 축약 오류');
+  console.assert(regionLabelFrom('') === null, '빈 주소 → null 오류');
+}
+
 export function mapSpotDetail(dto: SpotDetailResponse): { info: SpotDetailInfo; convenience: ConvenienceInfo } {
   return {
     info: {
       id: String(dto.id),
       badge: dto.badge ? '관광공사 인증' : null,
+      imageUrl: dto.imageUrl,
       name: dto.name,
       address: dto.address,
       rating: dto.stats.avgRating,
       reviewCount: dto.stats.reviewCount,
       photoCount: dto.stats.photoCount,
       tags: dto.tags,
+      categories: dto.categories,
+      regionLabel: regionLabelFrom(dto.address),
+      checklist: dto.checklist,
       heroPhotoCount: dto.stats.photoCount,
       myReviewId: dto.myReviewId,
       latitude: dto.latitude,
@@ -191,7 +235,8 @@ export function mapReview(dto: ReviewDTO): Review {
     text: dto.content,
     // 계약상 항상 [] 이상. ?? []는 어긋났을 때 칩 렌더가 터지지 않게 하는 최소 방어.
     tags: dto.tags ?? [],
-    photos: dto.photos.length > 0 ? dto.photos : undefined,
+    // photos 키 자체가 누락된 응답이 관측돼 옵셔널 체이닝으로 방어한다 (계약상으론 항상 배열)
+    photos: dto.photos?.length ? dto.photos : undefined,
     equipment: dto.equipmentInfo ?? undefined,
   };
 }
@@ -323,6 +368,10 @@ if (__DEV__) {
   console.assert(mapReview({ ...base, timePeriod: null }).avatarUrl === undefined, 'profileImageUrl null 처리 오류');
   console.assert(mapReview({ ...base, timePeriod: null, profileImageUrl: '' }).avatarUrl === undefined, '빈 문자열 처리 오류');
   console.assert(mapReview({ ...base, timePeriod: null, profileImageUrl: 'http://x/a.jpg' }).avatarUrl === 'https://x/a.jpg', 'http → https 승격 오류');
+  // photos 키 자체가 빠진 응답이 관측돼 방어를 넣었다 — 빠지면 리뷰 탭 전체가 죽는다.
+  const noPhotosKey = { ...base, timePeriod: null } as Partial<ReviewDTO>;
+  delete noPhotosKey.photos;
+  console.assert(mapReview(noPhotosKey as ReviewDTO).photos === undefined, 'photos 키 누락 시 방어 실패');
 
   const pgBase = { score: 69, grade: '좋음', weather: { label: '맑음', score: 30 }, fineDust: { label: '좋음', score: 20 }, ozone: { label: '보통', score: 6 }, season: { label: '벚꽃 47%', score: 7 } };
   const active = mapPhotogenicScore({ ...pgBase, goldenHour: { label: '골든아워', score: 5, minutesUntilStart: null, startTime: null } });

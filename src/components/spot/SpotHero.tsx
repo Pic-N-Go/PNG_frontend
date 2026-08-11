@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Dimensions, NativeScrollEvent, NativeSyntheticEvent, Pressable, ScrollView, Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Dimensions, Image, Pressable, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Polygon } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -11,6 +11,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { IconBookmark, IconChevronLeft, IconShare } from '@tabler/icons-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
+import SpotHeroPlaceholder, { HeroActionButton } from '@/components/spot/SpotHeroPlaceholder';
 
 export const HERO_HEIGHT = normalize(360);
 
@@ -18,19 +19,15 @@ const SCREEN_WIDTH = Dimensions.get('window').width;
 
 const LANDSCAPE_POINTS = '0,60 12,40 25,55 40,20 55,38 68,10 82,30 100,15 100,100 0,100';
 
-// 목업엔 실제 사진이 없어 히어로 페이지마다 다른 그라디언트로 구분 (photoTotal 만큼 순환)
-const HERO_GRADIENT_SETS: [string, string, string, string][] = [
-  ['#0f2027', '#203a43', '#2c5364', '#4a7c8a'],
-  ['#1a1530', '#2d1b4e', '#8b4a6b', '#d4856a'],
-  ['#0f2027', '#2c5364', '#4a7c8a', '#8da9c4'],
-  ['#203a43', '#2c5364', '#4a7c8a', '#a8c5da'],
-  ['#1a1530', '#4a3060', '#8b4a6b', '#e8a87c'],
-];
-
 interface Props {
   scrollY: SharedValue<number>;
-  photoTotal: number;
   isBookmarked: boolean;
+  imageUrl?: string | null;
+  categories?: string[];
+  regionLabel?: string | null;
+  /** 대표 이미지 뒤에 있는 실제 전체 사진 장수. 2장 이상이면 카운터 노출 + 탭 시 풀스크린 뷰어 */
+  heroPhotoCount?: number;
+  onPressPhoto?: () => void;
   onBack: () => void;
   onShare: () => void;
   onBookmark: () => void;
@@ -38,15 +35,23 @@ interface Props {
 
 export default function SpotHero({
   scrollY,
-  photoTotal,
   isBookmarked,
+  imageUrl,
+  categories,
+  regionLabel,
+  heroPhotoCount = 0,
+  onPressPhoto,
   onBack,
   onShare,
   onBookmark,
 }: Props) {
   const insets = useSafeAreaInsets();
-  const [currentPhoto, setCurrentPhoto] = useState(0);
-  const swipeable = photoTotal >= 2;
+  // 대표 이미지 로드 실패 시에도 placeholder로 폴백 (핸드오프 6번 상태표)
+  const [imageFailed, setImageFailed] = useState(false);
+  useEffect(() => {
+    setImageFailed(false);
+  }, [imageUrl]);
+  const hasImage = !!imageUrl && !imageFailed;
 
   const heroStyle = useAnimatedStyle(() => ({
     transform: [
@@ -56,39 +61,55 @@ export default function SpotHero({
     ],
   }));
 
-  function handlePhotoScroll(e: NativeSyntheticEvent<NativeScrollEvent>) {
-    const index = Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH);
-    setCurrentPhoto(index);
+  if (!hasImage) {
+    // 대표 이미지가 없거나 로드에 실패해도 갤러리 사진이 있으면 뷰어는 열 수 있어야 함.
+    // 중첩 Pressable에서 헤더 버튼(뒤로/공유/저장)이 우선 처리되므로 그대로 동작한다.
+    const canOpenViewer = !!onPressPhoto && heroPhotoCount > 0;
+    return (
+      <Animated.View style={[{ height: HERO_HEIGHT, overflow: 'hidden' }, heroStyle]}>
+        <Pressable onPress={onPressPhoto} disabled={!canOpenViewer} style={{ flex: 1 }}>
+          <SpotHeroPlaceholder
+            categories={categories}
+            regionLabel={regionLabel}
+            height={HERO_HEIGHT}
+            headerLeft={
+              <HeroActionButton>
+                <Pressable onPress={onBack} hitSlop={8}>
+                  <IconChevronLeft size={normalize(20)} color="#111" strokeWidth={2} />
+                </Pressable>
+              </HeroActionButton>
+            }
+            headerRight={
+              <>
+                <HeroActionButton>
+                  <Pressable onPress={onShare} hitSlop={8}>
+                    <IconShare size={normalize(19)} color="#111" strokeWidth={2} />
+                  </Pressable>
+                </HeroActionButton>
+                <HeroActionButton>
+                  <Pressable onPress={onBookmark} hitSlop={8}>
+                    <IconBookmark size={normalize(19)} color="#111" strokeWidth={2} fill={isBookmarked ? '#111' : 'none'} />
+                  </Pressable>
+                </HeroActionButton>
+              </>
+            }
+          />
+        </Pressable>
+      </Animated.View>
+    );
   }
 
   return (
     <Animated.View style={[{ height: HERO_HEIGHT, overflow: 'hidden' }, heroStyle]}>
-      {swipeable ? (
-        <ScrollView
-          horizontal
-          pagingEnabled
-          showsHorizontalScrollIndicator={false}
-          onScroll={handlePhotoScroll}
-          scrollEventThrottle={16}
-          bounces={false}
-          overScrollMode="never"
-        >
-          {Array.from({ length: photoTotal }).map((_, i) => (
-            <LinearGradient
-              key={i}
-              colors={HERO_GRADIENT_SETS[i % HERO_GRADIENT_SETS.length]}
-              locations={[0, 0.35, 0.65, 1]}
-              style={{ width: SCREEN_WIDTH, height: HERO_HEIGHT }}
-            />
-          ))}
-        </ScrollView>
-      ) : (
-        <LinearGradient
-          colors={HERO_GRADIENT_SETS[0]}
-          locations={[0, 0.35, 0.65, 1]}
-          style={{ position: 'absolute', inset: 0 }}
+      <Pressable onPress={onPressPhoto} disabled={!onPressPhoto} style={{ width: SCREEN_WIDTH, height: HERO_HEIGHT }}>
+        <Image
+          source={{ uri: imageUrl! }}
+          style={{ width: SCREEN_WIDTH, height: HERO_HEIGHT, backgroundColor: '#203a43' }}
+          resizeMode="cover"
+          accessibilityLabel="스팟 대표 이미지"
+          onError={() => setImageFailed(true)}
         />
-      )}
+      </Pressable>
 
       {/* 상단 페이드 */}
       <LinearGradient
@@ -158,8 +179,8 @@ export default function SpotHero({
         </View>
       </View>
 
-      {/* 카운터 — 사진 2장 이상일 때만 */}
-      {swipeable && (
+      {/* 카운터 — 대표 이미지 뒤에 실제 사진이 2장 이상일 때. 탭하면 풀스크린 뷰어 */}
+      {heroPhotoCount > 1 && (
         <View
           style={{
             position: 'absolute',
@@ -175,7 +196,7 @@ export default function SpotHero({
           pointerEvents="none"
         >
           <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: normalizeFontSize(12), color: '#fff' }}>
-            {currentPhoto + 1} / {photoTotal}
+            1 / {heroPhotoCount}
           </Text>
         </View>
       )}
