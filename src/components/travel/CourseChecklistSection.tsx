@@ -4,11 +4,12 @@ import { Check, ChevronDown, ChevronUp, Plus, X } from 'lucide-react-native';
 import { useMutation } from '@tanstack/react-query';
 import { toErrorMessage } from '@/api/auth';
 import { coursesApi, type CourseChecklist } from '@/api/courses';
-import { FONT_SM } from '@/constants/layout';
-import { normalize, normalizeFontSize } from '@/utils/normalize';
+import { FONT_LG, FONT_MD, FONT_SM } from '@/constants/layout';
+import { normalize } from '@/utils/normalize';
 
 // 스팟 상세 ChecklistSection의 UI를 코스 API(플랫 목록 + 서버 저장 isChecked)에 맞춰 옮긴 것.
-// 스타일은 normalize()로 스케일되는 값이라 className으로 옮기면 360dp 대응이 깨져 인라인 유지.
+// 인라인 스타일인 이유: 높이·radius·아이콘은 normalize()로 스케일해야 해서 className으로 옮길 수 없다.
+// 여백(gap·margin·padding)은 부모 화면의 mt-9·gap-3 같은 고정값과 성격을 맞추려고 스케일하지 않는다.
 
 // 코스에는 스팟의 cat3 같은 카테고리 근거가 없어 기본 항목을 상수로 둔다.
 // 서버에 미리 만들어두지 않고 탭할 때 일반 항목으로 추가한다 → 조회만 했는데 쓰기가 발생하는 일 없음.
@@ -20,7 +21,6 @@ const PRESET = ['삼각대', '여분 배터리', '메모리카드', '렌즈 클�
 const MAX_CONTENT_LEN = 20;
 
 const ACCENT = '#E31B59';
-const CARD_BORDER = 'rgba(0,0,0,0.07)';
 const C = { text: '#1F1E1D', muted: '#B5B0AA', labelMuted: '#A39E98' };
 
 interface Props {
@@ -72,12 +72,14 @@ export default function CourseChecklistSection({ courseId, items, loading, onCha
   }
 
   const heading = (count?: { done: number; total: number }) => (
-    <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: normalize(16) }}>
-      <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(20), color: C.text, letterSpacing: -0.4 }}>
+    // 마진은 화면의 다른 여백(mt-9 등)과 같은 성격으로 고정값 — 스케일하면 폭에 따라 날씨 섹션과 어긋난다
+    <View style={{ flexDirection: 'row', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 16 }}>
+      {/* 코스 화면의 다른 섹션 제목(타임라인 · DAY N 날씨)과 같은 크기·간격 */}
+      <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_LG, color: '#000', letterSpacing: -0.4 }}>
         촬영 체크리스트
       </Text>
       {count ? (
-        <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: normalizeFontSize(13), color: C.labelMuted }}>
+        <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: C.labelMuted }}>
           {count.done}/{count.total}
         </Text>
       ) : null}
@@ -88,7 +90,7 @@ export default function CourseChecklistSection({ courseId, items, loading, onCha
     return (
       <View>
         {heading()}
-        <View style={{ borderRadius: normalize(14), backgroundColor: '#F7F6F4', padding: normalize(20), alignItems: 'center' }}>
+        <View style={{ borderRadius: normalize(14), backgroundColor: '#f5f5f7', padding: 20, alignItems: 'center' }}>
           <ActivityIndicator color={ACCENT} />
         </View>
       </View>
@@ -106,13 +108,13 @@ export default function CourseChecklistSection({ courseId, items, loading, onCha
     <View>
       {heading({ done: doneCount, total: items.length })}
 
-      <View style={{ gap: normalize(8) }}>
+      <View style={{ gap: 8 }}>
         {items.map((item) => {
           const checked = isChecked(item);
           return (
             <View
               key={item.id}
-              style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(12), backgroundColor: '#fff', borderWidth: 1, borderColor: CARD_BORDER, borderRadius: normalize(13), paddingVertical: normalize(14), paddingHorizontal: normalize(15) }}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 12, height: normalize(52), backgroundColor: '#f5f5f7', borderRadius: normalize(13), paddingHorizontal: 15 }}
             >
               <Pressable
                 onPress={() => toggleItem.mutate(item.id)}
@@ -135,7 +137,7 @@ export default function CourseChecklistSection({ courseId, items, loading, onCha
                 style={{
                   flex: 1,
                   fontFamily: 'Pretendard-Medium',
-                  fontSize: normalizeFontSize(15.5),
+                  fontSize: FONT_MD,
                   letterSpacing: -0.2,
                   color: checked ? C.muted : C.text,
                   textDecorationLine: checked ? 'line-through' : 'none',
@@ -151,7 +153,7 @@ export default function CourseChecklistSection({ courseId, items, loading, onCha
         })}
 
         {/* 자유 입력 추가 카드 */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(10), backgroundColor: '#fff', borderWidth: 1, borderColor: CARD_BORDER, borderRadius: normalize(13), paddingVertical: normalize(10), paddingHorizontal: normalize(15) }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, height: normalize(52), backgroundColor: '#f5f5f7', borderRadius: normalize(13), paddingLeft: 15, paddingRight: 12 }}>
           <TextInput
             value={input}
             onChangeText={setInput}
@@ -161,29 +163,30 @@ export default function CourseChecklistSection({ courseId, items, loading, onCha
             maxLength={MAX_CONTENT_LEN}
             returnKeyType="done"
             allowFontScaling={false}
-            style={{ flex: 1, fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(15), color: C.text, letterSpacing: -0.2, paddingVertical: normalize(4) }}
+            style={{ flex: 1, fontFamily: 'Pretendard-Regular', fontSize: FONT_MD, color: C.text, letterSpacing: -0.2 }}
           />
+          {/* 입력값을 확정하는 보조 버튼 — 행 높이(52) 대비 커지면 primary처럼 보인다. 터치 영역은 hitSlop으로 44pt */}
           <Pressable
             onPress={handleAdd}
             disabled={!canAdd}
-            hitSlop={8}
+            hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             style={{ width: normalize(28), height: normalize(28), borderRadius: normalize(14), alignItems: 'center', justifyContent: 'center', backgroundColor: canAdd ? ACCENT : 'rgba(0,0,0,0.08)' }}
           >
             {addItem.isPending ? (
               <ActivityIndicator size="small" color="#fff" />
             ) : (
-              <Plus size={normalize(16)} color={canAdd ? '#fff' : 'rgba(0,0,0,0.25)'} strokeWidth={2.5} />
+              <Plus size={normalize(15)} color={canAdd ? '#fff' : 'rgba(0,0,0,0.25)'} strokeWidth={2.5} />
             )}
           </Pressable>
         </View>
       </View>
 
       {remainingPreset.length > 0 && (
-        <View style={{ marginTop: normalize(12) }}>
+        <View style={{ marginTop: 12 }}>
           <Pressable
             onPress={() => setPresetToggled(!showPreset)}
             hitSlop={8}
-            style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(6) }}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}
           >
             <Text
               allowFontScaling={false}
@@ -199,28 +202,29 @@ export default function CourseChecklistSection({ courseId, items, loading, onCha
           </Pressable>
 
           {showPreset && (
-            <View style={{ gap: normalize(8), marginTop: normalize(10) }}>
+            <View style={{ gap: 8, marginTop: 10 }}>
+              {/* 행 전체가 히트 영역(48) — '추가' 라벨만 누를 필요 없이 어디를 눌러도 추가된다 */}
               {remainingPreset.map((content) => (
-                <View
+                <Pressable
                   key={`p:${content}`}
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(12), backgroundColor: '#F7F6F4', borderRadius: normalize(13), paddingVertical: normalize(12), paddingHorizontal: normalize(15) }}
+                  onPress={() => addItem.mutate(content)}
+                  disabled={addItem.isPending}
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 12, height: normalize(48), backgroundColor: '#f5f5f7', borderRadius: normalize(12), paddingHorizontal: 16 }}
                 >
                   <Text
                     allowFontScaling={false}
                     numberOfLines={1}
-                    style={{ flex: 1, fontFamily: 'Pretendard-Medium', fontSize: normalizeFontSize(15), color: C.muted, letterSpacing: -0.2 }}
+                    style={{ flex: 1, fontFamily: 'Pretendard-Medium', fontSize: FONT_MD, color: 'rgba(0,0,0,0.4)', letterSpacing: -0.2 }}
                   >
                     {content}
                   </Text>
-                  <Pressable onPress={() => addItem.mutate(content)} disabled={addItem.isPending} hitSlop={8}>
-                    <Text
-                      allowFontScaling={false}
-                      style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, color: ACCENT, letterSpacing: -0.2 }}
-                    >
-                      추가
-                    </Text>
-                  </Pressable>
-                </View>
+                  <Text
+                    allowFontScaling={false}
+                    style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, color: ACCENT, letterSpacing: -0.2 }}
+                  >
+                    추가
+                  </Text>
+                </Pressable>
               ))}
             </View>
           )}
@@ -230,7 +234,7 @@ export default function CourseChecklistSection({ courseId, items, loading, onCha
       {(addItem.isError || deleteItem.isError || toggleItem.isError) && (
         <Text
           allowFontScaling={false}
-          style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: '#FF453A', letterSpacing: -0.2, marginTop: normalize(8) }}
+          style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: '#FF453A', letterSpacing: -0.2, marginTop: 8 }}
         >
           {addItem.isError
             ? toErrorMessage(addItem.error, '항목 추가에 실패했어요.')

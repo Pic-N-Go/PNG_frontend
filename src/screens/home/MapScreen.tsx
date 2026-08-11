@@ -332,18 +332,28 @@ export default function MapScreen() {
   // filteredSpots가 변경될 때마다 WebView에 메시지를 보내 마커 갱신
   // 단, 팝업이 열린 상태(activeSpot !== null)에서는 마커 재그리기 생략
   // → 마커 재그리기 시 발생하는 map click 이벤트가 팝업을 닫는 부작용 방지
+  // 코스 보기에서 Day를 바꾸면 그 Day 경로가 화면에 들어와야 한다.
+  // drawMarkers는 fitBounds가 true일 때만 카메라를 옮기므로, Day 전환 직후 한 번만 켠다.
+  const fitOnNextUpdateRef = useRef(false);
   useEffect(() => {
+    if (mode === 'plan-view') fitOnNextUpdateRef.current = true;
+  }, [currentPlanDay, mode]);
+
+  useEffect(() => {
+    // 이 갱신을 건너뛰더라도 플래그는 소비한다. 남겨두면 나중의 무관한 마커 갱신이 카메라를 옮긴다.
+    const shouldFit = hasKeyword || fitOnNextUpdateRef.current;
+    fitOnNextUpdateRef.current = false;
     if (webViewRef.current && mapReady && !activeSpot) {
-      // 검색 결과일 때만 카메라를 결과 위치로 옮긴다.
+      // 검색 결과이거나 Day를 전환한 직후에만 카메라를 옮긴다.
       // (지도 이동으로 받아온 핀까지 따라가면 사용자가 보던 영역이 계속 튄다)
       webViewRef.current.injectJavaScript(`
         if (window.updateMarkers) {
-          window.updateMarkers(${JSON.stringify(filteredSpots)}, ${hasKeyword});
+          window.updateMarkers(${JSON.stringify(filteredSpots)}, ${shouldFit});
         }
         true;
       `);
     }
-  }, [filteredSpots, mapReady, activeSpot, hasKeyword]);
+  }, [filteredSpots, mapReady, activeSpot, hasKeyword, mode]);
 
   const HTML = useMemo(() => {
     const initialSpots = (mode === 'plan-view' && route.params?.planData)
