@@ -1,6 +1,7 @@
 import { Dimensions } from "react-native";
 
 export const BASE_WIDTH = 390; // 디자인 기준 (iPhone 15 Pro)
+export const BASE_HEIGHT = 844; // 디자인 기준 세로 (iPhone 15 Pro)
 const MIN_WIDTH = 360;         // 안드로이드 보급형 최소
 const MAX_WIDTH = 430;         // iPhone 15 Plus/Pro Max 최대
 
@@ -22,6 +23,20 @@ export const scale = clampedWidth / BASE_WIDTH;
  */
 export function normalize(size: number): number {
   return Math.round(size * scale);
+}
+
+/**
+ * 화면 높이의 큰 몫을 차지하는 값(사진 히어로 등) 전용.
+ *
+ * normalize()는 폭만 보므로 세로가 짧은 기기(375×667 등)에서 사진 하나가 화면을 다 먹고
+ * 그 아래 CTA가 접힌다. 디자인 기준(390×844)에서 차지하던 세로 비율을 상한으로 한 번 더 잡는다.
+ *
+ * @example
+ * style={{ height: normalizeHeight(600) }} // 844 대비 71%를 넘지 않는다
+ */
+export function normalizeHeight(size: number): number {
+  const { height } = Dimensions.get("window");
+  return Math.round(Math.min(normalize(size), height * (size / BASE_HEIGHT)));
 }
 
 /**

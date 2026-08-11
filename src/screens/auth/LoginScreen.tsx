@@ -19,7 +19,7 @@ import { AuthStackParamList } from "@/navigation/AuthStack";
 import { useAuthStore } from "@/store/useAuthStore";
 import { authApi, toErrorMessage } from "@/api/auth";
 import AuthInput from "@/components/auth/AuthInput";
-import Toast from "@/components/auth/Toast";
+import Toast from "@/components/common/Toast";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { normalizeFontSize } from "@/utils/normalize";
 import {

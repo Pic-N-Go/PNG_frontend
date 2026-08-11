@@ -24,7 +24,7 @@
   - 리뷰 탭: 요약(평점 분포 바) + 정렬 칩(스타일 토글만, 실제 재정렬 없음) + 리뷰 카드 리스트 + 리뷰 작성하기 sticky CTA(네비게이션 진입점만, `ReviewWriteScreen` 자체 구현은 제외)
   - 채팅 탭: 메시지 리스트 + 로컬 state 기반 전송(append만, 영속화 없음)
   - 바텀시트 4종: 코스에 저장(여행 선택→DAY 선택 2단계), 바로 출발(내비 앱 선택), 공유하기, 즐겨찾기(북마크, 미저장/저장됨 2 패널)
-  - 기존 `Toast`(`src/components/auth/Toast.tsx`) 재사용한 액션 피드백
+  - 기존 `Toast`(`src/components/common/Toast.tsx`, 작성 당시 `auth/`) 재사용한 액션 피드백
   - `src/types/spot.ts` 타입 확장, 각 컴포넌트 파일에 `MOCK_*` 상수 콜로케이션
   - **공통 컴포넌트 분리** (`src/components/common/`): 이번 화면에서 2회 이상 반복 사용되는 UI 조각은 스팟 전용 폴더가 아닌 공통 폴더로 분리해 다른 화면에서도 재사용 가능하게 함
     - `BottomSheet.tsx` — 백드롭+슬라이드업 컨테이너+핸들+헤더/푸터 슬롯 (바텀시트 4종에서 공통 사용, 기존 `FilterBottomSheet.tsx`의 Modal+Pressable 패턴을 컴포넌트화)

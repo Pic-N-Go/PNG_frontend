@@ -5,7 +5,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { IconChevronLeft } from '@tabler/icons-react-native';
 import { MyPageStackParamList } from '@/navigation/stacks/MyPageStack';
 import { useInquiries, Inquiry } from '@/hooks/useInquiries';
-import Toast from '@/components/auth/Toast';
+import Toast from '@/components/common/Toast';
 import { normalize } from '@/utils/normalize';
 import { FONT_XS, FONT_SM, FONT_MD, FONT_LG } from '@/constants/layout';
 

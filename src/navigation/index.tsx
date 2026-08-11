@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AuthStack from './AuthStack';
 import MainTab from './MainTab';
 import SpotStack, { type SpotStackParamList } from './stacks/SpotStack';
+import CommunityDetailStack, { type CommunityDetailStackParamList } from './stacks/CommunityDetailStack';
 import WishlistScreen from '@/screens/wishlist/WishlistScreen';
 import WishlistSettingScreen from '@/screens/wishlist/WishlistSettingScreen';
 import MapScreen from '@/screens/home/MapScreen';
@@ -13,6 +14,7 @@ import { usePushNotifications } from '@/hooks/usePushNotifications';
 export type RootStackParamList = {
   Main: undefined;
   SpotStack: NavigatorScreenParams<SpotStackParamList>;
+  CommunityDetailStack: NavigatorScreenParams<CommunityDetailStackParamList>;
   Wishlist: undefined;
   WishlistSetting: { id?: number; wishlist?: any; spotId?: string; newSpot?: any; newWishlist?: any };
   Map: { source?: string; newSpot?: any };
@@ -83,6 +85,7 @@ export default function RootNavigator() {
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           <Stack.Screen name="Main" component={MainTab} />
           <Stack.Screen name="SpotStack" component={SpotStack} />
+          <Stack.Screen name="CommunityDetailStack" component={CommunityDetailStack} />
           <Stack.Screen name="Wishlist" component={WishlistScreen} />
           <Stack.Screen name="WishlistSetting" component={WishlistSettingScreen} />
           <Stack.Screen name="Map" component={MapScreen} />

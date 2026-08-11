@@ -18,6 +18,12 @@ interface Props {
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const IMAGE_HEIGHT = SCREEN_HEIGHT * 0.7;
 
+// ponytail: EXIF 시트는 두지 않는다. 리뷰 사진은 실제 업로드본이라 EXIF를 클라에서 읽지도,
+// 서버가 반환하지도 않는다(ReviewWriteScreen의 image-picker에 exif 옵션이 없고, 백엔드
+// ExifExtractor도 미연결). 리뷰에 실제로 있는 건 사진별 EXIF가 아니라 리뷰 단위 `equipment`
+// 문자열이고, 그건 ReviewTab이 이미 보여준다. 파이프라인이 생기면 그때 실제 응답 모양대로 추가할 것.
+// 시트 레이아웃은 community/PhotoLightbox가 실제 `post.exif`로 렌더하므로 거기서 확인 가능.
+
 /**
  * 사진 확대 오버레이. 라우트가 아니라 Modal인 이유: 딥링크로 도달할 대상이 아니고
  * 스팟 상세 위에 겹쳐 뜨는 일시적 레이어이기 때문이다(PhotoDetail 라우트는 스팟 사진 전용).
@@ -32,7 +38,8 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose }
 
   // visible로만 판정한다. photos가 비는 순간 Modal을 언마운트하면 fade 종료 애니메이션이 생략된다.
   if (!visible && photos.length === 0) return null;
-  const uri = photos[Math.min(index, Math.max(photos.length - 1, 0))];
+  const safeIndex = Math.min(index, Math.max(photos.length - 1, 0));
+  const uri = photos[safeIndex];
 
   return (
     <Modal visible={visible} transparent animationType="fade" statusBarTranslucent onRequestClose={onClose}>
@@ -50,35 +57,27 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose }
         />
 
         <View
-          style={{
-            position: 'absolute',
-            top: normalize(52),
-            left: normalize(16),
-            right: normalize(16),
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-          }}
+          className="absolute flex-row items-center justify-between"
+          style={{ top: normalize(52), left: normalize(16), right: normalize(16) }}
         >
           <Pressable
             onPress={onClose}
             hitSlop={8}
             accessibilityRole="button"
             accessibilityLabel="닫기"
+            className="items-center justify-center"
             style={{
               width: normalize(36),
               height: normalize(36),
               borderRadius: normalize(18),
               backgroundColor: 'rgba(0,0,0,0.4)',
-              alignItems: 'center',
-              justifyContent: 'center',
             }}
           >
             <IconX size={normalize(20)} color="#fff" strokeWidth={2} />
           </Pressable>
           {photos.length > 1 && (
             <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: '#fff' }}>
-              {`${index + 1} / ${photos.length}`}
+              {`${safeIndex + 1} / ${photos.length}`}
             </Text>
           )}
         </View>
@@ -86,14 +85,8 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose }
         {/* 여러 장이면 하단 썸네일로 전환. 화살표보다 현재 위치가 한눈에 보인다. */}
         {photos.length > 1 && (
           <View
-            style={{
-              position: 'absolute',
-              bottom: normalize(48),
-              flexDirection: 'row',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: normalize(8),
-            }}
+            className="absolute flex-row items-center justify-center"
+            style={{ bottom: normalize(48), gap: normalize(8) }}
           >
             {photos.map((thumbUri, i) => (
               <Pressable key={thumbUri} onPress={() => setIndex(i)}>
@@ -104,8 +97,8 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose }
                     width: normalize(48),
                     height: normalize(48),
                     borderRadius: normalize(8),
-                    opacity: i === index ? 1 : 0.4,
-                    borderWidth: i === index ? 1.5 : 0,
+                    opacity: i === safeIndex ? 1 : 0.4,
+                    borderWidth: i === safeIndex ? 1.5 : 0,
                     borderColor: '#fff',
                   }}
                 />

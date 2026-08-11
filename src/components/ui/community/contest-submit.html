@@ -1,0 +1,710 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+    />
+    <title>PNG - 콘테스트 출품 작성</title>
+    <link rel="stylesheet" href="../common/fonts.css" />
+    <link rel="stylesheet" href="../common/common.css" />
+    <style>
+      /* ── Phone Frame ── */
+      .phone-frame {
+        width: 100%;
+        height: 100dvh;
+        background: var(--color-bg);
+        position: relative;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+      }
+      .phone-scroll {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+      }
+
+      /* ── Status Bar ── */
+      .status-bar {
+        height: 54px;
+        background: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 34px;
+        flex-shrink: 0;
+      }
+      .status-bar__time {
+        font-size: var(--font-md);
+        font-weight: 600;
+        letter-spacing: -0.3px;
+      }
+      .status-bar__icons {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+
+      /* ── Nav ── */
+      /* 상단 우측에 "완료"를 두지 않는다 — 같은 동작이 두 곳에 있으면 눈에 띄는 쪽만 눌린다.
+         출품 실행은 하단 CTA 하나뿐이다(9a·9b와 같은 규칙). */
+      .nav {
+        height: 52px;
+        padding: 0 20px 0 12px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        background: #fff;
+        flex-shrink: 0;
+      }
+      .nav__close {
+        width: 40px;
+        height: 40px;
+        border: none;
+        background: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+      }
+      .nav__title {
+        font-size: var(--font-lg);
+        font-weight: 600;
+        letter-spacing: -0.4px;
+        color: #000;
+      }
+      /* 업로드 중에는 이탈을 막는다 */
+      .is-uploading .nav__close svg {
+        stroke: #c7c7cc;
+      }
+
+      .subhead {
+        padding: 0 28px 14px;
+        font-size: var(--font-sm);
+        color: #8e8e93;
+        letter-spacing: -0.2px;
+      }
+
+      /* ── 썸네일 스트립 (여러 장 선택 시에만) ── */
+      /* 앨범을 여러 번 왕복하지 않는다 — 최대 3장을 한 번에 고르고 이 화면에서 장별로 넘겨 쓴다 */
+      .strip {
+        padding: 0 28px 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .strip__thumb {
+        width: 56px;
+        height: 56px;
+        border-radius: 12px;
+        border: none;
+        padding: 0;
+        flex-shrink: 0;
+        cursor: pointer;
+      }
+      .strip__thumb.is-current {
+        box-shadow: 0 0 0 2px var(--color-accent);
+      }
+      .strip__add {
+        width: 56px;
+        height: 56px;
+        border-radius: 12px;
+        background: var(--color-surface);
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        cursor: pointer;
+      }
+      .strip__index {
+        margin-left: auto;
+        font-size: var(--font-sm);
+        font-weight: 600;
+        color: #8e8e93;
+        letter-spacing: -0.2px;
+      }
+
+      /* ── 사진 ── */
+      /* 스트립이 붙으면 그만큼 줄어 334:188이 된다 */
+      .photo {
+        margin: 0 28px;
+        border-radius: 16px;
+        overflow: hidden;
+        aspect-ratio: 334 / 188;
+        background: linear-gradient(165deg, #1a1530, #5a3355 50%, #d4856a);
+      }
+
+      /* ── 입력 ── */
+      .field {
+        padding: 22px 28px 0;
+      }
+      .field__label {
+        font-size: var(--font-xs);
+        font-weight: 600;
+        color: #8e8e93;
+        letter-spacing: -0.1px;
+      }
+      /* 밑줄은 텍스트 블록 전체 아래에 하나만 — 줄마다 긋지 않는다 */
+      .field__box {
+        margin-top: 8px;
+        padding-bottom: 2px;
+        border-bottom: 1px solid #e6e6ea;
+      }
+      .field__input {
+        width: 100%;
+        border: none;
+        background: none;
+        outline: none;
+        resize: none;
+        overflow: hidden;
+        font-family: var(--font-family);
+        font-size: var(--font-md);
+        line-height: 1.55;
+        letter-spacing: -0.2px;
+        color: #000;
+      }
+      .field__input::placeholder {
+        color: #c7c7cc;
+      }
+      .field__counter {
+        margin-top: 6px;
+        text-align: right;
+        font-size: var(--font-xs);
+        color: #c7c7cc;
+        letter-spacing: -0.1px;
+      }
+      /* 장소는 탭하면 검색 화면으로 — 여기서 직접 타이핑하지 않는다 */
+      .field__picker {
+        width: 100%;
+        margin-top: 8px;
+        padding: 0 0 10px;
+        border: none;
+        border-bottom: 1px solid #e6e6ea;
+        background: none;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-family: var(--font-family);
+        font-size: var(--font-md);
+        letter-spacing: -0.2px;
+        color: #000;
+        cursor: pointer;
+      }
+      .field__picker--empty {
+        color: #c7c7cc;
+      }
+      .is-uploading .field__input,
+      .is-uploading .field__picker {
+        color: #8e8e93;
+      }
+
+      .notice {
+        margin: 22px 28px 0;
+        padding: 12px 14px;
+        border-radius: 12px;
+        background: var(--color-surface);
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        font-size: var(--font-sm);
+        line-height: 1.5;
+        letter-spacing: -0.2px;
+        color: #5c5c60;
+      }
+
+      /* ── 하단 액션 ── */
+      /* 여러 장일 때만 2열. 한 장이면 우측 버튼 하나가 전체 폭 */
+      .actions {
+        padding: 24px 28px 28px;
+        display: flex;
+        gap: 8px;
+      }
+      .actions__btn {
+        height: 52px;
+        border: none;
+        border-radius: 26px;
+        font-family: var(--font-family);
+        font-size: var(--font-md);
+        font-weight: 600;
+        letter-spacing: -0.3px;
+        cursor: pointer;
+      }
+      .actions__btn--sub {
+        flex: 1;
+        background: var(--color-surface);
+        color: #000;
+      }
+      .actions__btn--main {
+        flex: 1.4;
+        background: var(--color-accent);
+        color: #fff;
+      }
+
+      /* ── 업로드 진행 (13d) ── */
+      /* 전체 화면 로더로 덮지 않는다 — 폼은 그대로 두고 입력만 못 하게 한다 */
+      .progress {
+        margin: 24px 28px 28px;
+        height: 52px;
+        border-radius: 26px;
+        background: rgba(227, 27, 89, 0.1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+      }
+      .progress__spinner {
+        width: 18px;
+        height: 18px;
+        border-radius: 9px;
+        border: 2px solid rgba(227, 27, 89, 0.25);
+        border-top-color: var(--color-accent);
+        animation: spin 0.9s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .progress__text {
+        font-size: var(--font-md);
+        font-weight: 600;
+        color: var(--color-accent);
+        letter-spacing: -0.3px;
+      }
+      .progress__pct {
+        font-size: var(--font-sm);
+        font-weight: 600;
+        color: var(--color-accent);
+        letter-spacing: -0.2px;
+        opacity: 0.7;
+      }
+
+      /* ── 업로드 실패 토스트 (13e) ── */
+      /* "다시 시도"라는 액션이 붙으므로 토스트가 아니라 스낵바 규약 — 48px 2열
+         (docs/guide/dev/ui-publishing.md "토스트 · 스낵바 패턴") */
+      .snackbar {
+        position: absolute;
+        left: 28px;
+        right: 28px;
+        bottom: 92px;
+        z-index: 70;
+        height: 48px;
+        border-radius: 24px;
+        background: rgba(0, 0, 0, 0.82);
+        display: none;
+        align-items: center;
+        padding: 0 8px 0 20px;
+      }
+      .is-failed .snackbar {
+        display: flex;
+      }
+      .snackbar__text {
+        flex: 1;
+        font-size: var(--font-base);
+        font-weight: 500;
+        color: #fff;
+        letter-spacing: -0.2px;
+      }
+      .snackbar__action {
+        height: 34px;
+        padding: 0 14px;
+        border: none;
+        border-radius: 17px;
+        background: none;
+        font-family: var(--font-family);
+        font-size: var(--font-sm);
+        font-weight: 600;
+        color: var(--color-accent);
+        letter-spacing: -0.2px;
+        cursor: pointer;
+      }
+
+      /* ── 장소 검색 (13b · 13c) ── */
+      .search {
+        display: none;
+        position: absolute;
+        inset: 0;
+        z-index: 60;
+        background: #fff;
+        flex-direction: column;
+      }
+      .search.is-open {
+        display: flex;
+      }
+      .search__bar {
+        padding: 0 20px 0 12px;
+        height: 52px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+      }
+      .search__input {
+        flex: 1;
+        height: 40px;
+        padding: 0 14px;
+        border: none;
+        border-radius: 12px;
+        background: var(--color-surface);
+        outline: none;
+        font-family: var(--font-family);
+        font-size: var(--font-md);
+        letter-spacing: -0.2px;
+        color: #000;
+      }
+      .search__list {
+        flex: 1;
+        overflow-y: auto;
+      }
+      .search__row {
+        width: 100%;
+        padding: 13px 28px;
+        border: none;
+        background: none;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        text-align: left;
+        font-family: var(--font-family);
+        cursor: pointer;
+      }
+      .search__icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 17px;
+        background: var(--color-surface);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      .search__name {
+        font-size: var(--font-md);
+        font-weight: 600;
+        color: #000;
+        letter-spacing: -0.3px;
+      }
+      .search__meta {
+        font-size: var(--font-xs);
+        color: #8e8e93;
+        letter-spacing: -0.1px;
+        margin-top: 2px;
+      }
+      /* 직접 입력 행은 항상 목록 맨 아래, 구분선 위에 둔다 */
+      .search__manual {
+        border-top: 1px solid var(--color-border-light);
+        margin-top: 6px;
+        padding-top: 6px;
+      }
+      /* 결과가 없으면 이 행이 목록 자리로 올라오고 아이콘이 핑크 틴트로 강조된다 */
+      .search.is-noresult .search__manual {
+        border-top: none;
+        margin-top: 0;
+      }
+      .search.is-noresult .search__manual .search__icon {
+        background: rgba(227, 27, 89, 0.1);
+      }
+      .search__empty {
+        display: none;
+        padding: 26px 28px 0;
+        text-align: center;
+      }
+      .search.is-noresult .search__empty {
+        display: block;
+      }
+      .search.is-noresult .search__results {
+        display: none;
+      }
+
+      /* ── 목업 확인용 상태 전환 (실제 화면에는 없음) — 흐름 안에서 렌더, 다크 바로 화면 상단에 붙인다 ── */
+      .state-switch {
+        flex-shrink: 0;
+        display: flex;
+        gap: 4px;
+        overflow-x: auto;
+        background: #000;
+        padding: 6px 8px;
+      }
+      .state-switch button {
+        flex-shrink: 0;
+        border: none;
+        background: rgba(255, 255, 255, 0.12);
+        border-radius: 6px;
+        padding: 4px 7px;
+        font-family: var(--font-family);
+        font-size: var(--font-2xs);
+        color: rgba(255, 255, 255, 0.55);
+        cursor: pointer;
+      }
+      .state-switch button.is-active {
+        background: #fff;
+        color: #000;
+      }
+
+      /* 업로드 중·실패에 따라 하단 자리만 바뀐다 */
+      .is-uploading .actions,
+      .is-failed .actions {
+        display: none;
+      }
+      .is-uploading .snackbar {
+        display: none;
+      }
+      .progress {
+        display: none;
+      }
+      .is-uploading .progress {
+        display: flex;
+      }
+      .actions--retry {
+        display: none;
+      }
+      .is-failed .actions--retry {
+        display: flex;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="phone-frame" id="frame">
+      <!-- 목업 확인용 상태 전환 (실제 화면에는 없음) -->
+      <div class="state-switch">
+        <button class="is-active" onclick="switchState('form', this)">작성</button>
+        <button onclick="switchState('uploading', this)">업로드</button>
+        <button onclick="switchState('failed', this)">실패</button>
+      </div>
+
+      <div class="status-bar">
+        <span class="status-bar__time">9:41</span>
+        <span class="status-bar__icons">
+          <svg width="17" height="11" viewBox="0 0 17 11" fill="none"><rect x="0" y="7" width="3" height="4" rx="1" fill="#000"/><rect x="4.5" y="5" width="3" height="6" rx="1" fill="#000"/><rect x="9" y="2.5" width="3" height="8.5" rx="1" fill="#000"/><rect x="13.5" y="0" width="3" height="11" rx="1" fill="#000"/></svg>
+          <svg width="16" height="11" viewBox="0 0 16 11" fill="none"><path d="M8 9.5l2.5-2.5a3.5 3.5 0 00-5 0L8 9.5z" fill="#000"/><path d="M8 4a6.5 6.5 0 014.6 1.9l1.2-1.2A8.2 8.2 0 008 2.3 8.2 8.2 0 002.2 4.7l1.2 1.2A6.5 6.5 0 018 4z" fill="#000"/></svg>
+          <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="21" height="11" rx="3" stroke="#000" stroke-opacity="0.35"/><rect x="2" y="2" width="18" height="8" rx="2" fill="#000"/><path d="M23 4v4a2 2 0 000-4z" fill="#000" fill-opacity="0.4"/></svg>
+        </span>
+      </div>
+
+      <div class="nav">
+        <button class="nav__close" aria-label="닫기" onclick="history.back()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg>
+        </button>
+        <span class="nav__title">출품하기</span>
+      </div>
+
+      <div class="phone-scroll">
+        <div class="subhead">골든아워 · 8월 콘테스트 · 남은 자리 3장</div>
+
+        <!-- 썸네일 스트립 — 현재 편집 중인 장에 핑크 링 -->
+        <div class="strip">
+          <button class="strip__thumb is-current" aria-label="1번째 사진" onclick="pickPhoto(0, this)" style="background: linear-gradient(165deg, #1a1530, #5a3355 50%, #d4856a)"></button>
+          <button class="strip__thumb" aria-label="2번째 사진" onclick="pickPhoto(1, this)" style="background: linear-gradient(165deg, #12333a, #2f5f5a 55%, #8fae9b)"></button>
+          <button class="strip__add" aria-label="사진 추가">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>
+          </button>
+          <span class="strip__index" id="strip-index">1<span style="color: #c7c7cc">/2</span></span>
+        </div>
+
+        <div class="photo" id="photo"></div>
+
+        <!-- 설명 — 여러 줄로 늘어나고 밑줄은 블록 전체 아래에 하나 -->
+        <div class="field">
+          <div class="field__label">설명</div>
+          <div class="field__box">
+            <textarea class="field__input" id="caption" rows="1" maxlength="80" placeholder="이 사진에 대해 한 줄 남겨보세요" oninput="countCaption(this)">비가 그친 직후 하늘이 열리는 순간을 기다렸습니다. 삼각대 없이 난간에 기대서 찍었어요.</textarea>
+          </div>
+          <div class="field__counter" id="caption-count">48/80</div>
+        </div>
+
+        <!-- 촬영 장소 — 탭하면 검색. 스팟 선택 시 spotId가 함께 저장된다 -->
+        <div class="field">
+          <div class="field__label">촬영 장소</div>
+          <button class="field__picker" id="spot-picker" onclick="openSearch()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+            <span id="spot-name">광안리 해수욕장</span>
+          </button>
+        </div>
+
+        <div class="notice">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
+          <span>출품 후에는 수정할 수 없어요. 삭제하고 다시 출품해야 해요.</span>
+        </div>
+
+        <!-- 여러 장이라 2열. 마지막 장에서는 좌측이 "이전 사진"으로 바뀐다 -->
+        <div class="actions">
+          <button class="actions__btn actions__btn--sub" onclick="nextPhoto()">다음 사진</button>
+          <button class="actions__btn actions__btn--main" onclick="startUpload()">2장 출품하기</button>
+        </div>
+
+        <!-- 업로드 중 (13d) — 퍼센트는 전체 기준 -->
+        <div class="progress">
+          <span class="progress__spinner"></span>
+          <span class="progress__text">2장 중 1장째 올리는 중</span>
+          <span class="progress__pct">64%</span>
+        </div>
+
+        <!-- 업로드 실패 (13e) — 입력값은 그대로 유지된다 -->
+        <div class="actions actions--retry">
+          <button class="actions__btn actions__btn--main" style="flex: 1" onclick="startUpload()">다시 출품하기</button>
+        </div>
+      </div>
+
+      <div class="snackbar">
+        <span class="snackbar__text">업로드에 실패했어요</span>
+        <button class="snackbar__action" onclick="startUpload()">다시 시도</button>
+      </div>
+
+      <!-- 장소 검색 (13b 결과 있음 · 13c 결과 없음) -->
+      <div class="search" id="search">
+        <div class="status-bar">
+          <span class="status-bar__time">9:41</span>
+          <span class="status-bar__icons">
+            <svg width="17" height="11" viewBox="0 0 17 11" fill="none"><rect x="0" y="7" width="3" height="4" rx="1" fill="#000"/><rect x="4.5" y="5" width="3" height="6" rx="1" fill="#000"/><rect x="9" y="2.5" width="3" height="8.5" rx="1" fill="#000"/><rect x="13.5" y="0" width="3" height="11" rx="1" fill="#000"/></svg>
+            <svg width="16" height="11" viewBox="0 0 16 11" fill="none"><path d="M8 9.5l2.5-2.5a3.5 3.5 0 00-5 0L8 9.5z" fill="#000"/><path d="M8 4a6.5 6.5 0 014.6 1.9l1.2-1.2A8.2 8.2 0 008 2.3 8.2 8.2 0 002.2 4.7l1.2 1.2A6.5 6.5 0 018 4z" fill="#000"/></svg>
+            <svg width="25" height="12" viewBox="0 0 25 12" fill="none"><rect x="0.5" y="0.5" width="21" height="11" rx="3" stroke="#000" stroke-opacity="0.35"/><rect x="2" y="2" width="18" height="8" rx="2" fill="#000"/><path d="M23 4v4a2 2 0 000-4z" fill="#000" fill-opacity="0.4"/></svg>
+          </span>
+        </div>
+        <div class="search__bar">
+          <button class="nav__close" aria-label="닫기" onclick="closeSearch()">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
+          </button>
+          <input class="search__input" id="search-input" value="광안" oninput="filterSpots(this.value)" aria-label="촬영 장소 검색" />
+        </div>
+
+        <div class="search__list">
+          <div class="search__results" id="search-results"></div>
+
+          <!-- 결과가 없을 때만 -->
+          <div class="search__empty">
+            <div style="font-size: var(--font-md); font-weight: 600; color: #000; letter-spacing: -0.3px">일치하는 스팟이 없어요</div>
+            <div style="font-size: var(--font-sm); color: #8e8e93; letter-spacing: -0.2px; margin-top: 6px">직접 입력해도 출품할 수 있어요</div>
+          </div>
+
+          <!-- 직접 입력 — 무엇을 잃는지 서브 텍스트로 알린다 -->
+          <div class="search__manual">
+            <button class="search__row" onclick="useManualSpot()">
+              <span class="search__icon">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" id="manual-icon"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>
+              </span>
+              <span style="flex: 1; min-width: 0">
+                <span class="search__name" id="manual-name">"광안" 직접 입력</span>
+                <span class="search__meta" style="display: block">스팟 상세로는 연결되지 않아요</span>
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      /* ── 스팟 검색 (mock) ── */
+      var SPOTS = [
+        { name: '광안리 해수욕장', area: '부산 수영구', count: '출품 24' },
+        { name: '광안대교 전망대', area: '부산 수영구', count: '출품 11' },
+        { name: '광안리 민락수변공원', area: '부산 수영구', count: '출품 6' },
+      ];
+
+      function renderSpots(list) {
+        document.getElementById('search-results').innerHTML = list
+          .map(function (s) {
+            return (
+              '<button class="search__row" onclick="useSpot(\'' + s.name + '\')">' +
+              '<span class="search__icon">' +
+              '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"></path><circle cx="12" cy="10" r="3"></circle></svg>' +
+              '</span>' +
+              '<span style="flex: 1; min-width: 0">' +
+              '<span class="search__name">' + s.name + '</span>' +
+              '<span class="search__meta" style="display: block">' + s.area + ' · ' + s.count + '</span>' +
+              '</span></button>'
+            );
+          })
+          .join('');
+      }
+
+      /* 스팟 DB에 없어도 출품 자체는 막지 않는다 — 다만 스팟 상세로는 연결되지 않는다 */
+      function filterSpots(q) {
+        var hit = SPOTS.filter(function (s) {
+          return q && s.name.indexOf(q) > -1;
+        });
+        renderSpots(hit);
+        document.getElementById('manual-name').textContent = '"' + (q || '') + '" 직접 입력';
+        document.getElementById('search').classList.toggle('is-noresult', hit.length === 0);
+      }
+
+      function openSearch() {
+        document.getElementById('search').classList.add('is-open');
+      }
+      function closeSearch() {
+        document.getElementById('search').classList.remove('is-open');
+      }
+
+      function useSpot(name) {
+        document.getElementById('spot-name').textContent = name;
+        document.getElementById('spot-picker').classList.remove('field__picker--empty');
+        closeSearch();
+      }
+      function useManualSpot() {
+        useSpot(document.getElementById('search-input').value);
+      }
+
+      /* ── 폼 ── */
+      var GRADS = [
+        'linear-gradient(165deg, #1a1530, #5a3355 50%, #d4856a)',
+        'linear-gradient(165deg, #12333a, #2f5f5a 55%, #8fae9b)',
+      ];
+      /* 설명·장소는 장마다 따로 저장된다 — 투표와 순위가 사진 단위이기 때문 */
+      var drafts = [
+        { caption: '비가 그친 직후 하늘이 열리는 순간을 기다렸습니다. 삼각대 없이 난간에 기대서 찍었어요.', spot: '광안리 해수욕장' },
+        { caption: '', spot: '광안리 해수욕장' },
+      ];
+      var current = 0;
+
+      function pickPhoto(i, el) {
+        drafts[current].caption = document.getElementById('caption').value;
+        current = i;
+        document.querySelectorAll('.strip__thumb').forEach(function (b) {
+          b.classList.toggle('is-current', b === el);
+        });
+        document.getElementById('photo').style.background = GRADS[i];
+        document.getElementById('caption').value = drafts[i].caption;
+        /* 장소는 직전 장에서 고른 값을 기본값으로 미리 채운다 — 같은 자리에서 여러 장 찍는 경우가 많다 */
+        document.getElementById('spot-name').textContent = drafts[i].spot;
+        countCaption(document.getElementById('caption'));
+        document.getElementById('strip-index').innerHTML =
+          i + 1 + '<span style="color: #c7c7cc">/' + drafts.length + '</span>';
+      }
+
+      function nextPhoto() {
+        var next = (current + 1) % drafts.length;
+        pickPhoto(next, document.querySelectorAll('.strip__thumb')[next]);
+      }
+
+      function countCaption(el) {
+        /* 모바일 자동완성·IME 입력은 maxlength를 우회할 때가 있어 한 번 더 잘라낸다 */
+        if (el.value.length > 80) el.value = el.value.slice(0, 80);
+        document.getElementById('caption-count').textContent = el.value.length + '/80';
+        el.style.height = 'auto';
+        el.style.height = el.scrollHeight + 'px';
+      }
+
+      /* ── 업로드 ── */
+      /* 일부만 성공하면 성공한 장은 그대로 두고 실패한 장만 폼에 남긴다 — 전체를 롤백하지 않는다 */
+      function startUpload() {
+        switchState('uploading');
+      }
+
+      function switchState(state, el) {
+        var f = document.getElementById('frame');
+        f.classList.toggle('is-uploading', state === 'uploading');
+        f.classList.toggle('is-failed', state === 'failed');
+        if (el) {
+          el.parentElement.querySelectorAll('button').forEach(function (b) {
+            b.classList.toggle('is-active', b === el);
+          });
+        }
+      }
+
+      renderSpots(SPOTS);
+      countCaption(document.getElementById('caption'));
+    </script>
+  </body>
+</html>

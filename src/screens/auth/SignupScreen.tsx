@@ -17,7 +17,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '@/navigation/AuthStack';
 import { useAuthStore } from '@/store/useAuthStore';
 import { authApi, toErrorMessage } from '@/api/auth';
-import Toast from '@/components/auth/Toast';
+import Toast from '@/components/common/Toast';
 import AuthInput from '@/components/auth/AuthInput';
 import AuthCheckbox from '@/components/auth/AuthCheckbox';
 import ThemePill from '@/components/auth/ThemePill';

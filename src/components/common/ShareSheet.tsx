@@ -4,7 +4,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
 import { IconChevronRight, IconCopy, IconDots, IconDownload } from '@tabler/icons-react-native';
 import BottomSheet from '@/components/common/BottomSheet';
-import { GRID_PADDING } from '@/constants/layout';
+import { FONT_LG, FONT_XS, GRID_PADDING } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 
 type ShareTarget = 'kakao' | 'instagram' | 'x' | 'message' | 'copy' | 'save-img' | 'more';
@@ -91,7 +91,7 @@ export default function ShareSheet({ visible, onClose, onShared }: Props) {
   return (
     <BottomSheet visible={visible} onClose={onClose}>
       <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(16), paddingBottom: normalize(12) }}>
-        <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(18), color: '#000', letterSpacing: -0.35 }}>
+        <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_LG, color: '#000', letterSpacing: -0.35 }}>
           공유하기
         </Text>
       </View>
@@ -101,7 +101,7 @@ export default function ShareSheet({ visible, onClose, onShared }: Props) {
           {SHARE_APPS.map((app) => (
             <Pressable key={app.id} onPress={() => handleAction(app.id)} style={{ alignItems: 'center', gap: normalize(6) }}>
               <ShareAppIcon id={app.id} />
-              <Text allowFontScaling={false} style={{ fontSize: normalizeFontSize(11), color: 'rgba(0,0,0,0.6)' }}>{app.label}</Text>
+              <Text allowFontScaling={false} style={{ fontSize: FONT_XS, color: 'rgba(0,0,0,0.6)' }}>{app.label}</Text>
             </Pressable>
           ))}
         </View>

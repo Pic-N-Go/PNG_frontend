@@ -252,6 +252,27 @@
       <!-- ── 오늘 ── -->
       <div class="notif-group-label">오늘</div>
 
+      <!-- 콘테스트 시작 (CTA 포함, 안읽음) -->
+      <div class="notif-item is-unread" data-type="community">
+        <div class="notif-item__dot"></div>
+        <div class="notif-item__icon notif-item__icon--pink">
+          <svg width="22" height="22" viewBox="0 0 24 24" stroke="#e31b59"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M8 21l8 0"/><path d="M12 17l0 4"/><path d="M7 4l10 0"/><path d="M17 4v8a5 5 0 0 1 -10 0v-8"/><path d="M5 9a3 3 0 0 1 -3 -3v-1h5"/><path d="M19 9a3 3 0 0 0 3 -3v-1h-5"/></svg>
+        </div>
+        <div class="notif-item__body">
+          <div class="notif-item__top">
+            <span class="notif-item__label notif-item__label--pink">콘테스트 시작</span>
+            <span class="notif-item__time">방금</span>
+          </div>
+          <div class="notif-item__title">8월 주제는 골든아워예요</div>
+          <div class="notif-item__desc">8월 14일까지 최대 3장 출품</div>
+          <div class="notif-item__ctas">
+            <button class="notif-item__cta notif-item__cta--primary" onclick="location.href='../community/community-feed.html'">출품하기</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="notif-divider"></div>
+
       <!-- 위시리스트 달성 (CTA 포함, 안읽음) -->
       <div class="notif-item is-unread" data-type="wishlist">
         <div class="notif-item__dot"></div>
@@ -386,6 +407,57 @@
 
       <!-- ── 이전 ── -->
       <div class="notif-group-label">이전</div>
+
+      <!-- 결과 발표 (읽음) -->
+      <div class="notif-item" data-type="community">
+        <div class="notif-item__icon notif-item__icon--pink">
+          <svg width="22" height="22" viewBox="0 0 24 24" stroke="#e31b59"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M8 21l8 0"/><path d="M12 17l0 4"/><path d="M7 4l10 0"/><path d="M17 4v8a5 5 0 0 1 -10 0v-8"/><path d="M5 9a3 3 0 0 1 -3 -3v-1h5"/><path d="M19 9a3 3 0 0 0 3 -3v-1h-5"/></svg>
+        </div>
+        <div class="notif-item__body">
+          <div class="notif-item__top">
+            <span class="notif-item__label notif-item__label--pink">결과 발표</span>
+            <span class="notif-item__time">8월 1일</span>
+          </div>
+          <div class="notif-item__title">7월 콘테스트 결과가 나왔어요</div>
+          <div class="notif-item__desc">내 순위 42위 · 23표</div>
+        </div>
+      </div>
+
+      <div class="notif-divider"></div>
+
+      <!-- 투표 시작 (읽음) -->
+      <div class="notif-item" data-type="community">
+        <div class="notif-item__icon notif-item__icon--pink">
+          <svg width="22" height="22" viewBox="0 0 24 24" stroke="#e31b59"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M8 21l8 0"/><path d="M12 17l0 4"/><path d="M7 4l10 0"/><path d="M17 4v8a5 5 0 0 1 -10 0v-8"/><path d="M5 9a3 3 0 0 1 -3 -3v-1h5"/><path d="M19 9a3 3 0 0 0 3 -3v-1h-5"/></svg>
+        </div>
+        <div class="notif-item__body">
+          <div class="notif-item__top">
+            <span class="notif-item__label notif-item__label--pink">투표 시작</span>
+            <span class="notif-item__time">7월 15일</span>
+          </div>
+          <div class="notif-item__title">비 오는 날 투표가 열렸어요</div>
+          <div class="notif-item__desc">186개 출품작 · 표 3개</div>
+        </div>
+      </div>
+
+      <div class="notif-divider"></div>
+
+      <!-- 출품 마감 임박 (읽음) -->
+      <div class="notif-item" data-type="community">
+        <div class="notif-item__icon notif-item__icon--pink">
+          <svg width="22" height="22" viewBox="0 0 24 24" stroke="#e31b59"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M8 21l8 0"/><path d="M12 17l0 4"/><path d="M7 4l10 0"/><path d="M17 4v8a5 5 0 0 1 -10 0v-8"/><path d="M5 9a3 3 0 0 1 -3 -3v-1h5"/><path d="M19 9a3 3 0 0 0 3 -3v-1h-5"/></svg>
+        </div>
+        <div class="notif-item__body">
+          <div class="notif-item__top">
+            <span class="notif-item__label notif-item__label--pink">출품 마감 임박</span>
+            <span class="notif-item__time">7월 13일</span>
+          </div>
+          <div class="notif-item__title">비 오는 날 출품이 내일 끝나요</div>
+          <div class="notif-item__desc">아직 출품하지 않았어요</div>
+        </div>
+      </div>
+
+      <div class="notif-divider"></div>
 
       <div class="notif-item" data-type="wishlist">
         <div class="notif-item__icon notif-item__icon--pink">

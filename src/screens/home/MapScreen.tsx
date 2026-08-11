@@ -11,7 +11,7 @@ import BottomSheet from '@/components/common/BottomSheet';
 import FilterBottomSheet, { FilterState, EMPTY_FILTER } from '@/components/home/FilterBottomSheet';
 import SearchModal from '@/components/common/SearchModal';
 import SaveToPlanSheet from '@/components/spot/SaveToPlanSheet';
-import Toast from '@/components/auth/Toast';
+import Toast from '@/components/common/Toast';
 import { StatusBar } from 'expo-status-bar';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { FONT_MD, BUTTON_HEIGHT, BUTTON_RADIUS, HEADER_HEIGHT } from '@/constants/layout';

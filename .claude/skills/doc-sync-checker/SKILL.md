@@ -25,6 +25,11 @@
 | `CLAUDE.md` 수정 | `docs/ai/00-context.md` 동기화 여부 | `docs/guide/dev/prompt-writing-guide.md` 제약 조건 업데이트 여부 |
 | `.github/CONVENTIONS.md` 수정 | `docs/ai/README.md` PR 규칙 참조 확인 | — |
 | `src/` 파일 수정 | 해당 feature spec/plan 업데이트 여부 | `docs/ai/03-pr-review-checklist.md` 통과 여부 |
+| `src/components/ui/**/*.html` 신규·수정 | `docs/guide/dev/ui-publishing.md` — ① 파일 목록 ② 페이지별 주요 기능 절 ③ 탭바 규칙의 push 목적지 열거 ④ 네비게이션 트리 반영 여부 | 해당 feature spec/plan의 목업 개수·목록 진술 일치 여부 |
+
+> 마지막 행은 6번 행(`src/`)의 특수화입니다. 목업 변경은 두 행이 함께 적용되며,
+> `ui-publishing.md`가 목업 구조의 소스 오브 트루스(`CLAUDE.md` 참조)라 Required입니다.
+> 목업을 추가·삭제하면 spec/plan에 남은 "N개 목업" 같은 개수 진술도 함께 어긋나므로 같이 확인합니다.
 
 ## 동작 규칙
 

@@ -138,7 +138,7 @@
 
 ### [8] Toast `bottom: 48` → safe area insets 기반
 
-- **파일**: `src/components/auth/Toast.tsx`
+- **파일**: `src/components/auth/Toast.tsx` (이후 `src/components/common/Toast.tsx`로 이동)
 - **위치**: ~line 43
 - **문제**: `bottom: 48`이 raw 숫자이며 safe area를 고려하지 않음. Dynamic Island 기기(insets.bottom ≈ 34dp)에서 홈 인디케이터와 Toast가 겹칠 수 있음
 - **수정**:

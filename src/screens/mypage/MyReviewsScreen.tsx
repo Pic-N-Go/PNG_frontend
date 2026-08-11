@@ -9,7 +9,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconChevronLeft } from '@tabler/icons-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { BUTTON_HEIGHT, BUTTON_RADIUS, FONT_2XS, FONT_XS, FONT_SM, FONT_MD } from '@/constants/layout';
-import Toast from '@/components/auth/Toast';
+import Toast from '@/components/common/Toast';
 import type { RootStackParamList } from '@/navigation';
 import ReviewActionSheet from '@/components/spot/ReviewActionSheet';
 import ReviewMenuButton from '@/components/spot/ReviewMenuButton';
