@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useFocusEffect } from "@react-navigation/native";
-import { View, Text, TouchableOpacity, ScrollView, Alert, TextInput, Image, KeyboardAvoidingView, Platform } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, Alert, Image, KeyboardAvoidingView, Platform } from "react-native";
 import { coursesApi } from "@/api/courses";
 import { useCourseStore } from "@/store/useCourseStore";
 import { useAnimatedRef } from "react-native-reanimated";
@@ -30,6 +30,7 @@ import NaviSheet from "@/components/spot/NaviSheet";
 import CourseMoreSheet from "@/components/travel/CourseMoreSheet";
 import { parseValidCoordinate } from "@/utils/geo";
 import CourseShareSheet from "@/components/travel/CourseShareSheet";
+import CourseChecklistSection from "@/components/travel/CourseChecklistSection";
 import { getDistanceFromLatLonInKm } from "@/utils/distance";
 import { FONT_XS, FONT_SM, CONTENT_PADDING, BUTTON_HEIGHT, HEADER_HEIGHT } from "@/constants/layout";
 
@@ -389,7 +390,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
   const [isShareSheetVisible, setShareSheetVisible] = useState(false);
   const [data, setData] = useState<Record<string, any>>(MOCK_DATA);
 
-  const { data: course, refetch } = useQuery({
+  const { data: course, refetch, isLoading: isCourseLoading } = useQuery({
     queryKey: ['course', planId],
     queryFn: () => coursesApi.getCourse(Number(planId)),
     enabled: !!planId,
@@ -416,8 +417,6 @@ export default function TravelPlanScreen({ navigation, route }: any) {
   // 대신 각 행의 측정된 높이(height)를 모아 앞선 행들의 높이를 더해 오프셋을 직접 계산한다.
   const rowHeights = useRef<{ [key: string]: number }>({});
 
-  const [newChecklistText, setNewChecklistText] = useState("");
-  const [isChecklistModalVisible, setIsChecklistModalVisible] = useState(false);
 
   const currentData = data[currentDay];
 
@@ -501,21 +500,6 @@ export default function TravelPlanScreen({ navigation, route }: any) {
       console.log("WebView Message Parse Error:", e);
     }
   };
-
-  const toggleChecklistMutation = useMutation({
-    mutationFn: (checklistId: number) => coursesApi.toggleChecklist(Number(planId), checklistId),
-    onSuccess: () => refetch(),
-  });
-
-  const addChecklistMutation = useMutation({
-    mutationFn: (content: string) => coursesApi.addChecklist(Number(planId), content),
-    onSuccess: () => refetch(),
-  });
-
-  const deleteChecklistMutation = useMutation({
-    mutationFn: (checklistId: number) => coursesApi.deleteChecklist(Number(planId), checklistId),
-    onSuccess: () => refetch(),
-  });
 
   const syncSpotsMutation = useMutation({
     mutationFn: (data: {
@@ -936,47 +920,14 @@ export default function TravelPlanScreen({ navigation, route }: any) {
       {/* Weather Row */}
       {weatherRow}
 
-      {/* Checklist */}
+      {/* Checklist — 스팟 상세와 동일한 UI. 코스 전체 공통 1개 목록(일자별 아님) */}
       <View className="mt-8">
-        <Text className="font-semibold text-black tracking-[-0.3px] mb-5" style={{ fontSize: normalizeFontSize(18) }}>
-          촬영 체크리스트
-        </Text>
-        <View className="flex-row flex-wrap gap-2 mb-3">
-          {(course?.checklists || []).map((item: any) => {
-            const isChecked = item.isChecked;
-            return (
-              <TouchableOpacity
-                key={item.id}
-                activeOpacity={0.7}
-                onPress={() => toggleChecklistMutation.mutate(item.id)}
-                onLongPress={() => {
-                  Alert.alert("삭제", "이 항목을 삭제하시겠습니까?", [
-                    { text: "취소", style: "cancel" },
-                    { text: "삭제", style: "destructive", onPress: () => deleteChecklistMutation.mutate(item.id) }
-                  ]);
-                }}
-                className={`flex-row items-center gap-1.5 px-3 py-2 rounded-full border border-black/5 ${isChecked ? "bg-[#e31b59]/10" : "bg-[#f5f5f7]"}`}
-              >
-                <View
-                  className={`w-1.5 h-1.5 rounded-full ${isChecked ? "bg-[#e31b59]" : "bg-black/15"}`}
-                />
-                <Text
-                  className={`tracking-[-0.2px] ${isChecked ? "text-[#e31b59]" : "text-black"}`}
-                  style={{ fontSize: normalizeFontSize(13), textDecorationLine: isChecked ? "line-through" : "none" }}
-                >
-                  {item.content}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-        <TouchableOpacity 
-          activeOpacity={0.7}
-          onPress={() => setIsChecklistModalVisible(true)}
-          className="flex-row items-center bg-[#f5f5f7] rounded-full px-4 h-10 border border-black/5"
-        >
-          <Text className="text-black/30 tracking-[-0.2px]" style={{ fontSize: normalizeFontSize(13) }}>준비물 추가...</Text>
-        </TouchableOpacity>
+        <CourseChecklistSection
+          courseId={Number(planId)}
+          items={course?.checklists || []}
+          loading={isCourseLoading}
+          onChanged={refetch}
+        />
       </View>
     </View>
   );
@@ -1310,42 +1261,6 @@ export default function TravelPlanScreen({ navigation, route }: any) {
         onExportPdf={() => Alert.alert('알림', 'PDF로 내보내기 기능은 준비중입니다.')}
         onShareSocial={(platform) => Alert.alert('알림', `${platform} 공유 기능은 준비중입니다.`)}
       />
-
-      {isChecklistModalVisible && (
-        <View className="absolute inset-0 z-[100] bg-black/40 justify-center items-center">
-          <TouchableOpacity 
-            className="absolute inset-0" 
-            activeOpacity={1} 
-            onPress={() => setIsChecklistModalVisible(false)} 
-          />
-          <KeyboardAvoidingView 
-            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-            className="w-full"
-            style={{ paddingHorizontal: CONTENT_PADDING }}
-          >
-            <View className="bg-white rounded-2xl p-4">
-              <Text className="font-semibold mb-3 tracking-[-0.3px] text-black" style={{ fontSize: normalizeFontSize(16) }}>준비물 추가</Text>
-              <TextInput
-                autoFocus
-                placeholder="어떤 준비물이 필요한가요?"
-                placeholderTextColor="rgba(0,0,0,0.3)"
-                value={newChecklistText}
-                onChangeText={setNewChecklistText}
-                onSubmitEditing={() => {
-                  if (newChecklistText.trim()) {
-                    addChecklistMutation.mutate(newChecklistText.trim());
-                    setNewChecklistText("");
-                  }
-                  setIsChecklistModalVisible(false);
-                }}
-                className="bg-[#f5f5f7] rounded-xl px-4 tracking-[-0.2px] text-black"
-                style={{ height: normalize(48), fontSize: normalizeFontSize(15) }}
-                returnKeyType="done"
-              />
-            </View>
-          </KeyboardAvoidingView>
-        </View>
-      )}
 
       </KeyboardAvoidingView>
     </SafeAreaView>
