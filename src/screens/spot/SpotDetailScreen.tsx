@@ -11,7 +11,6 @@ import SpotInfoHeader from '@/components/spot/SpotInfoHeader';
 import SpotTabBar, { type SpotTabKey } from '@/components/spot/SpotTabBar';
 import PhotogenicScoreCard from '@/components/spot/PhotogenicScoreCard';
 import ConvenienceInfoSection from '@/components/spot/ConvenienceInfoSection';
-import ChecklistSection from '@/components/spot/ChecklistSection';
 import SpotAlertBanner from '@/components/spot/SpotAlertBanner';
 import PhotoGridTab from '@/components/spot/PhotoGridTab';
 import ReviewTab from '@/components/spot/ReviewTab';
@@ -203,8 +202,6 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
                 <PhotogenicScoreCard spotId={spot.id} spotName={spot.name} />
                 <View style={{ height: 1, backgroundColor: 'rgba(0,0,0,0.06)', marginHorizontal: GRID_PADDING, marginVertical: normalize(24) }} />
                 <ConvenienceInfoSection info={convenience} />
-                <View style={{ height: 1, backgroundColor: 'rgba(0,0,0,0.06)', marginHorizontal: GRID_PADDING, marginVertical: normalize(24) }} />
-                <ChecklistSection spotId={spot.id} />
                 <View style={{ height: normalize(24) }} />
                 <SpotAlertBanner
                   onPress={() => {

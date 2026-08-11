@@ -201,7 +201,6 @@ export function mapSpotDetail(dto: SpotDetailResponse): { info: SpotDetailInfo; 
       tags: dto.tags,
       categories: dto.categories,
       regionLabel: regionLabelFrom(dto.address),
-      checklist: dto.checklist,
       heroPhotoCount: dto.stats.photoCount,
       myReviewId: dto.myReviewId,
       latitude: dto.latitude,

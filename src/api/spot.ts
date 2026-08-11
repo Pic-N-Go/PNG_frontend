@@ -3,8 +3,6 @@
 import { ApiError, toHttpError } from '@/api/auth';
 import type {
   BookmarkCollectionDTO,
-  ChecklistResponse,
-  ChecklistUserItemDTO,
   PhotogenicScoreResponse,
   ReviewCreateRequest,
   MyReviewListResponse,
@@ -236,23 +234,6 @@ export const spotApi = {
   // 개별 삭제(204). 다른 리뷰의 photoId는 404 REVIEW_PHOTO_NOT_FOUND로 거부된다.
   deleteReviewPhoto: (reviewId: number, photoId: number, token: string) =>
     request<void>(`/reviews/${reviewId}/photos/${photoId}`, { method: 'DELETE', token }),
-
-  getChecklist: (id: string | number, token: string) =>
-    request<ChecklistResponse>(`/spots/${id}/checklist`, { token }),
-
-  addChecklistItem: (id: string | number, content: string, token: string) =>
-    request<ChecklistUserItemDTO>(`/spots/${id}/checklist`, { method: 'POST', body: { content }, token }),
-
-  deleteChecklistItem: (id: string | number, itemId: number, token: string) =>
-    request<void>(`/spots/${id}/checklist/${itemId}`, { method: 'DELETE', token }),
-
-  // 기본 항목 숨김 (멱등, 204). userItem 삭제와 달리 defaultItemId 사용.
-  hideDefaultChecklistItem: (id: string | number, defaultItemId: number, token: string) =>
-    request<void>(`/spots/${id}/checklist/default/${defaultItemId}`, { method: 'DELETE', token }),
-
-  // 숨긴 기본 항목 복원 (멱등, 204). 숨겨져 있지 않은 항목이어도 204.
-  restoreDefaultChecklistItem: (id: string | number, defaultItemId: number, token: string) =>
-    request<void>(`/spots/${id}/checklist/default/${defaultItemId}/restore`, { method: 'POST', token }),
 
   getPhotogenicScore: (id: string | number, { date, time }: { date?: string; time?: string } = {}) => {
     const qs: string[] = [];
