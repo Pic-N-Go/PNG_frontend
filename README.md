@@ -19,7 +19,6 @@
 
 - Node.js 18 이상
 - pnpm (`npm install -g pnpm`)
-- Expo Go 앱 (실기기 테스트 시) — [iOS](https://apps.apple.com/app/expo-go/id982107779) / [Android](https://play.google.com/store/apps/details?id=host.exp.exponent)
 - Ruby 3.2 이상 (iOS pod 설치용 — macOS 시스템 ruby는 버전이 낮으므로 homebrew 등으로 설치)
 - Xcode (iOS 시뮬레이터, Mac 전용) — 설치 후 아래 명령어 실행 필요
   ```bash
@@ -37,11 +36,15 @@ pnpm install
 # 2. iOS pod 버전 고정 (Mac, 최초 1회 — 건너뛰면 lockfile diff 노이즈 발생)
 bundle install
 
-# 3. 실행
+# 3. 실행 (Metro는 자동 실행됨)
 pnpm ios       # iOS 시뮬레이터
 pnpm android   # Android 에뮬레이터
-pnpm start     # Expo Go 앱으로 실기기 테스트
+
+# Metro만 따로 띄워야 할 때
+pnpm start
 ```
+
+> bare workflow 프로젝트라 **Expo Go로는 실행 불가**합니다(카카오 로그인·Firebase 등 네이티브 모듈 포함). 실기기 테스트도 `pnpm ios` / `pnpm android`로 만든 개발 빌드를 사용하세요.
 
 ---
 

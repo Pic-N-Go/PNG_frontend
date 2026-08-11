@@ -69,5 +69,6 @@ git restore ios/Podfile.lock .claude/launch.json
 
 - Node 버전은 `.nvmrc` 기준으로 통일합니다.
 - **CocoaPods 버전은 루트 `Gemfile`로 고정**되어 있습니다(위 '선행 조건' 참고). 버전 차이로 인한 lockfile noise는 여기서 차단됩니다.
-- 단, `Gemfile.lock`의 `RUBY VERSION` / `BUNDLED WITH` 2줄은 각자의 ruby·bundler 버전에 따라 갱신될 수 있습니다. 기능과 무관한 이 2줄 변경은 커밋하지 않습니다(bundler 2.6 미만에서는 `CHECKSUMS` 블록까지 사라질 수 있으니, 그 경우도 커밋하지 말고 `git restore Gemfile.lock`).
+- 단, `Gemfile.lock`의 `RUBY VERSION` / `BUNDLED WITH` 2줄은 각자의 ruby·bundler 버전에 따라 갱신될 수 있습니다. 기능과 무관한 이 2줄 변경은 커밋하지 않습니다(bundler 2.6 미만에서는 `CHECKSUMS` 블록까지 사라질 수 있으니, 그 경우도 커밋 대상이 아닙니다).
+- `git restore Gemfile.lock`은 **`GEM` / `PLATFORMS` / `DEPENDENCIES` 섹션에 변경이 없을 때만** 사용합니다. 파일 전체를 되돌리므로, 의존성 변경이 섞여 있으면 그것까지 날아갑니다. `git diff -- Gemfile.lock`으로 먼저 확인하고, 의존성 변경이 있다면 그 부분은 그대로 두고 커밋하세요(`CHECKSUMS` 유무만으로 메타데이터 변경이라고 판단하지 않습니다).
 - 가능한 한 `pod update` 대신 `bundle exec pod install` 중심으로 운영합니다.
