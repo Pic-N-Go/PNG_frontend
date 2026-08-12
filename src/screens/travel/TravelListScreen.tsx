@@ -1,9 +1,10 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Animated, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { FONT_SM, FONT_2XL, BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING, CARD_RADIUS } from '@/constants/layout';
+import { FONT_SM, FONT_MD, FONT_LG, FONT_2XL, BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING, CARD_RADIUS, ICON_SM } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { IconPlus, IconChevronRight, IconCalendarEvent, IconMapPin, IconClock, IconRoute, IconZoomPan } from '@tabler/icons-react-native';
+import { IconPlus, IconChevronRight, IconCalendarEvent, IconMapPin, IconClock, IconRoute, IconMap, IconAlertCircle } from '@tabler/icons-react-native';
+import Skeleton from '@/components/common/Skeleton';
 import { useQuery } from '@tanstack/react-query';
 import { useFocusEffect } from '@react-navigation/native';
 import { coursesApi } from '@/api/courses';
@@ -49,7 +50,10 @@ export default function TravelListScreen({ navigation }: any) {
   const [activeTab, setActiveTab] = useState('all');
   const scrollY = useRef(new Animated.Value(0)).current;
 
-  const { data: courses = [], refetch } = useQuery({
+  // isError 대신 isLoadingError를 쓴다. TanStack Query는 캐시된 데이터가 있어도 백그라운드
+  // 요청이 실패하면 status를 'error'로 올리는데, isError로 분기하면 화면에 이미 있는 목록이
+  // 에러 화면으로 덮인다. isLoadingError는 "보여줄 데이터가 없는 실패"만 true다.
+  const { data: courses = [], refetch, isLoading, isLoadingError } = useQuery({
     queryKey: ['courses'],
     queryFn: coursesApi.getCourses,
   });
@@ -85,6 +89,19 @@ export default function TravelListScreen({ navigation }: any) {
     if (activeTab === 'all') return true;
     return plan.status === activeTab;
   });
+
+  // 두 가지를 구분한다.
+  // hasNoPlans: 필터 칩·헤더 + 를 감출지. 로딩·에러 중에도 계획이 0개면 감춘다.
+  //   (로딩 중에 "전체 0 · 진행 중 0 …" 칩이 스켈레톤 위에 떴다가 사라지며 레이아웃이 튀는 것을 막는다)
+  // showEmptyState: 빈 상태 블록을 그릴지. 결과가 확정된 뒤에만.
+  const hasNoPlans = plans.length === 0;
+  const showEmptyState = !isLoading && !isLoadingError && plans.length === 0;
+
+  // 계획이 0개가 되면 선택된 탭도 초기화한다. 남겨두면 '지난 출사'에서 마지막 계획을 지운 뒤
+  // 새 계획을 만들었을 때 칩이 '지난 출사' 활성으로 돌아와 방금 만든 계획이 안 보인다.
+  React.useEffect(() => {
+    if (plans.length === 0 && activeTab !== 'all') setActiveTab('all');
+  }, [plans.length, activeTab]);
 
   // 탭 클릭 핸들러
   const handleTabPress = (tabId: string) => {
@@ -128,7 +145,11 @@ export default function TravelListScreen({ navigation }: any) {
       <Animated.ScrollView
         className="flex-1 bg-white"
         showsVerticalScrollIndicator={false}
-        stickyHeaderIndices={[1]}
+        // 칩 줄을 렌더하지 않을 때는 sticky 대상도 없다. 인덱스를 그대로 두면
+        // React.Children.toArray가 false를 걸러내 콘텐츠 블록이 sticky가 된다.
+        stickyHeaderIndices={hasNoPlans ? [] : [1]}
+        // 빈 상태 블록이 flex:1로 남은 영역을 채우려면 콘텐츠가 화면 높이까지 늘어나야 한다
+        contentContainerStyle={{ flexGrow: 1 }}
         onScroll={Animated.event(
           [{ nativeEvent: { contentOffset: { y: scrollY } } }],
           { useNativeDriver: true }
@@ -145,13 +166,23 @@ export default function TravelListScreen({ navigation }: any) {
             paddingBottom: normalize(16) 
           }}
         >
-          <Text className="font-semibold text-black tracking-tight" style={{ fontSize: FONT_2XL }}>출사 계획</Text>
-          <TouchableOpacity onPress={handleNewPlan} className="items-center justify-center" style={{ width: normalize(32), height: normalize(32) }}>
-            <IconPlus size={22} color="#E31B59" />
-          </TouchableOpacity>
+          <Text allowFontScaling={false} className="text-black tracking-tight" style={{ fontSize: FONT_2XL, fontFamily: 'Pretendard-SemiBold' }}>출사 계획</Text>
+          {!hasNoPlans && (
+            <TouchableOpacity
+              onPress={handleNewPlan}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="새 출사 계획 만들기"
+              className="items-center justify-center"
+              style={{ width: normalize(32), height: normalize(32) }}
+            >
+              <IconPlus size={normalize(22)} color="#E31B59" />
+            </TouchableOpacity>
+          )}
         </Animated.View>
 
-        {/* 탭 메뉴 (Sticky) */}
+        {/* 탭 메뉴 (Sticky) — 계획이 0개면 렌더하지 않는다 */}
+        {!hasNoPlans && (
         <View className="bg-white z-40">
           <View className="flex-row" style={{ paddingHorizontal: CONTENT_PADDING, paddingBottom: normalize(16) }}>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
@@ -184,28 +215,117 @@ export default function TravelListScreen({ navigation }: any) {
           </View>
           <View style={{ height: 0.5, backgroundColor: 'rgba(0,0,0,0.08)' }} />
         </View>
+        )}
 
-        {/* 리스트 콘텐츠 영역 */}
-        <View style={{ paddingHorizontal: CONTENT_PADDING, paddingTop: normalize(20), paddingBottom: normalize(40) }}>
-        {/* 리스트가 비어있을 때 (Empty State) */}
-        {filteredPlans.length === 0 ? (
-          <View className="items-center" style={{ marginTop: normalize(40) }}>
-            <View className="rounded-3xl bg-[#f5f5f7] items-center justify-center mb-5" style={{ width: normalize(80), height: normalize(80) }}>
-              <IconZoomPan size={normalize(36)} color="rgba(0,0,0,0.18)" />
+        {/* 로딩 — 빈 상태 대신 카드 스켈레톤. 필터 칩은 감춘 채로 둔다.
+            첫 조회에서만 띄운다. isFetching을 넣으면 useFocusEffect의 refetch 때문에
+            계획이 0개인 계정은 탭에 들어올 때마다 빈 상태가 스켈레톤으로 덮인다. */}
+        {isLoading ? (
+          <View style={{ paddingHorizontal: CONTENT_PADDING, paddingTop: normalize(20), paddingBottom: normalize(20) }}>
+            {[0, 1, 2].map((i, index) => (
+              <Skeleton
+                key={i}
+                width="100%"
+                height={normalize(220)}
+                borderRadius={CARD_RADIUS}
+                style={index < 2 ? { marginBottom: normalize(20) } : undefined}
+              />
+            ))}
+          </View>
+        ) : isLoadingError || showEmptyState ? (
+          /* 에러 / 계획 0개 — 아이콘·문구·버튼만 바뀌고 레이아웃은 같다 */
+          <View
+            className="flex-1 items-center justify-center"
+            style={{ paddingHorizontal: normalize(40), paddingBottom: normalize(100) }}
+          >
+            <View
+              className="items-center justify-center"
+              style={{
+                width: normalize(72),
+                height: normalize(72),
+                borderRadius: normalize(20),
+                backgroundColor: 'rgba(227,27,89,0.07)',
+              }}
+            >
+              {isLoadingError
+                ? <IconAlertCircle size={normalize(34)} color="#E31B59" strokeWidth={1.5} />
+                : <IconMap size={normalize(34)} color="#E31B59" strokeWidth={1.5} />}
             </View>
-            <Text className="font-semibold text-black tracking-tight mb-2" style={{ fontSize: normalizeFontSize(18) }}>
-              첫 출사 계획을 세워볼까요?
+
+            <Text
+              allowFontScaling={false}
+              style={{ marginTop: normalize(20), fontSize: FONT_LG, fontFamily: 'Pretendard-SemiBold', color: '#000', letterSpacing: -0.3 }}
+            >
+              {isLoadingError ? '목록을 불러오지 못했어요' : '첫 출사 계획을 세워볼까요'}
             </Text>
-            <Text className="text-black/40 text-center leading-relaxed mb-7" style={{ fontSize: FONT_SM }}>
-              가고 싶은 스팟을 모아 날짜와 일정을{'\n'}한 번에 계획할 수 있어요.
+
+            {!isLoadingError && (
+              <Text
+                allowFontScaling={false}
+                style={{
+                  marginTop: normalize(8),
+                  fontSize: FONT_MD,
+                  fontFamily: 'Pretendard-Regular',
+                  color: 'rgba(0,0,0,0.5)',
+                  lineHeight: normalize(23),
+                  textAlign: 'center',
+                  letterSpacing: -0.2,
+                }}
+              >
+                가고 싶은 스팟을 모아 날짜와 일정을{'\n'}한 번에 계획할 수 있어요.
+              </Text>
+            )}
+
+            <TouchableOpacity
+              onPress={isLoadingError ? () => refetch() : handleNewPlan}
+              activeOpacity={0.85}
+              accessibilityRole="button"
+              accessibilityLabel={isLoadingError ? '다시 시도' : '새 출사 계획 만들기'}
+              className="flex-row items-center justify-center"
+              style={{
+                alignSelf: 'stretch',
+                marginTop: normalize(24),
+                height: BUTTON_HEIGHT,
+                borderRadius: BUTTON_RADIUS,
+                backgroundColor: '#E31B59',
+                gap: normalize(6),
+              }}
+            >
+              {!isLoadingError && <IconPlus size={ICON_SM} color="#fff" strokeWidth={2} />}
+              <Text
+                allowFontScaling={false}
+                style={{ fontSize: FONT_MD, fontFamily: 'Pretendard-SemiBold', color: '#fff', letterSpacing: -0.2 }}
+              >
+                {isLoadingError ? '다시 시도' : '새 출사 계획 만들기'}
+              </Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+        // flexGrow: 탭 필터 결과가 비었을 때 안내를 중앙에 두기 위해 남은 높이를 차지한다.
+        // 카드가 있을 때는 카드가 위에서부터 쌓이므로 시각적 변화가 없다.
+        <View style={{ flexGrow: 1, paddingHorizontal: CONTENT_PADDING, paddingTop: normalize(20), paddingBottom: normalize(40) }}>
+        {/* 계획은 있지만 이 탭에 없을 때 — 칩은 그대로 두고 탭을 바꿀 수 있게 안내만 한다 */}
+        {filteredPlans.length === 0 ? (
+          <View className="flex-1 items-center justify-center" style={{ paddingBottom: normalize(100) }}>
+            <Text
+              allowFontScaling={false}
+              style={{ fontSize: FONT_MD, fontFamily: 'Pretendard-Regular', color: 'rgba(0,0,0,0.5)', letterSpacing: -0.2 }}
+            >
+              이 조건에 맞는 출사 계획이 없어요
             </Text>
             <TouchableOpacity
-              onPress={handleNewPlan}
-              className="bg-[#E31B59] flex-row items-center"
-              style={{ height: BUTTON_HEIGHT, paddingHorizontal: CONTENT_PADDING, borderRadius: BUTTON_RADIUS }}
+              onPress={() => setActiveTab('all')}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="전체 보기"
+              style={{ marginTop: normalize(4), paddingVertical: normalize(10), paddingHorizontal: normalize(12) }}
             >
-              <IconPlus size={normalize(20)} color="#fff" />
-              <Text className="font-semibold text-white ml-1.5" style={{ fontSize: normalizeFontSize(16) }}>새 출사 계획 만들기</Text>
+              <Text
+                allowFontScaling={false}
+                style={{ fontSize: FONT_MD, fontFamily: 'Pretendard-SemiBold', color: '#E31B59', letterSpacing: -0.2 }}
+              >
+                전체 보기
+              </Text>
             </TouchableOpacity>
           </View>
         ) : (
@@ -304,6 +424,7 @@ export default function TravelListScreen({ navigation }: any) {
           </View>
         )}
         </View>
+        )}
       </Animated.ScrollView>
     </SafeAreaView>
   );

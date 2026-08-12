@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Platform, PermissionsAndroid, BackHandler, Image, TextInput } from 'react-native';
 import { WebView } from 'react-native-webview';
-import { IconChevronLeft, IconSearch, IconAdjustmentsHorizontal, IconFocus2, IconX } from '@tabler/icons-react-native';
+import { IconChevronLeft, IconSearch, IconAdjustmentsHorizontal, IconFocus2, IconX, IconChevronDown, IconChevronUp, IconRoute } from '@tabler/icons-react-native';
 import { useNavigation, useRoute, useFocusEffect, CommonActions } from '@react-navigation/native';
 import { useCourseStore, Spot } from '@/store/useCourseStore';
 import { useSpots, useMapSpots, useSearchSpots } from '@/hooks/useSpot';
@@ -14,7 +14,10 @@ import SaveToPlanSheet from '@/components/spot/SaveToPlanSheet';
 import Toast from '@/components/common/Toast';
 import { StatusBar } from 'expo-status-bar';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { FONT_MD, BUTTON_HEIGHT, BUTTON_RADIUS, HEADER_HEIGHT } from '@/constants/layout';
+import { getCourseStats } from '@/utils/distance';
+import { parseValidCoordinate } from '@/utils/geo';
+import { getDayColor, DAY_COLOR_PALETTE } from '@/constants/dayColors';
+import { FONT_SM, FONT_MD, BUTTON_HEIGHT, BUTTON_RADIUS, HEADER_HEIGHT, ICON_SM } from '@/constants/layout';
 
 const KAKAO_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_API_KEY;
 
@@ -34,6 +37,18 @@ const CATEGORY_MAP: Record<string, string> = {
   '은하수': 'MILKY_WAY',
   '기타': 'ETC',
 };
+
+// Day 드롭다운의 "전체" 항목. 실제 Day 키("1", "2"…)와 겹치지 않는 값이면 된다.
+const ALL_DAYS = 'all';
+
+// 지도에 넘길 스팟에 Day 색과 Day별 순번을 실어준다.
+// 번호는 Day별로 1부터 다시 매긴다 — 전체 보기에서 같은 번호가 여러 개 보이지만 색으로 구분된다.
+// 좌표가 깨진 스팟은 여기서 걸러낸다. 하나만 섞여도 bounds가 오염돼 전체 보기의 카메라가
+// 엉뚱한 곳으로 날아가고 폴리라인도 끊긴다. (번호는 걸러낸 뒤 매겨 1,2,3이 이어지게 둔다)
+const withDayMeta = (spots: any[], day: string) =>
+  spots
+    .filter((s) => parseValidCoordinate(s.lat, s.lng) !== null)
+    .map((s, i) => ({ ...s, __day: day, __dayColor: getDayColor(day).text, __label: i + 1 }));
 
 type MapBounds = {
   southWestLat: number;
@@ -95,6 +110,8 @@ export default function MapScreen() {
   const [isSearchModalVisible, setSearchModalVisible] = useState(false);
   const [detailFilter, setDetailFilter] = useState<FilterState>(EMPTY_FILTER);
   const [currentPlanDay, setCurrentPlanDay] = useState<string>(route.params?.initialDay || '1');
+  const [dayMenuOpen, setDayMenuOpen] = useState(false);
+  const planDays = useMemo(() => Object.keys(route.params?.planData || {}), [route.params?.planData]);
   // 지도가 idle될 때마다 WebView가 알려주는 현재 화면 영역
   const [mapBounds, setMapBounds] = useState<MapBounds | null>(null);
   const debouncedKeyword = useDebounce(searchQuery, 500);
@@ -292,12 +309,44 @@ export default function MapScreen() {
 
   const baseSpots = useMemo(() => {
     if (mode === 'plan-view' && route.params?.planData) {
-      return route.params.planData[currentPlanDay]?.spots || [];
+      const planData = route.params.planData;
+      if (currentPlanDay === ALL_DAYS) {
+        return planDays.flatMap((day) => withDayMeta(planData[day]?.spots || [], day));
+      }
+      return withDayMeta(planData[currentPlanDay]?.spots || [], currentPlanDay);
     }
     return route.params?.spots || apiSpots;
-  }, [mode, route.params?.spots, route.params?.planData, currentPlanDay, apiSpots]);
+  }, [mode, route.params?.spots, route.params?.planData, currentPlanDay, planDays, apiSpots]);
+
+  // 하단 요약 카드 값 — 계획 화면 통계와 같은 계산(getCourseStats)을 재사용한다.
+  // 값이 없는 항목은 " · " 구분자까지 같이 뺀다.
+  const planSummary = useMemo(() => {
+    const isAll = currentPlanDay === ALL_DAYS;
+    const title = isAll ? '전체 경로' : `DAY ${currentPlanDay} 경로`;
+    if (baseSpots.length === 0) return { isEmpty: true, title, meta: '등록된 스팟이 없어요' };
+
+    // 전체는 Day를 이어붙이지 않고 Day별 거리·시간을 각각 더한다(마지막 스팟 → 다음 날 첫 스팟은 이동이 아니다).
+    // 지도에 그리는 것과 같은 집합(withDayMeta로 좌표 검증을 통과한 스팟)으로 계산해야
+    // 같은 Day를 전체에서 볼 때와 따로 볼 때 거리가 달라지지 않는다.
+    const perDay = isAll
+      ? planDays.map((day) => getCourseStats(withDayMeta(route.params?.planData?.[day]?.spots || [], day)))
+      : [getCourseStats(baseSpots)];
+    const distanceKm = Math.round(perDay.reduce((sum, s) => sum + s.distanceKm, 0));
+
+    const parts = [`스팟 ${baseSpots.length}곳`];
+    if (distanceKm > 0) parts.push(`${distanceKm}km`);
+    if (isAll) {
+      parts.push(`${planDays.length}일`);
+    } else if (perDay[0].durationText !== '0분') {
+      parts.push(perDay[0].durationText);
+    }
+    return { isEmpty: false, title, meta: parts.join(' · ') };
+  }, [baseSpots, currentPlanDay, planDays, route.params?.planData]);
 
   const filteredSpots = useMemo(() => {
+    // 코스 보기에는 필터 UI 자체가 없다. 게다가 코스 스팟에는 tags 필드가 없어서
+    // 필터가 조금이라도 걸리면 spot.tags.some에서 터진다.
+    if (mode === 'plan-view') return baseSpots;
     return baseSpots.filter((spot: any) => {
       // 1. 카테고리 필터링
       if (selectedCategory !== 'all' && selectedCategory !== '전체') {
@@ -327,18 +376,28 @@ export default function MapScreen() {
 
       return true;
     });
-  }, [baseSpots, selectedCategory, detailFilter]);
+  }, [baseSpots, selectedCategory, detailFilter, mode]);
 
   // filteredSpots가 변경될 때마다 WebView에 메시지를 보내 마커 갱신
   // 단, 팝업이 열린 상태(activeSpot !== null)에서는 마커 재그리기 생략
   // → 마커 재그리기 시 발생하는 map click 이벤트가 팝업을 닫는 부작용 방지
+  // 코스 보기에서 Day를 바꾸면 그 Day 경로가 화면에 들어와야 한다.
+  // drawMarkers는 fitBounds가 true일 때만 카메라를 옮기므로, Day 전환 직후 한 번만 켠다.
+  const fitOnNextUpdateRef = useRef(false);
   useEffect(() => {
+    if (mode === 'plan-view') fitOnNextUpdateRef.current = true;
+  }, [currentPlanDay, mode]);
+
+  useEffect(() => {
+    // 이 갱신을 건너뛰더라도 플래그는 소비한다. 남겨두면 나중의 무관한 마커 갱신이 카메라를 옮긴다.
+    const shouldFit = hasKeyword || fitOnNextUpdateRef.current;
+    fitOnNextUpdateRef.current = false;
     if (webViewRef.current && mapReady && !activeSpot) {
-      // 검색 결과일 때만 카메라를 결과 위치로 옮긴다.
+      // 검색 결과이거나 Day를 전환한 직후에만 카메라를 옮긴다.
       // (지도 이동으로 받아온 핀까지 따라가면 사용자가 보던 영역이 계속 튄다)
       webViewRef.current.injectJavaScript(`
         if (window.updateMarkers) {
-          window.updateMarkers(${JSON.stringify(filteredSpots)}, ${hasKeyword});
+          window.updateMarkers(${JSON.stringify(filteredSpots)}, ${shouldFit});
         }
         true;
       `);
@@ -346,8 +405,10 @@ export default function MapScreen() {
   }, [filteredSpots, mapReady, activeSpot, hasKeyword]);
 
   const HTML = useMemo(() => {
+    // 첫 페인트도 Day 색으로 그리게 초기 스팟에도 메타를 실어둔다(이후는 updateMarkers가 담당).
+    const initialDay = route.params?.initialDay || '1';
     const initialSpots = (mode === 'plan-view' && route.params?.planData)
-      ? (route.params.planData[route.params.initialDay || '1']?.spots || [])
+      ? withDayMeta(route.params.planData[initialDay]?.spots || [], initialDay)
       : (route.params?.spots || []);
     const isCourseView = mode === 'plan-view' || !!route.params?.spots;
 
@@ -433,25 +494,36 @@ export default function MapScreen() {
       var isCourseView = ${isCourseView};
 
       var activeOverlays = [];
-      var activePolyline = null;
+      var activePolylines = [];
       var initialBoundsSet = false;  // 최초 1회만 bounds 맞춤, 이후 updateMarkers 호출 시 지도 이동 방지
 
+      // Day별로 나눠 각자의 색으로 그린다. 단일 Day를 보고 있으면 그룹이 하나뿐이라 결과가 같다.
       function drawPolyline(targetSpots) {
-        if (activePolyline) {
-          activePolyline.setMap(null);
-          activePolyline = null;
-        }
-        if (isCourseView && targetSpots && targetSpots.length > 0) {
-          var linePath = targetSpots.map(function(s) { return new kakao.maps.LatLng(s.lat, s.lng); });
-          activePolyline = new kakao.maps.Polyline({
-            path: linePath,
+        activePolylines.forEach(function(p) { p.setMap(null); });
+        activePolylines = [];
+        if (!isCourseView || !targetSpots || targetSpots.length === 0) return;
+
+        var groups = {};
+        var order = [];
+        targetSpots.forEach(function(s) {
+          var key = s.__day || 'single';
+          if (!groups[key]) { groups[key] = []; order.push(key); }
+          groups[key].push(s);
+        });
+
+        order.forEach(function(key) {
+          var group = groups[key];
+          if (group.length < 2) return;
+          var line = new kakao.maps.Polyline({
+            path: group.map(function(s) { return new kakao.maps.LatLng(s.lat, s.lng); }),
             strokeWeight: 3,
-            strokeColor: '#e31b59',
+            strokeColor: group[0].__dayColor || '#e31b59',
             strokeOpacity: 0.8,
             strokeStyle: 'solid'
           });
-          activePolyline.setMap(map);
-        }
+          line.setMap(map);
+          activePolylines.push(line);
+        });
       }
 
       function drawMarkers(targetSpots, fitBounds) {
@@ -475,7 +547,12 @@ export default function MapScreen() {
           content.className = 'custom-marker';
           // isCourseView일 때는 숫자, 아닐 때는 하트 아이콘
           if (isCourseView) {
-            content.innerHTML = '<span style="color:white; font-size:12px; font-weight:bold;">' + (index + 1) + '</span>';
+            // 전체 보기에서는 Day마다 색이 다르고 번호는 Day별로 1부터 다시 매겨진다.
+            if (spot.__dayColor) {
+              content.style.background = spot.__dayColor;
+              content.style.boxShadow = '0 2px 6px rgba(0,0,0,0.25)';
+            }
+            content.innerHTML = '<span style="color:white; font-size:12px; font-weight:bold;">' + (spot.__label || (index + 1)) + '</span>';
           } else {
             content.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>';
           }
@@ -495,7 +572,13 @@ export default function MapScreen() {
               yAnchor: 0.5
           });
 
-          clusterMarkers.push(customOverlay);
+          // 코스 보기는 핀이 많아야 열 몇 개인데, 묶이면 이 화면의 핵심인 번호와 Day 색이
+          // 클러스터 배지(단색) 뒤로 사라진다. 여러 Day가 한 클러스터에 들어가면 색을 정할 수도 없다.
+          if (isCourseView) {
+            customOverlay.setMap(map);
+          } else {
+            clusterMarkers.push(customOverlay);
+          }
           activeOverlays.push(customOverlay);
           markerBounds.extend(markerPosition);
         });
@@ -507,7 +590,18 @@ export default function MapScreen() {
         // 최초 1회, 그리고 검색 결과를 그릴 때만 지도 범위를 맞춘다.
         // (그 외에는 setBounds를 생략해야 사용자가 보던 영역이 유지된다)
         if ((fitBounds || !initialBoundsSet) && targetSpots.length > 0) {
-          map.setBounds(markerBounds);
+          if (isCourseView) {
+            // 코스 보기에만 적용한다. 일반 지도/키워드 검색까지 걸면 스팟 한 곳을 검색해도
+            // 축척 500m로 튕겨나가 기존 동작이 깨진다.
+            // 지도 위 오버레이(상단 헤더·Day 드롭다운, 하단 요약 카드)는 RN 뷰라 지도가 존재를 모른다.
+            // 패딩이 없으면 가장자리 핀이 그 뒤로 들어간다.
+            map.setBounds(markerBounds, 140, 40, 160, 40);
+            // 스팟끼리 가까우면 setBounds가 골목 단위까지 확대해버린다(스팟 2곳 3km짜리 Day 등).
+            // 레벨은 작을수록 확대 — 6(축척 500m)보다 더 파고들지 않게 자른다.
+            if (map.getLevel() < 6) map.setLevel(6);
+          } else {
+            map.setBounds(markerBounds);
+          }
           initialBoundsSet = true;
         }
 
@@ -564,6 +658,38 @@ export default function MapScreen() {
 
   // source 객체도 HTML 문자열이 바뀔 때만 새로 만들어 WebView가 재로딩되지 않게 한다.
   const mapSource = useMemo(() => ({ html: HTML, baseUrl: 'https://localhost' }), [HTML]);
+
+  const isAllDays = currentPlanDay === ALL_DAYS;
+  // "전체"는 대표 색이 없어 카드 아이콘만 1일차 색을 빌려 쓴다(점은 아래 DayDot이 겹쳐 표시).
+  const activeDayColor = isAllDays ? DAY_COLOR_PALETTE[0] : getDayColor(currentPlanDay);
+
+  // 드롭다운 각 행의 점. 전체는 Day 색을 최대 3개까지 겹쳐 보여준다.
+  // 비선택 행도 점은 원래 Day 색 그대로 둔다 — 이 점이 지도 경로 색의 범례라서
+  // 회색으로 죽이면 어느 Day가 무슨 색인지 알 수 없어진다(선택 표시는 배경·굵기로 충분).
+  // 슬롯 폭을 고정해야 "전체" 행과 Day 행의 라벨 시작 위치가 어긋나지 않는다.
+  const renderDayDot = (day: string) => {
+    const dot = (color: string, i: number) => (
+      <View
+        key={i}
+        style={{
+          width: normalize(8),
+          height: normalize(8),
+          borderRadius: normalize(4),
+          backgroundColor: color,
+          marginLeft: i === 0 ? 0 : -normalize(4),
+          borderWidth: i === 0 ? 0 : 1,
+          borderColor: '#fff',
+        }}
+      />
+    );
+    return (
+      <View style={{ width: normalize(16), flexDirection: 'row', alignItems: 'center' }}>
+        {day === ALL_DAYS
+          ? planDays.slice(0, 3).map((d, i) => dot(getDayColor(d).text, i))
+          : dot(getDayColor(day).text, 0)}
+      </View>
+    );
+  };
 
   if (!KAKAO_KEY) {
     return (
@@ -708,46 +834,48 @@ export default function MapScreen() {
                 </TouchableOpacity>
               </View>
             ) : (
-              <View style={{ flex: 1 }} />
+              /* 코스 보기 — Day 드롭다운.
+                 가로 세그먼트는 Day가 늘어날수록 화면 밖으로 밀려나서 드롭다운으로 바꿨다.
+                 닫힌 폭이 고정이라 2일이든 10일이든 헤더 모양이 같다. */
+              <View style={{ flex: 1, alignItems: 'flex-end' }}>
+                <TouchableOpacity
+                  onPress={() => setDayMenuOpen((v) => !v)}
+                  activeOpacity={0.8}
+                  hitSlop={{ top: 4, bottom: 4 }}
+                  style={{
+                    width: normalize(132),
+                    height: normalize(42),
+                    borderRadius: normalize(14),
+                    backgroundColor: '#fff',
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    paddingHorizontal: normalize(14),
+                    gap: normalize(8),
+                    shadowColor: '#000',
+                    shadowOffset: { width: 0, height: 1 },
+                    shadowOpacity: 0.12,
+                    shadowRadius: 3,
+                    elevation: 2,
+                  }}
+                >
+                  {renderDayDot(currentPlanDay)}
+                  <Text
+                    allowFontScaling={false}
+                    style={{ flex: 1, fontSize: FONT_MD, fontFamily: 'Pretendard-SemiBold', color: '#000', letterSpacing: -0.2 }}
+                  >
+                    {isAllDays ? '전체' : `DAY ${currentPlanDay}`}
+                  </Text>
+                  {dayMenuOpen
+                    ? <IconChevronUp size={normalize(16)} color="rgba(0,0,0,0.4)" strokeWidth={2} />
+                    : <IconChevronDown size={normalize(16)} color="rgba(0,0,0,0.4)" strokeWidth={2} />}
+                </TouchableOpacity>
+
+              </View>
             )}
           </View>
-          
-          <View className="mt-2 pointer-events-auto">
-            {mode === 'plan-view' ? (
-              <View className="flex-row items-center justify-between px-4 mt-2">
-                <Text className="font-semibold tracking-tight" style={{ color: '#E31B59', fontSize: normalizeFontSize(16) }}>
-                  DAY {currentPlanDay} 경로
-                </Text>
-                <ScrollView horizontal showsHorizontalScrollIndicator={false} className="flex-1 ml-4" contentContainerStyle={{ flexGrow: 1, justifyContent: 'flex-end', gap: 8 }}>
-                  {Object.keys(route.params?.planData || {}).map((dayStr) => {
-                    const isActive = dayStr === currentPlanDay;
-                    const bg = isActive ? '#E31B59' : '#f5f5f7';
-                    const textColor = isActive ? 'text-white' : 'text-black/50';
-                    return (
-                      <TouchableOpacity
-                        key={dayStr}
-                        onPress={() => setCurrentPlanDay(dayStr)}
-                        style={{
-                          paddingHorizontal: isActive ? 28 : 16,
-                          paddingVertical: 6,
-                          borderRadius: 20,
-                          backgroundColor: bg,
-                          shadowColor: '#000',
-                          shadowOffset: { width: 0, height: 1 },
-                          shadowOpacity: isActive ? 0.2 : 0,
-                          shadowRadius: 2,
-                          elevation: isActive ? 2 : 0,
-                        }}
-                      >
-                        <Text className={`${textColor} font-semibold tracking-tight`} style={{ fontSize: normalizeFontSize(12), letterSpacing: -0.2 }}>
-                          DAY {dayStr}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </ScrollView>
-              </View>
-            ) : (
+
+          {mode !== 'plan-view' && (
+            <View className="mt-2 pointer-events-auto">
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
@@ -782,8 +910,8 @@ export default function MapScreen() {
                   );
                 })}
               </ScrollView>
-            )}
-          </View>
+            </View>
+          )}
         </View>
         )}
 
@@ -804,7 +932,88 @@ export default function MapScreen() {
           showsVerticalScrollIndicator={false}
         />
 
-        {/* 우측 지도 편의 컨트롤 */}
+        {/* Day 드롭다운 스크림 — 헤더(z-20)보다 아래, 지도 컨트롤(z-10)보다 위 */}
+        {dayMenuOpen && (
+          <TouchableOpacity
+            activeOpacity={1}
+            onPress={() => setDayMenuOpen(false)}
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 15, backgroundColor: 'rgba(0,0,0,0.12)' }}
+          />
+        )}
+
+        {/* Day 드롭다운 목록 — 트리거(헤더) 안에 두면 부모 높이를 넘어가서 안드로이드가
+            영역 밖 자식에게 터치를 전달하지 않는다. 루트 형제로 빼고 좌표로 트리거 아래에 붙인다.
+            top = 헤더 + 트리거 세로 중앙정렬 여백(3) + 트리거 높이(42) + 간격(6) */}
+        {dayMenuOpen && (
+          <View
+            style={{
+              position: 'absolute',
+              top: HEADER_HEIGHT + normalize(51),
+              right: 16,
+              zIndex: 16,
+              width: normalize(132),
+              borderRadius: normalize(14),
+              backgroundColor: '#fff',
+              overflow: 'hidden',
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.16,
+              shadowRadius: 16,
+              elevation: 6,
+            }}
+          >
+            {/* 5행까지 노출하고 그 이상은 목록만 스크롤 */}
+            <ScrollView style={{ maxHeight: normalize(220) }} showsVerticalScrollIndicator={false}>
+              {/* "전체"는 목록 최상단 고정. 구분선은 전체 ↔ Day 경계에만 둔다 */}
+              {[ALL_DAYS, ...planDays].map((dayStr) => {
+                const isActive = dayStr === currentPlanDay;
+                const isAllRow = dayStr === ALL_DAYS;
+                const rowColor = isAllRow ? DAY_COLOR_PALETTE[0] : getDayColor(dayStr);
+                return (
+                  <View key={dayStr}>
+                    <TouchableOpacity
+                      onPress={() => {
+                        // 팝업이 열린 채로 Day를 바꾸면 마커 갱신 effect가 !activeSpot에서 막혀
+                        // 이전 Day 경로가 그대로 남는다. Day를 바꾸는 순간 팝업은 무효하니 닫는다.
+                        setActiveSpot(null);
+                        setCurrentPlanDay(dayStr);
+                        setDayMenuOpen(false);
+                      }}
+                      activeOpacity={0.7}
+                      style={{
+                        height: normalize(44),
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        paddingHorizontal: normalize(14),
+                        gap: normalize(8),
+                        backgroundColor: isActive ? rowColor.bg : 'transparent',
+                      }}
+                    >
+                      {renderDayDot(dayStr)}
+                      <Text
+                        allowFontScaling={false}
+                        style={{
+                          fontSize: FONT_MD,
+                          fontFamily: isActive ? 'Pretendard-SemiBold' : 'Pretendard-Regular',
+                          color: isActive ? rowColor.text : 'rgba(0,0,0,0.6)',
+                          letterSpacing: -0.2,
+                        }}
+                      >
+                        {isAllRow ? '전체' : `DAY ${dayStr}`}
+                      </Text>
+                    </TouchableOpacity>
+                    {isAllRow && (
+                      <View style={{ height: 1, marginHorizontal: normalize(14), backgroundColor: 'rgba(0,0,0,0.07)' }} />
+                    )}
+                  </View>
+                );
+              })}
+            </ScrollView>
+          </View>
+        )}
+
+        {/* 우측 지도 편의 컨트롤 — 드롭다운이 열리면 목록과 겹쳐서 숨긴다 */}
+        {!dayMenuOpen && (
         <View
           pointerEvents="box-none"
           style={{
@@ -884,6 +1093,67 @@ export default function MapScreen() {
             </TouchableOpacity>
           </View>
         </View>
+        )}
+
+        {/* 코스 보기 하단 요약 카드 — 지도 위에 얹혀 안 읽히던 "DAY N 경로" 텍스트를 대체한다.
+            스팟 팝업이 뜨면 겹치므로 숨긴다. bottom 값은 카카오 로고/축척을 가리지 않는 높이. */}
+        {mode === 'plan-view' && !activeSpot && (
+          <View
+            style={{
+              position: 'absolute',
+              // 드롭다운 목록(right:16)과 줌 컨트롤(right:16)이 raw 16이다. 헤더 행이 Tailwind
+              // px-4(= raw 16)를 쓰기 때문인데, 여기만 normalize하면 430dp에서 2px 어긋난다.
+              left: 16,
+              right: 16,
+              bottom: normalize(40),
+              zIndex: 10,
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: normalize(12),
+              paddingVertical: normalize(14),
+              paddingHorizontal: normalize(16),
+              borderRadius: normalize(16),
+              backgroundColor: '#fff',
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.12,
+              shadowRadius: 10,
+              elevation: 3,
+            }}
+          >
+            <View
+              style={{
+                width: normalize(36),
+                height: normalize(36),
+                borderRadius: normalize(10),
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: planSummary.isEmpty ? 'rgba(0,0,0,0.05)' : activeDayColor.bg,
+              }}
+            >
+              <IconRoute
+                size={ICON_SM}
+                color={planSummary.isEmpty ? 'rgba(0,0,0,0.3)' : activeDayColor.text}
+                strokeWidth={1.8}
+              />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text
+                allowFontScaling={false}
+                style={{ fontSize: FONT_MD, fontFamily: 'Pretendard-SemiBold', color: '#000', letterSpacing: -0.2 }}
+              >
+                {planSummary.title}
+              </Text>
+              <Text
+                allowFontScaling={false}
+                numberOfLines={1}
+                style={{ marginTop: normalize(2), fontSize: FONT_SM, fontFamily: 'Pretendard-Regular', color: 'rgba(0,0,0,0.5)', letterSpacing: -0.2 }}
+              >
+                {planSummary.meta}
+              </Text>
+            </View>
+          </View>
+        )}
 
         {mode === 'wishlist-change' ? (
           <BottomSheet visible={!!activeSpot} onClose={closeSheet}>

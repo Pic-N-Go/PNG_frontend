@@ -8,7 +8,6 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { mapMyReviewPages, mapPhotogenicScore, mapReviewPages, mapSpotDetail } from '@/utils/spotMappers';
 import type { ReviewCreateRequest, ReviewSortApi } from '@/types/spot';
 
-const checklistKey = (id: string) => ['spot', id, 'checklist'] as const;
 
 export function useSpotDetail(id: string) {
   // 응답에 유저별 값(myReviewId·isBookmarked)이 섞여 있어 토큰까지 키에 넣는다. 목록류와 같은 패턴.
@@ -234,63 +233,6 @@ export function useSpotPhotogenicScore(id: string, date?: string, time?: string)
     select: mapPhotogenicScore,
     // 날짜/시간 변경 시 이전 결과 유지 → 카드가 스피너로 무너지지 않고 재조회 오버레이만 표시
     placeholderData: keepPreviousData,
-  });
-}
-
-export function useChecklist(id: string) {
-  const token = useAuthStore((s) => s.accessToken);
-  return useQuery({
-    queryKey: checklistKey(id),
-    queryFn: () => spotApi.getChecklist(id, token as string),
-    enabled: !!id && !!token,
-  });
-}
-
-export function useAddChecklistItem(id: string) {
-  const token = useAuthStore((s) => s.accessToken);
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (content: string) => {
-      if (!token) return Promise.reject(new ApiError('로그인이 필요합니다.'));
-      return spotApi.addChecklistItem(id, content, token);
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: checklistKey(id) }),
-  });
-}
-
-export function useDeleteChecklistItem(id: string) {
-  const token = useAuthStore((s) => s.accessToken);
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (itemId: number) => {
-      if (!token) return Promise.reject(new ApiError('로그인이 필요합니다.'));
-      return spotApi.deleteChecklistItem(id, itemId, token);
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: checklistKey(id) }),
-  });
-}
-
-export function useHideDefaultChecklistItem(id: string) {
-  const token = useAuthStore((s) => s.accessToken);
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (defaultItemId: number) => {
-      if (!token) return Promise.reject(new ApiError('로그인이 필요합니다.'));
-      return spotApi.hideDefaultChecklistItem(id, defaultItemId, token);
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: checklistKey(id) }),
-  });
-}
-
-export function useRestoreDefaultChecklistItem(id: string) {
-  const token = useAuthStore((s) => s.accessToken);
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: (defaultItemId: number) => {
-      if (!token) return Promise.reject(new ApiError('로그인이 필요합니다.'));
-      return spotApi.restoreDefaultChecklistItem(id, defaultItemId, token);
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: checklistKey(id) }),
   });
 }
 
