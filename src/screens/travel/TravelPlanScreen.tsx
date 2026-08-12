@@ -41,6 +41,9 @@ import { FONT_XS, FONT_SM, FONT_MD, FONT_LG, CONTENT_PADDING, BUTTON_HEIGHT, BUT
 
 const KAKAO_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_API_KEY;
 
+// 백엔드 CourseService.validateDaySpotLimits 와 같은 값. 넘으면 동기화 요청 전체가 400으로 거부된다.
+const MAX_SPOTS_PER_DAY = 10;
+
 const getSunsetAndGoldenHour = (isoString?: string) => {
   if (!isoString) return { sunset: "정보 없음", golden: "정보 없음" };
   try {
@@ -499,6 +502,12 @@ export default function TravelPlanScreen({ navigation, route }: any) {
       spots: { courseSpotId?: number, spotId: number, dayNumber: number, sequenceOrder: number, memo?: string }[]
     }) => coursesApi.syncSpots(Number(planId), data),
     onSuccess: () => refetch(),
+    // 동기화가 실패했는데 화면은 낙관적으로 갱신된 상태라, 알리지 않으면 저장된 것처럼 보이다가
+    // 다시 들어왔을 때 조용히 사라진다. 실패를 알리고 화면을 서버 상태로 되돌린다.
+    onError: (error: any) => {
+      showToast(error?.message || "스팟을 저장하지 못했어요. 잠시 후 다시 시도해 주세요.");
+      refetch();
+    },
   });
 
   const deleteCourseMutation = useMutation({
@@ -534,11 +543,26 @@ export default function TravelPlanScreen({ navigation, route }: any) {
         
         const spotsToAdd = [...selectedSpots];
         clearSpots();
-        
+
         const currentSpots = data[currentDay]?.spots || [];
+        // 서버가 Day당 MAX_SPOTS_PER_DAY개를 넘으면 동기화 전체를 거부한다. 넘는 만큼은 담지 않는다.
+        // 그냥 보내면 이 Day를 줄이기 전까지 이후 모든 저장(순서 변경·삭제 포함)이 계속 실패한다.
+        const room = Math.max(0, MAX_SPOTS_PER_DAY - currentSpots.length);
+        const acceptedSpots = spotsToAdd.slice(0, room);
+        const rejectedCount = spotsToAdd.length - acceptedSpots.length;
+
+        if (rejectedCount > 0) {
+          showToast(
+            room === 0
+              ? `DAY ${currentDay}는 이미 ${MAX_SPOTS_PER_DAY}곳이라 더 담을 수 없어요`
+              : `DAY ${currentDay}는 ${MAX_SPOTS_PER_DAY}곳까지예요. ${acceptedSpots.length}곳만 담았어요`
+          );
+        }
+        if (acceptedSpots.length === 0) return;
+
         const newSpots = [
           ...currentSpots,
-          ...spotsToAdd.map((spot: any, idx) => ({
+          ...acceptedSpots.map((spot: any, idx) => ({
             id: `new_${Date.now()}_${idx}`, // 임시 ID
             realSpotId: spot.id,
             name: spot.title || spot.name || `스팟 ${spot.id}`,
