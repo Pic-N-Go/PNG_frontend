@@ -354,7 +354,14 @@ export default function TravelNewScreen() {
         <View className="w-9" />
       </View>
 
-      <ScrollView className="flex-1 bg-white" contentContainerStyle={{ paddingBottom: 100 }}>
+      {/* paddingBottom은 고정 CTA를 피하려던 여백이었다. CTA가 콘텐츠 안으로 들어와 불필요.
+          keyboardShouldPersistTaps: CTA가 ScrollView 안으로 들어와서, 기본값이면 이름 입력 중
+          첫 탭이 키보드 닫기로만 소모돼 저장하기를 두 번 눌러야 한다. */}
+      <ScrollView
+        className="flex-1 bg-white"
+        contentContainerStyle={{ paddingBottom: 24 }}
+        keyboardShouldPersistTaps="handled"
+      >
         {/* 출사 이름 */}
         <View className="pt-7" style={{ paddingHorizontal: CONTENT_PADDING }}>
           <Text className="font-medium text-black/40 mb-2" style={{ fontSize: normalizeFontSize(12) }}>출사 이름</Text>
@@ -524,28 +531,27 @@ export default function TravelNewScreen() {
         </View>
           </View>
         )}
-      </ScrollView>
-
-      {/* 하단 CTA */}
-      <View className="flex-row px-[28px] py-5 border-t border-gray-100 bg-white">
-        {!editMode && activeDay > 1 && (
-          <TouchableOpacity 
-            onPress={deleteCurrentDay}
-            className="flex-1 h-[52px] rounded-full bg-[#f5f5f7] items-center justify-center mr-3"
+        {/* CTA — 화면 하단 고정이 아니라 콘텐츠 맨 끝에 둔다 */}
+        <View className="flex-row px-[28px] py-5 bg-white">
+          {!editMode && activeDay > 1 && (
+            <TouchableOpacity
+              onPress={deleteCurrentDay}
+              className="flex-1 h-[52px] rounded-full bg-[#f5f5f7] items-center justify-center mr-3"
+            >
+              <Text className="font-medium text-black" style={{ fontSize: normalizeFontSize(16) }}>이 날 삭제</Text>
+            </TouchableOpacity>
+          )}
+          <TouchableOpacity
+            disabled={!tripName || isSaving}
+            onPress={handleSave}
+            className={`flex-1 h-[52px] rounded-full items-center justify-center ${tripName && !isSaving ? 'bg-[#e31b59]' : 'bg-[#f5f5f7]'}`}
           >
-            <Text className="font-medium text-black" style={{ fontSize: normalizeFontSize(16) }}>이 날 삭제</Text>
+            <Text className={`font-medium ${tripName && !isSaving ? 'text-white' : 'text-black/25'}`} style={{ fontSize: normalizeFontSize(16) }}>
+              {isSaving ? '저장 중...' : '저장하기'}
+            </Text>
           </TouchableOpacity>
-        )}
-        <TouchableOpacity
-          disabled={!tripName || isSaving}
-          onPress={handleSave}
-          className={`flex-1 h-[52px] rounded-full items-center justify-center ${tripName && !isSaving ? 'bg-[#e31b59]' : 'bg-[#f5f5f7]'}`}
-        >
-          <Text className={`font-medium ${tripName && !isSaving ? 'text-white' : 'text-black/25'}`} style={{ fontSize: normalizeFontSize(16) }}>
-            {isSaving ? '저장 중...' : '저장하기'}
-          </Text>
-        </TouchableOpacity>
-      </View>
+        </View>
+      </ScrollView>
 
       {/* --- 달력 바텀 시트 (간이 구현) --- */}
       <Modal visible={isDateSheetOpen} transparent animationType="slide">
