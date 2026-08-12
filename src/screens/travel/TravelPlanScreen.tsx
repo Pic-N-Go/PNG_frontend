@@ -601,52 +601,30 @@ export default function TravelPlanScreen({ navigation, route }: any) {
   };
 
 
-  const renderKakaoMapHTML = (
-    showAllDays = true,
-    drawLine = true,
-    isInteractive = false,
-  ) => {
-    let allMarkersHtml = "";
-    let allPolylinesHtml = "";
-    // 지도 시야는 선택된 Day만 기준으로 잡는다. 다른 Day 스팟까지 bounds에 넣으면
-    // 같은 지역 안 3km 코스를 보고 있어도 전국 단위로 축소돼 버린다(다른 Day는 흐리게만 표시).
-    let selectedDaySpots = 0;
+  // 선택한 Day 하나만 그린다. 여러 Day를 한눈에 보는 건 확대 지도의 "전체" 드롭다운 몫이다.
+  const renderKakaoMapHTML = () => {
+    const day = currentDay;
+    // currentDay가 data의 키라는 보장이 없다(일정이 줄어든 직후 등). 없으면 빈 지도로 둔다.
+    const spots: any[] = data[day]?.spots || [];
+    const color = getDayColor(day);
 
-    const daysToRender = showAllDays ? Object.keys(data) : [currentDay];
-
-    daysToRender.forEach((day) => {
-      // currentDay가 data의 키라는 보장이 없다(일정이 줄어든 직후 등). 없으면 빈 지도로 둔다.
-      // @ts-ignore
-      const spots = data[day]?.spots || [];
-      if (day === currentDay) selectedDaySpots = spots.length;
-      const isSelected = day === currentDay;
-      const opacity = isSelected ? 1 : 0.3;
-      // @ts-ignore
-      const color = getDayColor(day);
-
-      const markersHtml = spots
-        .map(
-          (spot: any, i: number) => `
+    const markersHtml = spots
+      .map(
+        (spot: any, i: number) => `
         var pos_${day}_${i} = new kakao.maps.LatLng(${spot.lat}, ${spot.lng});
-        ${isSelected ? `bounds.extend(pos_${day}_${i});` : ""}
-        
+        bounds.extend(pos_${day}_${i});
+
         var contentWrapper_${day}_${i} = document.createElement('div');
         // 래퍼가 블록이면 내용보다 넓게 잡혀 중앙 기준점이 실제 뱃지 중앙과 어긋난다 → 내용을 꼭 감싸게 한다
         contentWrapper_${day}_${i}.style.cssText = 'display:inline-block; font-size:0;';
-        contentWrapper_${day}_${i}.innerHTML = '<div style="background:${color.bg}; opacity:${opacity}; color:${color.text}; font-size:12px; font-weight:600; padding:4px 8px; border-radius:12px; box-shadow:0 2px 4px rgba(0,0,0,0.2); pointer-events:auto;">${i + 1}</div>';
-        
-        ${
-          isInteractive
-            ? `
+        contentWrapper_${day}_${i}.innerHTML = '<div style="background:${color.bg}; color:${color.text}; font-size:12px; font-weight:600; padding:4px 8px; border-radius:12px; box-shadow:0 2px 4px rgba(0,0,0,0.2); pointer-events:auto;">${i + 1}</div>';
+
         contentWrapper_${day}_${i}.onclick = function(e) {
             e.stopPropagation();
             cancelMapClose();
             window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'SPOT_CLICK', data: ${JSON.stringify(spot).replace(/</g, "\\u003c")} }));
         };
         contentWrapper_${day}_${i}.addEventListener('touchstart', function(e) { e.stopPropagation(); cancelMapClose(); }, { passive: true });
-        `
-            : ""
-        }
 
         // 꼬리 없는 둥근 뱃지라 가로·세로 모두 중앙을 좌표에 맞춘다.
         // 기준점이 어긋나면 폴리라인은 좌표에 그려지므로 선이 뱃지 중앙에 닿지 않는다.
@@ -658,13 +636,12 @@ export default function TravelPlanScreen({ navigation, route }: any) {
         });
         customOverlay_${day}_${i}.setMap(map);
       `,
-        )
-        .join("\n");
+      )
+      .join("\n");
 
-      allMarkersHtml += markersHtml + "\n";
-
-      if (drawLine && spots.length > 1) {
-        allPolylinesHtml += `
+    const polylineHtml =
+      spots.length > 1
+        ? `
           var linePath_${day} = [
             ${spots.map((spot: any) => `new kakao.maps.LatLng(${spot.lat}, ${spot.lng})`).join(",\n")}
           ];
@@ -672,13 +649,12 @@ export default function TravelPlanScreen({ navigation, route }: any) {
             path: linePath_${day},
             strokeWeight: 3,
             strokeColor: '${color.text}',
-            strokeOpacity: ${opacity},
+            strokeOpacity: 1,
             strokeStyle: 'shortdash'
           });
           polyline_${day}.setMap(map);
-        `;
-      }
-    });
+        `
+        : "";
 
     return `
       <!DOCTYPE html>
@@ -724,22 +700,16 @@ export default function TravelPlanScreen({ navigation, route }: any) {
                   if (pendingMapClose) { clearTimeout(pendingMapClose); pendingMapClose = null; }
                 }
                 
-                ${allMarkersHtml}
-                ${allPolylinesHtml}
-                
-                if (${selectedDaySpots} > 0) {
+                ${markersHtml}
+                ${polylineHtml}
+
+                if (${spots.length} > 0) {
                     map.setBounds(bounds, 50, 50, 50, 50);
                 }
 
-                ${
-                  isInteractive
-                    ? `
                 kakao.maps.event.addListener(map, 'click', function() {
                     scheduleMapClose();
                 });
-                `
-                    : ""
-                }
               }
               initMap();
             });
@@ -751,10 +721,8 @@ export default function TravelPlanScreen({ navigation, route }: any) {
 
   // 마커 선택(setState)마다 HTML 문자열이 새로 만들어져 WebView가 리로드되지 않도록,
   // data/currentDay가 바뀔 때만 재생성한다.
-  // 선택한 Day만 그린다(showAllDays=false). 여러 Day를 한눈에 보는 건 확대 지도의
-  // "전체" 드롭다운이 담당한다. 여기서 다른 Day를 흐리게 겹쳐 그리면 선택 상태만 흐려진다.
   const interactiveMapHtml = React.useMemo(
-    () => renderKakaoMapHTML(false, true, true),
+    () => renderKakaoMapHTML(),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [data, currentDay]
   );
