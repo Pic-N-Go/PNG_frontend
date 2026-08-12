@@ -37,7 +37,7 @@ import Toast from "@/components/common/Toast";
 import CourseChecklistSection from "@/components/travel/CourseChecklistSection";
 import { getCourseStats } from "@/utils/distance";
 import { getDayColor } from "@/constants/dayColors";
-import { FONT_XS, FONT_SM, FONT_MD, FONT_LG, CONTENT_PADDING, BUTTON_HEIGHT, BUTTON_RADIUS, CARD_RADIUS, HEADER_HEIGHT } from "@/constants/layout";
+import { FONT_XS, FONT_SM, FONT_MD, FONT_LG, CONTENT_PADDING, BUTTON_HEIGHT, BUTTON_RADIUS, CARD_RADIUS, HEADER_HEIGHT, ICON_SM } from "@/constants/layout";
 
 const KAKAO_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_API_KEY;
 
@@ -802,7 +802,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
               activeOpacity={0.8}
               onPress={() => navigation.navigate('Map', { source: 'plan-view', planData: data, initialDay: currentDay, from: 'TravelPlan' })}
             >
-              <IconArrowsMaximize size={20} color="#000" />
+              <IconArrowsMaximize size={normalize(20)} color="#000" />
             </TouchableOpacity>
           </View>
         )}
@@ -867,7 +867,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
     () => (
       <View className="mt-9">
         {/* 섹션 제목 3개(타임라인 · DAY N 날씨 · 촬영 체크리스트)는 FONT_LG + 아래 간격 16으로 통일 */}
-        <Text className="text-black tracking-[-0.3px] mb-4" style={{ fontSize: FONT_LG, fontFamily: "Pretendard-SemiBold" }}>
+        <Text allowFontScaling={false} className="text-black tracking-[-0.3px] mb-4" style={{ fontSize: FONT_LG, fontFamily: "Pretendard-SemiBold" }}>
           DAY {currentDay} 날씨
         </Text>
         {hasValidWeather ? (
@@ -883,15 +883,15 @@ export default function TravelPlanScreen({ navigation, route }: any) {
           >
             {/* wand/sparkles 계열은 짧은 획이 round cap으로 뭉쳐 점처럼 보임 → 획이 긴 아이콘으로 교체 */}
             <IconCloudQuestion
-              size={32}
+              size={normalize(32)}
               strokeWidth={1.5}
               color="rgba(0,0,0,0.25)"
               style={{ marginBottom: normalize(12) }}
             />
-            <Text className="font-semibold text-black" style={{ fontSize: FONT_MD, marginBottom: normalize(4) }}>
+            <Text allowFontScaling={false} className="font-semibold text-black" style={{ fontSize: FONT_MD, marginBottom: normalize(4) }}>
               날씨 요정도 아직 모른대요
             </Text>
-            <Text className="text-center" style={{ fontSize: FONT_SM, color: "rgba(0,0,0,0.5)" }}>
+            <Text allowFontScaling={false} className="text-center" style={{ fontSize: FONT_SM, color: "rgba(0,0,0,0.5)" }}>
               어떤 날씨든 완벽한 여행이 될 거예요!
             </Text>
           </View>
@@ -912,7 +912,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
         style={{
           paddingVertical: normalize(32),
           paddingHorizontal: normalize(24),
-          borderRadius: normalize(16),
+          borderRadius: CARD_RADIUS,
           borderWidth: 1,
           borderStyle: "dashed",
           borderColor: "rgba(0,0,0,0.12)",
@@ -965,7 +965,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
             gap: normalize(6),
           }}
         >
-          {!isError && <IconPlus size={normalize(18)} color="#fff" strokeWidth={2} />}
+          {!isError && <IconPlus size={ICON_SM} color="#fff" strokeWidth={2} />}
           <Text
             allowFontScaling={false}
             style={{ fontFamily: "Pretendard-SemiBold", fontSize: FONT_MD, fontWeight: "600", color: "#fff", letterSpacing: -0.2 }}
@@ -995,7 +995,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
           onPress={handleAddSpot}
           className="h-12 border-[1px] border-dashed border-black/15 rounded-2xl items-center justify-center mt-9 flex-row"
         >
-          <Text className="text-black/40 font-medium" style={{ fontSize: FONT_MD }}>
+          <Text allowFontScaling={false} className="text-black/40 font-medium" style={{ fontSize: FONT_MD }}>
             + 스팟 추가하기
           </Text>
         </TouchableOpacity>
@@ -1005,13 +1005,13 @@ export default function TravelPlanScreen({ navigation, route }: any) {
       {currentWeather && currentWeather.sunsetTime && (
         <View className="flex-row gap-3 p-4 bg-[#f5f5f7] rounded-2xl items-center mt-9">
           <View className="w-8 h-8 rounded-lg bg-[#e31b59]/10 items-center justify-center shrink-0">
-            <IconBulb size={16} color="#e31b59" />
+            <IconBulb size={normalize(16)} color="#e31b59" />
           </View>
           <View className="flex-1">
-            <Text className="font-semibold text-black tracking-[-0.15px] mb-0.5" style={{ fontSize: normalizeFontSize(14) }}>
+            <Text allowFontScaling={false} className="font-semibold text-black tracking-[-0.15px] mb-0.5" style={{ fontSize: normalizeFontSize(14) }}>
               오늘의 촬영 팁
             </Text>
-            <Text className="text-black/50 leading-relaxed" style={{ fontSize: FONT_XS }}>
+            <Text allowFontScaling={false} className="text-black/50 leading-relaxed" style={{ fontSize: FONT_XS }}>
               {(() => {
                 const { sunset, golden } = getSunsetAndGoldenHour(currentWeather.sunsetTime);
                 const fineDust = currentWeather.fineDustStatus ? `미세먼지 ${currentWeather.fineDustStatus} · ` : '';
@@ -1045,7 +1045,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
             className="rounded-full bg-[#e31b59] items-center justify-center"
             style={{ height: BUTTON_HEIGHT }}
           >
-            <Text className="font-medium text-white" style={{ fontSize: FONT_MD }}>
+            <Text allowFontScaling={false} className="font-medium text-white" style={{ fontSize: FONT_MD }}>
               편집 완료
             </Text>
           </TouchableOpacity>
@@ -1057,7 +1057,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
             className="flex-1 rounded-full bg-[#f5f5f7] items-center justify-center"
             style={{ height: BUTTON_HEIGHT }}
           >
-            <Text className="font-medium text-black" style={{ fontSize: FONT_MD }}>
+            <Text allowFontScaling={false} className="font-medium text-black" style={{ fontSize: FONT_MD }}>
               코스 편집
             </Text>
           </TouchableOpacity>
@@ -1066,7 +1066,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
             className="flex-1 rounded-full bg-[#e31b59] items-center justify-center"
             style={{ height: BUTTON_HEIGHT }}
           >
-            <Text className="font-medium text-white" style={{ fontSize: FONT_MD }}>
+            <Text allowFontScaling={false} className="font-medium text-white" style={{ fontSize: FONT_MD }}>
               바로 출발
             </Text>
           </TouchableOpacity>
@@ -1138,7 +1138,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
             >
               {/* 제목 + 점수 배지는 한 행. justify-between으로 밀지 않고 gap으로 붙여 한 덩어리로 읽히게 한다 */}
               <View className="flex-row items-center gap-2 mb-1.5">
-                <Text
+                <Text allowFontScaling={false}
                   className="font-semibold text-black tracking-[-0.2px] shrink" style={{ fontSize: FONT_MD }}
                   numberOfLines={1}
                 >
@@ -1158,7 +1158,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
               </View>
               {Boolean(item.loc) && (
                 // 한 줄로 자르면 장소를 특정하는 도로명·번지가 잘려나가고 광역 단위만 남는다 → 2줄 허용
-                <Text
+                <Text allowFontScaling={false}
                   className="text-black/40"
                   style={{ fontSize: FONT_XS, lineHeight: normalize(16) }}
                   numberOfLines={2}
@@ -1266,11 +1266,11 @@ export default function TravelPlanScreen({ navigation, route }: any) {
           <View className="bg-white">
             <View className="mb-4" style={{ paddingHorizontal: CONTENT_PADDING }}>
               <View>
-                <Text className="text-black tracking-[-0.3px]" style={{ fontSize: FONT_LG, fontFamily: "Pretendard-SemiBold" }}>
+                <Text allowFontScaling={false} className="text-black tracking-[-0.3px]" style={{ fontSize: FONT_LG, fontFamily: "Pretendard-SemiBold" }}>
                   타임라인
                 </Text>
                 {/* 탭 아래에 떠 있으면 소속이 애매해 제목 서브라인으로. 네비의 기간 표기와는 요일 유무로 구분 */}
-                <Text className="text-black/40 tracking-[-0.1px] mt-1" style={{ fontSize: normalizeFontSize(14) }}>
+                <Text allowFontScaling={false} className="text-black/40 tracking-[-0.1px] mt-1" style={{ fontSize: normalizeFontSize(14) }}>
                   {currentData.date}
                 </Text>
               </View>

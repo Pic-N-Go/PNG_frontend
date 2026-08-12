@@ -17,7 +17,7 @@ import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { getCourseStats } from '@/utils/distance';
 import { parseValidCoordinate } from '@/utils/geo';
 import { getDayColor, DAY_COLOR_PALETTE } from '@/constants/dayColors';
-import { FONT_SM, FONT_MD, BUTTON_HEIGHT, BUTTON_RADIUS, HEADER_HEIGHT } from '@/constants/layout';
+import { FONT_SM, FONT_MD, BUTTON_HEIGHT, BUTTON_RADIUS, HEADER_HEIGHT, ICON_SM } from '@/constants/layout';
 
 const KAKAO_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_API_KEY;
 
@@ -1132,7 +1132,7 @@ export default function MapScreen() {
               }}
             >
               <IconRoute
-                size={normalize(18)}
+                size={ICON_SM}
                 color={planSummary.isEmpty ? 'rgba(0,0,0,0.3)' : activeDayColor.text}
                 strokeWidth={1.8}
               />

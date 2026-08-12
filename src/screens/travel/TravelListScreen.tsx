@@ -1,7 +1,7 @@
 import React, { useState, useRef } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, Animated, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { FONT_SM, FONT_MD, FONT_LG, FONT_2XL, BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING, CARD_RADIUS } from '@/constants/layout';
+import { FONT_SM, FONT_MD, FONT_LG, FONT_2XL, BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING, CARD_RADIUS, ICON_SM } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { IconPlus, IconChevronRight, IconCalendarEvent, IconMapPin, IconClock, IconRoute, IconMap, IconAlertCircle } from '@tabler/icons-react-native';
 import Skeleton from '@/components/common/Skeleton';
@@ -291,7 +291,7 @@ export default function TravelListScreen({ navigation }: any) {
                 gap: normalize(6),
               }}
             >
-              {!isLoadingError && <IconPlus size={normalize(18)} color="#fff" strokeWidth={2} />}
+              {!isLoadingError && <IconPlus size={ICON_SM} color="#fff" strokeWidth={2} />}
               <Text
                 allowFontScaling={false}
                 style={{ fontSize: FONT_MD, fontFamily: 'Pretendard-SemiBold', color: '#fff', letterSpacing: -0.2 }}
