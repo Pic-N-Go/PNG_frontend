@@ -34,23 +34,11 @@ import CourseMoreSheet from "@/components/travel/CourseMoreSheet";
 import { parseValidCoordinate } from "@/utils/geo";
 import CourseShareSheet from "@/components/travel/CourseShareSheet";
 import CourseChecklistSection from "@/components/travel/CourseChecklistSection";
-import { getDistanceFromLatLonInKm } from "@/utils/distance";
+import { getCourseStats } from "@/utils/distance";
+import { getDayColor } from "@/constants/dayColors";
 import { FONT_XS, FONT_SM, FONT_MD, FONT_LG, CONTENT_PADDING, BUTTON_HEIGHT, BUTTON_RADIUS, CARD_RADIUS, HEADER_HEIGHT } from "@/constants/layout";
 
 const KAKAO_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_API_KEY;
-
-// 스팟 상세 북마크(BookmarkSheet.tsx COLLECTION_COLOR_PALETTE)와 동일한 5색.
-// bg는 스와치에 실제로 보이는 연한 톤, text는 선택 시 테두리/체크에 쓰이는 진한 톤.
-// 6일째부터는 다시 1번 색상부터 순환한다.
-const DAY_COLOR_PALETTE = [
-  { bg: "#FFF0F3", text: "#E31B59" },
-  { bg: "#E8F3FF", text: "#0071E3" },
-  { bg: "#F3F0FF", text: "#7C3AED" },
-  { bg: "#E8F5EB", text: "#34C759" },
-  { bg: "#FFF3E0", text: "#FF9F0A" },
-];
-const getDayColor = (day: string) =>
-  DAY_COLOR_PALETTE[(parseInt(day, 10) - 1) % DAY_COLOR_PALETTE.length];
 
 const getSunsetAndGoldenHour = (isoString?: string) => {
   if (!isoString) return { sunset: "정보 없음", golden: "정보 없음" };
@@ -417,7 +405,10 @@ export default function TravelPlanScreen({ navigation, route }: any) {
 
   useEffect(() => {
     if (course) {
-      setData(mapCourseToData(course));
+      const next = mapCourseToData(course);
+      setData(next);
+      // 일정이 줄면(3박 → 1박) 보고 있던 Day가 사라진다. 남겨두면 빈 화면에 갇히므로 1일차로 되돌린다.
+      setCurrentDay((day) => (next[day] ? day : "1"));
     }
   }, [course]);
 
@@ -441,34 +432,8 @@ export default function TravelPlanScreen({ navigation, route }: any) {
   const statValueColor = isDayEmpty ? "rgba(0,0,0,0.35)" : "#000";
 
   const { totalDistance, totalDurationFormatted } = React.useMemo(() => {
-    if (!currentData || !currentData.spots) return { totalDistance: 0, totalDurationFormatted: "0분" };
-    let distance = 0;
-    let durationMins = 0;
-    
-    for (let i = 0; i < currentData.spots.length; i++) {
-      const current = currentData.spots[i];
-      if (i < currentData.spots.length - 1) {
-        const next = currentData.spots[i + 1];
-        if (current.lat && current.lng && next.lat && next.lng) {
-          const legDist = getDistanceFromLatLonInKm(current.lat, current.lng, next.lat, next.lng);
-          distance += legDist;
-          if (next.travelTimeMinutes != null) {
-            durationMins += next.travelTimeMinutes;
-          } else if (legDist > 0) {
-            durationMins += Math.max(1, Math.round((legDist / 35) * 60));
-          }
-        } else if (next.travelTimeMinutes != null) {
-          durationMins += next.travelTimeMinutes;
-        }
-      }
-    }
-    
-    const h = Math.floor(durationMins / 60);
-    const m = durationMins % 60;
-    const durStr = durationMins > 0
-      ? (h > 0 ? (m > 0 ? `약 ${h}시간 ${m}분` : `약 ${h}시간`) : `약 ${m}분`)
-      : "0분";
-    return { totalDistance: Math.round(distance), totalDurationFormatted: durStr };
+    const { distanceKm, durationText } = getCourseStats(currentData?.spots);
+    return { totalDistance: Math.round(distanceKm), totalDurationFormatted: durationText };
   }, [currentData]);
 
   const handleMapMessage = (event: any) => {
@@ -642,8 +607,9 @@ export default function TravelPlanScreen({ navigation, route }: any) {
     const daysToRender = showAllDays ? Object.keys(data) : [currentDay];
 
     daysToRender.forEach((day) => {
+      // currentDay가 data의 키라는 보장이 없다(일정이 줄어든 직후 등). 없으면 빈 지도로 둔다.
       // @ts-ignore
-      const spots = data[day].spots;
+      const spots = data[day]?.spots || [];
       if (day === currentDay) selectedDaySpots = spots.length;
       const isSelected = day === currentDay;
       const opacity = isSelected ? 1 : 0.3;
@@ -777,8 +743,10 @@ export default function TravelPlanScreen({ navigation, route }: any) {
 
   // 마커 선택(setState)마다 HTML 문자열이 새로 만들어져 WebView가 리로드되지 않도록,
   // data/currentDay가 바뀔 때만 재생성한다.
+  // 선택한 Day만 그린다(showAllDays=false). 여러 Day를 한눈에 보는 건 확대 지도의
+  // "전체" 드롭다운이 담당한다. 여기서 다른 Day를 흐리게 겹쳐 그리면 선택 상태만 흐려진다.
   const interactiveMapHtml = React.useMemo(
-    () => renderKakaoMapHTML(true, true, true),
+    () => renderKakaoMapHTML(false, true, true),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [data, currentDay]
   );
