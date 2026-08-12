@@ -32,7 +32,8 @@ import {
 import NaviSheet from "@/components/spot/NaviSheet";
 import CourseMoreSheet from "@/components/travel/CourseMoreSheet";
 import { parseValidCoordinate } from "@/utils/geo";
-import CourseShareSheet from "@/components/travel/CourseShareSheet";
+import ShareSheet from "@/components/common/ShareSheet";
+import Toast from "@/components/common/Toast";
 import CourseChecklistSection from "@/components/travel/CourseChecklistSection";
 import { getCourseStats } from "@/utils/distance";
 import { getDayColor } from "@/constants/dayColors";
@@ -390,6 +391,13 @@ export default function TravelPlanScreen({ navigation, route }: any) {
   const [isMoreSheetVisible, setIsMoreSheetVisible] = useState(false);
   const [isShareSheetVisible, setShareSheetVisible] = useState(false);
   const [data, setData] = useState<Record<string, any>>(MOCK_DATA);
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+
+  const showToast = (message: string) => {
+    setToastMessage(message);
+    setToastVisible(true);
+  };
 
   const { data: course, refetch, isLoading: isCourseLoading, isError: isCourseError } = useQuery({
     queryKey: ['course', planId],
@@ -1343,16 +1351,13 @@ export default function TravelPlanScreen({ navigation, route }: any) {
         }}
       />
 
-      <CourseShareSheet
+      <ShareSheet
         visible={isShareSheetVisible}
         onClose={() => setShareSheetVisible(false)}
-        courseName={course?.title || "출사 계획"}
-        spotCount={(course?.spots || []).length}
-        onCopyLink={() => Alert.alert('알림', '링크가 복사되었습니다.')}
-        onSaveImage={() => Alert.alert('알림', '이미지로 저장 기능은 준비중입니다.')}
-        onExportPdf={() => Alert.alert('알림', 'PDF로 내보내기 기능은 준비중입니다.')}
-        onShareSocial={(platform) => Alert.alert('알림', `${platform} 공유 기능은 준비중입니다.`)}
+        onShared={(message) => showToast(message)}
       />
+
+      <Toast message={toastMessage} visible={toastVisible} onHide={() => setToastVisible(false)} />
 
       </KeyboardAvoidingView>
     </SafeAreaView>

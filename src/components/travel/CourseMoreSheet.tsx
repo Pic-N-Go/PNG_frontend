@@ -78,9 +78,14 @@ export default function CourseMoreSheet({
           <View className="w-10 h-10 rounded-lg items-center justify-center mr-3">
             <IconCalendarPlus size={20} color="#333" strokeWidth={1.5} />
           </View>
-          <View className="flex-1 justify-center">
-            <Text className="font-semibold text-black tracking-[-0.3px]" style={{ fontSize: normalizeFontSize(16) }}>캘린더에 추가</Text>
-            <Text className="font-normal text-[#888] mt-0.5 tracking-[-0.2px]" style={{ fontSize: normalizeFontSize(12) }}>iOS 캘린더 · Google 캘린더</Text>
+          <View className="flex-1 justify-center flex-row items-center">
+            <View className="flex-1">
+              <Text className="font-semibold text-black tracking-[-0.3px]" style={{ fontSize: normalizeFontSize(16) }}>캘린더에 추가</Text>
+              <Text className="font-normal text-[#888] mt-0.5 tracking-[-0.2px]" style={{ fontSize: normalizeFontSize(12) }}>iOS 캘린더 · Google 캘린더</Text>
+            </View>
+            <View className="bg-black px-2 py-1 rounded-xl">
+              <Text className="text-white font-semibold" style={{ fontSize: normalizeFontSize(10) }}>BETA</Text>
+            </View>
           </View>
         </TouchableOpacity>
 
