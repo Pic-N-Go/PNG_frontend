@@ -752,7 +752,8 @@ export default function TravelPlanScreen({ navigation, route }: any) {
   );
 
   const renderHeader = () => (
-    <View className="bg-white pt-4 pb-2">
+    // 지도는 헤더 구분선에 붙인다. 위 여백을 두면 구분선과 지도 사이가 떠 보인다.
+    <View className="bg-white pb-2">
         {/* Map Area — 스팟 0개면 지도 SDK를 비운 채 두지 않고 플레이스홀더로 교체(같은 높이 유지) */}
         {isDayEmpty ? (
           <View
