@@ -44,6 +44,9 @@ const KAKAO_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_API_KEY;
 // 백엔드 CourseService.validateDaySpotLimits 와 같은 값. 넘으면 동기화 요청 전체가 400으로 거부된다.
 const MAX_SPOTS_PER_DAY = 10;
 
+// data[currentDay]가 없을 때 쓰는 빈 Day. 매 렌더 새 객체가 생기지 않게 모듈 상수로 둔다.
+const EMPTY_DAY = { date: "", spots: [] as any[], transports: {} as Record<string, any>, tip: "" };
+
 const getSunsetAndGoldenHour = (isoString?: string) => {
   if (!isoString) return { sunset: "정보 없음", golden: "정보 없음" };
   try {
@@ -433,7 +436,13 @@ export default function TravelPlanScreen({ navigation, route }: any) {
   const rowHeights = useRef<{ [key: string]: number }>({});
 
 
-  const currentData = data[currentDay];
+  // data[currentDay]가 없을 수 있다(일정 축소 직후, 날짜가 깨져 diffDays가 NaN인 코스 등).
+  // 렌더 경로 여러 곳이 currentData를 직접 참조하므로 빈 Day를 기본값으로 둬 크래시를 막는다.
+  // useMemo로 참조를 고정해야 아래 useMemo들이 매 렌더 재계산되지 않는다.
+  const currentData = React.useMemo(
+    () => data[currentDay] ?? EMPTY_DAY,
+    [data, currentDay]
+  );
 
   // 계획 전체가 아니라 현재 선택된 Day 기준. DAY 1에 스팟이 있고 DAY 2가 비면 DAY 2에서만 비활성으로 보인다.
   const isDayEmpty = (currentData?.spots?.length ?? 0) === 0;
@@ -504,9 +513,18 @@ export default function TravelPlanScreen({ navigation, route }: any) {
     onSuccess: () => refetch(),
     // 동기화가 실패했는데 화면은 낙관적으로 갱신된 상태라, 알리지 않으면 저장된 것처럼 보이다가
     // 다시 들어왔을 때 조용히 사라진다. 실패를 알리고 화면을 서버 상태로 되돌린다.
-    onError: (error: any) => {
+    //
+    // refetch()만 호출하면 안 된다. 동기화가 거부됐으면 서버 데이터가 그대로이므로 응답이
+    // 이전과 deeply equal이고, TanStack Query의 structural sharing이 같은 참조를 돌려준다.
+    // 그러면 [course] 의존 effect가 재실행되지 않아 거부된 낙관적 상태가 화면에 남는다.
+    // 결과를 직접 받아 setData 한다.
+    onError: async (error: any) => {
       showToast(error?.message || "스팟을 저장하지 못했어요. 잠시 후 다시 시도해 주세요.");
-      refetch();
+      const { data: fresh } = await refetch();
+      if (!fresh) return;
+      const restored = mapCourseToData(fresh);
+      setData(restored);
+      setCurrentDay((day) => (restored[day] ? day : "1"));
     },
   });
 
@@ -629,7 +647,12 @@ export default function TravelPlanScreen({ navigation, route }: any) {
   const renderKakaoMapHTML = () => {
     const day = currentDay;
     // currentDay가 data의 키라는 보장이 없다(일정이 줄어든 직후 등). 없으면 빈 지도로 둔다.
-    const spots: any[] = data[day]?.spots || [];
+    // 좌표는 이 아래에서 생성 JS에 그대로 보간되므로, 숫자가 아닌 값이 섞이면 스크립트나
+    // bounds 계산이 깨진다. mapCourseToData는 falsy 폴백만 하므로 여기서 한 번 더 검증한다.
+    const spots: any[] = (data[day]?.spots || []).flatMap((spot: any) => {
+      const coord = parseValidCoordinate(spot.lat, spot.lng);
+      return coord ? [{ ...spot, lat: coord.latitude, lng: coord.longitude }] : [];
+    });
     const color = getDayColor(day);
 
     const markersHtml = spots

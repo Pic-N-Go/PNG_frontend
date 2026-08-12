@@ -1101,8 +1101,10 @@ export default function MapScreen() {
           <View
             style={{
               position: 'absolute',
-              left: normalize(16),
-              right: normalize(16),
+              // 드롭다운 목록(right:16)과 줌 컨트롤(right:16)이 raw 16이다. 헤더 행이 Tailwind
+              // px-4(= raw 16)를 쓰기 때문인데, 여기만 normalize하면 430dp에서 2px 어긋난다.
+              left: 16,
+              right: 16,
               bottom: normalize(40),
               zIndex: 10,
               flexDirection: 'row',

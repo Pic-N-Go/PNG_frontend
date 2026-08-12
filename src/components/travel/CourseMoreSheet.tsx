@@ -9,7 +9,16 @@ import {
 } from '@tabler/icons-react-native';
 import BottomSheet from '@/components/common/BottomSheet';
 import { normalizeFontSize } from '@/utils/normalize';
-import { CONTENT_PADDING, GRID_PADDING } from '@/constants/layout';
+import { CONTENT_PADDING, GRID_PADDING, FONT_2XS } from '@/constants/layout';
+
+// 미구현 항목 표시. 공동 편집자 초대·캘린더 추가 두 곳에서 같은 모양으로 쓴다.
+function BetaBadge() {
+  return (
+    <View className="bg-black px-2 py-1 rounded-xl">
+      <Text allowFontScaling={false} className="text-white font-semibold" style={{ fontSize: FONT_2XS }}>BETA</Text>
+    </View>
+  );
+}
 
 interface CourseMoreSheetProps {
   visible: boolean;
@@ -68,9 +77,7 @@ export default function CourseMoreSheet({
               <Text className="font-semibold text-black tracking-[-0.3px]" style={{ fontSize: normalizeFontSize(16) }}>공동 편집자 초대</Text>
               <Text className="font-normal text-[#888] mt-0.5 tracking-[-0.2px]" style={{ fontSize: normalizeFontSize(12) }}>함께 갈 친구 추가</Text>
             </View>
-            <View className="bg-black px-2 py-1 rounded-xl">
-              <Text className="text-white font-semibold" style={{ fontSize: normalizeFontSize(10) }}>BETA</Text>
-            </View>
+            <BetaBadge />
           </View>
         </TouchableOpacity>
 
@@ -83,9 +90,7 @@ export default function CourseMoreSheet({
               <Text className="font-semibold text-black tracking-[-0.3px]" style={{ fontSize: normalizeFontSize(16) }}>캘린더에 추가</Text>
               <Text className="font-normal text-[#888] mt-0.5 tracking-[-0.2px]" style={{ fontSize: normalizeFontSize(12) }}>iOS 캘린더 · Google 캘린더</Text>
             </View>
-            <View className="bg-black px-2 py-1 rounded-xl">
-              <Text className="text-white font-semibold" style={{ fontSize: normalizeFontSize(10) }}>BETA</Text>
-            </View>
+            <BetaBadge />
           </View>
         </TouchableOpacity>
 

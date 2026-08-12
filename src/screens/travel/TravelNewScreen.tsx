@@ -26,7 +26,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useCourseStore, Spot } from '@/store/useCourseStore';
 import Toast from '@/components/common/Toast';
 
-import { BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING } from '@/constants/layout';
+import { BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING, FONT_MD } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 
 // --- Types ---
@@ -532,21 +532,23 @@ export default function TravelNewScreen() {
           </View>
         )}
         {/* CTA — 화면 하단 고정이 아니라 콘텐츠 맨 끝에 둔다 */}
-        <View className="flex-row px-[28px] py-5 bg-white">
+        <View className="flex-row py-5 bg-white" style={{ paddingHorizontal: CONTENT_PADDING }}>
           {!editMode && activeDay > 1 && (
             <TouchableOpacity
               onPress={deleteCurrentDay}
-              className="flex-1 h-[52px] rounded-full bg-[#f5f5f7] items-center justify-center mr-3"
+              className="flex-1 rounded-full bg-[#f5f5f7] items-center justify-center mr-3"
+              style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}
             >
-              <Text className="font-medium text-black" style={{ fontSize: normalizeFontSize(16) }}>이 날 삭제</Text>
+              <Text allowFontScaling={false} className="font-medium text-black" style={{ fontSize: FONT_MD }}>이 날 삭제</Text>
             </TouchableOpacity>
           )}
           <TouchableOpacity
             disabled={!tripName || isSaving}
             onPress={handleSave}
-            className={`flex-1 h-[52px] rounded-full items-center justify-center ${tripName && !isSaving ? 'bg-[#e31b59]' : 'bg-[#f5f5f7]'}`}
+            className={`flex-1 items-center justify-center ${tripName && !isSaving ? 'bg-[#e31b59]' : 'bg-[#f5f5f7]'}`}
+            style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}
           >
-            <Text className={`font-medium ${tripName && !isSaving ? 'text-white' : 'text-black/25'}`} style={{ fontSize: normalizeFontSize(16) }}>
+            <Text allowFontScaling={false} className={`font-medium ${tripName && !isSaving ? 'text-white' : 'text-black/25'}`} style={{ fontSize: FONT_MD }}>
               {isSaving ? '저장 중...' : '저장하기'}
             </Text>
           </TouchableOpacity>

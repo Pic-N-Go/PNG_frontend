@@ -53,7 +53,7 @@ export default function TravelListScreen({ navigation }: any) {
   // isError 대신 isLoadingError를 쓴다. TanStack Query는 캐시된 데이터가 있어도 백그라운드
   // 요청이 실패하면 status를 'error'로 올리는데, isError로 분기하면 화면에 이미 있는 목록이
   // 에러 화면으로 덮인다. isLoadingError는 "보여줄 데이터가 없는 실패"만 true다.
-  const { data: courses = [], refetch, isLoading, isLoadingError, isFetching } = useQuery({
+  const { data: courses = [], refetch, isLoading, isLoadingError } = useQuery({
     queryKey: ['courses'],
     queryFn: coursesApi.getCourses,
   });
@@ -95,8 +95,7 @@ export default function TravelListScreen({ navigation }: any) {
   //   (로딩 중에 "전체 0 · 진행 중 0 …" 칩이 스켈레톤 위에 떴다가 사라지며 레이아웃이 튀는 것을 막는다)
   // showEmptyState: 빈 상태 블록을 그릴지. 결과가 확정된 뒤에만.
   const hasNoPlans = plans.length === 0;
-  const isRefetchingEmpty = isFetching && plans.length === 0;
-  const showEmptyState = !isLoading && !isRefetchingEmpty && !isLoadingError && plans.length === 0;
+  const showEmptyState = !isLoading && !isLoadingError && plans.length === 0;
 
   // 계획이 0개가 되면 선택된 탭도 초기화한다. 남겨두면 '지난 출사'에서 마지막 계획을 지운 뒤
   // 새 계획을 만들었을 때 칩이 '지난 출사' 활성으로 돌아와 방금 만든 계획이 안 보인다.
@@ -219,9 +218,9 @@ export default function TravelListScreen({ navigation }: any) {
         )}
 
         {/* 로딩 — 빈 상태 대신 카드 스켈레톤. 필터 칩은 감춘 채로 둔다.
-            isRefetchingEmpty까지 포함해야, 첫 계획을 만들고 돌아온 직후 캐시가 아직 []인 동안
-            "첫 출사 계획을 세워볼까요"가 잠깐 스치는 것을 막는다. */}
-        {isLoading || isRefetchingEmpty ? (
+            첫 조회에서만 띄운다. isFetching을 넣으면 useFocusEffect의 refetch 때문에
+            계획이 0개인 계정은 탭에 들어올 때마다 빈 상태가 스켈레톤으로 덮인다. */}
+        {isLoading ? (
           <View style={{ paddingHorizontal: CONTENT_PADDING, paddingTop: normalize(20), paddingBottom: normalize(20) }}>
             {[0, 1, 2].map((i, index) => (
               <Skeleton
