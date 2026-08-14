@@ -30,6 +30,8 @@
   - 실제 날씨 API 연동
   - 지도(MapScreen) 구현 — 별도 이슈
   - 인기 스팟 / 캘린더 실제 API 연동
+    - 인기 스팟은 이후 `docs/ai/specs/feature/home-popular-spots-api/home-popular-spots-api.md`에서 연동 완료
+      (섹션 제목도 "이번 주 인기 스팟" → "인기 스팟"으로 정정 — 서버에 주간 집계가 없음)
   - 탭바 스타일링 — MainTab 네비게이터에서 처리
   - 위시리스트 화면 구현
 

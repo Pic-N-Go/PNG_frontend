@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import React from 'react';
+import { Image, Pressable, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { IconBookmark } from '@tabler/icons-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
@@ -10,12 +10,22 @@ interface Props {
   item: SpotItem;
   // TODO: 스팟 상세 네비게이션 파라미터 확정 후 onPress 연결
   onPress?: () => void;
+  /**
+   * 북마크 아이콘 탭. 저장 여부는 `item.isBookmarked`(서버 값)만 신뢰하고 카드는 상태를 갖지 않는다 —
+   * 컬렉션 선택 시트를 거쳐야 실제 저장이 끝나므로 낙관적 토글은 거짓 표시가 된다.
+   * 넘기지 않으면 아이콘 자체를 그리지 않는다 (비로그인 — 담을 컬렉션이 없다).
+   */
+  onBookmarkPress?: () => void;
 }
 
-export default function SpotCard({ item, onPress }: Props) {
-  const [bookmarked, setBookmarked] = useState(item.isBookmarked);
+// 사진도 그라디언트도 없는 스팟용 폴백. 카드가 흰 사각형으로 비는 것만 막으면 되므로 한 벌만 둔다.
+const FALLBACK_GRADIENT: [string, string, string] = ['#2C3E50', '#4A6572', '#8B9DA8'];
 
-  const stars = Array.from({ length: 5 }, (_, i) => i < Math.round(item.rating) ? '★' : '☆').join('');
+export default function SpotCard({ item, onPress, onBookmarkPress }: Props) {
+  const bookmarked = item.isBookmarked;
+
+  const rating = item.rating ?? 0;
+  const stars = Array.from({ length: 5 }, (_, i) => i < Math.round(rating) ? '★' : '☆').join('');
 
   return (
     <View style={{ width: normalize(220), borderRadius: CARD_RADIUS, overflow: 'hidden', backgroundColor: '#F5F5F7' }}>
@@ -28,10 +38,18 @@ export default function SpotCard({ item, onPress }: Props) {
     >
       {/* 사진 영역 */}
       <View style={{ height: normalize(160), position: 'relative' }}>
-        <LinearGradient
-          colors={item.gradientColors}
-          style={{ position: 'absolute', inset: 0 }}
-        />
+        {item.imageUrl ? (
+          <Image
+            source={{ uri: item.imageUrl }}
+            resizeMode="cover"
+            style={{ position: 'absolute', inset: 0 }}
+          />
+        ) : (
+          <LinearGradient
+            colors={item.gradientColors ?? FALLBACK_GRADIENT}
+            style={{ position: 'absolute', inset: 0 }}
+          />
+        )}
 
         {item.badge && (
           <View
@@ -61,28 +79,30 @@ export default function SpotCard({ item, onPress }: Props) {
           </View>
         )}
 
-        <Pressable
-          onPress={() => setBookmarked((v) => !v)}
-          hitSlop={8}
-          style={{
-            position: 'absolute',
-            top: normalize(10),
-            right: normalize(10),
-            width: normalize(28),
-            height: normalize(28),
-            borderRadius: normalize(14),
-            backgroundColor: bookmarked ? '#fff' : 'rgba(0,0,0,0.25)',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <IconBookmark
-            size={normalize(14)}
-            color={bookmarked ? '#E31B59' : '#fff'}
-            strokeWidth={1.5}
-            fill={bookmarked ? '#E31B59' : 'none'}
-          />
-        </Pressable>
+        {onBookmarkPress && (
+          <Pressable
+            onPress={onBookmarkPress}
+            hitSlop={8}
+            style={{
+              position: 'absolute',
+              top: normalize(10),
+              right: normalize(10),
+              width: normalize(28),
+              height: normalize(28),
+              borderRadius: normalize(14),
+              backgroundColor: bookmarked ? '#fff' : 'rgba(0,0,0,0.25)',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <IconBookmark
+              size={normalize(14)}
+              color={bookmarked ? '#E31B59' : '#fff'}
+              strokeWidth={1.5}
+              fill={bookmarked ? '#E31B59' : 'none'}
+            />
+          </Pressable>
+        )}
       </View>
 
       {/* 정보 영역 */}
@@ -123,7 +143,7 @@ export default function SpotCard({ item, onPress }: Props) {
         >
           {stars}{' '}
           <Text style={{ color: 'rgba(0,0,0,0.3)', marginLeft: normalize(4) }}>
-            {item.rating.toFixed(1)}
+            {rating.toFixed(1)}
           </Text>
         </Text>
 
@@ -147,7 +167,7 @@ export default function SpotCard({ item, onPress }: Props) {
           </Text>
           <Text allowFontScaling={false}>
             <Text style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, color: '#E31B59' }}>
-              {item.photoScore}
+              {item.photoScore ?? 0}
             </Text>
             <Text style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(10), color: 'rgba(0,0,0,0.2)' }}>
               /100

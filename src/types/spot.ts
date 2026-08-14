@@ -1,5 +1,8 @@
 export type SpotBadge = 'HOT' | 'NEW';
 
+// 홈 스팟 카드 표시 모델.
+// badge·gradientColors는 서버(SpotResponse)가 주지 않는 값이라 optional —
+// badge는 목업 전용(HOT/NEW)이고, gradientColors는 사진이 없을 때만 쓰는 폴백이다.
 export interface SpotItem {
   id: string;
   name: string;
@@ -9,7 +12,8 @@ export interface SpotItem {
   photoScore: number;
   badge?: SpotBadge;
   isBookmarked: boolean;
-  gradientColors: [string, string, string];
+  imageUrl?: string | null;
+  gradientColors?: [string, string, string];
 }
 
 export interface CalendarEvent {
@@ -433,6 +437,11 @@ export interface SpotResponse {
   reviewCount: number;
   photogenicScore: number;
   reviewAverage: number;
+  /**
+   * 이 스팟이 내 북마크 컬렉션 중 하나 이상에 담겨 있는지. 유저별 값이라 토큰을 보내야 채워지고,
+   * 비로그인 조회는 서버가 항상 false로 내려준다. 구버전 서버 호환을 위해 optional.
+   */
+  isBookmarked?: boolean;
 }
 
 export interface PageSpotResponse {
