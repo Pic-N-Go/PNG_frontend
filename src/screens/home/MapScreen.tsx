@@ -99,6 +99,75 @@ export default function MapScreen() {
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
 
+  // 1. 앱 최초 구동 (지도 화면 마운트) 시 위치 권한 자동 요청
+  useEffect(() => {
+    const requestLocationPermissionOnStart = async () => {
+      try {
+        const { status: existingStatus } = await Location.getForegroundPermissionsAsync();
+        if (existingStatus === Location.PermissionStatus.UNDETERMINED) {
+          await Location.requestForegroundPermissionsAsync();
+        }
+      } catch (err) {
+        console.warn('[MapScreen] requestLocationPermissionOnStart error:', err);
+      }
+    };
+    void requestLocationPermissionOnStart();
+  }, []);
+
+  // 2. 위치 실시간 추적 및 웹뷰에 주입
+  useEffect(() => {
+    let subscription: any = null;
+
+    const startLocationTracking = async () => {
+      try {
+        const { status } = await Location.getForegroundPermissionsAsync();
+        if (status === Location.PermissionStatus.GRANTED && mapReady) {
+          // 초기 위치 조회 및 반영
+          const lastKnown = await Location.getLastKnownPositionAsync();
+          if (lastKnown && webViewRef.current) {
+            webViewRef.current.injectJavaScript(`
+              if (window.updateUserLocation) {
+                window.updateUserLocation(${lastKnown.coords.latitude}, ${lastKnown.coords.longitude});
+              }
+              true;
+            `);
+          }
+
+          // 실시간 위치 추적 구독
+          subscription = await Location.watchPositionAsync(
+            {
+              accuracy: Location.Accuracy.Balanced,
+              timeInterval: 3000,
+              distanceInterval: 5,
+            },
+            (location) => {
+              if (webViewRef.current) {
+                webViewRef.current.injectJavaScript(`
+                  if (window.updateUserLocation) {
+                    window.updateUserLocation(${location.coords.latitude}, ${location.coords.longitude});
+                  }
+                  true;
+                `);
+              }
+            }
+          );
+        }
+      } catch (error) {
+        console.error('[MapScreen] startLocationTracking error:', error);
+      }
+    };
+
+    if (mapReady) {
+      void startLocationTracking();
+    }
+
+    return () => {
+      if (subscription) {
+        subscription.remove();
+      }
+    };
+  }, [mapReady]);
+
   const showToast = (message: string) => {
     setToastMessage(message);
     setToastVisible(true);
@@ -460,6 +529,19 @@ export default function MapScreen() {
       box-shadow: 0 2px 6px rgba(227, 27, 89, 0.35); border: 2px solid white;
     }
     .custom-marker svg { width: 12px; height: 12px; fill: white; pointer-events: none; }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(0, 122, 255, 0.6); transform: scale(0.95); }
+      70% { box-shadow: 0 0 0 10px rgba(0, 122, 255, 0); transform: scale(1.15); }
+      100% { box-shadow: 0 0 0 0 rgba(0, 122, 255, 0); transform: scale(0.95); }
+    }
+    .user-location-dot {
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: #007AFF;
+      border: 2.5px solid #FFFFFF;
+      box-shadow: 0 0 6px rgba(0,122,255,0.8);
+      animation: pulse 2s infinite;
+    }
   </style>
 </head>
 <body>
@@ -641,6 +723,30 @@ export default function MapScreen() {
           drawMarkers(parsed, fitBounds);
         } catch (e) {
           console.error("updateMarkers Error: ", e);
+        }
+      };
+
+      // 실시간 내 위치 표시용 변수 및 함수 노출
+      var userLocationOverlay = null;
+      window.updateUserLocation = function(lat, lng) {
+        try {
+          var locPosition = new kakao.maps.LatLng(lat, lng);
+          if (userLocationOverlay) {
+            userLocationOverlay.setPosition(locPosition);
+          } else {
+            var contentNode = document.createElement('div');
+            contentNode.className = 'user-location-dot';
+            userLocationOverlay = new kakao.maps.CustomOverlay({
+              map: map,
+              position: locPosition,
+              content: contentNode,
+              xAnchor: 0.5,
+              yAnchor: 0.5,
+              zIndex: 10
+            });
+          }
+        } catch (err) {
+          console.error("updateUserLocation Error: ", err);
         }
       };
 
