@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Platform, PermissionsAndroid, BackHandler, Image, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Platform, BackHandler, Image, TextInput, Alert, Linking } from 'react-native';
 import { WebView } from 'react-native-webview';
+import * as Location from 'expo-location';
 import { IconChevronLeft, IconSearch, IconAdjustmentsHorizontal, IconFocus2, IconX, IconChevronDown, IconChevronUp, IconRoute } from '@tabler/icons-react-native';
 import { useNavigation, useRoute, useFocusEffect, CommonActions } from '@react-navigation/native';
 import { useCourseStore, Spot } from '@/store/useCourseStore';
@@ -273,37 +274,59 @@ export default function MapScreen() {
   }, []);
 
   const handleMyLocation = useCallback(async () => {
-    if (Platform.OS === 'android') {
-      try {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+    try {
+      // 1. 위치 권한 확인 및 요청
+      const { status: existingStatus } = await Location.getForegroundPermissionsAsync();
+      let finalStatus = existingStatus;
+
+      if (existingStatus !== Location.PermissionStatus.GRANTED) {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        finalStatus = status;
+      }
+
+      if (finalStatus !== Location.PermissionStatus.GRANTED) {
+        Alert.alert(
+          '위치 권한 필요',
+          '내 위치 주변으로 지도를 이동하려면 기기 설정에서 위치 권한을 허용해 주세요.',
+          [
+            { text: '취소', style: 'cancel' },
+            {
+              text: '설정으로 이동',
+              onPress: () => {
+                void Linking.openSettings();
+              },
+            },
+          ]
         );
-        if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-          console.log('Location permission denied');
-          return;
-        }
-      } catch (err) {
-        console.warn(err);
         return;
       }
-    }
 
-    if (webViewRef.current) {
-      webViewRef.current.injectJavaScript(`
-        if (window.kakaoMap) {
-          if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(function(position) {
-              var lat = position.coords.latitude;
-              var lng = position.coords.longitude;
-              window.kakaoMap.setCenter(new kakao.maps.LatLng(lat, lng));
-            }, function(error) {
-              window.kakaoMap.setCenter(new kakao.maps.LatLng(35.1532, 129.1186));
-            });
-          } else {
+      // 2. 현재 GPS 좌표 가져오기
+      const location = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
+      const { latitude, longitude } = location.coords;
+
+      // 3. 웹뷰 내 카카오 맵 중심좌표 이동
+      if (webViewRef.current) {
+        webViewRef.current.injectJavaScript(`
+          if (window.kakaoMap) {
+            window.kakaoMap.setCenter(new kakao.maps.LatLng(${latitude}, ${longitude}));
+          }
+          true;
+        `);
+      }
+    } catch (err) {
+      console.warn('[MapScreen] handleMyLocation error:', err);
+      // 에러 발생 시 기본 좌표(부산 광안리)로 이동
+      if (webViewRef.current) {
+        webViewRef.current.injectJavaScript(`
+          if (window.kakaoMap) {
             window.kakaoMap.setCenter(new kakao.maps.LatLng(35.1532, 129.1186));
           }
-        }
-      `);
+          true;
+        `);
+      }
     }
   }, []);
 
