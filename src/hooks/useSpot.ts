@@ -3,7 +3,7 @@
 import { keepPreviousData, useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ApiError } from '@/api/auth';
 import { spotApi } from '@/api/spot';
-import type { ReviewPhotoUpload, MapSpotsParams, GetSpotsParams, SearchSpotsParams } from '@/api/spot';
+import type { ReviewPhotoUpload, MapSpotsParams, GetSpotsParams, SearchSpotsParams, NearbySpotsParams } from '@/api/spot';
 import { useAuthStore } from '@/store/useAuthStore';
 import { mapMyReviewPages, mapPhotogenicScore, mapReviewPages, mapSpotDetail } from '@/utils/spotMappers';
 import type { ReviewCreateRequest, ReviewSortApi } from '@/types/spot';
@@ -77,6 +77,26 @@ export function useSearchSpots(params: SearchSpotsParams, options?: QueryToggle)
     enabled: hasKeyword && (options?.enabled ?? true),
     staleTime: SPOTS_STALE_TIME,
     placeholderData: keepPreviousData,
+  });
+}
+
+export interface UseNearbySpotsParams {
+  lat?: number;
+  lng?: number;
+  radiusKm?: number;
+  limit?: number;
+}
+
+export function useNearbySpots(params: UseNearbySpotsParams, options?: QueryToggle) {
+  const token = useAuthStore((s) => s.accessToken);
+  const { lat, lng, radiusKm = 5.0, limit = 20 } = params;
+  const isCoordValid = lat !== undefined && lng !== undefined && !isNaN(lat) && !isNaN(lng);
+
+  return useQuery({
+    queryKey: ['spots', 'nearby', lat, lng, radiusKm, limit, token ?? 'guest'],
+    queryFn: () => spotApi.getNearbySpots({ lat: lat!, lng: lng!, radiusKm, limit, token: token ?? undefined }),
+    enabled: isCoordValid && (options?.enabled ?? true),
+    staleTime: SPOTS_STALE_TIME,
   });
 }
 

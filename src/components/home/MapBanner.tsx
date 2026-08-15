@@ -15,9 +15,11 @@ const PINS = [
 
 interface Props {
   onPress: () => void;
+  spotCount?: number;
+  isLoading?: boolean;
 }
 
-export default function MapBanner({ onPress }: Props) {
+export default function MapBanner({ onPress, spotCount = 0, isLoading }: Props) {
   return (
     <View style={{ height: normalize(160), borderRadius: CARD_RADIUS, overflow: 'hidden' }}>
       <Pressable
@@ -124,7 +126,7 @@ export default function MapBanner({ onPress }: Props) {
             allowFontScaling={false}
             style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_XS, color: '#fff' }}
           >
-            주변 스팟 4개
+            {isLoading ? '주변 스팟 탐색 중...' : `주변 스팟 ${spotCount}개`}
           </Text>
         </View>
       </Pressable>
