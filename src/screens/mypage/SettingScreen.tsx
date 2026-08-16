@@ -112,22 +112,6 @@ export default function SettingScreen({ navigation }: Props) {
     );
   };
 
-  const openLocationSettingsAlert = () => {
-    Alert.alert(
-      '위치 권한 필요',
-      '앱 사용 중 내 위치 기능을 이용하려면 기기 설정에서 위치 권한을 허용해야 합니다.',
-      [
-        { text: '취소', style: 'cancel' },
-        {
-          text: '설정으로 이동',
-          onPress: () => {
-            void Linking.openSettings();
-          },
-        },
-      ]
-    );
-  };
-
   const handleLocationPress = () => {
     Alert.alert(
       '위치 권한 설정',

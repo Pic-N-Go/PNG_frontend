@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Platform, BackHandler, Image, TextInput, Alert, Linking } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, BackHandler, Image, TextInput, Alert, Linking } from 'react-native';
 import { WebView } from 'react-native-webview';
 import * as Location from 'expo-location';
 import { IconChevronLeft, IconSearch, IconAdjustmentsHorizontal, IconFocus2, IconX, IconChevronDown, IconChevronUp, IconRoute } from '@tabler/icons-react-native';
