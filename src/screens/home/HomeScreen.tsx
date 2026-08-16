@@ -21,6 +21,34 @@ import { useNearbySpots } from '@/hooks/useSpot';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'Home'>;
 
+// 한국 행정구역 주소에서 '동/읍/면' 우선 추출 (없을 경우 중복 없는 '구/시')
+function extractDongOrDistrict(geo: Location.LocationGeocodedAddress): string {
+  const fields = [geo.subregion, geo.district, geo.name, geo.street, geo.city].filter(Boolean) as string[];
+
+  // 1. '동', '읍', '면', '리' 단어 우선 탐색 (예: 불당동, 역삼동, 조치원읍)
+  const dongRegex = /([가-힣0-9]+(?:동|읍|면|리))\b/;
+  for (const field of fields) {
+    const match = field.match(dongRegex);
+    if (match && match[1]) {
+      const name = match[1];
+      if (!['동구', '남구', '서구', '북구', '중구'].includes(name)) {
+        return name;
+      }
+    }
+  }
+
+  // 2. 동/읍/면이 없으면 '구'나 '시' 추출
+  const cityOrDistrictRegex = /([가-힣]+(?:구|시))\b/;
+  for (const field of fields) {
+    const match = field.match(cityOrDistrictRegex);
+    if (match && match[1]) {
+      return match[1];
+    }
+  }
+
+  return geo.district || geo.city || geo.region || '내 위치';
+}
+
 export default function HomeScreen({ navigation }: Props) {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [activeFilterCount, setActiveFilterCount] = useState(0);
@@ -33,7 +61,7 @@ export default function HomeScreen({ navigation }: Props) {
     isReal: false,
   });
 
-  const [userAddress, setUserAddress] = useState<string>('서울시');
+  const [userAddress, setUserAddress] = useState<string>('내 위치');
 
   useEffect(() => {
     const initUserLocation = async () => {
@@ -64,7 +92,7 @@ export default function HomeScreen({ navigation }: Props) {
     void initUserLocation();
   }, []);
 
-  // 사용자 주소 역지오코딩 (예: '서울 종로구', '부산 수영구')
+  // 사용자 주소 역지오코딩 (동/읍/면 단위 추출)
   useEffect(() => {
     const fetchAddress = async () => {
       try {
@@ -74,28 +102,9 @@ export default function HomeScreen({ navigation }: Props) {
             longitude: userLocation.lng,
           });
           if (geo) {
-            const region = (geo.region || geo.city || '')
-              .replace('서울특별시', '서울')
-              .replace('부산광역시', '부산')
-              .replace('대구광역시', '대구')
-              .replace('인천광역시', '인천')
-              .replace('광주광역시', '광주')
-              .replace('대전광역시', '대전')
-              .replace('울산광역시', '울산')
-              .replace('세종특별자치시', '세종')
-              .replace('경기도', '경기')
-              .replace('강원특별자치도', '강원')
-              .replace('충청북도', '충북')
-              .replace('충청남도', '충남')
-              .replace('전라북도', '전북')
-              .replace('전라남도', '전남')
-              .replace('경상북도', '경북')
-              .replace('경상남도', '경남')
-              .replace('제주특별자치도', '제주');
-            const district = geo.district || geo.city || geo.subregion || '';
-            const fullAddr = `${region} ${district}`.trim();
-            if (fullAddr) {
-              setUserAddress(fullAddr);
+            const dongOrDistrict = extractDongOrDistrict(geo);
+            if (dongOrDistrict) {
+              setUserAddress(dongOrDistrict);
             }
           }
         }

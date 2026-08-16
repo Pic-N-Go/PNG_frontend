@@ -1,17 +1,12 @@
 import React, { useMemo } from 'react';
 import { Pressable, Text, View } from 'react-native';
+import { WebView } from 'react-native-webview';
 import { LinearGradient } from 'expo-linear-gradient';
-import Svg, { Path, Circle, Line } from 'react-native-svg';
 import { IconMapPin } from '@tabler/icons-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { CARD_RADIUS, FONT_XS } from '@/constants/layout';
 
-const DEFAULT_PINS = [
-  { left: '30%', top: '42%', large: true },
-  { left: '62%', top: '32%', large: false },
-  { left: '80%', top: '65%', large: false },
-  { left: '46%', top: '74%', large: false },
-];
+const KAKAO_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_API_KEY;
 
 export interface SpotPin {
   latitude: number;
@@ -28,29 +23,79 @@ interface Props {
 }
 
 export default function MapBanner({ onPress, spotCount = 0, isLoading, userLocation, spots }: Props) {
-  const pinsToRender = useMemo(() => {
-    if (spots && spots.length > 0 && userLocation && userLocation.lat && userLocation.lng) {
-      return spots.slice(0, 8).map((spot, idx) => {
-        const deltaLat = spot.latitude - userLocation.lat;
-        const deltaLng = spot.longitude - userLocation.lng;
-        // 5km 이내 좌표를 맵 배너 영역(% 단위)으로 투영
-        const xRatio = Math.max(-1, Math.min(1, deltaLng / 0.045));
-        const yRatio = Math.max(-1, Math.min(1, deltaLat / 0.035));
-        const leftPercent = Math.max(12, Math.min(88, 50 + xRatio * 38));
-        const topPercent = Math.max(15, Math.min(85, 52 - yRatio * 38));
-        return {
-          id: spot.id,
-          left: `${leftPercent.toFixed(1)}%`,
-          top: `${topPercent.toFixed(1)}%`,
-          large: idx === 0,
-        };
-      });
+  const mapHtml = useMemo(() => {
+    const centerLat = userLocation?.lat ?? 37.5665;
+    const centerLng = userLocation?.lng ?? 126.9780;
+    const spotItems = (spots || []).map((s) => ({
+      lat: s.latitude,
+      lng: s.longitude,
+    }));
+
+    return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+  <meta name="referrer" content="no-referrer">
+  <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_KEY}&autoload=false"></script>
+  <style>
+    body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #e8e8ed; }
+    #map { width: 100%; height: 100%; }
+    .me-dot {
+      width: 18px; height: 18px; border-radius: 50%;
+      background: rgba(227, 27, 89, 0.2);
+      display: flex; align-items: center; justify-content: center;
     }
-    return DEFAULT_PINS.map((p, idx) => ({ id: idx, ...p }));
-  }, [spots, userLocation]);
+    .me-dot-inner {
+      width: 9px; height: 9px; border-radius: 50%;
+      background: #E31B59; border: 2px solid #ffffff;
+      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <script>
+    kakao.maps.load(function() {
+      var mapContainer = document.getElementById('map');
+      var mapOption = {
+        center: new kakao.maps.LatLng(${centerLat}, ${centerLng}),
+        level: 6,
+        draggable: false,
+        zoomable: false
+      };
+      var map = new kakao.maps.Map(mapContainer, mapOption);
+
+      // 내 위치 중앙 오버레이
+      var meContent = '<div class="me-dot"><div class="me-dot-inner"></div></div>';
+      new kakao.maps.CustomOverlay({
+        map: map,
+        position: new kakao.maps.LatLng(${centerLat}, ${centerLng}),
+        content: meContent,
+        xAnchor: 0.5,
+        yAnchor: 0.5,
+        zIndex: 10
+      });
+
+      // 주변 스팟 핀
+      var spots = ${JSON.stringify(spotItems)};
+      spots.forEach(function(s) {
+        if (s.lat && s.lng) {
+          new kakao.maps.Marker({
+            map: map,
+            position: new kakao.maps.LatLng(s.lat, s.lng)
+          });
+        }
+      });
+    });
+  </script>
+</body>
+</html>
+`;
+  }, [userLocation?.lat, userLocation?.lng, spots]);
 
   return (
-    <View style={{ height: normalize(160), borderRadius: CARD_RADIUS, overflow: 'hidden' }}>
+    <View style={{ height: normalize(160), borderRadius: CARD_RADIUS, overflow: 'hidden', backgroundColor: '#e8e8ed' }}>
       <Pressable
         onPress={onPress}
         style={({ pressed }) => ({
@@ -59,83 +104,25 @@ export default function MapBanner({ onPress, spotCount = 0, isLoading, userLocat
           transform: [{ scale: pressed ? 0.99 : 1 }],
         })}
       >
-        {/* 지도 배경 */}
-        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#e8e8ed' }} />
-
-        {/* 격자선 + 도로선 */}
-        <Svg style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} width="100%" height="100%" viewBox="0 0 334 160" preserveAspectRatio="none">
-          <Line x1="0" y1="53" x2="100%" y2="53" stroke="rgba(0,0,0,0.04)" strokeWidth="0.5" />
-          <Line x1="0" y1="106" x2="100%" y2="106" stroke="rgba(0,0,0,0.04)" strokeWidth="0.5" />
-          <Line x1="33%" y1="0" x2="33%" y2="100%" stroke="rgba(0,0,0,0.04)" strokeWidth="0.5" />
-          <Line x1="66%" y1="0" x2="66%" y2="100%" stroke="rgba(0,0,0,0.04)" strokeWidth="0.5" />
-          <Path d="M0 90Q80 70 150 82Q230 95 310 65" stroke="rgba(0,0,0,0.06)" strokeWidth="3" fill="none" strokeLinecap="round" />
-          <Path d="M150 0Q138 60 150 82Q162 104 140 160" stroke="rgba(0,0,0,0.06)" strokeWidth="3" fill="none" strokeLinecap="round" />
-        </Svg>
-
-        {/* 핀들 */}
-        {pinsToRender.map((pin) => {
-          const w = normalize(pin.large ? 22 : 18);
-          const h = normalize(pin.large ? 27 : 22);
-          return (
-            <View
-              key={pin.id}
-              style={{
-                position: 'absolute',
-                left: pin.left as any,
-                top: pin.top as any,
-                transform: [{ translateX: -w / 2 }, { translateY: -h }],
-              }}
-            >
-              <Svg width={w} height={h} viewBox="0 0 28 34">
-                <Path
-                  d="M14 0C6.3 0 0 6.3 0 14C0 23 14 34 14 34S28 23 28 14C28 6.3 21.7 0 14 0Z"
-                  fill="#E31B59"
-                />
-                <Circle cx="14" cy="12" r={pin.large ? 5 : 4} fill="#fff" />
-              </Svg>
-            </View>
-          );
-        })}
-
-        {/* 현위치 */}
-        <View
-          style={{
-            position: 'absolute',
-            left: '50%',
-            top: '52%',
-            transform: [{ translateX: -normalize(10) }, { translateY: -normalize(10) }],
-          }}
-        >
-          <View
-            style={{
-              width: normalize(20),
-              height: normalize(20),
-              borderRadius: normalize(10),
-              backgroundColor: 'rgba(227,27,89,0.12)',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <View
-              style={{
-                width: normalize(9),
-                height: normalize(9),
-                borderRadius: normalize(4.5),
-                backgroundColor: '#E31B59',
-                borderWidth: 2,
-                borderColor: '#fff',
-              }}
-            />
-          </View>
+        {/* 실제 카카오 지도 미니 웹뷰 */}
+        <View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
+          <WebView
+            originWhitelist={['*']}
+            source={{ html: mapHtml, baseUrl: 'https://localhost' }}
+            style={{ flex: 1, backgroundColor: 'transparent' }}
+            scrollEnabled={false}
+            showsVerticalScrollIndicator={false}
+            showsHorizontalScrollIndicator={false}
+          />
         </View>
 
-        {/* 하단 오버레이 */}
+        {/* 하단 페이드 오버레이 */}
         <LinearGradient
-          colors={['transparent', 'rgba(0,0,0,0.18)']}
+          colors={['transparent', 'rgba(0,0,0,0.25)']}
           style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: normalize(80) }}
         />
 
-        {/* 배지 */}
+        {/* 좌상단 배지 */}
         <View
           style={{
             position: 'absolute',
@@ -144,7 +131,7 @@ export default function MapBanner({ onPress, spotCount = 0, isLoading, userLocat
             height: normalize(24),
             paddingHorizontal: normalize(10),
             borderRadius: normalize(12),
-            backgroundColor: 'rgba(0,0,0,0.35)',
+            backgroundColor: 'rgba(0,0,0,0.45)',
             flexDirection: 'row',
             alignItems: 'center',
             gap: normalize(4),
