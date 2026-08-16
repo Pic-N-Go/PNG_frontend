@@ -77,3 +77,6 @@ docs/ai/doc-sync-reports/
 google-services.json
 GoogleService-Info.plist
 android/app/google-services.json
+
+# Keystore backup
+@mozmin__png-keystore-backup/
