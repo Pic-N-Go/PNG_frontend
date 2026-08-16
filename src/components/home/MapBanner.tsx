@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Path, Circle, Line } from 'react-native-svg';
@@ -6,20 +6,49 @@ import { IconMapPin } from '@tabler/icons-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { CARD_RADIUS, FONT_XS } from '@/constants/layout';
 
-const PINS = [
+const DEFAULT_PINS = [
   { left: '30%', top: '42%', large: true },
   { left: '62%', top: '32%', large: false },
   { left: '80%', top: '65%', large: false },
   { left: '46%', top: '74%', large: false },
-] as const;
+];
+
+export interface SpotPin {
+  latitude: number;
+  longitude: number;
+  id: number | string;
+}
 
 interface Props {
   onPress: () => void;
   spotCount?: number;
   isLoading?: boolean;
+  userLocation?: { lat: number; lng: number };
+  spots?: SpotPin[];
 }
 
-export default function MapBanner({ onPress, spotCount = 0, isLoading }: Props) {
+export default function MapBanner({ onPress, spotCount = 0, isLoading, userLocation, spots }: Props) {
+  const pinsToRender = useMemo(() => {
+    if (spots && spots.length > 0 && userLocation && userLocation.lat && userLocation.lng) {
+      return spots.slice(0, 8).map((spot, idx) => {
+        const deltaLat = spot.latitude - userLocation.lat;
+        const deltaLng = spot.longitude - userLocation.lng;
+        // 5km 이내 좌표를 맵 배너 영역(% 단위)으로 투영
+        const xRatio = Math.max(-1, Math.min(1, deltaLng / 0.045));
+        const yRatio = Math.max(-1, Math.min(1, deltaLat / 0.035));
+        const leftPercent = Math.max(12, Math.min(88, 50 + xRatio * 38));
+        const topPercent = Math.max(15, Math.min(85, 52 - yRatio * 38));
+        return {
+          id: spot.id,
+          left: `${leftPercent.toFixed(1)}%`,
+          top: `${topPercent.toFixed(1)}%`,
+          large: idx === 0,
+        };
+      });
+    }
+    return DEFAULT_PINS.map((p, idx) => ({ id: idx, ...p }));
+  }, [spots, userLocation]);
+
   return (
     <View style={{ height: normalize(160), borderRadius: CARD_RADIUS, overflow: 'hidden' }}>
       <Pressable
@@ -44,16 +73,16 @@ export default function MapBanner({ onPress, spotCount = 0, isLoading }: Props) 
         </Svg>
 
         {/* 핀들 */}
-        {PINS.map((pin, i) => {
+        {pinsToRender.map((pin) => {
           const w = normalize(pin.large ? 22 : 18);
           const h = normalize(pin.large ? 27 : 22);
           return (
             <View
-              key={i}
+              key={pin.id}
               style={{
                 position: 'absolute',
-                left: pin.left,
-                top: pin.top,
+                left: pin.left as any,
+                top: pin.top as any,
                 transform: [{ translateX: -w / 2 }, { translateY: -h }],
               }}
             >

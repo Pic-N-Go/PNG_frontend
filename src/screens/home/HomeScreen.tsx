@@ -33,6 +33,8 @@ export default function HomeScreen({ navigation }: Props) {
     isReal: false,
   });
 
+  const [userAddress, setUserAddress] = useState<string>('서울시');
+
   useEffect(() => {
     const initUserLocation = async () => {
       try {
@@ -62,6 +64,48 @@ export default function HomeScreen({ navigation }: Props) {
     void initUserLocation();
   }, []);
 
+  // 사용자 주소 역지오코딩 (예: '서울 종로구', '부산 수영구')
+  useEffect(() => {
+    const fetchAddress = async () => {
+      try {
+        if (userLocation.isReal && userLocation.lat && userLocation.lng) {
+          const [geo] = await Location.reverseGeocodeAsync({
+            latitude: userLocation.lat,
+            longitude: userLocation.lng,
+          });
+          if (geo) {
+            const region = (geo.region || geo.city || '')
+              .replace('서울특별시', '서울')
+              .replace('부산광역시', '부산')
+              .replace('대구광역시', '대구')
+              .replace('인천광역시', '인천')
+              .replace('광주광역시', '광주')
+              .replace('대전광역시', '대전')
+              .replace('울산광역시', '울산')
+              .replace('세종특별자치시', '세종')
+              .replace('경기도', '경기')
+              .replace('강원특별자치도', '강원')
+              .replace('충청북도', '충북')
+              .replace('충청남도', '충남')
+              .replace('전라북도', '전북')
+              .replace('전라남도', '전남')
+              .replace('경상북도', '경북')
+              .replace('경상남도', '경남')
+              .replace('제주특별자치도', '제주');
+            const district = geo.district || geo.city || geo.subregion || '';
+            const fullAddr = `${region} ${district}`.trim();
+            if (fullAddr) {
+              setUserAddress(fullAddr);
+            }
+          }
+        }
+      } catch (err) {
+        console.warn('[HomeScreen] reverseGeocodeAsync error:', err);
+      }
+    };
+    void fetchAddress();
+  }, [userLocation.isReal, userLocation.lat, userLocation.lng]);
+
   const { data: nearbySpots = [], isLoading: isNearbyLoading } = useNearbySpots({
     lat: userLocation.lat,
     lng: userLocation.lng,
@@ -80,8 +124,7 @@ export default function HomeScreen({ navigation }: Props) {
         showsVerticalScrollIndicator={false}
         // TAB_BAR_HEIGHT·insets.bottom을 더하지 않는다 — MainTab이 기본(non-absolute) 하단 탭
         // 내비게이터라 화면 영역이 이미 탭바 높이를 뺀 크기로 잡히고, 시스템 내비바는 탭바 자신의
-        // paddingBottom(TabBar.tsx)이 덮는다. 여기서 또 더하면 그만큼 죽은 공백이 두 배로 생긴다.
-        // 필요한 건 마지막 콘텐츠와 탭바 사이의 최소 여백뿐이다.
+        // paddingBottom(TabBar.tsx)이 덮는다. 필요한 건 마지막 콘텐츠와 탭바 사이의 최소 여백뿐이다.
         contentContainerStyle={{ paddingBottom: SPACING_LG }}
       >
         <HeroSection onNotificationPress={() => navigation.navigate('Notification')} hasUnread={hasUnread} />
@@ -115,73 +158,15 @@ export default function HomeScreen({ navigation }: Props) {
             allowFontScaling={false}
             style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: 'rgba(0,0,0,0.4)', marginTop: normalize(4), marginBottom: normalize(14) }}
           >
-            {userLocation.isReal ? '내 위치 기준' : '서울시 기준'} · 반경 5km · 탭하면 전체 지도로 이동
+            {userAddress} 기준 · 반경 5km · 탭하면 전체 지도로 이동
           </Text>
           <MapBanner
             onPress={() => navigation.getParent()?.navigate('MapTab' as never)}
             spotCount={nearbySpots.length}
             isLoading={isNearbyLoading}
+            userLocation={{ lat: userLocation.lat, lng: userLocation.lng }}
+            spots={nearbySpots}
           />
-
-          {/* 주변 스팟 실시간 카드 스크롤 목록 */}
-          {nearbySpots.length > 0 && (
-            <View style={{ marginTop: normalize(14) }}>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ gap: normalize(10) }}
-              >
-                {nearbySpots.map((spot) => (
-                  <Pressable
-                    key={spot.id}
-                    onPress={() => {
-                      const rootNavigation = navigation as unknown as NativeStackNavigationProp<RootStackParamList>;
-                      rootNavigation.navigate('SpotStack', { screen: 'SpotDetail', params: { spotId: String(spot.id) } });
-                    }}
-                    style={({ pressed }) => ({
-                      width: normalize(140),
-                      borderRadius: CARD_RADIUS,
-                      backgroundColor: '#F5F5F7',
-                      overflow: 'hidden',
-                      opacity: pressed ? 0.9 : 1,
-                      transform: [{ scale: pressed ? 0.98 : 1 }],
-                    })}
-                  >
-                    <View style={{ height: normalize(100), backgroundColor: '#e0e0e0', position: 'relative' }}>
-                      {spot.thumbnailUrl ? (
-                        <Image source={{ uri: spot.thumbnailUrl }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
-                      ) : (
-                        <LinearGradient colors={['#2c5364', '#203a43', '#0f2027']} style={{ width: '100%', height: '100%' }} />
-                      )}
-                      <View
-                        style={{
-                          position: 'absolute',
-                          bottom: normalize(6),
-                          left: normalize(6),
-                          backgroundColor: 'rgba(0,0,0,0.6)',
-                          paddingHorizontal: normalize(6),
-                          paddingVertical: normalize(2),
-                          borderRadius: normalize(8),
-                        }}
-                      >
-                        <Text allowFontScaling={false} style={{ fontSize: FONT_XS, color: '#fff', fontFamily: 'Pretendard-Medium' }}>
-                          {spot.distanceKm < 1 ? `${Math.round(spot.distanceKm * 1000)}m` : `${spot.distanceKm.toFixed(1)}km`}
-                        </Text>
-                      </View>
-                    </View>
-                    <View style={{ padding: normalize(8) }}>
-                      <Text allowFontScaling={false} numberOfLines={1} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, color: '#000' }}>
-                        {spot.name}
-                      </Text>
-                      <Text allowFontScaling={false} numberOfLines={1} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.4)', marginTop: normalize(2) }}>
-                        {spot.categories?.join(', ') || spot.address}
-                      </Text>
-                    </View>
-                  </Pressable>
-                ))}
-              </ScrollView>
-            </View>
-          )}
         </View>
 
         <PopularSpotsSection
