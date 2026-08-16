@@ -1,12 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
-import { ScrollView, Text, View, Image, Pressable } from 'react-native';
+import { ScrollView, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Location from 'expo-location';
 import { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
 import { HomeStackParamList } from '@/navigation/stacks/HomeStack';
 import type { RootStackParamList } from '@/navigation';
-import { CONTENT_PADDING, FONT_SM, FONT_XS, FONT_XL, SPACING_LG, CARD_RADIUS } from '@/constants/layout';
+import { CONTENT_PADDING, FONT_SM, FONT_XL, SPACING_LG } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
 import HeroSection from '@/components/home/HeroSection';
 import SearchBar from '@/components/home/SearchBar';
@@ -21,11 +21,11 @@ import { useNearbySpots } from '@/hooks/useSpot';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'Home'>;
 
-// 한국 행정구역 주소에서 '동/읍/면' 우선 추출 (없을 경우 중복 없는 '구/시')
+// 한국 행정구역 주소에서 '동/읍/면' 우선 추출 (차선: '구', 삼선: '시/군')
 function extractDongOrDistrict(geo: Location.LocationGeocodedAddress): string {
-  const fields = [geo.subregion, geo.district, geo.name, geo.street, geo.city].filter(Boolean) as string[];
+  const fields = [geo.subregion, geo.name, geo.district, geo.street, geo.city].filter(Boolean) as string[];
 
-  // 1. '동', '읍', '면', '리' 단어 우선 탐색 (예: 불당동, 역삼동, 조치원읍)
+  // 1. '동', '읍', '면', '리' 탐색 (예: 불당동, 두정동, 신부동, 역삼동)
   const dongRegex = /([가-힣0-9]+(?:동|읍|면|리))\b/;
   for (const field of fields) {
     const match = field.match(dongRegex);
@@ -37,16 +37,23 @@ function extractDongOrDistrict(geo: Location.LocationGeocodedAddress): string {
     }
   }
 
-  // 2. 동/읍/면이 없으면 '구'나 '시' 추출
-  const cityOrDistrictRegex = /([가-힣]+(?:구|시))\b/;
+  // 2. '구' 탐색 (예: 서북구, 동남구, 강남구)
   for (const field of fields) {
-    const match = field.match(cityOrDistrictRegex);
+    const match = field.match(/([가-힣]+구)\b/);
     if (match && match[1]) {
       return match[1];
     }
   }
 
-  return geo.district || geo.city || geo.region || '내 위치';
+  // 3. '시' / '군' 탐색 (예: 천안시, 가평군)
+  for (const field of fields) {
+    const match = field.match(/([가-힣]+(?:시|군))\b/);
+    if (match && match[1]) {
+      return match[1];
+    }
+  }
+
+  return '내 위치';
 }
 
 export default function HomeScreen({ navigation }: Props) {
@@ -170,7 +177,14 @@ export default function HomeScreen({ navigation }: Props) {
             {userAddress} 기준 · 반경 5km · 탭하면 전체 지도로 이동
           </Text>
           <MapBanner
-            onPress={() => navigation.getParent()?.navigate('MapTab' as never)}
+            onPress={() => {
+              const parent = navigation.getParent();
+              if (parent) {
+                parent.navigate('MapTab' as never);
+              } else {
+                (navigation as any).navigate('MapTab');
+              }
+            }}
             spotCount={nearbySpots.length}
             isLoading={isNearbyLoading}
             userLocation={{ lat: userLocation.lat, lng: userLocation.lng }}

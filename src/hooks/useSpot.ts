@@ -3,7 +3,7 @@
 import { keepPreviousData, useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ApiError } from '@/api/auth';
 import { spotApi } from '@/api/spot';
-import type { ReviewPhotoUpload, MapSpotsParams, GetSpotsParams, SearchSpotsParams, NearbySpotsParams } from '@/api/spot';
+import type { ReviewPhotoUpload, MapSpotsParams, GetSpotsParams, SearchSpotsParams } from '@/api/spot';
 import { useAuthStore } from '@/store/useAuthStore';
 import { mapMyReviewPages, mapPhotogenicScore, mapReviewPages, mapSpotDetail } from '@/utils/spotMappers';
 import type { ReviewCreateRequest, ReviewSortApi } from '@/types/spot';

@@ -10,7 +10,6 @@ import { useDebounce } from '@/hooks/useDebounce';
 import SpotPopup from '@/components/travel/SpotPopup';
 import BottomSheet from '@/components/common/BottomSheet';
 import FilterBottomSheet, { FilterState, EMPTY_FILTER } from '@/components/home/FilterBottomSheet';
-import SearchModal from '@/components/common/SearchModal';
 import SaveToPlanSheet from '@/components/spot/SaveToPlanSheet';
 import Toast from '@/components/common/Toast';
 import { StatusBar } from 'expo-status-bar';
@@ -182,7 +181,6 @@ export default function MapScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilterCount, setActiveFilterCount] = useState(0);
   const [filterVisible, setFilterVisible] = useState(false);
-  const [isSearchModalVisible, setSearchModalVisible] = useState(false);
   const [detailFilter, setDetailFilter] = useState<FilterState>(EMPTY_FILTER);
   const [currentPlanDay, setCurrentPlanDay] = useState<string>(route.params?.initialDay || '1');
   const [dayMenuOpen, setDayMenuOpen] = useState(false);
@@ -268,6 +266,36 @@ export default function MapScreen() {
       setCurrentPlanDay(route.params.initialDay);
     }
   }, [route.params?.initialDay]);
+
+  // MapSearch 화면이 돌려준 결과를 반영한다. searchNonce가 있을 때만 처리하고 바로 지워서,
+  // 다른 파라미터 변경으로 리렌더될 때 예전 검색이 다시 적용되지 않게 한다.
+  useEffect(() => {
+    const nonce = route.params?.searchNonce;
+    if (!nonce) return;
+
+    const { searchSelectedSpot, searchKeyword } = route.params;
+
+    if (searchSelectedSpot) {
+      setSearchQuery(searchSelectedSpot.name);
+      setActiveSpot(searchSelectedSpot);
+      const lat = Number(searchSelectedSpot.lat);
+      const lng = Number(searchSelectedSpot.lng);
+      const isValidCoord =
+        Number.isFinite(lat) && Number.isFinite(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
+      if (webViewRef.current && isValidCoord) {
+        webViewRef.current.injectJavaScript(`
+          if (window.kakaoMap) {
+            window.kakaoMap.setCenter(new kakao.maps.LatLng(${JSON.stringify(lat)}, ${JSON.stringify(lng)}));
+            window.kakaoMap.setLevel(3);
+          }
+        `);
+      }
+    } else if (searchKeyword) {
+      setSearchQuery(searchKeyword);
+    }
+
+    navigation.setParams({ searchSelectedSpot: undefined, searchKeyword: undefined, searchNonce: undefined });
+  }, [route.params, navigation]);
 
   const handleBackNavigation = useCallback(() => {
     if (searchQuery || activeSpot) {
@@ -948,7 +976,7 @@ export default function MapScreen() {
                 }}
               >
                 <TouchableOpacity
-                  onPress={() => setSearchModalVisible(true)}
+                  onPress={() => navigation.navigate('MapSearch')}
                   style={{ flex: 1, flexDirection: 'row', alignItems: 'center', height: '100%', paddingRight: normalize(32) }}
                   activeOpacity={0.8}
                 >
@@ -1428,36 +1456,6 @@ export default function MapScreen() {
         />
 
         <Toast message={toastMessage} visible={toastVisible} onHide={() => setToastVisible(false)} />
-
-        <SearchModal
-          visible={isSearchModalVisible}
-          onClose={() => setSearchModalVisible(false)}
-          defaultCategory="spot"
-          onSelectSpot={(spot) => {
-            setSearchQuery(spot.name);
-            setActiveSpot(spot);
-            const lat = Number(spot.lat);
-            const lng = Number(spot.lng);
-            const isValidCoord =
-              Number.isFinite(lat) &&
-              Number.isFinite(lng) &&
-              lat >= -90 &&
-              lat <= 90 &&
-              lng >= -180 &&
-              lng <= 180;
-            if (webViewRef.current && isValidCoord) {
-              webViewRef.current.injectJavaScript(`
-                if (window.kakaoMap) {
-                  window.kakaoMap.setCenter(new kakao.maps.LatLng(${JSON.stringify(lat)}, ${JSON.stringify(lng)}));
-                  window.kakaoMap.setLevel(3);
-                }
-              `);
-            }
-          }}
-          onSelectKeyword={(keyword) => {
-            setSearchQuery(keyword);
-          }}
-        />
 
         <FilterBottomSheet
           visible={filterVisible}

@@ -45,24 +45,42 @@ export default function MapBanner({ onPress, spotCount = 0, isLoading, userLocat
     body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #e8e8ed; }
     #map { width: 100%; height: 100%; }
     @keyframes pulse {
-      0% { box-shadow: 0 0 0 0 rgba(0, 122, 255, 0.6); }
-      70% { box-shadow: 0 0 0 10px rgba(0, 122, 255, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(0, 122, 255, 0); }
+      0% { box-shadow: 0 0 0 0 rgba(227, 27, 89, 0.5); }
+      70% { box-shadow: 0 0 0 10px rgba(227, 27, 89, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(227, 27, 89, 0); }
     }
     .user-dot {
       width: 14px; height: 14px; border-radius: 50%;
-      background: #007AFF; border: 2.5px solid #ffffff;
-      box-shadow: 0 0 6px rgba(0,122,255,0.8);
+      background: #E31B59; border: 2.5px solid #ffffff;
+      box-shadow: 0 0 6px rgba(227,27,89,0.8);
       animation: pulse 2s infinite;
     }
     .spot-pin {
       width: 22px; height: 27px;
       display: flex; align-items: center; justify-content: center;
     }
+    /* 배너 전체를 덮는 투명 탭 레이어. 안드로이드 네이티브 WebView가 자기 영역의 터치를
+       RN보다 먼저 가로채기 때문에, RN 쪽 Pressable 오버레이로는 탭을 받을 수 없다.
+       그래서 웹뷰 안에서 직접 탭을 받아 postMessage로 RN에 알린다. */
+    #tap-overlay {
+      position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+      z-index: 9999; background: transparent;
+    }
   </style>
 </head>
 <body>
   <div id="map"></div>
+  <div id="tap-overlay"></div>
+  <script>
+    (function () {
+      var overlay = document.getElementById('tap-overlay');
+      overlay.addEventListener('click', function () {
+        if (window.ReactNativeWebView) {
+          window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'BANNER_TAP' }));
+        }
+      });
+    })();
+  </script>
   <script>
     function initMap() {
       var container = document.getElementById('map');
@@ -128,11 +146,11 @@ export default function MapBanner({ onPress, spotCount = 0, isLoading, userLocat
 `;
   }, [centerLat, centerLng, spots]);
 
-  // Kakao Static Map API fallback URL
+  // 웹뷰 로딩 전에도 즉시 뭔가 보이도록 카카오 스태틱 맵을 배경으로 먼저 깐다.
   const staticMapUrl = `https://dapi.kakao.com/v2/maps/staticmap?appkey=${KAKAO_KEY}&center=${centerLat},${centerLng}&level=6&w=640&h=320`;
 
   return (
-    <View style={{ height: normalize(160), borderRadius: CARD_RADIUS, overflow: 'hidden', backgroundColor: '#e8e8ed', position: 'relative' }}>
+    <View style={{ width: '100%', height: normalize(160), borderRadius: CARD_RADIUS, overflow: 'hidden', backgroundColor: '#e8e8ed', position: 'relative' }}>
       {/* 1. 카카오 스태틱 맵 백그라운드 (웹뷰 초기 로딩 전 정적 지도 즉시 표기) */}
       {!webViewLoaded && (
         <Image
@@ -143,6 +161,11 @@ export default function MapBanner({ onPress, spotCount = 0, isLoading, userLocat
       )}
 
       {/* 2. 실제 카카오 지도 미니 웹뷰 */}
+      {/* 탭 처리 주의: 안드로이드 네이티브 WebView는 자기 영역의 터치를 안드로이드 뷰 계층에서
+          직접 받아버려, 위에 겹쳐 둔 RN Pressable이 터치를 전혀 받지 못한다(uiautomator로
+          보면 이 영역의 클릭 가능 노드가 WebView 하나뿐). RN의 pointerEvents="none"은 RN
+          터치 시스템에만 적용돼 여기서는 효과가 없다. 그래서 웹뷰 안 #tap-overlay가 탭을
+          받아 postMessage로 알려주면 여기서 onPress로 이어준다. */}
       <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
         <WebView
           originWhitelist={['*']}
@@ -152,6 +175,13 @@ export default function MapBanner({ onPress, spotCount = 0, isLoading, userLocat
           showsVerticalScrollIndicator={false}
           showsHorizontalScrollIndicator={false}
           onLoadEnd={() => setWebViewLoaded(true)}
+          onMessage={(event) => {
+            try {
+              if (JSON.parse(event.nativeEvent.data)?.type === 'BANNER_TAP') onPress();
+            } catch {
+              // 배너가 보내는 메시지는 BANNER_TAP 하나뿐이라 파싱 실패는 무시한다.
+            }
+          }}
           javaScriptEnabled={true}
           domStorageEnabled={true}
         />
@@ -190,7 +220,7 @@ export default function MapBanner({ onPress, spotCount = 0, isLoading, userLocat
         </Text>
       </View>
 
-      {/* 5. 배너 전체 터치 오버레이 (탭 시 전체 지도로 이동) */}
+      {/* 5. 배너 전체 터치 오버레이 (탭 시 전체 지도로 이동) — WebView 위에서도 터치가 먹도록 맨 위(zIndex 최상단)에 둔다. */}
       <Pressable
         onPress={onPress}
         style={({ pressed }) => ({
