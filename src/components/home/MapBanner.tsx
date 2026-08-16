@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { Pressable, Text, View, Image } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { LinearGradient } from 'expo-linear-gradient';
 import { IconMapPin } from '@tabler/icons-react-native';
@@ -23,9 +23,12 @@ interface Props {
 }
 
 export default function MapBanner({ onPress, spotCount = 0, isLoading, userLocation, spots }: Props) {
+  const [webViewLoaded, setWebViewLoaded] = useState(false);
+
+  const centerLat = userLocation?.lat ?? 37.5665;
+  const centerLng = userLocation?.lng ?? 126.9780;
+
   const mapHtml = useMemo(() => {
-    const centerLat = userLocation?.lat ?? 37.5665;
-    const centerLng = userLocation?.lng ?? 126.9780;
     const spotItems = (spots || []).map((s) => ({
       lat: s.latitude,
       lng: s.longitude,
@@ -41,111 +44,165 @@ export default function MapBanner({ onPress, spotCount = 0, isLoading, userLocat
   <style>
     body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #e8e8ed; }
     #map { width: 100%; height: 100%; }
-    .me-dot {
-      width: 18px; height: 18px; border-radius: 50%;
-      background: rgba(227, 27, 89, 0.2);
-      display: flex; align-items: center; justify-content: center;
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(0, 122, 255, 0.6); }
+      70% { box-shadow: 0 0 0 10px rgba(0, 122, 255, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(0, 122, 255, 0); }
     }
-    .me-dot-inner {
-      width: 9px; height: 9px; border-radius: 50%;
-      background: #E31B59; border: 2px solid #ffffff;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+    .user-dot {
+      width: 14px; height: 14px; border-radius: 50%;
+      background: #007AFF; border: 2.5px solid #ffffff;
+      box-shadow: 0 0 6px rgba(0,122,255,0.8);
+      animation: pulse 2s infinite;
+    }
+    .spot-pin {
+      width: 22px; height: 27px;
+      display: flex; align-items: center; justify-content: center;
     }
   </style>
 </head>
 <body>
   <div id="map"></div>
   <script>
-    kakao.maps.load(function() {
-      var mapContainer = document.getElementById('map');
+    function initMap() {
+      var container = document.getElementById('map');
+      if (!container || container.clientWidth === 0 || container.clientHeight === 0) {
+        setTimeout(initMap, 50);
+        return;
+      }
       var mapOption = {
         center: new kakao.maps.LatLng(${centerLat}, ${centerLng}),
         level: 6,
         draggable: false,
-        zoomable: false
+        zoomable: false,
+        disableDoubleClickZoom: true
       };
-      var map = new kakao.maps.Map(mapContainer, mapOption);
+      var map = new kakao.maps.Map(container, mapOption);
 
-      // 내 위치 중앙 오버레이
-      var meContent = '<div class="me-dot"><div class="me-dot-inner"></div></div>';
+      setTimeout(function() {
+        map.relayout();
+        map.setCenter(new kakao.maps.LatLng(${centerLat}, ${centerLng}));
+      }, 100);
+
+      // 내 위치 중앙 마커
       new kakao.maps.CustomOverlay({
         map: map,
         position: new kakao.maps.LatLng(${centerLat}, ${centerLng}),
-        content: meContent,
+        content: '<div class="user-dot"></div>',
         xAnchor: 0.5,
         yAnchor: 0.5,
         zIndex: 10
       });
 
-      // 주변 스팟 핀
+      // 주변 스팟 핀들
       var spots = ${JSON.stringify(spotItems)};
       spots.forEach(function(s) {
         if (s.lat && s.lng) {
-          new kakao.maps.Marker({
+          var pinSvg = '<div class="spot-pin"><svg width="22" height="27" viewBox="0 0 28 34"><path d="M14 0C6.3 0 0 6.3 0 14C0 23 14 34 14 34S28 23 28 14C28 6.3 21.7 0 14 0Z" fill="#E31B59"/><circle cx="14" cy="12" r="5" fill="#fff"/></svg></div>';
+          new kakao.maps.CustomOverlay({
             map: map,
-            position: new kakao.maps.LatLng(s.lat, s.lng)
+            position: new kakao.maps.LatLng(s.lat, s.lng),
+            content: pinSvg,
+            xAnchor: 0.5,
+            yAnchor: 1.0,
+            zIndex: 5
           });
         }
       });
-    });
+    }
+
+    if (window.kakao && window.kakao.maps) {
+      kakao.maps.load(initMap);
+    } else {
+      window.onload = function() {
+        if (window.kakao && window.kakao.maps) {
+          kakao.maps.load(initMap);
+        } else {
+          setTimeout(initMap, 200);
+        }
+      };
+    }
   </script>
 </body>
 </html>
 `;
-  }, [userLocation?.lat, userLocation?.lng, spots]);
+  }, [centerLat, centerLng, spots]);
+
+  // Kakao Static Map API fallback URL
+  const staticMapUrl = `https://dapi.kakao.com/v2/maps/staticmap?appkey=${KAKAO_KEY}&center=${centerLat},${centerLng}&level=6&w=640&h=320`;
 
   return (
-    <View style={{ height: normalize(160), borderRadius: CARD_RADIUS, overflow: 'hidden', backgroundColor: '#e8e8ed' }}>
+    <View style={{ height: normalize(160), borderRadius: CARD_RADIUS, overflow: 'hidden', backgroundColor: '#e8e8ed', position: 'relative' }}>
+      {/* 1. 카카오 스태틱 맵 백그라운드 (웹뷰 초기 로딩 전 정적 지도 즉시 표기) */}
+      {!webViewLoaded && (
+        <Image
+          source={{ uri: staticMapUrl }}
+          style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+          resizeMode="cover"
+        />
+      )}
+
+      {/* 2. 실제 카카오 지도 미니 웹뷰 */}
+      <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
+        <WebView
+          originWhitelist={['*']}
+          source={{ html: mapHtml, baseUrl: 'https://localhost' }}
+          style={{ flex: 1, backgroundColor: 'transparent' }}
+          scrollEnabled={false}
+          showsVerticalScrollIndicator={false}
+          showsHorizontalScrollIndicator={false}
+          onLoadEnd={() => setWebViewLoaded(true)}
+          javaScriptEnabled={true}
+          domStorageEnabled={true}
+        />
+      </View>
+
+      {/* 3. 하단 페이드 오버레이 */}
+      <LinearGradient
+        colors={['transparent', 'rgba(0,0,0,0.3)']}
+        style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: normalize(80), zIndex: 2 }}
+        pointerEvents="none"
+      />
+
+      {/* 4. 좌상단 주변 스팟 개수 배지 */}
+      <View
+        style={{
+          position: 'absolute',
+          top: normalize(12),
+          left: normalize(12),
+          height: normalize(24),
+          paddingHorizontal: normalize(10),
+          borderRadius: normalize(12),
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: normalize(4),
+          zIndex: 3,
+        }}
+        pointerEvents="none"
+      >
+        <IconMapPin size={normalizeFontSize(10)} color="#fff" strokeWidth={1.5} />
+        <Text
+          allowFontScaling={false}
+          style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_XS, color: '#fff' }}
+        >
+          {isLoading ? '주변 스팟 탐색 중...' : `주변 스팟 ${spotCount}개`}
+        </Text>
+      </View>
+
+      {/* 5. 배너 전체 터치 오버레이 (탭 시 전체 지도로 이동) */}
       <Pressable
         onPress={onPress}
         style={({ pressed }) => ({
-          flex: 1,
-          opacity: pressed ? 0.97 : 1,
-          transform: [{ scale: pressed ? 0.99 : 1 }],
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 10,
+          backgroundColor: pressed ? 'rgba(0,0,0,0.05)' : 'transparent',
         })}
-      >
-        {/* 실제 카카오 지도 미니 웹뷰 */}
-        <View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
-          <WebView
-            originWhitelist={['*']}
-            source={{ html: mapHtml, baseUrl: 'https://localhost' }}
-            style={{ flex: 1, backgroundColor: 'transparent' }}
-            scrollEnabled={false}
-            showsVerticalScrollIndicator={false}
-            showsHorizontalScrollIndicator={false}
-          />
-        </View>
-
-        {/* 하단 페이드 오버레이 */}
-        <LinearGradient
-          colors={['transparent', 'rgba(0,0,0,0.25)']}
-          style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: normalize(80) }}
-        />
-
-        {/* 좌상단 배지 */}
-        <View
-          style={{
-            position: 'absolute',
-            top: normalize(12),
-            left: normalize(12),
-            height: normalize(24),
-            paddingHorizontal: normalize(10),
-            borderRadius: normalize(12),
-            backgroundColor: 'rgba(0,0,0,0.45)',
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: normalize(4),
-          }}
-        >
-          <IconMapPin size={normalizeFontSize(10)} color="#fff" strokeWidth={1.5} />
-          <Text
-            allowFontScaling={false}
-            style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_XS, color: '#fff' }}
-          >
-            {isLoading ? '주변 스팟 탐색 중...' : `주변 스팟 ${spotCount}개`}
-          </Text>
-        </View>
-      </Pressable>
+      />
     </View>
   );
 }
