@@ -32,7 +32,9 @@ const secureStorage: StateStorage = {
 type AuthState = {
   accessToken: string | null;
   user: UserResponse | null;
+  bio: string | null;
   setAuth: (token: string, user: UserResponse) => void;
+  setBio: (bio: string) => void;
   clearAuth: () => void;
 };
 
@@ -41,15 +43,17 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       accessToken: null,
       user: null,
+      bio: null,
       setAuth: (token, user) => set({ accessToken: token, user }),
-      clearAuth: () => set({ accessToken: null, user: null }),
+      setBio: (bio) => set({ bio }),
+      clearAuth: () => set({ accessToken: null, user: null, bio: null }),
     }),
     {
       name: 'auth-storage',
       storage: createJSONStorage(() => secureStorage),
       // SecureStore는 키당 저장 용량 제한(Android 기준 약 2048바이트)이 있어
-      // accessToken만 저장하고, user는 재수화 후 /users/me로 새로 받아온다.
-      partialize: (state) => ({ accessToken: state.accessToken }),
+      // accessToken과 bio만 저장하고, user는 재수화 후 /users/me로 새로 받아온다.
+      partialize: (state) => ({ accessToken: state.accessToken, bio: state.bio }),
       onRehydrateStorage: () => (state) => {
         if (!state?.accessToken) return;
         // 이 검사의 401은 "쓰던 세션이 끊긴 것"이 아니라 "저장된 토큰이 이미 죽어 있던 것"이다.

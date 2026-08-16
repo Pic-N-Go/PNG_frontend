@@ -1,30 +1,38 @@
-import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import React, { useMemo } from 'react';
+import { View, Text, TouchableOpacity, Image } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { IconUser, IconSettings } from '@tabler/icons-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { FONT_XS } from '@/constants/layout';
-
-// 임시 모의 데이터
-const MOCK_PROFILE = {
-  name: '사진가_준혁',
-  handle: '@junhyeok_pic',
-  themes: ['야경', '바다'],
-  bio: '야경과 바다를 좋아하는 사진가입니다.',
-  followerCount: 1247,
-  followingCount: 356,
-  activity: {
-    visitedSpots: 28,
-    photos: 142,
-    reviews: 12,
-  },
-};
+import { useMyProfile, useMyStats, useMyAlbums } from '@/hooks/useUser';
+import { getCategoryKoreanName } from '@/types/user';
+import { useAuthStore } from '@/store/useAuthStore';
 
 export default function ProfileHeader() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
+  const authUser = useAuthStore((s) => s.user);
+  const bio = useAuthStore((s) => s.bio);
+
+  const { data: profile } = useMyProfile();
+  const { data: stats, isLoading: isStatsLoading } = useMyStats();
+  const { data: albums = [] } = useMyAlbums();
+
+  const totalAlbumPhotos = useMemo(() => {
+    return albums.reduce((sum, a) => sum + (a.photoCount || 0), 0);
+  }, [albums]);
+
+  const nickname = profile?.nickname || authUser?.nickname || '사용자';
+  const profileImageUrl = profile?.profileImageUrl || authUser?.profileImageUrl;
+  const categories = profile?.spotCategories || authUser?.spotCategories || [];
+
+  const followerCount = stats?.followerCount ?? 0;
+  const followingCount = stats?.followingCount ?? 0;
+  const visitedSpotCount = stats?.visitedSpotCount ?? 0;
+  const reviewCount = stats?.reviewCount ?? 0;
+  const photoCount = totalAlbumPhotos > 0 ? totalAlbumPhotos : reviewCount;
 
   return (
     <LinearGradient
@@ -49,56 +57,47 @@ export default function ProfileHeader() {
             alignItems: 'center',
             justifyContent: 'center',
             position: 'relative',
+            overflow: 'hidden',
           }}
         >
-          <IconUser size={normalize(34)} color="rgba(255,255,255,0.75)" strokeWidth={1.5} />
-          {/* Level Badge (Mock) */}
-          <View
-            style={{
-              position: 'absolute',
-              bottom: -normalize(2),
-              right: -normalize(2),
-              width: normalize(22),
-              height: normalize(22),
-              borderRadius: normalize(11),
-              backgroundColor: '#e31b59',
-              borderColor: '#1d1d1f',
-              borderWidth: 2,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Text style={{ fontSize: normalizeFontSize(10), color: '#fff', fontWeight: 'bold' }}>
-              4
-            </Text>
-          </View>
+          {profileImageUrl ? (
+            <Image
+              source={{ uri: profileImageUrl }}
+              style={{ width: '100%', height: '100%' }}
+              resizeMode="cover"
+            />
+          ) : (
+            <IconUser size={normalize(34)} color="rgba(255,255,255,0.75)" strokeWidth={1.5} />
+          )}
         </View>
 
         <View className="flex-1">
           <Text className="font-semibold text-white tracking-tight" style={{ fontSize: normalizeFontSize(20), marginBottom: normalize(2) }}>
-            {MOCK_PROFILE.name}
+            {nickname}
           </Text>
-          <View className="flex-row flex-wrap mt-1 mb-1.5" style={{ gap: normalize(5) }}>
-            {MOCK_PROFILE.themes.map((theme) => (
-              <View
-                key={theme}
-                style={{
-                  height: normalize(20),
-                  paddingHorizontal: normalize(9),
-                  borderRadius: normalize(10),
-                  backgroundColor: 'rgba(255, 255, 255, 0.13)',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Text className="font-medium tracking-tight" style={{ fontSize: FONT_XS, color: 'rgba(255, 255, 255, 0.75)' }}>
-                  {theme}
-                </Text>
-              </View>
-            ))}
-          </View>
+          {categories.length > 0 && (
+            <View className="flex-row flex-wrap mt-1 mb-1.5" style={{ gap: normalize(5) }}>
+              {categories.map((cat) => (
+                <View
+                  key={cat}
+                  style={{
+                    height: normalize(20),
+                    paddingHorizontal: normalize(9),
+                    borderRadius: normalize(10),
+                    backgroundColor: 'rgba(255, 255, 255, 0.13)',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Text className="font-medium tracking-tight" style={{ fontSize: FONT_XS, color: 'rgba(255, 255, 255, 0.75)' }}>
+                    {getCategoryKoreanName(cat)}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          )}
           <Text className="leading-relaxed tracking-tight" style={{ fontSize: normalizeFontSize(12), color: 'rgba(255, 255, 255, 0.5)' }}>
-            {MOCK_PROFILE.bio}
+            {bio || '안녕하세요! 사진과 일상을 기록하는 것을 좋아합니다!'}
           </Text>
         </View>
 
@@ -129,10 +128,10 @@ export default function ProfileHeader() {
               borderWidth: 0.5,
               borderColor: 'rgba(255, 255, 255, 0.06)',
             }}
-            onPress={() => navigation.navigate('Follow', { initialTab: 'followers' } as never)}
+            onPress={() => navigation.navigate('Follow', { initialTab: 'followers', userId: profile?.id || authUser?.id } as never)}
           >
             <Text className="font-semibold text-white tracking-tight" style={{ fontSize: normalizeFontSize(20), marginBottom: normalize(2) }}>
-              {MOCK_PROFILE.followerCount.toLocaleString()}
+              {isStatsLoading ? '-' : followerCount.toLocaleString()}
             </Text>
             <Text className="tracking-tight" style={{ fontSize: FONT_XS, color: 'rgba(255, 255, 255, 0.35)' }}>
               팔로워
@@ -147,10 +146,10 @@ export default function ProfileHeader() {
               borderWidth: 0.5,
               borderColor: 'rgba(255, 255, 255, 0.06)',
             }}
-            onPress={() => navigation.navigate('Follow', { initialTab: 'following' } as never)}
+            onPress={() => navigation.navigate('Follow', { initialTab: 'following', userId: profile?.id || authUser?.id } as never)}
           >
             <Text className="font-semibold text-white tracking-tight" style={{ fontSize: normalizeFontSize(20), marginBottom: normalize(2) }}>
-              {MOCK_PROFILE.followingCount.toLocaleString()}
+              {isStatsLoading ? '-' : followingCount.toLocaleString()}
             </Text>
             <Text className="tracking-tight" style={{ fontSize: FONT_XS, color: 'rgba(255, 255, 255, 0.35)' }}>
               팔로잉
@@ -168,10 +167,10 @@ export default function ProfileHeader() {
               borderWidth: 0.5,
               borderColor: 'rgba(255, 255, 255, 0.06)',
             }}
-            onPress={() => console.log('방문 스팟')}
+            onPress={() => navigation.navigate('PhotoMap' as never)}
           >
             <Text className="font-semibold text-white tracking-tight" style={{ fontSize: normalizeFontSize(20), marginBottom: normalize(2) }}>
-              {MOCK_PROFILE.activity.visitedSpots}
+              {isStatsLoading ? '-' : visitedSpotCount.toLocaleString()}
             </Text>
             <Text className="tracking-tight" style={{ fontSize: FONT_XS, color: 'rgba(255, 255, 255, 0.35)' }}>
               방문 스팟
@@ -189,7 +188,7 @@ export default function ProfileHeader() {
             onPress={() => navigation.navigate('MyPhotos' as never)}
           >
             <Text className="font-semibold text-white tracking-tight" style={{ fontSize: normalizeFontSize(20), marginBottom: normalize(2) }}>
-              {MOCK_PROFILE.activity.photos}
+              {isStatsLoading ? '-' : photoCount.toLocaleString()}
             </Text>
             <Text className="tracking-tight" style={{ fontSize: FONT_XS, color: 'rgba(255, 255, 255, 0.35)' }}>
               사진
@@ -207,7 +206,7 @@ export default function ProfileHeader() {
             onPress={() => navigation.navigate('MyReviews' as never)}
           >
             <Text className="font-semibold text-white tracking-tight" style={{ fontSize: normalizeFontSize(20), marginBottom: normalize(2) }}>
-              {MOCK_PROFILE.activity.reviews}
+              {isStatsLoading ? '-' : reviewCount.toLocaleString()}
             </Text>
             <Text className="tracking-tight" style={{ fontSize: FONT_XS, color: 'rgba(255, 255, 255, 0.35)' }}>
               리뷰
