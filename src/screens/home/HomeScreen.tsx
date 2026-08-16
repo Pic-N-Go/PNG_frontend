@@ -1,6 +1,6 @@
 
-import React, { useState, useEffect } from 'react';
-import { ScrollView, Text, View } from 'react-native';
+import React, { useState, useEffect, useCallback } from 'react';
+import { ScrollView, Text, View, AppState } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Location from 'expo-location';
 import { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -70,34 +70,51 @@ export default function HomeScreen({ navigation }: Props) {
 
   const [userAddress, setUserAddress] = useState<string>('내 위치');
 
-  useEffect(() => {
-    const initUserLocation = async () => {
-      try {
-        const { status } = await Location.getForegroundPermissionsAsync();
-        if (status === Location.PermissionStatus.GRANTED) {
-          const lastKnown = await Location.getLastKnownPositionAsync();
-          if (lastKnown) {
-            setUserLocation({
-              lat: lastKnown.coords.latitude,
-              lng: lastKnown.coords.longitude,
-              isReal: true,
-            });
-          }
-          const current = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-          if (current) {
-            setUserLocation({
-              lat: current.coords.latitude,
-              lng: current.coords.longitude,
-              isReal: true,
-            });
-          }
-        }
-      } catch (err) {
-        console.warn('[HomeScreen] initUserLocation error:', err);
+  const syncUserCoords = useCallback(async () => {
+    try {
+      let { status } = await Location.getForegroundPermissionsAsync();
+      if (status === Location.PermissionStatus.UNDETERMINED) {
+        const requested = await Location.requestForegroundPermissionsAsync();
+        status = requested.status;
       }
-    };
-    void initUserLocation();
+
+      if (status === Location.PermissionStatus.GRANTED) {
+        const lastKnown = await Location.getLastKnownPositionAsync();
+        if (lastKnown) {
+          setUserLocation({
+            lat: lastKnown.coords.latitude,
+            lng: lastKnown.coords.longitude,
+            isReal: true,
+          });
+        }
+        const current = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+        if (current) {
+          setUserLocation({
+            lat: current.coords.latitude,
+            lng: current.coords.longitude,
+            isReal: true,
+          });
+        }
+      }
+    } catch (err) {
+      console.warn('[HomeScreen] syncUserCoords error:', err);
+    }
   }, []);
+
+  useEffect(() => {
+    void syncUserCoords();
+
+    // 알림/위치 권한 팝업이 닫히거나 앱이 포그라운드로 복귀할 때 실시간 좌표 동기화
+    const subscription = AppState.addEventListener('change', (nextAppState) => {
+      if (nextAppState === 'active') {
+        void syncUserCoords();
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [syncUserCoords]);
 
   // 사용자 주소 역지오코딩 (동/읍/면 단위 추출)
   useEffect(() => {
