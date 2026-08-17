@@ -113,22 +113,35 @@ export default function CommunityWriteScreen() {
 
   const createPost = useCreatePost();
 
-  // 촬영 일시: 고른 사진의 EXIF에서 읽고, 없으면 화면을 연 시각으로 두되 항상 직접 수정할 수 있다.
-  // (서버는 LocalTime이라 시:분만 저장한다 — 날짜는 화면 표시용이다)
+  /**
+   * 촬영 일시. 사진 EXIF에서 읽고, 없으면 작성자가 직접 고른다.
+   *
+   * 현재 시각을 기본값으로 채워두지 않는다 — 서버가 shootingTime을 @NotNull로 요구해서
+   * 뭐라도 보내야 하는데, 사용자가 손대지 않으면 "업로드 시각"이 촬영 시각으로 저장돼 버린다.
+   * 그래서 미정(null)일 때는 게시를 막아 반드시 고르게 한다.
+   *
+   * 날짜는 EXIF에서 온 경우에만 보여준다. 서버가 LocalTime이라 어차피 저장되지 않는데,
+   * EXIF가 없을 때 오늘 날짜를 띄우면 촬영일인 것처럼 읽혀 틀린 정보가 된다.
+   */
   const openedAt = useRef(new Date()).current;
-  const [shotAt, setShotAt] = useState<Date>(openedAt);
-  const [shotAtSource, setShotAtSource] = useState<'now' | 'exif' | 'manual'>('now');
-  const dateLabel = `${shotAt.getFullYear()}.${pad(shotAt.getMonth() + 1)}.${pad(shotAt.getDate())}`;
-  const timeLabel = `${pad(shotAt.getHours())}:${pad(shotAt.getMinutes())}`;
+  const [shotAt, setShotAt] = useState<Date | null>(null);
+  const [shotAtSource, setShotAtSource] = useState<'exif' | 'manual' | null>(null);
+  const [dateFromExif, setDateFromExif] = useState(false);
+
+  const timeLabel = shotAt ? `${pad(shotAt.getHours())}:${pad(shotAt.getMinutes())}` : '';
+  const shotDateLabel = shotAt && dateFromExif
+    ? `${shotAt.getFullYear()}.${pad(shotAt.getMonth() + 1)}.${pad(shotAt.getDate())}`
+    : '-';
   const shotAtHint =
     shotAtSource === 'exif' ? `${timeLabel} · 사진에서 가져옴`
     : shotAtSource === 'manual' ? `${timeLabel} · 직접 선택`
-    : `${timeLabel} · EXIF 없음, 탭하여 수정`;
+    : '탭하여 시각 선택';
 
   const mainPhoto = photos[0] ?? null;
   // 서버가 content·shootingTime·weather를 필수로 받는다(@NotBlank/@NotNull).
-  // 일시는 화면 진입 시각으로 항상 채워지므로 사진·내용·날씨만 확인하면 된다.
-  const canSubmit = photos.length > 0 && caption.trim().length > 0 && !!weather && !createPost.isPending;
+  // 촬영 시각은 EXIF가 없으면 비어 있으므로, 작성자가 고를 때까지 게시를 막는다.
+  const canSubmit =
+    photos.length > 0 && caption.trim().length > 0 && !!weather && !!shotAt && !createPost.isPending;
 
   // iOS PHPickerViewController는 앱 프로세스 밖에서 뜨므로 권한 요청이 필요 없다.
   // Android에서만 물어보고, 거부한 사용자는 설정으로 안내한다(ReviewWriteScreen과 동일 패턴).
@@ -168,6 +181,7 @@ export default function CommunityWriteScreen() {
         if (exifDate) {
           setShotAt(exifDate);
           setShotAtSource('exif');
+          setDateFromExif(true);
         }
       }
 
@@ -214,7 +228,7 @@ export default function CommunityWriteScreen() {
   };
 
   const onSubmit = () => {
-    if (!canSubmit || !weather) return;
+    if (!canSubmit || !weather || !shotAt) return;
     // 확장자를 못 알아내는 경우가 있어 jpeg로 떨어뜨린다 — 서버는 실제 바이트로 판별한다.
     const images: PostImageUpload[] = photos.map((photo, idx) => {
       const ext = photo.uri.split('.').pop()?.toLowerCase();
@@ -232,8 +246,7 @@ export default function CommunityWriteScreen() {
           content: caption.trim(),
           // 스팟을 안 고르면 위치 없는 글이 된다(서버에서 spotId는 선택값).
           spotId: location ? Number(location.id) : null,
-          // ponytail: EXIF 촬영 시각을 못 읽어서 화면을 연 시각을 쓴다.
-          // 사진에서 시각을 뽑게 되면 여기만 바꾸면 된다.
+          // 사진 EXIF에서 읽었거나 작성자가 직접 고른 값. 서버는 LocalTime이라 시:분만 저장한다.
           shootingTime: timeLabel,
           weather,
           cameraModel: camera.trim() || null,
@@ -394,10 +407,11 @@ export default function CommunityWriteScreen() {
                 <View className="flex-row" style={{ gap: normalize(8) }}>
                   <MetaTile
                     label="일시"
-                    value={dateLabel}
+                    value={shotDateLabel}
                     sub={shotAtHint}
                     Icon={Clock}
                     editable
+                    placeholder={!shotAt}
                     onPress={() => setTimeSheetVisible(true)}
                   />
                   {/* 서버 필수값이라 자동 감지 전까지는 직접 고른다 */}
@@ -487,7 +501,7 @@ export default function CommunityWriteScreen() {
       <LocationSheet visible={locationSheetVisible} selected={location} onSelect={setLocation} onClose={() => setLocationSheetVisible(false)} />
       <TimePickerSheet
         visible={timeSheetVisible}
-        value={shotAt}
+        value={shotAt ?? openedAt}
         title="촬영 시각"
         minuteInterval={1}
         onConfirm={(date) => {

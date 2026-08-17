@@ -3,7 +3,7 @@ import { ActivityIndicator, Image, Pressable, ScrollView, Text, TextInput, View 
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Archive, Camera, ChevronLeft, Clock, Heart, MapPin, Maximize, MessageSquare, MoreHorizontal, Send, Share2, Sun } from 'lucide-react-native';
+import { Archive, Camera, ChevronLeft, Clock, Heart, Maximize, MessageSquare, MoreHorizontal, Send, Share2, Sun } from 'lucide-react-native';
 import PostActionSheet from '@/components/community/PostActionSheet';
 import PostReportSheet from '@/components/community/PostReportSheet';
 import PhotoLightbox from '@/components/community/PhotoLightbox';
@@ -210,17 +210,7 @@ export default function PostDetailScreen() {
           {/* 히어로 사진 */}
           <Pressable onPress={() => setLightboxOpen(true)} style={{ height: normalizeHeight(320), backgroundColor: post.photoGradient[0], position: 'relative' }}>
             {!!mainPhoto && <Image source={{ uri: mainPhoto }} resizeMode="cover" style={{ width: '100%', height: '100%' }} />}
-            {!!post.location && (
-              <View
-                className="flex-row items-center absolute"
-                style={{ left: normalize(14), bottom: normalize(14), gap: normalize(5), height: normalize(30), paddingHorizontal: normalize(12), borderRadius: normalize(15), backgroundColor: 'rgba(0,0,0,0.4)' }}
-              >
-                <MapPin size={normalize(12)} color="#fff" strokeWidth={2} />
-                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, color: '#fff', letterSpacing: -0.1 }}>
-                  {post.location}
-                </Text>
-              </View>
-            )}
+            {/* 위치는 사진 위에 겹치지 않고 아래 작성자 줄에서 보여준다 */}
             <Pressable
               onPress={toggleLike}
               className="flex-row items-center absolute"
@@ -245,7 +235,9 @@ export default function PostDetailScreen() {
           <View style={{ paddingHorizontal: CONTENT_PADDING, paddingTop: normalize(16) }}>
             {/* 유저 행 */}
             <View className="flex-row items-center" style={{ gap: normalize(11), marginBottom: normalize(14) }}>
-              <View
+              {/* 닉네임뿐 아니라 아바타로도 프로필에 들어갈 수 있어야 한다 */}
+              <Pressable
+                onPress={() => navigation.navigate('UserProfile', { userId: post.author.id })}
                 className="items-center justify-center overflow-hidden"
                 style={{ width: normalize(38), height: normalize(38), borderRadius: normalize(19), backgroundColor: post.author.avatarGradient[0] }}
               >
@@ -256,7 +248,7 @@ export default function PostDetailScreen() {
                     {post.author.initials}
                   </Text>
                 )}
-              </View>
+              </Pressable>
               <View style={{ flex: 1, minWidth: 0 }}>
                 <Pressable onPress={() => navigation.navigate('UserProfile', { userId: post.author.id })}>
                   <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, color: '#000', letterSpacing: -0.2 }}>

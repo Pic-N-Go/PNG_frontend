@@ -1,7 +1,7 @@
 import React from 'react';
 import { Image, Pressable, Text, View } from 'react-native';
 import Svg, { Path, Rect } from 'react-native-svg';
-import { MapPin, Heart, MessageSquare, Archive, Share, Clock, Camera, Sun, Moon, Cloud } from 'lucide-react-native';
+import { MapPin, Heart, MessageSquare, Archive, Clock, Camera, Sun, Moon, Cloud } from 'lucide-react-native';
 import { Post, PostShotMeta } from '@/types/community';
 import { FONT_2XS, FONT_XS, FONT_SM, FONT_MD } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
@@ -44,15 +44,7 @@ export default function PostCard({ post, onPress, onToggleLike, onToggleSave, on
         <View style={{ flex: 1, backgroundColor: post.photoGradient[0] }}>
           {mainPhoto && <Image source={{ uri: mainPhoto }} resizeMode="cover" style={{ width: '100%', height: '100%' }} />}
         </View>
-        {/* 위치가 없는 게시글(스팟 미지정)은 칩 자체를 띄우지 않는다 — 빈 말풍선이 남는다 */}
-        {!!post.location && (
-          <View className="flex-row items-center absolute" style={{ left: normalize(12), bottom: normalize(12), gap: normalize(4), height: normalize(28), paddingHorizontal: normalize(11), borderRadius: normalize(14), backgroundColor: 'rgba(0,0,0,0.35)' }}>
-            <MapPin size={normalize(11)} color="#fff" strokeWidth={2} />
-            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_XS, color: '#fff', letterSpacing: -0.1 }}>
-              {post.location}
-            </Text>
-          </View>
-        )}
+        {/* 위치는 사진 위에 겹치지 않고 아래 액션 행 왼쪽에서 보여준다 */}
         <Pressable
           onPress={onToggleLike}
           className="flex-row items-center absolute"
@@ -67,7 +59,9 @@ export default function PostCard({ post, onPress, onToggleLike, onToggleSave, on
 
       <View style={{ paddingHorizontal: normalize(16), paddingTop: normalize(14), paddingBottom: normalize(4) }}>
         <View className="flex-row items-center" style={{ gap: normalize(10), marginBottom: normalize(12) }}>
-          <View
+          {/* 아바타도 프로필로 들어가야 한다 — Pressable이 없으면 카드 전체 탭으로 흘러가 게시글 상세가 열린다 */}
+          <Pressable
+            onPress={onPressUsername}
             className="items-center justify-center overflow-hidden"
             style={{ width: normalize(32), height: normalize(32), borderRadius: normalize(16), backgroundColor: post.author.avatarGradient[0] }}
           >
@@ -78,15 +72,16 @@ export default function PostCard({ post, onPress, onToggleLike, onToggleSave, on
                 {post.author.initials}
               </Text>
             )}
-          </View>
+          </Pressable>
           <View style={{ flex: 1 }}>
             <Pressable onPress={onPressUsername}>
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, color: '#000', letterSpacing: -0.2 }}>
                 {post.author.handle}
               </Text>
             </Pressable>
+            {/* 위치는 아래 액션 행에서 아이콘과 함께 보여주므로 여기서는 작성 시각만 둔다 */}
             <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.35)', letterSpacing: -0.1, marginTop: normalize(1) }}>
-              {[post.createdAtLabel, post.location].filter(Boolean).join(' · ')}
+              {post.createdAtLabel}
             </Text>
           </View>
           {!post.isMine && (
@@ -148,14 +143,18 @@ export default function PostCard({ post, onPress, onToggleLike, onToggleSave, on
         )}
       </View>
 
+      {/* 공유는 목록에서 빼고 게시글 상세에만 둔다 — 카드에서 바로 공유할 일이 드물다.
+          포토제닉 점수도 서버에 없어 자리만 비워두던 것이라 함께 정리했다. */}
       <View className="flex-row items-center" style={{ paddingHorizontal: normalize(16), paddingTop: normalize(8), paddingBottom: normalize(14), gap: normalize(16) }}>
-        {post.photogenicScore != null && (
-          <View className="flex-row items-center" style={{ gap: normalize(4), height: normalize(26), paddingHorizontal: normalize(10), borderRadius: normalize(13), backgroundColor: 'rgba(227,27,89,0.08)' }}>
-            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_2XS, color: 'rgba(0,0,0,0.5)', letterSpacing: 0.5 }}>
-              포토제닉
-            </Text>
-            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, color: ACCENT, letterSpacing: -0.2 }}>
-              {post.photogenicScore}
+        {!!post.location && (
+          <View className="flex-row items-center" style={{ gap: normalize(4), flex: 1, minWidth: 0 }}>
+            <MapPin size={normalize(14)} color="rgba(0,0,0,0.45)" strokeWidth={1.8} />
+            <Text
+              allowFontScaling={false}
+              numberOfLines={1}
+              style={{ flex: 1, fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: 'rgba(0,0,0,0.55)', letterSpacing: -0.2 }}
+            >
+              {post.location}
             </Text>
           </View>
         )}
@@ -172,7 +171,6 @@ export default function PostCard({ post, onPress, onToggleLike, onToggleSave, on
             <Archive size={normalize(15)} color="rgba(0,0,0,0.55)" strokeWidth={1.8} />
           )}
         </Pressable>
-        <Share size={normalize(15)} color="rgba(0,0,0,0.55)" strokeWidth={1.8} />
       </View>
     </Pressable>
   );

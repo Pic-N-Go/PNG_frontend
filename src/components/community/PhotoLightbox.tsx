@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Dimensions, Image, Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Heart, Info, MapPin, X } from 'lucide-react-native';
+import { Heart, Info, X } from 'lucide-react-native';
 import { PhotoExifSheetContent } from '@/components/common/PhotoExifSheet';
 import { PostDetail } from '@/types/community';
 import { BOTTOM_SHEET_RADIUS, FONT_2XS, FONT_SM, FONT_XS } from '@/constants/layout';
@@ -55,17 +55,7 @@ export default function PhotoLightbox({ visible, onClose, exifOpen, onOpenExif, 
           {!!post.imageUrls?.[0] && (
             <Image source={{ uri: post.imageUrls[0] }} resizeMode="contain" style={{ width: '100%', height: '100%' }} />
           )}
-          {!!post.location && (
-            <View
-              className="flex-row items-center absolute"
-              style={{ top: normalize(14), left: normalize(14), gap: normalize(5), height: normalize(30), paddingHorizontal: normalize(12), borderRadius: normalize(15), backgroundColor: 'rgba(0,0,0,0.4)' }}
-            >
-              <MapPin size={normalize(12)} color="#fff" strokeWidth={2} />
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, color: '#fff', letterSpacing: -0.1 }}>
-                {post.location}
-              </Text>
-            </View>
-          )}
+          {/* 확대 보기에서는 사진을 가리지 않도록 위치 태그를 띄우지 않는다 */}
         </View>
 
         <Text
