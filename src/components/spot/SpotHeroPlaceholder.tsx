@@ -1,68 +1,15 @@
 import React from 'react';
-import type { ComponentType } from 'react';
 import { View, Text } from 'react-native';
-import {
-  Trees,
-  Umbrella,
-  Mountain,
-  House,
-  TreePine,
-  Landmark,
-  Coffee,
-  Building2,
-  MoonStar,
-  Calendar,
-  Flower2,
-  Sunset,
-  Sparkles,
-  MapPin,
-  type LucideProps,
-} from 'lucide-react-native';
+import { SPOT_CATEGORY_MAP, pickSpotCategory } from '@/constants/spotCategories';
 import { FONT_XS, FONT_SM, FONT_XL } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
 
+// 카테고리 라벨·아이콘·선택 규칙은 @/constants/spotCategories가 단일 출처다.
+// 다른 화면(회원가입·지도·홈·마이페이지)도 같은 파일을 본다.
+export { SPOT_CATEGORY_MAP, pickSpotCategory };
+
 const PINK = '#E31B59';
 const WATERMARK = '#111111';
-
-type CategoryGroup = 'PLACE' | 'SCENE' | 'ETC';
-
-interface CategoryMeta {
-  Icon: ComponentType<LucideProps>;
-  label: string | null;
-  group: CategoryGroup;
-}
-
-// 카테고리 → { 아이콘, 표시 라벨 }
-// 장소형(TourAPI cat3 매핑, 신뢰도 높음) · 장면형(name/overview 키워드 추출, 오탐 가능 → 소재형 라벨)
-export const SPOT_CATEGORY_MAP: Record<string, CategoryMeta> = {
-  PARK: { Icon: Trees, label: '공원', group: 'PLACE' },
-  BEACH: { Icon: Umbrella, label: '해변', group: 'PLACE' },
-  MOUNTAIN: { Icon: Mountain, label: '산', group: 'PLACE' },
-  HANOK: { Icon: House, label: '한옥', group: 'PLACE' },
-  FOREST: { Icon: TreePine, label: '숲', group: 'PLACE' },
-  HERITAGE: { Icon: Landmark, label: '문화유산', group: 'PLACE' },
-  CAFE: { Icon: Coffee, label: '카페', group: 'SCENE' },
-  CITY: { Icon: Building2, label: '도심 풍경', group: 'SCENE' },
-  NIGHT_VIEW: { Icon: MoonStar, label: '야경', group: 'SCENE' },
-  FESTIVAL: { Icon: Calendar, label: '축제', group: 'SCENE' },
-  FLOWER: { Icon: Flower2, label: '꽃', group: 'SCENE' },
-  SUNRISE_SUNSET: { Icon: Sunset, label: '일출 · 일몰', group: 'SCENE' },
-  MILKY_WAY: { Icon: Sparkles, label: '은하수', group: 'SCENE' },
-  ETC: { Icon: MapPin, label: null, group: 'ETC' },
-};
-
-const PLACE_ORDER = ['PARK', 'BEACH', 'MOUNTAIN', 'HANOK', 'FOREST', 'HERITAGE'];
-
-// 카테고리 배열 → 노출할 항목 1개.
-// 장소형 우선(PLACE_ORDER 순서), 없으면 장면형 배열 첫 번째, 둘 다 없으면 ETC.
-export function pickSpotCategory(categories: string[] | undefined | null): string {
-  const list = (categories ?? []).filter((c) => SPOT_CATEGORY_MAP[c]);
-  const place = PLACE_ORDER.find((code) => list.includes(code));
-  if (place) return place;
-  const scene = list.find((c) => SPOT_CATEGORY_MAP[c].group === 'SCENE');
-  if (scene) return scene;
-  return 'ETC';
-}
 
 interface Props {
   /** 백엔드 카테고리 배열. 없거나 미매핑이면 ETC로 처리 */
@@ -166,15 +113,7 @@ export default function SpotHeroPlaceholder({
   );
 }
 
-// ponytail: dev 전용 self-check — 카테고리 선택 우선순위 회귀 방지 (프로덕션 no-op)
-if (__DEV__) {
-  console.assert(pickSpotCategory(['CAFE', 'PARK']) === 'PARK', '장소형 우선순위 오류');
-  console.assert(pickSpotCategory(['MOUNTAIN', 'BEACH']) === 'BEACH', '장소형 내부 우선순위(PLACE_ORDER) 오류');
-  console.assert(pickSpotCategory(['CAFE', 'NIGHT_VIEW']) === 'CAFE', '장소형 없을 때 장면형 첫 항목 오류');
-  console.assert(pickSpotCategory(['UNKNOWN_CODE']) === 'ETC', '미매핑 코드 → ETC 오류');
-  console.assert(pickSpotCategory([]) === 'ETC', '빈 배열 → ETC 오류');
-  console.assert(pickSpotCategory(undefined) === 'ETC', 'undefined → ETC 오류');
-}
+// self-check는 pickSpotCategory와 함께 @/constants/spotCategories로 옮겼다.
 
 // 밝은 히어로 전용 상단 액션 버튼. 검정 아이콘 + rgba(0,0,0,.05) 배경.
 // (이미지가 있을 때의 흰 아이콘 + 검정 스크림 버전과 짝을 이룸 — SpotHero.tsx)
