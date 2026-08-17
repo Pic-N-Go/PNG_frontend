@@ -173,8 +173,10 @@ export function PhotoExifSheetContent({ onClose, exif }: Omit<Props, 'visible'>)
         <>
           <SectionLabel label="위치" />
           <View style={{ backgroundColor: SURFACE, borderRadius: normalize(14), paddingHorizontal: normalize(16) }}>
-            <DetailRow label="위도" value={String(exif.gpsLat)} />
-            <DetailRow label="경도" value={String(exif.gpsLng)} isLast />
+            {/* EXIF의 GPS는 도/분/초를 나눈 값이라 그대로 문자열화하면 37.512319444444444처럼
+                소수점 15자리가 나온다. 목업과 같은 6자리로 자른다(≈0.1m 해상도로 충분). */}
+            <DetailRow label="위도" value={exif.gpsLat!.toFixed(6)} />
+            <DetailRow label="경도" value={exif.gpsLng!.toFixed(6)} isLast />
           </View>
           <View
             className="items-center justify-center"

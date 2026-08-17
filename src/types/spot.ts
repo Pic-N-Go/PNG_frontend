@@ -221,6 +221,38 @@ export interface ReviewPhotoDTO {
   url: string;
 }
 
+/**
+ * GET /reviews/{id}/exif 의 사진별 EXIF. 업로드 시 서버가 추출해 저장한 값이라 이후 바뀌지 않는다.
+ * 문자열 필드는 metadata-extractor의 영문 description 그대로 온다(예: meteringMode='Multi-segment')
+ * → 표시용 한글 변환은 `mapPhotoExif`가 담당한다.
+ * 카톡·인스타를 거친 사진은 EXIF가 제거돼 전 필드 null인 경우가 흔하다.
+ */
+export interface PhotoExifDTO {
+  imageId: number;
+  cameraModel: string | null;
+  lensModel: string | null;
+  iso: number | null;
+  fNumber: string | null;
+  exposureTime: string | null;
+  focalLength: string | null;
+  exposureMode: string | null;
+  meteringMode: string | null;
+  whiteBalance: string | null;
+  flash: string | null;
+  focalLength35mm: string | null;
+  software: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  fileSize: number | null;
+  fileFormat: string | null;
+  fileName: string | null;
+}
+
+export interface ReviewExifResponse {
+  reviewId: number;
+  images: PhotoExifDTO[];
+}
+
 export type ReviewSortApi = 'LATEST' | 'RATING_HIGH' | 'RATING_LOW';
 
 // 실데이터상 각 필드는 null·빈문자열·HTML(usetime)이 섞여 옴 → 전부 nullable

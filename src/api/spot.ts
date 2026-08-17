@@ -7,6 +7,7 @@ import type {
   ReviewCreateRequest,
   MyReviewListResponse,
   ReviewListResponse,
+  ReviewExifResponse,
   ReviewPhotoDTO,
   ReviewResponseDTO,
   ReviewSortApi,
@@ -234,6 +235,10 @@ export const spotApi = {
   // 개별 삭제(204). 다른 리뷰의 photoId는 404 REVIEW_PHOTO_NOT_FOUND로 거부된다.
   deleteReviewPhoto: (reviewId: number, photoId: number, token: string) =>
     request<void>(`/reviews/${reviewId}/photos/${photoId}`, { method: 'DELETE', token }),
+
+  // 리뷰 사진별 EXIF. permitAll이라 토큰 불필요(GET /reviews/*/exif).
+  getReviewExif: (reviewId: string | number) =>
+    request<ReviewExifResponse>(`/reviews/${reviewId}/exif`),
 
   getPhotogenicScore: (id: string | number, { date, time }: { date?: string; time?: string } = {}) => {
     const qs: string[] = [];
