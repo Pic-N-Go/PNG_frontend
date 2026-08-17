@@ -1,6 +1,5 @@
 import React from 'react';
 import { FlatList, Pressable, Text, View } from 'react-native';
-import { useQueryClient } from '@tanstack/react-query';
 import { normalize } from '@/utils/normalize';
 import { CARD_RADIUS, FONT_MD, FONT_XL, GRID_PADDING, SPACING_XS } from '@/constants/layout';
 import Skeleton from '@/components/common/Skeleton';
@@ -38,7 +37,6 @@ export default function PopularSpotsSection({ onSpotPress, onViewAll }: Props) {
   // 담을 컬렉션이 없는 비로그인 상태에서는 북마크 아이콘을 아예 그리지 않는다.
   const isLoggedIn = useAuthStore((s) => !!s.accessToken);
   const [sheetSpotId, setSheetSpotId] = React.useState<string | null>(null);
-  const queryClient = useQueryClient();
 
   return (
     <View style={{ marginTop: normalize(28) }}>
@@ -122,11 +120,7 @@ export default function PopularSpotsSection({ onSpotPress, onViewAll }: Props) {
           visible
           spotId={sheetSpotId}
           onClose={() => setSheetSpotId(null)}
-          onSaved={() => {
-            setSheetSpotId(null);
-            // 카드의 채워짐 상태는 목록 응답의 isBookmarked에서 오므로 목록을 다시 받아야 반영된다.
-            queryClient.invalidateQueries({ queryKey: ['spots', 'list'] });
-          }}
+          onSaved={() => setSheetSpotId(null)}
         />
       )}
     </View>

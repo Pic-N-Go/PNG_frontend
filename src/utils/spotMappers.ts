@@ -197,8 +197,8 @@ if (__DEV__) {
  * debug 매니페스트는 cleartext를 허용하지만, **release 빌드는 차단돼 이미지만 조용히 안 뜬다.**
  * 해당 호스트가 https로도 200을 주므로 승격해서 쓴다 — 플랫폼 설정을 열어주는 것보다 안전하다.
  */
-function toHttps(url: string | null): string | null {
-  return url ? url.replace(/^http:\/\//i, 'https://') : url;
+export function toHttps<T extends string | null | undefined>(url: T): T {
+  return (url ? url.replace(/^http:\/\//i, 'https://') : url) as T;
 }
 
 /**
@@ -271,7 +271,7 @@ export function mapSpotDetail(dto: SpotDetailResponse): { info: SpotDetailInfo; 
     info: {
       id: String(dto.id),
       badge: dto.badge ? '관광공사 인증' : null,
-      imageUrl: dto.imageUrl,
+      imageUrl: toHttps(dto.imageUrl),
       name: dto.name,
       address: dto.address,
       rating: dto.stats.avgRating,
@@ -302,9 +302,8 @@ export function mapReview(dto: ReviewDTO): Review {
     name: dto.nickname,
     avatarInitial: dto.nickname.trim().charAt(0) || '?',
     avatarColor: avatarColorFor(dto.nickname),
-    // iOS ATS가 평문을 막아 http URL은 로드되지 않는다. 서버가 저장 시 정규화하지만
-    // 그 이전에 쌓인 행이 남아 있을 수 있어 클라에서도 https로 올린다. 빈 문자열은 없는 것으로 처리.
-    avatarUrl: dto.profileImageUrl?.replace(/^http:/, 'https:') || undefined,
+    // 서버가 저장 시 정규화하지만 그 이전에 쌓인 행이 남아 있을 수 있다. 빈 문자열은 없는 것으로 처리.
+    avatarUrl: toHttps(dto.profileImageUrl) || undefined,
     rating: dto.rating,
     badge: dto.timePeriod ? TIME_PERIOD_LABEL[dto.timePeriod] : undefined,
     timePeriod: dto.timePeriod,

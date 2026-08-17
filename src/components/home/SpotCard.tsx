@@ -24,6 +24,10 @@ const FALLBACK_GRADIENT: [string, string, string] = ['#2C3E50', '#4A6572', '#8B9
 export default function SpotCard({ item, onPress, onBookmarkPress }: Props) {
   const bookmarked = item.isBookmarked;
 
+  // 이미지가 있으면 그라디언트 분기를 안 타므로, 로드가 실패하면 빈 회색 사각형만 남는다.
+  const [imageFailed, setImageFailed] = React.useState(false);
+  React.useEffect(() => setImageFailed(false), [item.imageUrl]);
+
   const rating = item.rating ?? 0;
   const stars = Array.from({ length: 5 }, (_, i) => i < Math.round(rating) ? '★' : '☆').join('');
 
@@ -38,10 +42,11 @@ export default function SpotCard({ item, onPress, onBookmarkPress }: Props) {
     >
       {/* 사진 영역 */}
       <View style={{ height: normalize(160), position: 'relative' }}>
-        {item.imageUrl ? (
+        {item.imageUrl && !imageFailed ? (
           <Image
             source={{ uri: item.imageUrl }}
             resizeMode="cover"
+            onError={() => setImageFailed(true)}
             style={{ position: 'absolute', inset: 0 }}
           />
         ) : (
