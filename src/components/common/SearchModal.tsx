@@ -416,9 +416,11 @@ export default function SearchModal({
                         <Text className="font-medium text-black/45" numberOfLines={1} style={{ fontSize: FONT_XS, marginTop: normalize(2) }}>
                           {spot.address || '위치 정보 없음'}
                         </Text>
-                        {spot.photogenicScore !== undefined && (
+                        {/* 포토제닉 점수 대신 평점 — 고정 컬럼이라 상세의 실시간 지수와 어긋난다.
+                            정렬(sort: 'score')은 그대로 두고 표기만 바꾼다. */}
+                        {spot.reviewAverage !== undefined && (
                           <Text className="font-medium" style={{ fontSize: FONT_XS, color: BRAND, marginTop: normalize(4) }}>
-                            ★ 포토제닉 {spot.photogenicScore.toFixed(1)}
+                            ★ {spot.reviewAverage.toFixed(1)} · 리뷰 {spot.reviewCount ?? 0}
                           </Text>
                         )}
                       </View>

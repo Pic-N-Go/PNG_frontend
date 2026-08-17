@@ -223,7 +223,7 @@ export function mapPopularSpot(dto: SpotResponse): SpotItem {
     location,
     category: labels[0] ?? '',
     rating: dto.reviewAverage ?? 0,
-    photoScore: dto.photogenicScore ?? 0,
+    reviewCount: dto.reviewCount ?? 0,
     isBookmarked: dto.isBookmarked ?? false,
     imageUrl: toHttps(dto.thumbnailUrl ?? dto.imageUrl),
   };

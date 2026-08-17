@@ -9,7 +9,9 @@ export interface SpotItem {
   location: string;
   category: string;
   rating: number;
-  photoScore: number;
+  // 카드에 포토제닉 지수를 쓰지 않는다 — 그건 상세에서 날씨·대기질로 매번 계산하는 값이고,
+  // spot.photogenicScore(고정 컬럼)를 카드에 띄우면 96 보고 들어가 35를 만나게 된다.
+  reviewCount: number;
   badge?: SpotBadge;
   isBookmarked: boolean;
   imageUrl?: string | null;

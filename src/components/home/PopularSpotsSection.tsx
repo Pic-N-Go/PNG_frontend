@@ -16,7 +16,8 @@ interface Props {
 
 const POPULAR_SIZE = 10;
 const CARD_WIDTH = normalize(220);
-const CARD_HEIGHT = normalize(300);
+// 흰 박스(28) + 그 위 여백(10)을 걷어낸 만큼 스켈레톤도 줄인다 — 안 줄이면 로딩 중에만 카드가 길다.
+const CARD_HEIGHT = normalize(262);
 
 // 캐러셀과 스켈레톤이 같은 여백을 쓰도록 한 곳에서 관리
 const ROW_STYLE = {

@@ -3,7 +3,7 @@ import { Image, Pressable, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { IconBookmark } from '@tabler/icons-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { CARD_RADIUS, FONT_MD, FONT_XS } from '@/constants/layout';
+import { CARD_RADIUS, FONT_MD, FONT_SM } from '@/constants/layout';
 import type { SpotItem } from '@/types/spot';
 
 interface Props {
@@ -137,47 +137,29 @@ export default function SpotCard({ item, onPress, onBookmarkPress }: Props) {
         >
           {item.location}
         </Text>
-        <Text
-          allowFontScaling={false}
-          style={{
-            fontFamily: 'Pretendard-Regular',
-            fontSize: normalizeFontSize(12),
-            color: '#ff9f0a',
-            marginBottom: normalize(10),
-          }}
-        >
-          {stars}{' '}
-          <Text style={{ color: 'rgba(0,0,0,0.3)', marginLeft: normalize(4) }}>
-            {rating.toFixed(1)}
-          </Text>
-        </Text>
-
-        {/* 포토제닉 지수 */}
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            height: normalize(28),
-            paddingHorizontal: normalize(10),
-            borderRadius: normalize(8),
-            backgroundColor: '#fff',
-          }}
-        >
+        {/* 별점·평점·리뷰 수 한 줄. 흰 박스를 없앤 자리라 아래 여백은 컨테이너 paddingBottom이 맡는다. */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(6) }}>
           <Text
             allowFontScaling={false}
-            style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.4)' }}
+            style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(12), color: '#ff9f0a' }}
           >
-            포토제닉 지수
+            {stars}
           </Text>
-          <Text allowFontScaling={false}>
-            <Text style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, color: '#E31B59' }}>
-              {item.photoScore ?? 0}
-            </Text>
-            <Text style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(10), color: 'rgba(0,0,0,0.2)' }}>
-              /100
-            </Text>
+          <Text
+            allowFontScaling={false}
+            style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, color: '#000' }}
+          >
+            {rating.toFixed(1)}
           </Text>
+          {/* 0건이면 "(0)"이 리뷰가 있는 카드처럼 읽혀서 아예 그리지 않는다 */}
+          {!!item.reviewCount && (
+            <Text
+              allowFontScaling={false}
+              style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: '#8e8e93' }}
+            >
+              ({item.reviewCount})
+            </Text>
+          )}
         </View>
       </View>
     </Pressable>
