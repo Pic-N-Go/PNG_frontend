@@ -7,6 +7,7 @@ import ProfilePostsTab from '@/components/community/ProfilePostsTab';
 import ProfileContestsTab from '@/components/community/ProfileContestsTab';
 import ProfileSpotsTab from '@/components/community/ProfileSpotsTab';
 import { useFollowCounts, useMyFollowing, useToggleFollow, useUserProfile } from '@/hooks/useCommunity';
+import { useAuthStore } from '@/store/useAuthStore';
 import { initialsOf } from '@/utils/communityMappers';
 import type { CommunityDetailStackParamList } from '@/navigation/stacks/CommunityDetailStack';
 import { ProfileContestItem, ProfilePostItem, ProfileSpotItem, ProfileTabKey } from '@/types/community';
@@ -64,6 +65,7 @@ export default function UserProfileScreen() {
   const userId = route.params?.userId;
   const [activeTab, setActiveTab] = useState<ProfileTabKey>('posts');
 
+  const isLoggedIn = useAuthStore((s) => !!s.accessToken);
   const { data: profile, isLoading, isError } = useUserProfile(userId);
   const { data: counts } = useFollowCounts(userId);
   const { data: followingIds } = useMyFollowing();
@@ -96,7 +98,8 @@ export default function UserProfileScreen() {
             <ActivityIndicator color={ACCENT} />
           ) : (
             <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: 'rgba(0,0,0,0.4)', letterSpacing: -0.2 }}>
-              프로필을 불러오지 못했어요
+              {/* 프로필 조회에도 인증이 필요해, 비로그인은 실패가 아니라 로그인 안내를 띄운다 */}
+              {!isLoggedIn ? '로그인이 필요해요' : '프로필을 불러오지 못했어요'}
             </Text>
           )}
         </View>

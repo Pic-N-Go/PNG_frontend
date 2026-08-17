@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Clock, X } from 'lucide-react-native';
 import { GRID_PADDING, FONT_SM, FONT_XS } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
@@ -22,6 +23,10 @@ interface Props {
 }
 
 export default function SearchOverlay({ visible, onClose, onSubmitKeyword }: Props) {
+  // 부모 SafeAreaView의 상단 패딩은 position:absolute 자식에게 적용되지 않는다.
+  // 직접 인셋만큼 내려주지 않으면 내용이 상태바 아래로 파고들고, 그 자리에 놓인
+  // "취소" 버튼은 iOS가 상태바 탭을 가로채 눌리지 않는다.
+  const insets = useSafeAreaInsets();
   const [query, setQuery] = useState('');
   const [activeChip, setActiveChip] = useState(CATEGORY_CHIPS[0]);
   // ponytail: 최근 검색은 화면 로컬 상태다 — 앱을 껐다 켜면 사라진다.
@@ -38,7 +43,7 @@ export default function SearchOverlay({ visible, onClose, onSubmitKeyword }: Pro
   if (!visible) return null;
 
   return (
-    <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#fff', zIndex: 40 }}>
+    <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, paddingTop: insets.top, backgroundColor: '#fff', zIndex: 40 }}>
       <ScrollView contentContainerStyle={{ paddingBottom: normalize(80) }}>
         <View className="flex-row items-center" style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(6), paddingBottom: normalize(12), gap: normalize(12) }}>
           <View className="flex-1 flex-row items-center" style={{ height: normalize(40), paddingHorizontal: normalize(14), borderRadius: normalize(20), backgroundColor: SURFACE, gap: normalize(10) }}>

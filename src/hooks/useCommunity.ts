@@ -35,11 +35,12 @@ function useAuth() {
  * isFollowingAuthor를 넣어주는 게 맞고, 그러면 이 훅은 통째로 지우면 된다.
  */
 export function useMyFollowing() {
-  const { myUserId } = useAuth();
+  const { token, myUserId } = useAuth();
   return useQuery({
     queryKey: followingKey(myUserId ?? 'guest'),
-    queryFn: () => communityApi.getFollowing(myUserId!),
-    enabled: myUserId != null,
+    queryFn: () => communityApi.getFollowing(myUserId!, token ?? undefined),
+    // `/users/**`는 조회에도 인증이 필요하다 — 토큰이 없으면 요청해봐야 401이다.
+    enabled: myUserId != null && !!token,
     staleTime: 5 * 60 * 1000,
     select: (list) => new Set(list.map((u) => String(u.id))),
   });
@@ -237,27 +238,32 @@ export function useDeleteComment(postId: string) {
 
 // ── 프로필 · 팔로우 ────────────────────────────────────────────────────────
 
-/** `/users/{id}/profile`은 닉네임·프로필사진·관심카테고리만 준다(자기소개·게시글 수 없음). */
+/**
+ * `/users/{id}/profile`은 닉네임·프로필사진·관심카테고리만 준다(자기소개·게시글 수 없음).
+ * 조회에도 토큰이 필요하다 — `/users/**`는 SecurityConfig의 공개 경로가 아니다.
+ */
 export function useUserProfile(userId: string | undefined) {
+  const { token } = useAuth();
   return useQuery({
-    queryKey: ['community', 'profile', userId ?? ''],
-    queryFn: () => communityApi.getUserProfile(userId!),
-    enabled: !!userId,
+    queryKey: ['community', 'profile', userId ?? '', token ?? 'guest'],
+    queryFn: () => communityApi.getUserProfile(userId!, token ?? undefined),
+    enabled: !!userId && !!token,
   });
 }
 
 /** 팔로워/팔로잉 수는 전용 카운트 API가 없어 목록 길이로 센다. */
 export function useFollowCounts(userId: string | undefined) {
+  const { token } = useAuth();
   return useQuery({
-    queryKey: ['community', 'followCounts', userId ?? ''],
+    queryKey: ['community', 'followCounts', userId ?? '', token ?? 'guest'],
     queryFn: async () => {
       const [followers, following] = await Promise.all([
-        communityApi.getFollowers(userId!),
-        communityApi.getFollowing(userId!),
+        communityApi.getFollowers(userId!, token ?? undefined),
+        communityApi.getFollowing(userId!, token ?? undefined),
       ]);
       return { followerCount: followers.length, followingCount: following.length };
     },
-    enabled: !!userId,
+    enabled: !!userId && !!token,
   });
 }
 

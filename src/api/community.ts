@@ -175,10 +175,12 @@ export const communityApi = {
     request<void>(`/posts/${postId}/comments/${commentId}`, { method: 'DELETE', token }),
 
   // 8. 유저 프로필·팔로우 — `/users` 모듈이지만 커뮤니티 화면에서만 쓰므로 여기에 둔다.
-  //    프로필 응답에 팔로우 여부가 없어, 내 팔로잉 목록으로 판정한다(useIsFollowing).
-  getUserProfile: (userId: string | number) => request<UserProfileDTO>(`/users/${userId}/profile`),
-  getFollowers: (userId: string | number) => request<FollowUserDTO[]>(`/users/${userId}/followers`),
-  getFollowing: (userId: string | number) => request<FollowUserDTO[]>(`/users/${userId}/following`),
+  //    프로필 응답에 팔로우 여부가 없어, 내 팔로잉 목록으로 판정한다(useMyFollowing).
+  //    /posts와 달리 `/users/**`는 SecurityConfig의 PUBLIC_ENDPOINTS에 없어 조회에도 토큰이 필요하다
+  //    (anyRequest().authenticated()). 토큰을 빼면 401이 떨어진다.
+  getUserProfile: (userId: string | number, token?: string) => request<UserProfileDTO>(`/users/${userId}/profile`, { token }),
+  getFollowers: (userId: string | number, token?: string) => request<FollowUserDTO[]>(`/users/${userId}/followers`, { token }),
+  getFollowing: (userId: string | number, token?: string) => request<FollowUserDTO[]>(`/users/${userId}/following`, { token }),
   follow: (userId: string | number, token: string) => request<void>(`/users/${userId}/follow`, { method: 'POST', token }),
   unfollow: (userId: string | number, token: string) => request<void>(`/users/${userId}/follow`, { method: 'DELETE', token }),
 };
