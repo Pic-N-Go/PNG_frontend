@@ -1,32 +1,25 @@
 import React, { useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
-import { ChevronLeft, Trophy } from 'lucide-react-native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { ChevronLeft } from 'lucide-react-native';
 import ProfilePostsTab from '@/components/community/ProfilePostsTab';
 import ProfileContestsTab from '@/components/community/ProfileContestsTab';
 import ProfileSpotsTab from '@/components/community/ProfileSpotsTab';
-import { ProfileContestItem, ProfilePostItem, ProfileSpotItem, ProfileTabKey, UserProfileSummary } from '@/types/community';
+import { useFollowCounts, useMyFollowing, useToggleFollow, useUserProfile } from '@/hooks/useCommunity';
+import { initialsOf } from '@/utils/communityMappers';
+import type { CommunityDetailStackParamList } from '@/navigation/stacks/CommunityDetailStack';
+import { ProfileContestItem, ProfilePostItem, ProfileSpotItem, ProfileTabKey } from '@/types/community';
 import { FONT_XL, HEADER_HEIGHT, CONTENT_PADDING, FONT_2XS, FONT_LG, FONT_SM, FONT_XS } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 
 const ACCENT = '#E31B59';
 const SURFACE = '#f5f5f7';
 
-const MOCK_PROFILE: UserProfileSummary = {
-  id: 'u1',
-  displayName: '김지우',
-  handle: 'sunset_jk',
-  initials: 'JK',
-  avatarGradient: ['#2c5364', '#4a7c8a'],
-  bio: '새벽 다니는 광안리 상주민. Sony A7IV · 24-70 GM으로 골든아워만 담아요.',
-  winCount: 3,
-  postCount: 142,
-  followerCount: 3820,
-  followingCount: 248,
-  isFollowing: false,
-};
-
+// ponytail: 아래 세 목록과 우승 횟수·자기소개는 서버에 API가 없다.
+// `/users/{id}/profile`이 주는 건 닉네임·프로필사진·관심 카테고리뿐이고,
+// 특정 유저의 게시글/콘테스트/방문 스팟을 조회하는 엔드포인트가 아직 없다.
+// 목데이터를 지우면 탭이 통째로 빈 화면이 되므로, 서버가 생길 때까지 그대로 둔다.
 const CONTEST_COUNT = 18;
 const SPOT_COUNT = 36;
 
@@ -60,15 +53,24 @@ const MOCK_SPOTS: ProfileSpotItem[] = [
 ];
 
 const SUBTABS: { key: ProfileTabKey; label: string; count: number }[] = [
-  { key: 'posts', label: '게시글', count: MOCK_PROFILE.postCount },
+  { key: 'posts', label: '게시글', count: MOCK_POSTS.length },
   { key: 'contests', label: '콘테스트', count: CONTEST_COUNT },
   { key: 'spots', label: '방문한 스팟', count: SPOT_COUNT },
 ];
 
 export default function UserProfileScreen() {
   const navigation = useNavigation();
+  const route = useRoute<RouteProp<CommunityDetailStackParamList, 'UserProfile'>>();
+  const userId = route.params?.userId;
   const [activeTab, setActiveTab] = useState<ProfileTabKey>('posts');
-  const [isFollowing, setIsFollowing] = useState(MOCK_PROFILE.isFollowing);
+
+  const { data: profile, isLoading, isError } = useUserProfile(userId);
+  const { data: counts } = useFollowCounts(userId);
+  const { data: followingIds } = useMyFollowing();
+  const toggleFollow = useToggleFollow();
+
+  const isFollowing = userId ? followingIds?.has(userId) ?? false : false;
+  const nickname = profile?.nickname ?? '';
 
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: '#fff' }} edges={['top', 'left', 'right']}>
@@ -84,57 +86,67 @@ export default function UserProfileScreen() {
           <ChevronLeft size={normalize(24)} color="#000" strokeWidth={1.8} />
         </Pressable>
         <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_LG, color: '#000', letterSpacing: -0.4 }}>
-          @{MOCK_PROFILE.handle}
+          {nickname ? `@${nickname}` : '프로필'}
         </Text>
       </View>
 
+      {isLoading || isError || !profile ? (
+        <View className="items-center justify-center" style={{ flex: 1 }}>
+          {isLoading ? (
+            <ActivityIndicator color={ACCENT} />
+          ) : (
+            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: 'rgba(0,0,0,0.4)', letterSpacing: -0.2 }}>
+              프로필을 불러오지 못했어요
+            </Text>
+          )}
+        </View>
+      ) : (
       <ScrollView contentContainerStyle={{ paddingBottom: normalize(24) }}>
         <View style={{ paddingHorizontal: CONTENT_PADDING, paddingTop: normalize(24), paddingBottom: normalize(16) }}>
           <View className="flex-row items-center" style={{ gap: normalize(16), marginBottom: normalize(16) }}>
             <View
-              className="items-center justify-center"
-              style={{ width: normalize(80), height: normalize(80), borderRadius: normalize(40), backgroundColor: MOCK_PROFILE.avatarGradient[0] }}
+              className="items-center justify-center overflow-hidden"
+              style={{ width: normalize(80), height: normalize(80), borderRadius: normalize(40), backgroundColor: SURFACE }}
             >
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XL, color: 'rgba(255,255,255,0.85)', letterSpacing: -0.5 }}>
-                {MOCK_PROFILE.initials}
-              </Text>
+              {profile.profileImageUrl ? (
+                <Image source={{ uri: profile.profileImageUrl }} resizeMode="cover" style={{ width: '100%', height: '100%' }} />
+              ) : (
+                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XL, color: 'rgba(0,0,0,0.3)', letterSpacing: -0.5 }}>
+                  {initialsOf(nickname)}
+                </Text>
+              )}
             </View>
             <View style={{ flex: 1, minWidth: 0 }}>
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_LG, color: '#000', letterSpacing: -0.3 }}>
-                {MOCK_PROFILE.displayName}
+                {nickname}
               </Text>
+              {/* 자기소개·콘테스트 우승 횟수는 프로필 API에 없어 표시하지 않는다 */}
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: 'rgba(0,0,0,0.4)', letterSpacing: -0.15, marginTop: normalize(2) }}>
-                @{MOCK_PROFILE.handle}
+                @{nickname}
               </Text>
-              <View
-                className="flex-row items-center self-start"
-                style={{ gap: normalize(4), marginTop: normalize(8), height: normalize(22), paddingHorizontal: normalize(9), borderRadius: normalize(11), backgroundColor: 'rgba(227,27,89,0.08)' }}
-              >
-                <Trophy size={normalize(11)} color={ACCENT} strokeWidth={1.8} />
-                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, color: ACCENT, letterSpacing: -0.1 }}>
-                  콘테스트 우승 {MOCK_PROFILE.winCount}회
-                </Text>
-              </View>
+              {profile.spotCategories?.length > 0 && (
+                <View className="flex-row flex-wrap" style={{ gap: normalize(4), marginTop: normalize(8) }}>
+                  {profile.spotCategories.map((category) => (
+                    <View
+                      key={category}
+                      className="items-center justify-center"
+                      style={{ height: normalize(22), paddingHorizontal: normalize(9), borderRadius: normalize(11), backgroundColor: 'rgba(227,27,89,0.08)' }}
+                    >
+                      <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, color: ACCENT, letterSpacing: -0.1 }}>
+                        {category}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              )}
             </View>
           </View>
 
-          <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(14), color: '#000', letterSpacing: -0.2, lineHeight: normalizeFontSize(14) * 1.55, marginBottom: normalize(16) }}>
-            {MOCK_PROFILE.bio}
-          </Text>
-
+          {/* 게시글 수 카운트는 유저별 게시글 API가 없어 뺐다 — 팔로워·팔로잉만 서버 값이다 */}
           <View className="flex-row" style={{ paddingVertical: normalize(14), paddingHorizontal: normalize(4), backgroundColor: SURFACE, borderRadius: normalize(14), marginBottom: normalize(16) }}>
             <View className="flex-1 items-center">
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_LG, color: '#000', letterSpacing: -0.3 }}>
-                {MOCK_PROFILE.postCount}
-              </Text>
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.4)', letterSpacing: -0.1, marginTop: normalize(1) }}>
-                게시글
-              </Text>
-            </View>
-            <View style={{ width: 1, backgroundColor: 'rgba(0,0,0,0.06)' }} />
-            <View className="flex-1 items-center">
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_LG, color: '#000', letterSpacing: -0.3 }}>
-                {MOCK_PROFILE.followerCount.toLocaleString()}
+                {(counts?.followerCount ?? 0).toLocaleString()}
               </Text>
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.4)', letterSpacing: -0.1, marginTop: normalize(1) }}>
                 팔로워
@@ -143,7 +155,7 @@ export default function UserProfileScreen() {
             <View style={{ width: 1, backgroundColor: 'rgba(0,0,0,0.06)' }} />
             <View className="flex-1 items-center">
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_LG, color: '#000', letterSpacing: -0.3 }}>
-                {MOCK_PROFILE.followingCount}
+                {(counts?.followingCount ?? 0).toLocaleString()}
               </Text>
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.4)', letterSpacing: -0.1, marginTop: normalize(1) }}>
                 팔로잉
@@ -153,7 +165,8 @@ export default function UserProfileScreen() {
 
           <View className="flex-row" style={{ gap: normalize(8) }}>
             <Pressable
-              onPress={() => setIsFollowing((prev) => !prev)}
+              onPress={() => userId && toggleFollow.mutate({ userId, next: !isFollowing })}
+              disabled={!userId || toggleFollow.isPending}
               className="flex-1 items-center justify-center"
               style={{ height: normalize(44), borderRadius: normalize(22), backgroundColor: isFollowing ? SURFACE : ACCENT }}
             >
@@ -202,6 +215,7 @@ export default function UserProfileScreen() {
         {activeTab === 'contests' && <ProfileContestsTab items={MOCK_CONTESTS} />}
         {activeTab === 'spots' && <ProfileSpotsTab items={MOCK_SPOTS} totalCount={SPOT_COUNT} onSelectSpot={() => {}} />}
       </ScrollView>
+      )}
     </SafeAreaView>
   );
 }

@@ -5,6 +5,8 @@ export interface PostAuthor {
   handle: string;
   initials: string;
   avatarGradient: [string, string];
+  /** 서버 프로필 사진. 없으면 initials + avatarGradient로 대체한다. */
+  profileImageUrl?: string | null;
 }
 
 export interface PostShotMeta {
@@ -20,6 +22,8 @@ export interface Post {
   /** 내가 쓴 글이면 팔로우 버튼 미노출, 상세의 액션시트가 내글용으로 분기 */
   isMine: boolean;
   photoGradient: [string, string, string];
+  /** 서버 게시 사진. 비면 photoGradient로 대체한다(목데이터 호환). */
+  imageUrls: string[];
   caption: string;
   location: string;
   createdAtLabel: string;
@@ -29,6 +33,7 @@ export interface Post {
   shareCount: number;
   isSaved: boolean;
   isFollowingAuthor: boolean;
+  /** 서버 PostResponse에 없는 값 — 연동 후에는 항상 undefined다 (백엔드 추가 시 매퍼에서 채운다) */
   photogenicScore?: number;
   shotMeta?: PostShotMeta;
 }
@@ -39,15 +44,145 @@ export interface PostDetail extends Post {
 
 export interface Comment {
   id: string;
-  author: Pick<PostAuthor, 'handle' | 'initials'>;
+  author: Pick<PostAuthor, 'handle' | 'initials'> & { id?: string; profileImageUrl?: string | null };
   text: string;
   createdAtLabel: string;
-  likeCount: number;
-  isLiked: boolean;
+  /** 내가 쓴 댓글이면 삭제 가능 */
+  isMine?: boolean;
+  /** 댓글 좋아요는 서버에 없다 — 값이 없으면 화면에서 좋아요 UI를 숨긴다 */
+  likeCount?: number;
+  isLiked?: boolean;
 }
 
 /** 신고 사유는 별도 텍스트 입력 없이 5개 고정 사유 중 선택 */
 export type ReportReasonId = 'spam' | 'abuse' | 'copyright' | 'inappropriate' | 'etc';
+
+// ── 서버 DTO (PNG_backend `community` 모듈 · `/posts`, `/users`) ──────────────
+// 위쪽 UI 타입과 1:1이 아니다. 변환은 utils/communityMappers.ts에서만 한다.
+
+export type PostSortApi = 'POPULAR' | 'LATEST' | 'FOLLOWING' | 'MY_POSTS';
+export type PostWeatherApi = 'CLEAR' | 'PARTLY_CLOUDY' | 'CLOUDY' | 'RAIN' | 'SNOW' | 'NIGHT';
+
+export interface PostAuthorDTO {
+  id: number;
+  nickname: string;
+  profileImageUrl: string | null;
+}
+
+export interface PostImageDTO {
+  id: number;
+  imageUrl: string;
+  width: number | null;
+  height: number | null;
+}
+
+export interface PostResponseDTO {
+  id: number;
+  content: string;
+  spotId: number | null;
+  spotName: string | null;
+  /** LocalTime 직렬화 — "05:30" 또는 "05:30:00" */
+  shootingTime: string | null;
+  weather: PostWeatherApi | null;
+  cameraModel: string | null;
+  lensModel: string | null;
+  tags: string[] | null;
+  author: PostAuthorDTO;
+  images: PostImageDTO[];
+  likeCount: number;
+  commentCount: number;
+  bookmarkCount: number;
+  liked: boolean;
+  bookmarked: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PostPageResponseDTO {
+  posts: PostResponseDTO[];
+  totalElements: number;
+  totalPages: number;
+  page: number;
+  size: number;
+  hasNext: boolean;
+}
+
+export interface ReactionResponseDTO {
+  active: boolean;
+  count: number;
+}
+
+export interface CommentResponseDTO {
+  id: number;
+  content: string;
+  author: PostAuthorDTO;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CommentPageResponseDTO {
+  comments: CommentResponseDTO[];
+  totalElements: number;
+  totalPages: number;
+  page: number;
+  size: number;
+  hasNext: boolean;
+}
+
+export interface PhotoExifDTO {
+  imageId: number;
+  cameraModel: string | null;
+  lensModel: string | null;
+  iso: number | null;
+  fNumber: string | null;
+  exposureTime: string | null;
+  focalLength: string | null;
+  exposureMode: string | null;
+  meteringMode: string | null;
+  whiteBalance: string | null;
+  flash: string | null;
+  focalLength35mm: string | null;
+  software: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  fileSize: number | null;
+  fileFormat: string | null;
+  fileName: string | null;
+}
+
+export interface PostExifResponseDTO {
+  postId: number;
+  images: PhotoExifDTO[];
+}
+
+export interface PostCreateRequestDTO {
+  content: string;
+  spotId?: number | null;
+  shootingTime?: string | null;
+  weather?: PostWeatherApi | null;
+  cameraModel?: string | null;
+  lensModel?: string | null;
+  tags?: string[];
+}
+
+export interface PostUpdateRequestDTO extends PostCreateRequestDTO {
+  /** 수정 시 남길 기존 이미지 id. 생략하면 서버가 기존 이미지를 모두 지운다 */
+  retainedImageIds?: number[];
+}
+
+/** `/users/{id}/profile` — bio·게시글 수·팔로우 여부는 서버에 없다 */
+export interface UserProfileDTO {
+  id: number;
+  nickname: string;
+  profileImageUrl: string | null;
+  spotCategories: string[];
+}
+
+export interface FollowUserDTO {
+  id: number;
+  nickname: string;
+  profileImageUrl: string | null;
+}
 
 export interface ContestPhotoEntry {
   id: string;

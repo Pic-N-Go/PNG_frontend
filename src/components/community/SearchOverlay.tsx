@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { Clock, X } from 'lucide-react-native';
-import { GRID_PADDING, FONT_2XS, FONT_SM, FONT_XS } from '@/constants/layout';
+import { GRID_PADDING, FONT_SM, FONT_XS } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 
 const ACCENT = '#E31B59';
@@ -17,12 +17,23 @@ const RECOMMENDED_SPOTS = [
 interface Props {
   visible: boolean;
   onClose: () => void;
+  /** 검색 실행 — 피드가 `GET /posts?keyword=`로 결과를 보여준다 */
+  onSubmitKeyword: (keyword: string) => void;
 }
 
-export default function SearchOverlay({ visible, onClose }: Props) {
+export default function SearchOverlay({ visible, onClose, onSubmitKeyword }: Props) {
   const [query, setQuery] = useState('');
   const [activeChip, setActiveChip] = useState(CATEGORY_CHIPS[0]);
-  const [recentSearches, setRecentSearches] = useState(['광안리 일출', '경복궁 야간', '벚꽃']);
+  // ponytail: 최근 검색은 화면 로컬 상태다 — 앱을 껐다 켜면 사라진다.
+  // 저장이 필요해지면 AsyncStorage 한 줄로 올린다(서버 API는 없다).
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
+
+  const submit = (keyword: string) => {
+    const trimmed = keyword.trim();
+    if (!trimmed) return;
+    setRecentSearches((prev) => [trimmed, ...prev.filter((t) => t !== trimmed)].slice(0, 10));
+    onSubmitKeyword(trimmed);
+  };
 
   if (!visible) return null;
 
@@ -38,6 +49,8 @@ export default function SearchOverlay({ visible, onClose }: Props) {
               placeholderTextColor="rgba(0,0,0,0.35)"
               allowFontScaling={false}
               autoFocus
+              returnKeyType="search"
+              onSubmitEditing={() => submit(query)}
               style={{ flex: 1, fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(14), color: '#000', letterSpacing: -0.2 }}
             />
             {query.length > 0 && (
@@ -88,7 +101,7 @@ export default function SearchOverlay({ visible, onClose }: Props) {
             </View>
             <View style={{ paddingHorizontal: GRID_PADDING, paddingBottom: normalize(8) }}>
               {recentSearches.map((term) => (
-                <View key={term} className="flex-row items-center" style={{ gap: normalize(12), paddingVertical: normalize(11) }}>
+                <Pressable key={term} onPress={() => submit(term)} className="flex-row items-center" style={{ gap: normalize(12), paddingVertical: normalize(11) }}>
                   <Clock size={normalize(16)} color="rgba(0,0,0,0.35)" strokeWidth={1.8} />
                   <Text allowFontScaling={false} style={{ flex: 1, fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(14), color: '#000', letterSpacing: -0.2 }}>
                     {term}
@@ -96,7 +109,7 @@ export default function SearchOverlay({ visible, onClose }: Props) {
                   <Pressable onPress={() => setRecentSearches((prev) => prev.filter((t) => t !== term))} style={{ padding: normalize(4) }}>
                     <X size={normalize(12)} color="rgba(0,0,0,0.25)" strokeWidth={2} />
                   </Pressable>
-                </View>
+                </Pressable>
               ))}
             </View>
           </>
@@ -112,8 +125,9 @@ export default function SearchOverlay({ visible, onClose }: Props) {
             const rank = index + 1;
             const isTop = rank <= 3;
             return (
-              <View
+              <Pressable
                 key={keyword}
+                onPress={() => submit(keyword)}
                 className="flex-row items-center"
                 style={{ height: normalize(30), paddingHorizontal: normalize(12), borderRadius: normalize(15), backgroundColor: SURFACE, gap: normalize(5) }}
               >
@@ -123,7 +137,7 @@ export default function SearchOverlay({ visible, onClose }: Props) {
                 <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: 'rgba(0,0,0,0.6)', letterSpacing: -0.2 }}>
                   {keyword}
                 </Text>
-              </View>
+              </Pressable>
             );
           })}
         </View>
@@ -134,18 +148,14 @@ export default function SearchOverlay({ visible, onClose }: Props) {
           </Text>
         </View>
         <View className="flex-row flex-wrap" style={{ paddingHorizontal: GRID_PADDING, paddingBottom: normalize(24), gap: normalize(8) }}>
+          {/* 게시글 수는 서버가 스팟별로 세어주지 않아 표시하지 않는다 — 목업 숫자를 그대로 두면 거짓값이 된다 */}
           {RECOMMENDED_SPOTS.map((spot) => (
-            <View key={spot.id} style={{ width: '47%', gap: normalize(8) }}>
+            <Pressable key={spot.id} onPress={() => submit(spot.name)} style={{ width: '47%', gap: normalize(8) }}>
               <View style={{ height: normalize(100), borderRadius: normalize(12), backgroundColor: spot.gradient }} />
-              <View>
-                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, color: '#000', letterSpacing: -0.2 }}>
-                  {spot.name}
-                </Text>
-                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_2XS, color: 'rgba(0,0,0,0.45)', letterSpacing: -0.1, marginTop: normalize(1) }}>
-                  게시글 {spot.postCount}
-                </Text>
-              </View>
-            </View>
+              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, color: '#000', letterSpacing: -0.2 }}>
+                {spot.name}
+              </Text>
+            </Pressable>
           ))}
         </View>
       </ScrollView>
