@@ -21,7 +21,7 @@
   - 검색 바 (탭 → SearchResultScreen 이동)
   - 카테고리 필터 (수평 스크롤, 단일 선택)
   - 주변 스팟 지도 배너 (정적 UI, 탭 → MapScreen 이동)
-  - 인기 스팟 가로 스크롤 (목업 데이터, 북마크 토글 UI)
+  - 인기 스팟 가로 스크롤 (작성 시점 목업 데이터 → 이후 `useSpots` 연동 완료, 아래 Out of Scope 참고)
   - 출사 캘린더 2열 그리드 (목업 데이터)
   - 위시리스트 배너 (탭 액션 — 네비게이션 stub)
   - SearchResultScreen: 포커스 패널(최근/인기 검색어) + 결과 패널 (목업 데이터)
@@ -63,20 +63,22 @@
   - 스팟 카드 탭 → `navigation.navigate('SpotStack', ...)` (stub — 아직 파라미터 미확정)
   - 알림 아이콘 탭 → stub (네비게이션 연결 없음, TODO 표시)
 - 빈 상태: 검색 결과 없음 — "검색 결과가 없어요" 안내 UI
-- 로딩 상태: API 미연동이므로 이번 이슈에서는 로딩 상태 불필요
+- 로딩 상태: 작성 시점 API 미연동이라 불필요했음. 인기 스팟 연동 후 해당 섹션만 스켈레톤 3개 + 에러 재시도 + 빈 상태를 가진다
 
 ## 6) 데이터/API 요구사항
 
 - 이번 구현은 목업 데이터(하드코딩 상수)만 사용
 - 추후 연동 예정 API:
-  - `GET /spots/popular` — 인기 스팟
+  - ~~`GET /spots/popular` — 인기 스팟~~ → 연동 완료. 전용 엔드포인트 대신
+    `GET /spots?sort=popular`(`useSpots`)를 재사용한다 (백엔드가 동일한 `resolveSort()`를 탐).
+    로딩 스켈레톤·에러 재시도·빈 상태 포함 → `home-popular-spots-api.md`
   - `GET /calendar/events` — 출사 캘린더
   - `GET /weather/current` — 날씨 요약
   - `GET /search?q=` — 스팟 검색
 
 ## 7) 상태 관리
 
-- 서버 상태: 없음 (목업 데이터)
+- 서버 상태: 작성 시점 없음. 이후 인기 스팟만 TanStack Query(`useSpots`) 연동됨 — 나머지 섹션은 여전히 목업
 - 클라이언트 상태(Zustand): 없음 — 카테고리 선택, 검색어는 로컬 useState로 충분
 - 영속화 필요 여부: 없음
 

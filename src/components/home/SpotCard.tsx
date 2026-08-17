@@ -87,6 +87,9 @@ export default function SpotCard({ item, onPress, onBookmarkPress }: Props) {
         {onBookmarkPress && (
           <Pressable
             onPress={onBookmarkPress}
+            accessibilityRole="button"
+            // 아이콘만 있어 스크린리더에 이름이 없다. 탭하면 컬렉션 시트가 열리므로 저장 상태와 무관하게 "관리"가 정확하다.
+            accessibilityLabel={bookmarked ? '즐겨찾기 관리' : '즐겨찾기에 추가'}
             hitSlop={8}
             style={{
               position: 'absolute',
