@@ -17,26 +17,14 @@ import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { getCourseStats } from '@/utils/distance';
 import { parseValidCoordinate } from '@/utils/geo';
 import { getDayColor, DAY_COLOR_PALETTE } from '@/constants/dayColors';
+import { CATEGORY_LABELS, CODE_BY_LABEL } from '@/constants/spotCategories';
 import { FONT_SM, FONT_MD, FONT_XL, BUTTON_HEIGHT, BUTTON_RADIUS, HEADER_HEIGHT, ICON_SM, CONTROL_SIZE } from '@/constants/layout';
 
 const KAKAO_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_API_KEY;
 
-const CATEGORY_MAP: Record<string, string> = {
-  '야경': 'NIGHT_VIEW',
-  '바다': 'BEACH',
-  '한옥': 'HANOK',
-  '꽃': 'FLOWER',
-  '카페': 'CAFE',
-  '숲': 'FOREST',
-  '축제': 'FESTIVAL',
-  '공원': 'PARK',
-  '산': 'MOUNTAIN',
-  '유적지': 'HERITAGE',
-  '도시': 'CITY',
-  '일출일몰': 'SUNRISE_SUNSET',
-  '은하수': 'MILKY_WAY',
-  '기타': 'ETC',
-};
+// 칩 id·라벨·enum 매핑 모두 @/constants/spotCategories 단일 출처를 따른다.
+// (예전에는 여기 라벨이 '유적지'·'도시'·'일출일몰'로 스팟 상세와 달랐다)
+const CATEGORY_MAP: Record<string, string> = CODE_BY_LABEL;
 
 // Day 드롭다운의 "전체" 항목. 실제 Day 키("1", "2"…)와 겹치지 않는 값이면 된다.
 const ALL_DAYS = 'all';
@@ -65,21 +53,10 @@ const DEFAULT_BOUNDS: MapBounds = {
   northEastLng: 132.0,
 };
 
+// id는 한글 라벨 그대로 쓴다(CATEGORY_MAP이 라벨로 enum을 찾는다). '기타'는 필터 대상이 아니라 제외.
 const CATEGORIES = [
   { id: 'all', label: '전체' },
-  { id: '야경', label: '야경' },
-  { id: '바다', label: '바다' },
-  { id: '한옥', label: '한옥' },
-  { id: '꽃', label: '꽃' },
-  { id: '카페', label: '카페' },
-  { id: '숲', label: '숲' },
-  { id: '축제', label: '축제' },
-  { id: '공원', label: '공원' },
-  { id: '산', label: '산' },
-  { id: '유적지', label: '유적지' },
-  { id: '도시', label: '도시' },
-  { id: '일출일몰', label: '일출/일몰' },
-  { id: '은하수', label: '은하수' },
+  ...CATEGORY_LABELS.map((label) => ({ id: label, label })),
 ];
 
 export default function MapScreen() {

@@ -10,12 +10,23 @@ interface Props {
   value: Date;
   onConfirm: (date: Date) => void;
   onClose: () => void;
+  /** 기본값은 날씨 예보용 "시간대 선택". 촬영 시각처럼 쓰임이 다르면 넘긴다 */
+  title?: string;
+  /** 예보는 5분 단위면 충분하지만 촬영 시각은 1분 단위여야 한다 */
+  minuteInterval?: 1 | 5 | 10 | 15 | 30;
 }
 
 // 예보 API가 24시간 임의 시각 조회를 지원 — 5분 단위로 스크롤 선택
 const MINUTE_INTERVAL = 5;
 
-export default function TimePickerSheet({ visible, value, onConfirm, onClose }: Props) {
+export default function TimePickerSheet({
+  visible,
+  value,
+  onConfirm,
+  onClose,
+  title = '시간대 선택',
+  minuteInterval = MINUTE_INTERVAL,
+}: Props) {
   const [draft, setDraft] = useState(value);
 
   useEffect(() => {
@@ -26,7 +37,7 @@ export default function TimePickerSheet({ visible, value, onConfirm, onClose }: 
     <BottomSheet visible={visible} onClose={onClose}>
       <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(16), paddingBottom: normalize(12) }}>
         <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(18), color: '#000', letterSpacing: -0.35 }}>
-          시간대 선택
+          {title}
         </Text>
       </View>
 
@@ -35,7 +46,7 @@ export default function TimePickerSheet({ visible, value, onConfirm, onClose }: 
           value={draft}
           mode="time"
           display="spinner"
-          minuteInterval={MINUTE_INTERVAL}
+          minuteInterval={minuteInterval}
           themeVariant="light"
           onChange={(_, date) => {
             if (date) setDraft(date);

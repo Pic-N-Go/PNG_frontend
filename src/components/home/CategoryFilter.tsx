@@ -3,16 +3,13 @@ import { Pressable, ScrollView, Text } from 'react-native';
 import { normalize } from '@/utils/normalize';
 import { FONT_SM, GRID_PADDING } from '@/constants/layout';
 import type { CategoryItem } from '@/types/spot';
+import { CATEGORY_CODES, SPOT_CATEGORY_MAP } from '@/constants/spotCategories';
 
+// id를 백엔드 enum 코드로 맞춘다 — 예전의 'night'·'sea' 같은 자체 id는 서버 값으로 되돌릴 수 없었다.
+// '인물'은 백엔드 SpotCategory에 대응값이 없어 제거했다.
 const CATEGORIES: CategoryItem[] = [
   { id: 'all', label: '전체' },
-  { id: 'night', label: '야경' },
-  { id: 'sea', label: '바다' },
-  { id: 'hanok', label: '한옥' },
-  { id: 'flower', label: '꽃' },
-  { id: 'cafe', label: '카페' },
-  { id: 'portrait', label: '인물' },
-  { id: 'festival', label: '축제' },
+  ...CATEGORY_CODES.map((code) => ({ id: code, label: SPOT_CATEGORY_MAP[code].label })),
 ];
 
 interface Props {

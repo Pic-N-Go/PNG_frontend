@@ -45,7 +45,8 @@ export default function ReviewTab({ spotId, onWriteReview, onEditReview }: Props
 
   const myUserId = useAuthStore((s) => s.user?.id);
   const [menuTarget, setMenuTarget] = useState<Review | null>(null);
-  const [lightbox, setLightbox] = useState<{ photos: string[]; index: number } | null>(null);
+  // reviewId·photoIds는 확대 화면의 EXIF 조회용 (photoId로 EXIF 응답을 매칭한다).
+  const [lightbox, setLightbox] = useState<{ photos: string[]; photoIds: number[]; index: number; reviewId: string } | null>(null);
   const deleteReview = useDeleteReview();
 
   // 스팟당 1리뷰. 이미 썼으면 작성 대신 수정으로 보낸다 — 서버는 409로 막지만
@@ -215,7 +216,14 @@ export default function ReviewTab({ spotId, onWriteReview, onEditReview }: Props
                   {review.photos.map((photo, photoIdx) => (
                     <Pressable
                       key={photo.photoId}
-                      onPress={() => setLightbox({ photos: (review.photos ?? []).map((p) => p.url), index: photoIdx })}
+                      onPress={() =>
+                        setLightbox({
+                          photos: (review.photos ?? []).map((p) => p.url),
+                          photoIds: (review.photos ?? []).map((p) => p.photoId),
+                          index: photoIdx,
+                          reviewId: review.id,
+                        })
+                      }
                     >
                       <Image source={{ uri: photo.url }} resizeMode="cover" style={{ width: normalize(68), height: normalize(68), borderRadius: normalize(10), backgroundColor: '#E5E5EA' }} />
                     </Pressable>
@@ -301,6 +309,8 @@ export default function ReviewTab({ spotId, onWriteReview, onEditReview }: Props
 
       <PhotoLightbox
         photos={lightbox?.photos ?? []}
+        photoIds={lightbox?.photoIds}
+        reviewId={lightbox?.reviewId}
         initialIndex={lightbox?.index ?? 0}
         visible={lightbox !== null}
         onClose={() => setLightbox(null)}

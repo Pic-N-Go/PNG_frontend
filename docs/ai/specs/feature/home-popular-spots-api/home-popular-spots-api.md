@@ -24,7 +24,7 @@
 - 포함(In Scope):
   - 섹션 제목 `이번 주 인기 스팟` → `인기 스팟` (RN 화면 + HTML 목업 동기화)
   - 인기 스팟 목록 서버 조회 (`sort=popular`, `size=10`)
-  - `SpotResponse` → 카드 표시 모델 매핑 (`location` / `rating` / `photoScore` / 이미지)
+  - `SpotResponse` → 카드 표시 모델 매핑 (`location` / `rating` / `reviewCount` / 이미지)
   - 로딩(스켈레톤) · 에러(재시도) · 빈 상태 처리
   - 기존 `onSpotPress` 상세 진입 경로 유지 (서버 `id` 기준)
   - **카드 북마크(즐겨찾기) 서버 연동** — 스팟 상세와 동일한 `BookmarkSheet` 재사용
@@ -81,10 +81,12 @@
   - 응답: `PageSpotResponse` (`content: SpotResponse[]`) — 타입은 `src/types/spot.ts:419`에 이미 정의됨
   - 사용 필드: `id` `name` `address` `categories` `reviewAverage` `reviewCount` `thumbnailUrl` `imageUrl`
     `isBookmarked`(토큰 동봉 요청에서만 채워짐 — 비로그인·구버전 서버는 `undefined` → `false` 폴백)
+    - `photogenicScore`는 **쓰지 않는다** — 아래 AC3 참고
+    - `reviewAverage`는 리뷰 0건 스팟에서 서버 `AVG()`가 null로 떨어져 `number | null`이다
 - 실패 처리 방식: `useQuery`의 `isError`로 섹션 내 인라인 에러 + `refetch()`. 토스트/모달 없음.
 - 캐싱/무효화 전략: `useSpots`의 기존 `staleTime: 60s` 사용. 추가로 즐겨찾기 저장 성공 시
-  `useSyncSpotBookmarks.onSuccess`가 `['spots','list']`를 무효화한다 — 카드의 채워짐 상태가 목록 응답의
-  `isBookmarked`에서 오므로, 홈·상세 어느 쪽에서 바꾸든 목록 재조회가 있어야 반영된다.
+  `useSyncSpotBookmarks.onSuccess`가 `['bookmark-collections', spotId]`와 `['spots','list']`를 무효화한다 —
+  카드의 채워짐 상태가 목록 응답의 `isBookmarked`에서 오므로, 홈·상세 어느 쪽에서 바꾸든 목록 재조회가 있어야 반영된다.
   무효화를 화면이 아니라 mutation에 둔 이유: 홈은 상세 진입 중에도 마운트를 유지해 자체 refetch 트리거가 없다.
 
 ## 7) 상태 관리
@@ -105,7 +107,14 @@
 
 - [ ] AC1: 섹션 제목이 "인기 스팟"이고, RN·HTML 목업 양쪽에서 "이번 주"가 제거됐다
 - [ ] AC2: `MOCK_SPOTS` 상수가 코드에서 삭제되고 서버 응답으로 카드가 렌더된다
-- [ ] AC3: 카드의 지역·평점·포토제닉 지수가 각각 `address` · `reviewAverage` · `photogenicScore`에서 온다
+- [ ] AC3: 카드의 지역·평점·리뷰 수가 각각 `address` · `reviewAverage` · `reviewCount`에서 오고,
+      **포토제닉 지수는 카드에 표시하지 않는다**
+      - 변경 이유: `SpotResponse.photogenicScore`는 저장된 고정 컬럼이라 스팟 상세가 보여주는
+        실시간 지수(`GET /spots/{id}/photogenic-score`, 날씨·시간대 반영)와 값이 어긋난다.
+        목록에서 96을 보고 들어가 35를 만나는 상황을 만드느니 표기하지 않는 쪽을 택했다.
+      - 같은 이유로 `SearchModal` 결과와 `MapScreen` 스팟 카드의 포토제닉 칩도 제거됐다.
+        정렬(`sort=score`)과 지도 필터(`detailFilter.score`)는 그 값을 계속 쓴다 —
+        보이지 않는 값으로 거르는 상태라 후속 정리 대상.
 - [ ] AC4: 로딩·에러·빈 상태 3가지가 모두 화면에 구현돼 있다
 - [ ] AC5: 카드 탭 시 서버 `id`로 스팟 상세가 열린다
 - [ ] AC6: `pnpm exec tsc --noEmit`, `pnpm lint` 통과

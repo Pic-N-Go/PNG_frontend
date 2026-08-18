@@ -1,7 +1,9 @@
-import React, { useMemo, useState } from 'react';
-import { Dimensions, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import React, { useState } from 'react';
+import { ActivityIndicator, Dimensions, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { Check, Clock, MapPin, Search } from 'lucide-react-native';
 import BottomSheet from '@/components/common/BottomSheet';
+import { useDebounce } from '@/hooks/useDebounce';
+import { useSearchSpots, useSpots } from '@/hooks/useSpot';
 import { BUTTON_HEIGHT, BUTTON_RADIUS, FONT_2XS, FONT_LG, FONT_MD, FONT_SM, FONT_XS, GRID_PADDING } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
 
@@ -9,22 +11,15 @@ const ACCENT = '#E31B59';
 const SURFACE = '#f5f5f7';
 
 export interface LocationOption {
+  /** 서버 스팟 id — 게시글 등록 시 spotId로 그대로 보낸다(숫자 문자열) */
   id: string;
   name: string;
   address: string;
-  /** EXIF 기반 추천 항목에만 존재 — 실제 위치 검색 API 연동 전까지는 고정 값 */
+  /** 거리 계산은 이 시트의 범위 밖 — 현재 위치를 받지 않는다 */
   distanceLabel?: string;
   /** true면 "최근 검색" 섹션에 표시 */
   recent?: boolean;
 }
-
-// 실제 위치 검색 API 연동은 범위 밖 — 로컬 목록에서 검색·선택하는 것으로 대체한다.
-export const MOCK_LOCATIONS: LocationOption[] = [
-  { id: 'l1', name: '광안리 해수욕장', address: '부산 수영구 광안해변로 219', distanceLabel: '42m' },
-  { id: 'l2', name: '광안대교', address: '부산 수영구 민락수변공원', distanceLabel: '180m' },
-  { id: 'l3', name: '민락수변공원', address: '부산 수영구 광안해변로 187', distanceLabel: '320m' },
-  { id: 'l4', name: '경복궁 야간개장', address: '서울 종로구 사직로 161', recent: true },
-];
 
 // 헤더 + 검색창 + CTA를 뺀 나머지 영역만 스크롤한다(BookmarkSheet와 동일한 계산 방식).
 const SCROLL_MAX = Dimensions.get('window').height * 0.8 - normalize(210);
@@ -76,17 +71,20 @@ function Row({ option, isSelected, onPress }: { option: LocationOption; isSelect
 
 export default function LocationSheet({ visible, selected, onSelect, onClose }: Props) {
   const [query, setQuery] = useState('');
+  // 한 글자 칠 때마다 검색을 날리면 스팟 검색 API가 그대로 얻어맞는다.
+  const debouncedQuery = useDebounce(query.trim(), 400);
+  const isSearching = debouncedQuery.length > 0;
 
-  const { recommended, recent } = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    const matches = (option: LocationOption) =>
-      q.length === 0 || option.name.toLowerCase().includes(q) || option.address.toLowerCase().includes(q);
-    const filtered = MOCK_LOCATIONS.filter(matches);
-    return {
-      recommended: filtered.filter((option) => !option.recent),
-      recent: filtered.filter((option) => option.recent),
-    };
-  }, [query]);
+  // 검색어가 없을 땐 인기 스팟을 기본 목록으로 보여준다 — 빈 시트보다 고르기 쉽다.
+  const popular = useSpots({ sort: 'popular', size: 20 }, { enabled: visible && !isSearching });
+  const searched = useSearchSpots({ keyword: debouncedQuery, size: 20 }, { enabled: visible && isSearching });
+
+  const active = isSearching ? searched : popular;
+  const options: LocationOption[] = (active.data?.content ?? []).map((spot) => ({
+    id: String(spot.id),
+    name: spot.name,
+    address: spot.address,
+  }));
 
   const choose = (option: LocationOption) => {
     onSelect(option);
@@ -116,32 +114,26 @@ export default function LocationSheet({ visible, selected, onSelect, onClose }: 
         </View>
 
         <ScrollView style={{ maxHeight: SCROLL_MAX }} contentContainerStyle={{ paddingTop: normalize(4), paddingBottom: normalize(4) }} keyboardShouldPersistTaps="handled">
-          {recommended.length > 0 && (
-            <>
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_2XS, color: 'rgba(0,0,0,0.4)', letterSpacing: 0.3, paddingTop: normalize(12), paddingBottom: normalize(6) }}>
-                사진 EXIF 기반 추천
-              </Text>
-              {recommended.map((option) => (
-                <Row key={option.id} option={option} isSelected={option.id === selected?.id} onPress={() => choose(option)} />
-              ))}
-            </>
-          )}
+          <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_2XS, color: 'rgba(0,0,0,0.4)', letterSpacing: 0.3, paddingTop: normalize(12), paddingBottom: normalize(6) }}>
+            {isSearching ? '검색 결과' : '인기 스팟'}
+          </Text>
 
-          {recent.length > 0 && (
-            <>
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_2XS, color: 'rgba(0,0,0,0.4)', letterSpacing: 0.3, paddingTop: normalize(12), paddingBottom: normalize(6) }}>
-                최근 검색
-              </Text>
-              {recent.map((option) => (
-                <Row key={option.id} option={option} isSelected={option.id === selected?.id} onPress={() => choose(option)} />
-              ))}
-            </>
-          )}
-
-          {recommended.length === 0 && recent.length === 0 && (
+          {active.isLoading ? (
+            <View style={{ paddingVertical: normalize(24) }}>
+              <ActivityIndicator color={ACCENT} />
+            </View>
+          ) : active.isError ? (
+            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: 'rgba(0,0,0,0.35)', letterSpacing: -0.2, paddingVertical: normalize(24), textAlign: 'center' }}>
+              스팟을 불러오지 못했어요
+            </Text>
+          ) : options.length === 0 ? (
             <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: 'rgba(0,0,0,0.35)', letterSpacing: -0.2, paddingVertical: normalize(24), textAlign: 'center' }}>
               검색 결과가 없어요
             </Text>
+          ) : (
+            options.map((option) => (
+              <Row key={option.id} option={option} isSelected={option.id === selected?.id} onPress={() => choose(option)} />
+            ))
           )}
         </ScrollView>
 

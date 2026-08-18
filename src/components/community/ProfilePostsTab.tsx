@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, View, useWindowDimensions } from 'react-native';
+import { Image, Pressable, Text, View, useWindowDimensions } from 'react-native';
 import { Heart, Trophy } from 'lucide-react-native';
 import { ProfilePostItem } from '@/types/community';
 import { FONT_2XS, GRID_PADDING } from '@/constants/layout';
@@ -10,9 +10,10 @@ const CELL_GAP = normalize(3);
 
 interface Props {
   items: ProfilePostItem[];
+  onSelectPost?: (postId: string) => void;
 }
 
-export default function ProfilePostsTab({ items }: Props) {
+export default function ProfilePostsTab({ items, onSelectPost }: Props) {
   const { width: windowWidth } = useWindowDimensions();
   // width:'%' + aspectRatio를 같은 노드에 함께 주면 flexWrap 컨테이너 안에서 높이가
   // 제대로 계산되지 않는 RN(Yoga) 이슈가 있어 실제 너비 기준 픽셀 크기를 직접 계산한다(3열).
@@ -23,8 +24,18 @@ export default function ProfilePostsTab({ items }: Props) {
     <View className="flex-row flex-wrap" style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(14), paddingBottom: normalize(20), gap: CELL_GAP }}>
       {items.map((item) => {
         return (
-          <View key={item.id} style={{ width: cellSize, height: cellSize, position: 'relative' }}>
-            <View style={{ flex: 1, backgroundColor: item.photoGradient[0] }} />
+          <Pressable
+            key={item.id}
+            onPress={() => onSelectPost?.(item.id)}
+            disabled={!onSelectPost}
+            style={{ width: cellSize, height: cellSize, position: 'relative' }}
+          >
+            {/* 사진이 로드되기 전/실패했을 때도 칸이 비지 않도록 대체 색을 배경으로 깔아둔다 */}
+            <View style={{ flex: 1, backgroundColor: item.photoGradient[0] }}>
+              {!!item.imageUrl && (
+                <Image source={{ uri: item.imageUrl }} resizeMode="cover" style={{ width: '100%', height: '100%' }} />
+              )}
+            </View>
             <View
               className="flex-row items-center absolute"
               style={{ right: normalize(6), bottom: normalize(6), gap: normalize(3), height: normalize(18), paddingHorizontal: normalize(6), borderRadius: normalize(9), backgroundColor: 'rgba(0,0,0,0.4)' }}
@@ -45,7 +56,7 @@ export default function ProfilePostsTab({ items }: Props) {
                 </Text>
               </View>
             )}
-          </View>
+          </Pressable>
         );
       })}
     </View>

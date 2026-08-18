@@ -1,9 +1,10 @@
-import React, { useRef, useState } from 'react';
-import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { ActivityIndicator, Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Archive, Camera, ChevronLeft, Clock, Heart, MapPin, Maximize, MessageSquare, MoreHorizontal, Send, Share2, Sun } from 'lucide-react-native';
+import { Bookmark, Camera, ChevronLeft, Clock, Heart, Maximize, MessageSquare, MoreHorizontal, Send, Share2, Sun, X } from 'lucide-react-native';
+import CommentThread from '@/components/community/CommentThread';
 import PostActionSheet from '@/components/community/PostActionSheet';
 import PostReportSheet from '@/components/community/PostReportSheet';
 import PhotoLightbox from '@/components/community/PhotoLightbox';
@@ -11,77 +12,66 @@ import ConfirmModal from '@/components/common/ConfirmModal';
 import ShareSheet from '@/components/common/ShareSheet';
 import Toast from '@/components/common/Toast';
 import { useKeyboardOverlap } from '@/hooks/useKeyboardHeight';
+import {
+  useComments,
+  useCreateComment,
+  useDeleteComment,
+  useDeletePost,
+  usePost,
+  useToggleBookmark,
+  useToggleCommentLike,
+  useUpdateComment,
+  useToggleFollow,
+  useToggleLike,
+} from '@/hooks/useCommunity';
+import { toErrorMessage } from '@/api/auth';
+import { useAuthStore } from '@/store/useAuthStore';
+import { initialsOf } from '@/utils/communityMappers';
 import { CommunityDetailStackParamList } from '@/navigation/stacks/CommunityDetailStack';
-import { Comment, PostDetail, ReportReasonId } from '@/types/community';
+import { Comment, ReportReasonId } from '@/types/community';
 import { HEADER_HEIGHT, CONTENT_PADDING, FONT_2XS, FONT_LG, FONT_MD, FONT_SM, FONT_XS } from '@/constants/layout';
 import { normalize, normalizeHeight } from '@/utils/normalize';
 
 const ACCENT = '#E31B59';
 const SURFACE = '#f5f5f7';
 
-// TODO(API): 게시글 상세 API 연동 시 route.params의 postId 기준으로 조회하도록 교체.
-// 지금은 커뮤니티 피드 목업(post id '1' · sunset_jk)과 동일한 내용으로 목데이터를 구성.
-const MOCK_POST_DETAIL: PostDetail = {
-  id: '1',
-  author: { id: 'u1', handle: 'sunset_jk', initials: 'JK', avatarGradient: ['#2c5364', '#4a7c8a'] },
-  isMine: false,
-  photoGradient: ['#0f2027', '#203a43', '#4a7c8a'],
-  caption:
-    '새벽 5시에 일어난 보람이 있는 일출. 광안대교 위로 해가 떠오르는 순간을 기다렸어요. 바람이 잔잔해서 물 반영도 깨끗하게 담겼습니다.',
-  location: '광안리 해수욕장',
-  createdAtLabel: '2시간 전',
-  likeCount: 248,
-  isLiked: true,
-  commentCount: 32,
-  shareCount: 0,
-  isSaved: false,
-  isFollowingAuthor: false,
-  photogenicScore: 87,
-  shotMeta: { time: '05:30', weather: '맑음', weatherIcon: 'clear-day', gear: 'Sony A7IV · 24mm f/2.8' },
-  exif: {
-    shotAtLabel: '05:30 촬영',
-    camera: 'Sony ILCE-7M4',
-    lens: 'Sony FE 24-70mm F2.8 GM',
-    iso: 100,
-    aperture: 'f/2.8',
-    shutter: '1/500',
-    focalLength: '24',
-    exposureMode: '수동',
-    metering: '다분할측광',
-    whiteBalance: '자동',
-    flash: '사용 안 함',
-    focalLength35mm: '24mm',
-    software: 'Adobe Lightroom Classic 12.3',
-    gpsLat: 35.153386,
-    gpsLng: 129.118785,
-    filename: 'DSC03421.JPG',
-    fileSize: '8.4 MB · 7008×4672',
-    format: 'JPEG · sRGB',
-    modifiedAtLabel: '2026.05.10 05:31',
-  },
-};
-
-const MOCK_COMMENTS: Comment[] = [
-  { id: 'c1', author: { handle: 'sora.lens', initials: 'SR' }, text: '골든아워 타이밍 딱 맞춘 거 대박이에요', createdAtLabel: '2시간 전', likeCount: 8, isLiked: false },
-  { id: 'c2', author: { handle: 'jwphoto', initials: 'JW' }, text: '어떤 필터 쓰셨어요? 색감이 진짜 예쁘네요', createdAtLabel: '1시간 전', likeCount: 4, isLiked: false },
-  { id: 'c3', author: { handle: 'hana__film', initials: 'HN' }, text: '저도 지난주에 갔는데 이렇게 못 찍었어요. 렌즈 뭐 쓰세요?', createdAtLabel: '45분 전', likeCount: 2, isLiked: false },
-];
-
 export default function PostDetailScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<CommunityDetailStackParamList>>();
   const route = useRoute<RouteProp<CommunityDetailStackParamList, 'PostDetail'>>();
-  const isMyPost = route.params?.isMyPost ?? false;
+  const postId = route.params?.postId;
 
   const insets = useSafeAreaInsets();
   const keyboardOverlap = useKeyboardOverlap();
+  const me = useAuthStore((s) => s.user);
 
-  const [post, setPost] = useState<PostDetail>(MOCK_POST_DETAIL);
-  const [comments, setComments] = useState<Comment[]>(MOCK_COMMENTS);
+  const { data: post, isLoading, isError, refetch } = usePost(postId);
+  const { data: commentData, hasNextPage, fetchNextPage, isFetchingNextPage } = useComments(postId);
+  const comments = commentData?.comments ?? [];
+
+  // 목록에서 넘어온 isMyPost는 상세 응답이 오기 전 액션시트 분기용 초기값일 뿐,
+  // 응답이 오면 서버가 내려준 작성자 정보(isMine)가 우선이다.
+  const isMyPost = post?.isMine ?? route.params?.isMyPost ?? false;
+
+  const toggleLikeM = useToggleLike();
+  const toggleBookmarkM = useToggleBookmark();
+  const toggleFollowM = useToggleFollow();
+  const createComment = useCreateComment(postId ?? '');
+  const updateCommentM = useUpdateComment(postId ?? '');
+  const deleteCommentM = useDeleteComment(postId ?? '');
+  const deletePostM = useDeletePost();
+  const toggleCommentLikeM = useToggleCommentLike(postId ?? '');
+
   const [commentText, setCommentText] = useState('');
+  /** 답글 대상. null이면 최상위 댓글로 등록된다. */
+  const [replyTo, setReplyTo] = useState<Comment | null>(null);
+  /** 수정 중인 댓글. 답글 달기와 동시에 켜지지 않는다(입력창이 하나뿐이다). */
+  const [editing, setEditing] = useState<Comment | null>(null);
 
   const [actionSheetOpen, setActionSheetOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [reportSheetOpen, setReportSheetOpen] = useState(false);
+  /** 삭제 확인 중인 댓글 id. 게시글 삭제와 같이 한 번 확인받는다(되돌릴 수 없다). */
+  const [commentPendingDelete, setCommentPendingDelete] = useState<string | null>(null);
 
   // 라이트박스를 닫으면 EXIF도 함께 닫혀야 한다 — exifOpen은 독립 state로 두고
   // 렌더 조건을 lightboxOpen && exifOpen으로 걸어 "EXIF만 닫아도 라이트박스는 유지" 규칙을 자연히 만족시킨다.
@@ -93,6 +83,23 @@ export default function PostDetailScreen() {
   const [toastVisible, setToastVisible] = useState(false);
   // 삭제 완료 토스트는 노출이 끝난 뒤에 goBack해야 하므로, 토스트가 사라질 때 실행할 후속 동작을 들고 있는다.
   const pendingAfterToastRef = useRef<(() => void) | null>(null);
+  /** "답글 달기"를 누르면 입력창으로 포커스를 옮긴다 */
+  const commentInputRef = useRef<TextInput>(null);
+  /** 시트 닫힘 애니메이션을 기다리는 타이머. 언마운트 시 정리하지 않으면 사라진 화면에서 실행된다. */
+  const deferredRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (deferredRef.current) clearTimeout(deferredRef.current);
+    },
+    [],
+  );
+
+  /** 시트·모달이 닫히는 300ms 동안 기다렸다가 실행한다(겹쳐 띄우면 iOS에서 두 번째가 안 뜬다). */
+  function runAfterSheetClose(fn: () => void) {
+    if (deferredRef.current) clearTimeout(deferredRef.current);
+    deferredRef.current = setTimeout(fn, 320);
+  }
 
   function showToast(message: string, after?: () => void) {
     pendingAfterToastRef.current = after ?? null;
@@ -112,51 +119,138 @@ export default function PostDetailScreen() {
     setExifOpen(false);
   }
 
-  function toggleLike() {
-    setPost((prev) => ({ ...prev, isLiked: !prev.isLiked, likeCount: prev.likeCount + (prev.isLiked ? -1 : 1) }));
+  /**
+   * 라이트박스에서 작성자 프로필로 이동. Modal이 떠 있는 채로 push하면 새 화면이 Modal 아래에
+   * 깔려 보이지 않으므로, 먼저 닫고 fade 애니메이션이 끝난 뒤에 이동한다
+   * (액션시트에서 쓰는 openAfterActionSheet와 같은 이유).
+   */
+  function handlePressLightboxAuthor() {
+    if (!post) return;
+    const authorId = post.author.id;
+    handleCloseLightbox();
+    runAfterSheetClose(() => navigation.navigate('UserProfile', { userId: authorId }));
   }
-  function toggleSave() {
-    setPost((prev) => ({ ...prev, isSaved: !prev.isSaved }));
+
+  /**
+   * 액션시트(BottomSheet)도 RN Modal이라, 그 위에 확인 모달·신고 시트를 겹쳐 띄우면
+   * iOS에서 두 번째가 표시되지 않는다 (PhotoLightbox가 EXIF를 별도 Modal로 안 뺀 것과 같은 제약).
+   * 액션시트를 먼저 닫고 닫힘 애니메이션(300ms)이 끝난 뒤에 다음 시트를 연다.
+   */
+  function openAfterActionSheet(open: () => void) {
+    setActionSheetOpen(false);
+    runAfterSheetClose(open);
+  }
+
+  function toggleLike() {
+    if (!post) return;
+    toggleLikeM.mutate({ postId: post.id, next: !post.isLiked });
+  }
+  function toggleBookmark() {
+    if (!post) return;
+    toggleBookmarkM.mutate({ postId: post.id, next: !post.isBookmarked });
   }
   function toggleFollow() {
-    setPost((prev) => ({ ...prev, isFollowingAuthor: !prev.isFollowingAuthor }));
-  }
-  function toggleCommentLike(commentId: string) {
-    setComments((prev) =>
-      prev.map((c) => (c.id === commentId ? { ...c, isLiked: !c.isLiked, likeCount: c.likeCount + (c.isLiked ? -1 : 1) } : c)),
-    );
+    if (!post) return;
+    toggleFollowM.mutate({ userId: post.author.id, next: !post.isFollowingAuthor });
   }
 
   function handleConfirmDelete() {
+    if (!postId) return;
     setDeleteModalOpen(false);
     setActionSheetOpen(false);
-    showToast('게시글이 삭제되었어요', () => navigation.goBack());
+    deletePostM.mutate(postId, {
+      onSuccess: () => showToast('게시글이 삭제되었어요', () => navigation.goBack()),
+      onError: (err) => showToast(toErrorMessage(err, '게시글을 삭제하지 못했어요')),
+    });
   }
 
+  // ponytail: 신고 API가 백엔드에 없다 — 사유를 받아 토스트만 띄우고 서버로 보내지 않는다.
+  // 신고 엔드포인트가 생기면 이 함수 본문만 교체하면 된다.
   function handleSelectReportReason(_reasonId: ReportReasonId) {
     setReportSheetOpen(false);
     setActionSheetOpen(false);
     showToast('신고가 접수되었어요');
   }
 
-  function handleSendComment() {
-    const text = commentText.trim();
-    if (!text) return;
-    const newComment: Comment = {
-      id: `me-${comments.length}-${Date.now()}`,
-      author: { handle: 'my_username', initials: 'ME' },
-      text,
-      createdAtLabel: '방금',
-      likeCount: 0,
-      isLiked: false,
-    };
-    setComments((prev) => [newComment, ...prev]);
-    setPost((prev) => ({ ...prev, commentCount: prev.commentCount + 1 }));
+  function resetComposer() {
     setCommentText('');
+    setReplyTo(null);
+    setEditing(null);
   }
 
-  const moreCommentsCount = Math.max(post.commentCount - comments.length, 0);
-  const canSendComment = commentText.trim().length > 0;
+  function handleSendComment() {
+    const text = commentText.trim();
+    if (!text || createComment.isPending || updateCommentM.isPending) return;
+
+    if (editing) {
+      updateCommentM.mutate(
+        { commentId: editing.id, content: text },
+        {
+          onSuccess: resetComposer,
+          onError: (err) => showToast(toErrorMessage(err, '댓글을 수정하지 못했어요')),
+        },
+      );
+      return;
+    }
+
+    createComment.mutate(
+      { content: text, parentId: replyTo?.id },
+      {
+        // 입력창은 성공했을 때만 비운다 — 실패했는데 지워지면 쓴 글이 사라진다.
+        onSuccess: resetComposer,
+        onError: (err) => showToast(toErrorMessage(err, '댓글을 등록하지 못했어요')),
+      },
+    );
+  }
+
+  function handlePressEdit(comment: Comment) {
+    setReplyTo(null);
+    setEditing(comment);
+    setCommentText(comment.text);
+    commentInputRef.current?.focus();
+  }
+
+  function handleToggleCommentLike(comment: Comment) {
+    toggleCommentLikeM.mutate(
+      { commentId: comment.id, next: !comment.isLiked, likeCount: comment.likeCount ?? 0 },
+      // 알리지 않으면 낙관적으로 채워진 하트가 소리 없이 되돌아간다(비로그인·네트워크 실패).
+      { onError: (err) => showToast(toErrorMessage(err, '좋아요를 반영하지 못했어요')) },
+    );
+  }
+
+  /**
+   * 답글/수정 모드를 끄되 쓰던 내용은 지키다. 수정 모드에서 빠져나올 때만 지운다 —
+   * 입력창에 남아 있는 게 "고치던 남의 문장"이라 새 댓글로 이어 쓰면 안 되기 때문이다.
+   */
+  function clearComposerMode() {
+    if (editing) setCommentText('');
+    setEditing(null);
+    setReplyTo(null);
+  }
+
+  function handlePressReply(comment: Comment) {
+    if (editing) setCommentText('');
+    setEditing(null);
+    setReplyTo(comment);
+    commentInputRef.current?.focus();
+  }
+
+  function handleConfirmDeleteComment() {
+    const commentId = commentPendingDelete;
+    setCommentPendingDelete(null);
+    if (!commentId) return;
+    // 대상이 사라지면 배너와 입력 내용이 남아 사라진 id로 PATCH를 보내게 된다.
+    if (editing?.id === commentId || replyTo?.id === commentId) resetComposer();
+    deleteCommentM.mutate(commentId, {
+      onError: (err) => showToast(toErrorMessage(err, '댓글을 삭제하지 못했어요')),
+    });
+  }
+
+  // 목업의 "댓글 29개 더보기" — 전체 개수에서 이미 불러온 만큼을 뺀다.
+  const remainingComments = Math.max((commentData?.totalElements ?? 0) - comments.length, 0);
+  const canSendComment =
+    commentText.trim().length > 0 && !createComment.isPending && !updateCommentM.isPending;
+  const mainPhoto = post?.imageUrls?.[0];
 
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
@@ -190,18 +284,32 @@ export default function PostDetailScreen() {
       </SafeAreaView>
 
       <View style={{ flex: 1, paddingBottom: keyboardOverlap }}>
+        {!post ? (
+          <View className="items-center justify-center" style={{ flex: 1, gap: normalize(12) }}>
+            {isLoading ? (
+              <ActivityIndicator color={ACCENT} />
+            ) : (
+              <>
+                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: 'rgba(0,0,0,0.4)', letterSpacing: -0.2 }}>
+                  {isError ? '게시글을 불러오지 못했어요' : '게시글을 찾을 수 없어요'}
+                </Text>
+                {isError && (
+                  <Pressable onPress={() => refetch()} className="items-center justify-center" style={{ height: normalize(34), paddingHorizontal: normalize(16), borderRadius: normalize(17), backgroundColor: SURFACE }}>
+                    <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, color: 'rgba(0,0,0,0.6)', letterSpacing: -0.2 }}>
+                      다시 시도
+                    </Text>
+                  </Pressable>
+                )}
+              </>
+            )}
+          </View>
+        ) : (
+          <>
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: normalize(24) }}>
           {/* 히어로 사진 */}
           <Pressable onPress={() => setLightboxOpen(true)} style={{ height: normalizeHeight(320), backgroundColor: post.photoGradient[0], position: 'relative' }}>
-            <View
-              className="flex-row items-center absolute"
-              style={{ left: normalize(14), bottom: normalize(14), gap: normalize(5), height: normalize(30), paddingHorizontal: normalize(12), borderRadius: normalize(15), backgroundColor: 'rgba(0,0,0,0.4)' }}
-            >
-              <MapPin size={normalize(12)} color="#fff" strokeWidth={2} />
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, color: '#fff', letterSpacing: -0.1 }}>
-                {post.location}
-              </Text>
-            </View>
+            {!!mainPhoto && <Image source={{ uri: mainPhoto }} resizeMode="cover" style={{ width: '100%', height: '100%' }} />}
+            {/* 위치는 사진 위에 겹치지 않고 아래 작성자 줄에서 보여준다 */}
             <Pressable
               onPress={toggleLike}
               className="flex-row items-center absolute"
@@ -226,22 +334,28 @@ export default function PostDetailScreen() {
           <View style={{ paddingHorizontal: CONTENT_PADDING, paddingTop: normalize(16) }}>
             {/* 유저 행 */}
             <View className="flex-row items-center" style={{ gap: normalize(11), marginBottom: normalize(14) }}>
-              <View
-                className="items-center justify-center"
+              {/* 닉네임뿐 아니라 아바타로도 프로필에 들어갈 수 있어야 한다 */}
+              <Pressable
+                onPress={() => navigation.navigate('UserProfile', { userId: post.author.id })}
+                className="items-center justify-center overflow-hidden"
                 style={{ width: normalize(38), height: normalize(38), borderRadius: normalize(19), backgroundColor: post.author.avatarGradient[0] }}
               >
-                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, color: 'rgba(255,255,255,0.85)', letterSpacing: -0.1 }}>
-                  {post.author.initials}
-                </Text>
-              </View>
+                {post.author.profileImageUrl ? (
+                  <Image source={{ uri: post.author.profileImageUrl }} resizeMode="cover" style={{ width: '100%', height: '100%' }} />
+                ) : (
+                  <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, color: 'rgba(255,255,255,0.85)', letterSpacing: -0.1 }}>
+                    {post.author.initials}
+                  </Text>
+                )}
+              </Pressable>
               <View style={{ flex: 1, minWidth: 0 }}>
-                <Pressable onPress={() => navigation.navigate('UserProfile')}>
+                <Pressable onPress={() => navigation.navigate('UserProfile', { userId: post.author.id })}>
                   <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, color: '#000', letterSpacing: -0.2 }}>
                     {post.author.handle}
                   </Text>
                 </Pressable>
                 <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.4)', letterSpacing: -0.1, marginTop: normalize(1) }}>
-                  {post.createdAtLabel} · {post.location}
+                  {[post.createdAtLabel, post.location].filter(Boolean).join(' · ')}
                 </Text>
               </View>
               {!isMyPost && (
@@ -271,25 +385,38 @@ export default function PostDetailScreen() {
             </Text>
 
             {/* 촬영 정보 */}
+            {/* 촬영 정보는 항목별 선택 입력이라, 있는 것만 그린다(PostCard와 같은 규칙) */}
             {post.shotMeta && (
               <View
                 className="flex-row items-center"
                 style={{ gap: normalize(8), paddingVertical: normalize(11), paddingHorizontal: normalize(14), backgroundColor: SURFACE, borderRadius: normalize(13), marginBottom: normalize(14) }}
               >
-                <Clock size={normalize(13)} color="rgba(0,0,0,0.35)" strokeWidth={1.8} />
-                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.65)', letterSpacing: -0.15 }}>
-                  {post.shotMeta.time}
-                </Text>
-                <View style={{ width: normalize(2), height: normalize(2), borderRadius: normalize(1), backgroundColor: 'rgba(0,0,0,0.15)' }} />
-                <Sun size={normalize(15)} color="rgba(0,0,0,0.5)" strokeWidth={1.8} />
-                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.65)', letterSpacing: -0.15 }}>
-                  {post.shotMeta.weather}
-                </Text>
-                <View style={{ width: normalize(2), height: normalize(2), borderRadius: normalize(1), backgroundColor: 'rgba(0,0,0,0.15)' }} />
-                <Camera size={normalize(13)} color="rgba(0,0,0,0.35)" strokeWidth={1.8} />
-                <Text allowFontScaling={false} numberOfLines={1} style={{ flex: 1, fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.65)', letterSpacing: -0.15 }}>
-                  {post.shotMeta.gear}
-                </Text>
+                {!!post.shotMeta.time && (
+                  <>
+                    <Clock size={normalize(13)} color="rgba(0,0,0,0.35)" strokeWidth={1.8} />
+                    <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.65)', letterSpacing: -0.15 }}>
+                      {post.shotMeta.time}
+                    </Text>
+                  </>
+                )}
+                {!!post.shotMeta.weather && (
+                  <>
+                    {!!post.shotMeta.time && <View style={{ width: normalize(2), height: normalize(2), borderRadius: normalize(1), backgroundColor: 'rgba(0,0,0,0.15)' }} />}
+                    <Sun size={normalize(15)} color="rgba(0,0,0,0.5)" strokeWidth={1.8} />
+                    <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.65)', letterSpacing: -0.15 }}>
+                      {post.shotMeta.weather}
+                    </Text>
+                  </>
+                )}
+                {!!post.shotMeta.gear && (
+                  <>
+                    {(!!post.shotMeta.time || !!post.shotMeta.weather) && <View style={{ width: normalize(2), height: normalize(2), borderRadius: normalize(1), backgroundColor: 'rgba(0,0,0,0.15)' }} />}
+                    <Camera size={normalize(13)} color="rgba(0,0,0,0.35)" strokeWidth={1.8} />
+                    <Text allowFontScaling={false} numberOfLines={1} style={{ flex: 1, fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.65)', letterSpacing: -0.15 }}>
+                      {post.shotMeta.gear}
+                    </Text>
+                  </>
+                )}
               </View>
             )}
 
@@ -298,27 +425,20 @@ export default function PostDetailScreen() {
               className="flex-row items-center"
               style={{ gap: normalize(16), paddingVertical: normalize(4), paddingBottom: normalize(16), borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)' }}
             >
-              {post.photogenicScore != null && (
-                <View
-                  className="flex-row items-center"
-                  style={{ gap: normalize(4), height: normalize(26), paddingHorizontal: normalize(10), borderRadius: normalize(13), backgroundColor: 'rgba(227,27,89,0.08)' }}
-                >
-                  <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_2XS, color: 'rgba(0,0,0,0.5)', letterSpacing: 0.5 }}>
-                    포토제닉
-                  </Text>
-                  <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, color: ACCENT, letterSpacing: -0.2 }}>
-                    {post.photogenicScore}
-                  </Text>
-                </View>
-              )}
+              {/* 포토제닉 점수 제거 — 게시글 단위 점수가 서버에 없다(스팟 단위만 존재).
+                  백엔드가 생기면 목업(community-post.html)의 핑크 칩을 되살리면 된다. */}
               <View className="flex-row items-center" style={{ gap: normalize(4), marginLeft: 'auto' }}>
                 <MessageSquare size={normalize(16)} color="rgba(0,0,0,0.6)" strokeWidth={1.8} />
                 <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: 'rgba(0,0,0,0.6)' }}>
                   {post.commentCount}
                 </Text>
               </View>
-              <Pressable onPress={toggleSave} hitSlop={8} accessibilityLabel="저장">
-                <Archive size={normalize(16)} color={post.isSaved ? ACCENT : 'rgba(0,0,0,0.6)'} fill={post.isSaved ? ACCENT : 'none'} strokeWidth={1.8} />
+              {/* 저장 수는 목록 카드(PostCard)와 같은 규칙 — 탭이 먹었는지 숫자로 바로 보인다 */}
+              <Pressable onPress={toggleBookmark} hitSlop={8} accessibilityLabel="저장" className="flex-row items-center" style={{ gap: normalize(4) }}>
+                <Bookmark size={normalize(16)} color={post.isBookmarked ? ACCENT : 'rgba(0,0,0,0.6)'} fill={post.isBookmarked ? ACCENT : 'none'} strokeWidth={1.8} />
+                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: post.isBookmarked ? ACCENT : 'rgba(0,0,0,0.6)' }}>
+                  {post.bookmarkCount}
+                </Text>
               </Pressable>
               <Pressable onPress={() => setShareSheetVisible(true)} hitSlop={8} accessibilityLabel="공유">
                 <Share2 size={normalize(16)} color="rgba(0,0,0,0.6)" strokeWidth={1.8} />
@@ -332,53 +452,51 @@ export default function PostDetailScreen() {
               </Text>
 
               {comments.map((comment) => (
-                <View key={comment.id} className="flex-row" style={{ gap: normalize(10), marginBottom: normalize(14) }}>
-                  <View
-                    className="items-center justify-center"
-                    style={{ width: normalize(28), height: normalize(28), borderRadius: normalize(14), backgroundColor: SURFACE, marginTop: normalize(1) }}
-                  >
-                    <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_2XS, color: 'rgba(0,0,0,0.35)' }}>
-                      {comment.author.initials}
-                    </Text>
-                  </View>
-                  <View style={{ flex: 1, minWidth: 0 }}>
-                    <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, letterSpacing: -0.15, lineHeight: FONT_SM * 1.5, color: '#000' }}>
-                      <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold' }}>
-                        {comment.author.handle}
-                      </Text>
-                      {'  '}
-                      {comment.text}
-                    </Text>
-                    <View className="flex-row items-center" style={{ gap: normalize(10), marginTop: normalize(4) }}>
-                      <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.35)', letterSpacing: -0.1 }}>
-                        {comment.createdAtLabel}
-                      </Text>
-                      <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.35)', letterSpacing: -0.1 }}>
-                        좋아요 {comment.likeCount}
-                      </Text>
-                      <Pressable hitSlop={8}>
-                        <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, color: 'rgba(0,0,0,0.5)', letterSpacing: -0.1 }}>
-                          답글
-                        </Text>
-                      </Pressable>
-                    </View>
-                  </View>
-                  <Pressable onPress={() => toggleCommentLike(comment.id)} hitSlop={8} style={{ padding: normalize(4) }} accessibilityLabel="좋아요">
-                    <Heart size={normalize(14)} color={comment.isLiked ? '#ff453a' : 'rgba(0,0,0,0.3)'} fill={comment.isLiked ? '#ff453a' : 'none'} strokeWidth={1.8} />
-                  </Pressable>
-                </View>
+                <CommentThread
+                  key={comment.id}
+                  postId={postId ?? ''}
+                  comment={comment}
+                  onToggleLike={handleToggleCommentLike}
+                  onPressReply={handlePressReply}
+                  onPressEdit={handlePressEdit}
+                  onDelete={setCommentPendingDelete}
+                />
               ))}
 
-              {moreCommentsCount > 0 && (
-                <Pressable style={{ paddingBottom: normalize(24) }}>
+              {hasNextPage && (
+                <Pressable onPress={() => fetchNextPage()} disabled={isFetchingNextPage} style={{ paddingBottom: normalize(24) }}>
                   <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: 'rgba(0,0,0,0.4)', letterSpacing: -0.15 }}>
-                    댓글 {moreCommentsCount}개 더보기
+                    {isFetchingNextPage ? '불러오는 중...' : `댓글 ${remainingComments}개 더보기`}
                   </Text>
                 </Pressable>
               )}
             </View>
           </View>
         </ScrollView>
+
+        {/* 입력창이 하나뿐이라, 지금 쓰는 글이 새 댓글인지 답글인지 수정인지 보여준다 */}
+        {(!!replyTo || !!editing) && (
+          <View
+            className="flex-row items-center"
+            style={{
+              gap: normalize(8),
+              paddingHorizontal: CONTENT_PADDING,
+              paddingVertical: normalize(8),
+              backgroundColor: SURFACE,
+            }}
+          >
+            <Text
+              allowFontScaling={false}
+              numberOfLines={1}
+              style={{ flex: 1, fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.5)', letterSpacing: -0.1 }}
+            >
+              {editing ? '댓글 수정 중' : `${replyTo!.author.handle}님에게 답글 다는 중`}
+            </Text>
+            <Pressable onPress={clearComposerMode} hitSlop={8} accessibilityLabel={editing ? '수정 취소' : '답글 취소'}>
+              <X size={normalize(14)} color="rgba(0,0,0,0.4)" strokeWidth={2} />
+            </Pressable>
+          </View>
+        )}
 
         {/* 댓글 입력 */}
         <View
@@ -393,16 +511,23 @@ export default function PostDetailScreen() {
             borderTopColor: 'rgba(0,0,0,0.06)',
           }}
         >
-          <View className="items-center justify-center" style={{ width: normalize(32), height: normalize(32), borderRadius: normalize(16), backgroundColor: SURFACE }}>
-            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_2XS, color: 'rgba(0,0,0,0.35)' }}>
-              ME
-            </Text>
+          <View className="items-center justify-center overflow-hidden" style={{ width: normalize(32), height: normalize(32), borderRadius: normalize(16), backgroundColor: SURFACE }}>
+            {me?.profileImageUrl ? (
+              <Image source={{ uri: me.profileImageUrl }} resizeMode="cover" style={{ width: '100%', height: '100%' }} />
+            ) : (
+              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_2XS, color: 'rgba(0,0,0,0.35)' }}>
+                {me ? initialsOf(me.nickname) : 'ME'}
+              </Text>
+            )}
           </View>
           <View style={{ flex: 1, height: normalize(40), backgroundColor: SURFACE, borderRadius: normalize(20), paddingHorizontal: normalize(16), justifyContent: 'center' }}>
             <TextInput
+              ref={commentInputRef}
               value={commentText}
               onChangeText={setCommentText}
-              placeholder="댓글 달기..."
+              placeholder={
+                editing ? '댓글 수정...' : replyTo ? `${replyTo.author.handle}님에게 답글...` : '댓글 달기...'
+              }
               placeholderTextColor="rgba(0,0,0,0.3)"
               onSubmitEditing={handleSendComment}
               allowFontScaling={false}
@@ -419,16 +544,19 @@ export default function PostDetailScreen() {
             <Send size={normalize(16)} color="#fff" strokeWidth={2} />
           </Pressable>
         </View>
+          </>
+        )}
       </View>
 
       <PostActionSheet
         visible={actionSheetOpen}
         onClose={() => setActionSheetOpen(false)}
         isMyPost={isMyPost}
-        onShare={() => setShareSheetVisible(true)}
-        onEdit={() => {}}
-        onRequestDelete={() => setDeleteModalOpen(true)}
-        onRequestReport={() => setReportSheetOpen(true)}
+        onShare={() => openAfterActionSheet(() => setShareSheetVisible(true))}
+        // 작성 화면을 수정 모드로 재사용한다(항목이 동일). postId가 있으면 CommunityWriteScreen이 폼을 채운다.
+        onEdit={() => openAfterActionSheet(() => navigation.navigate('CommunityWrite', { postId }))}
+        onRequestDelete={() => openAfterActionSheet(() => setDeleteModalOpen(true))}
+        onRequestReport={() => openAfterActionSheet(() => setReportSheetOpen(true))}
       />
 
       <ConfirmModal
@@ -441,20 +569,33 @@ export default function PostDetailScreen() {
         onCancel={() => setDeleteModalOpen(false)}
       />
 
+      <ConfirmModal
+        visible={!!commentPendingDelete}
+        title="댓글을 삭제할까요?"
+        body="삭제한 댓글은 복구할 수 없어요. 답글이 있으면 함께 삭제됩니다."
+        confirmLabel="삭제"
+        cancelLabel="취소"
+        onConfirm={handleConfirmDeleteComment}
+        onCancel={() => setCommentPendingDelete(null)}
+      />
+
       <PostReportSheet
         visible={reportSheetOpen}
         onClose={() => setReportSheetOpen(false)}
         onSelectReason={handleSelectReportReason}
       />
 
-      <PhotoLightbox
-        visible={lightboxOpen}
-        onClose={handleCloseLightbox}
-        exifOpen={exifOpen}
-        onOpenExif={() => setExifOpen(true)}
-        onCloseExif={() => setExifOpen(false)}
-        post={post}
-      />
+      {post && (
+        <PhotoLightbox
+          visible={lightboxOpen}
+          onClose={handleCloseLightbox}
+          exifOpen={exifOpen}
+          onOpenExif={() => setExifOpen(true)}
+          onCloseExif={() => setExifOpen(false)}
+          onPressAuthor={handlePressLightboxAuthor}
+          post={post}
+        />
+      )}
 
       <ShareSheet
         visible={shareSheetVisible}

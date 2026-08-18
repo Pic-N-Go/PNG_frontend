@@ -57,8 +57,10 @@ const MAX_PHOTOS = 5;
 const MAX_EQUIPMENT = 5;
 // 서버 max-file-size와 동일. 초과분은 업로드 전에 걸러 낸다.
 const MAX_PHOTO_BYTES = 20 * 1024 * 1024;
-// Android는 압축 전 크기만 알 수 있어 한도를 그대로 쓰면 오탐이 난다. 압축률을 감안한 여유 배수.
-const ANDROID_SIZE_SLACK = 3;
+// 서버 max-request-size는 100MB인데 5장 × 20MB면 정확히 100MB라 여유가 0이다. 같은 요청에
+// JSON 파트와 multipart 경계 문자열도 들어가므로 합계는 한 단계 낮춰 잡는다. quality 1로
+// 바꾼 뒤로는 원본이 그대로 올라가 이 상한에 실제로 닿을 수 있다.
+const MAX_TOTAL_BYTES = 90 * 1024 * 1024;
 
 const STAR_LABELS = ['선택 안 됨', '별로예요', '아쉬워요', '괜찮아요', '좋아요', '최고예요'];
 
@@ -80,13 +82,19 @@ const EQUIPMENT = [
 ];
 
 /**
- * quality 옵션 때문에 같은 사진을 다시 고르면 매번 새 임시 파일로 재인코딩되어 uri가 달라진다.
+ * 피커는 고를 때마다 UUID로 새 캐시 경로를 만들어 파일을 쓴다(expo-modules-core의
+ * generatePath — `UUID().uuidString`). 그래서 같은 사진을 다시 골라도 uri가 매번 달라진다.
  * 중복 판정은 사진첩 원본을 가리키는 assetId로 해야 하고, 없을 때만 uri로 폴백한다.
  */
-type PickedPhoto = ReviewPhotoUpload & { assetId?: string | null; fingerprint: string };
+type PickedPhoto = ReviewPhotoUpload & {
+  assetId?: string | null;
+  fingerprint: string;
+  /** 요청 전체 용량 합산용. 피커가 안 주는 경우가 있어 0으로 떨어질 수 있다. */
+  bytes: number;
+};
 /**
  * assetId는 iOS에선 오지만 Android 최신 photo picker 경로에선 항상 null이다.
- * uri는 quality 재인코딩 때문에 매번 달라져 폴백으로 쓸 수 없으므로,
+ * uri는 위의 UUID 임시 경로 때문에 매번 달라져 폴백으로 쓸 수 없으므로,
  * 원본 메타데이터(파일명·크기·해상도) 조합을 보조 식별자로 쓴다.
  */
 const identityOf = (p: PickedPhoto) => p.assetId ?? p.fingerprint;
@@ -97,7 +105,8 @@ const MIME_BY_EXT: Record<string, string> = {
 
 /**
  * 확장자는 asset.fileName(사진첩 원본 이름)이 아니라 실제로 전송하는 파일인 asset.uri에서 뽑는다.
- * quality 재인코딩 결과가 uri에 반영되므로, 원본이 HEIC여도 uri는 .jpg가 된다.
+ * preferredAssetRepresentationMode: Compatible이 HEIC를 JPEG로 전사하고 그 결과가 uri에
+ * 반영되므로, 원본이 HEIC여도 uri는 .jpg가 된다.
  * fileName을 쓰면 내용은 JPEG인데 S3 키만 .heic로 남아 일부 기기에서 표시가 깨진다.
  */
 const extOf = (uri: string): string | null => {
@@ -276,25 +285,39 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
       mediaTypes: ['images'],
       allowsMultipleSelection: true,
       selectionLimit: MAX_PHOTOS - thumbs.length,
-      quality: 0.8,
+      // quality를 1로 두는 건 화질이 아니라 **EXIF 때문**이다. 1 미만이면 expo-image-picker가
+      // UIImage 비트맵에서 JPEG를 다시 인코딩하는데(ImageUtils.swift:153 `image.jpegData(...)`),
+      // UIImage는 메타데이터를 들고 있지 않아 결과 파일에 EXIF가 한 줄도 남지 않는다.
+      // 1 이상이면 원본 바이트가 그대로 통과한다(같은 파일 151행 `if options.quality >= 1.0`).
+      // 사진 정보(라이트박스 EXIF 시트)가 이 바이트에 의존하므로 낮추면 그 기능이 죽는다.
+      // 용량은 서버 한도와 맞춰져 있다 — application.yaml의 max-file-size 20MB(= MAX_PHOTO_BYTES),
+      // max-request-size 100MB(= 20MB × MAX_PHOTOS).
+      quality: 1,
       // iOS 기본값은 .current(전사 회피)라서 HEIC 자산이 원본 바이트째로 넘어온다
-      // (ImageUtils.swift의 `case UTType.heic: return (rawData, ".heic")` 분기 — quality가 적용되지 않는다).
+      // (ImageUtils.swift의 `case UTType.heic: return (rawData, ".heic")` 분기).
       // 서버에 변환 로직이 없어 그대로 두면 .heic가 S3에 올라가 일부 기기에서 표시가 깨진다.
       // Compatible로 두면 시스템이 JPEG로 전사해 넘겨준다. iOS 전용 옵션.
+      // quality 1과 조합하면 이 전사 결과가 곧 업로드 바이트이므로, 전사가 EXIF를 보존하는지에
+      // EXIF 기능이 걸려 있다. 날아가는 게 확인되면 .current + 서버 HEIC 변환으로 가야 한다.
       preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
     });
     if (result.canceled) return;
 
-    // iOS의 fileSize는 압축 후(실제 전송) 크기라 서버 한도를 그대로 적용할 수 있다.
-    // Android는 압축 전 원본 크기라 같은 기준을 쓰면 압축하면 통과할 사진을 오탐으로 막는다.
-    // 서버도 이제 초과를 400 + 한국어 message로 알려주지만(이전엔 본문 없는 500),
-    // 20MB를 다 올려보낸 뒤 거부당하는 낭비는 그대로다. 그래서 Android에서는 압축률을 감안한
-    // 관대한 상한만 둬 명백히 과대한 파일을 미리 걸러낸다.
-    const sizeLimit = Platform.OS === 'ios' ? MAX_PHOTO_BYTES : MAX_PHOTO_BYTES * ANDROID_SIZE_SLACK;
+    // quality 1이라 양 플랫폼 모두 재인코딩 없이 원본 바이트를 그대로 올린다
+    // (iOS는 rawData 통과, Android는 RawImageExporter의 copyFile). 따라서 fileSize가 곧 전송
+    // 크기이고, 플랫폼 구분 없이 서버 한도를 그대로 적용할 수 있다.
+    // 압축을 다시 켜면(quality < 1) Android의 fileSize는 압축 전 크기가 되어 오탐이 나므로,
+    // 그때는 여유 배수를 되살려야 한다.
+    // 서버도 초과를 400 + 한국어 message로 알려주지만, 20MB를 다 올려보낸 뒤 거부당하는 낭비는
+    // 그대로여서 클라에서 미리 걸러낸다.
+    const sizeLimit = MAX_PHOTO_BYTES;
 
     const picked: PickedPhoto[] = [];
     let tooLarge = 0;
     let unsupported = 0;
+    let overBudget = 0;
+    // 수정 모드는 새로 고른 것만 별도 요청으로 올라가므로 기존 사진을 합산하지 않는다.
+    let totalBytes = isEdit ? 0 : photos.reduce((sum, p) => sum + p.bytes, 0);
     result.assets.forEach((asset, idx) => {
       if (asset.fileSize && asset.fileSize > sizeLimit) {
         tooLarge += 1;
@@ -305,7 +328,14 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
         unsupported += 1;
         return;
       }
+      const bytes = asset.fileSize ?? 0;
+      if (totalBytes + bytes > MAX_TOTAL_BYTES) {
+        overBudget += 1;
+        return;
+      }
+      totalBytes += bytes;
       picked.push({
+        bytes,
         uri: asset.uri,
         name: `review_${Date.now()}_${idx}.${ext}`,
         type: MIME_BY_EXT[ext],
@@ -318,6 +348,7 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
 
     const skipped: string[] = [];
     if (tooLarge > 0) skipped.push(`${tooLarge}장은 용량이 너무 커요`);
+    if (overBudget > 0) skipped.push(`${overBudget}장은 전체 용량 한도를 넘어 담지 못했어요`);
     if (unsupported > 0) skipped.push(`${unsupported}장은 지원하지 않는 형식이에요(JPG·PNG·HEIC만 가능)`);
     if (picked.length === 0) {
       // 전부 걸러졌으면 여기서 안내하고 끝낸다. 아래 중복 안내와 겹쳐 Alert가 연달아 뜨는 것을 막는다.

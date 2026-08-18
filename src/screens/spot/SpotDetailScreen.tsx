@@ -22,6 +22,7 @@ import BookmarkSheet from '@/components/spot/BookmarkSheet';
 import PhotoLightbox from '@/components/spot/PhotoLightbox';
 import { useBookmarkCollections, useSpotDetail, useSpotPhotogenicScore, useSpotPhotos } from '@/hooks/useSpot';
 import { useKeyboardOverlap } from '@/hooks/useKeyboardHeight';
+import { exifFromPhotoUrl } from '@/utils/spotMappers';
 import { BUTTON_RADIUS, GRID_PADDING, SPACING_LG } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 
@@ -45,6 +46,8 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
   const viewerPhotos = Array.from(
     new Set([...(spot?.imageUrl ? [spot.imageUrl] : []), ...(heroPhotos ?? [])]),
   );
+  // 스팟 사진은 서버에 EXIF가 없어 URL에서 뽑히는 파일명·형식만 채운다.
+  const viewerExifs = viewerPhotos.map(exifFromPhotoUrl);
   const [photoViewerVisible, setPhotoViewerVisible] = useState(false);
 
   const [activeTab, setActiveTab] = useState<SpotTabKey>('info');
@@ -290,6 +293,7 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
       <PhotoLightbox
         visible={photoViewerVisible}
         photos={viewerPhotos}
+        exifs={viewerExifs}
         initialIndex={0}
         onClose={() => setPhotoViewerVisible(false)}
       />
