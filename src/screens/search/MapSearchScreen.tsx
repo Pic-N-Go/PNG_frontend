@@ -62,27 +62,47 @@ export default function MapSearchScreen() {
   const debouncedQuery = useDebounce(query, 500);
 
   // 실시간 스팟 검색 결과 (500ms 디바운스 적용)
-  const { data: searchResultsData, isLoading: isSearchLoading } = useSearchSpots({ keyword: debouncedQuery });
+  const {
+    data: searchResultsData,
+    isLoading: isSearchLoading,
+    isPlaceholderData: isSearchPlaceholder,
+  } = useSearchSpots({
+    keyword: debouncedQuery,
+    category: selectedCategory === 'all' || selectedCategory === 'spot' ? undefined : selectedCategory,
+  });
   const apiResults: SpotResponse[] = React.useMemo(
     () => searchResultsData?.content || [],
     [searchResultsData?.content]
   );
 
   const searchResults = React.useMemo(() => {
-    if (!query.trim()) return [];
-    if (apiResults.length > 0) return apiResults;
+    const trimmedQuery = query.trim();
+    if (!trimmedQuery) return [];
 
-    const q = query.trim().toLowerCase();
-    const filteredRec = recSpots.filter(
-      (s) =>
-        s.name.toLowerCase().includes(q) ||
-        s.address?.toLowerCase().includes(q) ||
-        s.categories?.some((c) => c.toLowerCase().includes(q))
+    let baseResults: SpotResponse[] = [];
+
+    const isDebouncedMatch = debouncedQuery.trim().toLowerCase() === trimmedQuery.toLowerCase();
+    if (isDebouncedMatch && apiResults.length > 0 && !isSearchPlaceholder) {
+      baseResults = apiResults;
+    } else {
+      const q = trimmedQuery.toLowerCase();
+      baseResults = recSpots.filter(
+        (s) =>
+          s.name.toLowerCase().includes(q) ||
+          s.address?.toLowerCase().includes(q) ||
+          s.categories?.some((c) => c.toLowerCase().includes(q))
+      );
+    }
+
+    if (selectedCategory === 'all' || selectedCategory === 'spot') {
+      return baseResults;
+    }
+
+    const catTarget = String(selectedCategory).toLowerCase();
+    return baseResults.filter((s) =>
+      s.categories?.some((c) => c.toLowerCase().includes(catTarget))
     );
-    if (filteredRec.length > 0) return filteredRec;
-
-    return [];
-  }, [query, apiResults, recSpots]);
+  }, [query, debouncedQuery, apiResults, isSearchPlaceholder, recSpots, selectedCategory]);
 
   // 같은 값을 다시 골라도 지도 쪽 effect가 다시 돌도록 매번 새 nonce를 붙인다.
   const returnToMap = useCallback(
@@ -356,7 +376,7 @@ export default function MapSearchScreen() {
               검색 결과 ({searchResults.length})
             </Text>
 
-            {isSearchLoading ? (
+            {isSearchLoading || isSearchPlaceholder ? (
               <View style={{ paddingVertical: normalize(40) }}>
                 <ActivityIndicator size="small" color={BRAND} />
               </View>
@@ -372,7 +392,7 @@ export default function MapSearchScreen() {
                   <TouchableOpacity
                     key={spot.id}
                     onPress={() => handleSelectSpot(spot)}
-                    className="flex-row items-center bg-[#f8f9fa] border border-black/5"
+                    className="flex-row items-center bg-[#f5f5f7]"
                     style={{
                       padding: normalize(12),
                       borderRadius: normalize(16),

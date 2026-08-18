@@ -18,7 +18,7 @@ import { getCourseStats } from '@/utils/distance';
 import { parseValidCoordinate } from '@/utils/geo';
 import { getDayColor, DAY_COLOR_PALETTE } from '@/constants/dayColors';
 import { CATEGORY_LABELS, CODE_BY_LABEL } from '@/constants/spotCategories';
-import { FONT_SM, FONT_MD, BUTTON_HEIGHT, BUTTON_RADIUS, HEADER_HEIGHT, ICON_SM } from '@/constants/layout';
+import { FONT_SM, FONT_MD, FONT_XL, BUTTON_HEIGHT, BUTTON_RADIUS, HEADER_HEIGHT, ICON_SM, CONTROL_SIZE } from '@/constants/layout';
 
 const KAKAO_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_API_KEY;
 
@@ -93,14 +93,19 @@ export default function MapScreen() {
 
   // 2. 위치 실시간 추적 및 웹뷰에 주입
   useEffect(() => {
+    let isDisposed = false;
     let subscription: any = null;
 
     const startLocationTracking = async () => {
       try {
         const { status } = await Location.getForegroundPermissionsAsync();
+        if (isDisposed) return;
+
         if (status === Location.PermissionStatus.GRANTED && mapReady) {
           // 초기 위치 조회 및 반영
           const lastKnown = await Location.getLastKnownPositionAsync();
+          if (isDisposed) return;
+
           if (lastKnown) {
             latestLocationRef.current = lastKnown.coords;
             if (webViewRef.current) {
@@ -114,13 +119,14 @@ export default function MapScreen() {
           }
 
           // 실시간 위치 추적 구독
-          subscription = await Location.watchPositionAsync(
+          const sub = await Location.watchPositionAsync(
             {
               accuracy: Location.Accuracy.Balanced,
               timeInterval: 2000,
               distanceInterval: 3,
             },
             (location) => {
+              if (isDisposed) return;
               latestLocationRef.current = location.coords;
               if (webViewRef.current) {
                 webViewRef.current.injectJavaScript(`
@@ -132,9 +138,17 @@ export default function MapScreen() {
               }
             }
           );
+
+          if (isDisposed) {
+            sub.remove();
+          } else {
+            subscription = sub;
+          }
         }
       } catch (error) {
-        console.error('[MapScreen] startLocationTracking error:', error);
+        if (!isDisposed) {
+          console.error('[MapScreen] startLocationTracking error:', error);
+        }
       }
     };
 
@@ -143,6 +157,7 @@ export default function MapScreen() {
     }
 
     return () => {
+      isDisposed = true;
       if (subscription) {
         subscription.remove();
       }
@@ -413,6 +428,9 @@ export default function MapScreen() {
             webViewRef.current.injectJavaScript(`
               if (window.updateUserLocation) {
                 window.updateUserLocation(${location.coords.latitude}, ${location.coords.longitude});
+              }
+              if (window.moveToUserLocation) {
+                window.moveToUserLocation(${location.coords.latitude}, ${location.coords.longitude});
               }
               true;
             `);
@@ -1242,13 +1260,13 @@ export default function MapScreen() {
               onPress={handleZoomIn}
               activeOpacity={0.7}
               style={{
-                width: 40,
-                height: 40,
+                width: CONTROL_SIZE,
+                height: CONTROL_SIZE,
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <Text style={{ fontSize: 20, color: 'rgba(0,0,0,0.55)', fontFamily: 'Pretendard-Regular' }}>+</Text>
+              <Text style={{ fontSize: FONT_XL, color: 'rgba(0,0,0,0.55)', fontFamily: 'Pretendard-Regular' }}>+</Text>
             </TouchableOpacity>
             
             <View style={{ height: 0.5, backgroundColor: 'rgba(0,0,0,0.06)' }} />
@@ -1257,13 +1275,13 @@ export default function MapScreen() {
               onPress={handleZoomOut}
               activeOpacity={0.7}
               style={{
-                width: 40,
-                height: 40,
+                width: CONTROL_SIZE,
+                height: CONTROL_SIZE,
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <Text style={{ fontSize: 20, color: 'rgba(0,0,0,0.55)', fontFamily: 'Pretendard-Regular' }}>−</Text>
+              <Text style={{ fontSize: FONT_XL, color: 'rgba(0,0,0,0.55)', fontFamily: 'Pretendard-Regular' }}>−</Text>
             </TouchableOpacity>
           </View>
         </View>

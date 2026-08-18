@@ -16,6 +16,7 @@ import FollowScreen from '@/screens/mypage/FollowScreen';
 import MyPhotosScreen from '@/screens/mypage/MyPhotosScreen';
 import MyReviewsScreen from '@/screens/mypage/MyReviewsScreen';
 import PhotoMapScreen from '@/screens/mypage/PhotoMapScreen';
+import AdminDashboardScreen from '@/screens/admin/AdminDashboardScreen';
 
 export type MyPageStackParamList = {
   MyPage: undefined;
@@ -34,6 +35,7 @@ export type MyPageStackParamList = {
   MyPhotos: undefined;
   MyReviews: undefined;
   PhotoMap: undefined;
+  AdminDashboard: undefined;
 };
 
 const Stack = createNativeStackNavigator<MyPageStackParamList>();
@@ -57,6 +59,7 @@ export default function MyPageStack() {
       <Stack.Screen name="MyPhotos" component={MyPhotosScreen} />
       <Stack.Screen name="MyReviews" component={MyReviewsScreen} />
       <Stack.Screen name="PhotoMap" component={PhotoMapScreen} />
+      <Stack.Screen name="AdminDashboard" component={AdminDashboardScreen} />
     </Stack.Navigator>
   );
 }

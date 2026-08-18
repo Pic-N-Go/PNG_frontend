@@ -34,6 +34,7 @@ export type RootStackParamList = {
 export const navigationRef = createNavigationContainerRef<RootStackParamList>();
 
 let pendingSpotId: string | null = null;
+let pendingInquiryId: string | null = null;
 
 function navigateToSpotDetail(spotId: string) {
   (navigationRef as any).navigate('SpotStack', {
@@ -42,7 +43,33 @@ function navigateToSpotDetail(spotId: string) {
   });
 }
 
+function navigateToInquiryDetail(inquiryId: string) {
+  (navigationRef as any).navigate('Main', {
+    screen: 'MyPageTab',
+    params: {
+      screen: 'InquiryDetail',
+      params: { id: inquiryId },
+    },
+  });
+}
+
 function handleDeepLinkNav(deepLink: string) {
+  if (!deepLink) return;
+
+  // 1. 1:1 문의 딥링크 (/mypage/inquiry/123 또는 inquiryId=123)
+  const inquiryMatch = deepLink.match(/(?:inquiryId=|\/mypage\/inquiry\/|\/inquiry\/)(\d+)/);
+  if (inquiryMatch && inquiryMatch[1]) {
+    const inquiryId = inquiryMatch[1];
+    const isLoggedIn = !!useAuthStore.getState().accessToken;
+    if (navigationRef.isReady() && isLoggedIn) {
+      navigateToInquiryDetail(inquiryId);
+    } else {
+      pendingInquiryId = inquiryId;
+    }
+    return;
+  }
+
+  // 2. 스팟 딥링크
   const spotIdMatch = deepLink.match(/(?:spotId=|\/spot\/|\/wishlist\/|\/spot-alerts\/|^)(\d+)/);
   if (!spotIdMatch || !spotIdMatch[1]) return;
 
@@ -70,21 +97,33 @@ export default function RootNavigator() {
     return unsub;
   }, []);
 
-  // 인증 완료 및 네비게이션 준비 시 대기 중인 pendingSpotId가 있으면 딥링크 네비게이션 재실행
+  // 인증 완료 및 네비게이션 준비 시 대기 중인 pending deepLink가 있으면 네비게이션 실행
   React.useEffect(() => {
-    if (isLoggedIn && isNavReady && pendingSpotId) {
-      const targetSpotId = pendingSpotId;
-      pendingSpotId = null;
-      navigateToSpotDetail(targetSpotId);
+    if (isLoggedIn && isNavReady) {
+      if (pendingInquiryId) {
+        const targetInquiryId = pendingInquiryId;
+        pendingInquiryId = null;
+        navigateToInquiryDetail(targetInquiryId);
+      } else if (pendingSpotId) {
+        const targetSpotId = pendingSpotId;
+        pendingSpotId = null;
+        navigateToSpotDetail(targetSpotId);
+      }
     }
   }, [isLoggedIn, isNavReady]);
 
   const handleContainerReady = React.useCallback(() => {
     setIsNavReady(true);
-    if (isLoggedIn && pendingSpotId) {
-      const targetSpotId = pendingSpotId;
-      pendingSpotId = null;
-      navigateToSpotDetail(targetSpotId);
+    if (isLoggedIn) {
+      if (pendingInquiryId) {
+        const targetInquiryId = pendingInquiryId;
+        pendingInquiryId = null;
+        navigateToInquiryDetail(targetInquiryId);
+      } else if (pendingSpotId) {
+        const targetSpotId = pendingSpotId;
+        pendingSpotId = null;
+        navigateToSpotDetail(targetSpotId);
+      }
     }
   }, [isLoggedIn]);
 

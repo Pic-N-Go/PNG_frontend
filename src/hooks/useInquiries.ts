@@ -1,111 +1,129 @@
-// TODO: 백엔드 문의 API 스펙 확정 후 TanStack Query(useQuery/useMutation)로 교체
-import { create } from 'zustand';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { inquiryApi } from '@/api/inquiry';
+import { useAuthStore } from '@/store/useAuthStore';
+import type {
+  InquiryItem,
+  InquiryPageResponse,
+  InquiryCreateRequest,
+  AdminInquiryFilterParams,
+} from '@/types/inquiry';
 
-export type InquiryStatus = 'pending' | 'answered';
+export const INQUIRY_KEYS = {
+  all: ['inquiries'] as const,
+  my: (userId: number | undefined, page: number, size: number) =>
+    [...INQUIRY_KEYS.all, 'my', userId ?? 0, { page, size }] as const,
+  detail: (userId: number | undefined, id: number) =>
+    [...INQUIRY_KEYS.all, 'detail', userId ?? 0, id] as const,
+  admin: (params?: AdminInquiryFilterParams) =>
+    [...INQUIRY_KEYS.all, 'admin', params] as const,
+};
 
-export interface InquiryReply {
-  text: string;
-  timeText: string;
-  staffName?: string;
+// ── 1. 사용자 1:1 문의 훅 ──────────────────────────────────────────
+
+// 1.1 내 문의 목록 조회 훅
+export function useMyInquiries(page = 0, size = 20) {
+  const user = useAuthStore((s) => s.user);
+  const accessToken = useAuthStore((s) => s.accessToken);
+
+  return useQuery<InquiryPageResponse, Error>({
+    queryKey: INQUIRY_KEYS.my(user?.id, page, size),
+    queryFn: () => {
+      if (!accessToken) throw new Error('로그인이 필요합니다.');
+      return inquiryApi.getMyInquiries(page, size, accessToken);
+    },
+    enabled: !!accessToken && !!user?.id,
+    staleTime: 1000 * 15,
+  });
 }
 
-export interface Inquiry {
-  id: string;
-  category: string;
-  title: string;
-  preview: string;
-  answerPreview?: string;
-  status: InquiryStatus;
-  unread?: boolean;
-  timeText: string;
-  createdAt: string;
-  my: { text: string; timeText: string };
-  replies: InquiryReply[];
+// 1.2 문의 상세 조회 훅
+export function useInquiryDetail(id: number | null) {
+  const user = useAuthStore((s) => s.user);
+  const accessToken = useAuthStore((s) => s.accessToken);
+
+  return useQuery<InquiryItem, Error>({
+    queryKey: INQUIRY_KEYS.detail(user?.id, id ?? 0),
+    queryFn: () => {
+      if (!accessToken || !id) throw new Error('문의 정보를 찾을 수 없습니다.');
+      return inquiryApi.getInquiryDetail(id, accessToken);
+    },
+    enabled: !!accessToken && !!user?.id && !!id && id > 0,
+  });
 }
 
-const DEFAULT_INQUIRIES: Inquiry[] = [
-  {
-    id: '1',
-    category: '기능 문의',
-    title: '위시리스트 알림 관련 문의',
-    preview: '방해 금지 시간을 스팟마다 따로 설정해야 하나요?',
-    answerPreview: '이제 환경설정에서 한 번에 관리하실 수 있어요.',
-    status: 'answered',
-    unread: true,
-    timeText: '2일 전',
-    createdAt: '2026-07-12T09:00:00.000Z',
-    my: { text: '방해 금지 시간을 스팟마다 따로 설정해야 하나요? 매번 설정하기 번거로워요.', timeText: '2일 전' },
-    replies: [
-      { text: '안녕하세요! 이제 마이페이지 > 환경설정 > 방해 금지에서 한 번에 관리하실 수 있어요. 스팟별 설정은 제거됐어요.', timeText: '1일 전', staffName: '고객지원팀' },
-    ],
-  },
-  {
-    id: '2',
-    category: '앱 오류 신고',
-    title: '스팟 상세 화면 로딩 오류',
-    preview: '스팟 상세 화면에서 사진이 안 불러와져요.',
-    status: 'pending',
-    timeText: '어제',
-    createdAt: '2026-07-13T13:20:00.000Z',
-    my: { text: '스팟 상세 화면에서 사진이 안 불러와지고 계속 로딩 중이에요. 기종은 iPhone 15입니다.', timeText: '어제' },
-    replies: [],
-  },
-  {
-    id: '3',
-    category: '계정',
-    title: '카카오 계정 연결 해제 문의',
-    preview: '카카오 계정 연결을 해제하고 싶어요.',
-    answerPreview: '설정 > 연결된 소셜 계정에서 해제하실 수 있어요.',
-    status: 'answered',
-    unread: false,
-    timeText: '1주 전',
-    createdAt: '2026-07-07T10:00:00.000Z',
-    my: { text: '카카오 계정 연결을 해제하고 이메일로 로그인하고 싶어요.', timeText: '1주 전' },
-    replies: [
-      { text: '설정 > 연결된 소셜 계정에서 카카오 연결 해제가 가능해요. 해제 후에도 기존 데이터는 그대로 유지돼요.', timeText: '6일 전', staffName: '고객지원팀' },
-    ],
-  },
-];
+// 1.3 신규 문의 등록 뮤테이션
+export function useCreateInquiry() {
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const queryClient = useQueryClient();
 
-function nextId(inquiries: Inquiry[]) {
-  const max = inquiries.reduce((acc, i) => Math.max(acc, Number(i.id) || 0), 0);
-  return String(max + 1);
+  return useMutation<InquiryItem, Error, InquiryCreateRequest>({
+    mutationFn: (data) => {
+      if (!accessToken) throw new Error('로그인이 필요합니다.');
+      return inquiryApi.createInquiry(data, accessToken);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [...INQUIRY_KEYS.all, 'my'] });
+    },
+  });
 }
 
-interface InquiryStore {
-  inquiries: Inquiry[];
-  addInquiry: (category: string, message: string) => void;
-  markRead: (id: string) => void;
+// 1.4 문의 해결 상태 변경 뮤테이션 (사용자 해결 완료)
+export function useResolveInquiry() {
+  const user = useAuthStore((s) => s.user);
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const queryClient = useQueryClient();
+
+  return useMutation<InquiryItem, Error, { id: number; isResolved?: boolean }>({
+    mutationFn: ({ id, isResolved = true }) => {
+      if (!accessToken) throw new Error('로그인이 필요합니다.');
+      return inquiryApi.resolveInquiry(id, accessToken, isResolved);
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: [...INQUIRY_KEYS.all, 'my'] });
+      queryClient.invalidateQueries({ queryKey: INQUIRY_KEYS.detail(user?.id, variables.id) });
+    },
+  });
 }
 
-const useInquiryStore = create<InquiryStore>((set, get) => ({
-  inquiries: DEFAULT_INQUIRIES,
-  addInquiry: (category, message) => {
-    const newInquiry: Inquiry = {
-      id: nextId(get().inquiries),
-      category,
-      title: category,
-      preview: message,
-      status: 'pending',
-      timeText: '방금',
-      createdAt: new Date().toISOString(),
-      my: { text: message, timeText: '방금' },
-      replies: [],
-    };
-    set((state) => ({ inquiries: [newInquiry, ...state.inquiries] }));
-  },
-  markRead: (id) => set((state) => ({
-    inquiries: state.inquiries.map((i) => (i.id === id ? { ...i, unread: false } : i)),
-  })),
-}));
+// ── 2. 관리자 1:1 문의 훅 ──────────────────────────────────────────
 
+// 2.1 관리자 전체 문의 목록 조회 훅
+export function useAdminInquiries(params: AdminInquiryFilterParams) {
+  const accessToken = useAuthStore((s) => s.accessToken);
+
+  return useQuery<InquiryPageResponse, Error>({
+    queryKey: INQUIRY_KEYS.admin(params),
+    queryFn: () => {
+      if (!accessToken) throw new Error('관리자 권한이 필요합니다.');
+      return inquiryApi.getAdminInquiries(params, accessToken);
+    },
+    enabled: !!accessToken,
+    staleTime: 1000 * 15,
+  });
+}
+
+// 2.2 관리자 답변 작성 및 수정 뮤테이션
+export function useAnswerInquiry() {
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const queryClient = useQueryClient();
+
+  return useMutation<InquiryItem, Error, { id: number; answer: string }>({
+    mutationFn: ({ id, answer }) => {
+      if (!accessToken) throw new Error('관리자 권한이 필요합니다.');
+      return inquiryApi.answerInquiry(id, answer, accessToken);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [...INQUIRY_KEYS.all, 'admin'] });
+      queryClient.invalidateQueries({ queryKey: [...INQUIRY_KEYS.all, 'detail'] });
+      queryClient.invalidateQueries({ queryKey: [...INQUIRY_KEYS.all, 'my'] });
+    },
+  });
+}
+
+// ── 3. 레거시 지원 훅 ───────────────────────────────────────────────
 export function useInquiries() {
-  const inquiries = useInquiryStore((s) => s.inquiries);
-  const addInquiry = useInquiryStore((s) => s.addInquiry);
-  const markRead = useInquiryStore((s) => s.markRead);
-
-  const unreadCount = inquiries.filter((i) => i.status === 'answered' && i.unread).length;
-  const getById = (id: string) => inquiries.find((i) => i.id === id);
-
-  return { inquiries, unreadCount, addInquiry, markRead, getById };
+  // InquiryListScreen과 동일한 page size(50)를 사용하여 쿼리 캐시를 공유하고 전체 답변 완료 건수 반영
+  const { data } = useMyInquiries(0, 50);
+  const unreadCount = data?.content.filter((i) => i.status === 'ANSWERED' && !i.isResolved).length ?? 0;
+  return { unreadCount };
 }

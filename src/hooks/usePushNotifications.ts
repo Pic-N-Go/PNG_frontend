@@ -41,6 +41,7 @@ export const usePushNotifications = (onDeepLinkNav?: (deepLink: string) => void)
     const messaging = getMessaging();
 
     async function requestPermissionAndGetToken() {
+      // 1. 푸시 알림 권한 및 FCM 토큰 획득 (독립적 try/catch - 실패 시에도 위치 권한 요청 방해 금지)
       try {
         let enabled = false;
 
@@ -74,18 +75,18 @@ export const usePushNotifications = (onDeepLinkNav?: (deepLink: string) => void)
         } else {
           console.log('Notification permission denied.');
         }
-
-        // 알림 권한 처리 완료 후 -> 위치(GPS) 권한 순차 요청
-        try {
-          const { status: locStatus } = await Location.getForegroundPermissionsAsync();
-          if (locStatus === Location.PermissionStatus.UNDETERMINED) {
-            await Location.requestForegroundPermissionsAsync();
-          }
-        } catch (locErr) {
-          console.warn('Sequential Location permission request error:', locErr);
-        }
       } catch (error) {
         console.error('Failed to request permission or get FCM token:', error);
+      }
+
+      // 2. 위치(GPS) 권한 요청 (알림 흐름 실패 여부와 독립적으로 실행)
+      try {
+        const { status: locStatus } = await Location.getForegroundPermissionsAsync();
+        if (locStatus === Location.PermissionStatus.UNDETERMINED) {
+          await Location.requestForegroundPermissionsAsync();
+        }
+      } catch (locErr) {
+        console.warn('Sequential Location permission request error:', locErr);
       }
     }
 
