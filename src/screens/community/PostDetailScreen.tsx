@@ -70,6 +70,8 @@ export default function PostDetailScreen() {
   const [actionSheetOpen, setActionSheetOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [reportSheetOpen, setReportSheetOpen] = useState(false);
+  /** 삭제 확인 중인 댓글 id. 게시글 삭제와 같이 한 번 확인받는다(되돌릴 수 없다). */
+  const [commentPendingDelete, setCommentPendingDelete] = useState<string | null>(null);
 
   // 라이트박스를 닫으면 EXIF도 함께 닫혀야 한다 — exifOpen은 독립 state로 두고
   // 렌더 조건을 lightboxOpen && exifOpen으로 걸어 "EXIF만 닫아도 라이트박스는 유지" 규칙을 자연히 만족시킨다.
@@ -201,14 +203,29 @@ export default function PostDetailScreen() {
     );
   }
 
-  function handlePressReply(comment: Comment) {
+  /**
+   * 답글/수정 모드를 끄되 쓰던 내용은 지키다. 수정 모드에서 빠져나올 때만 지운다 —
+   * 입력창에 남아 있는 게 "고치던 남의 문장"이라 새 댓글로 이어 쓰면 안 되기 때문이다.
+   */
+  function clearComposerMode() {
+    if (editing) setCommentText('');
     setEditing(null);
-    setCommentText('');
+    setReplyTo(null);
+  }
+
+  function handlePressReply(comment: Comment) {
+    if (editing) setCommentText('');
+    setEditing(null);
     setReplyTo(comment);
     commentInputRef.current?.focus();
   }
 
-  function handleDeleteComment(commentId: string) {
+  function handleConfirmDeleteComment() {
+    const commentId = commentPendingDelete;
+    setCommentPendingDelete(null);
+    if (!commentId) return;
+    // 대상이 사라지면 배너와 입력 내용이 남아 사라진 id로 PATCH를 보내게 된다.
+    if (editing?.id === commentId || replyTo?.id === commentId) resetComposer();
     deleteCommentM.mutate(commentId, {
       onError: (err) => showToast(toErrorMessage(err, '댓글을 삭제하지 못했어요')),
     });
@@ -427,7 +444,7 @@ export default function PostDetailScreen() {
                   onToggleLike={handleToggleCommentLike}
                   onPressReply={handlePressReply}
                   onPressEdit={handlePressEdit}
-                  onDelete={handleDeleteComment}
+                  onDelete={setCommentPendingDelete}
                 />
               ))}
 
@@ -460,7 +477,7 @@ export default function PostDetailScreen() {
             >
               {editing ? '댓글 수정 중' : `${replyTo!.author.handle}님에게 답글 다는 중`}
             </Text>
-            <Pressable onPress={resetComposer} hitSlop={8} accessibilityLabel={editing ? '수정 취소' : '답글 취소'}>
+            <Pressable onPress={clearComposerMode} hitSlop={8} accessibilityLabel={editing ? '수정 취소' : '답글 취소'}>
               <X size={normalize(14)} color="rgba(0,0,0,0.4)" strokeWidth={2} />
             </Pressable>
           </View>
@@ -535,6 +552,16 @@ export default function PostDetailScreen() {
         cancelLabel="취소"
         onConfirm={handleConfirmDelete}
         onCancel={() => setDeleteModalOpen(false)}
+      />
+
+      <ConfirmModal
+        visible={!!commentPendingDelete}
+        title="댓글을 삭제할까요?"
+        body="삭제한 댓글은 복구할 수 없어요. 답글이 있으면 함께 삭제됩니다."
+        confirmLabel="삭제"
+        cancelLabel="취소"
+        onConfirm={handleConfirmDeleteComment}
+        onCancel={() => setCommentPendingDelete(null)}
       />
 
       <PostReportSheet

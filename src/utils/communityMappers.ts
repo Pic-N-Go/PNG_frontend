@@ -180,7 +180,6 @@ export function mapExif(dto: PhotoExifDTO | undefined, shootingTime?: string | n
   };
 }
 
-/** 라이트박스는 메인(첫 번째) 사진의 EXIF만 보여준다. */
 export function mapPostDetail(dto: PostResponseDTO, exif: PostExifResponseDTO | undefined, ctx: PostMapContext = {}): PostDetail {
   // EXIF는 imageId로 오므로 게시 사진 순서에 맞춰 재정렬한다. 응답 순서를 그대로 믿으면
   // 사진과 EXIF가 어긋나 남의 촬영 정보가 붙는다. EXIF가 없는 사진은 빈 값으로 채워

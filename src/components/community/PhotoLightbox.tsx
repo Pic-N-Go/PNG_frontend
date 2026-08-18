@@ -59,13 +59,9 @@ export default function PhotoLightbox({ visible, onClose, exifOpen, onOpenExif, 
 
   const photos = post.imageUrls ?? [];
   const [index, setIndex] = useState(0);
-  // 인덱스는 게시글이 바뀌거나 라이트박스를 다시 열 때 첫 장으로 되돌린다.
   const currentExif = post.exifList?.[index] ?? {};
-  // 제스처 콜백은 worklet이라 React state를 읽을 수 없다. 공유 값으로 따로 들고 있는다.
-  const indexShared = useSharedValue(0);
-  useEffect(() => {
-    indexShared.value = index;
-  }, [index, indexShared]);
+  /** 다중 터치(핀치) 중이었는지. 핀치의 중심점 이동이 스와이프로 오인되는 걸 막는다. */
+  const usedMultiTouch = useSharedValue(false);
 
   function resetTransform() {
     scale.value = 1;
@@ -76,7 +72,7 @@ export default function PhotoLightbox({ visible, onClose, exifOpen, onOpenExif, 
     savedTy.value = 0;
   }
 
-  // 확대한 채로 닫았다가 다시 열면 그 상태가 남아 있으면 안 된다.
+  // 확대하거나 넘겨 본 채로 닫았다가 다시 열면 그 상태가 남아 있으면 안 된다.
   useEffect(() => {
     if (visible) {
       setIndex(0);
@@ -85,14 +81,24 @@ export default function PhotoLightbox({ visible, onClose, exifOpen, onOpenExif, 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible]);
 
-  /** 사진을 넘기면 확대·이동 상태를 초기화한다(이전 장의 배율이 남으면 안 된다). */
-  function goTo(nextIndex: number) {
-    if (nextIndex < 0 || nextIndex >= photos.length) return;
-    setIndex(nextIndex);
-    resetTransform();
+  /**
+   * 사진을 넘긴다. 절대 인덱스가 아니라 방향을 받는다 — 공유 값으로 인덱스를 미러링하면
+   * 한 프레임 늦어, 빠르게 두 번 넘길 때 두 번째가 옛 값을 읽어 한 장만 넘어간다.
+   * 이전 장의 배율·이동이 남으면 안 되므로 넘길 때 초기화한다.
+   */
+  function goBy(delta: 1 | -1) {
+    setIndex((prev) => {
+      const next = prev + delta;
+      if (next < 0 || next >= photos.length) return prev;
+      resetTransform();
+      return next;
+    });
   }
 
   const pinch = Gesture.Pinch()
+    .onBegin(() => {
+      usedMultiTouch.value = true;
+    })
     .onUpdate((e) => {
       // 1배 미만으로는 줄지 않게 막는다 — 축소했다 놓으면 사진이 화면에서 사라진 것처럼 보인다.
       scale.value = Math.min(Math.max(savedScale.value * e.scale, 1), MAX_ZOOM);
@@ -111,8 +117,10 @@ export default function PhotoLightbox({ visible, onClose, exifOpen, onOpenExif, 
   const pan = Gesture.Pan()
     .onBegin(() => {
       panStartedZoomed.value = scale.value > 1;
+      usedMultiTouch.value = false;
     })
     .onUpdate((e) => {
+      if (e.numberOfPointers > 1) usedMultiTouch.value = true;
       if (scale.value > 1) {
         // 확대 상태에서는 사진을 이동시킨다.
         tx.value = savedTx.value + e.translationX;
@@ -123,15 +131,22 @@ export default function PhotoLightbox({ visible, onClose, exifOpen, onOpenExif, 
         ty.value = Math.max(0, e.translationY);
       }
     })
-    .onEnd((e) => {
+    .onEnd((e, success) => {
       if (panStartedZoomed.value || scale.value > 1) {
         savedTx.value = tx.value;
         savedTy.value = ty.value;
         return;
       }
+      // 취소·실패로 끝난 제스처(모달 전환, 다른 제스처에 뺏김)를 스와이프로 읽으면 안 된다.
+      // 핀치 중이었다면 translationX가 두 손가락 중심점 이동이라 스와이프가 아니다.
+      if (!success || usedMultiTouch.value) {
+        tx.value = withTiming(0);
+        ty.value = withTiming(0);
+        return;
+      }
       // 가로 움직임이 더 크면 사진 전환으로 읽는다.
       if (Math.abs(e.translationX) > Math.abs(e.translationY) && Math.abs(e.translationX) > SWIPE_DISTANCE) {
-        runOnJS(goTo)(e.translationX < 0 ? indexShared.value + 1 : indexShared.value - 1);
+        runOnJS(goBy)(e.translationX < 0 ? 1 : -1);
         tx.value = withTiming(0);
         ty.value = withTiming(0);
         return;
@@ -173,8 +188,7 @@ export default function PhotoLightbox({ visible, onClose, exifOpen, onOpenExif, 
           </Pressable>
         </View>
 
-        {/* EXIF는 메인(첫 번째) 사진 기준이라 라이트박스도 같은 사진을 보여준다.
-            비율을 고정하지 않고 남는 영역을 전부 쓴다 — 3:2로 박아두면 세로 사진이 그 높이에
+        {/* 비율을 고정하지 않고 남는 영역을 전부 쓴다 — 3:2로 박아두면 세로 사진이 그 높이에
             맞춰 축소돼 화면 1/3만 차지한다. 위아래 패딩은 닫기 버튼·작성자 바가 사진을 가리지
             않을 만큼만 비운다. */}
         <GestureDetector gesture={photoGesture}>
@@ -205,7 +219,7 @@ export default function PhotoLightbox({ visible, onClose, exifOpen, onOpenExif, 
           >
             {photos.map((uri, i) => (
               <View
-                key={uri}
+                key={`${uri}-${i}`}
                 style={{
                   width: normalize(6),
                   height: normalize(6),

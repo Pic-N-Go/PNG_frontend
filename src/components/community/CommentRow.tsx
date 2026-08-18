@@ -7,6 +7,9 @@ import { normalize } from '@/utils/normalize';
 
 const SURFACE = '#f5f5f7';
 
+/** 액션들이 gap 10으로 붙어 있어 가로는 좁게, 세로는 넉넉히 준다. */
+const ACTION_HIT_SLOP = { top: 8, bottom: 8, left: 4, right: 4 };
+
 interface Props {
   comment: Comment;
   /** 답글이면 왼쪽을 들여쓰고 아바타를 줄인다 */
@@ -61,21 +64,23 @@ export default function CommentRow({ comment, isReply, onToggleLike, onPressRepl
             </Text>
           )}
           {!!onPressReply && (
-            <Pressable hitSlop={8} onPress={onPressReply}>
+            <Pressable hitSlop={ACTION_HIT_SLOP} onPress={onPressReply}>
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, color: 'rgba(0,0,0,0.5)', letterSpacing: -0.1 }}>
                 답글 달기
               </Text>
             </Pressable>
           )}
+          {/* 가로 hitSlop을 gap(10)의 절반 미만으로 둔다. 8이면 수정·삭제 영역이 6px 겹쳐
+              나중에 그려진 삭제가 이기고, 댓글 삭제는 되돌릴 수 없다. */}
           {comment.isMine && (
-            <Pressable hitSlop={8} onPress={onPressEdit}>
+            <Pressable hitSlop={ACTION_HIT_SLOP} onPress={onPressEdit}>
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, color: 'rgba(0,0,0,0.5)', letterSpacing: -0.1 }}>
                 수정
               </Text>
             </Pressable>
           )}
           {comment.isMine && (
-            <Pressable hitSlop={8} onPress={onDelete}>
+            <Pressable hitSlop={ACTION_HIT_SLOP} onPress={onDelete}>
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, color: 'rgba(0,0,0,0.5)', letterSpacing: -0.1 }}>
                 삭제
               </Text>

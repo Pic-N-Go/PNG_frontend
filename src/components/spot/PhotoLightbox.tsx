@@ -22,7 +22,7 @@ const IMAGE_HEIGHT = SCREEN_HEIGHT * 0.7;
 // 서버가 반환하지도 않는다(ReviewWriteScreen의 image-picker에 exif 옵션이 없고, 백엔드
 // ExifExtractor도 미연결). 리뷰에 실제로 있는 건 사진별 EXIF가 아니라 리뷰 단위 `equipment`
 // 문자열이고, 그건 ReviewTab이 이미 보여준다. 파이프라인이 생기면 그때 실제 응답 모양대로 추가할 것.
-// 시트 레이아웃은 community/PhotoLightbox가 실제 `post.exif`로 렌더하므로 거기서 확인 가능.
+// 시트 레이아웃은 community/PhotoLightbox가 실제 `post.exifList[index]`로 렌더하므로 거기서 확인 가능.
 
 /**
  * 사진 확대 오버레이. 라우트가 아니라 Modal인 이유: 딥링크로 도달할 대상이 아니고
