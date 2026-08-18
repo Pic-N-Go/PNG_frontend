@@ -118,6 +118,8 @@ export default function HomeScreen({ navigation }: Props) {
 
   // 사용자 주소 역지오코딩 (동/읍/면 단위 추출)
   useEffect(() => {
+    let ignore = false;
+
     const fetchAddress = async () => {
       try {
         if (userLocation.isReal && userLocation.lat && userLocation.lng) {
@@ -125,26 +127,37 @@ export default function HomeScreen({ navigation }: Props) {
             latitude: userLocation.lat,
             longitude: userLocation.lng,
           });
-          if (geo) {
+          if (!ignore && geo) {
             const dongOrDistrict = extractDongOrDistrict(geo);
-            if (dongOrDistrict) {
+            if (!ignore && dongOrDistrict) {
               setUserAddress(dongOrDistrict);
             }
           }
         }
       } catch (err) {
-        console.warn('[HomeScreen] reverseGeocodeAsync error:', err);
+        if (!ignore) {
+          console.warn('[HomeScreen] reverseGeocodeAsync error:', err);
+        }
       }
     };
     void fetchAddress();
+
+    return () => {
+      ignore = true;
+    };
   }, [userLocation.isReal, userLocation.lat, userLocation.lng]);
 
-  const { data: nearbySpots = [], isLoading: isNearbyLoading } = useNearbySpots({
-    lat: userLocation.lat,
-    lng: userLocation.lng,
-    radiusKm: 5.0,
-    limit: 20,
-  });
+  const { data: nearbySpots = [], isLoading: isNearbyLoading } = useNearbySpots(
+    {
+      lat: userLocation.lat,
+      lng: userLocation.lng,
+      radiusKm: 5.0,
+      limit: 20,
+    },
+    {
+      enabled: userLocation.isReal,
+    }
+  );
 
   const { useNotificationsQuery } = useNotification();
   const { data: notifications = [] } = useNotificationsQuery();
@@ -191,7 +204,7 @@ export default function HomeScreen({ navigation }: Props) {
             allowFontScaling={false}
             style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: 'rgba(0,0,0,0.4)', marginTop: normalize(4), marginBottom: normalize(14) }}
           >
-            {userAddress} 기준 · 반경 5km · 탭하면 전체 지도로 이동
+            {userLocation.isReal ? `${userAddress} 기준 · 반경 5km · 탭하면 전체 지도로 이동` : '위치 탐색 중 · 반경 5km · 탭하면 전체 지도로 이동'}
           </Text>
           <MapBanner
             onPress={() => {
@@ -202,10 +215,10 @@ export default function HomeScreen({ navigation }: Props) {
                 (navigation as any).navigate('MapTab');
               }
             }}
-            spotCount={nearbySpots.length}
-            isLoading={isNearbyLoading}
-            userLocation={{ lat: userLocation.lat, lng: userLocation.lng }}
-            spots={nearbySpots}
+            spotCount={userLocation.isReal ? nearbySpots.length : 0}
+            isLoading={!userLocation.isReal || isNearbyLoading}
+            userLocation={userLocation.isReal ? { lat: userLocation.lat, lng: userLocation.lng } : undefined}
+            spots={userLocation.isReal ? nearbySpots : []}
           />
         </View>
 
