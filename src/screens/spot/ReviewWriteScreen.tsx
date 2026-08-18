@@ -57,6 +57,10 @@ const MAX_PHOTOS = 5;
 const MAX_EQUIPMENT = 5;
 // 서버 max-file-size와 동일. 초과분은 업로드 전에 걸러 낸다.
 const MAX_PHOTO_BYTES = 20 * 1024 * 1024;
+// 서버 max-request-size는 100MB인데 5장 × 20MB면 정확히 100MB라 여유가 0이다. 같은 요청에
+// JSON 파트와 multipart 경계 문자열도 들어가므로 합계는 한 단계 낮춰 잡는다. quality 1로
+// 바꾼 뒤로는 원본이 그대로 올라가 이 상한에 실제로 닿을 수 있다.
+const MAX_TOTAL_BYTES = 90 * 1024 * 1024;
 
 const STAR_LABELS = ['선택 안 됨', '별로예요', '아쉬워요', '괜찮아요', '좋아요', '최고예요'];
 
@@ -82,7 +86,12 @@ const EQUIPMENT = [
  * generatePath — `UUID().uuidString`). 그래서 같은 사진을 다시 골라도 uri가 매번 달라진다.
  * 중복 판정은 사진첩 원본을 가리키는 assetId로 해야 하고, 없을 때만 uri로 폴백한다.
  */
-type PickedPhoto = ReviewPhotoUpload & { assetId?: string | null; fingerprint: string };
+type PickedPhoto = ReviewPhotoUpload & {
+  assetId?: string | null;
+  fingerprint: string;
+  /** 요청 전체 용량 합산용. 피커가 안 주는 경우가 있어 0으로 떨어질 수 있다. */
+  bytes: number;
+};
 /**
  * assetId는 iOS에선 오지만 Android 최신 photo picker 경로에선 항상 null이다.
  * uri는 위의 UUID 임시 경로 때문에 매번 달라져 폴백으로 쓸 수 없으므로,
@@ -306,6 +315,9 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
     const picked: PickedPhoto[] = [];
     let tooLarge = 0;
     let unsupported = 0;
+    let overBudget = 0;
+    // 수정 모드는 새로 고른 것만 별도 요청으로 올라가므로 기존 사진을 합산하지 않는다.
+    let totalBytes = isEdit ? 0 : photos.reduce((sum, p) => sum + p.bytes, 0);
     result.assets.forEach((asset, idx) => {
       if (asset.fileSize && asset.fileSize > sizeLimit) {
         tooLarge += 1;
@@ -316,7 +328,14 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
         unsupported += 1;
         return;
       }
+      const bytes = asset.fileSize ?? 0;
+      if (totalBytes + bytes > MAX_TOTAL_BYTES) {
+        overBudget += 1;
+        return;
+      }
+      totalBytes += bytes;
       picked.push({
+        bytes,
         uri: asset.uri,
         name: `review_${Date.now()}_${idx}.${ext}`,
         type: MIME_BY_EXT[ext],
@@ -329,6 +348,7 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
 
     const skipped: string[] = [];
     if (tooLarge > 0) skipped.push(`${tooLarge}장은 용량이 너무 커요`);
+    if (overBudget > 0) skipped.push(`${overBudget}장은 전체 용량 한도를 넘어 담지 못했어요`);
     if (unsupported > 0) skipped.push(`${unsupported}장은 지원하지 않는 형식이에요(JPG·PNG·HEIC만 가능)`);
     if (picked.length === 0) {
       // 전부 걸러졌으면 여기서 안내하고 끝낸다. 아래 중복 안내와 겹쳐 Alert가 연달아 뜨는 것을 막는다.

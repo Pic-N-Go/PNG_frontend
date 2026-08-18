@@ -52,7 +52,10 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose, 
   }, [visible, initialIndex]);
 
   // 시트를 한 번 열기 전에는 호출하지 않는다. 닫은 뒤에도 유지해 재오픈 시 깜빡이지 않게 한다.
-  const [exifRequested, setExifRequested] = React.useState(false);
+  // 불리언이 아니라 "어느 리뷰가 요청했는지"를 담는다 — 라이트박스는 상시 마운트라 불리언이면
+  // 다음에 연 다른 리뷰가 정보 버튼을 누르기도 전에 EXIF를 받아온다.
+  const [exifRequestedFor, setExifRequestedFor] = React.useState<number | null>(null);
+  const exifRequested = exifRequestedFor != null && reviewId != null && exifRequestedFor === Number(reviewId);
   const { data: exifByPhotoId, isLoading: exifLoading, isError: exifError } = useReviewExif(
     reviewId ?? null,
     exifRequested,
@@ -71,12 +74,20 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose, 
   const canShowExif = hasReviewExif || (exifs != null && exifs.length === photos.length);
 
   const openExif = () => {
-    setExifRequested(true);
+    if (reviewId != null) setExifRequestedFor(Number(reviewId));
     setExifOpen(true);
   };
 
   return (
-    <Modal visible={visible} transparent animationType="fade" statusBarTranslucent onRequestClose={onClose}>
+    // Android 백 버튼은 여기로만 온다(Modal이 떠 있는 동안 BackHandler는 발행되지 않는다).
+    // EXIF 시트가 열려 있으면 시트만 닫고 사진은 남긴다.
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      statusBarTranslucent
+      onRequestClose={() => (exifOpen ? setExifOpen(false) : onClose())}
+    >
       <StatusBar barStyle="light-content" />
       <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.94)', alignItems: 'center', justifyContent: 'center' }}>
         {/* 배경을 눌러도 닫히게 — 전체화면에서 X만 유일한 탈출구면 답답하다. */}

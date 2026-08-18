@@ -21,7 +21,8 @@
   - 검색 바 (탭 → SearchResultScreen 이동)
   - 카테고리 필터 (수평 스크롤, 단일 선택)
   - 주변 스팟 지도 배너 (정적 UI, 탭 → MapScreen 이동)
-  - 인기 스팟 가로 스크롤 (목업 데이터, 북마크 토글 UI)
+  - 인기 스팟 가로 스크롤 (이 스펙 시점엔 목업 데이터 + 북마크 토글 UI —
+    이후 `home-popular-spots-api.md`에서 실 API·서버 북마크로 대체됨)
   - 출사 캘린더 2열 그리드 (목업 데이터)
   - 위시리스트 배너 (탭 액션 — 네비게이션 stub)
   - SearchResultScreen: 포커스 패널(최근/인기 검색어) + 결과 패널 (목업 데이터)
@@ -69,7 +70,8 @@
 
 - 이번 구현은 목업 데이터(하드코딩 상수)만 사용
 - 추후 연동 예정 API:
-  - `GET /spots/popular` — 인기 스팟
+  - ~~`GET /spots/popular` — 인기 스팟~~ → **연동 완료.** 전용 경로 대신 `GET /spots?sort=popular`를
+    쓴다(백엔드가 두 경로 모두 같은 정렬을 탄다). 상세는 `home-popular-spots-api.md`
   - `GET /calendar/events` — 출사 캘린더
   - `GET /weather/current` — 날씨 요약
   - `GET /search?q=` — 스팟 검색

@@ -497,9 +497,14 @@ export function exifFromPhotoUrl(url: string): PhotoExifData {
   return { filename, format: ext ? ext.toUpperCase() : undefined };
 }
 
-/** 표시할 값이 하나라도 있는지. EXIF가 제거된 사진이면 전 필드가 undefined다. */
+/**
+ * 시트에 **표시할** 값이 하나라도 있는지. EXIF가 제거된 사진이면 전 필드가 undefined다.
+ * `shotAtLabel`은 제외한다 — PhotoExifSheetContent가 그리지 않는 필드라(응답 DTO에 takenAt이
+ * 없어 비워둔 자리) 이것만 있는 사진은 빈 시트가 열린다. 시트가 이 값을 그리기 시작하면 뺄 것.
+ */
+const NOT_RENDERED_IN_SHEET = ['shotAtLabel'];
 export function hasAnyExif(exif: PhotoExifData | undefined): boolean {
-  return !!exif && Object.values(exif).some((v) => v !== undefined);
+  return !!exif && Object.entries(exif).some(([k, v]) => v !== undefined && !NOT_RENDERED_IN_SHEET.includes(k));
 }
 
 // ponytail: dev 전용 self-check — 분포 percent/시간대 라벨/null 처리 회귀 방지 (프로덕션 no-op)
@@ -605,6 +610,8 @@ if (__DEV__) {
   console.assert(full.metering === '다분할측광' && full.flash === '사용 안 함' && full.exposureMode === '수동', 'EXIF 한글화 오류');
   console.assert(full.fileSize === '8.4MB', `fileSize 포맷 오류: ${full.fileSize}`);
   console.assert(hasAnyExif(full) && !hasAnyExif(mapPhotoExif(empty)), 'EXIF 없음 판정 오류 (전 필드 null이면 false여야 함)');
+  // 시트가 그리지 않는 필드만 있으면 빈 시트가 열린다 — '정보 없음'으로 떨어져야 한다.
+  console.assert(!hasAnyExif({ shotAtLabel: '2026.08.18' }), 'shotAtLabel만 있으면 EXIF 없음이어야 한다');
   console.assert(mapReviewExif({ reviewId: 9, images: [empty] })[1] !== undefined, 'mapReviewExif가 photoId로 키를 잡아야 한다');
   const fromUrl = exifFromPhotoUrl('http://tong.visitkorea.or.kr/cms/resource/31/3352031_image2_1.jpg?w=1');
   console.assert(fromUrl.filename === '3352031_image2_1.jpg', 'URL 파일명 추출 오류 (쿼리스트링 제거 포함)');

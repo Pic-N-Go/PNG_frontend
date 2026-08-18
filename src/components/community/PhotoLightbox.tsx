@@ -25,7 +25,15 @@ export default function PhotoLightbox({ visible, onClose, exifOpen, onOpenExif, 
   const insets = useSafeAreaInsets();
 
   return (
-    <Modal visible={visible} transparent animationType="fade" statusBarTranslucent onRequestClose={onClose}>
+    // Android 백 버튼은 여기로만 온다(Modal이 떠 있는 동안 BackHandler는 발행되지 않는다).
+    // EXIF 시트가 열려 있으면 시트만 닫고 사진은 남긴다.
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      statusBarTranslucent
+      onRequestClose={() => (exifOpen ? onCloseExif() : onClose())}
+    >
       <View style={{ flex: 1, backgroundColor: '#000', justifyContent: 'center' }}>
         <View
           className="flex-row items-center justify-end absolute"

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Animated, BackHandler, Dimensions, Pressable, ScrollView, Text, View } from 'react-native';
+import { Animated, Dimensions, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 import { Aperture, Camera, MapPin, X } from 'lucide-react-native';
@@ -365,16 +365,9 @@ export function PhotoExifLayer({
     }).start();
   }, [open, translateY]);
 
-  // 시트는 Modal이 아니라 레이어라 onRequestClose를 못 가진다. 그대로 두면 Android 백 버튼이
-  // 부모 Modal의 onRequestClose로 흘러가 라이트박스까지 통째로 닫힌다 — 시트만 닫아야 한다.
-  React.useEffect(() => {
-    if (!open) return;
-    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
-      onClose();
-      return true;
-    });
-    return () => sub.remove();
-  }, [open, onClose]);
+  // Android 백 버튼 처리는 여기서 못 한다 — Modal이 떠 있는 동안 RN은 BackHandler 이벤트를
+  // 발행하지 않고 Modal의 onRequestClose만 부른다. 그래서 "시트가 열려 있으면 시트만 닫기"는
+  // 이 레이어를 감싼 각 라이트박스의 onRequestClose에서 분기한다.
 
   return (
     <>
