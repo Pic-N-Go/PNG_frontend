@@ -62,6 +62,7 @@ import { useKeyboardOverlap } from '@/hooks/useKeyboardHeight';
 import { AREA_CODES, type AreaCodeItem, type AdminUser } from '@/types/admin';
 import {
   INQUIRY_TYPES,
+  INQUIRY_ANSWER_TEMPLATES,
   getInquiryTypeLabel,
   type InquiryItem,
   type InquiryStatus,
@@ -2120,6 +2121,71 @@ export default function AdminDashboardScreen() {
                 <Text style={{ fontSize: FONT_SM, fontFamily: 'Pretendard-Regular', color: '#374151', lineHeight: normalize(20) }}>
                   {selectedInquiry?.content}
                 </Text>
+              </View>
+
+              {/* 빠른 답변 템플릿 선택 영역 */}
+              <View style={{ marginBottom: normalize(12) }}>
+                <View className="flex-row items-center justify-between" style={{ marginBottom: normalize(6) }}>
+                  <View className="flex-row items-center" style={{ gap: normalize(4) }}>
+                    <IconSparkles size={normalize(14)} color="#E31B59" />
+                    <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-Bold', color: '#E31B59' }}>
+                      빠른 답변 템플릿
+                    </Text>
+                  </View>
+                  <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Regular', color: 'rgba(0,0,0,0.4)' }}>
+                    버튼 탭 시 자동 입력
+                  </Text>
+                </View>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ gap: normalize(6) }}
+                >
+                  {INQUIRY_ANSWER_TEMPLATES.map((tmpl) => {
+                    const isMatchedType = selectedInquiry?.type === tmpl.type;
+                    return (
+                      <TouchableOpacity
+                        key={tmpl.id}
+                        onPress={() => {
+                          if (answerInput.trim() && answerInput.trim() !== tmpl.content.trim()) {
+                            Alert.alert(
+                              '템플릿 불러오기',
+                              '작성 중인 내용을 선택한 템플릿 문구로 교체하시겠습니까?',
+                              [
+                                { text: '취소', style: 'cancel' },
+                                { text: '교체', onPress: () => setAnswerInput(tmpl.content) },
+                              ]
+                            );
+                          } else {
+                            setAnswerInput(tmpl.content);
+                          }
+                        }}
+                        style={{
+                          paddingHorizontal: normalize(11),
+                          paddingVertical: normalize(6),
+                          borderRadius: normalize(8),
+                          backgroundColor: isMatchedType ? '#fde3ec' : '#ffffff',
+                          borderWidth: 1,
+                          borderColor: isMatchedType ? '#E31B59' : 'rgba(0,0,0,0.1)',
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          gap: normalize(4),
+                        }}
+                      >
+                        {isMatchedType && <IconSparkles size={normalize(12)} color="#E31B59" />}
+                        <Text
+                          style={{
+                            fontSize: FONT_XS,
+                            fontFamily: isMatchedType ? 'Pretendard-Bold' : 'Pretendard-Medium',
+                            color: isMatchedType ? '#E31B59' : 'rgba(0,0,0,0.7)',
+                          }}
+                        >
+                          {tmpl.label}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </ScrollView>
               </View>
 
               {/* 답변 작성 영역 */}
