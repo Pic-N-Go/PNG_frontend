@@ -1,20 +1,34 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Modal, Animated, Pressable, PanResponder, TextInput, Platform, Keyboard } from 'react-native';
+import { View, Text, TouchableOpacity, Modal, Animated, Pressable, PanResponder, TextInput, Platform, Keyboard, Alert, ActivityIndicator } from 'react-native';
 import { IconCamera, IconAperture, IconChevronRight, IconX, IconTrash } from '@tabler/icons-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { FONT_SM, FONT_XS } from '@/constants/layout';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useCreateEquipment, useDeleteEquipment, useMyEquipments } from '@/hooks/useEquipment';
+import { toErrorMessage } from '@/api/auth';
 
-const MY_EQUIPMENTS = [
-  { id: '1', name: 'Sony A7IV', type: '카메라 바디', desc: '', isCamera: true },
-  { id: '2', name: '16-35mm f/2.8 GM', type: '렌즈', desc: '풍경/야경', isCamera: false },
-  { id: '3', name: 'FE 70-200mm F2.8 GM OSS II', type: '렌즈', desc: '망원 줌 렌즈', isCamera: false },
-  { id: '4', name: 'DJI Mavic 3', type: '드론', desc: '항공 촬영', isCamera: true },
+// 서버 EquipmentType은 CAMERA·LENS 둘뿐이다. 목업에 있던 "드론"은 저장할 곳이 없어 뺐다.
+const CATEGORIES = [
+  { label: '카메라', type: 'CAMERA' as const },
+  { label: '렌즈', type: 'LENS' as const },
 ];
 
 export default function EquipmentSection() {
+  const { data: equipments = [], isLoading } = useMyEquipments();
+  const createEquipment = useCreateEquipment();
+  const deleteEquipment = useDeleteEquipment();
+
+  // 화면이 쓰던 모양으로 맞춰준다(설명은 서버에 없어 비운다).
+  const items = equipments.map((e) => ({
+    id: e.id,
+    name: e.equipmentName,
+    type: e.equipmentType === 'CAMERA' ? '카메라' : '렌즈',
+    desc: '',
+    isCamera: e.equipmentType === 'CAMERA',
+  }));
+
   const [sheetVisible, setSheetVisible] = useState(false);
-  const [selectedCategory, setSelectedCategory] = useState('카메라');
+  const [selectedCategory, setSelectedCategory] = useState<'CAMERA' | 'LENS'>('CAMERA');
   const [newEquipmentName, setNewEquipmentName] = useState('');
   const [isFocused, setIsFocused] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
@@ -58,6 +72,28 @@ export default function EquipmentSection() {
       closeSheet();
     }
   };
+
+  function handleAdd() {
+    const name = newEquipmentName.trim();
+    if (!name || createEquipment.isPending) return;
+    createEquipment.mutate(
+      { equipmentType: selectedCategory, equipmentName: name },
+      {
+        // 입력값은 성공했을 때만 비운다 - 실패했는데 지워지면 다시 타이핑해야 한다.
+        onSuccess: () => {
+          setNewEquipmentName('');
+          setIsAdding(false);
+        },
+        onError: (err) => Alert.alert('장비를 추가하지 못했어요', toErrorMessage(err, '잠시 후 다시 시도해 주세요.')),
+      },
+    );
+  }
+
+  function handleDelete(equipmentId: number) {
+    deleteEquipment.mutate(equipmentId, {
+      onError: (err) => Alert.alert('장비를 삭제하지 못했어요', toErrorMessage(err, '잠시 후 다시 시도해 주세요.')),
+    });
+  }
 
   const openSheet = () => {
     setSheetVisible(true);
@@ -139,7 +175,21 @@ export default function EquipmentSection() {
           overflow: 'hidden',
         }}
       >
-        {MY_EQUIPMENTS.slice(0, 2).map((item, index) => (
+        {isLoading && (
+          <View style={{ paddingVertical: normalize(28) }}>
+            <ActivityIndicator color="#e31b59" />
+          </View>
+        )}
+
+        {!isLoading && items.length === 0 && (
+          <TouchableOpacity onPress={openSheet} style={{ paddingVertical: normalize(24), alignItems: 'center' }}>
+            <Text className="tracking-tight" style={{ fontSize: normalizeFontSize(13), color: 'rgba(0,0,0,0.3)' }}>
+              등록한 장비가 없어요 · 탭하여 추가
+            </Text>
+          </TouchableOpacity>
+        )}
+
+        {items.slice(0, 2).map((item, index) => (
           <TouchableOpacity
             key={item.id}
             onPress={() => console.log('장비 상세:', item.id)}
@@ -178,10 +228,10 @@ export default function EquipmentSection() {
               </Text>
             </View>
             
-            {index === 1 && MY_EQUIPMENTS.length > 2 && (
+            {index === 1 && items.length > 2 && (
               <TouchableOpacity onPress={openSheet} className="flex-row items-center ml-2 p-2" style={{ gap: normalize(4) }}>
                 <Text className="font-medium tracking-tight" style={{ fontSize: normalizeFontSize(13), color: 'rgba(0,0,0,0.25)' }}>
-                  +{MY_EQUIPMENTS.length - 2}
+                  +{items.length - 2}
                 </Text>
                 <IconChevronRight size={normalize(14)} color="rgba(0,0,0,0.25)" strokeWidth={2} />
               </TouchableOpacity>
@@ -232,14 +282,14 @@ export default function EquipmentSection() {
             </View>
 
             <View style={{ paddingHorizontal: normalize(20) }}>
-              {MY_EQUIPMENTS.map((item, index) => (
+              {items.map((item, index) => (
                 <View
                   key={item.id}
                   style={{
                     flexDirection: 'row',
                     alignItems: 'center',
                     paddingVertical: normalize(12),
-                    borderBottomWidth: index < MY_EQUIPMENTS.length - 1 ? 0.5 : 0,
+                    borderBottomWidth: index < items.length - 1 ? 0.5 : 0,
                     borderBottomColor: 'rgba(0,0,0,0.05)',
                     gap: normalize(12),
                   }}
@@ -292,6 +342,8 @@ export default function EquipmentSection() {
                     </Text>
                   </View>
                   <TouchableOpacity
+                    onPress={() => handleDelete(item.id)}
+                    disabled={deleteEquipment.isPending}
                     style={{
                       width: normalize(32),
                       height: normalize(32),
@@ -299,6 +351,7 @@ export default function EquipmentSection() {
                       backgroundColor: 'rgba(227, 27, 89, 0.08)',
                       alignItems: 'center',
                       justifyContent: 'center',
+                      opacity: deleteEquipment.isPending ? 0.4 : 1,
                     }}
                   >
                     <IconTrash size={normalize(18)} color="#e31b59" strokeWidth={1.5} />
@@ -310,25 +363,25 @@ export default function EquipmentSection() {
                 {isAdding ? (
                   <>
                     <View style={{ flexDirection: 'row', gap: normalize(8), marginBottom: normalize(12) }}>
-                      {['카메라', '렌즈', '드론'].map((cat) => (
+                      {CATEGORIES.map((cat) => (
                         <TouchableOpacity
-                          key={cat}
-                          onPress={() => setSelectedCategory(cat)}
+                          key={cat.type}
+                          onPress={() => setSelectedCategory(cat.type)}
                           style={{
                             paddingHorizontal: normalize(16),
                             paddingVertical: normalize(8),
                             borderRadius: normalize(16),
-                            backgroundColor: selectedCategory === cat ? '#000' : '#f5f5f7',
+                            backgroundColor: selectedCategory === cat.type ? '#000' : '#f5f5f7',
                           }}
                         >
                           <Text
                             className="font-medium tracking-tight"
                             style={{
                               fontSize: normalizeFontSize(13),
-                              color: selectedCategory === cat ? '#fff' : 'rgba(0,0,0,0.4)',
+                              color: selectedCategory === cat.type ? '#fff' : 'rgba(0,0,0,0.4)',
                             }}
                           >
-                            {cat}
+                            {cat.label}
                           </Text>
                         </TouchableOpacity>
                       ))}
@@ -354,7 +407,8 @@ export default function EquipmentSection() {
                         }}
                       />
                       <TouchableOpacity
-                        onPress={() => setIsAdding(false)}
+                        onPress={handleAdd}
+                        disabled={!newEquipmentName.trim() || createEquipment.isPending}
                         style={{
                           height: normalize(44),
                           paddingHorizontal: normalize(20),
@@ -362,10 +416,11 @@ export default function EquipmentSection() {
                           backgroundColor: '#e31b59',
                           alignItems: 'center',
                           justifyContent: 'center',
+                          opacity: !newEquipmentName.trim() || createEquipment.isPending ? 0.35 : 1,
                         }}
                       >
                         <Text className="font-semibold tracking-tight text-white" style={{ fontSize: normalizeFontSize(14) }}>
-                          추가
+                          {createEquipment.isPending ? '추가 중...' : '추가'}
                         </Text>
                       </TouchableOpacity>
                     </View>
