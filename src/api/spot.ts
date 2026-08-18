@@ -1,6 +1,6 @@
 // 스팟 상세 관련 API (순수 fetch). 매핑은 hooks/useSpot.ts에서 처리.
 // 스펙: docs/ai/specs/feature/spot-detail-screen/spot-detail-api.md
-import { ApiError, toHttpError } from '@/api/auth';
+import { ApiError, fetchWithAuthRetry, toHttpError } from '@/api/auth';
 import type {
   BookmarkCollectionDTO,
   PhotogenicScoreResponse,
@@ -69,7 +69,7 @@ async function request<T>(path: string, opts: { method?: Method; body?: unknown;
     const headers: Record<string, string> = {};
     if (body !== undefined) headers['Content-Type'] = 'application/json';
     if (token) headers.Authorization = `Bearer ${token}`;
-    const res = await fetch(`${BASE}${path}`, {
+    const res = await fetchWithAuthRetry(`${BASE}${path}`, {
       method,
       headers,
       body: body !== undefined ? JSON.stringify(body) : undefined,
@@ -143,7 +143,7 @@ async function upload<T>(path: string, form: FormData, token: string): Promise<T
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), UPLOAD_TIMEOUT_MS);
   try {
-    const res = await fetch(`${BASE}${path}`, {
+    const res = await fetchWithAuthRetry(`${BASE}${path}`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` },
       body: form,

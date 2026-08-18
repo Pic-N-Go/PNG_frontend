@@ -1,4 +1,4 @@
-import { toHttpError } from '@/api/auth';
+import { fetchWithAuthRetry, toHttpError } from '@/api/auth';
 import { useAuthStore } from '@/store/useAuthStore';
 import type { SpotNavigationDTO } from '@/types/spot';
 
@@ -20,7 +20,7 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
 
   try {
-    const res = await fetch(`${BASE}${url}`, {
+    const res = await fetchWithAuthRetry(`${BASE}${url}`, {
       ...options,
       headers,
       signal: controller.signal,
