@@ -188,6 +188,8 @@ export interface UserProfileDTO {
   nickname: string;
   profileImageUrl: string | null;
   spotCategories: string[];
+  followerCount: number;
+  followingCount: number;
 }
 
 export interface FollowUserDTO {
@@ -235,6 +237,8 @@ export interface UserProfileSummary {
 
 export interface ProfilePostItem {
   id: string;
+  /** 서버 게시 사진. 없으면 photoGradient로 대체한다 */
+  imageUrl?: string;
   photoGradient: [string, string, string];
   likeCount: number;
   contestRank?: number;

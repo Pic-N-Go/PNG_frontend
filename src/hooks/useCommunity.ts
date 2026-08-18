@@ -75,6 +75,34 @@ export function useCommunityFeed(sort: PostSortApi, keyword?: string) {
 }
 
 /**
+ * 특정 사용자가 쓴 글. 프로필 화면의 게시글 탭에서 쓴다.
+ * 정렬은 LATEST 고정 — 프로필에서는 최신순이 자연스럽고, 인기순은 피드의 몫이다.
+ */
+export function useUserPosts(userId: string | undefined) {
+  const { token, myUserId } = useAuth();
+  const { data: followingIds } = useMyFollowing();
+  const ctx: PostMapContext = { myUserId, followingIds };
+  return useInfiniteQuery({
+    queryKey: ['community', 'posts', 'author', userId ?? '', token ?? 'guest'],
+    queryFn: ({ pageParam }) =>
+      communityApi.getPosts({
+        sort: 'LATEST',
+        authorId: userId,
+        page: pageParam,
+        size: PAGE_SIZE,
+        token: token ?? undefined,
+      }),
+    initialPageParam: 0,
+    getNextPageParam: (last: PostPageResponseDTO) => (last.hasNext ? last.page + 1 : undefined),
+    enabled: !!userId,
+    select: (data) => ({
+      posts: data.pages.flatMap((p) => mapPosts(p.posts, ctx)),
+      totalElements: data.pages[0]?.totalElements ?? 0,
+    }),
+  });
+}
+
+/**
  * 게시글 상세 쿼리의 공통 부분. `usePost`(화면용 매핑)와 `usePostForEdit`(원본 DTO)이
  * 같은 캐시를 공유하도록 select만 갈아끼운다 — 상세에서 수정으로 들어갈 때 재요청이 없다.
  */
@@ -359,21 +387,6 @@ export function useUserProfile(userId: string | undefined) {
 }
 
 /** 팔로워/팔로잉 수는 전용 카운트 API가 없어 목록 길이로 센다. */
-export function useFollowCounts(userId: string | undefined) {
-  const { token } = useAuth();
-  return useQuery({
-    queryKey: ['community', 'followCounts', userId ?? '', token ?? 'guest'],
-    queryFn: async () => {
-      const [followers, following] = await Promise.all([
-        communityApi.getFollowers(userId!, token ?? undefined),
-        communityApi.getFollowing(userId!, token ?? undefined),
-      ]);
-      return { followerCount: followers.length, followingCount: following.length };
-    },
-    enabled: !!userId && !!token,
-  });
-}
-
 export function useToggleFollow() {
   const { token, myUserId } = useAuth();
   const qc = useQueryClient();

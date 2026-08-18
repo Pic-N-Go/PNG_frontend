@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { ActivityIndicator, Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ChevronLeft } from 'lucide-react-native';
 import ProfilePostsTab from '@/components/community/ProfilePostsTab';
 import ProfileContestsTab from '@/components/community/ProfileContestsTab';
 import ProfileSpotsTab from '@/components/community/ProfileSpotsTab';
-import { useFollowCounts, useMyFollowing, useToggleFollow, useUserProfile } from '@/hooks/useCommunity';
+import { useMyFollowing, useToggleFollow, useUserPosts, useUserProfile } from '@/hooks/useCommunity';
 import { useAuthStore } from '@/store/useAuthStore';
 import { initialsOf } from '@/utils/communityMappers';
 import type { CommunityDetailStackParamList } from '@/navigation/stacks/CommunityDetailStack';
@@ -17,27 +18,12 @@ import { normalize, normalizeFontSize } from '@/utils/normalize';
 const ACCENT = '#E31B59';
 const SURFACE = '#f5f5f7';
 
-// ponytail: 아래 세 목록과 우승 횟수·자기소개는 서버에 API가 없다.
-// `/users/{id}/profile`이 주는 건 닉네임·프로필사진·관심 카테고리뿐이고,
-// 특정 유저의 게시글/콘테스트/방문 스팟을 조회하는 엔드포인트가 아직 없다.
-// 목데이터를 지우면 탭이 통째로 빈 화면이 되므로, 서버가 생길 때까지 그대로 둔다.
+// ponytail: 콘테스트·방문 스팟은 아직 서버에 조회 API가 없어 목데이터를 남겨둔다.
+// 게시글 탭만 GET /posts?authorId={id}로 실 데이터를 쓴다.
+// 방문 스팟은 /users/me/stats가 개수(visitedSpotCount)만 주고 목록 API가 없으며, 그나마 본인 것뿐이다.
 const CONTEST_COUNT = 18;
 const SPOT_COUNT = 36;
 
-const MOCK_POSTS: ProfilePostItem[] = [
-  { id: 'p1', photoGradient: ['#0f2027', '#203a43', '#4a7c8a'], likeCount: 248 },
-  { id: 'p2', photoGradient: ['#1a1530', '#b44a3a', '#f0c89a'], likeCount: 312, contestRank: 1 },
-  { id: 'p3', photoGradient: ['#232526', '#8e7b5a', '#8e7b5a'], likeCount: 96 },
-  { id: 'p4', photoGradient: ['#1a1510', '#a08060', '#a08060'], likeCount: 142 },
-  { id: 'p5', photoGradient: ['#0a1a0f', '#4a8060', '#4a8060'], likeCount: 58 },
-  { id: 'p6', photoGradient: ['#020010', '#1a1545', '#1a1545'], likeCount: 203 },
-  { id: 'p7', photoGradient: ['#1a0f1e', '#c080a0', '#c080a0'], likeCount: 77 },
-  { id: 'p8', photoGradient: ['#2a2e35', '#6a7580', '#6a7580'], likeCount: 164 },
-  { id: 'p9', photoGradient: ['#0f1a2a', '#2a5a8a', '#2a5a8a'], likeCount: 45 },
-  { id: 'p10', photoGradient: ['#1a0a0a', '#8a3030', '#8a3030'], likeCount: 88 },
-  { id: 'p11', photoGradient: ['#0a2020', '#40a090', '#40a090'], likeCount: 121 },
-  { id: 'p12', photoGradient: ['#0f2027', '#e8a87c', '#e8a87c'], likeCount: 167 },
-];
 
 const MOCK_CONTESTS: ProfileContestItem[] = [
   { id: 'c1', theme: '골든아워', rank: 1, voteCount: 67, gradient: ['#1a1530', '#b44a3a', '#f0c89a'], status: 'active' },
@@ -53,26 +39,35 @@ const MOCK_SPOTS: ProfileSpotItem[] = [
   { id: 's4', name: '해운대 달맞이길', address: '부산 해운대구 달맞이길', lastVisitLabel: '1개월 전 방문', visitCount: 3, photoCount: 12, gradient: ['#0a1a0f', '#4a8060', '#4a8060'] },
 ];
 
-const SUBTABS: { key: ProfileTabKey; label: string; count: number }[] = [
-  { key: 'posts', label: '게시글', count: MOCK_POSTS.length },
-  { key: 'contests', label: '콘테스트', count: CONTEST_COUNT },
-  { key: 'spots', label: '방문한 스팟', count: SPOT_COUNT },
+// 게시글 수만 서버가 준다. 나머지 둘은 조회 API가 없어 아직 상수라 BETA를 붙인다.
+const subTabs = (postCount: number): { key: ProfileTabKey; label: string; count: number; beta?: boolean }[] => [
+  { key: 'posts', label: '게시글', count: postCount },
+  { key: 'contests', label: '콘테스트', count: CONTEST_COUNT, beta: true },
+  { key: 'spots', label: '방문한 스팟', count: SPOT_COUNT, beta: true },
 ];
 
 export default function UserProfileScreen() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NativeStackNavigationProp<CommunityDetailStackParamList>>();
   const route = useRoute<RouteProp<CommunityDetailStackParamList, 'UserProfile'>>();
   const userId = route.params?.userId;
   const [activeTab, setActiveTab] = useState<ProfileTabKey>('posts');
 
   const isLoggedIn = useAuthStore((s) => !!s.accessToken);
   const { data: profile, isLoading, isError } = useUserProfile(userId);
-  const { data: counts } = useFollowCounts(userId);
+  const { data: userPosts, isLoading: postsLoading } = useUserPosts(userId);
   const { data: followingIds } = useMyFollowing();
   const toggleFollow = useToggleFollow();
 
   const isFollowing = userId ? followingIds?.has(userId) ?? false : false;
   const nickname = profile?.nickname ?? '';
+
+  // 콘테스트 순위는 서버에 없어 넣지 않는다 — 넣으면 트로피 뱃지가 거짓값이 된다.
+  const postItems: ProfilePostItem[] = (userPosts?.posts ?? []).map((post) => ({
+    id: post.id,
+    imageUrl: post.imageUrls[0],
+    photoGradient: post.photoGradient,
+    likeCount: post.likeCount,
+  }));
 
   return (
     <SafeAreaView className="flex-1" style={{ backgroundColor: '#fff' }} edges={['top', 'left', 'right']}>
@@ -88,7 +83,7 @@ export default function UserProfileScreen() {
           <ChevronLeft size={normalize(24)} color="#000" strokeWidth={1.8} />
         </Pressable>
         <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_LG, color: '#000', letterSpacing: -0.4 }}>
-          {nickname ? `@${nickname}` : '프로필'}
+          사용자 프로필
         </Text>
       </View>
 
@@ -123,10 +118,8 @@ export default function UserProfileScreen() {
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_LG, color: '#000', letterSpacing: -0.3 }}>
                 {nickname}
               </Text>
-              {/* 자기소개·콘테스트 우승 횟수는 프로필 API에 없어 표시하지 않는다 */}
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: 'rgba(0,0,0,0.4)', letterSpacing: -0.15, marginTop: normalize(2) }}>
-                @{nickname}
-              </Text>
+              {/* 자기소개(상태 메시지)·콘테스트 우승 횟수는 프로필 API에 없어 표시하지 않는다.
+                  닉네임 아래 핸들 줄도 뺐다 — 서버에 핸들 개념이 없어 닉네임을 한 번 더 쓰는 것뿐이었다. */}
               {profile.spotCategories?.length > 0 && (
                 <View className="flex-row flex-wrap" style={{ gap: normalize(4), marginTop: normalize(8) }}>
                   {profile.spotCategories.map((category) => (
@@ -149,7 +142,7 @@ export default function UserProfileScreen() {
           <View className="flex-row" style={{ paddingVertical: normalize(14), paddingHorizontal: normalize(4), backgroundColor: SURFACE, borderRadius: normalize(14), marginBottom: normalize(16) }}>
             <View className="flex-1 items-center">
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_LG, color: '#000', letterSpacing: -0.3 }}>
-                {(counts?.followerCount ?? 0).toLocaleString()}
+                {(profile?.followerCount ?? 0).toLocaleString()}
               </Text>
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.4)', letterSpacing: -0.1, marginTop: normalize(1) }}>
                 팔로워
@@ -158,7 +151,7 @@ export default function UserProfileScreen() {
             <View style={{ width: 1, backgroundColor: 'rgba(0,0,0,0.06)' }} />
             <View className="flex-1 items-center">
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_LG, color: '#000', letterSpacing: -0.3 }}>
-                {(counts?.followingCount ?? 0).toLocaleString()}
+                {(profile?.followingCount ?? 0).toLocaleString()}
               </Text>
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.4)', letterSpacing: -0.1, marginTop: normalize(1) }}>
                 팔로잉
@@ -198,7 +191,7 @@ export default function UserProfileScreen() {
         </View>
 
         <View className="flex-row" style={{ paddingHorizontal: CONTENT_PADDING, gap: normalize(20), borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.08)' }}>
-          {SUBTABS.map((tab) => {
+          {subTabs(userPosts?.totalElements ?? 0).map((tab) => {
             const isActive = tab.key === activeTab;
             return (
               <Pressable
@@ -209,12 +202,42 @@ export default function UserProfileScreen() {
                 <Text allowFontScaling={false} style={{ fontFamily: isActive ? 'Pretendard-SemiBold' : 'Pretendard-Medium', fontSize: FONT_SM, color: isActive ? '#000' : 'rgba(0,0,0,0.4)', letterSpacing: -0.2 }}>
                   {tab.label} <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', color: isActive ? 'rgba(0,0,0,0.35)' : 'rgba(0,0,0,0.25)' }}>{tab.count}</Text>
                 </Text>
+                {/* 아직 실 데이터가 아닌 탭임을 알린다 — 메시지 버튼과 같은 뱃지를 쓴다 */}
+                {tab.beta && (
+                  <View
+                    className="absolute items-center justify-center"
+                    style={{ top: normalize(6), right: normalize(-14), height: normalize(14), paddingHorizontal: normalize(5), borderRadius: normalize(7), backgroundColor: ACCENT }}
+                  >
+                    <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalize(8), color: '#fff', letterSpacing: 0.4 }}>
+                      BETA
+                    </Text>
+                  </View>
+                )}
               </Pressable>
             );
           })}
         </View>
 
-        {activeTab === 'posts' && <ProfilePostsTab items={MOCK_POSTS} />}
+        {activeTab === 'posts' && (
+          postsLoading ? (
+            <View style={{ paddingVertical: normalize(40) }}>
+              <ActivityIndicator color={ACCENT} />
+            </View>
+          ) : postItems.length === 0 ? (
+            <Text
+              allowFontScaling={false}
+              className="text-center"
+              style={{ paddingVertical: normalize(40), fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: 'rgba(0,0,0,0.35)', letterSpacing: -0.2 }}
+            >
+              아직 작성한 게시글이 없어요
+            </Text>
+          ) : (
+            <ProfilePostsTab
+              items={postItems}
+              onSelectPost={(id) => navigation.navigate('PostDetail', { postId: id })}
+            />
+          )
+        )}
         {activeTab === 'contests' && <ProfileContestsTab items={MOCK_CONTESTS} />}
         {activeTab === 'spots' && <ProfileSpotsTab items={MOCK_SPOTS} totalCount={SPOT_COUNT} onSelectSpot={() => {}} />}
       </ScrollView>

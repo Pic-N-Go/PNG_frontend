@@ -121,6 +121,8 @@ function appendImages(form: FormData, name: string, images: PostImageUpload[]) {
 export interface GetPostsParams {
   sort?: PostSortApi;
   keyword?: string;
+  /** 주면 그 사용자가 쓴 글만 온다(프로필 화면의 게시글 탭) */
+  authorId?: string | number;
   page?: number;
   size?: number;
   token?: string;
@@ -129,9 +131,10 @@ export interface GetPostsParams {
 export const communityApi = {
   // 1. 게시글 목록 (GET /posts) — 정렬·검색·페이징 모두 서버가 처리한다.
   //    MY_POSTS·FOLLOWING은 토큰이 없으면 서버가 400을 던지므로 훅에서 비로그인 시 막는다.
-  getPosts: ({ sort = 'POPULAR', keyword, page = 0, size = 20, token }: GetPostsParams = {}) => {
+  getPosts: ({ sort = 'POPULAR', keyword, authorId, page = 0, size = 20, token }: GetPostsParams = {}) => {
     const kwQs = keyword?.trim() ? `keyword=${encodeURIComponent(keyword.trim())}&` : '';
-    return request<PostPageResponseDTO>(`/posts?${kwQs}sort=${sort}&page=${page}&size=${size}`, { token });
+    const authorQs = authorId == null ? '' : `authorId=${encodeURIComponent(String(authorId))}&`;
+    return request<PostPageResponseDTO>(`/posts?${kwQs}${authorQs}sort=${sort}&page=${page}&size=${size}`, { token });
   },
 
   // 2. 게시글 상세 (GET /posts/{id}) — 토큰이 있어야 liked·bookmarked가 내 기준으로 온다.
