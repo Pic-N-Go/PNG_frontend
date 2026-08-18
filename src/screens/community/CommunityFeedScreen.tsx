@@ -1,15 +1,17 @@
 import React, { useState } from 'react';
-import { NativeSyntheticEvent, NativeScrollEvent, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
+import { ActivityIndicator, Image, NativeSyntheticEvent, NativeScrollEvent, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Search, Plus, Heart, ChevronDown } from 'lucide-react-native';
+import { Search, Plus, Heart, ChevronDown, X } from 'lucide-react-native';
 import PostCard from '@/components/community/PostCard';
 import SearchOverlay from '@/components/community/SearchOverlay';
 import ContestSegment from '@/components/community/ContestSegment';
 import OptionSheet from '@/components/common/OptionSheet';
+import { useAuthStore } from '@/store/useAuthStore';
+import { useCommunityFeed, useToggleBookmark, useToggleFollow, useToggleLike } from '@/hooks/useCommunity';
 import type { RootStackParamList } from '@/navigation';
-import { ContestPastMonthItem, ContestSubmitTarget, Post } from '@/types/community';
+import { ContestPastMonthItem, ContestSubmitTarget, Post, PostSortApi } from '@/types/community';
 import { CONTENT_PADDING, FONT_LG, FONT_SM, FONT_2XL, FONT_2XS, GRID_PADDING } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
 import { layoutGalleryGrid } from '@/utils/galleryGrid';
@@ -20,19 +22,14 @@ const GALLERY_GAP = normalize(3);
 type FeedSortOption = '인기' | '최신' | '팔로잉' | '내 글';
 const FEED_SORT_OPTIONS: FeedSortOption[] = ['인기', '최신', '팔로잉', '내 글'];
 
-function sortPosts(posts: Post[], sort: FeedSortOption): Post[] {
-  switch (sort) {
-    case '인기':
-      return [...posts].sort((a, b) => b.likeCount - a.likeCount);
-    case '팔로잉':
-      return posts.filter((p) => p.isFollowingAuthor);
-    case '내 글':
-      return posts.filter((p) => p.isMine);
-    case '최신':
-    default:
-      return posts;
-  }
-}
+// 정렬·필터는 전부 서버가 처리한다(GET /posts?sort=). 클라이언트에서 다시 정렬하면
+// 한 페이지 안에서만 맞는 순서가 나와 페이지를 넘길 때 순서가 뒤섞인다.
+const SORT_TO_API: Record<FeedSortOption, PostSortApi> = {
+  인기: 'POPULAR',
+  최신: 'LATEST',
+  팔로잉: 'FOLLOWING',
+  '내 글': 'MY_POSTS',
+};
 
 const ACCENT = '#E31B59';
 const SURFACE = '#f5f5f7';
@@ -45,77 +42,29 @@ const SEGMENTS: { key: SegmentKey; label: string }[] = [
   { key: 'contest', label: '콘테스트' },
 ];
 
-const INITIAL_POSTS: Post[] = [
-  {
-    id: '1',
-    author: { id: 'u1', handle: 'sunset_jk', initials: 'JK', avatarGradient: ['#2c5364', '#4a7c8a'] },
-    isMine: false,
-    photoGradient: ['#0f2027', '#203a43', '#4a7c8a'],
-    caption: '새벽 5시에 일어난 보람이 있는 일출',
-    location: '광안리 해수욕장',
-    createdAtLabel: '2시간 전',
-    likeCount: 248,
-    isLiked: true,
-    commentCount: 32,
-    shareCount: 0,
-    isSaved: false,
-    isFollowingAuthor: false,
-    photogenicScore: 87,
-    shotMeta: { time: '05:30', weather: '맑음', weatherIcon: 'clear-day', gear: 'Sony A7IV · 24mm f/2.8' },
-  },
-  {
-    id: '2',
-    author: { id: 'u2', handle: 'photo_yujin', initials: 'YJ', avatarGradient: ['#8b4a6b', '#d4856a'] },
-    isMine: false,
-    photoGradient: ['#1a1530', '#4a1942', '#e8855a'],
-    caption: '한복 입고 야간개장, 무료입장 꿀팁까지',
-    location: '경복궁 야간개장',
-    createdAtLabel: '5시간 전',
-    likeCount: 512,
-    isLiked: false,
-    commentCount: 67,
-    shareCount: 0,
-    isSaved: true,
-    isFollowingAuthor: true,
-    photogenicScore: 91,
-    shotMeta: { time: '20:30', weather: '야간', weatherIcon: 'clear-night', gear: 'Canon R6II · 35mm f/1.4' },
-  },
-  {
-    id: '3',
-    author: { id: 'me', handle: 'my_username', initials: 'ME', avatarGradient: ['#3a506b', '#5bc0be'] },
-    isMine: true,
-    photoGradient: ['#0b132b', '#1c2541', '#3a506b'],
-    caption: '해변 열차 타고 찍은 노을 사진',
-    location: '해운대 블루라인파크',
-    createdAtLabel: '1일 전',
-    likeCount: 156,
-    isLiked: false,
-    commentCount: 12,
-    shareCount: 0,
-    isSaved: false,
-    isFollowingAuthor: false,
-    photogenicScore: 79,
-    shotMeta: { time: '18:20', weather: '흐림', weatherIcon: 'cloudy', gear: 'Fujifilm X-T5 · 23mm f/2' },
-  },
-];
-
 interface GalleryPhoto {
   id: string;
+  /** 사진 URL. 로드 전·실패 시 color가 보인다 */
+  uri?: string;
   color: string;
   likeCount: number;
+  postId: string;
+  isMine: boolean;
 }
 
-const GALLERY_CELLS: GalleryPhoto[] = [
-  { id: 'g1', color: '#0a1a0f', likeCount: 58 }, { id: 'g2', color: '#1a1530', likeCount: 91 },
-  { id: 'g3', color: '#232526', likeCount: 34 }, { id: 'g4', color: '#0f2027', likeCount: 122 },
-  { id: 'g5', color: '#4a1942', likeCount: 512 }, { id: 'g6', color: '#020010', likeCount: 47 },
-  { id: 'g7', color: '#2a2e35', likeCount: 76 }, { id: 'g8', color: '#1a1510', likeCount: 29 },
-  { id: 'g9', color: '#1a0f1e', likeCount: 88 }, { id: 'g10', color: '#0a1520', likeCount: 63 },
-  { id: 'g11', color: '#1a0a0a', likeCount: 41 }, { id: 'g12', color: '#0a1510', likeCount: 55 },
-  { id: 'g13', color: '#b44a3a', likeCount: 97 }, { id: 'g14', color: '#0f2027', likeCount: 68 },
-  { id: 'g15', color: '#4a8060', likeCount: 342 }, { id: 'g16', color: '#020010', likeCount: 39 },
-  { id: 'g17', color: '#1a0510', likeCount: 52 }, { id: 'g18', color: '#0a2020', likeCount: 71 },
-];
+/** 갤러리 탭은 같은 피드의 사진만 격자로 다시 보여준다 — 전용 API가 없다. */
+function toGalleryPhotos(posts: Post[]): GalleryPhoto[] {
+  return posts.flatMap((post) =>
+    post.imageUrls.map((uri, idx) => ({
+      id: `${post.id}-${idx}`,
+      uri,
+      color: post.photoGradient[0],
+      likeCount: post.likeCount,
+      postId: post.id,
+      isMine: post.isMine,
+    })),
+  );
+}
 
 function pickPopularIds(photos: GalleryPhoto[], count: number): Set<string> {
   const ranked = [...photos].sort((a, b) => b.likeCount - a.likeCount).slice(0, count);
@@ -132,10 +81,30 @@ export default function CommunityFeedScreen() {
   const [segment, setSegment] = useState<SegmentKey>('posts');
   const [isScrolled, setIsScrolled] = useState(false);
   const [searchVisible, setSearchVisible] = useState(false);
-  const [posts, setPosts] = useState(INITIAL_POSTS);
+  const [keyword, setKeyword] = useState('');
   const [feedSort, setFeedSort] = useState<FeedSortOption>('인기');
   const [feedSortSheetVisible, setFeedSortSheetVisible] = useState(false);
-  const displayedPosts = React.useMemo(() => sortPosts(posts, feedSort), [posts, feedSort]);
+
+  const isLoggedIn = useAuthStore((s) => !!s.accessToken);
+  const { data, isLoading, isError, refetch, hasNextPage, fetchNextPage, isFetchingNextPage } =
+    useCommunityFeed(SORT_TO_API[feedSort], keyword);
+  // `?? []`를 그대로 쓰면 매 렌더마다 새 배열이 되어 아래 갤러리 useMemo가 항상 다시 계산된다.
+  const displayedPosts = React.useMemo(() => data?.posts ?? [], [data?.posts]);
+
+  const toggleLike = useToggleLike();
+  const toggleBookmark = useToggleBookmark();
+  const toggleFollow = useToggleFollow();
+
+  // 팔로잉·내 글은 서버가 토큰을 요구한다. 비로그인이면 조회를 아예 안 하므로 안내를 따로 띄운다.
+  const needsLogin = !isLoggedIn && (feedSort === '팔로잉' || feedSort === '내 글');
+
+  // 카드 목록 대신 안내 한 줄만 띄우는 상태. null이면 정상 목록을 그린다.
+  const postsState: 'login' | 'loading' | 'error' | 'empty' | null =
+    needsLogin ? 'login'
+    : isLoading ? 'loading'
+    : isError ? 'error'
+    : displayedPosts.length === 0 ? 'empty'
+    : null;
 
   // CSS의 `grid-template-columns: repeat(3, 1fr)`와 동일하게, 고정 픽셀이 아니라
   // 실제 사용 가능한 너비(화면 너비 - 좌우 패딩 - 갤럼 사이 gap 2개)를 3등분해서 셀 크기를 구한다.
@@ -145,26 +114,20 @@ export default function CommunityFeedScreen() {
     setIsScrolled(e.nativeEvent.contentOffset.y > 44);
   };
 
-  const toggleLike = (id: string) => {
-    setPosts((prev) => prev.map((p) => (p.id === id ? { ...p, isLiked: !p.isLiked, likeCount: p.likeCount + (p.isLiked ? -1 : 1) } : p)));
-  };
-  const toggleSave = (id: string) => {
-    setPosts((prev) => prev.map((p) => (p.id === id ? { ...p, isSaved: !p.isSaved } : p)));
-  };
-  const toggleFollow = (id: string) => {
-    setPosts((prev) => prev.map((p) => (p.id === id ? { ...p, isFollowingAuthor: !p.isFollowingAuthor } : p)));
-  };
-
+  const galleryPhotos = React.useMemo(() => toGalleryPhotos(displayedPosts), [displayedPosts]);
   const galleryCells = React.useMemo(() => {
-    const popularIds = pickPopularIds(GALLERY_CELLS, GALLERY_POPULAR_COUNT);
-    return layoutGalleryGrid(GALLERY_CELLS, (photo) => popularIds.has(photo.id));
-  }, []);
+    const popularIds = pickPopularIds(galleryPhotos, GALLERY_POPULAR_COUNT);
+    return layoutGalleryGrid(galleryPhotos, (photo) => popularIds.has(photo.id));
+  }, [galleryPhotos]);
   const galleryRowCount = galleryCells.reduce((max, cell) => Math.max(max, cell.row + cell.span), 0);
   const galleryHeight = galleryRowCount * galleryCellSize + Math.max(galleryRowCount - 1, 0) * GALLERY_GAP;
 
   const goToPost = (post: Post) =>
-    rootNavigation.navigate('CommunityDetailStack', { screen: 'PostDetail', params: { isMyPost: post.isMine } });
-  const goToProfile = () => rootNavigation.navigate('CommunityDetailStack', { screen: 'UserProfile' });
+    rootNavigation.navigate('CommunityDetailStack', { screen: 'PostDetail', params: { postId: post.id, isMyPost: post.isMine } });
+  const goToPostById = (postId: string, isMine: boolean) =>
+    rootNavigation.navigate('CommunityDetailStack', { screen: 'PostDetail', params: { postId, isMyPost: isMine } });
+  const goToProfile = (userId: string) =>
+    rootNavigation.navigate('CommunityDetailStack', { screen: 'UserProfile', params: { userId } });
   const goToContestResult = (item: ContestPastMonthItem) =>
     rootNavigation.navigate('CommunityDetailStack', {
       screen: 'ContestResult',
@@ -236,6 +199,21 @@ export default function CommunityFeedScreen() {
             </Pressable>
           )}
         </View>
+        {/* 검색어가 걸린 동안에는 게시글·갤러리가 모두 결과로 좁혀진다 — 해제 수단을 항상 보이게 둔다 */}
+        {!!keyword && segment !== 'contest' && (
+          <View className="flex-row" style={{ paddingHorizontal: CONTENT_PADDING, paddingBottom: normalize(14) }}>
+            <Pressable
+              onPress={() => setKeyword('')}
+              className="flex-row items-center"
+              style={{ gap: normalize(6), height: normalize(30), paddingHorizontal: normalize(12), borderRadius: normalize(15), backgroundColor: '#000' }}
+            >
+              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, color: '#fff', letterSpacing: -0.2 }}>
+                {`'${keyword}' 검색 결과`}
+              </Text>
+              <X size={normalize(11)} color="#fff" strokeWidth={2.4} />
+            </Pressable>
+          </View>
+        )}
       </View>
 
       {segment === 'contest' ? (
@@ -247,28 +225,75 @@ export default function CommunityFeedScreen() {
           onOpenResult={goToContestResultByRank}
         />
       ) : (
-        <ScrollView onScroll={handleScroll} scrollEventThrottle={16} contentContainerStyle={{ paddingBottom: normalize(20) }}>
+        <ScrollView onScroll={handleScroll} scrollEventThrottle={16} contentContainerStyle={{ flexGrow: 1, paddingBottom: normalize(20) }}>
+          {/* contentContainerStyle의 flexGrow: 1 — 내용이 화면보다 짧아도 컨테이너가 남은 높이를
+              차지해야 아래 빈 상태 문구를 그 안에서 세로 중앙에 놓을 수 있다 */}
           {segment === 'posts' && (
-            <View style={{ paddingHorizontal: GRID_PADDING, gap: normalize(20) }}>
-              {displayedPosts.length === 0 ? (
-                <View style={{ paddingVertical: normalize(48), alignItems: 'center' }}>
+            postsState ? (
+              <View className="items-center justify-center" style={{ flex: 1, gap: normalize(12), paddingHorizontal: GRID_PADDING }}>
+                {postsState === 'login' && (
                   <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: 'rgba(0,0,0,0.4)', letterSpacing: -0.2 }}>
-                    {feedSort === '팔로잉' ? '팔로잉한 유저의 게시글이 없어요' : '표시할 게시글이 없어요'}
+                    로그인이 필요해요
                   </Text>
-                </View>
-              ) : (
-                displayedPosts.map((post) => (
-                  <PostCard
-                    key={post.id}
-                    post={post}
-                    onPress={() => goToPost(post)}
-                    onToggleLike={() => toggleLike(post.id)}
-                    onToggleSave={() => toggleSave(post.id)}
-                    onToggleFollow={() => toggleFollow(post.id)}
-                    onPressUsername={goToProfile}
-                  />
-                ))
-              )}
+                )}
+                {postsState === 'loading' && <ActivityIndicator color={ACCENT} />}
+                {postsState === 'error' && (
+                  <>
+                    <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: 'rgba(0,0,0,0.4)', letterSpacing: -0.2 }}>
+                      게시글을 불러오지 못했어요
+                    </Text>
+                    <Pressable onPress={() => refetch()} style={{ height: normalize(34), paddingHorizontal: normalize(16), borderRadius: normalize(17), backgroundColor: SURFACE, alignItems: 'center', justifyContent: 'center' }}>
+                      <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, color: 'rgba(0,0,0,0.6)', letterSpacing: -0.2 }}>
+                        다시 시도
+                      </Text>
+                    </Pressable>
+                  </>
+                )}
+                {postsState === 'empty' && (
+                  <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: 'rgba(0,0,0,0.4)', letterSpacing: -0.2 }}>
+                    {keyword ? '검색 결과가 없어요' : feedSort === '팔로잉' ? '팔로잉한 유저의 게시글이 없어요' : '표시할 게시글이 없어요'}
+                  </Text>
+                )}
+              </View>
+            ) : (
+              <View style={{ paddingHorizontal: GRID_PADDING, gap: normalize(20) }}>
+                <>
+                  {displayedPosts.map((post) => (
+                    <PostCard
+                      key={post.id}
+                      post={post}
+                      onPress={() => goToPost(post)}
+                      onToggleLike={() => toggleLike.mutate({ postId: post.id, next: !post.isLiked })}
+                      onToggleBookmark={() => toggleBookmark.mutate({ postId: post.id, next: !post.isBookmarked })}
+                      onToggleFollow={() => toggleFollow.mutate({ userId: post.author.id, next: !post.isFollowingAuthor })}
+                      onPressUsername={() => goToProfile(post.author.id)}
+                    />
+                  ))}
+                  {hasNextPage && (
+                    <Pressable
+                      onPress={() => fetchNextPage()}
+                      disabled={isFetchingNextPage}
+                      className="items-center justify-center"
+                      style={{ height: normalize(44), borderRadius: normalize(22), backgroundColor: SURFACE }}
+                    >
+                      {isFetchingNextPage ? (
+                        <ActivityIndicator color="rgba(0,0,0,0.4)" size="small" />
+                      ) : (
+                        <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, color: 'rgba(0,0,0,0.55)', letterSpacing: -0.2 }}>
+                          게시글 더 보기
+                        </Text>
+                      )}
+                    </Pressable>
+                  )}
+                </>
+              </View>
+            )
+          )}
+          {segment === 'gallery' && galleryCells.length === 0 && !isLoading && (
+            <View style={{ paddingVertical: normalize(48), alignItems: 'center' }}>
+              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: 'rgba(0,0,0,0.4)', letterSpacing: -0.2 }}>
+                표시할 사진이 없어요
+              </Text>
             </View>
           )}
           {segment === 'gallery' && (
@@ -277,8 +302,9 @@ export default function CommunityFeedScreen() {
                 const size = span * galleryCellSize + (span - 1) * GALLERY_GAP;
                 const isPopular = span === 2;
                 return (
-                  <View
+                  <Pressable
                     key={cell.id}
+                    onPress={() => goToPostById(cell.postId, cell.isMine)}
                     style={{
                       position: 'absolute',
                       top: row * (galleryCellSize + GALLERY_GAP),
@@ -288,6 +314,7 @@ export default function CommunityFeedScreen() {
                       backgroundColor: cell.color,
                     }}
                   >
+                    {!!cell.uri && <Image source={{ uri: cell.uri }} resizeMode="cover" style={{ width: '100%', height: '100%' }} />}
                     {isPopular && (
                       <>
                         <View style={{ position: 'absolute', top: normalize(10), left: normalize(10), height: normalize(22), paddingHorizontal: normalize(9), borderRadius: normalize(11), backgroundColor: 'rgba(255,255,255,0.9)', alignItems: 'center', justifyContent: 'center' }}>
@@ -303,7 +330,7 @@ export default function CommunityFeedScreen() {
                         </View>
                       </>
                     )}
-                  </View>
+                  </Pressable>
                 );
               })}
             </View>
@@ -311,7 +338,14 @@ export default function CommunityFeedScreen() {
         </ScrollView>
       )}
 
-      <SearchOverlay visible={searchVisible} onClose={() => setSearchVisible(false)} />
+      <SearchOverlay
+        visible={searchVisible}
+        onClose={() => setSearchVisible(false)}
+        onSubmitKeyword={(next) => {
+          setKeyword(next);
+          setSearchVisible(false);
+        }}
+      />
       <OptionSheet
         visible={feedSortSheetVisible}
         title="정렬 · 필터"

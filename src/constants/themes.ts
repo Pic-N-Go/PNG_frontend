@@ -1,15 +1,12 @@
-// 백엔드 SpotCategory enum과 매핑되는 항목만 노출
-// (커플/드론/비오는날/필름 = enum 대응값 없음, 인물/반려동물 = 백엔드에서 제거됨(데이터 소스 없음))
-export const THEME_CATEGORY_MAP = {
-  야경: 'NIGHT_VIEW',
-  바다: 'BEACH',
-  한옥: 'HANOK',
-  '역사/전통': 'HERITAGE',
-  꽃: 'FLOWER',
-  카페: 'CAFE',
-  축제: 'FESTIVAL',
-  '일출/일몰': 'SUNRISE_SUNSET',
-  은하수: 'MILKY_WAY',
-} as const;
+// 관심 테마 = 스팟 카테고리와 같은 목록이다. 라벨·순서는 @/constants/spotCategories가 정한다.
+// 예전에는 여기에 9개만 따로 적어둬서 공원·산·숲·도심 풍경이 회원가입에서 빠져 있었고,
+// HERITAGE 라벨도 스팟 상세(문화유산)와 달랐다.
+import { CATEGORY_CODES, CODE_BY_LABEL, CATEGORY_LABELS, SPOT_CATEGORY_MAP } from '@/constants/spotCategories';
 
-export const THEMES = Object.keys(THEME_CATEGORY_MAP) as (keyof typeof THEME_CATEGORY_MAP)[];
+/** 한글 라벨 → 백엔드 SpotCategory 코드. 회원가입이 서버로 보낼 때 쓴다. */
+export const THEME_CATEGORY_MAP: Record<string, string> = CODE_BY_LABEL;
+
+/** 화면에 뿌릴 순서대로의 한글 라벨. '기타'는 관심사로 고를 값이 아니라 빠져 있다. */
+export const THEMES: string[] = CATEGORY_LABELS;
+
+export { CATEGORY_CODES, SPOT_CATEGORY_MAP };
