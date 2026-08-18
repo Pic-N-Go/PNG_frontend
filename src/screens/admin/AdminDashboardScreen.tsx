@@ -135,12 +135,7 @@ export default function AdminDashboardScreen() {
     setSelectedInquiry(item);
     const existingAnswer = item.answer || '';
     setAnswerInput(existingAnswer);
-    const matched = INQUIRY_ANSWER_TEMPLATES.find(
-      (t) =>
-        (item.type && t.type.toUpperCase() === item.type.toUpperCase()) ||
-        (t.type === 'SPOT' && item.type === 'SPOT_INFO')
-    );
-    setSelectedTemplateId(matched ? matched.id : null);
+    setSelectedTemplateId(null);
     setAnswerModalVisible(true);
   };
 
