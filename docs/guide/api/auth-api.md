@@ -24,6 +24,8 @@
   "tokenType": "Bearer",
   "accessToken": "eyJhbGci...",
   "expiresIn": 3600,
+  "refreshToken": "eyJhbGci...",
+  "refreshTokenExpiresIn": 1209600,
   "user": {
     "id": 1,
     "email": "user@example.com",
@@ -49,6 +51,28 @@
 
 ### Response `200 OK`
 > 회원가입 응답과 동일한 구조 (`TokenResponse`)
+
+---
+
+## 2-1. 토큰 갱신 — `POST /auth/token/refresh`
+
+Refresh Token은 사용 시 소비되므로 성공 응답의 새 Refresh Token으로 반드시 교체해야 함.
+
+### Request Body
+```json
+{
+  "refreshToken": "eyJhbGci..."
+}
+```
+
+### Response `200 OK`
+> 로그인 응답과 동일한 새 `TokenResponse`
+
+### 에러 케이스
+| 상황 | HTTP / code |
+|---|---|
+| Access Token 만료 | `401 / ACCESS_TOKEN_EXPIRED` |
+| Refresh Token 만료·위조·재사용 | `401 / INVALID_REFRESH_TOKEN` |
 
 ---
 
@@ -173,6 +197,8 @@ interface TokenResponse {
   tokenType: 'Bearer';
   accessToken: string;
   expiresIn: number;        // 초 단위
+  refreshToken: string;
+  refreshTokenExpiresIn: number; // 초 단위
   user: UserResponse;
 }
 ```
