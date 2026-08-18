@@ -17,7 +17,16 @@ import type {
   ReactionResponseDTO,
 } from '@/types/community';
 
-const PAGE_SIZE = 20;
+/**
+ * 용도별 페이지 크기. 화면마다 한 번에 보기 좋은 양이 달라 하나로 묶지 않는다.
+ * 이 프로젝트는 무한스크롤이 아니라 "더보기" 버튼이라, 값이 작으면 그만큼 더 눌러야 한다.
+ */
+/** 카드가 커서 10개면 금방 바닥난다. */
+const FEED_PAGE_SIZE = 20;
+/** 3열 격자라 3의 배수여야 마지막 줄이 비지 않는다(4줄). */
+const PROFILE_POSTS_PAGE_SIZE = 12;
+/** 상세 화면에서 20개는 스크롤이 길다. */
+const COMMENTS_PAGE_SIZE = 10;
 
 const feedKey = (sort: PostSortApi, keyword: string | undefined, token: string | null) =>
   ['community', 'posts', sort, keyword?.trim() || '', token ?? 'guest'] as const;
@@ -62,7 +71,7 @@ export function useCommunityFeed(sort: PostSortApi, keyword?: string) {
   return useInfiniteQuery({
     queryKey: feedKey(sort, keyword, token),
     queryFn: ({ pageParam }) =>
-      communityApi.getPosts({ sort, keyword, page: pageParam, size: PAGE_SIZE, token: token ?? undefined }),
+      communityApi.getPosts({ sort, keyword, page: pageParam, size: FEED_PAGE_SIZE, token: token ?? undefined }),
     initialPageParam: 0,
     getNextPageParam: (last: PostPageResponseDTO) => (last.hasNext ? last.page + 1 : undefined),
     enabled: !needsAuth || !!token,
@@ -89,7 +98,7 @@ export function useUserPosts(userId: string | undefined) {
         sort: 'LATEST',
         authorId: userId,
         page: pageParam,
-        size: PAGE_SIZE,
+        size: PROFILE_POSTS_PAGE_SIZE,
         token: token ?? undefined,
       }),
     initialPageParam: 0,
@@ -147,7 +156,7 @@ export function useComments(postId: string | undefined) {
   return useInfiniteQuery({
     // 토큰이 키에 없으면 로그아웃 후에도 이전 사용자의 liked가 그대로 보인다.
     queryKey: [...commentsKey(postId ?? ''), token ?? 'guest'],
-    queryFn: ({ pageParam }) => communityApi.getComments(postId!, pageParam, PAGE_SIZE, token ?? undefined),
+    queryFn: ({ pageParam }) => communityApi.getComments(postId!, pageParam, COMMENTS_PAGE_SIZE, token ?? undefined),
     initialPageParam: 0,
     getNextPageParam: (last) => (last.hasNext ? last.page + 1 : undefined),
     enabled: !!postId,
@@ -164,7 +173,7 @@ export function useReplies(postId: string | undefined, commentId: string | undef
   return useInfiniteQuery({
     queryKey: [...repliesKey(postId ?? '', commentId ?? ''), token ?? 'guest'],
     queryFn: ({ pageParam }) =>
-      communityApi.getReplies(postId!, commentId!, pageParam, PAGE_SIZE, token ?? undefined),
+      communityApi.getReplies(postId!, commentId!, pageParam, COMMENTS_PAGE_SIZE, token ?? undefined),
     initialPageParam: 0,
     getNextPageParam: (last) => (last.hasNext ? last.page + 1 : undefined),
     enabled: enabled && !!postId && !!commentId,
