@@ -135,7 +135,11 @@ export default function AdminDashboardScreen() {
     setSelectedInquiry(item);
     const existingAnswer = item.answer || '';
     setAnswerInput(existingAnswer);
-    const matched = INQUIRY_ANSWER_TEMPLATES.find((t) => t.type === item.type);
+    const matched = INQUIRY_ANSWER_TEMPLATES.find(
+      (t) =>
+        (item.type && t.type.toUpperCase() === item.type.toUpperCase()) ||
+        (t.type === 'SPOT' && item.type === 'SPOT_INFO')
+    );
     setSelectedTemplateId(matched ? matched.id : null);
     setAnswerModalVisible(true);
   };
@@ -2148,7 +2152,11 @@ export default function AdminDashboardScreen() {
                 >
                   {INQUIRY_ANSWER_TEMPLATES.map((tmpl) => {
                     const isSelected = selectedTemplateId === tmpl.id;
-                    const isRecommended = selectedInquiry?.type === tmpl.type;
+                    const isRecommended = Boolean(
+                      selectedInquiry?.type &&
+                        (tmpl.type.toUpperCase() === selectedInquiry.type.toUpperCase() ||
+                          (tmpl.type === 'SPOT' && selectedInquiry.type === 'SPOT_INFO'))
+                    );
 
                     const handleSelect = () => {
                       setAnswerInput(tmpl.content);
