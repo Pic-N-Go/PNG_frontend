@@ -9,7 +9,7 @@ import {
   IconBell, IconSun, IconMessageCircle,
   IconMoon, IconCurrentLocation, IconBan,
   IconMessage2Question, IconInfoCircle, IconLogout, IconTrash,
-  IconX, IconCheck, IconRefresh,
+  IconX, IconCheck, IconRefresh, IconShield,
 } from '@tabler/icons-react-native';
 import { getMessaging, hasPermission, AuthorizationStatus } from '@react-native-firebase/messaging';
 import * as Location from 'expo-location';
@@ -31,23 +31,25 @@ const NEUTRAL_ICON_FG = '#615d59';
 export default function SettingScreen({ navigation }: Props) {
   const { settings, setWishlist, setGolden, setCommunity, setDndEnabled, setDndTime, setDndRepeat } = useNotificationSettings();
   const { unreadCount } = useInquiries();
+  const user = useAuthStore((s) => s.user);
   const clearAuth = useAuthStore((s) => s.clearAuth);
+  const isAdmin = user?.role === 'ADMIN';
   const [dndTimeSheetVisible, setDndTimeSheetVisible] = React.useState(false);
   const [dndRepeatSheetVisible, setDndRepeatSheetVisible] = React.useState(false);
   const [versionSheetVisible, setVersionSheetVisible] = React.useState(false);
 
   const [hasSystemPermission, setHasSystemPermission] = React.useState<boolean>(true);
-  const [hasLocationPermission, setHasLocationPermission] = React.useState<boolean>(true);
+  const [locationPermissionStatus, setLocationPermissionStatus] = React.useState<'loading' | 'granted' | 'denied'>('loading');
 
   const checkLocationPermission = React.useCallback(async () => {
     try {
       const { status } = await Location.getForegroundPermissionsAsync();
-      const hasPerm = status === Location.PermissionStatus.GRANTED;
-      setHasLocationPermission(hasPerm);
-      return hasPerm;
+      const isGranted = status === Location.PermissionStatus.GRANTED;
+      setLocationPermissionStatus(isGranted ? 'granted' : 'denied');
+      return isGranted;
     } catch (error) {
       console.error('[SettingScreen] checkLocationPermission error:', error);
-      setHasLocationPermission(false);
+      setLocationPermissionStatus('denied');
       return false;
     }
   }, []);
@@ -113,9 +115,10 @@ export default function SettingScreen({ navigation }: Props) {
   };
 
   const handleLocationPress = () => {
+    if (locationPermissionStatus === 'loading') return;
     Alert.alert(
       '위치 권한 설정',
-      hasLocationPermission
+      locationPermissionStatus === 'granted'
         ? '위치 권한이 현재 허용되어 있습니다. 변경하려면 기기 설정으로 이동하시겠습니까?'
         : '내 위치 스팟 조회 및 경로 안내 기능을 사용하려면 위치 권한이 필요합니다. 설정으로 이동하시겠습니까?',
       [
@@ -254,10 +257,11 @@ export default function SettingScreen({ navigation }: Props) {
           <Card>
             <SettingRow
               icon={IconCurrentLocation} iconBg="#e0f0dc" iconColor="#5a9855"
-              label="위치 권한" desc="앱 사용 중 허용"
+              label="위치 권한"
+              desc={locationPermissionStatus === 'loading' ? '확인 중...' : locationPermissionStatus === 'granted' ? '앱 사용 중 허용' : '위치 권한 거부됨'}
               right={
-                <Text style={{ fontSize: FONT_SM, color: hasLocationPermission ? '#5a9855' : 'rgba(0,0,0,0.35)', marginRight: normalize(6) }}>
-                  {hasLocationPermission ? '허용됨' : '허용 안함'}
+                <Text style={{ fontSize: FONT_SM, color: locationPermissionStatus === 'granted' ? '#5a9855' : 'rgba(0,0,0,0.35)', marginRight: normalize(6) }}>
+                  {locationPermissionStatus === 'loading' ? '확인 중' : locationPermissionStatus === 'granted' ? '허용됨' : '허용 안함'}
                 </Text>
               }
               chevron onPress={handleLocationPress}
@@ -294,7 +298,7 @@ export default function SettingScreen({ navigation }: Props) {
         </View>
 
         {/* ── 기타 (v2: 버전+로그아웃+회원탈퇴 한 카드로) ── */}
-        <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: SPACING_LG, paddingBottom: SPACING_LG }}>
+        <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: SPACING_LG, paddingBottom: isAdmin ? 0 : SPACING_LG }}>
           <SectionLabel text="기타" />
           <Card>
             <SettingRow icon={IconInfoCircle} iconBg={NEUTRAL_ICON_BG} iconColor={NEUTRAL_ICON_FG} label="버전 정보" desc="v1.0.0 (최신)" chevron onPress={() => setVersionSheetVisible(true)} />
@@ -307,6 +311,24 @@ export default function SettingScreen({ navigation }: Props) {
             />
           </Card>
         </View>
+
+        {/* ── 관리자 (ADMIN 권한 전용) ── */}
+        {isAdmin && (
+          <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: SPACING_LG, paddingBottom: SPACING_LG }}>
+            <SectionLabel text="관리자" />
+            <Card>
+              <SettingRow
+                icon={IconShield}
+                iconBg="#e0f2fe"
+                iconColor="#0284c7"
+                label="관리자 대시보드"
+                desc="의미 검색 임베딩 및 TourAPI 동기화 관리"
+                chevron
+                onPress={() => navigation.navigate('AdminDashboard')}
+              />
+            </Card>
+          </View>
+        )}
       </ScrollView>
 
       <DndTimeSheet

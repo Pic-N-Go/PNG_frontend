@@ -69,10 +69,15 @@ export default function MapSearchScreen() {
   );
 
   const searchResults = React.useMemo(() => {
-    if (!query.trim()) return [];
-    if (apiResults.length > 0) return apiResults;
+    const trimmedQuery = query.trim();
+    if (!trimmedQuery) return [];
 
-    const q = query.trim().toLowerCase();
+    const isDebouncedMatch = debouncedQuery.trim().toLowerCase() === trimmedQuery.toLowerCase();
+    if (isDebouncedMatch && apiResults.length > 0) {
+      return apiResults;
+    }
+
+    const q = trimmedQuery.toLowerCase();
     const filteredRec = recSpots.filter(
       (s) =>
         s.name.toLowerCase().includes(q) ||
@@ -82,7 +87,7 @@ export default function MapSearchScreen() {
     if (filteredRec.length > 0) return filteredRec;
 
     return [];
-  }, [query, apiResults, recSpots]);
+  }, [query, debouncedQuery, apiResults, recSpots]);
 
   // 같은 값을 다시 골라도 지도 쪽 effect가 다시 돌도록 매번 새 nonce를 붙인다.
   const returnToMap = useCallback(
