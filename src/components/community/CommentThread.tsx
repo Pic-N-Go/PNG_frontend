@@ -11,6 +11,7 @@ interface Props {
   comment: Comment;
   onToggleLike: (comment: Comment) => void;
   onPressReply: (comment: Comment) => void;
+  onPressEdit: (comment: Comment) => void;
   onDelete: (commentId: string) => void;
 }
 
@@ -20,7 +21,7 @@ interface Props {
  * 답글은 열기 전까지 요청하지 않는다(useReplies의 enabled). 댓글마다 미리 받아오면
  * 화면 진입 한 번에 요청이 댓글 수만큼 나간다.
  */
-export default function CommentThread({ postId, comment, onToggleLike, onPressReply, onDelete }: Props) {
+export default function CommentThread({ postId, comment, onToggleLike, onPressReply, onPressEdit, onDelete }: Props) {
   const [open, setOpen] = useState(false);
   const { data, hasNextPage, fetchNextPage, isFetchingNextPage, isLoading } = useReplies(postId, comment.id, open);
   const replies = data?.replies ?? [];
@@ -34,6 +35,7 @@ export default function CommentThread({ postId, comment, onToggleLike, onPressRe
         comment={comment}
         onToggleLike={() => onToggleLike(comment)}
         onPressReply={() => onPressReply(comment)}
+        onPressEdit={() => onPressEdit(comment)}
         onDelete={() => onDelete(comment.id)}
       />
 
@@ -67,6 +69,7 @@ export default function CommentThread({ postId, comment, onToggleLike, onPressRe
               onToggleLike={() => onToggleLike(reply)}
               // 답글에 답글을 달아도 서버가 같은 부모로 붙이므로, 원 댓글을 대상으로 넘긴다.
               onPressReply={() => onPressReply(comment)}
+              onPressEdit={() => onPressEdit(reply)}
               onDelete={() => onDelete(reply.id)}
             />
           ))}

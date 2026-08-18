@@ -13,6 +13,7 @@ interface Props {
   isReply?: boolean;
   onToggleLike: () => void;
   onPressReply?: () => void;
+  onPressEdit: () => void;
   onDelete: () => void;
 }
 
@@ -20,7 +21,7 @@ interface Props {
  * 댓글 한 줄. 최상위 댓글과 답글이 아바타 크기·들여쓰기만 다르고 나머지는 같아
  * 한 컴포넌트로 쓴다(두 벌로 두면 한쪽만 고쳐지는 일이 생긴다).
  */
-export default function CommentRow({ comment, isReply, onToggleLike, onPressReply, onDelete }: Props) {
+export default function CommentRow({ comment, isReply, onToggleLike, onPressReply, onPressEdit, onDelete }: Props) {
   const avatar = normalize(isReply ? 22 : 28);
   return (
     <View
@@ -63,6 +64,13 @@ export default function CommentRow({ comment, isReply, onToggleLike, onPressRepl
             <Pressable hitSlop={8} onPress={onPressReply}>
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, color: 'rgba(0,0,0,0.5)', letterSpacing: -0.1 }}>
                 답글 달기
+              </Text>
+            </Pressable>
+          )}
+          {comment.isMine && (
+            <Pressable hitSlop={8} onPress={onPressEdit}>
+              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, color: 'rgba(0,0,0,0.5)', letterSpacing: -0.1 }}>
+                수정
               </Text>
             </Pressable>
           )}

@@ -20,6 +20,7 @@ import {
   usePost,
   useToggleBookmark,
   useToggleCommentLike,
+  useUpdateComment,
   useToggleFollow,
   useToggleLike,
 } from '@/hooks/useCommunity';
@@ -55,6 +56,7 @@ export default function PostDetailScreen() {
   const toggleBookmarkM = useToggleBookmark();
   const toggleFollowM = useToggleFollow();
   const createComment = useCreateComment(postId ?? '');
+  const updateCommentM = useUpdateComment(postId ?? '');
   const deleteCommentM = useDeleteComment(postId ?? '');
   const deletePostM = useDeletePost();
   const toggleCommentLikeM = useToggleCommentLike(postId ?? '');
@@ -62,6 +64,8 @@ export default function PostDetailScreen() {
   const [commentText, setCommentText] = useState('');
   /** 답글 대상. null이면 최상위 댓글로 등록된다. */
   const [replyTo, setReplyTo] = useState<Comment | null>(null);
+  /** 수정 중인 댓글. 답글 달기와 동시에 켜지지 않는다(입력창이 하나뿐이다). */
+  const [editing, setEditing] = useState<Comment | null>(null);
 
   const [actionSheetOpen, setActionSheetOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -151,20 +155,42 @@ export default function PostDetailScreen() {
     showToast('신고가 접수되었어요');
   }
 
+  function resetComposer() {
+    setCommentText('');
+    setReplyTo(null);
+    setEditing(null);
+  }
+
   function handleSendComment() {
     const text = commentText.trim();
-    if (!text || createComment.isPending) return;
+    if (!text || createComment.isPending || updateCommentM.isPending) return;
+
+    if (editing) {
+      updateCommentM.mutate(
+        { commentId: editing.id, content: text },
+        {
+          onSuccess: resetComposer,
+          onError: (err) => showToast(toErrorMessage(err, '댓글을 수정하지 못했어요')),
+        },
+      );
+      return;
+    }
+
     createComment.mutate(
       { content: text, parentId: replyTo?.id },
       {
         // 입력창은 성공했을 때만 비운다 — 실패했는데 지워지면 쓴 글이 사라진다.
-        onSuccess: () => {
-          setCommentText('');
-          setReplyTo(null);
-        },
+        onSuccess: resetComposer,
         onError: (err) => showToast(toErrorMessage(err, '댓글을 등록하지 못했어요')),
       },
     );
+  }
+
+  function handlePressEdit(comment: Comment) {
+    setReplyTo(null);
+    setEditing(comment);
+    setCommentText(comment.text);
+    commentInputRef.current?.focus();
   }
 
   function handleToggleCommentLike(comment: Comment) {
@@ -176,6 +202,8 @@ export default function PostDetailScreen() {
   }
 
   function handlePressReply(comment: Comment) {
+    setEditing(null);
+    setCommentText('');
     setReplyTo(comment);
     commentInputRef.current?.focus();
   }
@@ -188,7 +216,8 @@ export default function PostDetailScreen() {
 
   // 목업의 "댓글 29개 더보기" — 전체 개수에서 이미 불러온 만큼을 뺀다.
   const remainingComments = Math.max((commentData?.totalElements ?? 0) - comments.length, 0);
-  const canSendComment = commentText.trim().length > 0 && !createComment.isPending;
+  const canSendComment =
+    commentText.trim().length > 0 && !createComment.isPending && !updateCommentM.isPending;
   const mainPhoto = post?.imageUrls?.[0];
 
   return (
@@ -397,6 +426,7 @@ export default function PostDetailScreen() {
                   comment={comment}
                   onToggleLike={handleToggleCommentLike}
                   onPressReply={handlePressReply}
+                  onPressEdit={handlePressEdit}
                   onDelete={handleDeleteComment}
                 />
               ))}
@@ -412,8 +442,8 @@ export default function PostDetailScreen() {
           </View>
         </ScrollView>
 
-        {/* 답글 대상 표시 — 지금 쓰는 글이 어디에 붙는지 보이지 않으면 최상위 댓글로 착각한다 */}
-        {!!replyTo && (
+        {/* 입력창이 하나뿐이라, 지금 쓰는 글이 새 댓글인지 답글인지 수정인지 보여준다 */}
+        {(!!replyTo || !!editing) && (
           <View
             className="flex-row items-center"
             style={{
@@ -428,9 +458,9 @@ export default function PostDetailScreen() {
               numberOfLines={1}
               style={{ flex: 1, fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.5)', letterSpacing: -0.1 }}
             >
-              {replyTo.author.handle}님에게 답글 다는 중
+              {editing ? '댓글 수정 중' : `${replyTo!.author.handle}님에게 답글 다는 중`}
             </Text>
-            <Pressable onPress={() => setReplyTo(null)} hitSlop={8} accessibilityLabel="답글 취소">
+            <Pressable onPress={resetComposer} hitSlop={8} accessibilityLabel={editing ? '수정 취소' : '답글 취소'}>
               <X size={normalize(14)} color="rgba(0,0,0,0.4)" strokeWidth={2} />
             </Pressable>
           </View>
@@ -463,7 +493,9 @@ export default function PostDetailScreen() {
               ref={commentInputRef}
               value={commentText}
               onChangeText={setCommentText}
-              placeholder={replyTo ? `${replyTo.author.handle}님에게 답글...` : '댓글 달기...'}
+              placeholder={
+                editing ? '댓글 수정...' : replyTo ? `${replyTo.author.handle}님에게 답글...` : '댓글 달기...'
+              }
               placeholderTextColor="rgba(0,0,0,0.3)"
               onSubmitEditing={handleSendComment}
               allowFontScaling={false}

@@ -355,6 +355,23 @@ export function useToggleCommentLike(postId: string) {
   });
 }
 
+/** 댓글·답글 수정. 서버는 내용만 바꾸므로 부모·좋아요 수는 그대로다. */
+export function useUpdateComment(postId: string) {
+  const { token } = useAuth();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ commentId, content }: { commentId: string; content: string }) => {
+      if (!token) throw new Error('로그인이 필요해요.');
+      return communityApi.updateComment(postId, commentId, content, token);
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: commentsKey(postId) });
+      // 답글을 고쳤을 수도 있어 답글 목록도 함께 갱신한다.
+      qc.invalidateQueries({ queryKey: ['community', 'replies', postId] });
+    },
+  });
+}
+
 export function useDeleteComment(postId: string) {
   const { token } = useAuth();
   const qc = useQueryClient();

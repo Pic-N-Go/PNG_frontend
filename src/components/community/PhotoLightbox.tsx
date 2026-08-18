@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Dimensions, Image, Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 // RN의 Animated(아래 EXIF 시트가 쓴다)와 이름이 겹치므로 별칭으로 가져온다.
@@ -13,6 +13,8 @@ import { normalize, normalizeFontSize } from '@/utils/normalize';
 /** 이 거리(px)보다 더 아래로 끌면 닫는다. 짧으면 스크롤하려다 닫히고, 길면 안 닫힌다. */
 const CLOSE_DRAG_DISTANCE = 120;
 const MAX_ZOOM = 4;
+/** 이 거리(px)보다 옆으로 끌면 다음/이전 사진으로 넘긴다. */
+const SWIPE_DISTANCE = 60;
 
 interface Props {
   visible: boolean;
@@ -55,6 +57,16 @@ export default function PhotoLightbox({ visible, onClose, exifOpen, onOpenExif, 
    */
   const panStartedZoomed = useSharedValue(false);
 
+  const photos = post.imageUrls ?? [];
+  const [index, setIndex] = useState(0);
+  // 인덱스는 게시글이 바뀌거나 라이트박스를 다시 열 때 첫 장으로 되돌린다.
+  const currentExif = post.exifList?.[index] ?? {};
+  // 제스처 콜백은 worklet이라 React state를 읽을 수 없다. 공유 값으로 따로 들고 있는다.
+  const indexShared = useSharedValue(0);
+  useEffect(() => {
+    indexShared.value = index;
+  }, [index, indexShared]);
+
   function resetTransform() {
     scale.value = 1;
     savedScale.value = 1;
@@ -66,9 +78,19 @@ export default function PhotoLightbox({ visible, onClose, exifOpen, onOpenExif, 
 
   // 확대한 채로 닫았다가 다시 열면 그 상태가 남아 있으면 안 된다.
   useEffect(() => {
-    if (visible) resetTransform();
+    if (visible) {
+      setIndex(0);
+      resetTransform();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible]);
+
+  /** 사진을 넘기면 확대·이동 상태를 초기화한다(이전 장의 배율이 남으면 안 된다). */
+  function goTo(nextIndex: number) {
+    if (nextIndex < 0 || nextIndex >= photos.length) return;
+    setIndex(nextIndex);
+    resetTransform();
+  }
 
   const pinch = Gesture.Pinch()
     .onUpdate((e) => {
@@ -95,9 +117,10 @@ export default function PhotoLightbox({ visible, onClose, exifOpen, onOpenExif, 
         // 확대 상태에서는 사진을 이동시킨다.
         tx.value = savedTx.value + e.translationX;
         ty.value = savedTy.value + e.translationY;
-      } else if (e.translationY > 0) {
-        // 확대 전에는 아래로 끄는 동작만 받는다(위로 끌어 올리면 닫기 의도가 아니다).
-        ty.value = e.translationY;
+      } else {
+        // 확대 전에는 좌우 전환과 아래로 끌어 닫기만 받는다(위로 끌어 올리면 닫기 의도가 아니다).
+        tx.value = photos.length > 1 ? e.translationX : 0;
+        ty.value = Math.max(0, e.translationY);
       }
     })
     .onEnd((e) => {
@@ -106,10 +129,18 @@ export default function PhotoLightbox({ visible, onClose, exifOpen, onOpenExif, 
         savedTy.value = ty.value;
         return;
       }
+      // 가로 움직임이 더 크면 사진 전환으로 읽는다.
+      if (Math.abs(e.translationX) > Math.abs(e.translationY) && Math.abs(e.translationX) > SWIPE_DISTANCE) {
+        runOnJS(goTo)(e.translationX < 0 ? indexShared.value + 1 : indexShared.value - 1);
+        tx.value = withTiming(0);
+        ty.value = withTiming(0);
+        return;
+      }
       if (e.translationY > CLOSE_DRAG_DISTANCE) {
         runOnJS(onClose)();
         return;
       }
+      tx.value = withTiming(0);
       ty.value = withTiming(0);
     });
 
@@ -156,8 +187,8 @@ export default function PhotoLightbox({ visible, onClose, exifOpen, onOpenExif, 
             }}
           >
             <Reanimated.View style={photoStyle}>
-              {post.imageUrls?.[0] ? (
-                <Image source={{ uri: post.imageUrls[0] }} resizeMode="contain" style={{ flex: 1, width: '100%' }} />
+              {photos[index] ? (
+                <Image source={{ uri: photos[index] }} resizeMode="contain" style={{ flex: 1, width: '100%' }} />
               ) : (
                 <View style={{ flex: 1, backgroundColor: post.photoGradient[0] }} />
               )}
@@ -166,12 +197,32 @@ export default function PhotoLightbox({ visible, onClose, exifOpen, onOpenExif, 
           </View>
         </GestureDetector>
 
+        {/* 여러 장이면 몇 번째인지 보여준다. 없으면 옆으로 넘길 수 있다는 걸 알 방법이 없다. */}
+        {photos.length > 1 && (
+          <View
+            className="flex-row items-center justify-center absolute"
+            style={{ bottom: insets.bottom + normalize(120), left: 0, right: 0, gap: normalize(6), zIndex: 2 }}
+          >
+            {photos.map((uri, i) => (
+              <View
+                key={uri}
+                style={{
+                  width: normalize(6),
+                  height: normalize(6),
+                  borderRadius: normalize(3),
+                  backgroundColor: i === index ? '#fff' : 'rgba(255,255,255,0.3)',
+                }}
+              />
+            ))}
+          </View>
+        )}
+
         <Text
           allowFontScaling={false}
           className="text-center absolute"
           style={{ bottom: insets.bottom + normalize(96), left: 0, right: 0, fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(255,255,255,0.4)', letterSpacing: -0.1 }}
         >
-          두 손가락 확대 · 아래로 스와이프하여 닫기
+          {photos.length > 1 ? '좌우로 넘기기 · 두 손가락 확대 · 아래로 스와이프하여 닫기' : '두 손가락 확대 · 아래로 스와이프하여 닫기'}
         </Text>
 
         <View
@@ -197,7 +248,7 @@ export default function PhotoLightbox({ visible, onClose, exifOpen, onOpenExif, 
                 {post.author.handle}
               </Text>
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(255,255,255,0.5)', letterSpacing: -0.1, marginTop: normalize(1) }}>
-                {post.createdAtLabel} · {post.exif.shotAtLabel}
+                {post.createdAtLabel} · {currentExif.shotAtLabel}
               </Text>
             </View>
           </Pressable>
@@ -248,7 +299,7 @@ export default function PhotoLightbox({ visible, onClose, exifOpen, onOpenExif, 
             <View style={{ width: normalize(36), height: normalize(4), borderRadius: normalize(2), backgroundColor: 'rgba(0,0,0,0.12)' }} />
           </View>
           <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
-            <PhotoExifSheetContent exif={post.exif} onClose={onCloseExif} />
+            <PhotoExifSheetContent exif={currentExif} onClose={onCloseExif} />
           </ScrollView>
         </Animated.View>
       </View>

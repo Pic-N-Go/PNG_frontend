@@ -40,7 +40,11 @@ export interface Post {
 }
 
 export interface PostDetail extends Post {
-  exif: PhotoExifData;
+  /**
+   * 사진별 EXIF. imageUrls와 같은 순서·같은 길이다.
+   * 서버가 사진마다 내려주는데 이전에는 첫 장만 썼다.
+   */
+  exifList: PhotoExifData[];
 }
 
 export interface Comment {
