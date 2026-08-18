@@ -16,6 +16,7 @@ import type {
   PageSpotResponse,
   SpotMapResponse,
   SpotSummaryResponse,
+  NearbySpotResponse,
 } from '@/types/spot';
 
 /** RN이 파일 파트로 인식하는 최소 형태 (expo/RN 이미지 피커 결과 그대로) */
@@ -126,6 +127,14 @@ export interface SearchSpotsParams {
   token?: string;
 }
 
+export interface NearbySpotsParams {
+  lat: number;
+  lng: number;
+  radiusKm?: number;
+  limit?: number;
+  token?: string;
+}
+
 /**
  * multipart 전용 경로. request()는 Content-Type을 application/json으로 고정하므로 쓸 수 없고,
  * FormData를 보낼 땐 boundary를 런타임이 붙이도록 Content-Type을 아예 지정하지 않아야 한다.
@@ -173,6 +182,12 @@ export const spotApi = {
     const catQs = buildCategoryQuery(category);
     const kwQs = `keyword=${encodeURIComponent(keyword.trim())}&`;
     return request<PageSpotResponse>(`/spots/search?${kwQs}${catQs}size=${size}&page=${page}`, { token });
+  },
+
+  // 3-1. 주변 스팟 조회 (GET /spots/nearby)
+  getNearbySpots: (params: NearbySpotsParams) => {
+    const { lat, lng, radiusKm = 5.0, limit = 20, token } = params;
+    return request<NearbySpotResponse[]>(`/spots/nearby?lat=${lat}&lng=${lng}&radiusKm=${radiusKm}&limit=${limit}`, { token });
   },
 
   // 4. 스팟 상세 정보 조회 (GET /spots/{id})

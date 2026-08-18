@@ -8,8 +8,16 @@ package-lock.json
 dist/
 web-build/
 .kotlin/
-android/app/build/
+# android/build/ 를 반드시 함께 제외해야 한다. 여기에 RN autolinking 캐시
+# (android/build/generated/autolinking/autolinking.json)가 들어 있고, 그 안의 sourceDir이
+# 로컬 절대경로(C:\Users\...)다. 캐시 키는 package.json 해시라 빌더에서도 그대로 적중해
+# 재생성을 건너뛰고, 리눅스에 없는 경로로 프로젝트를 include하게 된다. 그러면 build.gradle이
+# 없어 variant가 안 만들어지고 모든 네이티브 모듈이 "No variants exist"로 실패한다.
+# app/build/ 만 막으면 상위 android/build/ 가 그대로 업로드되므로 둘 다 필요하다.
+android/build/
+android/**/build/
 android/.gradle/
+ios/build/
 ios/Pods/
 
 # Ignore debug logs

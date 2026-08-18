@@ -8,6 +8,7 @@ import CommunityDetailStack, { type CommunityDetailStackParamList } from './stac
 import WishlistScreen from '@/screens/wishlist/WishlistScreen';
 import WishlistSettingScreen from '@/screens/wishlist/WishlistSettingScreen';
 import MapScreen from '@/screens/home/MapScreen';
+import MapSearchScreen from '@/screens/search/MapSearchScreen';
 import { useAuthStore } from '@/store/useAuthStore';
 import { usePushNotifications } from '@/hooks/usePushNotifications';
 
@@ -17,7 +18,17 @@ export type RootStackParamList = {
   CommunityDetailStack: NavigatorScreenParams<CommunityDetailStackParamList>;
   Wishlist: undefined;
   WishlistSetting: { id?: number; wishlist?: any; spotId?: string; newSpot?: any; newWishlist?: any };
-  Map: { source?: string; newSpot?: any };
+  Map: {
+    source?: string;
+    newSpot?: any;
+    // MapSearch가 돌려주는 값 (MapStack의 Map과 동일 규약)
+    searchSelectedSpot?: any;
+    searchKeyword?: string;
+    searchNonce?: number;
+  };
+  // MapScreen이 이 스택에도 등록돼 있어 검색 화면도 함께 둔다.
+  // 없으면 이 스택의 Map에서 검색창을 눌렀을 때 NAVIGATE가 처리되지 않는다.
+  MapSearch: undefined;
 };
 
 export const navigationRef = createNavigationContainerRef<RootStackParamList>();
@@ -89,6 +100,7 @@ export default function RootNavigator() {
           <Stack.Screen name="Wishlist" component={WishlistScreen} />
           <Stack.Screen name="WishlistSetting" component={WishlistSettingScreen} />
           <Stack.Screen name="Map" component={MapScreen} />
+          <Stack.Screen name="MapSearch" component={MapSearchScreen} />
         </Stack.Navigator>
       ) : (
         <AuthStack />

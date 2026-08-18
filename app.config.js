@@ -79,6 +79,12 @@ module.exports = {
           microphonePermission: false,
         },
       ],
+      [
+        'expo-location',
+        {
+          locationWhenInUsePermission: '내 위치 주변의 촬영 명소를 찾고 카메라 경로를 안내하기 위해 위치 권한이 필요해요.'
+        }
+      ],
       '@react-native-community/datetimepicker',
       '@react-native-firebase/app',
       '@react-native-firebase/messaging',

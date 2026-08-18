@@ -5,7 +5,6 @@ import { normalize } from '@/utils/normalize';
 import ProfileHeader from './components/ProfileHeader';
 import PhotoMapPreview from './components/PhotoMapPreview';
 import RecentAlbums from './components/RecentAlbums';
-import PhotogenicReport from './components/PhotogenicReport';
 import SpotAlertPreview from './components/SpotAlertPreview';
 import EquipmentSection from './components/EquipmentSection';
 
@@ -22,7 +21,6 @@ export default function MyPageScreen({ navigation }: any) {
         <View style={{ paddingTop: normalize(28) }}>
           <PhotoMapPreview />
           <RecentAlbums />
-          <PhotogenicReport />
           <SpotAlertPreview />
           <EquipmentSection />
         </View>

@@ -18,6 +18,18 @@ export interface SpotItem {
   gradientColors?: [string, string, string];
 }
 
+export interface NearbySpotResponse {
+  id: number;
+  name: string;
+  address: string;
+  categories: string[];
+  thumbnailUrl: string | null;
+  badge: boolean;
+  latitude: number;
+  longitude: number;
+  distanceKm: number;
+}
+
 export interface CalendarEvent {
   id: string;
   dateRange: string;

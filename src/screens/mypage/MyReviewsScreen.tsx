@@ -1,18 +1,22 @@
 import React, { useState } from 'react';
 import { 
-  View, Text, TouchableOpacity, ScrollView, StyleSheet, Alert, StatusBar,
-  ActivityIndicator, Image,
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  Alert,
+  StatusBar,
+  ActivityIndicator,
+  Image,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { IconChevronLeft } from '@tabler/icons-react-native';
+import { IconChevronLeft, IconTrash } from '@tabler/icons-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { BUTTON_HEIGHT, BUTTON_RADIUS, FONT_2XS, FONT_XS, FONT_SM, FONT_MD } from '@/constants/layout';
+import { BUTTON_HEIGHT, BUTTON_RADIUS, FONT_2XS, FONT_XS, FONT_SM, FONT_MD, FONT_LG } from '@/constants/layout';
 import Toast from '@/components/common/Toast';
 import type { RootStackParamList } from '@/navigation';
-import ReviewActionSheet from '@/components/spot/ReviewActionSheet';
-import ReviewMenuButton from '@/components/spot/ReviewMenuButton';
 import ReviewTagRow from '@/components/spot/ReviewTagRow';
 import PhotoLightbox from '@/components/spot/PhotoLightbox';
 import { useDeleteReview, useMyReviews } from '@/hooks/useSpot';
@@ -24,40 +28,15 @@ export default function MyReviewsScreen() {
   const insets = useSafeAreaInsets();
   const { data, isLoading, isError, hasNextPage, fetchNextPage, isFetchingNextPage, refetch } = useMyReviews();
   const deleteReview = useDeleteReview();
-  // 토큰이 없으면 쿼리가 enabled:false로 아예 실행되지 않는다. 그때 isLoading도 false여서
-  // 빈 배열이 되는데, 이를 "리뷰 없음"으로 표시하면 조회 실패를 데이터 없음으로 오인시킨다.
   const isLoggedOut = useAuthStore((st) => !st.accessToken);
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
-  const [menuTarget, setMenuTarget] = useState<MyReview | null>(null);
   // reviewId·photoIds는 확대 화면의 EXIF 조회용 (photoId로 EXIF 응답을 매칭한다).
   const [lightbox, setLightbox] = useState<{ photos: string[]; photoIds: number[]; index: number; reviewId: number } | null>(null);
 
   const reviews = data ?? [];
 
-  // 수정 화면은 SpotStack 소속이라 루트를 경유해 이동한다(navigation/index.tsx의 딥링크 처리와 같은 방식).
-  const goEdit = (review: MyReview) => {
-    setMenuTarget(null);
-    navigation.navigate('SpotStack', {
-      screen: 'ReviewWrite',
-      params: {
-        spotId: String(review.spotId),
-        edit: {
-          reviewId: review.reviewId,
-          rating: review.rating,
-          content: review.text,
-          timePeriod: review.timePeriod,
-          visitedAt: review.visitedAtISO,
-          equipmentInfo: review.equipment ?? null,
-          tags: review.tags,
-          photos: review.photos,
-        },
-      },
-    });
-  };
-
   const handleDelete = (review: MyReview) => {
-    setMenuTarget(null);
     Alert.alert('리뷰 삭제', '삭제한 리뷰는 되돌릴 수 없어요. 첨부한 사진도 함께 삭제돼요.', [
       { text: '취소', style: 'cancel' },
       {
@@ -83,12 +62,12 @@ export default function MyReviewsScreen() {
     const stars = [];
     for (let i = 0; i < 5; i++) {
       stars.push(
-        <Text key={i} style={styles.starText}>
+        <Text key={i} style={{ fontSize: FONT_XS, color: '#f59e0b', letterSpacing: 1 }}>
           {i < count ? '★' : '☆'}
         </Text>
       );
     }
-    return <View style={styles.starsContainer}>{stars}</View>;
+    return <View className="flex-row items-center">{stars}</View>;
   };
 
   return (
@@ -96,65 +75,167 @@ export default function MyReviewsScreen() {
       <StatusBar barStyle="dark-content" />
       
       {/* NavBar */}
-      <View style={styles.navBar}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <IconChevronLeft size={normalize(24)} color="rgba(0,0,0,0.65)" />
+      <View
+        className="flex-row items-center justify-between"
+        style={{
+          height: normalize(54),
+          paddingHorizontal: normalize(20),
+          borderBottomWidth: 0.5,
+          borderBottomColor: 'rgba(0,0,0,0.06)',
+        }}
+      >
+        <TouchableOpacity
+          onPress={() => navigation.goBack()}
+          style={{
+            width: normalize(36),
+            height: normalize(36),
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginLeft: -normalize(8),
+          }}
+        >
+          <IconChevronLeft size={normalize(24)} color="rgba(0,0,0,0.65)" strokeWidth={2} />
         </TouchableOpacity>
-        <Text style={styles.navTitle}>내가 쓴 리뷰</Text>
-        <View style={styles.placeholder} />
+        <Text
+          style={{
+            fontSize: FONT_LG,
+            fontFamily: 'Pretendard-SemiBold',
+            color: '#000',
+            letterSpacing: -0.3,
+          }}
+        >
+          내가 쓴 리뷰
+        </Text>
+        <View style={{ width: normalize(36) }} />
       </View>
 
       <ScrollView 
         showsVerticalScrollIndicator={false} 
-        contentContainerStyle={styles.listContainer}
+        contentContainerStyle={{
+          paddingHorizontal: normalize(20),
+          paddingVertical: normalize(4),
+          paddingBottom: normalize(40),
+        }}
       >
         {isLoggedOut ? (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>로그인이 필요해요</Text>
+          <View style={{ paddingVertical: normalize(40), alignItems: 'center' }}>
+            <Text style={{ fontSize: FONT_SM, fontFamily: 'Pretendard-Regular', color: 'rgba(0,0,0,0.3)' }}>
+              로그인이 필요해요
+            </Text>
           </View>
         ) : isLoading ? (
-          <View style={styles.emptyContainer}>
+          <View style={{ paddingVertical: normalize(40), alignItems: 'center' }}>
             <ActivityIndicator color="#E31B59" />
           </View>
         ) : isError ? (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>리뷰를 불러오지 못했어요</Text>
-            <TouchableOpacity onPress={() => refetch()} style={styles.retryBtn}>
-              <Text style={styles.retryText}>다시 시도</Text>
+          <View style={{ paddingVertical: normalize(40), alignItems: 'center', gap: normalize(12) }}>
+            <Text style={{ fontSize: FONT_SM, fontFamily: 'Pretendard-Regular', color: 'rgba(0,0,0,0.3)' }}>
+              리뷰를 불러오지 못했어요
+            </Text>
+            <TouchableOpacity
+              onPress={() => refetch()}
+              style={{
+                height: normalize(44),
+                paddingHorizontal: normalize(24),
+                borderRadius: BUTTON_RADIUS,
+                backgroundColor: '#F5F5F7',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Text style={{ fontSize: normalizeFontSize(14), fontFamily: 'Pretendard-SemiBold', color: '#000', letterSpacing: -0.2 }}>
+                다시 시도
+              </Text>
             </TouchableOpacity>
           </View>
         ) : reviews.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>아직 작성한 리뷰가 없어요</Text>
+          <View style={{ paddingVertical: normalize(40), alignItems: 'center' }}>
+            <Text style={{ fontSize: FONT_SM, fontFamily: 'Pretendard-Regular', color: 'rgba(0,0,0,0.3)' }}>
+              아직 작성한 리뷰가 없어요
+            </Text>
           </View>
         ) : (
           <>
             {reviews.map((review, index) => (
-              <View key={review.reviewId} style={[styles.reviewItem, index === reviews.length - 1 && { borderBottomWidth: 0 }]}>
-                <View style={styles.itemTop}>
-                  <View style={styles.itemLeft}>
-                    <Text style={styles.spotName}>{review.spotName}</Text>
-                    <View style={styles.metaRow}>
+              <View
+                key={review.reviewId}
+                style={{
+                  paddingVertical: normalize(16),
+                  borderBottomWidth: index === reviews.length - 1 ? 0 : 0.5,
+                  borderBottomColor: 'rgba(0,0,0,0.06)',
+                  gap: normalize(6),
+                }}
+              >
+                <View className="flex-row items-start justify-between" style={{ gap: normalize(10) }}>
+                  <View style={{ flex: 1 }}>
+                    <Text
+                      style={{
+                        fontSize: FONT_MD,
+                        fontFamily: 'Pretendard-SemiBold',
+                        color: '#000',
+                        letterSpacing: -0.2,
+                        marginBottom: normalize(4),
+                      }}
+                    >
+                      {review.spotName}
+                    </Text>
+                    <View className="flex-row items-center" style={{ gap: normalize(6) }}>
                       {renderStars(review.rating)}
                       {review.badge && (
-                        <View style={styles.badge}>
-                          <Text style={styles.badgeText}>{review.badge}</Text>
+                        <View
+                          style={{
+                            height: normalize(18),
+                            paddingHorizontal: normalize(6),
+                            borderRadius: normalize(9),
+                            backgroundColor: 'rgba(0,0,0,0.05)',
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                          }}
+                        >
+                          <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Medium', color: 'rgba(0,0,0,0.45)' }}>
+                            {review.badge}
+                          </Text>
                         </View>
                       )}
-                      <Text style={styles.dateText}>{review.date}</Text>
+                      <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-Regular', color: 'rgba(0,0,0,0.35)' }}>
+                        {review.date}
+                      </Text>
                     </View>
                   </View>
-                  <ReviewMenuButton onPress={() => setMenuTarget(review)} />
+
+                  <TouchableOpacity
+                    onPress={() => handleDelete(review)}
+                    activeOpacity={0.7}
+                    style={{
+                      width: normalize(32),
+                      height: normalize(32),
+                      borderRadius: normalize(16),
+                      backgroundColor: 'rgba(227,27,89,0.06)',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <IconTrash size={normalize(16)} color="#E31B59" strokeWidth={1.75} />
+                  </TouchableOpacity>
                 </View>
 
-                <Text style={styles.reviewText} numberOfLines={2}>
+                <Text
+                  style={{
+                    fontSize: FONT_SM,
+                    fontFamily: 'Pretendard-Regular',
+                    color: 'rgba(0,0,0,0.7)',
+                    lineHeight: normalize(20),
+                    letterSpacing: -0.1,
+                  }}
+                  numberOfLines={3}
+                >
                   {review.text}
                 </Text>
 
                 <ReviewTagRow tags={review.tags} />
 
                 {review.photos.length > 0 && (
-                  <View style={styles.photosRow}>
+                  <View className="flex-row" style={{ gap: normalize(6), marginTop: normalize(4) }}>
                     {review.photos.map((photo, photoIdx) => (
                       <TouchableOpacity
                         key={photo.photoId}
@@ -170,7 +251,16 @@ export default function MyReviewsScreen() {
                           })
                         }
                       >
-                        <Image source={{ uri: photo.url }} resizeMode="cover" style={styles.photoThumb} />
+                        <Image
+                          source={{ uri: photo.url }}
+                          resizeMode="cover"
+                          style={{
+                            width: normalize(56),
+                            height: normalize(56),
+                            borderRadius: normalize(8),
+                            backgroundColor: '#f5f5f7',
+                          }}
+                        />
                       </TouchableOpacity>
                     ))}
                   </View>
@@ -180,7 +270,14 @@ export default function MyReviewsScreen() {
 
             {hasNextPage && (
               <TouchableOpacity
-                style={styles.moreBtn}
+                style={{
+                  height: BUTTON_HEIGHT,
+                  borderRadius: BUTTON_RADIUS,
+                  backgroundColor: '#F5F5F7',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginTop: normalize(12),
+                }}
                 onPress={() => fetchNextPage()}
                 disabled={isFetchingNextPage}
                 activeOpacity={0.7}
@@ -188,20 +285,15 @@ export default function MyReviewsScreen() {
                 {isFetchingNextPage ? (
                   <ActivityIndicator color="rgba(0,0,0,0.4)" />
                 ) : (
-                  <Text style={styles.moreText}>더보기</Text>
+                  <Text style={{ fontSize: FONT_MD, fontFamily: 'Pretendard-Medium', color: 'rgba(0,0,0,0.55)', letterSpacing: -0.2 }}>
+                    더보기
+                  </Text>
                 )}
               </TouchableOpacity>
             )}
           </>
         )}
       </ScrollView>
-
-      <ReviewActionSheet
-        visible={menuTarget !== null}
-        onClose={() => setMenuTarget(null)}
-        onEdit={() => menuTarget && goEdit(menuTarget)}
-        onDelete={() => menuTarget && handleDelete(menuTarget)}
-      />
 
       <PhotoLightbox
         photos={lightbox?.photos ?? []}
@@ -221,66 +313,3 @@ export default function MyReviewsScreen() {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  moreBtn: {
-    height: BUTTON_HEIGHT,
-    borderRadius: BUTTON_RADIUS,
-    backgroundColor: '#F5F5F7',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop: normalize(12),
-  },
-  moreText: { fontSize: FONT_MD, fontWeight: '500', color: 'rgba(0,0,0,0.55)', letterSpacing: -0.2 },
-  navBar: {
-    height: normalize(54),
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: normalize(20),
-    borderBottomWidth: 0.5,
-    borderBottomColor: 'rgba(0,0,0,0.06)',
-  },
-  backBtn: { width: normalize(36), height: normalize(36), alignItems: 'center', justifyContent: 'center', marginLeft: -normalize(8) },
-  navTitle: { fontSize: normalizeFontSize(18), fontWeight: '600', color: '#000', letterSpacing: -0.3 },
-  placeholder: { width: normalize(36) },
-
-  listContainer: { paddingHorizontal: normalize(20), paddingVertical: normalize(4), paddingBottom: normalize(40) },
-  
-  reviewItem: {
-    paddingVertical: normalize(14),
-    borderBottomWidth: 0.5,
-    borderBottomColor: 'rgba(0,0,0,0.05)',
-    flexDirection: 'column',
-    gap: normalize(6),
-  },
-  itemTop: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: normalize(10) },
-  itemLeft: { flex: 1 },
-  spotName: { fontSize: FONT_MD, fontWeight: '600', color: '#000', letterSpacing: -0.2, marginBottom: normalize(4) },
-  
-  metaRow: { flexDirection: 'row', alignItems: 'center', gap: normalize(6) },
-  starsContainer: { flexDirection: 'row', letterSpacing: 1 },
-  starText: { fontSize: FONT_XS, color: '#f59e0b' },
-  
-  badge: { height: normalize(16), paddingHorizontal: normalize(6), borderRadius: normalize(8), backgroundColor: 'rgba(0,0,0,0.06)', justifyContent: 'center', alignItems: 'center' },
-  badgeText: { fontSize: FONT_2XS, fontWeight: '500', color: 'rgba(0,0,0,0.4)' },
-  dateText: { fontSize: FONT_XS, color: 'rgba(0,0,0,0.35)' },
-
-  reviewText: { fontSize: FONT_SM, color: 'rgba(0,0,0,0.6)', lineHeight: normalize(22), letterSpacing: -0.1 },
-
-  photosRow: { flexDirection: 'row', gap: normalize(5), marginTop: normalize(4) },
-  photoThumb: { width: normalize(52), height: normalize(52), borderRadius: normalize(8) },
-
-
-  emptyContainer: { paddingVertical: normalize(40), alignItems: 'center', gap: normalize(12) },
-  emptyText: { fontSize: FONT_SM, color: 'rgba(0,0,0,0.3)' },
-  retryBtn: {
-    height: normalize(44),
-    paddingHorizontal: normalize(24),
-    borderRadius: BUTTON_RADIUS,
-    backgroundColor: '#F5F5F7',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  retryText: { fontSize: normalizeFontSize(14), fontWeight: '600', color: '#000', letterSpacing: -0.2 },
-});
