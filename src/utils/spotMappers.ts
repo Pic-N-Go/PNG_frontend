@@ -1,5 +1,8 @@
 // 스팟 상세 API DTO → 화면 뷰모델 변환 (순수 함수)
 // 스펙: docs/ai/specs/feature/spot-detail-screen/spot-detail-api.md
+// ponytail: 카테고리 라벨 테이블은 SpotHeroPlaceholder가 이미 갖고 있어 그대로 재사용한다(라벨 중복 정의 방지).
+// 아이콘까지 딸려오는 게 부담되면 constants/로 분리 — 지금은 유일한 소비처라 이동 비용이 더 크다.
+import { SPOT_CATEGORY_MAP } from '@/components/spot/SpotHeroPlaceholder';
 import type {
   ConvenienceDTO,
   ConvenienceInfo,
@@ -22,6 +25,8 @@ import type {
   MyReviewListResponse,
   SpotDetailInfo,
   SpotDetailResponse,
+  SpotItem,
+  SpotResponse,
   TimePeriodApi,
 } from '@/types/spot';
 
@@ -172,7 +177,7 @@ const SIDO_ABBR: Record<string, string> = {
 };
 
 // 대표 이미지 없을 때 ETC 카테고리 폴백 라벨: 시·도(축약형) + 시·군·구까지만
-function regionLabelFrom(address: string): string | null {
+export function regionLabelFrom(address: string): string | null {
   const [sido, sigungu] = address.trim().split(' ');
   if (!sido) return null;
   const shortSido = SIDO_ABBR[sido] ?? sido;
@@ -187,12 +192,86 @@ if (__DEV__) {
   console.assert(regionLabelFrom('') === null, '빈 주소 → null 오류');
 }
 
+/**
+ * TourAPI 이미지가 평문 http로 내려온다(tong.visitkorea.or.kr). iOS는 ATS 예외가 있고 Android도
+ * debug 매니페스트는 cleartext를 허용하지만, **release 빌드는 차단돼 이미지만 조용히 안 뜬다.**
+ * 해당 호스트가 https로도 200을 주므로 승격해서 쓴다 — 플랫폼 설정을 열어주는 것보다 안전하다.
+ */
+export function toHttps<T extends string | null | undefined>(url: T): T {
+  return (url ? url.replace(/^http:\/\//i, 'https://') : url) as T;
+}
+
+/**
+ * 목록/인기/검색 공용 `SpotResponse` → 홈 카드 표시 모델.
+ * badge(HOT/NEW)는 서버에 대응 값이 없어 미표시 — SpotResponse.badge는 관광공사 인증 여부라 의미가 다르다.
+ * isBookmarked는 토큰을 실어 보낸 요청에서만 채워지고, 비로그인/구버전 서버에서는 false로 떨어진다.
+ */
+export function mapPopularSpot(dto: SpotResponse): SpotItem {
+  // 서버는 enum 코드(BEACH, NIGHT_VIEW)를 준다. 한글 라벨은 프론트가 갖는다.
+  const labels = (dto.categories ?? [])
+    .map((code) => SPOT_CATEGORY_MAP[code]?.label)
+    .filter((label): label is string => !!label)
+    .slice(0, 2);
+
+  const location = [regionLabelFrom(dto.address ?? ''), labels.join('/')]
+    .filter((part): part is string => !!part)
+    .join(' · ');
+
+  return {
+    id: String(dto.id),
+    name: dto.name,
+    location,
+    category: labels[0] ?? '',
+    rating: dto.reviewAverage ?? 0,
+    reviewCount: dto.reviewCount ?? 0,
+    isBookmarked: dto.isBookmarked ?? false,
+    imageUrl: toHttps(dto.thumbnailUrl ?? dto.imageUrl),
+  };
+}
+
+// ponytail: dev 전용 self-check — 매핑 경계(빈 주소·null 평점) 회귀 방지 (프로덕션 no-op)
+if (__DEV__) {
+  const base = { id: 7, name: '광안리', latitude: 0, longitude: 0, bookmarkCount: 0, reviewCount: 0 };
+  const full = mapPopularSpot({
+    ...base,
+    address: '부산광역시 수영구 광안해변로',
+    categories: ['NIGHT_VIEW', 'BEACH', 'PARK'],
+    badge: true,
+    imageUrl: 'http://tong.visitkorea.or.kr/o.jpg',
+    thumbnailUrl: 'http://tong.visitkorea.or.kr/t.jpg',
+    photogenicScore: 87,
+    reviewAverage: 4.8,
+    isBookmarked: true,
+  });
+  console.assert(full.id === '7', 'id는 문자열로 변환돼야 함');
+  console.assert(full.isBookmarked === true, '서버 isBookmarked를 그대로 반영해야 함');
+  console.assert(full.location === '부산 수영구 · 야경/해변', `location 조합 오류: ${full.location}`);
+  console.assert(full.category === '야경', 'category는 enum 코드가 아니라 한글 라벨이어야 함');
+  console.assert(full.imageUrl === 'https://tong.visitkorea.or.kr/t.jpg', '썸네일 우선 선택 + https 승격 오류');
+  console.assert(full.badge === undefined, '서버 badge를 카드 배지로 쓰면 안 됨');
+
+  const bare = mapPopularSpot({
+    ...base,
+    address: '',
+    categories: [],
+    badge: false,
+    imageUrl: null,
+    thumbnailUrl: null,
+    photogenicScore: 0,
+    reviewAverage: 0,
+  });
+  console.assert(bare.location === '', '빈 주소·빈 카테고리 → 빈 문자열이어야 함');
+  console.assert(bare.rating === 0, '리뷰 없음 → 평점 0 오류');
+  console.assert(bare.imageUrl === null, '사진 없음 → null 유지 오류');
+  console.assert(bare.isBookmarked === false, 'isBookmarked 누락 → false 폴백 오류');
+}
+
 export function mapSpotDetail(dto: SpotDetailResponse): { info: SpotDetailInfo; convenience: ConvenienceInfo } {
   return {
     info: {
       id: String(dto.id),
       badge: dto.badge ? '관광공사 인증' : null,
-      imageUrl: dto.imageUrl,
+      imageUrl: toHttps(dto.imageUrl),
       name: dto.name,
       address: dto.address,
       rating: dto.stats.avgRating,
@@ -223,9 +302,8 @@ export function mapReview(dto: ReviewDTO): Review {
     name: dto.nickname,
     avatarInitial: dto.nickname.trim().charAt(0) || '?',
     avatarColor: avatarColorFor(dto.nickname),
-    // iOS ATS가 평문을 막아 http URL은 로드되지 않는다. 서버가 저장 시 정규화하지만
-    // 그 이전에 쌓인 행이 남아 있을 수 있어 클라에서도 https로 올린다. 빈 문자열은 없는 것으로 처리.
-    avatarUrl: dto.profileImageUrl?.replace(/^http:/, 'https:') || undefined,
+    // 서버가 저장 시 정규화하지만 그 이전에 쌓인 행이 남아 있을 수 있다. 빈 문자열은 없는 것으로 처리.
+    avatarUrl: toHttps(dto.profileImageUrl) || undefined,
     rating: dto.rating,
     badge: dto.timePeriod ? TIME_PERIOD_LABEL[dto.timePeriod] : undefined,
     timePeriod: dto.timePeriod,

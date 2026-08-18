@@ -1360,10 +1360,9 @@ export default function MapScreen() {
                   <View className="flex-1 justify-center">
                     <Text className="font-semibold text-black mb-1" style={{ fontSize: normalizeFontSize(20) }}>{activeSpot.name}</Text>
                     <Text className="text-black/40 mb-2.5" style={{ fontSize: normalizeFontSize(14) }}>{activeSpot.loc}</Text>
+                    {/* 포토제닉 칩 없음 — 여기 뜨던 값은 고정 컬럼이라 상세의 실시간 지수와 어긋난다.
+                        score는 아래 필터(detailFilter.score)에서 계속 쓰므로 필드 자체는 남긴다. */}
                     <View className="flex-row items-center gap-2 flex-wrap">
-                      <View className="bg-[#E31B59]/10 items-center justify-center rounded-full px-2.5 py-1">
-                        <Text className="text-[#E31B59] font-semibold" style={{ fontSize: normalizeFontSize(10) }}>포토제닉 {activeSpot.score}</Text>
-                      </View>
                       {(activeSpot.tags || []).map((t: string) => (
                         <View key={t} className="bg-black/5 items-center justify-center rounded-full px-2.5 py-1">
                           <Text className="text-black/50 font-medium" style={{ fontSize: normalizeFontSize(10) }}>{t}</Text>

@@ -5,7 +5,7 @@ import { ApiError } from '@/api/auth';
 import { spotApi } from '@/api/spot';
 import type { ReviewPhotoUpload, MapSpotsParams, GetSpotsParams, SearchSpotsParams } from '@/api/spot';
 import { useAuthStore } from '@/store/useAuthStore';
-import { mapMyReviewPages, mapPhotogenicScore, mapReviewPages, mapSpotDetail } from '@/utils/spotMappers';
+import { mapMyReviewPages, mapPhotogenicScore, mapReviewPages, mapSpotDetail, toHttps } from '@/utils/spotMappers';
 import type { ReviewCreateRequest, ReviewSortApi } from '@/types/spot';
 
 
@@ -27,7 +27,7 @@ export function useSpotPhotos(id: string) {
     queryKey: ['spot', id, 'photos'],
     queryFn: () => spotApi.getPhotos(id),
     enabled: !!id,
-    select: (res) => res.photos.map((p) => p.originUrl),
+    select: (res) => res.photos.map((p) => toHttps(p.originUrl)),
   });
 }
 
@@ -289,6 +289,11 @@ export function useSyncSpotBookmarks(id: string) {
       if (!token) return Promise.reject(new ApiError('로그인이 필요합니다.'));
       return spotApi.syncSpotBookmarks(id, collectionIds, token);
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: bookmarkKey(id) }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: bookmarkKey(id) });
+      // 카드의 채워짐 상태는 목록 응답의 isBookmarked에서 온다. 화면이 아니라 여기서 무효화해야
+      // 상세에서 해제한 게 스택 아래 홈 카드에도 반영된다 (홈은 refetch 트리거가 없다).
+      qc.invalidateQueries({ queryKey: ['spots', 'list'] });
+    },
   });
 }

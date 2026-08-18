@@ -1,53 +1,44 @@
 import React from 'react';
 import { FlatList, Pressable, Text, View } from 'react-native';
 import { normalize } from '@/utils/normalize';
-import { FONT_MD, FONT_XL, GRID_PADDING, SPACING_XS } from '@/constants/layout';
+import { CARD_RADIUS, FONT_MD, FONT_XL, GRID_PADDING, SPACING_XS } from '@/constants/layout';
+import Skeleton from '@/components/common/Skeleton';
 import SpotCard from '@/components/home/SpotCard';
-import type { SpotItem } from '@/types/spot';
-
-// TODO: API 연동 시 GET /spots/popular 로 교체
-const MOCK_SPOTS: SpotItem[] = [
-  {
-    id: '1',
-    name: '광안리 해수욕장',
-    location: '부산 수영구 · 야경/바다',
-    category: '야경',
-    rating: 4.8,
-    photoScore: 87,
-    badge: 'HOT',
-    isBookmarked: false,
-    gradientColors: ['#0f2027', '#203a43', '#2c5364'],
-  },
-  {
-    id: '2',
-    name: '경복궁 야간개장',
-    location: '서울 종로구 · 야경/한옥',
-    category: '한옥',
-    rating: 4.9,
-    photoScore: 91,
-    badge: 'NEW',
-    isBookmarked: false,
-    gradientColors: ['#232526', '#414345', '#8e7b5a'],
-  },
-  {
-    id: '3',
-    name: '제주 사려니숲길',
-    location: '제주 서귀포시 · 숲/안개',
-    category: '숲',
-    rating: 4.7,
-    photoScore: 78,
-    isBookmarked: false,
-    gradientColors: ['#1d4350', '#4a8d7e', '#a3d9c8'],
-  },
-];
+import BookmarkSheet from '@/components/spot/BookmarkSheet';
+import { useSpots } from '@/hooks/useSpot';
+import { useAuthStore } from '@/store/useAuthStore';
+import { mapPopularSpot } from '@/utils/spotMappers';
 
 interface Props {
-  // TODO: 스팟 상세 네비게이션 파라미터 확정 후 onSpotPress 연결
   onSpotPress?: (id: string) => void;
   onViewAll?: () => void;
 }
 
+const POPULAR_SIZE = 10;
+const CARD_WIDTH = normalize(220);
+// 흰 박스(28) + 그 위 여백(10)을 걷어낸 만큼 스켈레톤도 줄인다 — 안 줄이면 로딩 중에만 카드가 길다.
+const CARD_HEIGHT = normalize(262);
+
+// 캐러셀과 스켈레톤이 같은 여백을 쓰도록 한 곳에서 관리
+const ROW_STYLE = {
+  paddingHorizontal: GRID_PADDING,
+  paddingTop: normalize(14),
+  gap: normalize(12),
+} as const;
+
 export default function PopularSpotsSection({ onSpotPress, onViewAll }: Props) {
+  // ponytail: 전용 GET /spots/popular 대신 기존 useSpots 재사용 — 백엔드가 두 경로 모두
+  // SpotService.resolveSort()의 동일 정렬(bookmarkCount DESC, reviewCount DESC)을 탄다.
+  // 주간 집계는 서버에 없다(누적 카운트). 그래서 섹션 제목도 "이번 주"가 아닌 "인기 스팟".
+  // 주간 집계 API가 생기면 전용 함수로 교체 → docs/ai/specs/feature/home-popular-spots-api/
+  const { data, isLoading, isError, refetch } = useSpots({ sort: 'popular', size: POPULAR_SIZE });
+
+  const spots = React.useMemo(() => (data?.content ?? []).map(mapPopularSpot), [data?.content]);
+
+  // 담을 컬렉션이 없는 비로그인 상태에서는 북마크 아이콘을 아예 그리지 않는다.
+  const isLoggedIn = useAuthStore((s) => !!s.accessToken);
+  const [sheetSpotId, setSheetSpotId] = React.useState<string | null>(null);
+
   return (
     <View style={{ marginTop: normalize(28) }}>
       <View
@@ -63,7 +54,7 @@ export default function PopularSpotsSection({ onSpotPress, onViewAll }: Props) {
           allowFontScaling={false}
           style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XL, color: '#000', letterSpacing: -0.4 }}
         >
-          이번 주 인기 스팟
+          인기 스팟
         </Text>
         <Pressable onPress={onViewAll} hitSlop={8}>
           <Text
@@ -75,19 +66,64 @@ export default function PopularSpotsSection({ onSpotPress, onViewAll }: Props) {
         </Pressable>
       </View>
 
-      <FlatList
-        data={MOCK_SPOTS}
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        keyExtractor={(item) => item.id}
-        contentContainerStyle={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(14), gap: normalize(12) }}
-        renderItem={({ item }) => (
-          <SpotCard
-            item={item}
-            onPress={onSpotPress ? () => onSpotPress(item.id) : undefined}
-          />
-        )}
-      />
+      {isLoading ? (
+        <View style={{ flexDirection: 'row', ...ROW_STYLE }}>
+          {[0, 1, 2].map((i) => (
+            <Skeleton key={i} width={CARD_WIDTH} height={CARD_HEIGHT} borderRadius={CARD_RADIUS} />
+          ))}
+        </View>
+      ) : isError ? (
+        <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(14) }}>
+          <Text
+            allowFontScaling={false}
+            style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_MD, color: 'rgba(0,0,0,0.4)' }}
+          >
+            인기 스팟을 불러오지 못했어요.
+          </Text>
+          <Pressable onPress={() => refetch()} hitSlop={8} style={{ marginTop: normalize(6) }}>
+            <Text
+              allowFontScaling={false}
+              style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, color: '#E31B59' }}
+            >
+              다시 시도
+            </Text>
+          </Pressable>
+        </View>
+      ) : spots.length === 0 ? (
+        <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(14) }}>
+          <Text
+            allowFontScaling={false}
+            style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_MD, color: 'rgba(0,0,0,0.4)' }}
+          >
+            아직 인기 스팟이 없어요.
+          </Text>
+        </View>
+      ) : (
+        <FlatList
+          data={spots}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={ROW_STYLE}
+          renderItem={({ item }) => (
+            <SpotCard
+              item={item}
+              onPress={onSpotPress ? () => onSpotPress(item.id) : undefined}
+              onBookmarkPress={isLoggedIn ? () => setSheetSpotId(item.id) : undefined}
+            />
+          )}
+        />
+      )}
+
+      {/* 카드마다 두면 10개가 마운트된다. 섹션에 하나만 두고 대상 스팟만 바꾼다. */}
+      {sheetSpotId && (
+        <BookmarkSheet
+          visible
+          spotId={sheetSpotId}
+          onClose={() => setSheetSpotId(null)}
+          onSaved={() => setSheetSpotId(null)}
+        />
+      )}
     </View>
   );
 }
