@@ -1,6 +1,7 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Platform, PermissionsAndroid, BackHandler, Image, TextInput } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, BackHandler, Image, TextInput, Alert, Linking } from 'react-native';
 import { WebView } from 'react-native-webview';
+import * as Location from 'expo-location';
 import { IconChevronLeft, IconSearch, IconAdjustmentsHorizontal, IconFocus2, IconX, IconChevronDown, IconChevronUp, IconRoute } from '@tabler/icons-react-native';
 import { useNavigation, useRoute, useFocusEffect, CommonActions } from '@react-navigation/native';
 import { useCourseStore, Spot } from '@/store/useCourseStore';
@@ -9,7 +10,6 @@ import { useDebounce } from '@/hooks/useDebounce';
 import SpotPopup from '@/components/travel/SpotPopup';
 import BottomSheet from '@/components/common/BottomSheet';
 import FilterBottomSheet, { FilterState, EMPTY_FILTER } from '@/components/home/FilterBottomSheet';
-import SearchModal from '@/components/common/SearchModal';
 import SaveToPlanSheet from '@/components/spot/SaveToPlanSheet';
 import Toast from '@/components/common/Toast';
 import { StatusBar } from 'expo-status-bar';
@@ -92,11 +92,85 @@ export default function MapScreen() {
 
   const webViewRef = useRef<any>(null);
   const [mapReady, setMapReady] = useState(false);
+  const latestLocationRef = useRef<{ latitude: number; longitude: number } | null>(null);
   const { selectedSpots, addSpot, removeSpot } = useCourseStore();
   const [activeSpot, setActiveSpot] = useState<Spot | null>(null);
   const [isCourseModalOpen, setCourseModalOpen] = useState(false);
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+
+  // 1. 앱 최초 구동 (지도 화면 마운트) 시 위치 권한 자동 요청
+  useEffect(() => {
+    const requestLocationPermissionOnStart = async () => {
+      try {
+        const { status: existingStatus } = await Location.getForegroundPermissionsAsync();
+        if (existingStatus === Location.PermissionStatus.UNDETERMINED) {
+          await Location.requestForegroundPermissionsAsync();
+        }
+      } catch (err) {
+        console.warn('[MapScreen] requestLocationPermissionOnStart error:', err);
+      }
+    };
+    void requestLocationPermissionOnStart();
+  }, []);
+
+  // 2. 위치 실시간 추적 및 웹뷰에 주입
+  useEffect(() => {
+    let subscription: any = null;
+
+    const startLocationTracking = async () => {
+      try {
+        const { status } = await Location.getForegroundPermissionsAsync();
+        if (status === Location.PermissionStatus.GRANTED && mapReady) {
+          // 초기 위치 조회 및 반영
+          const lastKnown = await Location.getLastKnownPositionAsync();
+          if (lastKnown) {
+            latestLocationRef.current = lastKnown.coords;
+            if (webViewRef.current) {
+              webViewRef.current.injectJavaScript(`
+                if (window.updateUserLocation) {
+                  window.updateUserLocation(${lastKnown.coords.latitude}, ${lastKnown.coords.longitude});
+                }
+                true;
+              `);
+            }
+          }
+
+          // 실시간 위치 추적 구독
+          subscription = await Location.watchPositionAsync(
+            {
+              accuracy: Location.Accuracy.Balanced,
+              timeInterval: 2000,
+              distanceInterval: 3,
+            },
+            (location) => {
+              latestLocationRef.current = location.coords;
+              if (webViewRef.current) {
+                webViewRef.current.injectJavaScript(`
+                  if (window.updateUserLocation) {
+                    window.updateUserLocation(${location.coords.latitude}, ${location.coords.longitude});
+                  }
+                  true;
+                `);
+              }
+            }
+          );
+        }
+      } catch (error) {
+        console.error('[MapScreen] startLocationTracking error:', error);
+      }
+    };
+
+    if (mapReady) {
+      void startLocationTracking();
+    }
+
+    return () => {
+      if (subscription) {
+        subscription.remove();
+      }
+    };
+  }, [mapReady]);
 
   const showToast = (message: string) => {
     setToastMessage(message);
@@ -107,7 +181,6 @@ export default function MapScreen() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeFilterCount, setActiveFilterCount] = useState(0);
   const [filterVisible, setFilterVisible] = useState(false);
-  const [isSearchModalVisible, setSearchModalVisible] = useState(false);
   const [detailFilter, setDetailFilter] = useState<FilterState>(EMPTY_FILTER);
   const [currentPlanDay, setCurrentPlanDay] = useState<string>(route.params?.initialDay || '1');
   const [dayMenuOpen, setDayMenuOpen] = useState(false);
@@ -194,6 +267,36 @@ export default function MapScreen() {
     }
   }, [route.params?.initialDay]);
 
+  // MapSearch 화면이 돌려준 결과를 반영한다. searchNonce가 있을 때만 처리하고 바로 지워서,
+  // 다른 파라미터 변경으로 리렌더될 때 예전 검색이 다시 적용되지 않게 한다.
+  useEffect(() => {
+    const nonce = route.params?.searchNonce;
+    if (!nonce) return;
+
+    const { searchSelectedSpot, searchKeyword } = route.params;
+
+    if (searchSelectedSpot) {
+      setSearchQuery(searchSelectedSpot.name);
+      setActiveSpot(searchSelectedSpot);
+      const lat = Number(searchSelectedSpot.lat);
+      const lng = Number(searchSelectedSpot.lng);
+      const isValidCoord =
+        Number.isFinite(lat) && Number.isFinite(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
+      if (webViewRef.current && isValidCoord) {
+        webViewRef.current.injectJavaScript(`
+          if (window.kakaoMap) {
+            window.kakaoMap.setCenter(new kakao.maps.LatLng(${JSON.stringify(lat)}, ${JSON.stringify(lng)}));
+            window.kakaoMap.setLevel(3);
+          }
+        `);
+      }
+    } else if (searchKeyword) {
+      setSearchQuery(searchKeyword);
+    }
+
+    navigation.setParams({ searchSelectedSpot: undefined, searchKeyword: undefined, searchNonce: undefined });
+  }, [route.params, navigation]);
+
   const handleBackNavigation = useCallback(() => {
     if (searchQuery || activeSpot) {
       setSearchQuery('');
@@ -273,37 +376,75 @@ export default function MapScreen() {
   }, []);
 
   const handleMyLocation = useCallback(async () => {
-    if (Platform.OS === 'android') {
-      try {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+    try {
+      // 1. 위치 권한 확인 및 요청
+      const { status: existingStatus } = await Location.getForegroundPermissionsAsync();
+      let finalStatus = existingStatus;
+
+      if (existingStatus !== Location.PermissionStatus.GRANTED) {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        finalStatus = status;
+      }
+
+      if (finalStatus !== Location.PermissionStatus.GRANTED) {
+        Alert.alert(
+          '위치 권한 필요',
+          '내 위치 주변으로 지도를 이동하려면 기기 설정에서 위치 권한을 허용해 주세요.',
+          [
+            { text: '취소', style: 'cancel' },
+            {
+              text: '설정으로 이동',
+              onPress: () => {
+                void Linking.openSettings();
+              },
+            },
+          ]
         );
-        if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-          console.log('Location permission denied');
-          return;
-        }
-      } catch (err) {
-        console.warn(err);
         return;
       }
-    }
 
-    if (webViewRef.current) {
-      webViewRef.current.injectJavaScript(`
-        if (window.kakaoMap) {
-          if (navigator.geolocation) {
-            navigator.geolocation.getCurrentPosition(function(position) {
-              var lat = position.coords.latitude;
-              var lng = position.coords.longitude;
-              window.kakaoMap.setCenter(new kakao.maps.LatLng(lat, lng));
-            }, function(error) {
-              window.kakaoMap.setCenter(new kakao.maps.LatLng(35.1532, 129.1186));
-            });
-          } else {
-            window.kakaoMap.setCenter(new kakao.maps.LatLng(35.1532, 129.1186));
+      // 2. 이미 캐시된 최신 좌표가 있다면 0ms 즉시 panTo 이동
+      if (latestLocationRef.current && webViewRef.current) {
+        const { latitude, longitude } = latestLocationRef.current;
+        webViewRef.current.injectJavaScript(`
+          if (window.moveToUserLocation) {
+            window.moveToUserLocation(${latitude}, ${longitude});
+          }
+          true;
+        `);
+      } else {
+        // 캐시가 아직 없으면 빠른 OS 캐시(lastKnown)로 즉시 이동
+        const lastKnown = await Location.getLastKnownPositionAsync();
+        if (lastKnown) {
+          latestLocationRef.current = lastKnown.coords;
+          if (webViewRef.current) {
+            webViewRef.current.injectJavaScript(`
+              if (window.moveToUserLocation) {
+                window.moveToUserLocation(${lastKnown.coords.latitude}, ${lastKnown.coords.longitude});
+              }
+              true;
+            `);
           }
         }
-      `);
+      }
+
+      // 3. 백그라운드에서 정확한 최신 GPS 좌표를 한 번 더 갱신하여 미세 보정
+      Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced })
+        .then((location) => {
+          latestLocationRef.current = location.coords;
+          if (webViewRef.current) {
+            webViewRef.current.injectJavaScript(`
+              if (window.updateUserLocation) {
+                window.updateUserLocation(${location.coords.latitude}, ${location.coords.longitude});
+              }
+              true;
+            `);
+          }
+        })
+        .catch((err) => console.warn('[MapScreen] Background getCurrentPosition error:', err));
+
+    } catch (err) {
+      console.warn('[MapScreen] handleMyLocation error:', err);
     }
   }, []);
 
@@ -437,6 +578,19 @@ export default function MapScreen() {
       box-shadow: 0 2px 6px rgba(227, 27, 89, 0.35); border: 2px solid white;
     }
     .custom-marker svg { width: 12px; height: 12px; fill: white; pointer-events: none; }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(0, 122, 255, 0.6); transform: scale(0.95); }
+      70% { box-shadow: 0 0 0 10px rgba(0, 122, 255, 0); transform: scale(1.15); }
+      100% { box-shadow: 0 0 0 0 rgba(0, 122, 255, 0); transform: scale(0.95); }
+    }
+    .user-location-dot {
+      width: 14px; height: 14px;
+      border-radius: 50%;
+      background: #007AFF;
+      border: 2.5px solid #FFFFFF;
+      box-shadow: 0 0 6px rgba(0,122,255,0.8);
+      animation: pulse 2s infinite;
+    }
   </style>
 </head>
 <body>
@@ -621,6 +775,50 @@ export default function MapScreen() {
         }
       };
 
+      // 실시간 내 위치 표시용 변수 및 함수 노출
+      var userLocationOverlay = null;
+      var lastUserLatLng = null;
+
+      window.updateUserLocation = function(lat, lng) {
+        try {
+          var locPosition = new kakao.maps.LatLng(lat, lng);
+          lastUserLatLng = locPosition;
+          if (userLocationOverlay) {
+            userLocationOverlay.setPosition(locPosition);
+          } else {
+            var contentNode = document.createElement('div');
+            contentNode.className = 'user-location-dot';
+            userLocationOverlay = new kakao.maps.CustomOverlay({
+              map: map,
+              position: locPosition,
+              content: contentNode,
+              xAnchor: 0.5,
+              yAnchor: 0.5,
+              zIndex: 10
+            });
+          }
+        } catch (err) {
+          console.error("updateUserLocation Error: ", err);
+        }
+      };
+
+      window.moveToUserLocation = function(lat, lng) {
+        try {
+          if (lat != null && lng != null) {
+            window.updateUserLocation(lat, lng);
+            map.panTo(new kakao.maps.LatLng(lat, lng));
+            return true;
+          }
+          if (lastUserLatLng) {
+            map.panTo(lastUserLatLng);
+            return true;
+          }
+        } catch (err) {
+          console.error("moveToUserLocation Error: ", err);
+        }
+        return false;
+      };
+
       // 현재 화면 영역을 React Native에 전달 → /spots/map 재조회 트리거
       function postBounds() {
         var b = map.getBounds();
@@ -778,7 +976,7 @@ export default function MapScreen() {
                 }}
               >
                 <TouchableOpacity
-                  onPress={() => setSearchModalVisible(true)}
+                  onPress={() => navigation.navigate('MapSearch')}
                   style={{ flex: 1, flexDirection: 'row', alignItems: 'center', height: '100%', paddingRight: normalize(32) }}
                   activeOpacity={0.8}
                 >
@@ -1012,60 +1210,17 @@ export default function MapScreen() {
           </View>
         )}
 
-        {/* 우측 지도 편의 컨트롤 — 드롭다운이 열리면 목록과 겹쳐서 숨긴다 */}
-        {!dayMenuOpen && (
+        {/* 우측 하단 지도 편의 컨트롤 (내 위치 이동 + 줌 컨트롤) */}
         <View
           pointerEvents="box-none"
           style={{
             position: 'absolute',
             right: 16,
-            top: 160,
+            bottom: normalize(mode === 'plan-view' ? 120 : 36),
             zIndex: 10,
             gap: 8,
           }}
         >
-          {/* 줌 컨트롤 그룹 */}
-          <View
-            style={{
-              backgroundColor: '#ffffff',
-              borderRadius: 12,
-              overflow: 'hidden',
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.1,
-              shadowRadius: 8,
-              elevation: 3,
-            }}
-          >
-            <TouchableOpacity
-              onPress={handleZoomIn}
-              activeOpacity={0.7}
-              style={{
-                width: 40,
-                height: 40,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Text style={{ fontSize: 20, color: 'rgba(0,0,0,0.45)', fontFamily: 'Pretendard-Regular' }}>+</Text>
-            </TouchableOpacity>
-            
-            <View style={{ height: 0.5, backgroundColor: 'rgba(0,0,0,0.06)' }} />
-
-            <TouchableOpacity
-              onPress={handleZoomOut}
-              activeOpacity={0.7}
-              style={{
-                width: 40,
-                height: 40,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Text style={{ fontSize: 20, color: 'rgba(0,0,0,0.45)', fontFamily: 'Pretendard-Regular' }}>−</Text>
-            </TouchableOpacity>
-          </View>
-
           {/* 내 위치 이동 버튼 */}
           <View
             style={{
@@ -1089,11 +1244,52 @@ export default function MapScreen() {
                 justifyContent: 'center',
               }}
             >
-              <IconFocus2 size={18} color="rgba(0,0,0,0.45)" />
+              <IconFocus2 size={18} color="rgba(0,0,0,0.55)" />
+            </TouchableOpacity>
+          </View>
+
+          {/* 줌 컨트롤 그룹 */}
+          <View
+            style={{
+              backgroundColor: '#ffffff',
+              borderRadius: 12,
+              overflow: 'hidden',
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 2 },
+              shadowOpacity: 0.1,
+              shadowRadius: 8,
+              elevation: 3,
+            }}
+          >
+            <TouchableOpacity
+              onPress={handleZoomIn}
+              activeOpacity={0.7}
+              style={{
+                width: 40,
+                height: 40,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Text style={{ fontSize: 20, color: 'rgba(0,0,0,0.55)', fontFamily: 'Pretendard-Regular' }}>+</Text>
+            </TouchableOpacity>
+            
+            <View style={{ height: 0.5, backgroundColor: 'rgba(0,0,0,0.06)' }} />
+
+            <TouchableOpacity
+              onPress={handleZoomOut}
+              activeOpacity={0.7}
+              style={{
+                width: 40,
+                height: 40,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Text style={{ fontSize: 20, color: 'rgba(0,0,0,0.55)', fontFamily: 'Pretendard-Regular' }}>−</Text>
             </TouchableOpacity>
           </View>
         </View>
-        )}
 
         {/* 코스 보기 하단 요약 카드 — 지도 위에 얹혀 안 읽히던 "DAY N 경로" 텍스트를 대체한다.
             스팟 팝업이 뜨면 겹치므로 숨긴다. bottom 값은 카카오 로고/축척을 가리지 않는 높이. */}
@@ -1259,36 +1455,6 @@ export default function MapScreen() {
         />
 
         <Toast message={toastMessage} visible={toastVisible} onHide={() => setToastVisible(false)} />
-
-        <SearchModal
-          visible={isSearchModalVisible}
-          onClose={() => setSearchModalVisible(false)}
-          defaultCategory="spot"
-          onSelectSpot={(spot) => {
-            setSearchQuery(spot.name);
-            setActiveSpot(spot);
-            const lat = Number(spot.lat);
-            const lng = Number(spot.lng);
-            const isValidCoord =
-              Number.isFinite(lat) &&
-              Number.isFinite(lng) &&
-              lat >= -90 &&
-              lat <= 90 &&
-              lng >= -180 &&
-              lng <= 180;
-            if (webViewRef.current && isValidCoord) {
-              webViewRef.current.injectJavaScript(`
-                if (window.kakaoMap) {
-                  window.kakaoMap.setCenter(new kakao.maps.LatLng(${JSON.stringify(lat)}, ${JSON.stringify(lng)}));
-                  window.kakaoMap.setLevel(3);
-                }
-              `);
-            }
-          }}
-          onSelectKeyword={(keyword) => {
-            setSearchQuery(keyword);
-          }}
-        />
 
         <FilterBottomSheet
           visible={filterVisible}

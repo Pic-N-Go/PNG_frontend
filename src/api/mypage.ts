@@ -1,1 +1,1 @@
-// API calls for mypage
+export * from '@/api/user';

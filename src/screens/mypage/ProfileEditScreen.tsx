@@ -8,6 +8,8 @@ import { IconChevronLeft, IconUser, IconPencil, IconCheck } from '@tabler/icons-
 import { MyPageStackParamList } from '@/navigation/stacks/MyPageStack';
 import { normalize } from '@/utils/normalize';
 import { FONT_XS, FONT_SM, FONT_MD, FONT_LG, BUTTON_HEIGHT, BUTTON_RADIUS, TAB_BAR_HEIGHT } from '@/constants/layout';
+import { useAuthStore } from '@/store/useAuthStore';
+import { useMyProfile } from '@/hooks/useUser';
 
 type Props = NativeStackScreenProps<MyPageStackParamList, 'ProfileEdit'>;
 
@@ -16,8 +18,6 @@ const SUB = '#8a8a8e';
 const OK = '#5a9855';
 const ERR = '#ff453a';
 const BIO_MAX = 100;
-
-const ORIGINAL = { nick: '사진가_준혁', handle: 'sunset_jk', bio: '야경과 바다를 사랑하는 아마추어 사진가' };
 
 type Status = 'idle' | 'checking' | 'available' | 'taken' | 'invalid';
 
@@ -42,62 +42,52 @@ export default function ProfileEditScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const keyboardOverlap = useKeyboardOverlap();
 
-  // useKeyboardOverlap은 **화면 하단** 기준인데, 이 화면은 MainTab(비-absolute 하단탭) 안에 있어
-  // 컨테이너 하단이 화면 하단보다 탭바(TabBar.tsx: TAB_BAR_HEIGHT + insets.bottom)만큼 위에 있다.
-  // 그 밴드를 빼지 않으면 저장 버튼이 키보드보다 그만큼(약 104~114dp) 더 뜬다.
-  // ponytail: 이 화면에서 탭바를 숨기게 되면 보정도 같이 지운다.
+  const authUser = useAuthStore((s) => s.user);
+  const authBio = useAuthStore((s) => s.bio);
+  const setAuthBio = useAuthStore((s) => s.setBio);
+  const { data: profile } = useMyProfile();
+
+  const initialNick = profile?.nickname || authUser?.nickname || '사용자';
+  const initialBio = authBio ?? '안녕하세요! 사진과 일상을 기록하는 것을 좋아합니다!';
+
   const keyboardLift = Math.max(0, keyboardOverlap - (TAB_BAR_HEIGHT + insets.bottom));
 
-  // 자기소개는 ScrollView의 마지막 요소라 y를 재지 않고 끝으로 보내면 된다.
-  // 컨테이너가 줄어든 뒤에 스크롤해야 목표 위치가 맞아 한 박자 늦춘다.
   const scrollRef = React.useRef<ScrollView>(null);
   const focusBio = () => {
     setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 150);
   };
 
-  const [nick, setNick] = React.useState(ORIGINAL.nick);
-  const [handle, setHandle] = React.useState(ORIGINAL.handle);
-  const [bio, setBio] = React.useState(ORIGINAL.bio);
+  const [nick, setNick] = React.useState(initialNick);
+  const [handle, setHandle] = React.useState(profile?.nickname ? `@${profile.nickname}` : 'user');
+  const [bio, setBio] = React.useState(initialBio);
   const [nickStatus, setNickStatus] = React.useState<Status>('idle');
   const [handleStatus, setHandleStatus] = React.useState<Status>('idle');
 
-  // 중복 확인 (mock — API 확정 시 교체). ponytail: 항상 available 반환.
+  // 중복 확인 (mock — API 확정 시 교체)
   const checkField = (field: 'nick' | 'handle') => {
     const value = field === 'nick' ? nick : handle;
     if (!value) return;
     const setStatus = field === 'nick' ? setNickStatus : setHandleStatus;
     setStatus('checking');
-    // TODO: GET /profile/check?{field}=... 로 교체
     setTimeout(() => setStatus('available'), 400);
   };
 
-  const nickDirty = nick !== ORIGINAL.nick;
-  const handleDirty = handle !== ORIGINAL.handle;
-  const bioDirty = bio !== ORIGINAL.bio;
+  const nickDirty = nick !== initialNick;
+  const bioDirty = bio !== initialBio;
 
-  let canSave = nickDirty || handleDirty || bioDirty;
+  let canSave = nickDirty || bioDirty;
   if (nickDirty && nickStatus !== 'available') canSave = false;
-  if (handleDirty && handleStatus !== 'available') canSave = false;
   if (bio.length > BIO_MAX) canSave = false;
 
   const onSave = () => {
     if (!canSave) return;
-    const doSave = () => {
-      // TODO: PATCH /profile 로 교체
-      Alert.alert('저장 완료', '프로필이 저장됐어요.', [{ text: '확인', onPress: () => navigation.goBack() }]);
-    };
-    if (handleDirty) {
-      Alert.alert('핸들을 변경할까요?', '변경 후 30일 이내에는 다시 바꿀 수 없어요.', [
-        { text: '취소', style: 'cancel' },
-        { text: '변경', onPress: doSave },
-      ]);
-    } else {
-      doSave();
+    if (bioDirty) {
+      setAuthBio(bio);
     }
+    Alert.alert('저장 완료', '프로필이 저장됐어요.', [{ text: '확인', onPress: () => navigation.goBack() }]);
   };
 
   const onChangeAvatar = () => {
-    // TODO: react-native-image-picker 연동 (현재 mock)
     Alert.alert('사진 변경', '앨범에서 사진을 선택해 주세요.');
   };
 
@@ -179,7 +169,7 @@ export default function ProfileEditScreen({ navigation }: Props) {
                 onFocus={focusBio}
                 maxLength={BIO_MAX}
                 multiline
-                placeholder="나를 표현하는 한 줄을 적어주세요"
+                placeholder="안녕하세요! 사진과 일상을 기록하는 것을 좋아합니다!"
                 placeholderTextColor="rgba(0,0,0,0.25)"
                 className="bg-[#f5f5f7] text-black"
                 style={{ height: normalize(96), borderRadius: normalize(12), padding: normalize(14), fontSize: FONT_MD, lineHeight: normalize(22), textAlignVertical: 'top' }}

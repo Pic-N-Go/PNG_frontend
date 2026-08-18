@@ -80,6 +80,26 @@ export function useSearchSpots(params: SearchSpotsParams, options?: QueryToggle)
   });
 }
 
+export interface UseNearbySpotsParams {
+  lat?: number;
+  lng?: number;
+  radiusKm?: number;
+  limit?: number;
+}
+
+export function useNearbySpots(params: UseNearbySpotsParams, options?: QueryToggle) {
+  const token = useAuthStore((s) => s.accessToken);
+  const { lat, lng, radiusKm = 5.0, limit = 20 } = params;
+  const isCoordValid = lat !== undefined && lng !== undefined && !isNaN(lat) && !isNaN(lng);
+
+  return useQuery({
+    queryKey: ['spots', 'nearby', lat, lng, radiusKm, limit, token ?? 'guest'],
+    queryFn: () => spotApi.getNearbySpots({ lat: lat!, lng: lng!, radiusKm, limit, token: token ?? undefined }),
+    enabled: isCoordValid && (options?.enabled ?? true),
+    staleTime: SPOTS_STALE_TIME,
+  });
+}
+
 // 리뷰 카드가 세로로 길어(본문+사진+장비) 20건이면 "더보기"가 화면 한참 아래로 밀린다.
 const REVIEW_PAGE_SIZE = 10;
 

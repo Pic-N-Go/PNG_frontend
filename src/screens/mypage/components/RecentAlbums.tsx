@@ -4,15 +4,46 @@ import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { FONT_SM } from '@/constants/layout';
+import { useMyAlbums } from '@/hooks/useUser';
+import { getCategoryKoreanName } from '@/types/user';
 
-const ALBUMS = [
-  { id: '1', name: '광안리 일출', meta: '2026.03.28 · 12장', colors: ['#0f2027', '#203a43', '#e8a87c'] as const },
-  { id: '2', name: '진해 벚꽃', meta: '2026.04.02 · 24장', colors: ['#8b4a6b', '#f0c89a'] as const },
-  { id: '3', name: '제주 사려니숲', meta: '2026.04.15 · 18장', colors: ['#0a1a0f', '#4a8060'] as const },
+const GRADIENT_PALETTES: [string, string, ...string[]][] = [
+  ['#0f2027', '#203a43', '#e8a87c'],
+  ['#8b4a6b', '#f0c89a'],
+  ['#0a1a0f', '#4a8060'],
+  ['#1a1530', '#b44a3a'],
+  ['#3a2a1a', '#c8804a'],
+  ['#020010', '#1a1545'],
 ];
 
 export default function RecentAlbums() {
   const navigation = useNavigation();
+  const { data: albums = [], isLoading } = useMyAlbums();
+
+  if (!isLoading && albums.length === 0) {
+    return (
+      <View className="mb-10" style={{ paddingHorizontal: normalize(20) }}>
+        <Text className="font-semibold tracking-tight text-black mb-3" style={{ fontSize: normalizeFontSize(20) }}>
+          지난 촬영
+        </Text>
+        <View
+          style={{
+            height: normalize(120),
+            backgroundColor: '#ffffff',
+            borderRadius: normalize(14),
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderWidth: 0.5,
+            borderColor: 'rgba(0,0,0,0.06)',
+          }}
+        >
+          <Text style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.3)', fontFamily: 'Pretendard-Regular' }}>
+            등록된 앨범이 없어요
+          </Text>
+        </View>
+      </View>
+    );
+  }
 
   return (
     <View className="mb-10">
@@ -33,38 +64,41 @@ export default function RecentAlbums() {
         style={{ marginHorizontal: normalize(20) }}
         contentContainerStyle={{ gap: normalize(10) }}
       >
-        {ALBUMS.map((album) => (
-          <LinearGradient
-            key={album.id}
-            colors={album.colors}
-            style={{
-              width: normalize(160),
-              height: normalize(200),
-              borderRadius: normalize(14),
-              overflow: 'hidden',
-              position: 'relative',
-            }}
-          >
+        {albums.map((album, index) => {
+          const colors = GRADIENT_PALETTES[index % GRADIENT_PALETTES.length];
+          return (
             <LinearGradient
-              colors={['transparent', 'rgba(0,0,0,0.5)']}
+              key={album.id}
+              colors={colors}
               style={{
-                position: 'absolute',
-                bottom: 0,
-                left: 0,
-                right: 0,
-                padding: normalize(10),
-                paddingTop: normalize(20),
+                width: normalize(160),
+                height: normalize(200),
+                borderRadius: normalize(14),
+                overflow: 'hidden',
+                position: 'relative',
               }}
             >
-              <Text className="font-semibold text-white tracking-tight" style={{ fontSize: normalizeFontSize(16), marginBottom: normalize(2) }}>
-                {album.name}
-              </Text>
-              <Text className="tracking-tight" style={{ fontSize: normalizeFontSize(12), color: 'rgba(255,255,255,0.5)' }}>
-                {album.meta}
-              </Text>
+              <LinearGradient
+                colors={['transparent', 'rgba(0,0,0,0.65)']}
+                style={{
+                  position: 'absolute',
+                  bottom: 0,
+                  left: 0,
+                  right: 0,
+                  padding: normalize(10),
+                  paddingTop: normalize(20),
+                }}
+              >
+                <Text className="font-semibold text-white tracking-tight" style={{ fontSize: normalizeFontSize(16), marginBottom: normalize(2) }}>
+                  {album.name}
+                </Text>
+                <Text className="tracking-tight" style={{ fontSize: normalizeFontSize(12), color: 'rgba(255,255,255,0.7)' }}>
+                  {getCategoryKoreanName(album.category)} · {album.photoCount}장
+                </Text>
+              </LinearGradient>
             </LinearGradient>
-          </LinearGradient>
-        ))}
+          );
+        })}
       </ScrollView>
     </View>
   );

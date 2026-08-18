@@ -12,6 +12,7 @@ import {
   IconX, IconCheck, IconRefresh,
 } from '@tabler/icons-react-native';
 import { getMessaging, hasPermission, AuthorizationStatus } from '@react-native-firebase/messaging';
+import * as Location from 'expo-location';
 import BottomSheet from '@/components/common/BottomSheet';
 import { MyPageStackParamList } from '@/navigation/stacks/MyPageStack';
 import { useNotificationSettings, DndRepeatPreset } from '@/hooks/useNotificationSettings';
@@ -36,6 +37,20 @@ export default function SettingScreen({ navigation }: Props) {
   const [versionSheetVisible, setVersionSheetVisible] = React.useState(false);
 
   const [hasSystemPermission, setHasSystemPermission] = React.useState<boolean>(true);
+  const [hasLocationPermission, setHasLocationPermission] = React.useState<boolean>(true);
+
+  const checkLocationPermission = React.useCallback(async () => {
+    try {
+      const { status } = await Location.getForegroundPermissionsAsync();
+      const hasPerm = status === Location.PermissionStatus.GRANTED;
+      setHasLocationPermission(hasPerm);
+      return hasPerm;
+    } catch (error) {
+      console.error('[SettingScreen] checkLocationPermission error:', error);
+      setHasLocationPermission(false);
+      return false;
+    }
+  }, []);
 
   const checkPushPermission = React.useCallback(async () => {
     try {
@@ -66,23 +81,43 @@ export default function SettingScreen({ navigation }: Props) {
 
   React.useEffect(() => {
     void checkPushPermission();
+    void checkLocationPermission();
 
     const subscription = AppState.addEventListener('change', (nextState) => {
       if (nextState === 'active') {
         void checkPushPermission();
+        void checkLocationPermission();
       }
     });
 
     return () => {
       subscription.remove();
     };
-  }, [checkPushPermission]);
+  }, [checkPushPermission, checkLocationPermission]);
 
 
   const openSystemNotifSettingsAlert = () => {
     Alert.alert(
       '알림 권한 필요',
       '알림을 받으려면 기기 설정에서 알림 권한을 허용해야 합니다.',
+      [
+        { text: '취소', style: 'cancel' },
+        {
+          text: '설정으로 이동',
+          onPress: () => {
+            void Linking.openSettings();
+          },
+        },
+      ]
+    );
+  };
+
+  const handleLocationPress = () => {
+    Alert.alert(
+      '위치 권한 설정',
+      hasLocationPermission
+        ? '위치 권한이 현재 허용되어 있습니다. 변경하려면 기기 설정으로 이동하시겠습니까?'
+        : '내 위치 스팟 조회 및 경로 안내 기능을 사용하려면 위치 권한이 필요합니다. 설정으로 이동하시겠습니까?',
       [
         { text: '취소', style: 'cancel' },
         {
@@ -220,8 +255,12 @@ export default function SettingScreen({ navigation }: Props) {
             <SettingRow
               icon={IconCurrentLocation} iconBg="#e0f0dc" iconColor="#5a9855"
               label="위치 권한" desc="앱 사용 중 허용"
-              right={<Text style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.35)', marginRight: normalize(6) }}>허용됨</Text>}
-              chevron onPress={() => handlePress('location')}
+              right={
+                <Text style={{ fontSize: FONT_SM, color: hasLocationPermission ? '#5a9855' : 'rgba(0,0,0,0.35)', marginRight: normalize(6) }}>
+                  {hasLocationPermission ? '허용됨' : '허용 안함'}
+                </Text>
+              }
+              chevron onPress={handleLocationPress}
             />
             <SettingRow icon={IconBan} label="차단 목록" desc="차단한 사용자 관리" chevron onPress={() => handlePress('block')} />
           </Card>

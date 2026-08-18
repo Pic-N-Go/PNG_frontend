@@ -10,21 +10,12 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { FONT_XS, FONT_SM, FONT_MD, FONT_LG } from '@/constants/layout';
 
+import { useMyAlbums, useMyStats } from '@/hooks/useUser';
+import { getCategoryKoreanName } from '@/types/user';
+
 // Types
 type ViewMode = 'album' | 'grid';
 type FilterType = 'all' | '야경' | '일출' | '일몰' | '낮';
-
-interface AlbumData {
-  id: string;
-  year: number;
-  title: string;
-  loc: string;
-  date: string;
-  count: number;
-  badge: FilterType;
-  score: number;
-  colors: string[];
-}
 
 interface PhotoData {
   id: string;
@@ -35,15 +26,14 @@ interface PhotoData {
   colors: string[];
 }
 
-// Dummy Data
-const MOCK_ALBUMS: AlbumData[] = [
-  { id: '1', year: 2026, title: '광안리 일출', loc: '부산 · 광안리 해수욕장', date: '2026.03.28', count: 12, badge: '일출', score: 91, colors: ['#0f2027', '#2c5364'] },
-  { id: '2', year: 2026, title: '진해 벚꽃', loc: '경남 · 경화역', date: '2026.04.02', count: 24, badge: '낮', score: 88, colors: ['#8b4a6b', '#f0c89a'] },
-  { id: '3', year: 2026, title: '제주 사려니숲', loc: '제주 · 사려니숲길', date: '2026.04.15', count: 18, badge: '낮', score: 79, colors: ['#0a1a0f', '#4a8060'] },
-  { id: '4', year: 2026, title: '경복궁 야간개장', loc: '서울 · 경복궁', date: '2026.03.08', count: 31, badge: '야경', score: 85, colors: ['#1a1530', '#b44a3a'] },
-  { id: '5', year: 2026, title: '부산 감천문화마을', loc: '부산 · 사하구 감천동', date: '2026.02.14', count: 17, badge: '낮', score: 82, colors: ['#3a2a1a', '#c8804a'] },
-  { id: '6', year: 2025, title: '영월 별마로천문대', loc: '강원 · 영월군', date: '2025.10.03', count: 22, badge: '야경', score: 94, colors: ['#020010', '#1a1545'] },
-  { id: '7', year: 2025, title: '경주 불국사', loc: '경북 · 경주시', date: '2025.11.05', count: 18, badge: '낮', score: 87, colors: ['#5a3010', '#c87020'] },
+const GRADIENT_PALETTES: [string, string][] = [
+  ['#0f2027', '#2c5364'],
+  ['#8b4a6b', '#f0c89a'],
+  ['#0a1a0f', '#4a8060'],
+  ['#1a1530', '#b44a3a'],
+  ['#3a2a1a', '#c8804a'],
+  ['#020010', '#1a1545'],
+  ['#5a3010', '#c87020'],
 ];
 
 const MOCK_PHOTOS: PhotoData[] = [
@@ -74,15 +64,12 @@ export default function MyPhotosScreen() {
   const [lightboxVisible, setLightboxVisible] = useState(false);
   const [currentPhotoIndex, setCurrentPhotoIndex] = useState(0);
 
-  // Grouped Albums
-  const groupedAlbums = useMemo(() => {
-    return MOCK_ALBUMS.reduce((acc, curr) => {
-      const y = curr.year.toString();
-      if (!acc[y]) acc[y] = [];
-      acc[y].push(curr);
-      return acc;
-    }, {} as Record<string, AlbumData[]>);
-  }, []);
+  const { data: albums = [], isLoading: isAlbumsLoading } = useMyAlbums();
+  const { data: stats } = useMyStats();
+
+  const totalPhotos = useMemo(() => {
+    return albums.reduce((sum, a) => sum + (a.photoCount || 0), 0);
+  }, [albums]);
 
   // Grouped Photos
   const groupedPhotos = useMemo(() => {
@@ -141,17 +128,17 @@ export default function MyPhotosScreen() {
         {/* Summary Card */}
         <View style={styles.summaryCard}>
           <View style={styles.summaryStat}>
-            <Text style={styles.summaryNum}>142</Text>
+            <Text style={styles.summaryNum}>{totalPhotos}</Text>
             <Text style={styles.summaryLabel}>전체 사진</Text>
           </View>
           <View style={styles.summaryDiv} />
           <View style={styles.summaryStat}>
-            <Text style={styles.summaryNum}>7</Text>
+            <Text style={styles.summaryNum}>{albums.length}</Text>
             <Text style={styles.summaryLabel}>촬영 앨범</Text>
           </View>
           <View style={styles.summaryDiv} />
           <View style={styles.summaryStat}>
-            <Text style={styles.summaryNum}>6</Text>
+            <Text style={styles.summaryNum}>{stats?.visitedSpotCount ?? 0}</Text>
             <Text style={styles.summaryLabel}>방문 지역</Text>
           </View>
         </View>
@@ -176,39 +163,42 @@ export default function MyPhotosScreen() {
         {/* Album View */}
         {viewMode === 'album' && (
           <View style={{ paddingHorizontal: normalize(20) }}>
-            {Object.keys(groupedAlbums).sort((a,b) => Number(b) - Number(a)).map(year => (
-              <View key={year} style={{ marginBottom: normalize(20) }}>
-                <Text style={styles.sectionTitle}>{year}년</Text>
-                <View style={{ gap: normalize(10) }}>
-                  {groupedAlbums[year].map(album => {
-                    const isVisible = activeFilter === 'all' || album.badge === activeFilter;
-                    return (
-                      <TouchableOpacity 
-                        key={album.id} 
-                        style={[styles.albumItem, { opacity: isVisible ? 1 : 0.35 }]}
-                        disabled={!isVisible}
-                        activeOpacity={0.7}
-                      >
-                        <View style={styles.albumThumbWrap}>
-                          <LinearGradient colors={album.colors as [string, string]} style={styles.albumThumb} />
-                          <View style={styles.albumThumbStack} />
-                        </View>
-                        <View style={styles.albumInfo}>
-                          <Text style={styles.albumName}>{album.title}</Text>
-                          <Text style={styles.albumLoc}>{album.loc}</Text>
-                          <View style={styles.albumMeta}>
-                            <Text style={styles.albumCount}>{album.date} · {album.count}장</Text>
-                            <View style={styles.albumBadge}><Text style={styles.albumBadgeText}>{album.badge}</Text></View>
-                            <Text style={styles.albumScore}>{album.score}점</Text>
-                          </View>
-                        </View>
-                        <IconChevronRight size={16} color="rgba(0,0,0,0.18)" />
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
+            {isAlbumsLoading ? (
+              <View style={{ paddingVertical: normalize(40), alignItems: 'center' }}>
+                <Text style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.3)' }}>앨범을 불러오는 중...</Text>
               </View>
-            ))}
+            ) : albums.length === 0 ? (
+              <View style={{ paddingVertical: normalize(40), alignItems: 'center' }}>
+                <Text style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.3)' }}>등록된 앨범이 없어요</Text>
+              </View>
+            ) : (
+              <View style={{ gap: normalize(10) }}>
+                {albums.map((album, index) => {
+                  const colors = GRADIENT_PALETTES[index % GRADIENT_PALETTES.length];
+                  const categoryName = getCategoryKoreanName(album.category);
+                  return (
+                    <View 
+                      key={album.id} 
+                      style={styles.albumItem}
+                    >
+                      <View style={styles.albumThumbWrap}>
+                        <LinearGradient colors={colors} style={styles.albumThumb} />
+                        <View style={styles.albumThumbStack} />
+                      </View>
+                      <View style={styles.albumInfo}>
+                        <Text style={styles.albumName}>{album.name}</Text>
+                        <Text style={styles.albumLoc}>{categoryName}</Text>
+                        <View style={styles.albumMeta}>
+                          <Text style={styles.albumCount}>{album.photoCount}장</Text>
+                          <View style={styles.albumBadge}><Text style={styles.albumBadgeText}>{categoryName}</Text></View>
+                        </View>
+                      </View>
+                      <IconChevronRight size={16} color="rgba(0,0,0,0.18)" />
+                    </View>
+                  );
+                })}
+              </View>
+            )}
           </View>
         )}
 

@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from 'react';
 import { Platform, PermissionsAndroid } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Location from 'expo-location';
 import { 
   getMessaging, 
   requestPermission, 
@@ -72,6 +73,16 @@ export const usePushNotifications = (onDeepLinkNav?: (deepLink: string) => void)
           setFcmToken(token);
         } else {
           console.log('Notification permission denied.');
+        }
+
+        // 알림 권한 처리 완료 후 -> 위치(GPS) 권한 순차 요청
+        try {
+          const { status: locStatus } = await Location.getForegroundPermissionsAsync();
+          if (locStatus === Location.PermissionStatus.UNDETERMINED) {
+            await Location.requestForegroundPermissionsAsync();
+          }
+        } catch (locErr) {
+          console.warn('Sequential Location permission request error:', locErr);
         }
       } catch (error) {
         console.error('Failed to request permission or get FCM token:', error);
