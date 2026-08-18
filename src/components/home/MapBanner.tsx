@@ -161,6 +161,7 @@ export default function MapBanner({ onPress, spotCount = 0, isLoading, userLocat
 </body>
 </html>
 `;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [centerLat, centerLng, spotsKey]);
 
   // KAKAO_KEY가 존재할 때만 정적 스태틱 맵 이미지 URL 생성

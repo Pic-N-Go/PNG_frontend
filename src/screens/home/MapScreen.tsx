@@ -92,7 +92,6 @@ export default function MapScreen() {
 
   const webViewRef = useRef<any>(null);
   const [mapReady, setMapReady] = useState(false);
-  const [permissionStatus, setPermissionStatus] = useState<Location.PermissionStatus | null>(null);
   const latestLocationRef = useRef<{ latitude: number; longitude: number } | null>(null);
   const { selectedSpots, addSpot, removeSpot } = useCourseStore();
   const [activeSpot, setActiveSpot] = useState<Spot | null>(null);
@@ -106,10 +105,7 @@ export default function MapScreen() {
       try {
         const { status: existingStatus } = await Location.getForegroundPermissionsAsync();
         if (existingStatus === Location.PermissionStatus.UNDETERMINED) {
-          const requested = await Location.requestForegroundPermissionsAsync();
-          setPermissionStatus(requested.status);
-        } else {
-          setPermissionStatus(existingStatus);
+          await Location.requestForegroundPermissionsAsync();
         }
       } catch (err) {
         console.warn('[MapScreen] requestLocationPermissionOnStart error:', err);
