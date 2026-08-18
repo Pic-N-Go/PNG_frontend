@@ -470,7 +470,8 @@ export interface SpotResponse {
   bookmarkCount: number;
   reviewCount: number;
   photogenicScore: number;
-  reviewAverage: number;
+  /** 리뷰가 없는 스팟은 서버 AVG()가 null로 떨어진다. 표시 전에 반드시 null을 걸러야 한다. */
+  reviewAverage: number | null;
   /**
    * 이 스팟이 내 북마크 컬렉션 중 하나 이상에 담겨 있는지. 유저별 값이라 토큰을 보내야 채워지고,
    * 비로그인 조회는 서버가 항상 false로 내려준다. 구버전 서버 호환을 위해 optional.

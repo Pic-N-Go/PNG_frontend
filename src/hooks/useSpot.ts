@@ -37,9 +37,13 @@ export function useSpotPhotos(id: string) {
  * 업로드 시점에 고정되는 값이라 재조회할 이유가 없어 stale 처리하지 않는다.
  */
 export function useReviewExif(reviewId: string | number | null, enabled: boolean) {
+  // 호출부마다 id 타입이 다르다 — 리뷰 탭은 Review.id(string), 마이페이지는 MyReview.reviewId(number).
+  // 그대로 키에 넣으면 같은 리뷰가 두 캐시로 갈리고, number 키를 쓰는 reviewKey() 무효화가
+  // string 쪽엔 걸리지 않는다(staleTime: Infinity라 사진 추가 후에도 옛 응답이 남는다).
+  const key = reviewId != null ? Number(reviewId) : null;
   return useQuery({
-    queryKey: ['review', reviewId, 'exif'],
-    queryFn: () => spotApi.getReviewExif(reviewId!),
+    queryKey: ['review', key, 'exif'],
+    queryFn: () => spotApi.getReviewExif(key!),
     enabled: enabled && reviewId != null,
     staleTime: Infinity,
     select: mapReviewExif,

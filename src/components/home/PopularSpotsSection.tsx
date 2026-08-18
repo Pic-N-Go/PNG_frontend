@@ -72,7 +72,9 @@ export default function PopularSpotsSection({ onSpotPress, onViewAll }: Props) {
             <Skeleton key={i} width={CARD_WIDTH} height={CARD_HEIGHT} borderRadius={CARD_RADIUS} />
           ))}
         </View>
-      ) : isError ? (
+      ) : isError && spots.length === 0 ? (
+        // 성공 후 백그라운드 refetch가 실패해도 data는 남는다(staleTime 60초라 홈 재진입 때 흔하다).
+        // 그때 보이던 캐러셀을 에러 문구로 갈아치우면 있던 정보를 뺏는 셈이라, 캐시가 있으면 그대로 둔다.
         <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(14) }}>
           <Text
             allowFontScaling={false}

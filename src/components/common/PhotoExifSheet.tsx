@@ -1,5 +1,5 @@
 import React from 'react';
-import { Animated, Dimensions, Pressable, ScrollView, Text, View } from 'react-native';
+import { Animated, BackHandler, Dimensions, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Aperture, Camera, MapPin, X } from 'lucide-react-native';
 import BottomSheet from '@/components/common/BottomSheet';
@@ -243,6 +243,17 @@ export function PhotoExifLayer({
       useNativeDriver: true,
     }).start();
   }, [open, translateY]);
+
+  // 시트는 Modal이 아니라 레이어라 onRequestClose를 못 가진다. 그대로 두면 Android 백 버튼이
+  // 부모 Modal의 onRequestClose로 흘러가 라이트박스까지 통째로 닫힌다 — 시트만 닫아야 한다.
+  React.useEffect(() => {
+    if (!open) return;
+    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
+      onClose();
+      return true;
+    });
+    return () => sub.remove();
+  }, [open, onClose]);
 
   return (
     <>
