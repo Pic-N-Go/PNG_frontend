@@ -11,12 +11,13 @@ export const INQUIRY_TYPES: InquiryTypeOption[] = [
   { code: 'FEATURE', label: '기능 문의' },
   { code: 'BUG', label: '앱 오류 신고' },
   { code: 'ACCOUNT', label: '계정/로그인' },
-  { code: 'SPOT_INFO', label: '스팟 정보 제보' },
+  { code: 'SPOT', label: '스팟 정보 제보' },
   { code: 'OTHER', label: '기타 문의' },
 ];
 
 export function getInquiryTypeLabel(type?: string): string {
   if (!type) return '기타 문의';
+  if (type === 'SPOT_INFO') return '스팟 정보 제보';
   const found = INQUIRY_TYPES.find(
     (t) => t.code.toUpperCase() === type.toUpperCase() || t.label === type
   );
@@ -107,7 +108,7 @@ export const INQUIRY_ANSWER_TEMPLATES: InquiryAnswerTemplate[] = [
   {
     id: 'spot_info',
     label: '스팟 제보 답변',
-    type: 'SPOT_INFO',
+    type: 'SPOT',
     content:
       '안녕하세요, Pic-N-Go 지원팀입니다.\n소중한 포토스팟 정보를 제보해 주셔서 진심으로 감사드립니다!\n\n제보해 주신 장소 및 좌표 정보는 검토 후 공식 포토스팟 목록에 추가될 예정입니다.\n앞으로도 멋진 포토스팟을 함께 나누어 주시기 바랍니다.\n\n감사합니다.',
   },

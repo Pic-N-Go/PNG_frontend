@@ -2176,28 +2176,38 @@ export default function AdminDashboardScreen() {
                           paddingHorizontal: normalize(11),
                           paddingVertical: normalize(6),
                           borderRadius: normalize(8),
-                          backgroundColor: isSelected ? '#E31B59' : isRecommended ? '#fde3ec' : '#f3f4f6',
+                          backgroundColor: isSelected ? '#E31B59' : '#ffffff',
                           borderWidth: 1,
-                          borderColor: isSelected ? '#E31B59' : isRecommended ? '#f472b6' : 'transparent',
+                          borderColor: isSelected ? '#E31B59' : 'rgba(0,0,0,0.12)',
                           flexDirection: 'row',
                           alignItems: 'center',
                           gap: normalize(4),
                         }}
                       >
-                        {isSelected ? (
-                          <IconCheck size={normalize(12)} color="#ffffff" strokeWidth={2.5} />
-                        ) : isRecommended ? (
-                          <IconSparkles size={normalize(12)} color="#E31B59" />
-                        ) : null}
+                        {isSelected && <IconCheck size={normalize(12)} color="#ffffff" strokeWidth={2.5} />}
                         <Text
                           style={{
                             fontSize: FONT_XS,
-                            fontFamily: isSelected || isRecommended ? 'Pretendard-Bold' : 'Pretendard-Medium',
-                            color: isSelected ? '#ffffff' : isRecommended ? '#E31B59' : '#374151',
+                            fontFamily: isSelected ? 'Pretendard-Bold' : 'Pretendard-Medium',
+                            color: isSelected ? '#ffffff' : '#374151',
                           }}
                         >
                           {tmpl.label}
                         </Text>
+                        {isRecommended && !isSelected && (
+                          <View
+                            style={{
+                              paddingHorizontal: normalize(5),
+                              paddingVertical: normalize(1.5),
+                              borderRadius: normalize(4),
+                              backgroundColor: 'rgba(227, 27, 89, 0.08)',
+                            }}
+                          >
+                            <Text style={{ fontSize: normalizeFontSize(9), fontFamily: 'Pretendard-Bold', color: '#E31B59' }}>
+                              추천
+                            </Text>
+                          </View>
+                        )}
                       </TouchableOpacity>
                     );
                   })}
