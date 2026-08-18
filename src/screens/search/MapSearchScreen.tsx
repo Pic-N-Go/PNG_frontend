@@ -94,7 +94,7 @@ export default function MapSearchScreen() {
       return baseResults;
     }
 
-    const catTarget = selectedCategory.toLowerCase();
+    const catTarget = String(selectedCategory).toLowerCase();
     return baseResults.filter((s) =>
       s.categories?.some((c) => c.toLowerCase().includes(catTarget))
     );

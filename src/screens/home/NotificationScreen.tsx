@@ -33,6 +33,9 @@ const TABS: { key: TabKey; label: string }[] = [
 
 function getCategoryInfo(type: string) {
   const upper = (type || '').toUpperCase();
+  if (upper.includes('INQUIRY')) {
+    return { label: '1:1 문의 답변', icon: IconMessage, key: 'system' };
+  }
   if (upper.includes('WISHLIST') || upper.includes('SPOT_ALERT')) {
     return { label: '출사 조건 달성', icon: IconBell, key: 'wishlist' };
   }
@@ -129,7 +132,23 @@ export default function NotificationScreen({ navigation }: Props) {
       markRead(item.id);
     }
 
-    // 2. spotId가 포함되어 수신된 알림의 경우 해당 스팟 상세 페이지로 이동
+    // 2. 1:1 문의 답변 알림인 경우 InquiryDetail 또는 InquiryList 로 이동
+    const upperType = (item.type || '').toUpperCase();
+    if (upperType.includes('INQUIRY') || (item.deepLink && item.deepLink.includes('inquiry'))) {
+      const inquiryMatch = (item.deepLink || '').match(/(?:inquiryId=|\/mypage\/inquiry\/|\/inquiry\/)(\d+)/);
+      const inquiryId = inquiryMatch ? inquiryMatch[1] : undefined;
+
+      (navigation as any).navigate('Main', {
+        screen: 'MyPageTab',
+        params: {
+          screen: inquiryId ? 'InquiryDetail' : 'Inquiry',
+          params: inquiryId ? { id: inquiryId } : undefined,
+        },
+      });
+      return;
+    }
+
+    // 3. spotId가 포함되어 수신된 알림의 경우 해당 스팟 상세 페이지로 이동
     if (item.spotId !== undefined && item.spotId !== null) {
       (navigation as any).navigate('SpotStack', {
         screen: 'SpotDetail',
