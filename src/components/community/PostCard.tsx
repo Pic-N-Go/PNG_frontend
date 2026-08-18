@@ -153,7 +153,15 @@ export default function PostCard({ post, onPress, onToggleLike, onToggleBookmark
         </View>
         {/* 저장 수를 옆에 둬야 탭이 먹었는지 바로 보인다 — 아이콘 채움만으로는 변화가 작다.
             숫자는 낙관적 갱신(useReactionMutation)으로 즉시 ±1 되고 응답 값으로 정정된다. */}
-        <Pressable onPress={onToggleBookmark} hitSlop={8} className="flex-row items-center" style={{ gap: normalize(4) }}>
+        <Pressable
+          onPress={onToggleBookmark}
+          hitSlop={8}
+          className="flex-row items-center"
+          style={{ gap: normalize(4) }}
+          accessibilityRole="button"
+          accessibilityLabel="저장"
+          accessibilityState={{ selected: !!post.isBookmarked }}
+        >
           <Bookmark
             size={normalize(15)}
             color={post.isBookmarked ? ACCENT : 'rgba(0,0,0,0.55)'}

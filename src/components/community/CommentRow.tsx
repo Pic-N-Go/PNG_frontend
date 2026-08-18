@@ -89,7 +89,14 @@ export default function CommentRow({ comment, isReply, onToggleLike, onPressRepl
         </View>
       </View>
 
-      <Pressable hitSlop={8} onPress={onToggleLike} style={{ padding: normalize(4) }} accessibilityLabel="좋아요">
+      <Pressable
+        hitSlop={8}
+        onPress={onToggleLike}
+        style={{ padding: normalize(4) }}
+        accessibilityRole="button"
+        accessibilityLabel="좋아요"
+        accessibilityState={{ selected: !!comment.isLiked }}
+      >
         <Heart
           size={normalize(14)}
           color={comment.isLiked ? '#ff453a' : 'rgba(0,0,0,0.3)'}

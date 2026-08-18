@@ -1,10 +1,10 @@
 // 사용자 장비(카메라·렌즈) CRUD. 서버 라우트는 `/users/me/equipments`라 전부 인증이 필요하다.
-import { toHttpError, tokenFromHeaders } from '@/api/auth';
+import { ApiError, toHttpError, tokenFromHeaders } from '@/api/auth';
 
 const BASE = process.env.EXPO_PUBLIC_API_URL ?? '';
 const TIMEOUT_MS = 30_000;
 
-export { ApiError } from '@/api/auth';
+export { ApiError };
 
 /**
  * 이 백엔드는 201·204에 본문을 비워 보내는 경우가 있어 res.json()이 그대로 던진다.
@@ -23,6 +23,13 @@ async function fetchWithTimeout(url: string, options: RequestInit) {
     const res = await fetch(url, { ...options, signal: controller.signal });
     if (!res.ok) throw await toHttpError(res, tokenFromHeaders(options.headers));
     return res;
+  } catch (err) {
+    // 변환하지 않으면 "Network request failed" 같은 원문이 그대로 화면에 뜬다.
+    if (err instanceof ApiError) throw err;
+    if (err instanceof Error && err.name === 'AbortError') {
+      throw new ApiError('응답이 늦어 중단했어요. 잠시 후 다시 시도해 주세요.');
+    }
+    throw new ApiError('네트워크 연결을 확인해 주세요.');
   } finally {
     clearTimeout(timer);
   }

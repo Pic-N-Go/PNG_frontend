@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -85,6 +85,21 @@ export default function PostDetailScreen() {
   const pendingAfterToastRef = useRef<(() => void) | null>(null);
   /** "답글 달기"를 누르면 입력창으로 포커스를 옮긴다 */
   const commentInputRef = useRef<TextInput>(null);
+  /** 시트 닫힘 애니메이션을 기다리는 타이머. 언마운트 시 정리하지 않으면 사라진 화면에서 실행된다. */
+  const deferredRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (deferredRef.current) clearTimeout(deferredRef.current);
+    },
+    [],
+  );
+
+  /** 시트·모달이 닫히는 300ms 동안 기다렸다가 실행한다(겹쳐 띄우면 iOS에서 두 번째가 안 뜬다). */
+  function runAfterSheetClose(fn: () => void) {
+    if (deferredRef.current) clearTimeout(deferredRef.current);
+    deferredRef.current = setTimeout(fn, 320);
+  }
 
   function showToast(message: string, after?: () => void) {
     pendingAfterToastRef.current = after ?? null;
@@ -113,7 +128,7 @@ export default function PostDetailScreen() {
     if (!post) return;
     const authorId = post.author.id;
     handleCloseLightbox();
-    setTimeout(() => navigation.navigate('UserProfile', { userId: authorId }), 320);
+    runAfterSheetClose(() => navigation.navigate('UserProfile', { userId: authorId }));
   }
 
   /**
@@ -123,7 +138,7 @@ export default function PostDetailScreen() {
    */
   function openAfterActionSheet(open: () => void) {
     setActionSheetOpen(false);
-    setTimeout(open, 320);
+    runAfterSheetClose(open);
   }
 
   function toggleLike() {

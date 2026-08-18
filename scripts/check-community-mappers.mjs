@@ -71,7 +71,8 @@ assert.equal(post.isMine, true, '작성자 id가 내 id와 같으면 내 글이�
 assert.deepEqual(post.imageUrls, ['https://cdn/1.jpg']);
 assert.equal(post.location, '광안리 해수욕장');
 assert.equal(post.isLiked, true);
-assert.equal(post.isSaved, false);
+assert.equal(post.isBookmarked, false);
+assert.equal(post.bookmarkCount, 5, '저장 수는 서버 값을 그대로 쓴다');
 assert.equal(post.isFollowingAuthor, false, '팔로잉 집합에 없는 작성자는 팔로우 중이 아니다');
 assert.equal(post.photogenicScore, undefined, '서버에 없는 점수를 만들어내면 안 된다');
 assert.deepEqual(post.shotMeta, {
@@ -114,11 +115,41 @@ assert.deepEqual(m.mapExif(undefined, null), {});
 
 // ── mapComment ──────────────────────────────────────────────────────────
 const comment = m.mapComment(
-  { id: 5, content: '좋네요', author: { id: 42, nickname: 'me_kim', profileImageUrl: null }, createdAt: ago(60 * 1000), updatedAt: ago(60 * 1000) },
+  {
+    id: 5,
+    content: '좋네요',
+    author: { id: 42, nickname: 'me_kim', profileImageUrl: null },
+    parentId: null,
+    replyCount: 2,
+    likeCount: 3,
+    liked: true,
+    createdAt: ago(60 * 1000),
+    updatedAt: ago(60 * 1000),
+  },
   42,
 );
 assert.equal(comment.isMine, true);
-assert.equal(comment.likeCount, undefined, '댓글 좋아요는 서버에 없으므로 비어 있어야 한다');
+assert.equal(comment.likeCount, 3);
+assert.equal(comment.isLiked, true);
+assert.equal(comment.replyCount, 2);
+assert.equal(comment.parentId, undefined, '최상위 댓글의 parentId는 undefined로 접는다');
 assert.equal(comment.author.initials, 'ME');
+
+const reply = m.mapComment(
+  {
+    id: 6,
+    content: '답글이에요',
+    author: { id: 99, nickname: 'other', profileImageUrl: null },
+    parentId: 5,
+    replyCount: 0,
+    likeCount: 0,
+    liked: false,
+    createdAt: ago(30 * 1000),
+    updatedAt: ago(30 * 1000),
+  },
+  42,
+);
+assert.equal(reply.parentId, '5', '답글의 parentId는 문자열로 바꿔 넘긴다');
+assert.equal(reply.isMine, false);
 
 console.log('communityMappers: 모든 점검 통과');

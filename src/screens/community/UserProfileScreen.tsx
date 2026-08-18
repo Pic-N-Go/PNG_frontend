@@ -38,6 +38,7 @@ export default function UserProfileScreen() {
   const {
     data: userPosts,
     isLoading: postsLoading,
+    isError: postsFailed,
     hasNextPage: hasMorePosts,
     fetchNextPage: fetchMorePosts,
     isFetchingNextPage: fetchingMorePosts,
@@ -213,6 +214,14 @@ export default function UserProfileScreen() {
             <View style={{ paddingVertical: normalize(40) }}>
               <ActivityIndicator color={ACCENT} />
             </View>
+          ) : postsFailed ? (
+            <Text
+              allowFontScaling={false}
+              className="text-center"
+              style={{ paddingVertical: normalize(40), fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: 'rgba(0,0,0,0.35)', letterSpacing: -0.2 }}
+            >
+              게시글을 불러오지 못했어요
+            </Text>
           ) : postItems.length === 0 ? (
             <Text
               allowFontScaling={false}

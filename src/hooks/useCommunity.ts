@@ -424,8 +424,10 @@ export function useToggleFollow() {
     },
     onSuccess: (_res, { userId }) => {
       if (myUserId != null) qc.invalidateQueries({ queryKey: followingKey(myUserId) });
-      // 팔로워 수는 프로필 응답에 실려 온다 — 프로필을 무효화해야 숫자가 갱신된다.
+      // 팔로워·팔로잉 수는 프로필 응답에 실려 온다 — 프로필을 무효화해야 숫자가 갱신된다.
+      // 상대의 팔로워 수뿐 아니라 내 팔로잉 수도 바뀌므로 내 프로필도 함께 지운다.
       qc.invalidateQueries({ queryKey: ['community', 'profile', userId] });
+      if (myUserId != null) qc.invalidateQueries({ queryKey: ['community', 'profile', String(myUserId)] });
       // 팔로잉 피드는 팔로우 관계가 바뀌면 내용이 달라진다.
       qc.invalidateQueries({ queryKey: ['community', 'posts'] });
     },

@@ -23,7 +23,7 @@ interface Props {
  */
 export default function CommentThread({ postId, comment, onToggleLike, onPressReply, onPressEdit, onDelete }: Props) {
   const [open, setOpen] = useState(false);
-  const { data, hasNextPage, fetchNextPage, isFetchingNextPage, isLoading } = useReplies(postId, comment.id, open);
+  const { data, hasNextPage, fetchNextPage, isFetchingNextPage, isLoading, isError } = useReplies(postId, comment.id, open);
   const replies = data?.replies ?? [];
 
   // 낙관적으로 답글을 단 직후에는 replyCount가 아직 0일 수 있어, 실제로 받아온 개수도 함께 본다.
@@ -53,6 +53,15 @@ export default function CommentThread({ postId, comment, onToggleLike, onPressRe
 
       {open && (
         <>
+          {/* 실패를 알리지 않으면 펼친 자리가 빈 채로 남고 토글만 "답글 숨기기"로 바뀐다 */}
+          {isError && !isLoading && (
+            <Text
+              allowFontScaling={false}
+              style={{ paddingLeft: normalize(38), marginBottom: normalize(14), fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.35)' }}
+            >
+              답글을 불러오지 못했어요
+            </Text>
+          )}
           {isLoading && (
             <Text
               allowFontScaling={false}
