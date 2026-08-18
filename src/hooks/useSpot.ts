@@ -5,7 +5,7 @@ import { ApiError } from '@/api/auth';
 import { spotApi } from '@/api/spot';
 import type { ReviewPhotoUpload, MapSpotsParams, GetSpotsParams, SearchSpotsParams } from '@/api/spot';
 import { useAuthStore } from '@/store/useAuthStore';
-import { mapMyReviewPages, mapPhotogenicScore, mapReviewPages, mapSpotDetail, toHttps } from '@/utils/spotMappers';
+import { mapMyReviewPages, mapPhotogenicScore, mapReviewExif, mapReviewPages, mapSpotDetail, toHttps } from '@/utils/spotMappers';
 import type { ReviewCreateRequest, ReviewSortApi } from '@/types/spot';
 
 
@@ -28,6 +28,25 @@ export function useSpotPhotos(id: string) {
     queryFn: () => spotApi.getPhotos(id),
     enabled: !!id,
     select: (res) => res.photos.map((p) => toHttps(p.originUrl)),
+  });
+}
+
+/**
+ * 리뷰 사진의 EXIF (photoId → 표시 모델). 라이트박스에서 정보 버튼을 눌렀을 때만 부른다 —
+ * 리뷰 목록에 심으면 사진 수만큼 응답이 커지고, 대부분의 사용자는 열지 않는다.
+ * 업로드 시점에 고정되는 값이라 재조회할 이유가 없어 stale 처리하지 않는다.
+ */
+export function useReviewExif(reviewId: string | number | null, enabled: boolean) {
+  // 호출부마다 id 타입이 다르다 — 리뷰 탭은 Review.id(string), 마이페이지는 MyReview.reviewId(number).
+  // 그대로 키에 넣으면 같은 리뷰가 두 캐시로 갈리고, number 키를 쓰는 reviewKey() 무효화가
+  // string 쪽엔 걸리지 않는다(staleTime: Infinity라 사진 추가 후에도 옛 응답이 남는다).
+  const key = reviewId != null ? Number(reviewId) : null;
+  return useQuery({
+    queryKey: ['review', key, 'exif'],
+    queryFn: () => spotApi.getReviewExif(key!),
+    enabled: enabled && reviewId != null,
+    staleTime: Infinity,
+    select: mapReviewExif,
   });
 }
 

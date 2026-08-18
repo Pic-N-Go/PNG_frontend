@@ -21,7 +21,8 @@
   - 검색 바 (탭 → SearchResultScreen 이동)
   - 카테고리 필터 (수평 스크롤, 단일 선택)
   - 주변 스팟 지도 배너 (정적 UI, 탭 → MapScreen 이동)
-  - 인기 스팟 가로 스크롤 (작성 시점 목업 데이터 → 이후 `useSpots` 연동 완료, 아래 Out of Scope 참고)
+  - 인기 스팟 가로 스크롤 (작성 시점 목업 데이터 + 북마크 토글 UI → 이후 `useSpots` 실 API와
+    서버 북마크로 대체됨, 아래 Out of Scope 참고)
   - 출사 캘린더 2열 그리드 (목업 데이터)
   - 위시리스트 배너 (탭 액션 — 네비게이션 stub)
   - SearchResultScreen: 포커스 패널(최근/인기 검색어) + 결과 패널 (목업 데이터)

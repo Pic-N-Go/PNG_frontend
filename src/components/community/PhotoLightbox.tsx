@@ -1,13 +1,12 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { Animated, Dimensions, Image, Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { Image, Modal, Pressable, Text, View } from 'react-native';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
-// RN의 Animated(아래 EXIF 시트가 쓴다)와 이름이 겹치므로 별칭으로 가져온다.
 import Reanimated, { runOnJS, useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Heart, Info, X } from 'lucide-react-native';
-import { PhotoExifSheetContent } from '@/components/common/PhotoExifSheet';
+import { PhotoExifLayer } from '@/components/common/PhotoExifSheet';
 import { PostDetail } from '@/types/community';
-import { BOTTOM_SHEET_RADIUS, FONT_2XS, FONT_SM, FONT_XS } from '@/constants/layout';
+import { FONT_2XS, FONT_SM, FONT_XS } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 
 /** 이 거리(px)보다 더 아래로 끌면 닫는다. 짧으면 스크롤하려다 닫히고, 길면 안 닫힌다. */
@@ -34,15 +33,6 @@ interface Props {
  */
 export default function PhotoLightbox({ visible, onClose, exifOpen, onOpenExif, onCloseExif, onPressAuthor, post }: Props) {
   const insets = useSafeAreaInsets();
-  const exifTranslateY = useRef(new Animated.Value(Dimensions.get('window').height)).current;
-
-  useEffect(() => {
-    Animated.timing(exifTranslateY, {
-      toValue: exifOpen ? 0 : Dimensions.get('window').height,
-      duration: 250,
-      useNativeDriver: true,
-    }).start();
-  }, [exifOpen, exifTranslateY]);
 
   // 확대 배율과 이동량. saved*는 제스처가 끝난 시점의 값으로, 다음 제스처의 기준이 된다.
   const scale = useSharedValue(1);
@@ -169,7 +159,15 @@ export default function PhotoLightbox({ visible, onClose, exifOpen, onOpenExif, 
   }));
 
   return (
-    <Modal visible={visible} transparent animationType="fade" statusBarTranslucent onRequestClose={onClose}>
+    // Android 백 버튼은 여기로만 온다(Modal이 떠 있는 동안 BackHandler는 발행되지 않는다).
+    // EXIF 시트가 열려 있으면 시트만 닫고 사진은 남긴다.
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      statusBarTranslucent
+      onRequestClose={() => (exifOpen ? onCloseExif() : onClose())}
+    >
       {/* Modal은 별도 네이티브 뷰 계층이라 App.tsx의 GestureHandlerRootView가 닿지 않는다.
           여기서 다시 감싸지 않으면 아래 제스처가 전혀 인식되지 않는다. */}
       <GestureHandlerRootView style={{ flex: 1 }}>
@@ -288,34 +286,7 @@ export default function PhotoLightbox({ visible, onClose, exifOpen, onOpenExif, 
           </Pressable>
         </View>
 
-        {exifOpen && (
-          <Pressable
-            onPress={onCloseExif}
-            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 5 }}
-          />
-        )}
-        <Animated.View
-          style={{
-            position: 'absolute',
-            left: 0,
-            right: 0,
-            bottom: 0,
-            maxHeight: '80%',
-            backgroundColor: '#fff',
-            borderTopLeftRadius: BOTTOM_SHEET_RADIUS,
-            borderTopRightRadius: BOTTOM_SHEET_RADIUS,
-            paddingBottom: insets.bottom + normalize(8),
-            transform: [{ translateY: exifTranslateY }],
-            zIndex: 6,
-          }}
-        >
-          <View style={{ alignItems: 'center', paddingTop: normalize(10), paddingBottom: normalize(8) }}>
-            <View style={{ width: normalize(36), height: normalize(4), borderRadius: normalize(2), backgroundColor: 'rgba(0,0,0,0.12)' }} />
-          </View>
-          <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
-            <PhotoExifSheetContent exif={currentExif} onClose={onCloseExif} />
-          </ScrollView>
-        </Animated.View>
+        <PhotoExifLayer open={exifOpen} onClose={onCloseExif} exif={currentExif} />
       </View>
       </GestureHandlerRootView>
     </Modal>

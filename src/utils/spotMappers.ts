@@ -3,6 +3,7 @@
 // ponytail: 카테고리 라벨 테이블은 SpotHeroPlaceholder가 이미 갖고 있어 그대로 재사용한다(라벨 중복 정의 방지).
 // 아이콘까지 딸려오는 게 부담되면 constants/로 분리 — 지금은 유일한 소비처라 이동 비용이 더 크다.
 import { SPOT_CATEGORY_MAP } from '@/components/spot/SpotHeroPlaceholder';
+import type { PhotoExifData } from '@/types/photo';
 import type {
   ConvenienceDTO,
   ConvenienceInfo,
@@ -23,6 +24,8 @@ import type {
   MyReview,
   MyReviewDTO,
   MyReviewListResponse,
+  PhotoExifDTO,
+  ReviewExifResponse,
   SpotDetailInfo,
   SpotDetailResponse,
   SpotItem,
@@ -414,6 +417,96 @@ export function mapPhotogenicScore(dto: PhotogenicScoreResponse): PhotogenicScor
   };
 }
 
+// EXIF 문자열은 metadata-extractor의 영문 description으로 저장돼 있어 표시용으로만 한글화한다.
+// 목업(photo-detail.html)에 나오는 값만 담고, 나머지는 원문을 그대로 노출한다 — 빈칸보다 낫다.
+const EXIF_LABEL: Record<string, string> = {
+  'Auto white balance': '자동',
+  'Manual white balance': '수동',
+  'Auto exposure': '자동',
+  'Manual exposure': '수동',
+  'Auto bracket': '자동 브라케팅',
+  'Multi-segment': '다분할측광',
+  'Center weighted average': '중앙중점',
+  Spot: '스팟',
+  Average: '평균',
+  Partial: '부분',
+  'Multi-spot': '멀티스팟',
+};
+
+function exifLabel(raw: string | null): string | undefined {
+  if (!raw) return undefined;
+  // 플래시 description은 발광 모드·리턴광 조합으로 변형이 20가지가 넘는다 → 접두사로만 가른다.
+  if (raw.startsWith('Flash did not fire')) return '사용 안 함';
+  if (raw.startsWith('Flash fired')) return '사용';
+  return EXIF_LABEL[raw] ?? raw;
+}
+
+// '24 mm' → '24' (StatCell이 mm 단위를 따로 붙인다)
+const stripMm = (raw: string | null): string | undefined => raw?.replace(/\s*mm$/i, '') ?? undefined;
+// '1/500 sec' → '1/500s'
+const shortSec = (raw: string | null): string | undefined => raw?.replace(/\s*sec$/i, 's') ?? undefined;
+
+function formatFileSize(bytes: number | null): string | undefined {
+  if (bytes == null) return undefined;
+  if (bytes < 1024) return `${bytes}B`;
+  const kb = bytes / 1024;
+  return kb < 1024 ? `${Math.round(kb)}KB` : `${(kb / 1024).toFixed(1)}MB`;
+}
+
+export function mapPhotoExif(dto: PhotoExifDTO): PhotoExifData {
+  return {
+    camera: dto.cameraModel ?? undefined,
+    lens: dto.lensModel ?? undefined,
+    iso: dto.iso ?? undefined,
+    aperture: dto.fNumber ?? undefined,
+    shutter: shortSec(dto.exposureTime),
+    focalLength: stripMm(dto.focalLength),
+    exposureMode: exifLabel(dto.exposureMode),
+    metering: exifLabel(dto.meteringMode),
+    whiteBalance: exifLabel(dto.whiteBalance),
+    flash: exifLabel(dto.flash),
+    focalLength35mm: dto.focalLength35mm ? `${stripMm(dto.focalLength35mm)}mm` : undefined,
+    software: dto.software ?? undefined,
+    gpsLat: dto.latitude ?? undefined,
+    gpsLng: dto.longitude ?? undefined,
+    filename: dto.fileName ?? undefined,
+    fileSize: formatFileSize(dto.fileSize),
+    format: dto.fileFormat ?? undefined,
+    // shotAtLabel·modifiedAtLabel은 채우지 않는다 — DB(ReviewPhoto)엔 takenAt이 있지만
+    // 응답 DTO(PhotoExifResponse)에서 빠져 있다. 목업의 '촬영일시'·'해상도'·'색공간' 행도 같은 이유로 공백.
+  };
+}
+
+/** photoId → EXIF 맵. 라이트박스가 현재 사진의 photoId로 바로 꺼내 쓴다. */
+export function mapReviewExif(res: ReviewExifResponse): Record<number, PhotoExifData> {
+  const byId: Record<number, PhotoExifData> = {};
+  for (const img of res.images) byId[img.imageId] = mapPhotoExif(img);
+  return byId;
+}
+
+/**
+ * 스팟 사진(TourAPI 외부 이미지)용 최소 정보. 서버가 이 사진들의 EXIF를 갖고 있지 않아
+ * (`GET /spots/{id}/photos`는 originUrl·thumbnailUrl·imgName뿐, exif 엔드포인트 없음)
+ * URL에서 뽑히는 파일명·형식만 채운다. 시트의 나머지 행은 값이 없으면 알아서 접힌다.
+ * 서버가 스팟 사진 EXIF를 주기 시작하면 이 함수 대신 mapPhotoExif로 교체할 것.
+ */
+export function exifFromPhotoUrl(url: string): PhotoExifData {
+  // presigned 쿼리스트링이 붙어도 파일명만 남기고, 확장자는 형식 행에 쓴다.
+  const filename = url.split('?')[0].split('/').pop() || undefined;
+  const ext = filename?.includes('.') ? filename.split('.').pop() : undefined;
+  return { filename, format: ext ? ext.toUpperCase() : undefined };
+}
+
+/**
+ * 시트에 **표시할** 값이 하나라도 있는지. EXIF가 제거된 사진이면 전 필드가 undefined다.
+ * `shotAtLabel`은 제외한다 — PhotoExifSheetContent가 그리지 않는 필드라(응답 DTO에 takenAt이
+ * 없어 비워둔 자리) 이것만 있는 사진은 빈 시트가 열린다. 시트가 이 값을 그리기 시작하면 뺄 것.
+ */
+const NOT_RENDERED_IN_SHEET = ['shotAtLabel'];
+export function hasAnyExif(exif: PhotoExifData | undefined): boolean {
+  return !!exif && Object.entries(exif).some(([k, v]) => v !== undefined && !NOT_RENDERED_IN_SHEET.includes(k));
+}
+
 // ponytail: dev 전용 self-check — 분포 percent/시간대 라벨/null 처리 회귀 방지 (프로덕션 no-op)
 if (__DEV__) {
   const sum = mapReviewSummary({ avgRating: 4, totalCount: 4, distribution: { '5': 1, '4': 1, '3': 2 } });
@@ -495,4 +588,33 @@ if (__DEV__) {
   console.assert(convSeason.schedule?.length === 2 && convSeason.schedule[0].title === '1월~2월', 'season 그룹/헤더 오류');
   const sr = convSeason.schedule?.[0].rows[0];
   console.assert(!!sr && 'value' in sr && sr.value === '09:00~17:00 (입장마감 16:00)', 'season 범위→value 행 오류');
+}
+
+// ponytail: dev 전용 self-check — EXIF 단위 정리/한글화/빈 EXIF 판정 회귀 방지 (프로덕션 no-op)
+if (__DEV__) {
+  const empty: PhotoExifDTO = {
+    imageId: 1, cameraModel: null, lensModel: null, iso: null, fNumber: null, exposureTime: null,
+    focalLength: null, exposureMode: null, meteringMode: null, whiteBalance: null, flash: null,
+    focalLength35mm: null, software: null, latitude: null, longitude: null, fileSize: null,
+    fileFormat: null, fileName: null,
+  };
+  const full = mapPhotoExif({
+    ...empty, imageId: 2, cameraModel: 'ILCE-7M4', iso: 100, fNumber: 'f/2.8',
+    exposureTime: '1/500 sec', focalLength: '24 mm', focalLength35mm: '24 mm',
+    meteringMode: 'Multi-segment', whiteBalance: 'Auto white balance', flash: 'Flash did not fire',
+    exposureMode: 'Manual exposure', fileSize: 8_808_038, fileFormat: 'JPEG',
+  });
+  console.assert(full.focalLength === '24', 'focalLength에서 mm를 떼야 StatCell 단위와 겹치지 않는다');
+  console.assert(full.focalLength35mm === '24mm', '35mm 환산은 DetailRow라 단위를 붙여야 한다');
+  console.assert(full.shutter === '1/500s', "'1/500 sec' → '1/500s' 변환 오류");
+  console.assert(full.metering === '다분할측광' && full.flash === '사용 안 함' && full.exposureMode === '수동', 'EXIF 한글화 오류');
+  console.assert(full.fileSize === '8.4MB', `fileSize 포맷 오류: ${full.fileSize}`);
+  console.assert(hasAnyExif(full) && !hasAnyExif(mapPhotoExif(empty)), 'EXIF 없음 판정 오류 (전 필드 null이면 false여야 함)');
+  // 시트가 그리지 않는 필드만 있으면 빈 시트가 열린다 — '정보 없음'으로 떨어져야 한다.
+  console.assert(!hasAnyExif({ shotAtLabel: '2026.08.18' }), 'shotAtLabel만 있으면 EXIF 없음이어야 한다');
+  console.assert(mapReviewExif({ reviewId: 9, images: [empty] })[1] !== undefined, 'mapReviewExif가 photoId로 키를 잡아야 한다');
+  const fromUrl = exifFromPhotoUrl('http://tong.visitkorea.or.kr/cms/resource/31/3352031_image2_1.jpg?w=1');
+  console.assert(fromUrl.filename === '3352031_image2_1.jpg', 'URL 파일명 추출 오류 (쿼리스트링 제거 포함)');
+  console.assert(fromUrl.format === 'JPG', 'URL 확장자 → 형식 변환 오류');
+  console.assert(exifFromPhotoUrl('https://x/photo').format === undefined, '확장자가 없으면 형식 행이 비어야 한다');
 }
