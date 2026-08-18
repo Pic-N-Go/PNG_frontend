@@ -1,31 +1,45 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
-  Alert, Image, KeyboardAvoidingView, Linking, Platform, Pressable, ScrollView, Text, TextInput, View,
+  ActivityIndicator, Alert, Image, KeyboardAvoidingView, Linking, Platform, Pressable, ScrollView, Text, TextInput, View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as ImagePicker from 'expo-image-picker';
 import {
-  Aperture, Camera, ChevronLeft, ChevronRight, Clock, CloudOff, Image as ImageIcon, MapPin, Plus, X,
+  Aperture, Camera, ChevronLeft, ChevronRight, Clock, Cloud, Image as ImageIcon, MapPin, Plus, X,
 } from 'lucide-react-native';
+import OptionSheet from '@/components/common/OptionSheet';
+import TimePickerSheet from '@/components/spot/TimePickerSheet';
+import { parseExifDateTime } from '@/utils/exifDate';
 import type { LucideIcon } from 'lucide-react-native';
 import LocationSheet, { LocationOption } from '@/components/community/LocationSheet';
 import GearSheet from '@/components/community/GearSheet';
+import { useCreatePost, usePostForEdit, useUpdatePost } from '@/hooks/useCommunity';
+import { toErrorMessage } from '@/api/auth';
+import type { PostImageUpload } from '@/api/community';
 import { CommunityDetailStackParamList } from '@/navigation/stacks/CommunityDetailStack';
-import { GearSheetKind } from '@/types/community';
-import { INPUT_HEIGHT, HEADER_HEIGHT, CONTENT_PADDING, FONT_2XS, FONT_LG, FONT_MD, FONT_SM, FONT_XS } from '@/constants/layout';
+import { GearSheetKind, PostWeatherApi } from '@/types/community';
+import { THEMES } from '@/constants/themes';
+import { BUTTON_HEIGHT, BUTTON_RADIUS, INPUT_HEIGHT, HEADER_HEIGHT, CONTENT_PADDING, FONT_2XS, FONT_LG, FONT_MD, FONT_SM, FONT_XS } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
 
 const ACCENT = '#E31B59';
 const SURFACE = '#f5f5f7';
 const CAPTION_MAX = 500;
 const MAX_PHOTOS = 5;
+// 서버 PostCreateRequest.tags = @Size(max = 10). 카테고리가 13개라 전부 고르면 400이 난다.
+const TAG_MAX = 10;
 
 interface PickedPhoto {
   /** iOS는 assetId, Android는 assetId가 없어 uri로 대체(중복 판정용) */
   id: string;
   uri: string;
+  /**
+   * 수정 모드에서 이미 서버에 올라가 있는 사진의 id. 새로 고른 사진은 undefined다.
+   * 이 값이 있는 것만 retainedImageIds로 보내고, 없는 것만 newImages로 업로드한다.
+   */
+  serverId?: number;
 }
 
 function pad(n: number) {
@@ -43,8 +57,12 @@ interface MetaTileProps {
 }
 
 function MetaTile({ label, value, sub, Icon, editable, placeholder, onPress }: MetaTileProps) {
-  const content = (
-    <View className="flex-1 flex-row items-start" style={{ gap: normalize(10), backgroundColor: SURFACE, borderRadius: normalize(12), padding: normalize(12) }}>
+  // 편집 가능 여부에 따라 바깥 요소가 달라지면 두 타일의 flex 계산이 어긋나 너비가 벌어진다
+  // (일시 타일이 날씨 타일보다 넓어 보였던 원인). 두 경우 모두 같은 래퍼·같은 flexBasis를 쓴다.
+  const Wrapper = editable ? Pressable : View;
+  return (
+    <Wrapper onPress={editable ? onPress : undefined} style={{ flex: 1, flexBasis: 0 }}>
+    <View className="flex-row items-start" style={{ gap: normalize(10), backgroundColor: SURFACE, borderRadius: normalize(12), padding: normalize(12) }}>
       <Icon size={normalize(17)} color="rgba(0,0,0,0.35)" strokeWidth={1.8} style={{ marginTop: normalize(1) }} />
       <View style={{ flex: 1, minWidth: 0 }}>
         <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_2XS, color: 'rgba(0,0,0,0.45)', letterSpacing: 0.3 }}>
@@ -62,45 +80,114 @@ function MetaTile({ label, value, sub, Icon, editable, placeholder, onPress }: M
         </Text>
       </View>
     </View>
+    </Wrapper>
   );
-
-  if (!editable) return content;
-  return <Pressable onPress={onPress} style={{ flex: 1 }}>{content}</Pressable>;
 }
 
-// 커뮤니티 카테고리 태그 — 스팟 검색·필터에서 쓰는 것과 같은 고정 목록(카운트는 목업 값 그대로).
-const CATEGORIES: { label: string; count: string }[] = [
-  { label: '역사/전통', count: '1,383' },
-  { label: '공원', count: '465' },
-  { label: '숲', count: '338' },
-  { label: '야경', count: '302' },
-  { label: '산', count: '247' },
-  { label: '카페', count: '208' },
-  { label: '일출/일몰', count: '206' },
-  { label: '꽃', count: '183' },
+// 카테고리는 회원가입 "관심 테마"와 같은 목록을 쓴다(@/constants/themes).
+// 여기서 배열을 따로 두면 두 화면이 조용히 갈라진다 — 실제로 갈라져 있어서 합쳤다.
+// 카운트는 서버가 태그별로 세어주지 않아 표시하지 않는다(목업 숫자를 두면 거짓값이 된다).
+const CATEGORIES: readonly string[] = THEMES;
+
+// 날씨는 서버 필수값(@NotNull)이라 작성자가 직접 고른다. 자동 감지가 붙으면 기본값만 채워주면 된다.
+const WEATHER_OPTIONS: { label: string; value: PostWeatherApi }[] = [
+  { label: '맑음', value: 'CLEAR' },
+  { label: '구름 조금', value: 'PARTLY_CLOUDY' },
+  { label: '흐림', value: 'CLOUDY' },
+  { label: '비', value: 'RAIN' },
+  { label: '눈', value: 'SNOW' },
+  { label: '야간', value: 'NIGHT' },
 ];
 
 export default function CommunityWriteScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<CommunityDetailStackParamList>>();
+  const { params } = useRoute<RouteProp<CommunityDetailStackParamList, 'CommunityWrite'>>();
+  const editingPostId = params?.postId;
+  const isEdit = !!editingPostId;
 
   const [photos, setPhotos] = useState<PickedPhoto[]>([]);
   const [caption, setCaption] = useState('');
   const [location, setLocation] = useState<LocationOption | null>(null);
   const [camera, setCamera] = useState('');
   const [lens, setLens] = useState('');
+  const [weather, setWeather] = useState<PostWeatherApi | null>(null);
   const [categories, setCategories] = useState<Set<string>>(new Set());
 
   const [locationSheetVisible, setLocationSheetVisible] = useState(false);
+  const [weatherSheetVisible, setWeatherSheetVisible] = useState(false);
+  const [timeSheetVisible, setTimeSheetVisible] = useState(false);
   const [gearKind, setGearKind] = useState<GearSheetKind>('camera');
   const [gearSheetVisible, setGearSheetVisible] = useState(false);
 
-  // 일시는 화면을 연 시점 스냅샷 — 실제 EXIF 촬영 시각 연동은 이 화면의 범위 밖(편집 UI 패턴이 다름).
+  const createPost = useCreatePost();
+  const updatePost = useUpdatePost(editingPostId ?? '');
+  const { data: editing, isLoading: loadingPost, isError: loadFailed } = usePostForEdit(editingPostId);
+  const submitting = isEdit ? updatePost.isPending : createPost.isPending;
+
+  /**
+   * 촬영 일시. 사진 EXIF에서 읽고, 없으면 작성자가 직접 고른다.
+   *
+   * 현재 시각을 기본값으로 채워두지 않는다 — 서버가 shootingTime을 @NotNull로 요구해서
+   * 뭐라도 보내야 하는데, 사용자가 손대지 않으면 "업로드 시각"이 촬영 시각으로 저장돼 버린다.
+   * 그래서 미정(null)일 때는 게시를 막아 반드시 고르게 한다.
+   *
+   * 날짜는 EXIF에서 온 경우에만 보여준다. 서버가 LocalTime이라 어차피 저장되지 않는데,
+   * EXIF가 없을 때 오늘 날짜를 띄우면 촬영일인 것처럼 읽혀 틀린 정보가 된다.
+   */
   const openedAt = useRef(new Date()).current;
-  const dateLabel = `${openedAt.getFullYear()}.${pad(openedAt.getMonth() + 1)}.${pad(openedAt.getDate())}`;
-  const timeLabel = `${pad(openedAt.getHours())}:${pad(openedAt.getMinutes())}`;
+  const [shotAt, setShotAt] = useState<Date | null>(null);
+  const [shotAtSource, setShotAtSource] = useState<'exif' | 'manual' | 'saved' | null>(null);
+  const [dateFromExif, setDateFromExif] = useState(false);
+
+  /**
+   * 수정 모드 폼 채우기. 서버 응답이 도착하면 한 번만 실행한다 —
+   * 매 렌더마다 덮으면 사용자가 고친 값이 되돌아간다.
+   */
+  const prefilled = useRef(false);
+  useEffect(() => {
+    if (!isEdit || !editing || prefilled.current) return;
+    prefilled.current = true;
+
+    setCaption(editing.content);
+    setCamera(editing.cameraModel ?? '');
+    setLens(editing.lensModel ?? '');
+    setWeather(editing.weather);
+    setCategories(new Set(editing.tags ?? []));
+
+    // 서버는 스팟 주소를 게시글에 실어주지 않는다. 이름만 채우고, 사용자가 위치를 다시 고르면 그때 주소가 붙는다.
+    if (editing.spotId != null) {
+      setLocation({ id: String(editing.spotId), name: editing.spotName ?? '', address: '' });
+    }
+
+    // LocalTime("05:30" 또는 "05:30:00") → Date. 날짜는 서버에 없으므로 오늘로 두고 화면에는 숨긴다.
+    if (editing.shootingTime) {
+      const [h, m] = editing.shootingTime.split(':').map(Number);
+      if (Number.isFinite(h) && Number.isFinite(m)) {
+        const d = new Date();
+        d.setHours(h, m, 0, 0);
+        setShotAt(d);
+        setShotAtSource('saved');
+      }
+    }
+
+    setPhotos(editing.images.map((img) => ({ id: `server-${img.id}`, uri: img.imageUrl, serverId: img.id })));
+  }, [isEdit, editing]);
+
+  const timeLabel = shotAt ? `${pad(shotAt.getHours())}:${pad(shotAt.getMinutes())}` : '';
+  const shotDateLabel = shotAt && dateFromExif
+    ? `${shotAt.getFullYear()}.${pad(shotAt.getMonth() + 1)}.${pad(shotAt.getDate())}`
+    : '-';
+  const shotAtHint =
+    shotAtSource === 'exif' ? `${timeLabel} · 사진에서 가져옴`
+    : shotAtSource === 'manual' ? `${timeLabel} · 직접 선택`
+    : shotAtSource === 'saved' ? `${timeLabel} · 저장된 값`
+    : '탭하여 시각 선택';
 
   const mainPhoto = photos[0] ?? null;
-  const canSubmit = photos.length > 0;
+  // 서버가 content·shootingTime·weather를 필수로 받는다(@NotBlank/@NotNull).
+  // 촬영 시각은 EXIF가 없으면 비어 있으므로, 작성자가 고를 때까지 게시를 막는다.
+  const canSubmit =
+    photos.length > 0 && caption.trim().length > 0 && !!weather && !!shotAt && !submitting;
 
   // iOS PHPickerViewController는 앱 프로세스 밖에서 뜨므로 권한 요청이 필요 없다.
   // Android에서만 물어보고, 거부한 사용자는 설정으로 안내한다(ReviewWriteScreen과 동일 패턴).
@@ -128,9 +215,21 @@ export default function CommunityWriteScreen() {
         allowsMultipleSelection: true,
         selectionLimit: MAX_PHOTOS - photos.length,
         quality: 0.8,
+        // 촬영 일시를 사진에서 읽기 위해 EXIF를 함께 받는다.
+        exif: true,
         preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
       });
       if (result.canceled) return;
+
+      // 사용자가 직접 고른 값과 이미 저장된 값은 덮지 않는다. 스크린샷·편집본은 EXIF가 없어 null이 온다.
+      if (shotAtSource !== 'manual' && shotAtSource !== 'saved') {
+        const exifDate = result.assets.map((a) => parseExifDateTime(a.exif)).find(Boolean);
+        if (exifDate) {
+          setShotAt(exifDate);
+          setShotAtSource('exif');
+          setDateFromExif(true);
+        }
+      }
 
       setPhotos((prev) => {
         const seen = new Set(prev.map((p) => p.id));
@@ -164,7 +263,8 @@ export default function CommunityWriteScreen() {
     setCategories((prev) => {
       const next = new Set(prev);
       if (next.has(label)) next.delete(label);
-      else next.add(label);
+      // 상한을 넘으면 조용히 무시한다 — 칩이 이미 비활성으로 보이므로 별도 안내가 필요 없다.
+      else if (next.size < TAG_MAX) next.add(label);
       return next;
     });
 
@@ -174,10 +274,59 @@ export default function CommunityWriteScreen() {
   };
 
   const onSubmit = () => {
-    if (!canSubmit) return;
-    // 실제 게시글 등록 API 연동은 이 화면의 범위 밖 — 목록으로 돌아가는 것으로 마무리한다.
-    navigation.goBack();
+    if (!canSubmit || !weather || !shotAt) return;
+    // 확장자를 못 알아내는 경우가 있어 jpeg로 떨어뜨린다 — 서버는 실제 바이트로 판별한다.
+    const toUpload = (photo: PickedPhoto, idx: number): PostImageUpload => {
+      const ext = photo.uri.split('.').pop()?.toLowerCase();
+      const safeExt = ext && /^(jpe?g|png|heic|webp)$/.test(ext) ? ext : 'jpg';
+      return {
+        uri: photo.uri,
+        name: `post-${idx}.${safeExt}`,
+        type: safeExt === 'png' ? 'image/png' : safeExt === 'webp' ? 'image/webp' : 'image/jpeg',
+      };
+    };
+
+    const request = {
+      content: caption.trim(),
+      // 스팟을 안 고르면 위치 없는 글이 된다(서버에서 spotId는 선택값).
+      spotId: location ? Number(location.id) : null,
+      // 사진 EXIF에서 읽었거나 작성자가 직접 고른 값. 서버는 LocalTime이라 시:분만 저장한다.
+      shootingTime: timeLabel,
+      weather,
+      cameraModel: camera.trim() || null,
+      lensModel: lens.trim() || null,
+      tags: [...categories],
+    };
+
+    if (isEdit) {
+      // 서버는 retainedImageIds를 먼저 그 순서대로 배치하고 newImages를 뒤에 붙인다.
+      // ponytail: 그래서 새 사진을 기존 사진 사이에 끼워넣을 수 없다 — 저장 후 상세를 다시 받으면
+      // 서버 기준 순서로 정정된다. 임의 위치 삽입이 필요해지면 서버에 순서 파라미터를 요청해야 한다.
+      updatePost.mutate(
+        {
+          request: { ...request, retainedImageIds: photos.filter((p) => p.serverId != null).map((p) => p.serverId!) },
+          newImages: photos.filter((p) => p.serverId == null).map(toUpload),
+        },
+        {
+          onSuccess: () => navigation.goBack(),
+          onError: (err) => Alert.alert('게시글을 수정하지 못했어요', toErrorMessage(err, '잠시 후 다시 시도해 주세요.')),
+        },
+      );
+      return;
+    }
+
+    createPost.mutate(
+      { request, images: photos.map(toUpload) },
+      {
+        onSuccess: () => navigation.goBack(),
+        onError: (err) => Alert.alert('게시글을 등록하지 못했어요', toErrorMessage(err, '잠시 후 다시 시도해 주세요.')),
+      },
+    );
   };
+
+  // 수정 모드는 원본이 도착해야 폼을 채울 수 있다. 빈 폼을 먼저 보여주면 사용자가 그 사이 입력한 값을
+  // 잠시 뒤 prefill이 덮어버린다 — 그래서 로딩 중에는 폼 자체를 띄우지 않는다.
+  const blocked = isEdit && (loadingPost || loadFailed || !editing);
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right']}>
@@ -189,24 +338,28 @@ export default function CommunityWriteScreen() {
         <Pressable onPress={() => navigation.goBack()} hitSlop={8} className="items-center justify-center" style={{ width: normalize(36), height: normalize(36) }}>
           <ChevronLeft size={normalize(22)} color="#000" strokeWidth={2} />
         </Pressable>
+        {/* 게시 버튼은 폼 최하단으로 내렸다 — 좌측 뒤로가기(36) 만큼 우측에 여백을 둬 제목을 정중앙에 맞춘다 */}
         <Text
           allowFontScaling={false}
           className="flex-1 text-center"
           style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_LG, color: '#000', letterSpacing: -0.4, marginRight: normalize(36) }}
         >
-          새 글 작성
+          {isEdit ? '게시글 수정' : '새 글 작성'}
         </Text>
-        <Pressable
-          onPress={onSubmit}
-          disabled={!canSubmit}
-          className="items-center justify-center"
-          style={{ height: normalize(32), paddingHorizontal: normalize(16), borderRadius: normalize(16), backgroundColor: ACCENT, opacity: canSubmit ? 1 : 0.35 }}
-        >
-          <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, color: '#fff', letterSpacing: -0.2 }}>
-            게시
-          </Text>
-        </Pressable>
       </View>
+
+      {blocked ? (
+        <View className="flex-1 items-center justify-center" style={{ gap: normalize(12) }}>
+          {loadingPost ? (
+            <ActivityIndicator color={ACCENT} />
+          ) : (
+            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: 'rgba(0,0,0,0.4)', letterSpacing: -0.2 }}>
+              게시글을 불러오지 못했어요
+            </Text>
+          )}
+        </View>
+      ) : (
+      <>
 
       {/* 안드로이드도 behavior가 필요하다 — 엣지투엣지에서 adjustResize가 창을 줄여주지 않는다
           (BottomSheet.tsx 주석 참고). */}
@@ -218,7 +371,9 @@ export default function CommunityWriteScreen() {
               <Image source={{ uri: mainPhoto.uri }} resizeMode="cover" style={{ width: '100%', aspectRatio: 4 / 3 }} />
             ) : (
               <Pressable onPress={pickPhotos} className="items-center justify-center" style={{ width: '100%', aspectRatio: 4 / 3, backgroundColor: '#1c1c1e' }}>
-                <ImageIcon size={normalize(28)} color="rgba(255,255,255,0.4)" strokeWidth={1.8} />
+                {/* 반투명 색을 쓰면 액자 테두리와 산 모양 선이 겹치는 지점이 두 번 합성돼 밝은 얼룩으로 보인다.
+                    #1c1c1e 배경 위 rgba(255,255,255,0.4)와 같은 불투명 색으로 대체해 겹침을 없앤다. */}
+                <ImageIcon size={normalize(28)} color="#777778" strokeWidth={1.8} />
                 <Text allowFontScaling={false} style={{ marginTop: normalize(8), fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: 'rgba(255,255,255,0.5)', letterSpacing: -0.1 }}>
                   사진 추가
                 </Text>
@@ -280,7 +435,8 @@ export default function CommunityWriteScreen() {
                   fontFamily: 'Pretendard-Medium',
                   fontSize: FONT_MD,
                   letterSpacing: -0.2,
-                  lineHeight: FONT_MD * 1.55,
+                  // lineHeight를 주지 않는다 — iOS는 커서 높이를 lineHeight에 맞추기 때문에
+                  // 1.55배를 주면 15px 글자에 23px짜리 긴 커서가 선다. 목업 textarea도 line-height 미지정.
                   color: '#000',
                 }}
               />
@@ -328,9 +484,25 @@ export default function CommunityWriteScreen() {
               </View>
               <View style={{ gap: normalize(8) }}>
                 <View className="flex-row" style={{ gap: normalize(8) }}>
-                  <MetaTile label="일시" value={dateLabel} sub={timeLabel} Icon={Clock} />
-                  {/* 날씨 API 연동은 범위 밖 — 값이 있는 것처럼 보이지 않도록 미확인 상태를 그대로 보여준다. */}
-                  <MetaTile label="날씨" value="정보 없음" sub="자동 감지 예정" Icon={CloudOff} placeholder />
+                  <MetaTile
+                    label="일시"
+                    value={shotDateLabel}
+                    sub={shotAtHint}
+                    Icon={Clock}
+                    editable
+                    placeholder={!shotAt}
+                    onPress={() => setTimeSheetVisible(true)}
+                  />
+                  {/* 서버 필수값이라 자동 감지 전까지는 직접 고른다 */}
+                  <MetaTile
+                    label="날씨"
+                    value={WEATHER_OPTIONS.find((o) => o.value === weather)?.label ?? '선택'}
+                    sub={weather ? '직접 선택' : '탭하여 선택'}
+                    Icon={Cloud}
+                    editable
+                    placeholder={!weather}
+                    onPress={() => setWeatherSheetVisible(true)}
+                  />
                 </View>
                 <View className="flex-row" style={{ gap: normalize(8) }}>
                   <MetaTile
@@ -362,24 +534,24 @@ export default function CommunityWriteScreen() {
                   카테고리
                 </Text>
                 <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_2XS, color: 'rgba(0,0,0,0.3)', letterSpacing: -0.1 }}>
-                  {`다중 선택 · ${categories.size}개 선택됨`}
+                  {`다중 선택 · ${categories.size}/${TAG_MAX}`}
                 </Text>
               </View>
               <View className="flex-row flex-wrap" style={{ gap: normalize(6) }}>
-                {CATEGORIES.map(({ label, count }) => {
+                {CATEGORIES.map((label) => {
                   const selected = categories.has(label);
+                  // 상한에 닿으면 안 고른 칩을 흐리게 해서 더 못 고른다는 걸 눌러보기 전에 보여준다.
+                  const blocked = !selected && categories.size >= TAG_MAX;
                   return (
                     <Pressable
                       key={label}
                       onPress={() => toggleCategory(label)}
+                      disabled={blocked}
                       className="flex-row items-center"
-                      style={{ height: normalize(30), paddingHorizontal: normalize(12), borderRadius: normalize(15), gap: normalize(5), backgroundColor: selected ? 'rgba(227,27,89,0.08)' : SURFACE }}
+                      style={{ height: normalize(30), paddingHorizontal: normalize(12), borderRadius: normalize(15), backgroundColor: selected ? 'rgba(227,27,89,0.08)' : SURFACE, opacity: blocked ? 0.4 : 1 }}
                     >
                       <Text allowFontScaling={false} style={{ fontFamily: selected ? 'Pretendard-SemiBold' : 'Pretendard-Regular', fontSize: FONT_SM, color: selected ? ACCENT : 'rgba(0,0,0,0.55)', letterSpacing: -0.2 }}>
                         {label}
-                      </Text>
-                      <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_2XS, color: selected ? 'rgba(227,27,89,0.55)' : 'rgba(0,0,0,0.35)', letterSpacing: -0.1 }}>
-                        {count}
                       </Text>
                     </Pressable>
                   );
@@ -389,11 +561,42 @@ export default function CommunityWriteScreen() {
                 선택한 카테고리는 스팟 검색·필터에 사용됩니다.
               </Text>
             </View>
+
+            {/* 게시 CTA — 작성 항목을 모두 지나온 뒤에 누르도록 폼 최하단에 둔다 */}
+            <Pressable
+              onPress={onSubmit}
+              disabled={!canSubmit}
+              className="w-full items-center justify-center"
+              style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS, backgroundColor: ACCENT, opacity: canSubmit ? 1 : 0.35, marginTop: normalize(8) }}
+            >
+              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, color: '#fff', letterSpacing: -0.2 }}>
+                {submitting ? (isEdit ? '저장 중...' : '게시 중...') : isEdit ? '저장' : '게시'}
+              </Text>
+            </Pressable>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
 
       <LocationSheet visible={locationSheetVisible} selected={location} onSelect={setLocation} onClose={() => setLocationSheetVisible(false)} />
+      <TimePickerSheet
+        visible={timeSheetVisible}
+        value={shotAt ?? openedAt}
+        title="촬영 시각"
+        minuteInterval={1}
+        onConfirm={(date) => {
+          setShotAt(date);
+          setShotAtSource('manual');
+        }}
+        onClose={() => setTimeSheetVisible(false)}
+      />
+      <OptionSheet
+        visible={weatherSheetVisible}
+        title="촬영 당시 날씨"
+        options={WEATHER_OPTIONS.map((o) => o.label)}
+        selected={WEATHER_OPTIONS.find((o) => o.value === weather)?.label ?? ''}
+        onSelect={(label) => setWeather(WEATHER_OPTIONS.find((o) => o.label === label)?.value ?? null)}
+        onClose={() => setWeatherSheetVisible(false)}
+      />
       <GearSheet
         visible={gearSheetVisible}
         kind={gearKind}
@@ -401,6 +604,8 @@ export default function CommunityWriteScreen() {
         onSelect={(v) => (gearKind === 'camera' ? setCamera(v) : setLens(v))}
         onClose={() => setGearSheetVisible(false)}
       />
+      </>
+      )}
     </SafeAreaView>
   );
 }

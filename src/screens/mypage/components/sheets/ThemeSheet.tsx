@@ -4,6 +4,7 @@ import BottomSheet from '@/components/common/BottomSheet';
 import { IconX } from '@tabler/icons-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { FONT_SM, FONT_MD, BUTTON_HEIGHT, BUTTON_RADIUS } from '@/constants/layout';
+import { THEMES } from '@/constants/themes';
 
 interface ThemeSheetProps {
   visible: boolean;
@@ -11,8 +12,12 @@ interface ThemeSheetProps {
   onSave: () => void;
 }
 
-const ALL_THEMES = ['야경', '바다', '한옥', '꽃', '카페', '인물', '축제', '커플', '반려동물', '드론', '일출/일몰', '비오는날', '은하수', '필름'];
-const INITIAL_THEMES = ['야경', '바다', '축제']; // MOCK
+// 회원가입 관심 테마와 같은 목록(@/constants/themes → spotCategories 단일 출처).
+// 인물·커플·반려동물·드론·비오는날·필름은 백엔드 SpotCategory에 대응값이 없어 제거했다.
+const ALL_THEMES = THEMES;
+// MOCK. 라벨이 ALL_THEMES에 없으면 칩이 아예 안 그려져 선택 상태가 보이지 않는다 —
+// BEACH 라벨이 '바다'에서 '해변'으로 통일되면서 함께 맞춘다.
+const INITIAL_THEMES = ['야경', '해변', '축제'];
 
 export default function ThemeSheet({ visible, onClose, onSave }: ThemeSheetProps) {
   const [selectedThemes, setSelectedThemes] = useState<string[]>(INITIAL_THEMES);
