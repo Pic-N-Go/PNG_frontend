@@ -10,39 +10,44 @@ import type {
 
 export const INQUIRY_KEYS = {
   all: ['inquiries'] as const,
-  my: (page: number, size: number) => [...INQUIRY_KEYS.all, 'my', { page, size }] as const,
-  detail: (id: number) => [...INQUIRY_KEYS.all, 'detail', id] as const,
-  admin: (params?: AdminInquiryFilterParams) => [...INQUIRY_KEYS.all, 'admin', params] as const,
+  my: (userId: number | undefined, page: number, size: number) =>
+    [...INQUIRY_KEYS.all, 'my', userId ?? 0, { page, size }] as const,
+  detail: (userId: number | undefined, id: number) =>
+    [...INQUIRY_KEYS.all, 'detail', userId ?? 0, id] as const,
+  admin: (params?: AdminInquiryFilterParams) =>
+    [...INQUIRY_KEYS.all, 'admin', params] as const,
 };
 
 // ── 1. 사용자 1:1 문의 훅 ──────────────────────────────────────────
 
 // 1.1 내 문의 목록 조회 훅
 export function useMyInquiries(page = 0, size = 20) {
+  const user = useAuthStore((s) => s.user);
   const accessToken = useAuthStore((s) => s.accessToken);
 
   return useQuery<InquiryPageResponse, Error>({
-    queryKey: INQUIRY_KEYS.my(page, size),
+    queryKey: INQUIRY_KEYS.my(user?.id, page, size),
     queryFn: () => {
       if (!accessToken) throw new Error('로그인이 필요합니다.');
       return inquiryApi.getMyInquiries(page, size, accessToken);
     },
-    enabled: !!accessToken,
+    enabled: !!accessToken && !!user?.id,
     staleTime: 1000 * 15,
   });
 }
 
 // 1.2 문의 상세 조회 훅
 export function useInquiryDetail(id: number | null) {
+  const user = useAuthStore((s) => s.user);
   const accessToken = useAuthStore((s) => s.accessToken);
 
   return useQuery<InquiryItem, Error>({
-    queryKey: INQUIRY_KEYS.detail(id ?? 0),
+    queryKey: INQUIRY_KEYS.detail(user?.id, id ?? 0),
     queryFn: () => {
       if (!accessToken || !id) throw new Error('문의 정보를 찾을 수 없습니다.');
       return inquiryApi.getInquiryDetail(id, accessToken);
     },
-    enabled: !!accessToken && !!id && id > 0,
+    enabled: !!accessToken && !!user?.id && !!id && id > 0,
   });
 }
 
@@ -64,6 +69,7 @@ export function useCreateInquiry() {
 
 // 1.4 문의 해결 상태 변경 뮤테이션 (사용자 해결 완료)
 export function useResolveInquiry() {
+  const user = useAuthStore((s) => s.user);
   const accessToken = useAuthStore((s) => s.accessToken);
   const queryClient = useQueryClient();
 
@@ -74,7 +80,7 @@ export function useResolveInquiry() {
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: [...INQUIRY_KEYS.all, 'my'] });
-      queryClient.invalidateQueries({ queryKey: INQUIRY_KEYS.detail(variables.id) });
+      queryClient.invalidateQueries({ queryKey: INQUIRY_KEYS.detail(user?.id, variables.id) });
     },
   });
 }
@@ -106,9 +112,9 @@ export function useAnswerInquiry() {
       if (!accessToken) throw new Error('관리자 권한이 필요합니다.');
       return inquiryApi.answerInquiry(id, answer, accessToken);
     },
-    onSuccess: (_, variables) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [...INQUIRY_KEYS.all, 'admin'] });
-      queryClient.invalidateQueries({ queryKey: INQUIRY_KEYS.detail(variables.id) });
+      queryClient.invalidateQueries({ queryKey: [...INQUIRY_KEYS.all, 'detail'] });
       queryClient.invalidateQueries({ queryKey: [...INQUIRY_KEYS.all, 'my'] });
     },
   });
@@ -116,7 +122,8 @@ export function useAnswerInquiry() {
 
 // ── 3. 레거시 지원 훅 ───────────────────────────────────────────────
 export function useInquiries() {
-  const { data } = useMyInquiries(0, 10);
+  // InquiryListScreen과 동일한 page size(50)를 사용하여 쿼리 캐시를 공유하고 전체 답변 완료 건수 반영
+  const { data } = useMyInquiries(0, 50);
   const unreadCount = data?.content.filter((i) => i.status === 'ANSWERED' && !i.isResolved).length ?? 0;
   return { unreadCount };
 }

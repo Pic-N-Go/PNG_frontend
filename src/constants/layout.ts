@@ -1,8 +1,9 @@
 import { normalize, normalizeFontSize } from "@/utils/normalize";
 
-// ── 버튼 / 인풋 ──────────────────────────────
+// ── 버튼 / 인풋 / 컨트롤 ──────────────────────
 export const BUTTON_HEIGHT = normalize(52);
 export const INPUT_HEIGHT = normalize(52);
+export const CONTROL_SIZE = normalize(40);
 export const BUTTON_RADIUS = normalize(26);   // pill shape (height / 2)
 export const INPUT_RADIUS = normalize(12);
 

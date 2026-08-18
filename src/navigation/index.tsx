@@ -60,7 +60,8 @@ function handleDeepLinkNav(deepLink: string) {
   const inquiryMatch = deepLink.match(/(?:inquiryId=|\/mypage\/inquiry\/|\/inquiry\/)(\d+)/);
   if (inquiryMatch && inquiryMatch[1]) {
     const inquiryId = inquiryMatch[1];
-    if (navigationRef.isReady()) {
+    const isLoggedIn = !!useAuthStore.getState().accessToken;
+    if (navigationRef.isReady() && isLoggedIn) {
       navigateToInquiryDetail(inquiryId);
     } else {
       pendingInquiryId = inquiryId;

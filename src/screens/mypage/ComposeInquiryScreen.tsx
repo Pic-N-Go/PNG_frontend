@@ -121,7 +121,7 @@ export default function ComposeInquiryScreen({ navigation }: Props) {
             marginHorizontal: GRID_PADDING,
             borderRadius: normalize(12),
             paddingHorizontal: normalize(16),
-            height: normalize(52),
+            height: BUTTON_HEIGHT,
           }}
         >
           <Text
@@ -145,7 +145,7 @@ export default function ComposeInquiryScreen({ navigation }: Props) {
             marginHorizontal: GRID_PADDING,
             borderRadius: normalize(12),
             paddingHorizontal: normalize(16),
-            height: normalize(52),
+            height: BUTTON_HEIGHT,
             justifyContent: 'center',
           }}
         >

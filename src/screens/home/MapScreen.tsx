@@ -17,7 +17,7 @@ import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { getCourseStats } from '@/utils/distance';
 import { parseValidCoordinate } from '@/utils/geo';
 import { getDayColor, DAY_COLOR_PALETTE } from '@/constants/dayColors';
-import { FONT_SM, FONT_MD, BUTTON_HEIGHT, BUTTON_RADIUS, HEADER_HEIGHT, ICON_SM } from '@/constants/layout';
+import { FONT_SM, FONT_MD, FONT_XL, BUTTON_HEIGHT, BUTTON_RADIUS, HEADER_HEIGHT, ICON_SM, CONTROL_SIZE } from '@/constants/layout';
 
 const KAKAO_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_API_KEY;
 
@@ -180,6 +180,7 @@ export default function MapScreen() {
     }
 
     return () => {
+      isDisposed = true;
       if (subscription) {
         subscription.remove();
       }
@@ -1282,13 +1283,13 @@ export default function MapScreen() {
               onPress={handleZoomIn}
               activeOpacity={0.7}
               style={{
-                width: normalize(40),
-                height: normalize(40),
+                width: CONTROL_SIZE,
+                height: CONTROL_SIZE,
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <Text style={{ fontSize: normalizeFontSize(20), color: 'rgba(0,0,0,0.55)', fontFamily: 'Pretendard-Regular' }}>+</Text>
+              <Text style={{ fontSize: FONT_XL, color: 'rgba(0,0,0,0.55)', fontFamily: 'Pretendard-Regular' }}>+</Text>
             </TouchableOpacity>
             
             <View style={{ height: 0.5, backgroundColor: 'rgba(0,0,0,0.06)' }} />
@@ -1297,13 +1298,13 @@ export default function MapScreen() {
               onPress={handleZoomOut}
               activeOpacity={0.7}
               style={{
-                width: normalize(40),
-                height: normalize(40),
+                width: CONTROL_SIZE,
+                height: CONTROL_SIZE,
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <Text style={{ fontSize: normalizeFontSize(20), color: 'rgba(0,0,0,0.55)', fontFamily: 'Pretendard-Regular' }}>−</Text>
+              <Text style={{ fontSize: FONT_XL, color: 'rgba(0,0,0,0.55)', fontFamily: 'Pretendard-Regular' }}>−</Text>
             </TouchableOpacity>
           </View>
         </View>

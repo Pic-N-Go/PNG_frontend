@@ -35,13 +35,14 @@ import {
   IconClock,
   IconCheck,
 } from '@tabler/icons-react-native';
-import { normalize, normalizeFontSize } from '@/utils/normalize';
+import { normalize } from '@/utils/normalize';
 import {
   FONT_2XS,
   FONT_XS,
   FONT_SM,
   FONT_MD,
   FONT_LG,
+  FONT_2XL,
   GRID_PADDING,
   CARD_RADIUS,
   BUTTON_RADIUS,
@@ -779,8 +780,6 @@ export default function AdminDashboardScreen() {
                         backgroundColor: '#fff',
                         borderRadius: CARD_RADIUS,
                         padding: normalize(14),
-                        borderWidth: 0.5,
-                        borderColor: 'rgba(0,0,0,0.06)',
                       }}
                     >
                       <View className="flex-row items-center justify-between">
@@ -1291,7 +1290,7 @@ export default function AdminDashboardScreen() {
             >
               <IconClock size={normalize(16)} color="#d97706" style={{ marginTop: normalize(2) }} />
               <Text style={{ flex: 1, fontSize: FONT_2XS, fontFamily: 'Pretendard-Regular', color: '#92400e', lineHeight: normalize(16) }}>
-                💡 <Text style={{ fontFamily: 'Pretendard-Bold' }}>7일 미응답 자동 해결 정책</Text>: 관리자가 답변(ANSWERED) 등록 후 사용자가 7일간 해결 버튼을 누르지 않은 건은 새벽 배치에 의해 자동으로 &apos;해결됨(RESOLVED)&apos; 상태로 전환됩니다.
+                <Text style={{ fontFamily: 'Pretendard-Bold' }}>7일 미응답 자동 해결 정책</Text>: 관리자가 답변(ANSWERED) 등록 후 사용자가 7일간 해결 버튼을 누르지 않은 건은 새벽 배치에 의해 자동으로 &apos;해결됨(RESOLVED)&apos; 상태로 전환됩니다.
               </Text>
             </View>
 
@@ -1348,8 +1347,6 @@ export default function AdminDashboardScreen() {
                         backgroundColor: '#fff',
                         borderRadius: CARD_RADIUS,
                         padding: normalize(16),
-                        borderWidth: 0.5,
-                        borderColor: 'rgba(0,0,0,0.06)',
                       }}
                     >
                       {/* 카드 헤더: 작성자 및 상태 */}
@@ -1625,8 +1622,6 @@ export default function AdminDashboardScreen() {
                 borderRadius: CARD_RADIUS,
                 padding: normalize(16),
                 marginBottom: SPACING_SM,
-                borderWidth: 0.5,
-                borderColor: 'rgba(0,0,0,0.06)',
               }}
             >
               <View className="flex-row items-center justify-between" style={{ marginBottom: normalize(12) }}>
@@ -1672,7 +1667,7 @@ export default function AdminDashboardScreen() {
                   <View className="flex-row items-baseline justify-between" style={{ marginBottom: normalize(8) }}>
                     <Text
                       style={{
-                        fontSize: normalizeFontSize(28),
+                        fontSize: FONT_2XL,
                         fontFamily: 'Pretendard-Bold',
                         color: '#4f46e5',
                         letterSpacing: -0.5,
@@ -1747,8 +1742,6 @@ export default function AdminDashboardScreen() {
                 borderRadius: CARD_RADIUS,
                 padding: normalize(16),
                 marginBottom: SPACING_SM,
-                borderWidth: 0.5,
-                borderColor: 'rgba(0,0,0,0.06)',
               }}
             >
               <Text
@@ -1803,8 +1796,6 @@ export default function AdminDashboardScreen() {
                 backgroundColor: '#fff',
                 borderRadius: CARD_RADIUS,
                 padding: normalize(16),
-                borderWidth: 0.5,
-                borderColor: 'rgba(0,0,0,0.06)',
               }}
             >
               <Text
@@ -1888,8 +1879,6 @@ export default function AdminDashboardScreen() {
                 borderRadius: CARD_RADIUS,
                 padding: normalize(16),
                 marginBottom: SPACING_SM,
-                borderWidth: 0.5,
-                borderColor: 'rgba(0,0,0,0.06)',
               }}
             >
               <Text
@@ -1913,7 +1902,7 @@ export default function AdminDashboardScreen() {
               >
                 전국 17개 지역 관광지 데이터를 전부 가져와 동기화합니다.{'\n'}
                 <Text style={{ color: '#dc2626', fontFamily: 'Pretendard-Medium' }}>
-                  ⚠️ 주의: 전체 동기화는 수 분 이상 소요될 수 있습니다. (최초 1회 구축용)
+                  주의: 전체 동기화는 수 분 이상 소요될 수 있습니다. (최초 1회 구축용)
                 </Text>
               </Text>
 
@@ -1947,8 +1936,6 @@ export default function AdminDashboardScreen() {
                 backgroundColor: '#fff',
                 borderRadius: CARD_RADIUS,
                 padding: normalize(16),
-                borderWidth: 0.5,
-                borderColor: 'rgba(0,0,0,0.06)',
               }}
             >
               <Text
@@ -2206,7 +2193,7 @@ export default function AdminDashboardScreen() {
                               backgroundColor: 'rgba(227, 27, 89, 0.08)',
                             }}
                           >
-                            <Text style={{ fontSize: normalizeFontSize(9), fontFamily: 'Pretendard-Bold', color: '#E31B59' }}>
+                            <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Bold', color: '#E31B59' }}>
                               추천
                             </Text>
                           </View>

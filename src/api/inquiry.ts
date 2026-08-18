@@ -1,4 +1,4 @@
-import { toHttpError, tokenFromHeaders } from '@/api/auth';
+import { ApiError, toHttpError, tokenFromHeaders } from '@/api/auth';
 import type {
   InquiryItem,
   InquiryPageResponse,
@@ -15,7 +15,7 @@ if (__DEV__ && !BASE) {
   console.warn('[inquiry] EXPO_PUBLIC_API_URL 환경 변수가 설정되지 않았습니다. API 요청이 실패할 수 있습니다.');
 }
 
-export { ApiError } from '@/api/auth';
+export { ApiError };
 
 async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs = TIMEOUT_MS) {
   const controller = new AbortController();
@@ -24,6 +24,11 @@ async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs = T
     const res = await fetch(url, { ...options, signal: controller.signal });
     if (!res.ok) throw await toHttpError(res, tokenFromHeaders(options.headers));
     return res;
+  } catch (err) {
+    if (err instanceof Error && err.name === 'AbortError') {
+      throw new ApiError('요청 시간이 초과되었습니다. 다시 시도해 주세요.');
+    }
+    throw err;
   } finally {
     clearTimeout(timer);
   }

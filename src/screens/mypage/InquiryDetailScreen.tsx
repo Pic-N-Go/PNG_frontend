@@ -20,7 +20,8 @@ const SUB = '#8a8a8e';
 const TEXT = '#111111';
 
 export default function InquiryDetailScreen({ navigation, route }: Props) {
-  const inquiryId = Number(route.params.id);
+  const parsedId = Number(route.params?.id);
+  const inquiryId = !isNaN(parsedId) && parsedId > 0 ? parsedId : null;
   const { data, isLoading, isError, refetch } = useInquiryDetail(inquiryId);
   const resolveMutation = useResolveInquiry();
 
@@ -37,9 +38,9 @@ export default function InquiryDetailScreen({ navigation, route }: Props) {
       { id: data.id, isResolved: true },
       {
         onSuccess: () => {
-          showToast('문의가 해결 처리되었습니다! 감사합니다 ✓');
+          showToast('문의가 해결 처리되었습니다. 감사합니다.');
         },
-        onError: (err) => {
+        onError: (err: any) => {
           showToast(err.message || '처리 중 오류가 발생했습니다.');
         },
       }
@@ -89,25 +90,27 @@ export default function InquiryDetailScreen({ navigation, route }: Props) {
             className="font-semibold text-black tracking-tight"
             style={{ fontSize: FONT_MD, fontFamily: 'Pretendard-SemiBold' }}
           >
-            문의 내용을 불러올 수 없어요
+            {inquiryId === null ? '잘못된 문의입니다' : '문의 내용을 불러올 수 없어요'}
           </Text>
           <Text style={{ fontSize: FONT_XS, color: SUB, marginTop: normalize(8), fontFamily: 'Pretendard-Regular' }}>
-            잠시 후 다시 시도해 주세요.
+            {inquiryId === null ? '문의 ID가 올바르지 않습니다.' : '잠시 후 다시 시도해 주세요.'}
           </Text>
-          <Pressable
-            onPress={() => refetch()}
-            style={{
-              marginTop: normalize(16),
-              paddingHorizontal: normalize(20),
-              paddingVertical: normalize(10),
-              borderRadius: normalize(8),
-              backgroundColor: '#111',
-            }}
-          >
-            <Text style={{ fontSize: FONT_SM, fontFamily: 'Pretendard-Medium', color: '#fff' }}>
-              다시 시도
-            </Text>
-          </Pressable>
+          {inquiryId !== null && (
+            <Pressable
+              onPress={() => refetch()}
+              style={{
+                marginTop: normalize(16),
+                paddingHorizontal: normalize(18),
+                paddingVertical: normalize(10),
+                borderRadius: normalize(8),
+                backgroundColor: TEXT,
+              }}
+            >
+              <Text style={{ fontSize: FONT_SM, color: '#ffffff', fontFamily: 'Pretendard-Medium' }}>
+                다시 시도
+              </Text>
+            </Pressable>
+          )}
         </View>
       ) : (
         <ScrollView contentContainerStyle={{ paddingBottom: normalize(32) }} showsVerticalScrollIndicator={false}>
@@ -284,12 +287,15 @@ export default function InquiryDetailScreen({ navigation, route }: Props) {
                   {resolveMutation.isPending ? (
                     <ActivityIndicator size="small" color="#111" />
                   ) : (
-                    <Text
-                      className="font-semibold"
-                      style={{ fontSize: FONT_SM, color: TEXT, fontFamily: 'Pretendard-SemiBold' }}
-                    >
-                      👍 해결됐어요
-                    </Text>
+                    <View className="flex-row items-center" style={{ gap: normalize(4) }}>
+                      <IconCheck size={normalize(16)} color={TEXT} strokeWidth={2} />
+                      <Text
+                        className="font-semibold"
+                        style={{ fontSize: FONT_SM, color: TEXT, fontFamily: 'Pretendard-SemiBold' }}
+                      >
+                        해결됐어요
+                      </Text>
+                    </View>
                   )}
                 </Pressable>
                 <Pressable

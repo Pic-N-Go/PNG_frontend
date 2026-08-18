@@ -1,4 +1,4 @@
-import { toHttpError, tokenFromHeaders } from '@/api/auth';
+import { ApiError, toHttpError, tokenFromHeaders } from '@/api/auth';
 import type {
   AdminUser,
   AdminUserPageResponse,
@@ -16,7 +16,7 @@ if (__DEV__ && !BASE) {
   console.warn('[admin] EXPO_PUBLIC_API_URL 환경 변수가 설정되지 않았습니다. API 요청이 실패할 수 있습니다.');
 }
 
-export { ApiError } from '@/api/auth';
+export { ApiError };
 
 async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs = TIMEOUT_MS) {
   const controller = new AbortController();
@@ -25,6 +25,11 @@ async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs = T
     const res = await fetch(url, { ...options, signal: controller.signal });
     if (!res.ok) throw await toHttpError(res, tokenFromHeaders(options.headers));
     return res;
+  } catch (err) {
+    if (err instanceof Error && err.name === 'AbortError') {
+      throw new ApiError('요청 시간이 초과되었습니다. 다시 시도해 주세요.');
+    }
+    throw err;
   } finally {
     clearTimeout(timer);
   }
@@ -124,20 +129,20 @@ export const adminApi = {
         (total >= withEmbedding ? total - withEmbedding : 0)
     );
 
-    let coveragePercentage = Number(
-      body?.coveragePercentage ??
-        body?.coveragePercent ??
-        body?.coverageRate ??
-        body?.coverage ??
-        body?.rate ??
-        body?.percentage ??
-        0
-    );
+    let coveragePercentage: number;
+    const rawPercent =
+      body?.coveragePercentage ?? body?.coveragePercent ?? body?.percentage;
+    const rawRate = body?.coverageRate ?? body?.rate ?? body?.coverage;
 
-    if (coveragePercentage > 0 && coveragePercentage <= 1 && total > 1) {
-      coveragePercentage = coveragePercentage * 100;
+    if (rawPercent !== undefined && rawPercent !== null && !isNaN(Number(rawPercent))) {
+      coveragePercentage = Number(rawPercent);
+    } else if (rawRate !== undefined && rawRate !== null && !isNaN(Number(rawRate))) {
+      const rateNum = Number(rawRate);
+      coveragePercentage = rateNum <= 1 && rateNum >= 0 ? rateNum * 100 : rateNum;
     } else if (total > 0) {
       coveragePercentage = (withEmbedding / total) * 100;
+    } else {
+      coveragePercentage = 0;
     }
 
     return {
@@ -224,16 +229,19 @@ export const adminApi = {
       });
       const text = await res.text();
       return text || '동기화 완료';
-    } catch {
-      // /admin/tour-api/sync 가 404일 경우 기존 /tour-api/sync 시도
-      const resFallback = await fetchWithTimeout(`${BASE}/tour-api/sync${pathQuery}`, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
-      const text = await resFallback.text();
-      return text || '동기화 완료';
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 404) {
+        // /admin/tour-api/sync 가 404일 경우 레거시 /tour-api/sync 시도
+        const resFallback = await fetchWithTimeout(`${BASE}/tour-api/sync${pathQuery}`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+        const text = await resFallback.text();
+        return text || '동기화 완료';
+      }
+      throw err;
     }
   },
 
@@ -252,20 +260,23 @@ export const adminApi = {
       );
       const text = await res.text();
       return text || '전체 지역 동기화 완료';
-    } catch {
-      // /admin/tour-api/sync/all 가 404일 경우 기존 /tour-api/sync/all 시도
-      const resFallback = await fetchWithTimeout(
-        `${BASE}/tour-api/sync/all`,
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 404) {
+        // /admin/tour-api/sync/all 가 404일 경우 레거시 /tour-api/sync/all 시도
+        const resFallback = await fetchWithTimeout(
+          `${BASE}/tour-api/sync/all`,
+          {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
           },
-        },
-        180_000
-      );
-      const text = await resFallback.text();
-      return text || '전체 지역 동기화 완료';
+          180_000
+        );
+        const text = await resFallback.text();
+        return text || '전체 지역 동기화 완료';
+      }
+      throw err;
     }
   },
 };
