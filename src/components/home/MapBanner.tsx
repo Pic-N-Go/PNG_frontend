@@ -28,7 +28,15 @@ export default function MapBanner({ onPress, spotCount = 0, isLoading, userLocat
   const centerLat = userLocation?.lat ?? 37.5665;
   const centerLng = userLocation?.lng ?? 126.9780;
 
+  // 좌표 및 스팟 ID 기반의 안정적인 spotsKey 생성 (배열 참조 변경으로 인한 불필요한 웹뷰 재로드 방지)
+  const spotsKey = useMemo(() => {
+    if (!spots || spots.length === 0) return '';
+    return spots.map((s) => `${s.id}_${s.latitude}_${s.longitude}`).join('|');
+  }, [spots]);
+
   const mapHtml = useMemo(() => {
+    if (!KAKAO_KEY) return '';
+
     const spotItems = (spots || []).map((s) => ({
       lat: s.latitude,
       lng: s.longitude,
@@ -74,18 +82,29 @@ export default function MapBanner({ onPress, spotCount = 0, isLoading, userLocat
   <script>
     (function () {
       var overlay = document.getElementById('tap-overlay');
-      overlay.addEventListener('click', function () {
-        if (window.ReactNativeWebView) {
-          window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'BANNER_TAP' }));
-        }
-      });
+      if (overlay) {
+        overlay.addEventListener('click', function () {
+          if (window.ReactNativeWebView) {
+            window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'BANNER_TAP' }));
+          }
+        });
+      }
     })();
   </script>
   <script>
+    var retryCount = 0;
+    var maxRetries = 10;
+
     function initMap() {
+      if (!window.kakao || !window.kakao.maps) {
+        return;
+      }
       var container = document.getElementById('map');
       if (!container || container.clientWidth === 0 || container.clientHeight === 0) {
-        setTimeout(initMap, 50);
+        if (retryCount < maxRetries) {
+          retryCount++;
+          setTimeout(initMap, 50);
+        }
         return;
       }
       var mapOption = {
@@ -135,8 +154,6 @@ export default function MapBanner({ onPress, spotCount = 0, isLoading, userLocat
       window.onload = function() {
         if (window.kakao && window.kakao.maps) {
           kakao.maps.load(initMap);
-        } else {
-          setTimeout(initMap, 200);
         }
       };
     }
@@ -144,15 +161,17 @@ export default function MapBanner({ onPress, spotCount = 0, isLoading, userLocat
 </body>
 </html>
 `;
-  }, [centerLat, centerLng, spots]);
+  }, [centerLat, centerLng, spotsKey]);
 
-  // 웹뷰 로딩 전에도 즉시 뭔가 보이도록 카카오 스태틱 맵을 배경으로 먼저 깐다.
-  const staticMapUrl = `https://dapi.kakao.com/v2/maps/staticmap?appkey=${KAKAO_KEY}&center=${centerLat},${centerLng}&level=6&w=640&h=320`;
+  // KAKAO_KEY가 존재할 때만 정적 스태틱 맵 이미지 URL 생성
+  const staticMapUrl = KAKAO_KEY
+    ? `https://dapi.kakao.com/v2/maps/staticmap?appkey=${KAKAO_KEY}&center=${centerLat},${centerLng}&level=6&w=640&h=320`
+    : null;
 
   return (
     <View style={{ width: '100%', height: normalize(160), borderRadius: CARD_RADIUS, overflow: 'hidden', backgroundColor: '#e8e8ed', position: 'relative' }}>
-      {/* 1. 카카오 스태틱 맵 백그라운드 (웹뷰 초기 로딩 전 정적 지도 즉시 표기) */}
-      {!webViewLoaded && (
+      {/* 1. 카카오 스태틱 맵 백그라운드 (유효한 키가 있고 웹뷰 초기 로딩 전일 때 표기) */}
+      {staticMapUrl && !webViewLoaded && (
         <Image
           source={{ uri: staticMapUrl }}
           style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
@@ -160,32 +179,29 @@ export default function MapBanner({ onPress, spotCount = 0, isLoading, userLocat
         />
       )}
 
-      {/* 2. 실제 카카오 지도 미니 웹뷰 */}
-      {/* 탭 처리 주의: 안드로이드 네이티브 WebView는 자기 영역의 터치를 안드로이드 뷰 계층에서
-          직접 받아버려, 위에 겹쳐 둔 RN Pressable이 터치를 전혀 받지 못한다(uiautomator로
-          보면 이 영역의 클릭 가능 노드가 WebView 하나뿐). RN의 pointerEvents="none"은 RN
-          터치 시스템에만 적용돼 여기서는 효과가 없다. 그래서 웹뷰 안 #tap-overlay가 탭을
-          받아 postMessage로 알려주면 여기서 onPress로 이어준다. */}
-      <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
-        <WebView
-          originWhitelist={['*']}
-          source={{ html: mapHtml, baseUrl: 'https://localhost' }}
-          style={{ flex: 1, backgroundColor: 'transparent' }}
-          scrollEnabled={false}
-          showsVerticalScrollIndicator={false}
-          showsHorizontalScrollIndicator={false}
-          onLoadEnd={() => setWebViewLoaded(true)}
-          onMessage={(event) => {
-            try {
-              if (JSON.parse(event.nativeEvent.data)?.type === 'BANNER_TAP') onPress();
-            } catch {
-              // 배너가 보내는 메시지는 BANNER_TAP 하나뿐이라 파싱 실패는 무시한다.
-            }
-          }}
-          javaScriptEnabled={true}
-          domStorageEnabled={true}
-        />
-      </View>
+      {/* 2. 실제 카카오 지도 미니 웹뷰 (KAKAO_KEY가 유효할 때만 로드) */}
+      {Boolean(KAKAO_KEY) && (
+        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
+          <WebView
+            originWhitelist={['*']}
+            source={{ html: mapHtml, baseUrl: 'https://localhost' }}
+            style={{ flex: 1, backgroundColor: 'transparent' }}
+            scrollEnabled={false}
+            showsVerticalScrollIndicator={false}
+            showsHorizontalScrollIndicator={false}
+            onLoadEnd={() => setWebViewLoaded(true)}
+            onMessage={(event) => {
+              try {
+                if (JSON.parse(event.nativeEvent.data)?.type === 'BANNER_TAP') onPress();
+              } catch {
+                // 배너가 보내는 메시지는 BANNER_TAP 하나뿐이라 파싱 실패는 무시한다.
+              }
+            }}
+            javaScriptEnabled={true}
+            domStorageEnabled={true}
+          />
+        </View>
+      )}
 
       {/* 3. 하단 페이드 오버레이 */}
       <LinearGradient
@@ -220,7 +236,7 @@ export default function MapBanner({ onPress, spotCount = 0, isLoading, userLocat
         </Text>
       </View>
 
-      {/* 5. 배너 전체 터치 오버레이 (탭 시 전체 지도로 이동) — WebView 위에서도 터치가 먹도록 맨 위(zIndex 최상단)에 둔다. */}
+      {/* 5. 배너 전체 터치 오버레이 (탭 시 전체 지도로 이동) */}
       <Pressable
         onPress={onPress}
         style={({ pressed }) => ({
