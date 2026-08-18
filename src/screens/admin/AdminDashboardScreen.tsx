@@ -2176,16 +2176,16 @@ export default function AdminDashboardScreen() {
                           paddingHorizontal: normalize(11),
                           paddingVertical: normalize(6),
                           borderRadius: normalize(8),
-                          backgroundColor: isSelected ? '#fde3ec' : '#ffffff',
-                          borderWidth: isSelected ? 1.5 : 1,
-                          borderColor: isSelected ? '#E31B59' : 'rgba(0,0,0,0.1)',
+                          backgroundColor: isSelected ? '#E31B59' : isRecommended ? '#fde3ec' : '#f3f4f6',
+                          borderWidth: 1,
+                          borderColor: isSelected ? '#E31B59' : isRecommended ? '#f472b6' : 'transparent',
                           flexDirection: 'row',
                           alignItems: 'center',
                           gap: normalize(4),
                         }}
                       >
                         {isSelected ? (
-                          <IconCheck size={normalize(12)} color="#E31B59" strokeWidth={2.5} />
+                          <IconCheck size={normalize(12)} color="#ffffff" strokeWidth={2.5} />
                         ) : isRecommended ? (
                           <IconSparkles size={normalize(12)} color="#E31B59" />
                         ) : null}
@@ -2193,7 +2193,7 @@ export default function AdminDashboardScreen() {
                           style={{
                             fontSize: FONT_XS,
                             fontFamily: isSelected || isRecommended ? 'Pretendard-Bold' : 'Pretendard-Medium',
-                            color: isSelected ? '#E31B59' : isRecommended ? '#d9275c' : 'rgba(0,0,0,0.7)',
+                            color: isSelected ? '#ffffff' : isRecommended ? '#E31B59' : '#374151',
                           }}
                         >
                           {tmpl.label}
