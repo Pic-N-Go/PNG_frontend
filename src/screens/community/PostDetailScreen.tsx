@@ -3,7 +3,8 @@ import { ActivityIndicator, Image, Pressable, ScrollView, Text, TextInput, View 
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Archive, Camera, ChevronLeft, Clock, Heart, Maximize, MessageSquare, MoreHorizontal, Send, Share2, Sun } from 'lucide-react-native';
+import { Bookmark, Camera, ChevronLeft, Clock, Heart, Maximize, MessageSquare, MoreHorizontal, Send, Share2, Sun, X } from 'lucide-react-native';
+import CommentThread from '@/components/community/CommentThread';
 import PostActionSheet from '@/components/community/PostActionSheet';
 import PostReportSheet from '@/components/community/PostReportSheet';
 import PhotoLightbox from '@/components/community/PhotoLightbox';
@@ -18,6 +19,7 @@ import {
   useDeletePost,
   usePost,
   useToggleBookmark,
+  useToggleCommentLike,
   useToggleFollow,
   useToggleLike,
 } from '@/hooks/useCommunity';
@@ -25,7 +27,7 @@ import { toErrorMessage } from '@/api/auth';
 import { useAuthStore } from '@/store/useAuthStore';
 import { initialsOf } from '@/utils/communityMappers';
 import { CommunityDetailStackParamList } from '@/navigation/stacks/CommunityDetailStack';
-import { ReportReasonId } from '@/types/community';
+import { Comment, ReportReasonId } from '@/types/community';
 import { HEADER_HEIGHT, CONTENT_PADDING, FONT_2XS, FONT_LG, FONT_MD, FONT_SM, FONT_XS } from '@/constants/layout';
 import { normalize, normalizeHeight } from '@/utils/normalize';
 
@@ -55,8 +57,11 @@ export default function PostDetailScreen() {
   const createComment = useCreateComment(postId ?? '');
   const deleteCommentM = useDeleteComment(postId ?? '');
   const deletePostM = useDeletePost();
+  const toggleCommentLikeM = useToggleCommentLike(postId ?? '');
 
   const [commentText, setCommentText] = useState('');
+  /** 답글 대상. null이면 최상위 댓글로 등록된다. */
+  const [replyTo, setReplyTo] = useState<Comment | null>(null);
 
   const [actionSheetOpen, setActionSheetOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -72,6 +77,8 @@ export default function PostDetailScreen() {
   const [toastVisible, setToastVisible] = useState(false);
   // 삭제 완료 토스트는 노출이 끝난 뒤에 goBack해야 하므로, 토스트가 사라질 때 실행할 후속 동작을 들고 있는다.
   const pendingAfterToastRef = useRef<(() => void) | null>(null);
+  /** "답글 달기"를 누르면 입력창으로 포커스를 옮긴다 */
+  const commentInputRef = useRef<TextInput>(null);
 
   function showToast(message: string, after?: () => void) {
     pendingAfterToastRef.current = after ?? null;
@@ -92,6 +99,18 @@ export default function PostDetailScreen() {
   }
 
   /**
+   * 라이트박스에서 작성자 프로필로 이동. Modal이 떠 있는 채로 push하면 새 화면이 Modal 아래에
+   * 깔려 보이지 않으므로, 먼저 닫고 fade 애니메이션이 끝난 뒤에 이동한다
+   * (액션시트에서 쓰는 openAfterActionSheet와 같은 이유).
+   */
+  function handlePressLightboxAuthor() {
+    if (!post) return;
+    const authorId = post.author.id;
+    handleCloseLightbox();
+    setTimeout(() => navigation.navigate('UserProfile', { userId: authorId }), 320);
+  }
+
+  /**
    * 액션시트(BottomSheet)도 RN Modal이라, 그 위에 확인 모달·신고 시트를 겹쳐 띄우면
    * iOS에서 두 번째가 표시되지 않는다 (PhotoLightbox가 EXIF를 별도 Modal로 안 뺀 것과 같은 제약).
    * 액션시트를 먼저 닫고 닫힘 애니메이션(300ms)이 끝난 뒤에 다음 시트를 연다.
@@ -105,9 +124,9 @@ export default function PostDetailScreen() {
     if (!post) return;
     toggleLikeM.mutate({ postId: post.id, next: !post.isLiked });
   }
-  function toggleSave() {
+  function toggleBookmark() {
     if (!post) return;
-    toggleBookmarkM.mutate({ postId: post.id, next: !post.isSaved });
+    toggleBookmarkM.mutate({ postId: post.id, next: !post.isBookmarked });
   }
   function toggleFollow() {
     if (!post) return;
@@ -135,11 +154,30 @@ export default function PostDetailScreen() {
   function handleSendComment() {
     const text = commentText.trim();
     if (!text || createComment.isPending) return;
-    createComment.mutate(text, {
-      // 입력창은 성공했을 때만 비운다 — 실패했는데 지워지면 쓴 글이 사라진다.
-      onSuccess: () => setCommentText(''),
-      onError: (err) => showToast(toErrorMessage(err, '댓글을 등록하지 못했어요')),
+    createComment.mutate(
+      { content: text, parentId: replyTo?.id },
+      {
+        // 입력창은 성공했을 때만 비운다 — 실패했는데 지워지면 쓴 글이 사라진다.
+        onSuccess: () => {
+          setCommentText('');
+          setReplyTo(null);
+        },
+        onError: (err) => showToast(toErrorMessage(err, '댓글을 등록하지 못했어요')),
+      },
+    );
+  }
+
+  function handleToggleCommentLike(comment: Comment) {
+    toggleCommentLikeM.mutate({
+      commentId: comment.id,
+      next: !comment.isLiked,
+      likeCount: comment.likeCount ?? 0,
     });
+  }
+
+  function handlePressReply(comment: Comment) {
+    setReplyTo(comment);
+    commentInputRef.current?.focus();
   }
 
   function handleDeleteComment(commentId: string) {
@@ -334,8 +372,12 @@ export default function PostDetailScreen() {
                   {post.commentCount}
                 </Text>
               </View>
-              <Pressable onPress={toggleSave} hitSlop={8} accessibilityLabel="저장">
-                <Archive size={normalize(16)} color={post.isSaved ? ACCENT : 'rgba(0,0,0,0.6)'} fill={post.isSaved ? ACCENT : 'none'} strokeWidth={1.8} />
+              {/* 저장 수는 목록 카드(PostCard)와 같은 규칙 — 탭이 먹었는지 숫자로 바로 보인다 */}
+              <Pressable onPress={toggleBookmark} hitSlop={8} accessibilityLabel="저장" className="flex-row items-center" style={{ gap: normalize(4) }}>
+                <Bookmark size={normalize(16)} color={post.isBookmarked ? ACCENT : 'rgba(0,0,0,0.6)'} fill={post.isBookmarked ? ACCENT : 'none'} strokeWidth={1.8} />
+                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: post.isBookmarked ? ACCENT : 'rgba(0,0,0,0.6)' }}>
+                  {post.bookmarkCount}
+                </Text>
               </Pressable>
               <Pressable onPress={() => setShareSheetVisible(true)} hitSlop={8} accessibilityLabel="공유">
                 <Share2 size={normalize(16)} color="rgba(0,0,0,0.6)" strokeWidth={1.8} />
@@ -348,54 +390,15 @@ export default function PostDetailScreen() {
                 댓글 {post.commentCount}
               </Text>
 
-              {/* 댓글 좋아요·답글은 서버에 없다 — 눌러도 아무 일이 없는 컨트롤을 두는 대신 숨긴다.
-                  엔드포인트가 생기면 comment.likeCount가 채워지면서 자연히 다시 노출된다. */}
               {comments.map((comment) => (
-                <View key={comment.id} className="flex-row" style={{ gap: normalize(10), marginBottom: normalize(14) }}>
-                  <View
-                    className="items-center justify-center overflow-hidden"
-                    style={{ width: normalize(28), height: normalize(28), borderRadius: normalize(14), backgroundColor: SURFACE, marginTop: normalize(1) }}
-                  >
-                    {comment.author.profileImageUrl ? (
-                      <Image source={{ uri: comment.author.profileImageUrl }} resizeMode="cover" style={{ width: '100%', height: '100%' }} />
-                    ) : (
-                      <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_2XS, color: 'rgba(0,0,0,0.35)' }}>
-                        {comment.author.initials}
-                      </Text>
-                    )}
-                  </View>
-                  <View style={{ flex: 1, minWidth: 0 }}>
-                    <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, letterSpacing: -0.15, lineHeight: FONT_SM * 1.5, color: '#000' }}>
-                      <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold' }}>
-                        {comment.author.handle}
-                      </Text>
-                      {'  '}
-                      {comment.text}
-                    </Text>
-                    <View className="flex-row items-center" style={{ gap: normalize(10), marginTop: normalize(4) }}>
-                      <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.35)', letterSpacing: -0.1 }}>
-                        {comment.createdAtLabel}
-                      </Text>
-                      {comment.likeCount != null && (
-                        <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.35)', letterSpacing: -0.1 }}>
-                          좋아요 {comment.likeCount}
-                        </Text>
-                      )}
-                      {comment.isMine && (
-                        <Pressable hitSlop={8} onPress={() => handleDeleteComment(comment.id)}>
-                          <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, color: 'rgba(0,0,0,0.5)', letterSpacing: -0.1 }}>
-                            삭제
-                          </Text>
-                        </Pressable>
-                      )}
-                    </View>
-                  </View>
-                  {comment.likeCount != null && (
-                    <Pressable hitSlop={8} style={{ padding: normalize(4) }} accessibilityLabel="좋아요">
-                      <Heart size={normalize(14)} color={comment.isLiked ? '#ff453a' : 'rgba(0,0,0,0.3)'} fill={comment.isLiked ? '#ff453a' : 'none'} strokeWidth={1.8} />
-                    </Pressable>
-                  )}
-                </View>
+                <CommentThread
+                  key={comment.id}
+                  postId={postId ?? ''}
+                  comment={comment}
+                  onToggleLike={handleToggleCommentLike}
+                  onPressReply={handlePressReply}
+                  onDelete={handleDeleteComment}
+                />
               ))}
 
               {hasNextPage && (
@@ -408,6 +411,30 @@ export default function PostDetailScreen() {
             </View>
           </View>
         </ScrollView>
+
+        {/* 답글 대상 표시 — 지금 쓰는 글이 어디에 붙는지 보이지 않으면 최상위 댓글로 착각한다 */}
+        {!!replyTo && (
+          <View
+            className="flex-row items-center"
+            style={{
+              gap: normalize(8),
+              paddingHorizontal: CONTENT_PADDING,
+              paddingVertical: normalize(8),
+              backgroundColor: SURFACE,
+            }}
+          >
+            <Text
+              allowFontScaling={false}
+              numberOfLines={1}
+              style={{ flex: 1, fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.5)', letterSpacing: -0.1 }}
+            >
+              {replyTo.author.handle}님에게 답글 다는 중
+            </Text>
+            <Pressable onPress={() => setReplyTo(null)} hitSlop={8} accessibilityLabel="답글 취소">
+              <X size={normalize(14)} color="rgba(0,0,0,0.4)" strokeWidth={2} />
+            </Pressable>
+          </View>
+        )}
 
         {/* 댓글 입력 */}
         <View
@@ -433,9 +460,10 @@ export default function PostDetailScreen() {
           </View>
           <View style={{ flex: 1, height: normalize(40), backgroundColor: SURFACE, borderRadius: normalize(20), paddingHorizontal: normalize(16), justifyContent: 'center' }}>
             <TextInput
+              ref={commentInputRef}
               value={commentText}
               onChangeText={setCommentText}
-              placeholder="댓글 달기..."
+              placeholder={replyTo ? `${replyTo.author.handle}님에게 답글...` : '댓글 달기...'}
               placeholderTextColor="rgba(0,0,0,0.3)"
               onSubmitEditing={handleSendComment}
               allowFontScaling={false}
@@ -461,8 +489,8 @@ export default function PostDetailScreen() {
         onClose={() => setActionSheetOpen(false)}
         isMyPost={isMyPost}
         onShare={() => openAfterActionSheet(() => setShareSheetVisible(true))}
-        // 게시글 수정 화면은 아직 없다(목업도 없음). 서버 PATCH /posts/{id}와 communityApi.updatePost는 준비돼 있다.
-        onEdit={() => showToast('게시글 수정은 준비 중이에요')}
+        // 작성 화면을 수정 모드로 재사용한다(항목이 동일). postId가 있으면 CommunityWriteScreen이 폼을 채운다.
+        onEdit={() => openAfterActionSheet(() => navigation.navigate('CommunityWrite', { postId }))}
         onRequestDelete={() => openAfterActionSheet(() => setDeleteModalOpen(true))}
         onRequestReport={() => openAfterActionSheet(() => setReportSheetOpen(true))}
       />
@@ -490,6 +518,7 @@ export default function PostDetailScreen() {
           exifOpen={exifOpen}
           onOpenExif={() => setExifOpen(true)}
           onCloseExif={() => setExifOpen(false)}
+          onPressAuthor={handlePressLightboxAuthor}
           post={post}
         />
       )}

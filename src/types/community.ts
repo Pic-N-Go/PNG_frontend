@@ -31,7 +31,8 @@ export interface Post {
   isLiked: boolean;
   commentCount: number;
   shareCount: number;
-  isSaved: boolean;
+  isBookmarked: boolean;
+  bookmarkCount: number;
   isFollowingAuthor: boolean;
   /** 서버 PostResponse에 없는 값 — 연동 후에는 항상 undefined다 (백엔드 추가 시 매퍼에서 채운다) */
   photogenicScore?: number;
@@ -49,9 +50,12 @@ export interface Comment {
   createdAtLabel: string;
   /** 내가 쓴 댓글이면 삭제 가능 */
   isMine?: boolean;
-  /** 댓글 좋아요는 서버에 없다 — 값이 없으면 화면에서 좋아요 UI를 숨긴다 */
   likeCount?: number;
   isLiked?: boolean;
+  /** 답글이면 원 댓글 id. 최상위 댓글은 undefined */
+  parentId?: string;
+  /** 최상위 댓글에 달린 답글 수 — "답글 N개 보기" 노출 조건 */
+  replyCount: number;
 }
 
 /** 신고 사유는 별도 텍스트 입력 없이 5개 고정 사유 중 선택 */
@@ -116,6 +120,13 @@ export interface CommentResponseDTO {
   id: number;
   content: string;
   author: PostAuthorDTO;
+  /** 답글이면 원 댓글 id, 최상위 댓글이면 null */
+  parentId: number | null;
+  /** 최상위 댓글에 달린 답글 수. 답글 자신은 항상 0 */
+  replyCount: number;
+  likeCount: number;
+  /** 토큰을 보냈을 때만 내 기준으로 채워진다(비로그인은 항상 false) */
+  liked: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -166,7 +177,8 @@ export interface PostCreateRequestDTO {
 }
 
 export interface PostUpdateRequestDTO extends PostCreateRequestDTO {
-  /** 수정 시 남길 기존 이미지 id. 생략하면 서버가 기존 이미지를 모두 지운다 */
+  /** 수정 시 남길 기존 이미지 id. 배열 순서가 그대로 사진 순서가 된다.
+   *  생략(undefined)하면 기존 이미지를 전부 유지한다(PostService.resolveRetainedImages). */
   retainedImageIds?: number[];
 }
 

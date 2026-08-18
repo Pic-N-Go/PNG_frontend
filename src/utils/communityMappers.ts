@@ -136,7 +136,8 @@ export function mapPost(dto: PostResponseDTO, ctx: PostMapContext = {}): Post {
     commentCount: dto.commentCount,
     // 공유 수는 서버에 없다. 화면에서도 숫자를 안 쓰고 아이콘만 노출한다.
     shareCount: 0,
-    isSaved: dto.bookmarked,
+    isBookmarked: dto.bookmarked,
+    bookmarkCount: dto.bookmarkCount,
     isFollowingAuthor: ctx.followingIds?.has(authorId) ?? false,
     // photogenicScore는 PostResponse에 없어 넣지 않는다 → 화면에서 칩이 숨는다.
     shotMeta: mapShotMeta(dto),
@@ -199,6 +200,9 @@ export function mapComment(dto: CommentResponseDTO, myUserId?: number | null): C
     text: dto.content,
     createdAtLabel: formatRelativeTime(dto.createdAt),
     isMine: myUserId != null && dto.author.id === myUserId,
-    // 댓글 좋아요는 서버에 없다 — likeCount/isLiked를 비워 화면에서 하트를 숨긴다.
+    likeCount: dto.likeCount,
+    isLiked: dto.liked,
+    parentId: dto.parentId == null ? undefined : String(dto.parentId),
+    replyCount: dto.replyCount,
   };
 }

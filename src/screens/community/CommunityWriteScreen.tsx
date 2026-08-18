@@ -1,9 +1,9 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
-  Alert, Image, KeyboardAvoidingView, Linking, Platform, Pressable, ScrollView, Text, TextInput, View,
+  ActivityIndicator, Alert, Image, KeyboardAvoidingView, Linking, Platform, Pressable, ScrollView, Text, TextInput, View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as ImagePicker from 'expo-image-picker';
 import {
@@ -15,7 +15,7 @@ import { parseExifDateTime } from '@/utils/exifDate';
 import type { LucideIcon } from 'lucide-react-native';
 import LocationSheet, { LocationOption } from '@/components/community/LocationSheet';
 import GearSheet from '@/components/community/GearSheet';
-import { useCreatePost } from '@/hooks/useCommunity';
+import { useCreatePost, usePostForEdit, useUpdatePost } from '@/hooks/useCommunity';
 import { toErrorMessage } from '@/api/auth';
 import type { PostImageUpload } from '@/api/community';
 import { CommunityDetailStackParamList } from '@/navigation/stacks/CommunityDetailStack';
@@ -35,6 +35,11 @@ interface PickedPhoto {
   /** iOS는 assetId, Android는 assetId가 없어 uri로 대체(중복 판정용) */
   id: string;
   uri: string;
+  /**
+   * 수정 모드에서 이미 서버에 올라가 있는 사진의 id. 새로 고른 사진은 undefined다.
+   * 이 값이 있는 것만 retainedImageIds로 보내고, 없는 것만 newImages로 업로드한다.
+   */
+  serverId?: number;
 }
 
 function pad(n: number) {
@@ -96,6 +101,9 @@ const WEATHER_OPTIONS: { label: string; value: PostWeatherApi }[] = [
 
 export default function CommunityWriteScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<CommunityDetailStackParamList>>();
+  const { params } = useRoute<RouteProp<CommunityDetailStackParamList, 'CommunityWrite'>>();
+  const editingPostId = params?.postId;
+  const isEdit = !!editingPostId;
 
   const [photos, setPhotos] = useState<PickedPhoto[]>([]);
   const [caption, setCaption] = useState('');
@@ -112,6 +120,9 @@ export default function CommunityWriteScreen() {
   const [gearSheetVisible, setGearSheetVisible] = useState(false);
 
   const createPost = useCreatePost();
+  const updatePost = useUpdatePost(editingPostId ?? '');
+  const { data: editing, isLoading: loadingPost, isError: loadFailed } = usePostForEdit(editingPostId);
+  const submitting = isEdit ? updatePost.isPending : createPost.isPending;
 
   /**
    * 촬영 일시. 사진 EXIF에서 읽고, 없으면 작성자가 직접 고른다.
@@ -125,8 +136,42 @@ export default function CommunityWriteScreen() {
    */
   const openedAt = useRef(new Date()).current;
   const [shotAt, setShotAt] = useState<Date | null>(null);
-  const [shotAtSource, setShotAtSource] = useState<'exif' | 'manual' | null>(null);
+  const [shotAtSource, setShotAtSource] = useState<'exif' | 'manual' | 'saved' | null>(null);
   const [dateFromExif, setDateFromExif] = useState(false);
+
+  /**
+   * 수정 모드 폼 채우기. 서버 응답이 도착하면 한 번만 실행한다 —
+   * 매 렌더마다 덮으면 사용자가 고친 값이 되돌아간다.
+   */
+  const prefilled = useRef(false);
+  useEffect(() => {
+    if (!isEdit || !editing || prefilled.current) return;
+    prefilled.current = true;
+
+    setCaption(editing.content);
+    setCamera(editing.cameraModel ?? '');
+    setLens(editing.lensModel ?? '');
+    setWeather(editing.weather);
+    setCategories(new Set(editing.tags ?? []));
+
+    // 서버는 스팟 주소를 게시글에 실어주지 않는다. 이름만 채우고, 사용자가 위치를 다시 고르면 그때 주소가 붙는다.
+    if (editing.spotId != null) {
+      setLocation({ id: String(editing.spotId), name: editing.spotName ?? '', address: '' });
+    }
+
+    // LocalTime("05:30" 또는 "05:30:00") → Date. 날짜는 서버에 없으므로 오늘로 두고 화면에는 숨긴다.
+    if (editing.shootingTime) {
+      const [h, m] = editing.shootingTime.split(':').map(Number);
+      if (Number.isFinite(h) && Number.isFinite(m)) {
+        const d = new Date();
+        d.setHours(h, m, 0, 0);
+        setShotAt(d);
+        setShotAtSource('saved');
+      }
+    }
+
+    setPhotos(editing.images.map((img) => ({ id: `server-${img.id}`, uri: img.imageUrl, serverId: img.id })));
+  }, [isEdit, editing]);
 
   const timeLabel = shotAt ? `${pad(shotAt.getHours())}:${pad(shotAt.getMinutes())}` : '';
   const shotDateLabel = shotAt && dateFromExif
@@ -135,13 +180,14 @@ export default function CommunityWriteScreen() {
   const shotAtHint =
     shotAtSource === 'exif' ? `${timeLabel} · 사진에서 가져옴`
     : shotAtSource === 'manual' ? `${timeLabel} · 직접 선택`
+    : shotAtSource === 'saved' ? `${timeLabel} · 저장된 값`
     : '탭하여 시각 선택';
 
   const mainPhoto = photos[0] ?? null;
   // 서버가 content·shootingTime·weather를 필수로 받는다(@NotBlank/@NotNull).
   // 촬영 시각은 EXIF가 없으면 비어 있으므로, 작성자가 고를 때까지 게시를 막는다.
   const canSubmit =
-    photos.length > 0 && caption.trim().length > 0 && !!weather && !!shotAt && !createPost.isPending;
+    photos.length > 0 && caption.trim().length > 0 && !!weather && !!shotAt && !submitting;
 
   // iOS PHPickerViewController는 앱 프로세스 밖에서 뜨므로 권한 요청이 필요 없다.
   // Android에서만 물어보고, 거부한 사용자는 설정으로 안내한다(ReviewWriteScreen과 동일 패턴).
@@ -175,8 +221,8 @@ export default function CommunityWriteScreen() {
       });
       if (result.canceled) return;
 
-      // 사용자가 직접 고른 값은 덮지 않는다. 스크린샷·편집본은 EXIF가 없어 null이 온다.
-      if (shotAtSource !== 'manual') {
+      // 사용자가 직접 고른 값과 이미 저장된 값은 덮지 않는다. 스크린샷·편집본은 EXIF가 없어 null이 온다.
+      if (shotAtSource !== 'manual' && shotAtSource !== 'saved') {
         const exifDate = result.assets.map((a) => parseExifDateTime(a.exif)).find(Boolean);
         if (exifDate) {
           setShotAt(exifDate);
@@ -230,7 +276,7 @@ export default function CommunityWriteScreen() {
   const onSubmit = () => {
     if (!canSubmit || !weather || !shotAt) return;
     // 확장자를 못 알아내는 경우가 있어 jpeg로 떨어뜨린다 — 서버는 실제 바이트로 판별한다.
-    const images: PostImageUpload[] = photos.map((photo, idx) => {
+    const toUpload = (photo: PickedPhoto, idx: number): PostImageUpload => {
       const ext = photo.uri.split('.').pop()?.toLowerCase();
       const safeExt = ext && /^(jpe?g|png|heic|webp)$/.test(ext) ? ext : 'jpg';
       return {
@@ -238,29 +284,49 @@ export default function CommunityWriteScreen() {
         name: `post-${idx}.${safeExt}`,
         type: safeExt === 'png' ? 'image/png' : safeExt === 'webp' ? 'image/webp' : 'image/jpeg',
       };
-    });
+    };
+
+    const request = {
+      content: caption.trim(),
+      // 스팟을 안 고르면 위치 없는 글이 된다(서버에서 spotId는 선택값).
+      spotId: location ? Number(location.id) : null,
+      // 사진 EXIF에서 읽었거나 작성자가 직접 고른 값. 서버는 LocalTime이라 시:분만 저장한다.
+      shootingTime: timeLabel,
+      weather,
+      cameraModel: camera.trim() || null,
+      lensModel: lens.trim() || null,
+      tags: [...categories],
+    };
+
+    if (isEdit) {
+      // 서버는 retainedImageIds를 먼저 그 순서대로 배치하고 newImages를 뒤에 붙인다.
+      // ponytail: 그래서 새 사진을 기존 사진 사이에 끼워넣을 수 없다 — 저장 후 상세를 다시 받으면
+      // 서버 기준 순서로 정정된다. 임의 위치 삽입이 필요해지면 서버에 순서 파라미터를 요청해야 한다.
+      updatePost.mutate(
+        {
+          request: { ...request, retainedImageIds: photos.filter((p) => p.serverId != null).map((p) => p.serverId!) },
+          newImages: photos.filter((p) => p.serverId == null).map(toUpload),
+        },
+        {
+          onSuccess: () => navigation.goBack(),
+          onError: (err) => Alert.alert('게시글을 수정하지 못했어요', toErrorMessage(err, '잠시 후 다시 시도해 주세요.')),
+        },
+      );
+      return;
+    }
 
     createPost.mutate(
-      {
-        request: {
-          content: caption.trim(),
-          // 스팟을 안 고르면 위치 없는 글이 된다(서버에서 spotId는 선택값).
-          spotId: location ? Number(location.id) : null,
-          // 사진 EXIF에서 읽었거나 작성자가 직접 고른 값. 서버는 LocalTime이라 시:분만 저장한다.
-          shootingTime: timeLabel,
-          weather,
-          cameraModel: camera.trim() || null,
-          lensModel: lens.trim() || null,
-          tags: [...categories],
-        },
-        images,
-      },
+      { request, images: photos.map(toUpload) },
       {
         onSuccess: () => navigation.goBack(),
         onError: (err) => Alert.alert('게시글을 등록하지 못했어요', toErrorMessage(err, '잠시 후 다시 시도해 주세요.')),
       },
     );
   };
+
+  // 수정 모드는 원본이 도착해야 폼을 채울 수 있다. 빈 폼을 먼저 보여주면 사용자가 그 사이 입력한 값을
+  // 잠시 뒤 prefill이 덮어버린다 — 그래서 로딩 중에는 폼 자체를 띄우지 않는다.
+  const blocked = isEdit && (loadingPost || loadFailed || !editing);
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right']}>
@@ -278,9 +344,22 @@ export default function CommunityWriteScreen() {
           className="flex-1 text-center"
           style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_LG, color: '#000', letterSpacing: -0.4, marginRight: normalize(36) }}
         >
-          새 글 작성
+          {isEdit ? '게시글 수정' : '새 글 작성'}
         </Text>
       </View>
+
+      {blocked ? (
+        <View className="flex-1 items-center justify-center" style={{ gap: normalize(12) }}>
+          {loadingPost ? (
+            <ActivityIndicator color={ACCENT} />
+          ) : (
+            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: 'rgba(0,0,0,0.4)', letterSpacing: -0.2 }}>
+              게시글을 불러오지 못했어요
+            </Text>
+          )}
+        </View>
+      ) : (
+      <>
 
       {/* 안드로이드도 behavior가 필요하다 — 엣지투엣지에서 adjustResize가 창을 줄여주지 않는다
           (BottomSheet.tsx 주석 참고). */}
@@ -491,7 +570,7 @@ export default function CommunityWriteScreen() {
               style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS, backgroundColor: ACCENT, opacity: canSubmit ? 1 : 0.35, marginTop: normalize(8) }}
             >
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, color: '#fff', letterSpacing: -0.2 }}>
-                {createPost.isPending ? '게시 중...' : '게시'}
+                {submitting ? (isEdit ? '저장 중...' : '게시 중...') : isEdit ? '저장' : '게시'}
               </Text>
             </Pressable>
           </View>
@@ -525,6 +604,8 @@ export default function CommunityWriteScreen() {
         onSelect={(v) => (gearKind === 'camera' ? setCamera(v) : setLens(v))}
         onClose={() => setGearSheetVisible(false)}
       />
+      </>
+      )}
     </SafeAreaView>
   );
 }

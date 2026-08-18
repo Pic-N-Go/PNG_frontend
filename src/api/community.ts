@@ -165,10 +165,26 @@ export const communityApi = {
   getExif: (id: string | number) => request<PostExifResponseDTO>(`/posts/${id}/exif`),
 
   // 7. 댓글 (GET/POST /posts/{postId}/comments, PATCH/DELETE .../{commentId})
-  getComments: (postId: string | number, page = 0, size = 20) =>
-    request<CommentPageResponseDTO>(`/posts/${postId}/comments?page=${page}&size=${size}`),
-  createComment: (postId: string | number, content: string, token: string) =>
-    request<CommentResponseDTO>(`/posts/${postId}/comments`, { method: 'POST', body: { content }, token }),
+  //    목록은 최상위 댓글만 준다. 답글은 replyCount를 보고 getReplies로 따로 받아간다.
+  //    토큰을 함께 보내야 liked가 내 기준으로 채워진다(비로그인도 조회 자체는 된다).
+  getComments: (postId: string | number, page = 0, size = 20, token?: string) =>
+    request<CommentPageResponseDTO>(`/posts/${postId}/comments?page=${page}&size=${size}`, { token }),
+  getReplies: (postId: string | number, commentId: string | number, page = 0, size = 20, token?: string) =>
+    request<CommentPageResponseDTO>(
+      `/posts/${postId}/comments/${commentId}/replies?page=${page}&size=${size}`,
+      { token },
+    ),
+  /** parentId를 주면 그 댓글의 답글이 된다. 답글 id를 줘도 서버가 원 댓글로 붙인다(깊이 1단계). */
+  createComment: (postId: string | number, content: string, token: string, parentId?: string | number) =>
+    request<CommentResponseDTO>(`/posts/${postId}/comments`, {
+      method: 'POST',
+      body: parentId == null ? { content } : { content, parentId: Number(parentId) },
+      token,
+    }),
+  likeComment: (postId: string | number, commentId: string | number, token: string) =>
+    request<ReactionResponseDTO>(`/posts/${postId}/comments/${commentId}/like`, { method: 'POST', token }),
+  unlikeComment: (postId: string | number, commentId: string | number, token: string) =>
+    request<ReactionResponseDTO>(`/posts/${postId}/comments/${commentId}/like`, { method: 'DELETE', token }),
   updateComment: (postId: string | number, commentId: string | number, content: string, token: string) =>
     request<CommentResponseDTO>(`/posts/${postId}/comments/${commentId}`, { method: 'PATCH', body: { content }, token }),
   deleteComment: (postId: string | number, commentId: string | number, token: string) =>

@@ -8,10 +8,12 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { mapComment, mapPostDetail, mapPosts } from '@/utils/communityMappers';
 import type { PostMapContext } from '@/utils/communityMappers';
 import type {
+  CommentPageResponseDTO,
   PostCreateRequestDTO,
   PostPageResponseDTO,
   PostResponseDTO,
   PostSortApi,
+  PostUpdateRequestDTO,
   ReactionResponseDTO,
 } from '@/types/community';
 
@@ -21,6 +23,8 @@ const feedKey = (sort: PostSortApi, keyword: string | undefined, token: string |
   ['community', 'posts', sort, keyword?.trim() || '', token ?? 'guest'] as const;
 const postKey = (id: string, token: string | null) => ['community', 'post', id, token ?? 'guest'] as const;
 const commentsKey = (postId: string) => ['community', 'comments', postId] as const;
+const repliesKey = (postId: string, commentId: string) =>
+  ['community', 'replies', postId, commentId] as const;
 const followingKey = (userId: string | number) => ['community', 'following', String(userId)] as const;
 
 function useAuth() {
@@ -70,12 +74,14 @@ export function useCommunityFeed(sort: PostSortApi, keyword?: string) {
   });
 }
 
-export function usePost(postId: string | undefined) {
-  const { token, myUserId } = useAuth();
-  const { data: followingIds } = useMyFollowing();
-  // EXIF는 게시글과 수명이 같고(사진이 바뀌면 게시글도 바뀐다) 따로 무효화할 일이 없어 함께 받는다.
-  return useQuery({
+/**
+ * 게시글 상세 쿼리의 공통 부분. `usePost`(화면용 매핑)와 `usePostForEdit`(원본 DTO)이
+ * 같은 캐시를 공유하도록 select만 갈아끼운다 — 상세에서 수정으로 들어갈 때 재요청이 없다.
+ */
+function postDetailQuery(postId: string | undefined, token: string | null) {
+  return {
     queryKey: postKey(postId ?? '', token),
+    // EXIF는 게시글과 수명이 같고(사진이 바뀌면 게시글도 바뀐다) 따로 무효화할 일이 없어 함께 받는다.
     queryFn: async () => {
       const post = await communityApi.getPost(postId!, token ?? undefined);
       // EXIF가 없는 사진도 있다 — 실패해도 게시글은 보여준다.
@@ -83,20 +89,59 @@ export function usePost(postId: string | undefined) {
       return { post, exif };
     },
     enabled: !!postId,
+  };
+}
+
+export function usePost(postId: string | undefined) {
+  const { token, myUserId } = useAuth();
+  const { data: followingIds } = useMyFollowing();
+  return useQuery({
+    ...postDetailQuery(postId, token),
     select: ({ post, exif }) => mapPostDetail(post, exif, { myUserId, followingIds }),
   });
 }
 
+/**
+ * 수정 화면 폼 채우기용. 매핑된 `Post`에는 이미지 id·spotId·tags·원본 weather가 없어
+ * PATCH 요청을 만들 수 없다. 그래서 여기서는 서버 DTO를 그대로 넘긴다.
+ */
+export function usePostForEdit(postId: string | undefined) {
+  const { token } = useAuth();
+  return useQuery({
+    ...postDetailQuery(postId, token),
+    select: ({ post }) => post,
+  });
+}
+
+/** 최상위 댓글만 온다. 답글은 useReplies로 따로 받는다("답글 N개 보기"). */
 export function useComments(postId: string | undefined) {
-  const { myUserId } = useAuth();
+  const { token, myUserId } = useAuth();
   return useInfiniteQuery({
-    queryKey: commentsKey(postId ?? ''),
-    queryFn: ({ pageParam }) => communityApi.getComments(postId!, pageParam, PAGE_SIZE),
+    // 토큰이 키에 없으면 로그아웃 후에도 이전 사용자의 liked가 그대로 보인다.
+    queryKey: [...commentsKey(postId ?? ''), token ?? 'guest'],
+    queryFn: ({ pageParam }) => communityApi.getComments(postId!, pageParam, PAGE_SIZE, token ?? undefined),
     initialPageParam: 0,
     getNextPageParam: (last) => (last.hasNext ? last.page + 1 : undefined),
     enabled: !!postId,
     select: (data) => ({
       comments: data.pages.flatMap((p) => p.comments.map((c) => mapComment(c, myUserId))),
+      totalElements: data.pages[0]?.totalElements ?? 0,
+    }),
+  });
+}
+
+/** enabled=false로 두면 "답글 N개 보기"를 누르기 전까지 요청하지 않는다. */
+export function useReplies(postId: string | undefined, commentId: string | undefined, enabled: boolean) {
+  const { token, myUserId } = useAuth();
+  return useInfiniteQuery({
+    queryKey: [...repliesKey(postId ?? '', commentId ?? ''), token ?? 'guest'],
+    queryFn: ({ pageParam }) =>
+      communityApi.getReplies(postId!, commentId!, pageParam, PAGE_SIZE, token ?? undefined),
+    initialPageParam: 0,
+    getNextPageParam: (last) => (last.hasNext ? last.page + 1 : undefined),
+    enabled: enabled && !!postId && !!commentId,
+    select: (data) => ({
+      replies: data.pages.flatMap((p) => p.comments.map((c) => mapComment(c, myUserId))),
       totalElements: data.pages[0]?.totalElements ?? 0,
     }),
   });
@@ -186,6 +231,22 @@ export function useCreatePost() {
   });
 }
 
+export function useUpdatePost(postId: string) {
+  const { token } = useAuth();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ request, newImages }: { request: PostUpdateRequestDTO; newImages: PostImageUpload[] }) => {
+      if (!token) throw new Error('로그인이 필요해요.');
+      return communityApi.updatePost(postId, request, newImages, token);
+    },
+    onSuccess: () => {
+      // 상세는 토큰별로 키가 갈리므로 id까지만 지정해 전부 무효화한다.
+      qc.invalidateQueries({ queryKey: ['community', 'post', postId] });
+      qc.invalidateQueries({ queryKey: ['community', 'posts'] });
+    },
+  });
+}
+
 export function useDeletePost() {
   const { token } = useAuth();
   const qc = useQueryClient();
@@ -207,15 +268,59 @@ export function useCreateComment(postId: string) {
   const { token } = useAuth();
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (content: string) => {
+    mutationFn: ({ content, parentId }: { content: string; parentId?: string }) => {
       if (!token) throw new Error('로그인이 필요해요.');
-      return communityApi.createComment(postId, content, token);
+      return communityApi.createComment(postId, content, token, parentId);
     },
-    onSuccess: () => {
+    onSuccess: (_res, { parentId }) => {
+      // 답글이어도 최상위 목록을 갱신해야 한다 — 부모의 replyCount가 늘어야 하기 때문.
       qc.invalidateQueries({ queryKey: commentsKey(postId) });
+      if (parentId) qc.invalidateQueries({ queryKey: repliesKey(postId, parentId) });
       // 댓글 수는 게시글 응답에 들어 있어 목록·상세도 같이 갱신해야 숫자가 맞는다.
       qc.invalidateQueries({ queryKey: ['community', 'post', postId] });
       qc.invalidateQueries({ queryKey: ['community', 'posts'] });
+    },
+  });
+}
+
+/**
+ * 댓글 좋아요. 게시글 좋아요와 달리 목록 캐시가 무한스크롤 페이지 구조라, 해당 댓글만
+ * 찾아 고친다. 최상위 목록과 답글 목록 어느 쪽에 있든 동작하도록 두 캐시를 모두 훑는다.
+ */
+export function useToggleCommentLike(postId: string) {
+  const { token } = useAuth();
+  const qc = useQueryClient();
+
+  const patch = (commentId: string, liked: boolean, likeCount: number) => {
+    const apply = (old: { pages: CommentPageResponseDTO[]; pageParams: unknown[] } | undefined) =>
+      old && {
+        ...old,
+        pages: old.pages.map((page) => ({
+          ...page,
+          comments: page.comments.map((c) => (String(c.id) === commentId ? { ...c, liked, likeCount } : c)),
+        })),
+      };
+    qc.setQueriesData({ queryKey: commentsKey(postId) }, apply);
+    qc.setQueriesData({ queryKey: ['community', 'replies', postId] }, apply);
+  };
+
+  return useMutation({
+    mutationFn: ({ commentId, next }: { commentId: string; next: boolean; likeCount: number }) => {
+      if (!token) throw new Error('로그인이 필요해요.');
+      return next
+        ? communityApi.likeComment(postId, commentId, token)
+        : communityApi.unlikeComment(postId, commentId, token);
+    },
+    onMutate: async ({ commentId, next, likeCount }) => {
+      await qc.cancelQueries({ queryKey: commentsKey(postId) });
+      // 서버 count를 모르는 상태라 ±1로 근사하고, 응답이 오면 정확한 값으로 덮는다.
+      patch(commentId, next, Math.max(0, likeCount + (next ? 1 : -1)));
+    },
+    onSuccess: (res, { commentId }) => patch(commentId, res.active, res.count),
+    onError: () => {
+      // ±1 근사가 어긋날 수 있어 되돌릴 땐 서버에서 다시 받는다.
+      qc.invalidateQueries({ queryKey: commentsKey(postId) });
+      qc.invalidateQueries({ queryKey: ['community', 'replies', postId] });
     },
   });
 }
@@ -230,6 +335,8 @@ export function useDeleteComment(postId: string) {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: commentsKey(postId) });
+      // 답글을 지웠으면 부모의 replyCount가, 부모를 지웠으면 답글 목록 자체가 바뀐다.
+      qc.invalidateQueries({ queryKey: ['community', 'replies', postId] });
       qc.invalidateQueries({ queryKey: ['community', 'post', postId] });
       qc.invalidateQueries({ queryKey: ['community', 'posts'] });
     },

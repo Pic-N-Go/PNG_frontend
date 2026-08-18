@@ -264,7 +264,7 @@ export default function CommunityFeedScreen() {
                       post={post}
                       onPress={() => goToPost(post)}
                       onToggleLike={() => toggleLike.mutate({ postId: post.id, next: !post.isLiked })}
-                      onToggleSave={() => toggleBookmark.mutate({ postId: post.id, next: !post.isSaved })}
+                      onToggleBookmark={() => toggleBookmark.mutate({ postId: post.id, next: !post.isBookmarked })}
                       onToggleFollow={() => toggleFollow.mutate({ userId: post.author.id, next: !post.isFollowingAuthor })}
                       onPressUsername={() => goToProfile(post.author.id)}
                     />

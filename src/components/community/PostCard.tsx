@@ -1,7 +1,6 @@
 import React from 'react';
 import { Image, Pressable, Text, View } from 'react-native';
-import Svg, { Path, Rect } from 'react-native-svg';
-import { MapPin, Heart, MessageSquare, Archive, Clock, Camera, Sun, Moon, Cloud } from 'lucide-react-native';
+import { MapPin, Heart, MessageSquare, Bookmark, Clock, Camera, Sun, Moon, Cloud } from 'lucide-react-native';
 import { Post, PostShotMeta } from '@/types/community';
 import { FONT_2XS, FONT_XS, FONT_SM, FONT_MD } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
@@ -14,28 +13,16 @@ const WEATHER_ICONS: Record<PostShotMeta['weatherIcon'], typeof Sun> = {
   cloudy: Cloud,
 };
 
-// 목업의 저장(아카이브) 활성 아이콘 — solid pink box + white handle line.
-// lucide Archive에 fill을 주면 손잡이 line까지 같은 색으로 덮여 뭉개지므로 직접 그림.
-function SavedArchiveIcon({ size }: { size: number }) {
-  return (
-    <Svg width={size} height={size} viewBox="0 0 24 24">
-      <Rect x={2} y={4} width={20} height={5} rx={2} fill={ACCENT} />
-      <Path d="M4 9v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9" fill={ACCENT} />
-      <Path d="M10 13h4" stroke="#fff" strokeWidth={2.2} strokeLinecap="round" fill="none" />
-    </Svg>
-  );
-}
-
 interface Props {
   post: Post;
   onPress: () => void;
   onToggleLike: () => void;
-  onToggleSave: () => void;
+  onToggleBookmark: () => void;
   onToggleFollow: () => void;
   onPressUsername: () => void;
 }
 
-export default function PostCard({ post, onPress, onToggleLike, onToggleSave, onToggleFollow, onPressUsername }: Props) {
+export default function PostCard({ post, onPress, onToggleLike, onToggleBookmark, onToggleFollow, onPressUsername }: Props) {
   const mainPhoto = post.imageUrls?.[0];
   return (
     <Pressable onPress={onPress} className="rounded-[20px] overflow-hidden" style={{ backgroundColor: '#f5f5f7', borderRadius: normalize(20) }}>
@@ -164,12 +151,21 @@ export default function PostCard({ post, onPress, onToggleLike, onToggleSave, on
             {post.commentCount}
           </Text>
         </View>
-        <Pressable onPress={onToggleSave}>
-          {post.isSaved ? (
-            <SavedArchiveIcon size={normalize(15)} />
-          ) : (
-            <Archive size={normalize(15)} color="rgba(0,0,0,0.55)" strokeWidth={1.8} />
-          )}
+        {/* 저장 수를 옆에 둬야 탭이 먹었는지 바로 보인다 — 아이콘 채움만으로는 변화가 작다.
+            숫자는 낙관적 갱신(useReactionMutation)으로 즉시 ±1 되고 응답 값으로 정정된다. */}
+        <Pressable onPress={onToggleBookmark} hitSlop={8} className="flex-row items-center" style={{ gap: normalize(4) }}>
+          <Bookmark
+            size={normalize(15)}
+            color={post.isBookmarked ? ACCENT : 'rgba(0,0,0,0.55)'}
+            fill={post.isBookmarked ? ACCENT : 'none'}
+            strokeWidth={1.8}
+          />
+          <Text
+            allowFontScaling={false}
+            style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: post.isBookmarked ? ACCENT : 'rgba(0,0,0,0.55)', letterSpacing: -0.2 }}
+          >
+            {post.bookmarkCount}
+          </Text>
         </Pressable>
       </View>
     </Pressable>
