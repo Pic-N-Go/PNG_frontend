@@ -7,6 +7,7 @@ package-lock.json
 dist/
 web-build/
 expo-env.d.ts
+eas.json*
 
 # Native
 .kotlin/
