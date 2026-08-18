@@ -18,6 +18,8 @@ export type TokenResponse = {
   tokenType: string;
   accessToken: string;
   expiresIn: number;
+  refreshToken: string;
+  refreshTokenExpiresIn: number;
   user: UserResponse;
 };
 
@@ -39,10 +41,12 @@ export class ApiError extends Error {
    * 사용자에게 그대로 노출됐다. 상태코드를 모르는 실패(네트워크 단절 등)는 undefined.
    */
   readonly status?: number;
+  readonly code?: string;
 
-  constructor(message: string, status?: number) {
+  constructor(message: string, status?: number, code?: string) {
     super(message);
     this.status = status;
+    this.code = code;
   }
 }
 
@@ -62,38 +66,61 @@ const MESSAGE_BY_STATUS: Record<number, string> = {
   413: '사진 용량이 너무 커요. 더 작은 사진으로 시도해 주세요.',
 };
 
-/**
- * 401을 받았을 때 실행할 처리. 구현은 스토어 쪽에 있다(순환 참조 회피).
- * 배경·설계 근거 → `docs/guide/api/token-refresh-plan.md`
- *
- * @param fn 인자는 그 401을 유발한 요청이 보낸 토큰. 모르면 생략 가능.
- */
-let onUnauthorized: ((token?: string) => void) | null = null;
-export function setUnauthorizedHandler(fn: (token?: string) => void) {
-  onUnauthorized = fn;
+/** Access Token 만료 시 실행할 갱신 처리. 구현은 순환 참조를 피하려고 스토어가 주입한다. */
+type AccessTokenExpiredHandler = (requestToken: string) => Promise<string | null>;
+
+// 스토어를 여기서 직접 import하면 순환 참조가 생기므로 갱신 동작만 주입받는다.
+let onAccessTokenExpired: AccessTokenExpiredHandler | null = null;
+export function setAccessTokenExpiredHandler(fn: AccessTokenExpiredHandler) {
+  onAccessTokenExpired = fn;
 }
 
 /**
  * 실패 응답을 ApiError로 변환한다. 서버가 준 message를 항상 우선하고(백엔드 ErrorResponse의
  * message는 이미 사용자용 한국어다), 본문이 없을 때만 상태코드 기반 문구로 채운다.
  * 모든 api 모듈이 이 함수를 공유해 도메인마다 처리가 갈리지 않게 한다.
- *
- * 부수효과 있음: 401이면 onUnauthorized 핸들러를 부른다(= 로그아웃). 변환만 하는 함수가
- * 아니므로 호출부를 옮길 때 주의할 것. 403은 대상이 아니다(토큰이 멀쩡해도 나는 정상 거절).
- *
- * @param requestToken 이 요청이 Authorization 헤더로 보낸 토큰. 알 수 있으면 넘긴다.
+ * `code`도 보존하므로 호출부가 상태코드가 같은 인증 오류를 구분할 수 있다.
  */
-export async function toHttpError(res: Response, requestToken?: string): Promise<ApiError> {
-  const body = (await res.json().catch(() => ({}))) as { message?: string };
+export async function toHttpError(res: Response, _requestToken?: string): Promise<ApiError> {
+  const body = (await res.json().catch(() => ({}))) as { code?: string; message?: string };
   const message = body.message ?? MESSAGE_BY_STATUS[res.status] ?? `요청에 실패했어요. (${res.status})`;
-  if (res.status === 401) onUnauthorized?.(requestToken);
-  return new ApiError(message, res.status);
+  return new ApiError(message, res.status, body.code);
 }
 
 /** Authorization 헤더에서 토큰만 꺼낸다. 헤더를 options로 받는 래퍼용. */
 export function tokenFromHeaders(headers: HeadersInit | undefined): string | undefined {
   const value = new Headers(headers).get('Authorization');
   return (value?.startsWith('Bearer ') ? value.slice(7) : undefined) || undefined;
+}
+
+async function getErrorCode(res: Response): Promise<string | undefined> {
+  const body = (await res.clone().json().catch(() => ({}))) as { code?: string };
+  return body.code;
+}
+
+/** 만료된 Access Token 요청만 갱신 후 정확히 한 번 재시도한다. */
+export async function fetchWithAuthRetry(
+  input: RequestInfo | URL,
+  init: RequestInit = {},
+): Promise<Response> {
+  const requestToken = tokenFromHeaders(init.headers);
+  const res = await fetch(input, init);
+
+  if (
+    !requestToken ||
+    res.status !== 401 ||
+    (await getErrorCode(res)) !== 'ACCESS_TOKEN_EXPIRED' ||
+    !onAccessTokenExpired
+  ) {
+    return res;
+  }
+
+  const nextAccessToken = await onAccessTokenExpired(requestToken);
+  if (!nextAccessToken) return res;
+
+  const retryHeaders = new Headers(init.headers);
+  retryHeaders.set('Authorization', `Bearer ${nextAccessToken}`);
+  return fetch(input, { ...init, headers: retryHeaders });
 }
 
 async function post<T>(path: string, body: unknown): Promise<T> {
@@ -118,7 +145,7 @@ async function get<T>(path: string, accessToken?: string): Promise<T> {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
   try {
-    const res = await fetch(`${BASE}${path}`, {
+    const res = await fetchWithAuthRetry(`${BASE}${path}`, {
       headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
       signal: controller.signal,
     });
@@ -149,6 +176,9 @@ export const authApi = {
 
   loginWithKakao: (accessToken: string) =>
     post<TokenResponse>('/auth/login/social', { accessToken }),
+
+  refreshToken: (refreshToken: string) =>
+    post<TokenResponse>('/auth/token/refresh', { refreshToken }),
 
   sendPasswordResetCode: (email: string) =>
     post<EmailVerificationResponse>('/auth/password/reset/code', { email }),

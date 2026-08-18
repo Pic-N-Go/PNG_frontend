@@ -102,7 +102,7 @@ export default function LoginScreen({ navigation }: Props) {
 
   const loginMutation = useMutation({
     mutationFn: () => authApi.login(email.trim(), password),
-    onSuccess: (data) => setAuth(data.accessToken, data.user),
+    onSuccess: (data) => setAuth(data),
     onError: (err: unknown) =>
       showToast(toErrorMessage(err, "로그인에 실패했어요. 다시 시도해주세요.")),
   });
@@ -112,7 +112,7 @@ export default function LoginScreen({ navigation }: Props) {
       const token = await kakaoLogin();
       return authApi.loginWithKakao(token.accessToken);
     },
-    onSuccess: (data) => setAuth(data.accessToken, data.user),
+    onSuccess: (data) => setAuth(data),
     onError: (e: unknown) => {
       if ((e as { code?: string })?.code === "E_CANCELLED") return;
       console.error("[KakaoLogin Error]", e);
