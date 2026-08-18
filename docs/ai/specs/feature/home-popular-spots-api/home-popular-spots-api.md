@@ -79,15 +79,15 @@
 - 요청/응답 핵심 필드:
   - 요청: `sort=popular`, `size=10`, `page=0`
   - 응답: `PageSpotResponse` (`content: SpotResponse[]`) — 타입은 `src/types/spot.ts:419`에 이미 정의됨
-  - 사용 필드: `id` `name` `address` `categories` `reviewAverage` `reviewCount` `thumbnailUrl` `imageUrl` `isBookmarked`
-    - `photogenicScore`는 **쓰지 않습니다** — 아래 AC3 참고
-    - `reviewAverage`는 리뷰 0건 스팟에서 서버 `AVG()`가 null로 떨어져 `number | null`입니다
+  - 사용 필드: `id` `name` `address` `categories` `reviewAverage` `reviewCount` `thumbnailUrl` `imageUrl`
+    `isBookmarked`(토큰 동봉 요청에서만 채워짐 — 비로그인·구버전 서버는 `undefined` → `false` 폴백)
+    - `photogenicScore`는 **쓰지 않는다** — 아래 AC3 참고
+    - `reviewAverage`는 리뷰 0건 스팟에서 서버 `AVG()`가 null로 떨어져 `number | null`이다
 - 실패 처리 방식: `useQuery`의 `isError`로 섹션 내 인라인 에러 + `refetch()`. 토스트/모달 없음.
-- 캐싱/무효화 전략: `useSpots`의 기존 `staleTime: 60s` 사용.
-  - 북마크 저장/해제(`useSyncSpotBookmarks`)가 `['bookmark-collections', spotId]`와
-    `['spots', 'list']`를 함께 무효화한다. 후자가 있어야 스팟 상세에서 해제한 것이 스택 아래
-    홈 카드의 `isBookmarked`에도 반영된다 — 홈에는 자체 refetch 트리거가 없다.
-  - 그 외 별도 무효화는 없다.
+- 캐싱/무효화 전략: `useSpots`의 기존 `staleTime: 60s` 사용. 추가로 즐겨찾기 저장 성공 시
+  `useSyncSpotBookmarks.onSuccess`가 `['bookmark-collections', spotId]`와 `['spots','list']`를 무효화한다 —
+  카드의 채워짐 상태가 목록 응답의 `isBookmarked`에서 오므로, 홈·상세 어느 쪽에서 바꾸든 목록 재조회가 있어야 반영된다.
+  무효화를 화면이 아니라 mutation에 둔 이유: 홈은 상세 진입 중에도 마운트를 유지해 자체 refetch 트리거가 없다.
 
 ## 7) 상태 관리
 

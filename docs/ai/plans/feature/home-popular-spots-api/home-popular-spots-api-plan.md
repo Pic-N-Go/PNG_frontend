@@ -123,8 +123,10 @@
 ## 5) 롤백 계획
 
 - 영향 파일: `src/types/spot.ts`, `src/utils/spotMappers.ts`, `src/components/home/PopularSpotsSection.tsx`, `src/components/home/SpotCard.tsx`, 목업 HTML 2건
-- 되돌림 방법: 단일 PR revert. 서버 상태만 읽는 변경이라 부분 롤백 불필요
-- 데이터 영향: 없음 (GET only, 캐시 키 신규 생성 없음)
+- 되돌림 방법: 단일 PR revert. 신규 캐시 키가 없어 부분 롤백 불필요
+- 데이터 영향: **읽기 전용 아님.** Task 5의 `syncSpotBookmarks`는 즐겨찾기 컬렉션 멤버십을 서버에 쓴다.
+  코드를 되돌려도 사용자가 이미 저장한 즐겨찾기는 그대로 남는다 (UI만 사라짐).
+  되돌린 뒤 즐겨찾기 자체를 취소하려면 스팟 상세 화면에서 개별 해제해야 한다.
 
 ## 6) PR 구성
 
