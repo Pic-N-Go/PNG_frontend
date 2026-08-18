@@ -1,6 +1,7 @@
 import React from 'react';
 import { Animated, BackHandler, Dimensions, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { WebView } from 'react-native-webview';
 import { Aperture, Camera, MapPin, X } from 'lucide-react-native';
 import BottomSheet from '@/components/common/BottomSheet';
 import { PhotoExifData } from '@/types/photo';
@@ -10,6 +11,11 @@ import { normalize, normalizeFontSize } from '@/utils/normalize';
 
 const SURFACE = '#f5f5f7';
 const ACCENT = '#E31B59';
+const KAKAO_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_API_KEY;
+const MAP_PREVIEW_HEIGHT = 120;
+/** 미리보기 지도의 핀 너비(px). 높이는 SVG viewBox 24:30 비율로 따라간다.
+ *  120px 지도에 PhotoMapScreen의 24px 핀은 커 보여서 한 단계 줄였다. */
+const MAP_PIN_WIDTH = 20;
 
 interface Props {
   visible: boolean;
@@ -56,6 +62,83 @@ function StatCell({ label, value, unit }: { label: string; value: string; unit?:
           </Text>
         )}
       </Text>
+    </View>
+  );
+}
+
+/**
+ * 촬영 위치 미리보기. **조작 없는 정지 지도**다 — 시트가 ScrollView 안이라 드래그·줌을 켜면
+ * 제스처가 서로를 먹고, 여기서 필요한 건 "대충 어디쯤"이지 탐색이 아니다.
+ * 탐색이 필요해지면 좌표를 넘겨 지도 화면으로 보내는 편이 맞다.
+ *
+ * 키가 없으면(로컬 .env 누락 등) 아이콘 플레이스홀더로 떨어진다 — 지도가 빈 회색으로
+ * 뜨는 것보다 낫고, 이 시트는 지도가 없어도 나머지 정보로 제 역할을 한다.
+ */
+function LocationPreview({ lat, lng }: { lat: number; lng: number }) {
+  const source = React.useMemo(
+    () => ({
+      html: `<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+  <!-- baseUrl을 https로 주면 카카오 SDK가 내부 라이브러리를 https로 받는다(iOS ATS 통과).
+       단 Referer가 붙으면 미등록 도메인이라 401이 되므로 no-referrer로 억제한다. -->
+  <meta name="referrer" content="no-referrer">
+  <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_KEY}&autoload=false"></script>
+  <style>body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: ${SURFACE}; }
+    #map { width: 100%; height: 100%; }</style>
+</head>
+<body>
+  <div id="map"></div>
+  <script>
+    kakao.maps.load(function () {
+      var center = new kakao.maps.LatLng(${lat}, ${lng});
+      var map = new kakao.maps.Map(document.getElementById('map'), { center: center, level: 4 });
+      // 미리보기이므로 조작을 막는다. 부모 ScrollView와 제스처가 충돌하지 않게 하는 목적도 겸한다.
+      map.setDraggable(false);
+      map.setZoomable(false);
+      // 기본 Marker는 크기가 고정이라 CustomOverlay로 그린다(PhotoMapScreen과 같은 핀 모양).
+      // yAnchor: 1 — 핀 끝(뾰족한 아래쪽)이 실제 좌표에 닿아야 한다.
+      var pin = document.createElement('div');
+      pin.innerHTML =
+        '<svg width="${MAP_PIN_WIDTH}" height="${Math.round((MAP_PIN_WIDTH * 30) / 24)}" viewBox="0 0 24 30" fill="none">' +
+        '<path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill="${ACCENT}"/>' +
+        '<circle cx="12" cy="10.5" r="4.5" fill="#fff"/></svg>';
+      new kakao.maps.CustomOverlay({ position: center, content: pin, yAnchor: 1, map: map });
+    });
+  </script>
+</body>
+</html>`,
+      baseUrl: 'https://localhost',
+    }),
+    [lat, lng],
+  );
+
+  if (!KAKAO_KEY) {
+    return (
+      <View
+        className="items-center justify-center"
+        style={{ height: normalize(MAP_PREVIEW_HEIGHT), borderRadius: normalize(12), backgroundColor: SURFACE, marginTop: normalize(12) }}
+      >
+        <MapPin size={normalize(28)} color="rgba(0,0,0,0.25)" strokeWidth={1.6} />
+      </View>
+    );
+  }
+
+  return (
+    <View
+      style={{ height: normalize(MAP_PREVIEW_HEIGHT), borderRadius: normalize(12), backgroundColor: SURFACE, marginTop: normalize(12), overflow: 'hidden' }}
+    >
+      <WebView
+        source={source}
+        originWhitelist={['*']}
+        javaScriptEnabled
+        scrollEnabled={false}
+        bounces={false}
+        showsVerticalScrollIndicator={false}
+        showsHorizontalScrollIndicator={false}
+        style={{ flex: 1, backgroundColor: SURFACE }}
+      />
     </View>
   );
 }
@@ -180,12 +263,7 @@ export function PhotoExifSheetContent({ onClose, exif }: Omit<Props, 'visible'>)
             <DetailRow label="위도" value={exif.gpsLat!.toFixed(6)} />
             <DetailRow label="경도" value={exif.gpsLng!.toFixed(6)} isLast />
           </View>
-          <View
-            className="items-center justify-center"
-            style={{ height: normalize(120), borderRadius: normalize(12), backgroundColor: SURFACE, marginTop: normalize(12) }}
-          >
-            <MapPin size={normalize(28)} color="rgba(0,0,0,0.25)" strokeWidth={1.6} />
-          </View>
+          <LocationPreview lat={exif.gpsLat!} lng={exif.gpsLng!} />
         </>
       )}
 
