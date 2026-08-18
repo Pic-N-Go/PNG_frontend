@@ -127,12 +127,16 @@ export default function AdminDashboardScreen() {
   const answerMutation = useAnswerInquiry();
   const [selectedInquiry, setSelectedInquiry] = useState<InquiryItem | null>(null);
   const [answerInput, setAnswerInput] = useState('');
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
   const [answerModalVisible, setAnswerModalVisible] = useState(false);
   const answerScrollViewRef = useRef<ScrollView>(null);
 
   const handleOpenAnswerModal = (item: InquiryItem) => {
     setSelectedInquiry(item);
-    setAnswerInput(item.answer || '');
+    const existingAnswer = item.answer || '';
+    setAnswerInput(existingAnswer);
+    const matched = INQUIRY_ANSWER_TEMPLATES.find((t) => t.type === item.type);
+    setSelectedTemplateId(matched ? matched.id : null);
     setAnswerModalVisible(true);
   };
 
@@ -140,6 +144,7 @@ export default function AdminDashboardScreen() {
     setAnswerModalVisible(false);
     setSelectedInquiry(null);
     setAnswerInput('');
+    setSelectedTemplateId(null);
   };
 
   const handleSubmitAnswer = () => {
@@ -2142,7 +2147,14 @@ export default function AdminDashboardScreen() {
                   contentContainerStyle={{ gap: normalize(6) }}
                 >
                   {INQUIRY_ANSWER_TEMPLATES.map((tmpl) => {
-                    const isMatchedType = selectedInquiry?.type === tmpl.type;
+                    const isSelected = selectedTemplateId === tmpl.id;
+                    const isRecommended = selectedInquiry?.type === tmpl.type;
+
+                    const handleSelect = () => {
+                      setAnswerInput(tmpl.content);
+                      setSelectedTemplateId(tmpl.id);
+                    };
+
                     return (
                       <TouchableOpacity
                         key={tmpl.id}
@@ -2153,31 +2165,35 @@ export default function AdminDashboardScreen() {
                               '작성 중인 내용을 선택한 템플릿 문구로 교체하시겠습니까?',
                               [
                                 { text: '취소', style: 'cancel' },
-                                { text: '교체', onPress: () => setAnswerInput(tmpl.content) },
+                                { text: '교체', onPress: handleSelect },
                               ]
                             );
                           } else {
-                            setAnswerInput(tmpl.content);
+                            handleSelect();
                           }
                         }}
                         style={{
                           paddingHorizontal: normalize(11),
                           paddingVertical: normalize(6),
                           borderRadius: normalize(8),
-                          backgroundColor: isMatchedType ? '#fde3ec' : '#ffffff',
-                          borderWidth: 1,
-                          borderColor: isMatchedType ? '#E31B59' : 'rgba(0,0,0,0.1)',
+                          backgroundColor: isSelected ? '#fde3ec' : '#ffffff',
+                          borderWidth: isSelected ? 1.5 : 1,
+                          borderColor: isSelected ? '#E31B59' : 'rgba(0,0,0,0.1)',
                           flexDirection: 'row',
                           alignItems: 'center',
                           gap: normalize(4),
                         }}
                       >
-                        {isMatchedType && <IconSparkles size={normalize(12)} color="#E31B59" />}
+                        {isSelected ? (
+                          <IconCheck size={normalize(12)} color="#E31B59" strokeWidth={2.5} />
+                        ) : isRecommended ? (
+                          <IconSparkles size={normalize(12)} color="#E31B59" />
+                        ) : null}
                         <Text
                           style={{
                             fontSize: FONT_XS,
-                            fontFamily: isMatchedType ? 'Pretendard-Bold' : 'Pretendard-Medium',
-                            color: isMatchedType ? '#E31B59' : 'rgba(0,0,0,0.7)',
+                            fontFamily: isSelected || isRecommended ? 'Pretendard-Bold' : 'Pretendard-Medium',
+                            color: isSelected ? '#E31B59' : isRecommended ? '#d9275c' : 'rgba(0,0,0,0.7)',
                           }}
                         >
                           {tmpl.label}
@@ -2203,7 +2219,11 @@ export default function AdminDashboardScreen() {
                 <TextInput
                   multiline
                   value={answerInput}
-                  onChangeText={setAnswerInput}
+                  onChangeText={(text) => {
+                    setAnswerInput(text);
+                    const matchedTmpl = INQUIRY_ANSWER_TEMPLATES.find((t) => t.content.trim() === text.trim());
+                    setSelectedTemplateId(matchedTmpl ? matchedTmpl.id : null);
+                  }}
                   onFocus={() => {
                     setTimeout(() => {
                       answerScrollViewRef.current?.scrollToEnd({ animated: true });
