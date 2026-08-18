@@ -1,12 +1,11 @@
 import React from 'react';
-import { Animated, Dimensions, Image, Modal, Pressable, ScrollView, StatusBar, StyleSheet, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { Dimensions, Image, Modal, Pressable, StatusBar, StyleSheet, Text, View } from 'react-native';
 import { IconX } from '@tabler/icons-react-native';
 import { Info } from 'lucide-react-native';
-import { PhotoExifSheetContent } from '@/components/common/PhotoExifSheet';
+import { PhotoExifLayer } from '@/components/common/PhotoExifSheet';
 import { useReviewExif } from '@/hooks/useSpot';
-import { hasAnyExif } from '@/utils/spotMappers';
-import { BOTTOM_SHEET_RADIUS, FONT_SM } from '@/constants/layout';
+import type { PhotoExifData } from '@/types/photo';
+import { FONT_SM } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
 
 interface Props {
@@ -17,12 +16,16 @@ interface Props {
   visible: boolean;
   onClose: () => void;
   /**
-   * EXIF 조회용. 리뷰 사진일 때만 넘긴다 — 스팟 사진(`SpotPhoto`)은 TourAPI 외부 이미지라
-   * EXIF가 없다. 없으면 정보 버튼 자체를 그리지 않는다.
+   * 리뷰 사진일 때만 넘긴다. 넘기면 `GET /reviews/{id}/exif`로 사진별 EXIF를 조회한다.
    */
   reviewId?: string | number | null;
   /** photos와 같은 순서의 photoId. EXIF 응답을 imageId로 매칭한다(URL은 presigned라 키가 못 된다). */
   photoIds?: number[];
+  /**
+   * 이미 아는 사진 정보를 photos와 같은 순서로 넘긴다. 서버 조회가 없는 스팟 사진용
+   * (`exifFromPhotoUrl` 참고). reviewId와 함께 넘기면 서버 응답이 우선한다.
+   */
+  exifs?: (PhotoExifData | undefined)[];
 }
 
 // 퍼센트 높이는 부모 높이가 확정돼야 해석돼 이미지가 0높이로 접히는 일이 있었다.
@@ -38,25 +41,15 @@ const IMAGE_HEIGHT = SCREEN_HEIGHT * 0.7;
  * 띄우면 두 번째가 안 뜨는 경우가 있다(iOS 네이티브 모달 프레젠테이션 제약).
  * community/PhotoLightbox와 같은 구조다.
  */
-export default function PhotoLightbox({ photos, initialIndex, visible, onClose, reviewId, photoIds }: Props) {
+export default function PhotoLightbox({ photos, initialIndex, visible, onClose, reviewId, photoIds, exifs }: Props) {
   const [index, setIndex] = React.useState(initialIndex);
   const [exifOpen, setExifOpen] = React.useState(false);
-  const insets = useSafeAreaInsets();
-  const exifTranslateY = React.useRef(new Animated.Value(SCREEN_HEIGHT)).current;
 
   // 다른 리뷰의 사진을 열면 시작 인덱스가 바뀌므로 열릴 때마다 맞춘다.
   React.useEffect(() => {
     if (visible) setIndex(initialIndex);
     else setExifOpen(false); // 닫았다 다시 열면 사진부터 보여야 한다
   }, [visible, initialIndex]);
-
-  React.useEffect(() => {
-    Animated.timing(exifTranslateY, {
-      toValue: exifOpen ? 0 : SCREEN_HEIGHT,
-      duration: 250,
-      useNativeDriver: true,
-    }).start();
-  }, [exifOpen, exifTranslateY]);
 
   // 시트를 한 번 열기 전에는 호출하지 않는다. 닫은 뒤에도 유지해 재오픈 시 깜빡이지 않게 한다.
   const [exifRequested, setExifRequested] = React.useState(false);
@@ -71,8 +64,11 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose, 
   const uri = photos[safeIndex];
 
   const currentPhotoId = photoIds?.[safeIndex];
-  const exif = currentPhotoId != null ? exifByPhotoId?.[currentPhotoId] : undefined;
-  const canShowExif = reviewId != null && photoIds != null && photoIds.length === photos.length;
+  const fetchedExif = currentPhotoId != null ? exifByPhotoId?.[currentPhotoId] : undefined;
+  const exif = fetchedExif ?? exifs?.[safeIndex];
+  // 리뷰 사진은 서버 조회, 스팟 사진은 넘겨받은 값. 둘 다 없으면 정보 버튼을 그리지 않는다.
+  const hasReviewExif = reviewId != null && photoIds != null && photoIds.length === photos.length;
+  const canShowExif = hasReviewExif || (exifs != null && exifs.length === photos.length);
 
   const openExif = () => {
     setExifRequested(true);
@@ -165,43 +161,13 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose, 
           </View>
         )}
 
-        {exifOpen && (
-          <Pressable
-            onPress={() => setExifOpen(false)}
-            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 5 }}
-          />
-        )}
-        <Animated.View
-          style={{
-            position: 'absolute',
-            left: 0,
-            right: 0,
-            bottom: 0,
-            maxHeight: '80%',
-            backgroundColor: '#fff',
-            borderTopLeftRadius: BOTTOM_SHEET_RADIUS,
-            borderTopRightRadius: BOTTOM_SHEET_RADIUS,
-            paddingBottom: insets.bottom + normalize(8),
-            transform: [{ translateY: exifTranslateY }],
-            zIndex: 6,
-          }}
-        >
-          <View style={{ alignItems: 'center', paddingTop: normalize(10), paddingBottom: normalize(8) }}>
-            <View style={{ width: normalize(36), height: normalize(4), borderRadius: normalize(2), backgroundColor: 'rgba(0,0,0,0.12)' }} />
-          </View>
-          <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
-            {/* EXIF는 카톡·인스타를 거친 사진에서 제거되는 일이 흔해 '없음'이 정상 케이스다. */}
-            {exifLoading || exifError || !hasAnyExif(exif) ? (
-              <View style={{ paddingHorizontal: normalize(28), paddingVertical: normalize(32), alignItems: 'center' }}>
-                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: 'rgba(0,0,0,0.4)', letterSpacing: -0.2 }}>
-                  {exifLoading ? '사진 정보를 불러오는 중' : exifError ? '사진 정보를 불러올 수 없어요' : '이 사진에는 촬영 정보가 없어요'}
-                </Text>
-              </View>
-            ) : (
-              <PhotoExifSheetContent exif={exif!} onClose={() => setExifOpen(false)} />
-            )}
-          </ScrollView>
-        </Animated.View>
+        <PhotoExifLayer
+          open={exifOpen}
+          onClose={() => setExifOpen(false)}
+          exif={exif}
+          loading={hasReviewExif && exifLoading}
+          error={hasReviewExif && exifError}
+        />
       </View>
     </Modal>
   );

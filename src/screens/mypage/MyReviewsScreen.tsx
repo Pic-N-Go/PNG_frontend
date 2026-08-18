@@ -30,7 +30,8 @@ export default function MyReviewsScreen() {
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [menuTarget, setMenuTarget] = useState<MyReview | null>(null);
-  const [lightbox, setLightbox] = useState<{ photos: string[]; index: number } | null>(null);
+  // reviewId·photoIds는 확대 화면의 EXIF 조회용 (photoId로 EXIF 응답을 매칭한다).
+  const [lightbox, setLightbox] = useState<{ photos: string[]; photoIds: number[]; index: number; reviewId: number } | null>(null);
 
   const reviews = data ?? [];
 
@@ -160,7 +161,14 @@ export default function MyReviewsScreen() {
                         activeOpacity={0.8}
                         accessibilityRole="button"
                         accessibilityLabel="사진 크게 보기"
-                        onPress={() => setLightbox({ photos: review.photos.map((p) => p.url), index: photoIdx })}
+                        onPress={() =>
+                          setLightbox({
+                            photos: review.photos.map((p) => p.url),
+                            photoIds: review.photos.map((p) => p.photoId),
+                            index: photoIdx,
+                            reviewId: review.reviewId,
+                          })
+                        }
                       >
                         <Image source={{ uri: photo.url }} resizeMode="cover" style={styles.photoThumb} />
                       </TouchableOpacity>
@@ -197,6 +205,8 @@ export default function MyReviewsScreen() {
 
       <PhotoLightbox
         photos={lightbox?.photos ?? []}
+        photoIds={lightbox?.photoIds}
+        reviewId={lightbox?.reviewId}
         initialIndex={lightbox?.index ?? 0}
         visible={lightbox !== null}
         onClose={() => setLightbox(null)}

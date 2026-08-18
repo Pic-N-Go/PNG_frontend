@@ -484,6 +484,19 @@ export function mapReviewExif(res: ReviewExifResponse): Record<number, PhotoExif
   return byId;
 }
 
+/**
+ * 스팟 사진(TourAPI 외부 이미지)용 최소 정보. 서버가 이 사진들의 EXIF를 갖고 있지 않아
+ * (`GET /spots/{id}/photos`는 originUrl·thumbnailUrl·imgName뿐, exif 엔드포인트 없음)
+ * URL에서 뽑히는 파일명·형식만 채운다. 시트의 나머지 행은 값이 없으면 알아서 접힌다.
+ * 서버가 스팟 사진 EXIF를 주기 시작하면 이 함수 대신 mapPhotoExif로 교체할 것.
+ */
+export function exifFromPhotoUrl(url: string): PhotoExifData {
+  // presigned 쿼리스트링이 붙어도 파일명만 남기고, 확장자는 형식 행에 쓴다.
+  const filename = url.split('?')[0].split('/').pop() || undefined;
+  const ext = filename?.includes('.') ? filename.split('.').pop() : undefined;
+  return { filename, format: ext ? ext.toUpperCase() : undefined };
+}
+
 /** 표시할 값이 하나라도 있는지. EXIF가 제거된 사진이면 전 필드가 undefined다. */
 export function hasAnyExif(exif: PhotoExifData | undefined): boolean {
   return !!exif && Object.values(exif).some((v) => v !== undefined);
@@ -593,4 +606,8 @@ if (__DEV__) {
   console.assert(full.fileSize === '8.4MB', `fileSize 포맷 오류: ${full.fileSize}`);
   console.assert(hasAnyExif(full) && !hasAnyExif(mapPhotoExif(empty)), 'EXIF 없음 판정 오류 (전 필드 null이면 false여야 함)');
   console.assert(mapReviewExif({ reviewId: 9, images: [empty] })[1] !== undefined, 'mapReviewExif가 photoId로 키를 잡아야 한다');
+  const fromUrl = exifFromPhotoUrl('http://tong.visitkorea.or.kr/cms/resource/31/3352031_image2_1.jpg?w=1');
+  console.assert(fromUrl.filename === '3352031_image2_1.jpg', 'URL 파일명 추출 오류 (쿼리스트링 제거 포함)');
+  console.assert(fromUrl.format === 'JPG', 'URL 확장자 → 형식 변환 오류');
+  console.assert(exifFromPhotoUrl('https://x/photo').format === undefined, '확장자가 없으면 형식 행이 비어야 한다');
 }

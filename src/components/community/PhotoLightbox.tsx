@@ -1,10 +1,10 @@
-import React, { useEffect, useRef } from 'react';
-import { Animated, Dimensions, Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import React from 'react';
+import { Modal, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Heart, Info, MapPin, X } from 'lucide-react-native';
-import { PhotoExifSheetContent } from '@/components/common/PhotoExifSheet';
+import { PhotoExifLayer } from '@/components/common/PhotoExifSheet';
 import { PostDetail } from '@/types/community';
-import { BOTTOM_SHEET_RADIUS, FONT_2XS, FONT_SM, FONT_XS } from '@/constants/layout';
+import { FONT_2XS, FONT_SM, FONT_XS } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 
 interface Props {
@@ -23,15 +23,6 @@ interface Props {
  */
 export default function PhotoLightbox({ visible, onClose, exifOpen, onOpenExif, onCloseExif, post }: Props) {
   const insets = useSafeAreaInsets();
-  const exifTranslateY = useRef(new Animated.Value(Dimensions.get('window').height)).current;
-
-  useEffect(() => {
-    Animated.timing(exifTranslateY, {
-      toValue: exifOpen ? 0 : Dimensions.get('window').height,
-      duration: 250,
-      useNativeDriver: true,
-    }).start();
-  }, [exifOpen, exifTranslateY]);
 
   return (
     <Modal visible={visible} transparent animationType="fade" statusBarTranslucent onRequestClose={onClose}>
@@ -106,34 +97,7 @@ export default function PhotoLightbox({ visible, onClose, exifOpen, onOpenExif, 
           </Pressable>
         </View>
 
-        {exifOpen && (
-          <Pressable
-            onPress={onCloseExif}
-            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 5 }}
-          />
-        )}
-        <Animated.View
-          style={{
-            position: 'absolute',
-            left: 0,
-            right: 0,
-            bottom: 0,
-            maxHeight: '80%',
-            backgroundColor: '#fff',
-            borderTopLeftRadius: BOTTOM_SHEET_RADIUS,
-            borderTopRightRadius: BOTTOM_SHEET_RADIUS,
-            paddingBottom: insets.bottom + normalize(8),
-            transform: [{ translateY: exifTranslateY }],
-            zIndex: 6,
-          }}
-        >
-          <View style={{ alignItems: 'center', paddingTop: normalize(10), paddingBottom: normalize(8) }}>
-            <View style={{ width: normalize(36), height: normalize(4), borderRadius: normalize(2), backgroundColor: 'rgba(0,0,0,0.12)' }} />
-          </View>
-          <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
-            <PhotoExifSheetContent exif={post.exif} onClose={onCloseExif} />
-          </ScrollView>
-        </Animated.View>
+        <PhotoExifLayer open={exifOpen} onClose={onCloseExif} exif={post.exif} />
       </View>
     </Modal>
   );

@@ -1,9 +1,11 @@
 import React from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Animated, Dimensions, Pressable, ScrollView, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Aperture, Camera, MapPin, X } from 'lucide-react-native';
 import BottomSheet from '@/components/common/BottomSheet';
 import { PhotoExifData } from '@/types/photo';
-import { FONT_2XS, FONT_LG, FONT_SM, FONT_XS, GRID_PADDING } from '@/constants/layout';
+import { hasAnyExif } from '@/utils/spotMappers';
+import { BOTTOM_SHEET_RADIUS, FONT_2XS, FONT_LG, FONT_SM, FONT_XS, GRID_PADDING } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 
 const SURFACE = '#f5f5f7';
@@ -206,5 +208,84 @@ export default function PhotoExifSheet({ visible, onClose, exif }: Props) {
     <BottomSheet visible={visible} onClose={onClose}>
       <PhotoExifSheetContent onClose={onClose} exif={exif} />
     </BottomSheet>
+  );
+}
+
+const SCREEN_HEIGHT = Dimensions.get('window').height;
+
+/**
+ * 라이트박스 Modal **안에** 겹쳐 올리는 EXIF 시트. 별도 Modal이 아닌 이유는
+ * `PhotoExifSheetContent` 주석 참고(RN에서 Modal 2개 동시 표시 제약).
+ *
+ * 부모의 최상위 View 안에 그대로 두면 된다 — 딤과 시트를 absolute 형제로 깐다.
+ * exif 자체가 비거나(EXIF 제거된 사진) 로딩·에러면 안내 문구로 대체한다.
+ */
+export function PhotoExifLayer({
+  open,
+  onClose,
+  exif,
+  loading,
+  error,
+}: {
+  open: boolean;
+  onClose: () => void;
+  exif: PhotoExifData | undefined;
+  loading?: boolean;
+  error?: boolean;
+}) {
+  const insets = useSafeAreaInsets();
+  const translateY = React.useRef(new Animated.Value(SCREEN_HEIGHT)).current;
+
+  React.useEffect(() => {
+    Animated.timing(translateY, {
+      toValue: open ? 0 : SCREEN_HEIGHT,
+      duration: 250,
+      useNativeDriver: true,
+    }).start();
+  }, [open, translateY]);
+
+  return (
+    <>
+      {open && (
+        <Pressable
+          onPress={onClose}
+          style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 5 }}
+        />
+      )}
+      <Animated.View
+        style={{
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          bottom: 0,
+          maxHeight: '80%',
+          backgroundColor: '#fff',
+          borderTopLeftRadius: BOTTOM_SHEET_RADIUS,
+          borderTopRightRadius: BOTTOM_SHEET_RADIUS,
+          paddingBottom: insets.bottom + normalize(8),
+          transform: [{ translateY }],
+          zIndex: 6,
+        }}
+      >
+        <View style={{ alignItems: 'center', paddingTop: normalize(10), paddingBottom: normalize(8) }}>
+          <View style={{ width: normalize(36), height: normalize(4), borderRadius: normalize(2), backgroundColor: 'rgba(0,0,0,0.12)' }} />
+        </View>
+        <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
+          {/* EXIF는 카톡·인스타를 거친 사진에서 제거되는 일이 흔해 '없음'이 정상 케이스다. */}
+          {loading || error || !hasAnyExif(exif) ? (
+            <View style={{ paddingHorizontal: normalize(28), paddingVertical: normalize(32), alignItems: 'center' }}>
+              <Text
+                allowFontScaling={false}
+                style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: 'rgba(0,0,0,0.4)', letterSpacing: -0.2 }}
+              >
+                {loading ? '사진 정보를 불러오는 중' : error ? '사진 정보를 불러올 수 없어요' : '이 사진에는 촬영 정보가 없어요'}
+              </Text>
+            </View>
+          ) : (
+            <PhotoExifSheetContent exif={exif!} onClose={onClose} />
+          )}
+        </ScrollView>
+      </Animated.View>
+    </>
   );
 }
