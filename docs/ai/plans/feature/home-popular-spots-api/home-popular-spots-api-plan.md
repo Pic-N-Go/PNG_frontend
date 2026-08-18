@@ -38,7 +38,8 @@
   - `mapPopularSpot(dto: SpotResponse): SpotItem` 추가
     - `id: String(dto.id)`
     - `location`: `[regionLabelFrom(dto.address), dto.categories.slice(0, 2).join('/')]`를 `' · '`로 join (빈 조각 제거)
-    - `rating: dto.reviewAverage ?? 0`, `photoScore: dto.photogenicScore ?? 0`
+    - `rating: dto.reviewAverage ?? 0`, `reviewCount: dto.reviewCount ?? 0`
+      (`photoScore`는 매핑하지 않음 — 스펙 AC3의 포토제닉 지수 미표시 결정)
     - `imageUrl: dto.thumbnailUrl ?? dto.imageUrl`
     - `isBookmarked: false` (서버 미제공)
     - `badge`·`gradientColors` 미설정
@@ -74,7 +75,8 @@
 - 변경 내용:
   - 사진 영역: `item.imageUrl`이 있으면 `Image`(`resizeMode: 'cover'`, `position: absolute, inset: 0`),
     없으면 기존 `LinearGradient`. 그라디언트 폴백 색상은 `item.gradientColors ?? DEFAULT_GRADIENT` 상수로 처리
-  - `item.rating` / `item.photoScore` 미정의 방어 (`toFixed` 호출부 null 경계)
+  - `item.rating` 미정의 방어 (`toFixed` 호출부 null 경계). `reviewCount`는 0건일 때
+    "(0)"이 리뷰가 있는 카드처럼 읽혀 아예 그리지 않는다
   - 배지 블록은 `item.badge &&` 가드가 이미 있어 코드 변경 없음 — 유지
 - 완료 조건: `imageUrl` 유/무 두 경우 모두 카드 레이아웃이 깨지지 않는다
 - 검증 방법: 응답에 `thumbnailUrl`이 null인 스팟과 있는 스팟이 섞인 상태로 홈 확인 (없으면 임시로 매퍼에서 null 강제)

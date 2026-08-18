@@ -2,7 +2,7 @@
 
 PNG 앱에서 사용자가 업로드하는 사진에 대한 기술 스펙 문서입니다.
 
-> **문서 성격**: 초기 설계 기준으로 작성돼 미구현 항목이 섞여 있습니다. 2026-07-29 기준으로
+> **문서 성격**: 초기 설계 기준으로 작성돼 미구현 항목이 섞여 있습니다. 2026-08-18 기준으로
 > 실제 구현과 어긋난 부분을 정정하고, 계획 단계인 항목에 `계획` 표기를 달았습니다.
 > **구현 여부가 불확실하면 이 문서가 아니라 코드를 기준으로 판단하세요.**
 > 리뷰 사진 업로드 구현: `src/screens/spot/ReviewWriteScreen.tsx`, `src/api/spot.ts`
@@ -41,11 +41,15 @@ HEIC 변환은 **클라이언트에서** 처리합니다 — iOS 피커의
 
 초과 시 서버는 400 `INVALID_INPUT_VALUE` + `"업로드 용량이 허용 범위를 초과했습니다."`를 반환합니다.
 
-클라이언트에서 1차 검증합니다. 단 **플랫폼별로 기준이 다릅니다** —
-iOS의 `fileSize`는 압축 후(실제 전송) 크기라 서버 한도를 그대로 적용하지만,
-Android는 압축 전 원본 크기라 같은 기준을 쓰면 압축하면 통과할 사진을 오탐으로 막습니다.
-그래서 Android에서는 압축률을 감안한 관대한 상한만 둬 명백히 과대한 파일만 걸러냅니다
-(`ReviewWriteScreen.tsx`의 `ANDROID_SIZE_SLACK`).
+클라이언트에서 1차 검증합니다. **양 플랫폼 동일하게 20MB 기준을 그대로 적용합니다** —
+image-picker `quality`가 1이라(아래 [EXIF 처리](#exif-처리) 참고) 재인코딩이 없어
+`fileSize`가 곧 실제 전송 크기이기 때문입니다.
+
+> 2026-08-18 변경: 이전에는 Android만 압축률을 감안한 여유 배수(`ANDROID_SIZE_SLACK`)를
+> 뒀습니다. `quality: 1`로 바뀌며 압축 자체가 사라져 그 보정의 전제가 없어졌고, 상수도
+> 삭제했습니다. **회귀 주의** — 예전에는 압축 후 통과했을 20MB 초과 원본이 이제 업로드
+> 전에 거부됩니다. 사용자에겐 "되던 게 안 되는" 변화라, 초과 시 압축 폴백을 제안하는 건
+> 후속 과제입니다.
 
 ---
 
@@ -134,14 +138,47 @@ function validatePhoto(file: File): { valid: boolean; error?: string } {
 > ⚠️ **GPS 제거 로직을 추가하지 마세요.** 위치 표시 기능이 조용히 깨집니다.
 > 반대로 위치 표시 계획이 취소되면 그때는 제거해야 합니다 — 아래 노출 범위 때문입니다.
 
+### 클라이언트 전제 조건 — `quality: 1`
+
+EXIF 보존은 서버 방침만으로 성립하지 않습니다. `ReviewWriteScreen.tsx`의 image-picker
+옵션이 `quality: 1`이어야 원본 바이트가 그대로 전송됩니다.
+
+- **iOS**: `quality < 1`이면 `ImageUtils.swift:153`이 `UIImage`에서 JPEG를 재인코딩하는데,
+  `UIImage`는 메타데이터를 들고 있지 않아 결과 파일에 EXIF가 한 줄도 남지 않습니다.
+  `quality >= 1.0`이면 같은 파일 151행에서 원본 바이트를 그대로 반환합니다.
+- **Android**: `MediaHandler.kt:50`이 `quality == 1.0`일 때만 `RawImageExporter`(단순 copy)를
+  타고, 그 외에는 `CompressionImageExporter`로 재인코딩합니다.
+
+> ⚠️ **화질 조정 목적으로 `quality`를 낮추지 마세요.** 사진 정보 화면이 통째로 빈 값이 됩니다.
+> 되돌려야 한다면 [파일 크기 제한](#파일-크기-제한)의 Android 여유 배수도 함께 되살려야 합니다.
+
+`preferredAssetRepresentationMode: Compatible`(iOS)이 HEIC를 JPEG로 전사하므로,
+그 전사가 EXIF를 보존하는지에도 기능이 걸려 있습니다. 날아가는 게 확인되면
+`.current` + 서버 HEIC 변환으로 가야 합니다.
+
 리뷰 사진은 `GET /spots/{id}/reviews`로 **인증 없이 조회**되므로 촬영 좌표가 공개됩니다.
 사용자가 스팟이 아닌 곳(집 등)에서 찍은 사진을 첨부하면 그 위치가 노출됩니다.
 그래서 리뷰 작성 화면 사진 첨부 영역에 고지 문구를 두었습니다 —
 "사진에 담긴 촬영 위치가 다른 사용자에게 보일 수 있어요".
 
-> `계획` 위치 표시 기능 자체는 아직 없습니다. 백엔드 `ExifExtractor`가 작성돼 있으나
-> 업로드 경로에서 호출되지 않습니다(담당자 추후 작업 예정). 즉 현재는 좌표가
-> **공개되기만 하고 활용되지는 않는** 중간 상태입니다.
+**위치 표시 기능은 2026-08-18 구현 완료**됐습니다(브랜치 `feature/photo-exif-detail`).
+좌표가 "공개되기만 하고 활용되지 않는" 중간 상태는 해소됐습니다.
+
+- 조회: `GET /reviews/{reviewId}/exif` (permitAll — 토큰 불필요)
+  → `spotApi.getReviewExif` / `useReviewExif` / `mapReviewExif`
+- 노출: 사진 확대(라이트박스) 우상단 정보 버튼 → 사진 정보 시트의 **위치** 섹션(위도·경도)
+  - 스팟 상세 → 리뷰 탭 사진
+  - 마이페이지 → 내 리뷰 사진
+- 응답의 `images[].imageId`를 리뷰 목록의 `photos[].photoId`로 매칭합니다
+  (presigned URL은 만료가 있어 키로 쓸 수 없습니다)
+
+> `계획` `PhotoExifResponse`에 `takenAt`이 빠져 있어 시트의 **촬영일시** 행은 비어 있습니다
+> (DB `ReviewPhoto.takenAt`에는 값이 있음). 해상도·색공간 행도 같은 이유로 공백입니다.
+> 응답 DTO에 필드가 추가되면 `mapPhotoExif`에서 채우면 됩니다.
+>
+> `계획` 스팟 사진(TourAPI 외부 이미지)은 서버에 EXIF가 없습니다. `GET /spots/{id}/photos`가
+> `originUrl`·`thumbnailUrl`·`imgName`만 반환하고 exif 엔드포인트도 없어, 스팟 상세 히어로
+> 사진의 정보 시트는 URL에서 파싱한 파일명·형식만 표시합니다(`exifFromPhotoUrl`).
 
 ---
 
