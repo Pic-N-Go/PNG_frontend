@@ -6,6 +6,16 @@ const TIMEOUT_MS = 30_000;
 
 export { ApiError } from '@/api/auth';
 
+/**
+ * 이 백엔드는 201·204에 본문을 비워 보내는 경우가 있어 res.json()이 그대로 던진다.
+ * 쓰기가 성공했는데 실패 Alert이 뜨면 사용자가 같은 장비를 두 번 등록한다.
+ */
+async function parseBody<T>(res: Response): Promise<T> {
+  if (res.status === 204) return undefined as T;
+  const text = await res.text();
+  return (text ? JSON.parse(text) : undefined) as T;
+}
+
 async function fetchWithTimeout(url: string, options: RequestInit) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
@@ -36,7 +46,7 @@ export const equipmentApi = {
       method: 'GET',
       headers: authHeaders(token),
     });
-    return res.json();
+    return parseBody(res);
   },
 
   createEquipment: async (
@@ -48,20 +58,7 @@ export const equipmentApi = {
       headers: jsonHeaders(token),
       body: JSON.stringify(body),
     });
-    return res.json();
-  },
-
-  updateEquipment: async (
-    equipmentId: number,
-    body: { equipmentType: EquipmentTypeApi; equipmentName: string },
-    token: string,
-  ): Promise<UserEquipmentDTO> => {
-    const res = await fetchWithTimeout(`${BASE}/users/me/equipments/${equipmentId}`, {
-      method: 'PUT',
-      headers: jsonHeaders(token),
-      body: JSON.stringify(body),
-    });
-    return res.json();
+    return parseBody(res);
   },
 
   deleteEquipment: async (equipmentId: number, token: string): Promise<void> => {

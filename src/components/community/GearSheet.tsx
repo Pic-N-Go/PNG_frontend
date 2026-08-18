@@ -39,12 +39,14 @@ export default function GearSheet({ visible, kind, value, onSelect, onClose }: P
   const trimmed = input.trim();
 
   // 마이페이지에 등록한 장비를 프리셋으로 쓴다. 없으면 기본 목록으로 대체한다.
-  const { data: equipments } = useMyEquipments();
+  const { data: equipments, isLoading: loadingEquipments } = useMyEquipments();
   const mine = (equipments ?? [])
     .filter((e) => e.equipmentType === (isCamera ? 'CAMERA' : 'LENS'))
     .map((e) => e.equipmentName);
   const hasMine = mine.length > 0;
-  const presets = hasMine ? mine : isCamera ? CAMERA_FALLBACK : LENS_FALLBACK;
+  // 조회가 끝나기 전에 폴백을 먼저 그리면, 사용자가 고르려는 순간 목록이 내 장비로 바뀐다.
+  // 그 사이 탭하면 갖고 있지도 않은 카메라가 게시글에 붙는다.
+  const presets = loadingEquipments ? [] : hasMine ? mine : isCamera ? CAMERA_FALLBACK : LENS_FALLBACK;
   const label = hasMine
     ? isCamera ? '내 카메라' : '내 렌즈'
     : isCamera ? '자주 쓰는 카메라' : '자주 쓰는 렌즈';
@@ -105,7 +107,7 @@ export default function GearSheet({ visible, kind, value, onSelect, onClose }: P
           })}
         </View>
 
-        {!hasMine && (
+        {!loadingEquipments && !hasMine && (
           <Text
             allowFontScaling={false}
             style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_2XS, color: 'rgba(0,0,0,0.35)', letterSpacing: -0.1, marginTop: normalize(10) }}

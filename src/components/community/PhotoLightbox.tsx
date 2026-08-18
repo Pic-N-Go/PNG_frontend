@@ -49,6 +49,11 @@ export default function PhotoLightbox({ visible, onClose, exifOpen, onOpenExif, 
   const ty = useSharedValue(0);
   const savedTx = useSharedValue(0);
   const savedTy = useSharedValue(0);
+  /**
+   * 팬 시작 시점의 확대 여부. onEnd에서 scale을 보면, 2배에서 손가락을 아래로 움직이며
+   * 1배까지 축소한 경우 "확대 안 한 상태의 아래 스와이프"로 잘못 읽혀 라이트박스가 닫힌다.
+   */
+  const panStartedZoomed = useSharedValue(false);
 
   function resetTransform() {
     scale.value = 1;
@@ -82,6 +87,9 @@ export default function PhotoLightbox({ visible, onClose, exifOpen, onOpenExif, 
     });
 
   const pan = Gesture.Pan()
+    .onBegin(() => {
+      panStartedZoomed.value = scale.value > 1;
+    })
     .onUpdate((e) => {
       if (scale.value > 1) {
         // 확대 상태에서는 사진을 이동시킨다.
@@ -93,7 +101,7 @@ export default function PhotoLightbox({ visible, onClose, exifOpen, onOpenExif, 
       }
     })
     .onEnd((e) => {
-      if (scale.value > 1) {
+      if (panStartedZoomed.value || scale.value > 1) {
         savedTx.value = tx.value;
         savedTy.value = ty.value;
         return;

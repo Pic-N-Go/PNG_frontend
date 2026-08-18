@@ -341,6 +341,8 @@ export function useToggleCommentLike(postId: string) {
     },
     onMutate: async ({ commentId, next, likeCount }) => {
       await qc.cancelQueries({ queryKey: commentsKey(postId) });
+      // patch가 답글 캐시도 고치므로 진행 중인 답글 요청도 함께 취소해야 한다.
+      await qc.cancelQueries({ queryKey: ['community', 'replies', postId] });
       // 서버 count를 모르는 상태라 ±1로 근사하고, 응답이 오면 정확한 값으로 덮는다.
       patch(commentId, next, Math.max(0, likeCount + (next ? 1 : -1)));
     },
@@ -386,7 +388,6 @@ export function useUserProfile(userId: string | undefined) {
   });
 }
 
-/** 팔로워/팔로잉 수는 전용 카운트 API가 없어 목록 길이로 센다. */
 export function useToggleFollow() {
   const { token, myUserId } = useAuth();
   const qc = useQueryClient();
@@ -397,7 +398,8 @@ export function useToggleFollow() {
     },
     onSuccess: (_res, { userId }) => {
       if (myUserId != null) qc.invalidateQueries({ queryKey: followingKey(myUserId) });
-      qc.invalidateQueries({ queryKey: ['community', 'followCounts', userId] });
+      // 팔로워 수는 프로필 응답에 실려 온다 — 프로필을 무효화해야 숫자가 갱신된다.
+      qc.invalidateQueries({ queryKey: ['community', 'profile', userId] });
       // 팔로잉 피드는 팔로우 관계가 바뀌면 내용이 달라진다.
       qc.invalidateQueries({ queryKey: ['community', 'posts'] });
     },

@@ -14,7 +14,7 @@ const CATEGORIES = [
 ];
 
 export default function EquipmentSection() {
-  const { data: equipments = [], isLoading } = useMyEquipments();
+  const { data: equipments = [], isLoading, isError } = useMyEquipments();
   const createEquipment = useCreateEquipment();
   const deleteEquipment = useDeleteEquipment();
 
@@ -89,10 +89,19 @@ export default function EquipmentSection() {
     );
   }
 
-  function handleDelete(equipmentId: number) {
-    deleteEquipment.mutate(equipmentId, {
-      onError: (err) => Alert.alert('장비를 삭제하지 못했어요', toErrorMessage(err, '잠시 후 다시 시도해 주세요.')),
-    });
+  // 다른 삭제(게시글·댓글)와 같이 한 번 확인받는다. 한 번 탭으로 지워지면 되돌릴 수 없다.
+  function handleDelete(equipmentId: number, name: string) {
+    Alert.alert(`${name}을(를) 삭제할까요?`, undefined, [
+      { text: '취소', style: 'cancel' },
+      {
+        text: '삭제',
+        style: 'destructive',
+        onPress: () =>
+          deleteEquipment.mutate(equipmentId, {
+            onError: (err) => Alert.alert('장비를 삭제하지 못했어요', toErrorMessage(err, '잠시 후 다시 시도해 주세요.')),
+          }),
+      },
+    ]);
   }
 
   const openSheet = () => {
@@ -181,9 +190,18 @@ export default function EquipmentSection() {
           </View>
         )}
 
-        {!isLoading && items.length === 0 && (
+        {!isLoading && isError && (
+          <Text
+            className="text-center tracking-tight"
+            style={{ paddingVertical: normalize(24), fontSize: FONT_SM, color: 'rgba(0,0,0,0.35)' }}
+          >
+            장비를 불러오지 못했어요
+          </Text>
+        )}
+
+        {!isLoading && !isError && items.length === 0 && (
           <TouchableOpacity onPress={openSheet} style={{ paddingVertical: normalize(24), alignItems: 'center' }}>
-            <Text className="tracking-tight" style={{ fontSize: normalizeFontSize(13), color: 'rgba(0,0,0,0.3)' }}>
+            <Text className="tracking-tight" style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.3)' }}>
               등록한 장비가 없어요 · 탭하여 추가
             </Text>
           </TouchableOpacity>
@@ -342,8 +360,8 @@ export default function EquipmentSection() {
                     </Text>
                   </View>
                   <TouchableOpacity
-                    onPress={() => handleDelete(item.id)}
-                    disabled={deleteEquipment.isPending}
+                    onPress={() => handleDelete(item.id, item.name)}
+                    disabled={deleteEquipment.isPending && deleteEquipment.variables === item.id}
                     style={{
                       width: normalize(32),
                       height: normalize(32),
@@ -351,7 +369,7 @@ export default function EquipmentSection() {
                       backgroundColor: 'rgba(227, 27, 89, 0.08)',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      opacity: deleteEquipment.isPending ? 0.4 : 1,
+                      opacity: deleteEquipment.isPending && deleteEquipment.variables === item.id ? 0.4 : 1,
                     }}
                   >
                     <IconTrash size={normalize(18)} color="#e31b59" strokeWidth={1.5} />

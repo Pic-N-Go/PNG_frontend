@@ -5,13 +5,11 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { ChevronLeft } from 'lucide-react-native';
 import ProfilePostsTab from '@/components/community/ProfilePostsTab';
-import ProfileContestsTab from '@/components/community/ProfileContestsTab';
-import ProfileSpotsTab from '@/components/community/ProfileSpotsTab';
 import { useMyFollowing, useToggleFollow, useUserPosts, useUserProfile } from '@/hooks/useCommunity';
 import { useAuthStore } from '@/store/useAuthStore';
 import { initialsOf } from '@/utils/communityMappers';
 import type { CommunityDetailStackParamList } from '@/navigation/stacks/CommunityDetailStack';
-import { ProfileContestItem, ProfilePostItem, ProfileSpotItem, ProfileTabKey } from '@/types/community';
+import { ProfilePostItem, ProfileTabKey } from '@/types/community';
 import { FONT_XL, HEADER_HEIGHT, CONTENT_PADDING, FONT_2XS, FONT_LG, FONT_SM, FONT_XS } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 
@@ -21,29 +19,12 @@ const SURFACE = '#f5f5f7';
 // ponytail: 콘테스트·방문 스팟은 아직 서버에 조회 API가 없어 목데이터를 남겨둔다.
 // 게시글 탭만 GET /posts?authorId={id}로 실 데이터를 쓴다.
 // 방문 스팟은 /users/me/stats가 개수(visitedSpotCount)만 주고 목록 API가 없으며, 그나마 본인 것뿐이다.
-const CONTEST_COUNT = 18;
-const SPOT_COUNT = 36;
-
-
-const MOCK_CONTESTS: ProfileContestItem[] = [
-  { id: 'c1', theme: '골든아워', rank: 1, voteCount: 67, gradient: ['#1a1530', '#b44a3a', '#f0c89a'], status: 'active' },
-  { id: 'c2', theme: '숲 산책', rank: 1, voteCount: 89, gradient: ['#0a1a0f', '#4a8060', '#a8c090'], status: 'won' },
-  { id: 'c3', theme: '골목의 낮', rank: 3, voteCount: 41, gradient: ['#1a1510', '#a08060', '#a08060'], status: 'ended' },
-  { id: 'c4', theme: '밤하늘', rank: 1, voteCount: 124, gradient: ['#020010', '#1a1545', '#4a4080'], status: 'won' },
-];
-
-const MOCK_SPOTS: ProfileSpotItem[] = [
-  { id: 's1', name: '광안리 해수욕장', address: '부산 수영구 광안해변로 219', lastVisitLabel: '어제 방문', visitCount: 8, photoCount: 42, gradient: ['#0f2027', '#203a43', '#4a7c8a'] },
-  { id: 's2', name: '경복궁 야간개장', address: '서울 종로구 사직로 161', lastVisitLabel: '3주 전 방문', visitCount: 5, photoCount: 26, gradient: ['#1a1530', '#4a1942', '#e8855a'] },
-  { id: 's3', name: '세운상가', address: '서울 종로구 청계천로 159', lastVisitLabel: '2일 전 방문', visitCount: 4, photoCount: 18, gradient: ['#232526', '#8e7b5a', '#8e7b5a'] },
-  { id: 's4', name: '해운대 달맞이길', address: '부산 해운대구 달맞이길', lastVisitLabel: '1개월 전 방문', visitCount: 3, photoCount: 12, gradient: ['#0a1a0f', '#4a8060', '#4a8060'] },
-];
-
-// 게시글 수만 서버가 준다. 나머지 둘은 조회 API가 없어 아직 상수라 BETA를 붙인다.
-const subTabs = (postCount: number): { key: ProfileTabKey; label: string; count: number; beta?: boolean }[] => [
+// 콘테스트·방문 스팟은 조회 API가 없다. 개수를 지어내면 BETA 뱃지를 붙여도 거짓 정보라
+// count를 비우고(undefined) 준비 중 안내만 띄운다.
+const subTabs = (postCount: number): { key: ProfileTabKey; label: string; count?: number; beta?: boolean }[] => [
   { key: 'posts', label: '게시글', count: postCount },
-  { key: 'contests', label: '콘테스트', count: CONTEST_COUNT, beta: true },
-  { key: 'spots', label: '방문한 스팟', count: SPOT_COUNT, beta: true },
+  { key: 'contests', label: '콘테스트', beta: true },
+  { key: 'spots', label: '방문한 스팟', beta: true },
 ];
 
 export default function UserProfileScreen() {
@@ -54,7 +35,13 @@ export default function UserProfileScreen() {
 
   const isLoggedIn = useAuthStore((s) => !!s.accessToken);
   const { data: profile, isLoading, isError } = useUserProfile(userId);
-  const { data: userPosts, isLoading: postsLoading } = useUserPosts(userId);
+  const {
+    data: userPosts,
+    isLoading: postsLoading,
+    hasNextPage: hasMorePosts,
+    fetchNextPage: fetchMorePosts,
+    isFetchingNextPage: fetchingMorePosts,
+  } = useUserPosts(userId);
   const { data: followingIds } = useMyFollowing();
   const toggleFollow = useToggleFollow();
 
@@ -200,7 +187,10 @@ export default function UserProfileScreen() {
                 style={{ paddingTop: normalize(16), paddingBottom: normalize(10), borderBottomWidth: isActive ? 2 : 0, borderBottomColor: ACCENT, marginBottom: -1 }}
               >
                 <Text allowFontScaling={false} style={{ fontFamily: isActive ? 'Pretendard-SemiBold' : 'Pretendard-Medium', fontSize: FONT_SM, color: isActive ? '#000' : 'rgba(0,0,0,0.4)', letterSpacing: -0.2 }}>
-                  {tab.label} <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', color: isActive ? 'rgba(0,0,0,0.35)' : 'rgba(0,0,0,0.25)' }}>{tab.count}</Text>
+                  {tab.label}
+                  {tab.count != null && (
+                    <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', color: isActive ? 'rgba(0,0,0,0.35)' : 'rgba(0,0,0,0.25)' }}> {tab.count}</Text>
+                  )}
                 </Text>
                 {/* 아직 실 데이터가 아닌 탭임을 알린다 — 메시지 버튼과 같은 뱃지를 쓴다 */}
                 {tab.beta && (
@@ -208,7 +198,7 @@ export default function UserProfileScreen() {
                     className="absolute items-center justify-center"
                     style={{ top: normalize(6), right: normalize(-14), height: normalize(14), paddingHorizontal: normalize(5), borderRadius: normalize(7), backgroundColor: ACCENT }}
                   >
-                    <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalize(8), color: '#fff', letterSpacing: 0.4 }}>
+                    <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_2XS, color: '#fff', letterSpacing: 0.4 }}>
                       BETA
                     </Text>
                   </View>
@@ -232,14 +222,40 @@ export default function UserProfileScreen() {
               아직 작성한 게시글이 없어요
             </Text>
           ) : (
-            <ProfilePostsTab
-              items={postItems}
-              onSelectPost={(id) => navigation.navigate('PostDetail', { postId: id })}
-            />
+            <>
+              <ProfilePostsTab
+                items={postItems}
+                // push가 아니면 스택에 이미 있는 PostDetail을 재사용해 이 프로필 화면이 사라진다.
+                onSelectPost={(id) => navigation.push('PostDetail', { postId: id })}
+              />
+              {/* 화면이 단일 ScrollView라 무한스크롤 대신 명시적 더보기를 둔다(댓글과 같은 방식) */}
+              {hasMorePosts && (
+                <Pressable
+                  onPress={() => fetchMorePosts()}
+                  disabled={fetchingMorePosts}
+                  style={{ paddingVertical: normalize(16) }}
+                >
+                  <Text
+                    allowFontScaling={false}
+                    className="text-center"
+                    style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: 'rgba(0,0,0,0.4)', letterSpacing: -0.15 }}
+                  >
+                    {fetchingMorePosts ? '불러오는 중...' : '게시글 더보기'}
+                  </Text>
+                </Pressable>
+              )}
+            </>
           )
         )}
-        {activeTab === 'contests' && <ProfileContestsTab items={MOCK_CONTESTS} />}
-        {activeTab === 'spots' && <ProfileSpotsTab items={MOCK_SPOTS} totalCount={SPOT_COUNT} onSelectSpot={() => {}} />}
+        {(activeTab === 'contests' || activeTab === 'spots') && (
+          <Text
+            allowFontScaling={false}
+            className="text-center"
+            style={{ paddingVertical: normalize(40), fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: 'rgba(0,0,0,0.35)', letterSpacing: -0.2 }}
+          >
+            준비 중이에요
+          </Text>
+        )}
       </ScrollView>
       )}
     </SafeAreaView>

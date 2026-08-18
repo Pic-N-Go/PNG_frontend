@@ -168,11 +168,11 @@ export default function PostDetailScreen() {
   }
 
   function handleToggleCommentLike(comment: Comment) {
-    toggleCommentLikeM.mutate({
-      commentId: comment.id,
-      next: !comment.isLiked,
-      likeCount: comment.likeCount ?? 0,
-    });
+    toggleCommentLikeM.mutate(
+      { commentId: comment.id, next: !comment.isLiked, likeCount: comment.likeCount ?? 0 },
+      // 알리지 않으면 낙관적으로 채워진 하트가 소리 없이 되돌아간다(비로그인·네트워크 실패).
+      { onError: (err) => showToast(toErrorMessage(err, '좋아요를 반영하지 못했어요')) },
+    );
   }
 
   function handlePressReply(comment: Comment) {
