@@ -19,8 +19,8 @@ import { layoutGalleryGrid } from '@/utils/galleryGrid';
 const GALLERY_POPULAR_COUNT = 2;
 const GALLERY_GAP = normalize(3);
 
-type FeedSortOption = '인기' | '최신' | '팔로잉' | '내 글';
-const FEED_SORT_OPTIONS: FeedSortOption[] = ['인기', '최신', '팔로잉', '내 글'];
+type FeedSortOption = '인기' | '최신' | '팔로잉' | '내 글' | '저장';
+const FEED_SORT_OPTIONS: FeedSortOption[] = ['인기', '최신', '팔로잉', '내 글', '저장'];
 
 // 정렬·필터는 전부 서버가 처리한다(GET /posts?sort=). 클라이언트에서 다시 정렬하면
 // 한 페이지 안에서만 맞는 순서가 나와 페이지를 넘길 때 순서가 뒤섞인다.
@@ -29,6 +29,8 @@ const SORT_TO_API: Record<FeedSortOption, PostSortApi> = {
   최신: 'LATEST',
   팔로잉: 'FOLLOWING',
   '내 글': 'MY_POSTS',
+  // 카드의 책갈피로 저장한 글. 저장은 되는데 꺼내 볼 경로가 없어서 추가했다.
+  저장: 'BOOKMARKED',
 };
 
 const ACCENT = '#E31B59';
@@ -257,7 +259,14 @@ export default function CommunityFeedScreen() {
                 )}
                 {postsState === 'empty' && (
                   <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: 'rgba(0,0,0,0.4)', letterSpacing: -0.2 }}>
-                    {keyword ? '검색 결과가 없어요' : feedSort === '팔로잉' ? '팔로잉한 유저의 게시글이 없어요' : '표시할 게시글이 없어요'}
+                    {keyword
+                      ? '검색 결과가 없어요'
+                      : feedSort === '팔로잉'
+                        ? '팔로잉한 유저의 게시글이 없어요'
+                        : feedSort === '저장'
+                          // 무엇을 해야 저장되는지 알려준다 — 책갈피 아이콘이 카드 어디 있는지 모를 수 있다
+                          ? '저장한 게시글이 없어요. 카드의 책갈피를 눌러 저장해 보세요'
+                          : '표시할 게시글이 없어요'}
                   </Text>
                 )}
               </View>

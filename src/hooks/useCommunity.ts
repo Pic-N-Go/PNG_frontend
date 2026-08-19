@@ -69,8 +69,8 @@ export function useCommunityFeed(sort: PostSortApi, keyword?: string, options?: 
   const { data: followingIds } = useMyFollowing();
   const ctx: PostMapContext = { myUserId, followingIds };
 
-  // MY_POSTS·FOLLOWING은 서버가 토큰을 요구한다. 비로그인이면 요청 자체를 막는다(400 방지).
-  const needsAuth = sort === 'MY_POSTS' || sort === 'FOLLOWING';
+  // MY_POSTS·FOLLOWING·BOOKMARKED는 서버가 토큰을 요구한다. 비로그인이면 요청 자체를 막는다(400 방지).
+  const needsAuth = sort === 'MY_POSTS' || sort === 'FOLLOWING' || sort === 'BOOKMARKED';
 
   return useInfiniteQuery({
     queryKey: feedKey(sort, keyword, token),

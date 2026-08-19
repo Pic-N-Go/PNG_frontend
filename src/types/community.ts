@@ -68,7 +68,7 @@ export type ReportReasonId = 'spam' | 'abuse' | 'copyright' | 'inappropriate' | 
 // ── 서버 DTO (PNG_backend `community` 모듈 · `/posts`, `/users`) ──────────────
 // 위쪽 UI 타입과 1:1이 아니다. 변환은 utils/communityMappers.ts에서만 한다.
 
-export type PostSortApi = 'POPULAR' | 'LATEST' | 'FOLLOWING' | 'MY_POSTS';
+export type PostSortApi = 'POPULAR' | 'LATEST' | 'FOLLOWING' | 'MY_POSTS' | 'BOOKMARKED';
 export type PostWeatherApi = 'CLEAR' | 'PARTLY_CLOUDY' | 'CLOUDY' | 'RAIN' | 'SNOW' | 'NIGHT';
 
 export interface PostAuthorDTO {
