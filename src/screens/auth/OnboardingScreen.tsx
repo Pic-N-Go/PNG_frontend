@@ -88,8 +88,10 @@ export default function OnboardingScreen({ navigation, route }: Props) {
     try {
       // 닉네임이 먼저다 — 중복이면 여기서 실패하고, 관심 테마는 저장되지 않아야 한다.
       // PUT /users/me는 전체 교체라 건드리지 않는 값도 함께 보낸다.
+      // 사진은 여기서 보내지 않는다 — 서버가 준 값은 presigned URL이라 되돌려 보내면 죽은
+      // URL이 저장된다. 카카오 사진은 이미 서버에 있고 그대로 유지된다.
       let updated = await userApi.updateMyProfile(
-        { nickname: nickname.trim(), profileImageUrl: user.profileImageUrl ?? null, bio: null },
+        { nickname: nickname.trim(), bio: null },
         accessToken,
       );
       if (selectedThemes.size > 0) {

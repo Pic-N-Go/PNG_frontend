@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TextInput, ScrollView, Pressable, Alert } from 'react-native';
+import { View, Text, TextInput, ScrollView, Pressable, ActivityIndicator, Alert, Linking, Platform } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useKeyboardOverlap } from '@/hooks/useKeyboardHeight';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -9,7 +9,8 @@ import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { FONT_XS, FONT_SM, FONT_MD, FONT_LG, BUTTON_HEIGHT, BUTTON_RADIUS, TAB_BAR_HEIGHT } from '@/constants/layout';
 import { authApi } from '@/api/auth';
 import { useAuthStore } from '@/store/useAuthStore';
-import { useMyProfile, useUpdateMyProfile } from '@/hooks/useUser';
+import { useMyProfile, useUpdateMyProfile, useUpdateProfileImage, useDeleteProfileImage } from '@/hooks/useUser';
+import * as ImagePicker from 'expo-image-picker';
 import Avatar from '@/components/common/Avatar';
 import { NICK_MAX, NICK_HELP as NICK_HELP_TEXT, nicknameError } from '@/constants/validation';
 
@@ -41,6 +42,8 @@ export default function ProfileEditScreen({ navigation }: Props) {
   const authUser = useAuthStore((s) => s.user);
   const { data: profile } = useMyProfile();
   const updateProfile = useUpdateMyProfile();
+  const updateImage = useUpdateProfileImage();
+  const deleteImage = useDeleteProfileImage();
 
   const initialNick = profile?.nickname || authUser?.nickname || '사용자';
   // 자기소개는 이제 서버 값이다. 비어 있으면 플레이스홀더만 보여주고 값은 빈 문자열로 둔다.
@@ -87,8 +90,10 @@ export default function ProfileEditScreen({ navigation }: Props) {
   const onSave = () => {
     if (!canSave) return;
     // PUT /users/me는 전체 교체다 — 바꾸지 않은 값까지 함께 보내야 서버에서 비워지지 않는다.
+    // 사진은 예외다. 서버가 준 값은 presigned URL이라 되돌려 보내면 죽은 URL이 저장되므로,
+    // 전용 경로(PATCH /users/me/profile-image)로만 바꾼다.
     updateProfile.mutate(
-      { nickname: nick, profileImageUrl: profile?.profileImageUrl ?? null, bio: bio.trim() || null },
+      { nickname: nick, bio: bio.trim() || null },
       {
         onSuccess: () => {
           Alert.alert('저장 완료', '프로필이 저장됐어요.', [{ text: '확인', onPress: () => navigation.goBack() }]);
@@ -100,8 +105,70 @@ export default function ProfileEditScreen({ navigation }: Props) {
     );
   };
 
+  const imageBusy = updateImage.isPending || deleteImage.isPending;
+
+  const pickAvatar = async () => {
+    if (imageBusy) return;
+    // iOS PHPickerViewController는 앱 프로세스 밖에서 뜨므로 권한 요청이 필요 없다.
+    if (Platform.OS === 'android') {
+      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permission.granted) {
+        Alert.alert(
+          '사진 접근 권한 필요',
+          '설정에서 사진 접근을 허용해 주세요.',
+          permission.canAskAgain
+            ? [{ text: '확인' }]
+            : [{ text: '취소', style: 'cancel' }, { text: '설정 열기', onPress: () => Linking.openSettings() }],
+        );
+        return;
+      }
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      // 아바타는 원형으로 잘려 보이므로 정사각으로 받는다(aspect는 안드로이드 전용,
+      // iOS는 allowsEditing이면 항상 정사각이다).
+      allowsEditing: true,
+      aspect: [1, 1],
+      // 게시글·리뷰와 달리 EXIF를 쓸 일이 없다. 작을수록 좋으므로 압축한다.
+      quality: 0.8,
+      preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
+    });
+    if (result.canceled) return;
+
+    const asset = result.assets[0];
+    if (!asset) return;
+    const ext = asset.uri.split('.').pop()?.toLowerCase();
+    const safeExt = ext && /^(jpe?g|png|heic|webp)$/.test(ext) ? ext : 'jpg';
+    updateImage.mutate(
+      {
+        uri: asset.uri,
+        name: `profile.${safeExt}`,
+        type: safeExt === 'png' ? 'image/png' : safeExt === 'webp' ? 'image/webp' : 'image/jpeg',
+      },
+      { onError: () => Alert.alert('사진을 바꾸지 못했어요', '잠시 후 다시 시도해 주세요.') },
+    );
+  };
+
   const onChangeAvatar = () => {
-    Alert.alert('사진 변경', '앨범에서 사진을 선택해 주세요.');
+    if (imageBusy) return;
+    // 사진이 없으면 고를 것만 있으면 되고, 있으면 삭제 선택지가 필요하다.
+    if (!profile?.profileImageUrl) {
+      void pickAvatar();
+      return;
+    }
+    Alert.alert('프로필 사진', undefined, [
+      { text: '앨범에서 선택', onPress: () => void pickAvatar() },
+      {
+        text: '사진 삭제',
+        style: 'destructive',
+        onPress: () =>
+          deleteImage.mutate(undefined, {
+            onError: () => Alert.alert('사진을 삭제하지 못했어요', '잠시 후 다시 시도해 주세요.'),
+          }),
+      },
+      { text: '취소', style: 'cancel' },
+    ]);
   };
 
   return (
@@ -120,8 +187,16 @@ export default function ProfileEditScreen({ navigation }: Props) {
         <ScrollView ref={scrollRef} style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: normalize(24) }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           {/* 아바타 */}
           <View className="items-center" style={{ paddingTop: normalize(16), paddingHorizontal: normalize(20), paddingBottom: normalize(16) }}>
-            <Pressable onPress={onChangeAvatar} style={{ marginBottom: normalize(12) }}>
+            <Pressable onPress={onChangeAvatar} disabled={imageBusy} style={{ marginBottom: normalize(12) }}>
               <Avatar userId={profile?.id ?? authUser?.id} nickname={nick} imageUrl={profile?.profileImageUrl} size={88} />
+              {imageBusy && (
+                <View
+                  className="items-center justify-center"
+                  style={{ position: 'absolute', top: 0, left: 0, width: normalize(88), height: normalize(88), borderRadius: normalize(44), backgroundColor: 'rgba(0,0,0,0.35)' }}
+                >
+                  <ActivityIndicator color="#fff" />
+                </View>
+              )}
               <View className="items-center justify-center" style={{ position: 'absolute', bottom: 0, right: 0, width: normalize(28), height: normalize(28), borderRadius: normalize(14), backgroundColor: BRAND, borderWidth: 2, borderColor: '#fff' }}>
                 <IconPencil size={normalize(12)} color="#fff" strokeWidth={2} />
               </View>

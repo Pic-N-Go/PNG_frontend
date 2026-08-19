@@ -88,11 +88,22 @@ export type UserSearchPageResponse = {
   last: boolean;
 };
 
-/** `PUT /users/me` — 전체 교체다. 한 항목만 보내면 나머지가 비워지므로 항상 세 값을 함께 넘긴다. */
+/**
+ * `PUT /users/me` — 전체 교체다. 한 항목만 보내면 나머지가 비워지므로 항상 두 값을 함께 넘긴다.
+ *
+ * 프로필 사진은 여기 없다. 서버가 내려주는 사진 값은 만료되는 presigned URL이라 그대로
+ * 되돌려 보내면 죽은 URL이 저장된다 — 사진은 PATCH/DELETE /users/me/profile-image 전용이다.
+ */
 export type UserProfileUpdateRequest = {
   nickname: string;
-  profileImageUrl: string | null;
   bio: string | null;
+};
+
+/** 프로필 사진 업로드용 파일. RN FormData가 요구하는 형태다(웹 File이 아니다). */
+export type ProfileImageUpload = {
+  uri: string;
+  name: string;
+  type: string;
 };
 
 /** `PATCH /users/me/password` — 현재 비밀번호를 확인받고 바꾼다. 소셜 계정은 서버가 거부한다. */

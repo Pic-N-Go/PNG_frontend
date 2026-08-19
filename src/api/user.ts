@@ -7,6 +7,7 @@ import type {
   UserProfileResponse,
   UserProfileUpdateRequest,
   PasswordChangeRequest,
+  ProfileImageUpload,
   UserSearchPageResponse,
   AlbumResponse,
 } from '@/types/user';
@@ -156,6 +157,32 @@ export const userApi = {
   },
 
   // 10. 내 앨범 목록 조회
+  /**
+   * 프로필 사진 교체. multipart part 이름은 서버 @RequestPart("image")와 맞춘다.
+   * 사진 업로드는 느릴 수 있어 공용 타임아웃(fetchWithTimeout)을 쓰지 않는다.
+   */
+  updateProfileImage: async (file: ProfileImageUpload, accessToken: string): Promise<UserResponse> => {
+    const form = new FormData();
+    form.append('image', { uri: file.uri, name: file.name, type: file.type } as unknown as Blob);
+
+    const res = await fetch(`${BASE}/users/me/profile-image`, {
+      method: 'PATCH',
+      headers: { Authorization: `Bearer ${accessToken}` },
+      body: form,
+    });
+    if (!res.ok) throw await toHttpError(res, accessToken);
+    return (await res.json()) as UserResponse;
+  },
+
+  /** 프로필 사진 삭제(기본 이미지로). */
+  deleteProfileImage: async (accessToken: string): Promise<UserResponse> => {
+    const res = await fetchWithTimeout(`${BASE}/users/me/profile-image`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    return (await res.json()) as UserResponse;
+  },
+
   /**
    * 비밀번호 변경. 204라 본문이 없다.
    * 소셜 계정은 서버가 400(소셜 계정은 비밀번호를 사용하지 않습니다)으로 거부한다.

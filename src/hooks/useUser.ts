@@ -10,6 +10,7 @@ import type {
   UserSearchPageResponse,
   AlbumResponse,
   PasswordChangeRequest,
+  ProfileImageUpload,
 } from '@/types/user';
 
 export const USER_KEYS = {
@@ -163,6 +164,39 @@ export function useChangePassword() {
     },
     // 204라 캐시에 담을 값이 없다. 성공 처리는 호출부에서 한다.
   });
+}
+
+// 7-2. 프로필 사진 교체·삭제 뮤테이션
+//      응답이 UserResponse라 프로필 수정과 같은 방식으로 캐시·스토어를 갱신한다.
+function useProfileImageMutation<TVariables>(
+  call: (vars: TVariables, token: string) => Promise<UserResponse>,
+) {
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const setAuth = useAuthStore((s) => s.setAuth);
+  const queryClient = useQueryClient();
+
+  return useMutation<UserResponse, Error, TVariables>({
+    mutationFn: (vars) => {
+      if (!accessToken) throw new Error('로그인이 필요합니다.');
+      return call(vars, accessToken);
+    },
+    onSuccess: (updatedUser) => {
+      queryClient.setQueryData(USER_KEYS.profile(), updatedUser);
+      if (accessToken) setAuth(accessToken, updatedUser);
+      // 아바타는 피드·댓글·팔로우 목록에도 실려 있다.
+      queryClient.invalidateQueries({ queryKey: ['community'] });
+    },
+  });
+}
+
+export function useUpdateProfileImage() {
+  return useProfileImageMutation<ProfileImageUpload>((file, token) =>
+    userApi.updateProfileImage(file, token),
+  );
+}
+
+export function useDeleteProfileImage() {
+  return useProfileImageMutation<void>((_vars, token) => userApi.deleteProfileImage(token));
 }
 
 // 8. 사용자 검색 훅 (닉네임 부분일치)
