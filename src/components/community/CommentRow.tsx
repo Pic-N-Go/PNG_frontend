@@ -33,7 +33,13 @@ export default function CommentRow({ comment, isReply, onToggleLike, onPressRepl
       style={{ gap: normalize(10), marginBottom: normalize(14), paddingLeft: isReply ? normalize(38) : 0 }}
     >
       {/* 아바타도 닉네임도 프로필로 들어가야 한다 — 게시글 작성자·라이트박스와 같은 규칙 */}
-      <Pressable onPress={onPressAuthor} disabled={!onPressAuthor} style={{ marginTop: normalize(1) }}>
+      <Pressable
+        onPress={onPressAuthor}
+        disabled={!onPressAuthor}
+        accessibilityRole={onPressAuthor ? 'button' : undefined}
+        accessibilityLabel={onPressAuthor ? `${comment.author.handle} 프로필 보기` : undefined}
+        style={{ marginTop: normalize(1) }}
+      >
         <Avatar
           userId={comment.author.id}
           nickname={comment.author.handle}

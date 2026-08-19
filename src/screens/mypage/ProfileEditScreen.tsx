@@ -6,7 +6,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { IconChevronLeft, IconPencil, IconCheck } from '@tabler/icons-react-native';
 import { MyPageStackParamList } from '@/navigation/stacks/MyPageStack';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { FONT_XS, FONT_SM, FONT_MD, FONT_LG, BUTTON_HEIGHT, BUTTON_RADIUS, TAB_BAR_HEIGHT } from '@/constants/layout';
+import { FONT_XS, FONT_SM, FONT_MD, FONT_LG, BUTTON_HEIGHT, BUTTON_RADIUS, INPUT_HEIGHT, TAB_BAR_HEIGHT } from '@/constants/layout';
 import { authApi, toErrorMessage } from '@/api/auth';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useMyProfile, useUpdateMyProfile, useUpdateProfileImage, useDeleteProfileImage } from '@/hooks/useUser';
@@ -290,7 +290,7 @@ export default function ProfileEditScreen({ navigation }: Props) {
                   onChangeText={(t) => { touched.current = true; setNick(t); setNickStatus('idle'); }}
                   maxLength={NICK_MAX}
                   className="flex-1 bg-[#f5f5f7] text-black"
-                  style={{ height: normalize(52), borderRadius: normalize(12), paddingHorizontal: normalize(16), fontSize: FONT_MD }}
+                  style={{ height: INPUT_HEIGHT, borderRadius: normalize(12), paddingHorizontal: normalize(16), fontSize: FONT_MD }}
                 />
                 <CheckButton onPress={checkNickname} disabled={nickStatus === 'checking'} />
               </View>

@@ -261,7 +261,7 @@ export default function OnboardingScreen({ navigation, route }: Props) {
                 사진이 없는 계정은 Avatar가 이니셜로 대체한다. 여기서 사진을 바꾸지는 못한다 —
                 업로드 엔드포인트가 아직 없어서 버튼을 달면 눌러도 아무 일이 없다. */}
             {!!user && (
-              <View style={{ alignItems: 'center', marginBottom: SPACING_XL }}>
+              <View className="items-center" style={{ marginBottom: SPACING_XL }}>
                 <Avatar userId={user.id} nickname={user.nickname} imageUrl={user.profileImageUrl} size={80} />
               </View>
             )}
@@ -355,12 +355,11 @@ export default function OnboardingScreen({ navigation, route }: Props) {
             <Pressable
               onPress={handleStart}
               disabled={submitting}
+              className="items-center justify-center"
               style={{
                 height: BUTTON_HEIGHT,
                 borderRadius: BUTTON_RADIUS,
                 backgroundColor: nickOk ? '#E31B59' : 'rgba(0,0,0,0.06)',
-                alignItems: 'center',
-                justifyContent: 'center',
                 opacity: submitting ? 0.6 : 1,
               }}
             >

@@ -412,9 +412,14 @@ export default function TravelPlanScreen({ navigation, route }: any) {
 
   // 공유할 웹 URL이 없어 텍스트만 보낸다. 계획 공유 링크가 생기면 url을 함께 넘긴다.
   const handleShare = async () => {
-    const period = course ? `${course.startDate.replace(/-/g, '.')} ~ ${course.endDate.replace(/-/g, '.')}` : null;
-    const title = course?.title || '출사 계획';
-    const ok = await shareContent({ title, message: [title, period].filter(Boolean).join('\n') });
+    // 로딩·실패 중에는 제목도 날짜도 없어 "출사 계획" 한 줄만 나간다 — 받는 쪽에 아무 정보가 없다.
+    if (!course) {
+      showToast('계획을 불러온 뒤에 공유할 수 있어요');
+      return;
+    }
+    const period = `${course.startDate.replace(/-/g, '.')} ~ ${course.endDate.replace(/-/g, '.')}`;
+    const title = course.title || '출사 계획';
+    const ok = await shareContent({ title, message: [title, period].join('\n') });
     // 성공 토스트는 띄우지 않는다 — Android는 취소해도 성공으로 오므로 거짓이 된다.
     if (!ok) showToast('공유 화면을 열지 못했어요');
   };

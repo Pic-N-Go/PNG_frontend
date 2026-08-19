@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -49,6 +49,14 @@ export default function ContestEntryDetailScreen() {
   const insets = useSafeAreaInsets();
   const [votesLeft, setVotesLeft] = useState(2);
   const [voted, setVoted] = useState(false);
+  const deferredRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useEffect(
+    () => () => {
+      if (deferredRef.current) clearTimeout(deferredRef.current);
+    },
+    [],
+  );
+
   const [actionSheetVisible, setActionSheetVisible] = useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
@@ -215,7 +223,10 @@ export default function ContestEntryDetailScreen() {
               setActionSheetVisible(false);
               // 시트 닫힘 애니메이션(300ms)이 끝난 뒤에 OS 공유 시트를 띄운다 —
               // iOS는 dismiss 중에 다른 모달을 올리면 조용히 무시한다.
-              setTimeout(handleShare, 320);
+              // 대기 중에 화면을 떠나면 타이머를 정리한다(PostDetailScreen의 deferredRef와 같은 처리) —
+              // 안 그러면 사라진 화면에서 공유 시트가 뜨고 실패 토스트도 죽은 상태를 건드린다.
+              if (deferredRef.current) clearTimeout(deferredRef.current);
+              deferredRef.current = setTimeout(handleShare, 320);
             }}
             style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(12), height: normalize(56) }}
           >

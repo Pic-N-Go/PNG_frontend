@@ -192,7 +192,12 @@ export default function SearchOverlay({ visible, onClose, onSubmitKeyword, onOpe
                       <Text allowFontScaling={false} style={{ flex: 1, fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(14), color: '#000', letterSpacing: -0.2 }}>
                         {term}
                       </Text>
-                      <Pressable onPress={() => persistRecent(recentSearches.filter((t) => t !== term))} style={{ padding: normalize(4) }}>
+                      <Pressable
+                        onPress={() => persistRecent(recentSearches.filter((t) => t !== term))}
+                        accessibilityRole="button"
+                        accessibilityLabel={`${term} 최근 검색어 삭제`}
+                        style={{ padding: normalize(4) }}
+                      >
                         <X size={normalize(12)} color="rgba(0,0,0,0.25)" strokeWidth={2} />
                       </Pressable>
                     </Pressable>

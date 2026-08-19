@@ -13,6 +13,9 @@ import type {
 
 const BASE = process.env.EXPO_PUBLIC_API_URL ?? '';
 const TIMEOUT_MS = 30_000;
+// 사진 업로드는 느린 회선에서 수십 초가 걸린다. 공용 타임아웃으로는 정상 업로드가 끊긴다
+// (community.ts의 UPLOAD_TIMEOUT_MS와 같은 값).
+const UPLOAD_TIMEOUT_MS = 180_000;
 
 if (__DEV__ && !BASE) {
   console.warn('[user] EXPO_PUBLIC_API_URL 환경 변수가 설정되지 않았습니다. API 요청이 실패할 수 있습니다.');
@@ -20,9 +23,9 @@ if (__DEV__ && !BASE) {
 
 export { ApiError } from '@/api/auth';
 
-async function fetchWithTimeout(url: string, options: RequestInit) {
+async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs = TIMEOUT_MS) {
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
     const res = await fetch(url, { ...options, signal: controller.signal });
     if (!res.ok) throw await toHttpError(res, tokenFromHeaders(options.headers));
@@ -158,18 +161,22 @@ export const userApi = {
   // 10. 내 앨범 목록 조회
   /**
    * 프로필 사진 교체. multipart part 이름은 서버 @RequestPart("image")와 맞춘다.
-   * 사진 업로드는 느릴 수 있어 공용 타임아웃(fetchWithTimeout)을 쓰지 않는다.
+   * 업로드는 느릴 수 있어 공용 30초 대신 UPLOAD_TIMEOUT_MS를 쓴다 — 없으면 멈춘 업로드가
+   * 영원히 pending으로 남아 저장 버튼이 돌아오지 않는다.
    */
   updateProfileImage: async (file: ProfileImageUpload, accessToken: string): Promise<UserResponse> => {
     const form = new FormData();
     form.append('image', { uri: file.uri, name: file.name, type: file.type } as unknown as Blob);
 
-    const res = await fetch(`${BASE}/users/me/profile-image`, {
-      method: 'PATCH',
-      headers: { Authorization: `Bearer ${accessToken}` },
-      body: form,
-    });
-    if (!res.ok) throw await toHttpError(res, accessToken);
+    const res = await fetchWithTimeout(
+      `${BASE}/users/me/profile-image`,
+      {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${accessToken}` },
+        body: form,
+      },
+      UPLOAD_TIMEOUT_MS,
+    );
     return (await res.json()) as UserResponse;
   },
 
