@@ -492,9 +492,10 @@ function SettingRow({
         paddingHorizontal: normalize(16),
         paddingVertical: normalize(14),
         minHeight: normalize(64),
-        opacity: disabled ? 0.45 : 1,
       }}
     >
+      {/* 아이콘은 흐려지지 않는다 — 이 행이 무엇인지 알려주는 표식이지 상태 표시가 아니다.
+          비활성이라는 신호는 아래 글자와 화살표만으로 충분하다. */}
       {Icon && (
         <View
           className="items-center justify-center"
@@ -505,7 +506,7 @@ function SettingRow({
       )}
       {indent && !Icon && <View style={{ width: normalize(32) }} />}
 
-      <View className="flex-1">
+      <View className="flex-1" style={{ opacity: disabled ? 0.45 : 1 }}>
         {label && (
           <Text className="font-medium" style={{ fontSize: FONT_MD, color: labelColor ?? '#000' }}>
             {label}
@@ -518,9 +519,9 @@ function SettingRow({
         )}
       </View>
 
-      {right}
+      {right && <View style={{ opacity: disabled ? 0.45 : 1 }}>{right}</View>}
       {toggle && (
-        <View pointerEvents={disabled ? 'none' : 'auto'}>
+        <View pointerEvents={disabled ? 'none' : 'auto'} style={{ opacity: disabled ? 0.45 : 1 }}>
           <Switch
             value={disabled ? false : toggleValue}
             onValueChange={onToggle}
@@ -530,7 +531,9 @@ function SettingRow({
         </View>
       )}
       {chevron && (
-        <IconChevronRight size={normalize(14)} color={chevronColor ?? 'rgba(0,0,0,0.2)'} strokeWidth={1.75} />
+        <View style={{ opacity: disabled ? 0.45 : 1 }}>
+          <IconChevronRight size={normalize(14)} color={chevronColor ?? 'rgba(0,0,0,0.2)'} strokeWidth={1.75} />
+        </View>
       )}
     </Pressable>
   );
