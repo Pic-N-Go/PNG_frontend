@@ -181,7 +181,7 @@ export default function CommunityFeedScreen() {
             </Pressable>
           </View>
         )}
-        <View className="flex-row items-center" style={{ paddingHorizontal: CONTENT_PADDING, paddingBottom: normalize(14), gap: normalize(10) }}>
+        <View className="flex-row items-center" style={{ paddingHorizontal: CONTENT_PADDING, paddingBottom: normalize(14) }}>
           <View className="flex-1 flex-row" style={{ backgroundColor: SURFACE, borderRadius: normalize(22), padding: normalize(3), height: normalize(36) }}>
             {SEGMENTS.map((seg) => {
               const isActive = seg.key === segment;
@@ -199,28 +199,36 @@ export default function CommunityFeedScreen() {
               );
             })}
           </View>
-          {segment === 'posts' && (
-            <Pressable onPress={() => setFeedSortSheetVisible(true)} className="flex-row items-center" style={{ gap: normalize(3) }}>
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: 'rgba(0,0,0,0.55)', letterSpacing: -0.2 }}>
-                {feedSort}
-              </Text>
-              <ChevronDown size={normalize(12)} color="rgba(0,0,0,0.55)" strokeWidth={2} />
-            </Pressable>
-          )}
         </View>
-        {/* 검색어가 걸린 동안에는 게시글·갤러리가 모두 결과로 좁혀진다 — 해제 수단을 항상 보이게 둔다 */}
-        {!!keyword && segment !== 'contest' && (
-          <View className="flex-row" style={{ paddingHorizontal: CONTENT_PADDING, paddingBottom: normalize(14) }}>
-            <Pressable
-              onPress={() => setKeyword('')}
-              className="flex-row items-center"
-              style={{ gap: normalize(6), height: normalize(30), paddingHorizontal: normalize(12), borderRadius: normalize(15), backgroundColor: '#000' }}
-            >
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, color: '#fff', letterSpacing: -0.2 }}>
-                {`'${keyword}' 검색 결과`}
-              </Text>
-              <X size={normalize(11)} color="#fff" strokeWidth={2.4} />
-            </Pressable>
+        {/* 정렬은 세그먼트와 같은 행에 두면 '게시글'일 때만 세그먼트가 좁아져 탭 위치가 흔들린다 —
+            아래 행으로 내려 검색어 칩과 한 줄을 공유한다. 칩은 왼쪽, 정렬은 오른쪽 고정. */}
+        {(segment === 'posts' || (!!keyword && segment !== 'contest')) && (
+          <View className="flex-row items-center" style={{ paddingHorizontal: CONTENT_PADDING, paddingBottom: normalize(14), height: normalize(44), gap: normalize(10) }}>
+            {/* 검색어가 걸린 동안에는 게시글·갤러리가 모두 결과로 좁혀진다 — 해제 수단을 항상 보이게 둔다 */}
+            {!!keyword && (
+              <Pressable
+                onPress={() => setKeyword('')}
+                className="flex-row items-center shrink"
+                style={{ gap: normalize(6), height: normalize(30), paddingHorizontal: normalize(12), borderRadius: normalize(15), backgroundColor: '#000' }}
+              >
+                <Text allowFontScaling={false} numberOfLines={1} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, color: '#fff', letterSpacing: -0.2 }}>
+                  {`'${keyword}' 검색 결과`}
+                </Text>
+                <X size={normalize(11)} color="#fff" strokeWidth={2.4} />
+              </Pressable>
+            )}
+            {segment === 'posts' && (
+              <Pressable
+                onPress={() => setFeedSortSheetVisible(true)}
+                className="flex-row items-center"
+                style={{ marginLeft: 'auto', gap: normalize(3) }}
+              >
+                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: 'rgba(0,0,0,0.55)', letterSpacing: -0.2 }}>
+                  {feedSort}
+                </Text>
+                <ChevronDown size={normalize(12)} color="rgba(0,0,0,0.55)" strokeWidth={2} />
+              </Pressable>
+            )}
           </View>
         )}
       </View>
