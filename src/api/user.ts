@@ -6,6 +6,7 @@ import type {
   MyReviewListResponse,
   UserProfileResponse,
   UserProfileUpdateRequest,
+  PasswordChangeRequest,
   UserSearchPageResponse,
   AlbumResponse,
 } from '@/types/user';
@@ -155,6 +156,21 @@ export const userApi = {
   },
 
   // 10. 내 앨범 목록 조회
+  /**
+   * 비밀번호 변경. 204라 본문이 없다.
+   * 소셜 계정은 서버가 400(소셜 계정은 비밀번호를 사용하지 않습니다)으로 거부한다.
+   */
+  changePassword: async (request: PasswordChangeRequest, accessToken: string): Promise<void> => {
+    await fetchWithTimeout(`${BASE}/users/me/password`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify(request),
+    });
+  },
+
   getMyAlbums: async (accessToken: string): Promise<AlbumResponse[]> => {
     const res = await fetchWithTimeout(`${BASE}/users/me/albums`, {
       method: 'GET',

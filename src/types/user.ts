@@ -95,6 +95,12 @@ export type UserProfileUpdateRequest = {
   bio: string | null;
 };
 
+/** `PATCH /users/me/password` — 현재 비밀번호를 확인받고 바꾼다. 소셜 계정은 서버가 거부한다. */
+export type PasswordChangeRequest = {
+  currentPassword: string;
+  newPassword: string;
+};
+
 export type UserSpotCategoryUpdateRequest = {
   spotCategories: string[];
 };

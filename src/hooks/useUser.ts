@@ -9,6 +9,7 @@ import type {
   UserProfileUpdateRequest,
   UserSearchPageResponse,
   AlbumResponse,
+  PasswordChangeRequest,
 } from '@/types/user';
 
 export const USER_KEYS = {
@@ -148,6 +149,19 @@ export function useUpdateMyProfile() {
       // 커뮤니티 쪽 타 유저 프로필 캐시에도 내 닉네임·자기소개가 실려 있다.
       queryClient.invalidateQueries({ queryKey: ['community', 'profile'] });
     },
+  });
+}
+
+// 7-1. 비밀번호 변경 뮤테이션 (설정 > 비밀번호 변경)
+export function useChangePassword() {
+  const accessToken = useAuthStore((s) => s.accessToken);
+
+  return useMutation<void, Error, PasswordChangeRequest>({
+    mutationFn: (request) => {
+      if (!accessToken) throw new Error('로그인이 필요합니다.');
+      return userApi.changePassword(request, accessToken);
+    },
+    // 204라 캐시에 담을 값이 없다. 성공 처리는 호출부에서 한다.
   });
 }
 

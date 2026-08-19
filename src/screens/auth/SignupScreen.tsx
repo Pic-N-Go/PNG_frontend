@@ -37,7 +37,7 @@ import {
   SPACING_LG,
   SPACING_XL,
 } from '@/constants/layout';
-import { NICK_RE, NICK_MAX, nicknameError } from '@/constants/validation';
+import { NICK_RE, NICK_MAX, nicknameError, passwordError } from '@/constants/validation';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Signup'>;
 
@@ -136,7 +136,8 @@ export default function SignupScreen({ navigation }: Props) {
 
   const emailOk = EMAIL_RE.test(email.trim());
   const pwLevel = pw1.length > 0 ? getPwStrength(pw1) : 0;
-  const pwOk = pwLevel >= 2;
+  // 강도 바는 4단계로 보여주되, 통과 판정은 설정 화면과 같은 기준을 쓴다.
+  const pwOk = passwordError(pw1) === null;
   const matchOk = pw1.length > 0 && pw1 === pw2;
   const nickOk = NICK_RE.test(nickname.trim());
   const allOk = emailOk && emailVerified && pwOk && matchOk && term1 && term2 && nickOk;

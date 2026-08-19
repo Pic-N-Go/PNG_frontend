@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, ScrollView, Pressable, Switch, Alert, Linking, AppState, Platform, PermissionsAndroid } from 'react-native';
+import { View, Text, ScrollView, Pressable, Switch, TextInput, Alert, Linking, AppState, Platform, PermissionsAndroid } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -18,11 +18,13 @@ import { MyPageStackParamList } from '@/navigation/stacks/MyPageStack';
 import { useNotificationSettings, DndRepeatPreset } from '@/hooks/useNotificationSettings';
 import { useInquiries } from '@/hooks/useInquiries';
 import { useAuthStore } from '@/store/useAuthStore';
-import { useUpdateSpotCategories } from '@/hooks/useUser';
+import { useUpdateSpotCategories, useChangePassword } from '@/hooks/useUser';
 import ThemePill from '@/components/auth/ThemePill';
 import { CATEGORY_LABELS, CODE_BY_LABEL, SPOT_CATEGORY_MAP } from '@/constants/spotCategories';
+import { passwordError } from '@/constants/validation';
+import { toErrorMessage } from '@/api/auth';
 import { normalize } from '@/utils/normalize';
-import { FONT_2XS, FONT_XS, FONT_SM, FONT_MD, FONT_LG, FONT_XL, GRID_PADDING, SPACING_LG, SPACING_SM, CARD_RADIUS, BUTTON_HEIGHT, BUTTON_RADIUS, WHEEL_WIDTH, WHEEL_ITEM_HEIGHT, WHEEL_VISIBLE_HEIGHT, WHEEL_SELECTION_RADIUS } from '@/constants/layout';
+import { FONT_2XS, FONT_XS, FONT_SM, FONT_MD, FONT_LG, FONT_XL, GRID_PADDING, INPUT_HEIGHT, SPACING_LG, SPACING_SM, CARD_RADIUS, BUTTON_HEIGHT, BUTTON_RADIUS, WHEEL_WIDTH, WHEEL_ITEM_HEIGHT, WHEEL_VISIBLE_HEIGHT, WHEEL_SELECTION_RADIUS } from '@/constants/layout';
 
 type Props = NativeStackScreenProps<MyPageStackParamList, 'Setting'>;
 
@@ -51,6 +53,7 @@ export default function SettingScreen({ navigation }: Props) {
   const [dndRepeatSheetVisible, setDndRepeatSheetVisible] = React.useState(false);
   const [versionSheetVisible, setVersionSheetVisible] = React.useState(false);
   const [themeSheetVisible, setThemeSheetVisible] = React.useState(false);
+  const [passwordSheetVisible, setPasswordSheetVisible] = React.useState(false);
 
   const [hasSystemPermission, setHasSystemPermission] = React.useState<boolean>(true);
   const [locationPermissionStatus, setLocationPermissionStatus] = React.useState<'loading' | 'granted' | 'denied'>('loading');
@@ -121,6 +124,15 @@ export default function SettingScreen({ navigation }: Props) {
     );
   };
 
+  // 소셜 계정은 서버에 비밀번호 자체가 없다(User.password가 null). 이메일 행과 같은 방식으로
+  // 왜 안 되는지 알려준다.
+  const openSocialPasswordAlert = () => {
+    Alert.alert(
+      '비밀번호를 변경할 수 없어요',
+      '카카오 계정으로 로그인 중이에요. 비밀번호 없이 카카오로 로그인해요.',
+    );
+  };
+
   const openSystemNotifSettingsAlert = () => {
     Alert.alert(
       '알림 권한 필요',
@@ -173,7 +185,7 @@ export default function SettingScreen({ navigation }: Props) {
   };
 
   const handlePress = (key: string) => {
-    // TODO: email/password/social/location/block/delete-account 내비게이션 연결
+    // TODO: email/social/location/block/delete-account 내비게이션 연결
     void key;
   };
 
@@ -206,7 +218,14 @@ export default function SettingScreen({ navigation }: Props) {
               disabledPress={openSocialEmailAlert}
               onPress={() => handlePress('email')}
             />
-            <SettingRow icon={IconLock} label="비밀번호 변경" chevron onPress={() => handlePress('password')} />
+            <SettingRow
+              icon={IconLock}
+              label="비밀번호 변경"
+              chevron
+              disabled={isSocialAccount}
+              disabledPress={openSocialPasswordAlert}
+              onPress={() => setPasswordSheetVisible(true)}
+            />
             <SettingRow icon={IconAdjustmentsHorizontal} iconBg="#fde3ec" iconColor={BRAND} label="관심 테마" desc="홈 피드 및 추천에 반영" chevron onPress={() => setThemeSheetVisible(true)} />
             <SettingRow icon={IconShare2} label="연결된 소셜 계정" desc={socialDesc} chevron onPress={() => handlePress('social')} />
           </Card>
@@ -375,6 +394,10 @@ export default function SettingScreen({ navigation }: Props) {
         onClose={() => setDndRepeatSheetVisible(false)}
         initial={{ preset: settings.dnd.repeatPreset, days: settings.dnd.repeatDays }}
         onConfirm={({ preset, days }) => setDndRepeat(preset, days)}
+      />
+      <PasswordChangeSheet
+        visible={passwordSheetVisible}
+        onClose={() => setPasswordSheetVisible(false)}
       />
       <InterestThemeSheet
         visible={themeSheetVisible}
@@ -886,6 +909,130 @@ function VersionInfoSheet({ visible, onClose, onOpenDoc }: { visible: boolean; o
         </View>
       </View>
     </BottomSheet>
+  );
+}
+
+/**
+ * 비밀번호 변경 시트 (setting.html의 pwSheet).
+ *
+ * 서버 PATCH /users/me/password는 현재 비밀번호를 대조한 뒤 교체한다. 이메일 코드로
+ * 재설정하는 로그인 화면의 흐름과는 쓰임이 다르다 — 그쪽은 비밀번호를 잊은 비로그인
+ * 사용자용이다. 소셜 계정은 여기까지 오지 않는다(행 자체가 비활성).
+ */
+function PasswordChangeSheet({ visible, onClose }: { visible: boolean; onClose: () => void }) {
+  const changePassword = useChangePassword();
+  const [current, setCurrent] = React.useState('');
+  const [next, setNext] = React.useState('');
+  const [confirm, setConfirm] = React.useState('');
+  const [error, setError] = React.useState('');
+
+  // 닫았다 다시 열면 이전 입력이 남아 있으면 안 된다.
+  React.useEffect(() => {
+    if (visible) return;
+    setCurrent('');
+    setNext('');
+    setConfirm('');
+    setError('');
+  }, [visible]);
+
+  const submit = () => {
+    if (changePassword.isPending) return;
+    if (!current) {
+      setError('현재 비밀번호를 입력해 주세요');
+      return;
+    }
+    const reason = passwordError(next);
+    if (reason) {
+      setError(reason);
+      return;
+    }
+    if (next !== confirm) {
+      setError('새 비밀번호가 서로 달라요');
+      return;
+    }
+    // 같은 값으로 바꾸는 건 막는다 — 서버는 통과시키지만 사용자가 얻는 게 없다.
+    if (current === next) {
+      setError('지금 쓰는 비밀번호와 달라야 해요');
+      return;
+    }
+
+    setError('');
+    changePassword.mutate(
+      { currentPassword: current, newPassword: next },
+      {
+        onSuccess: () => {
+          onClose();
+          Alert.alert('변경 완료', '비밀번호가 변경됐어요.');
+        },
+        // 현재 비밀번호 불일치는 서버가 알려준다(400) — 그대로 보여준다.
+        onError: (err) => setError(toErrorMessage(err, '변경하지 못했어요. 잠시 후 다시 시도해 주세요.')),
+      },
+    );
+  };
+
+  return (
+    <BottomSheet visible={visible} onClose={onClose}>
+      <View style={{ paddingHorizontal: normalize(20), paddingBottom: normalize(8) }}>
+        <View className="flex-row items-center justify-between" style={{ marginBottom: normalize(18) }}>
+          <Text className="font-semibold text-black" style={{ fontSize: FONT_XL, letterSpacing: -0.3 }}>비밀번호 변경</Text>
+          <Pressable
+            onPress={onClose}
+            hitSlop={8}
+            className="items-center justify-center bg-[#f5f5f7]"
+            style={{ width: normalize(30), height: normalize(30), borderRadius: normalize(15) }}
+            accessibilityLabel="닫기"
+          >
+            <IconX size={normalize(13)} color="rgba(0,0,0,0.5)" strokeWidth={2} />
+          </Pressable>
+        </View>
+
+        <PasswordField label="현재 비밀번호" value={current} onChangeText={(t) => { setCurrent(t); setError(''); }} placeholder="현재 비밀번호" />
+        <PasswordField label="새 비밀번호" value={next} onChangeText={(t) => { setNext(t); setError(''); }} placeholder="8자 이상, 영문+숫자 조합" />
+        <PasswordField label="새 비밀번호 확인" value={confirm} onChangeText={(t) => { setConfirm(t); setError(''); }} placeholder="새 비밀번호 재입력" />
+
+        {!!error && (
+          <Text style={{ fontSize: FONT_XS, color: '#FF3B30', marginTop: normalize(2), paddingLeft: normalize(4) }}>{error}</Text>
+        )}
+
+        <Pressable
+          onPress={submit}
+          disabled={changePassword.isPending}
+          className="items-center justify-center"
+          style={{
+            height: BUTTON_HEIGHT,
+            borderRadius: BUTTON_RADIUS,
+            backgroundColor: BRAND,
+            marginTop: normalize(20),
+            opacity: changePassword.isPending ? 0.6 : 1,
+          }}
+        >
+          <Text className="font-semibold text-white" style={{ fontSize: FONT_MD }}>
+            {changePassword.isPending ? '변경 중...' : '변경하기'}
+          </Text>
+        </Pressable>
+      </View>
+    </BottomSheet>
+  );
+}
+
+function PasswordField({
+  label, value, onChangeText, placeholder,
+}: { label: string; value: string; onChangeText: (t: string) => void; placeholder: string }) {
+  return (
+    <View style={{ marginBottom: normalize(14) }}>
+      <Text style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.45)', marginBottom: normalize(6), paddingLeft: normalize(2) }}>{label}</Text>
+      <TextInput
+        value={value}
+        onChangeText={onChangeText}
+        placeholder={placeholder}
+        placeholderTextColor="rgba(0,0,0,0.25)"
+        secureTextEntry
+        autoCapitalize="none"
+        autoCorrect={false}
+        className="bg-[#f5f5f7] text-black"
+        style={{ height: INPUT_HEIGHT, borderRadius: normalize(12), paddingHorizontal: normalize(16), fontSize: FONT_MD }}
+      />
+    </View>
   );
 }
 
