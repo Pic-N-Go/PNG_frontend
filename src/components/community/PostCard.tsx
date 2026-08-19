@@ -1,6 +1,6 @@
 import React from 'react';
 import { Image, Pressable, Text, View } from 'react-native';
-import { MapPin, Heart, MessageSquare, Bookmark, Clock, Camera, Sun, Moon, Cloud } from 'lucide-react-native';
+import { MapPin, Heart, MessageSquare, Bookmark, Clock, Camera, Sun, Moon, Cloud, MoreHorizontal } from 'lucide-react-native';
 import Avatar from '@/components/common/Avatar';
 import { Post, PostShotMeta } from '@/types/community';
 import { FONT_XS, FONT_SM, FONT_MD } from '@/constants/layout';
@@ -21,9 +21,11 @@ interface Props {
   onToggleBookmark: () => void;
   onToggleFollow: () => void;
   onPressUsername: () => void;
+  /** 넘기면 작성자 행 오른쪽에 더보기(⋯)가 뜬다. 내 글 목록에서 수정·삭제를 열 때 쓴다. */
+  onPressMore?: () => void;
 }
 
-export default function PostCard({ post, onPress, onToggleLike, onToggleBookmark, onToggleFollow, onPressUsername }: Props) {
+export default function PostCard({ post, onPress, onToggleLike, onToggleBookmark, onToggleFollow, onPressUsername, onPressMore }: Props) {
   const mainPhoto = post.imageUrls?.[0];
   return (
     <Pressable onPress={onPress} className="rounded-[20px] overflow-hidden" style={{ backgroundColor: '#f5f5f7', borderRadius: normalize(20) }}>
@@ -62,6 +64,19 @@ export default function PostCard({ post, onPress, onToggleLike, onToggleBookmark
               {post.createdAtLabel}
             </Text>
           </View>
+          {/* 내 글에는 팔로우 버튼이 없어 그 자리가 비어 있다 — 더보기를 여기 둔다 */}
+          {!!onPressMore && (
+            <Pressable
+              onPress={onPressMore}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="더보기"
+              className="items-center justify-center"
+              style={{ width: normalize(30), height: normalize(30) }}
+            >
+              <MoreHorizontal size={normalize(18)} color="rgba(0,0,0,0.45)" strokeWidth={2} />
+            </Pressable>
+          )}
           {/* 탈퇴 계정은 팔로우할 수 없다 — 서버가 요청을 거절하므로 버튼을 아예 두지 않는다 */}
           {!post.isMine && !post.author.isWithdrawn && (
             <Pressable

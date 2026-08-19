@@ -14,6 +14,7 @@ import OpenSourceLicensesScreen from '@/screens/mypage/OpenSourceLicensesScreen'
 import ProfileEditScreen from '@/screens/mypage/ProfileEditScreen';
 import FollowScreen from '@/screens/mypage/FollowScreen';
 import MyPhotosScreen from '@/screens/mypage/MyPhotosScreen';
+import MyPostsScreen from '@/screens/mypage/MyPostsScreen';
 import MyReviewsScreen from '@/screens/mypage/MyReviewsScreen';
 import PhotoMapScreen from '@/screens/mypage/PhotoMapScreen';
 import AdminDashboardScreen from '@/screens/admin/AdminDashboardScreen';
@@ -33,6 +34,7 @@ export type MyPageStackParamList = {
   OpenSourceLicenses: undefined;
   Follow: { initialTab: 'followers' | 'following'; userId?: number };
   MyPhotos: undefined;
+  MyPosts: undefined;
   MyReviews: undefined;
   PhotoMap: undefined;
   AdminDashboard: undefined;
@@ -57,6 +59,7 @@ export default function MyPageStack() {
       <Stack.Screen name="ProfileEdit" component={ProfileEditScreen} />
       <Stack.Screen name="Follow" component={FollowScreen} />
       <Stack.Screen name="MyPhotos" component={MyPhotosScreen} />
+      <Stack.Screen name="MyPosts" component={MyPostsScreen} />
       <Stack.Screen name="MyReviews" component={MyReviewsScreen} />
       <Stack.Screen name="PhotoMap" component={PhotoMapScreen} />
       <Stack.Screen name="AdminDashboard" component={AdminDashboardScreen} />

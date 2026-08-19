@@ -27,6 +27,8 @@ export interface Post {
   caption: string;
   location: string;
   createdAtLabel: string;
+  /** `2026.08.18`. 내가 쓴 글 목록을 날짜별로 묶는 데 쓴다(createdAtLabel은 최근 글이 상대 시각이라 키로 못 쓴다). */
+  createdAtDate: string;
   likeCount: number;
   isLiked: boolean;
   commentCount: number;

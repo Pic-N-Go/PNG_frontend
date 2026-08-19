@@ -36,6 +36,15 @@ function pick<T>(list: T[], seed: number | string): T {
  * 시각으로 파싱한다. 서버와 사용자가 모두 KST라 실무상 맞지만, 해외 로밍 중이면 시차만큼 어긋난다.
  * ponytail: 서버가 오프셋을 붙여주면 그대로 정확해진다. 그전까지 이 근사로 둔다.
  */
+/** `2026.08.18`. 목록을 날짜별로 묶을 때의 그룹 키이자 헤더 문구다. */
+export function formatDate(iso: string | null | undefined): string {
+  if (!iso) return '';
+  const then = new Date(iso).getTime();
+  if (Number.isNaN(then)) return '';
+  const d = new Date(then);
+  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+}
+
 export function formatRelativeTime(iso: string | null | undefined): string {
   if (!iso) return '';
   const then = new Date(iso).getTime();
@@ -47,8 +56,7 @@ export function formatRelativeTime(iso: string | null | undefined): string {
   if (diffHour < 24) return `${diffHour}시간 전`;
   const diffDay = Math.floor(diffHour / 24);
   if (diffDay < 7) return `${diffDay}일 전`;
-  const d = new Date(then);
-  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+  return formatDate(iso);
 }
 
 const WEATHER_LABELS: Record<PostWeatherApi, string> = {
@@ -114,6 +122,7 @@ export function mapPost(dto: PostResponseDTO, ctx: PostMapContext = {}): Post {
     caption: dto.content,
     location: dto.spotName ?? '',
     createdAtLabel: formatRelativeTime(dto.createdAt),
+    createdAtDate: formatDate(dto.createdAt),
     likeCount: dto.likeCount,
     isLiked: dto.liked,
     commentCount: dto.commentCount,
