@@ -1,20 +1,20 @@
 import React, { useMemo } from 'react';
-import { View, Text, TouchableOpacity, Image } from 'react-native';
+import { View, Text, TouchableOpacity } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { IconUser, IconSettings } from '@tabler/icons-react-native';
+import { IconSettings } from '@tabler/icons-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { FONT_XS } from '@/constants/layout';
+import Avatar from '@/components/common/Avatar';
 import { useMyProfile, useMyStats, useMyAlbums } from '@/hooks/useUser';
-import { getCategoryKoreanName } from '@/types/user';
+import { categoryLabel } from '@/constants/spotCategories';
 import { useAuthStore } from '@/store/useAuthStore';
 
 export default function ProfileHeader() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const authUser = useAuthStore((s) => s.user);
-  const bio = useAuthStore((s) => s.bio);
 
   const { data: profile } = useMyProfile();
   const { data: stats, isLoading: isStatsLoading } = useMyStats();
@@ -27,6 +27,7 @@ export default function ProfileHeader() {
   const nickname = profile?.nickname || authUser?.nickname || '사용자';
   const profileImageUrl = profile?.profileImageUrl || authUser?.profileImageUrl;
   const categories = profile?.spotCategories || authUser?.spotCategories || [];
+  const bio = profile?.bio || authUser?.bio;
 
   const followerCount = stats?.followerCount ?? 0;
   const followingCount = stats?.followingCount ?? 0;
@@ -48,28 +49,7 @@ export default function ProfileHeader() {
       }}
     >
       <View className="flex-row items-center mb-5 mt-2" style={{ gap: normalize(16) }}>
-        <View
-          style={{
-            width: normalize(72),
-            height: normalize(72),
-            borderRadius: normalize(36),
-            backgroundColor: '#4a7c8a',
-            alignItems: 'center',
-            justifyContent: 'center',
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-        >
-          {profileImageUrl ? (
-            <Image
-              source={{ uri: profileImageUrl }}
-              style={{ width: '100%', height: '100%' }}
-              resizeMode="cover"
-            />
-          ) : (
-            <IconUser size={normalize(34)} color="rgba(255,255,255,0.75)" strokeWidth={1.5} />
-          )}
-        </View>
+        <Avatar userId={profile?.id ?? authUser?.id} nickname={nickname} imageUrl={profileImageUrl} size={72} />
 
         <View className="flex-1">
           <Text className="font-semibold text-white tracking-tight" style={{ fontSize: normalizeFontSize(20), marginBottom: normalize(2) }}>
@@ -90,14 +70,14 @@ export default function ProfileHeader() {
                   }}
                 >
                   <Text className="font-medium tracking-tight" style={{ fontSize: FONT_XS, color: 'rgba(255, 255, 255, 0.75)' }}>
-                    {getCategoryKoreanName(cat)}
+                    {categoryLabel(cat)}
                   </Text>
                 </View>
               ))}
             </View>
           )}
           <Text className="leading-relaxed tracking-tight" style={{ fontSize: normalizeFontSize(12), color: 'rgba(255, 255, 255, 0.5)' }}>
-            {bio || '안녕하세요! 사진과 일상을 기록하는 것을 좋아합니다!'}
+            {bio || '자기소개를 입력해 보세요'}
           </Text>
         </View>
 

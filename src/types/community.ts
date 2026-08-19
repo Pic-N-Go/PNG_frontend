@@ -3,9 +3,7 @@ import { PhotoExifData } from '@/types/photo';
 export interface PostAuthor {
   id: string;
   handle: string;
-  initials: string;
-  avatarGradient: [string, string];
-  /** 서버 프로필 사진. 없으면 initials + avatarGradient로 대체한다. */
+  /** 서버 프로필 사진. 없으면 Avatar가 id·닉네임으로 폴백을 그린다. */
   profileImageUrl?: string | null;
 }
 
@@ -49,7 +47,7 @@ export interface PostDetail extends Post {
 
 export interface Comment {
   id: string;
-  author: Pick<PostAuthor, 'handle' | 'initials'> & { id?: string; profileImageUrl?: string | null };
+  author: Pick<PostAuthor, 'handle'> & { id?: string; profileImageUrl?: string | null };
   text: string;
   createdAtLabel: string;
   /** 내가 쓴 댓글이면 삭제 가능 */
@@ -186,11 +184,12 @@ export interface PostUpdateRequestDTO extends PostCreateRequestDTO {
   retainedImageIds?: number[];
 }
 
-/** `/users/{id}/profile` — bio·게시글 수·팔로우 여부는 서버에 없다 */
+/** `/users/{id}/profile` — 게시글 수·팔로우 여부는 서버에 없다 */
 export interface UserProfileDTO {
   id: number;
   nickname: string;
   profileImageUrl: string | null;
+  bio: string | null;
   spotCategories: string[];
   followerCount: number;
   followingCount: number;
@@ -224,20 +223,6 @@ export interface ContestResultDetail {
 
 export type VoteModalMode = 'confirm' | 'cancel';
 export type GearSheetKind = 'camera' | 'lens';
-
-export interface UserProfileSummary {
-  id: string;
-  displayName: string;
-  handle: string;
-  initials: string;
-  avatarGradient: [string, string];
-  bio: string;
-  winCount: number;
-  postCount: number;
-  followerCount: number;
-  followingCount: number;
-  isFollowing: boolean;
-}
 
 export interface ProfilePostItem {
   id: string;

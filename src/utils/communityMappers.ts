@@ -25,26 +25,10 @@ const PHOTO_FALLBACKS: [string, string, string][] = [
   ['#020010', '#1a1545', '#4a4080'],
 ];
 
-const AVATAR_FALLBACKS: [string, string][] = [
-  ['#2c5364', '#4a7c8a'],
-  ['#8b4a6b', '#d4856a'],
-  ['#3a506b', '#5bc0be'],
-  ['#4a1942', '#e8855a'],
-  ['#1c2541', '#3a506b'],
-];
-
 /** 같은 id면 항상 같은 색이 나오도록 id를 인덱스로 쓴다(랜덤이면 리렌더마다 색이 바뀐다). */
 function pick<T>(list: T[], seed: number | string): T {
   const n = typeof seed === 'number' ? seed : [...String(seed)].reduce((acc, c) => acc + c.charCodeAt(0), 0);
   return list[Math.abs(n) % list.length];
-}
-
-/** 닉네임 앞 2글자. 한글은 1글자, 영문은 2글자가 목업과 가장 비슷하다. */
-export function initialsOf(nickname: string): string {
-  const trimmed = nickname.trim();
-  if (!trimmed) return '?';
-  const isHangul = /[가-힣]/.test(trimmed[0]);
-  return (isHangul ? trimmed.slice(0, 1) : trimmed.slice(0, 2)).toUpperCase();
 }
 
 /**
@@ -107,8 +91,6 @@ export function mapAuthor(dto: PostAuthorDTO): PostAuthor {
   return {
     id: String(dto.id),
     handle: dto.nickname,
-    initials: initialsOf(dto.nickname),
-    avatarGradient: pick(AVATAR_FALLBACKS, dto.id),
     profileImageUrl: dto.profileImageUrl,
   };
 }
@@ -198,7 +180,6 @@ export function mapComment(dto: CommentResponseDTO, myUserId?: number | null): C
     author: {
       id: String(dto.author.id),
       handle: dto.author.nickname,
-      initials: initialsOf(dto.author.nickname),
       profileImageUrl: dto.author.profileImageUrl,
     },
     text: dto.content,

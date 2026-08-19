@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ActivityIndicator, Image, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -7,10 +7,10 @@ import { ChevronLeft } from 'lucide-react-native';
 import ProfilePostsTab from '@/components/community/ProfilePostsTab';
 import { useMyFollowing, useToggleFollow, useUserPosts, useUserProfile } from '@/hooks/useCommunity';
 import { useAuthStore } from '@/store/useAuthStore';
-import { initialsOf } from '@/utils/communityMappers';
+import Avatar from '@/components/common/Avatar';
 import type { CommunityDetailStackParamList } from '@/navigation/stacks/CommunityDetailStack';
 import { ProfilePostItem, ProfileTabKey } from '@/types/community';
-import { FONT_XL, HEADER_HEIGHT, CONTENT_PADDING, FONT_2XS, FONT_LG, FONT_SM, FONT_XS } from '@/constants/layout';
+import { HEADER_HEIGHT, CONTENT_PADDING, FONT_2XS, FONT_LG, FONT_SM, FONT_XS } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 
 const ACCENT = '#E31B59';
@@ -21,10 +21,10 @@ const SURFACE = '#f5f5f7';
 // 방문 스팟은 /users/me/stats가 개수(visitedSpotCount)만 주고 목록 API가 없으며, 그나마 본인 것뿐이다.
 // 콘테스트·방문 스팟은 조회 API가 없다. 개수를 지어내면 BETA 뱃지를 붙여도 거짓 정보라
 // count를 비우고(undefined) 준비 중 안내만 띄운다.
-const subTabs = (postCount: number): { key: ProfileTabKey; label: string; count?: number; beta?: boolean }[] => [
+const subTabs = (postCount: number): { key: ProfileTabKey; label: string; count?: number }[] => [
   { key: 'posts', label: '게시글', count: postCount },
-  { key: 'contests', label: '콘테스트', beta: true },
-  { key: 'spots', label: '방문한 스팟', beta: true },
+  { key: 'contests', label: '콘테스트' },
+  { key: 'spots', label: '방문한 스팟' },
 ];
 
 export default function UserProfileScreen() {
@@ -47,6 +47,13 @@ export default function UserProfileScreen() {
   const toggleFollow = useToggleFollow();
 
   const isFollowing = userId ? followingIds?.has(userId) ?? false : false;
+
+  // push여야 이 프로필 화면이 스택에 남는다(PostDetail과 같은 이유).
+  // FollowScreen은 userId를 number로 받는다 — 라우트 파라미터는 string이라 변환해서 넘긴다.
+  const goToFollow = (initialTab: 'followers' | 'following') => {
+    if (profile?.id == null) return;
+    navigation.push('Follow', { initialTab, userId: profile.id });
+  };
   const nickname = profile?.nickname ?? '';
 
   // 콘테스트 순위는 서버에 없어 넣지 않는다 — 넣으면 트로피 뱃지가 거짓값이 된다.
@@ -87,27 +94,24 @@ export default function UserProfileScreen() {
           )}
         </View>
       ) : (
-      <ScrollView contentContainerStyle={{ paddingBottom: normalize(24) }}>
+      <ScrollView contentContainerStyle={{ flexGrow: 1, paddingBottom: normalize(24) }}>
         <View style={{ paddingHorizontal: CONTENT_PADDING, paddingTop: normalize(24), paddingBottom: normalize(16) }}>
           <View className="flex-row items-center" style={{ gap: normalize(16), marginBottom: normalize(16) }}>
-            <View
-              className="items-center justify-center overflow-hidden"
-              style={{ width: normalize(80), height: normalize(80), borderRadius: normalize(40), backgroundColor: SURFACE }}
-            >
-              {profile.profileImageUrl ? (
-                <Image source={{ uri: profile.profileImageUrl }} resizeMode="cover" style={{ width: '100%', height: '100%' }} />
-              ) : (
-                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XL, color: 'rgba(0,0,0,0.3)', letterSpacing: -0.5 }}>
-                  {initialsOf(nickname)}
-                </Text>
-              )}
-            </View>
+            <Avatar userId={profile.id} nickname={nickname} imageUrl={profile.profileImageUrl} size={80} />
             <View style={{ flex: 1, minWidth: 0 }}>
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_LG, color: '#000', letterSpacing: -0.3 }}>
                 {nickname}
               </Text>
-              {/* 자기소개(상태 메시지)·콘테스트 우승 횟수는 프로필 API에 없어 표시하지 않는다.
-                  닉네임 아래 핸들 줄도 뺐다 — 서버에 핸들 개념이 없어 닉네임을 한 번 더 쓰는 것뿐이었다. */}
+              {/* 남의 프로필에는 자기소개가 비었을 때 대체 문구를 넣지 않는다 — 안 쓴 사람에게 문장을 지어주는 셈이다.
+                  콘테스트 우승 횟수는 여전히 프로필 API에 없어 표시하지 않는다. */}
+              {!!profile.bio && (
+                <Text
+                  allowFontScaling={false}
+                  style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: 'rgba(0,0,0,0.5)', letterSpacing: -0.2, lineHeight: FONT_SM * 1.45, marginTop: normalize(4) }}
+                >
+                  {profile.bio}
+                </Text>
+              )}
               {profile.spotCategories?.length > 0 && (
                 <View className="flex-row flex-wrap" style={{ gap: normalize(4), marginTop: normalize(8) }}>
                   {profile.spotCategories.map((category) => (
@@ -126,25 +130,26 @@ export default function UserProfileScreen() {
             </View>
           </View>
 
-          {/* 게시글 수 카운트는 유저별 게시글 API가 없어 뺐다 — 팔로워·팔로잉만 서버 값이다 */}
+          {/* 게시글 수 카운트는 유저별 게시글 API가 없어 뺐다 — 팔로워·팔로잉만 서버 값이다.
+              목록은 마이페이지 FollowScreen을 그대로 재사용한다(GET /users/{id}/followers|following은 본인 제한이 없다) */}
           <View className="flex-row" style={{ paddingVertical: normalize(14), paddingHorizontal: normalize(4), backgroundColor: SURFACE, borderRadius: normalize(14), marginBottom: normalize(16) }}>
-            <View className="flex-1 items-center">
+            <Pressable className="flex-1 items-center" onPress={() => goToFollow('followers')}>
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_LG, color: '#000', letterSpacing: -0.3 }}>
                 {(profile?.followerCount ?? 0).toLocaleString()}
               </Text>
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.4)', letterSpacing: -0.1, marginTop: normalize(1) }}>
                 팔로워
               </Text>
-            </View>
+            </Pressable>
             <View style={{ width: 1, backgroundColor: 'rgba(0,0,0,0.06)' }} />
-            <View className="flex-1 items-center">
+            <Pressable className="flex-1 items-center" onPress={() => goToFollow('following')}>
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_LG, color: '#000', letterSpacing: -0.3 }}>
                 {(profile?.followingCount ?? 0).toLocaleString()}
               </Text>
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.4)', letterSpacing: -0.1, marginTop: normalize(1) }}>
                 팔로잉
               </Text>
-            </View>
+            </Pressable>
           </View>
 
           <View className="flex-row" style={{ gap: normalize(8) }}>
@@ -193,17 +198,6 @@ export default function UserProfileScreen() {
                     <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', color: isActive ? 'rgba(0,0,0,0.35)' : 'rgba(0,0,0,0.25)' }}> {tab.count}</Text>
                   )}
                 </Text>
-                {/* 아직 실 데이터가 아닌 탭임을 알린다 — 메시지 버튼과 같은 뱃지를 쓴다 */}
-                {tab.beta && (
-                  <View
-                    className="absolute items-center justify-center"
-                    style={{ top: normalize(6), right: normalize(-14), height: normalize(14), paddingHorizontal: normalize(5), borderRadius: normalize(7), backgroundColor: ACCENT }}
-                  >
-                    <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_2XS, color: '#fff', letterSpacing: 0.4 }}>
-                      BETA
-                    </Text>
-                  </View>
-                )}
               </Pressable>
             );
           })}
@@ -257,13 +251,15 @@ export default function UserProfileScreen() {
           )
         )}
         {(activeTab === 'contests' || activeTab === 'spots') && (
-          <Text
-            allowFontScaling={false}
-            className="text-center"
-            style={{ paddingVertical: normalize(40), fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: 'rgba(0,0,0,0.35)', letterSpacing: -0.2 }}
-          >
-            준비 중이에요
-          </Text>
+          // contentContainer의 flexGrow와 짝지어 탭 아래 남은 흰 영역을 채우고 그 중앙에 둔다
+          <View className="items-center justify-center" style={{ flex: 1, paddingVertical: normalize(40) }}>
+            <Text
+              allowFontScaling={false}
+              style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: 'rgba(0,0,0,0.35)', letterSpacing: -0.2 }}
+            >
+              준비 중이에요
+            </Text>
+          </View>
         )}
       </ScrollView>
       )}

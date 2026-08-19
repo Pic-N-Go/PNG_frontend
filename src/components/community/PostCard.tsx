@@ -1,8 +1,9 @@
 import React from 'react';
 import { Image, Pressable, Text, View } from 'react-native';
 import { MapPin, Heart, MessageSquare, Bookmark, Clock, Camera, Sun, Moon, Cloud } from 'lucide-react-native';
+import Avatar from '@/components/common/Avatar';
 import { Post, PostShotMeta } from '@/types/community';
-import { FONT_2XS, FONT_XS, FONT_SM, FONT_MD } from '@/constants/layout';
+import { FONT_XS, FONT_SM, FONT_MD } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
 
 const ACCENT = '#E31B59';
@@ -47,18 +48,8 @@ export default function PostCard({ post, onPress, onToggleLike, onToggleBookmark
       <View style={{ paddingHorizontal: normalize(16), paddingTop: normalize(14), paddingBottom: normalize(4) }}>
         <View className="flex-row items-center" style={{ gap: normalize(10), marginBottom: normalize(12) }}>
           {/* 아바타도 프로필로 들어가야 한다 — Pressable이 없으면 카드 전체 탭으로 흘러가 게시글 상세가 열린다 */}
-          <Pressable
-            onPress={onPressUsername}
-            className="items-center justify-center overflow-hidden"
-            style={{ width: normalize(32), height: normalize(32), borderRadius: normalize(16), backgroundColor: post.author.avatarGradient[0] }}
-          >
-            {post.author.profileImageUrl ? (
-              <Image source={{ uri: post.author.profileImageUrl }} resizeMode="cover" style={{ width: '100%', height: '100%' }} />
-            ) : (
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_2XS, color: 'rgba(255,255,255,0.85)', letterSpacing: -0.1 }}>
-                {post.author.initials}
-              </Text>
-            )}
+          <Pressable onPress={onPressUsername}>
+            <Avatar userId={post.author.id} nickname={post.author.handle} imageUrl={post.author.profileImageUrl} size={32} />
           </Pressable>
           <View style={{ flex: 1 }}>
             <Pressable onPress={onPressUsername}>

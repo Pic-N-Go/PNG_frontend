@@ -5,8 +5,9 @@ import Reanimated, { runOnJS, useAnimatedStyle, useSharedValue, withTiming } fro
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Heart, Info, X } from 'lucide-react-native';
 import { PhotoExifLayer } from '@/components/common/PhotoExifSheet';
+import Avatar from '@/components/common/Avatar';
 import { PostDetail } from '@/types/community';
-import { FONT_2XS, FONT_SM, FONT_XS } from '@/constants/layout';
+import { FONT_SM, FONT_XS } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 
 /** 이 거리(px)보다 더 아래로 끌면 닫는다. 짧으면 스크롤하려다 닫히고, 길면 안 닫힌다. */
@@ -243,18 +244,7 @@ export default function PhotoLightbox({ visible, onClose, exifOpen, onOpenExif, 
         >
           {/* 아바타·닉네임 묶어서 프로필 진입 — 목록 카드(PostCard)와 같은 규칙 */}
           <Pressable onPress={onPressAuthor} className="flex-row items-center" style={{ flex: 1, minWidth: 0, gap: normalize(16) }}>
-            <View
-              className="items-center justify-center overflow-hidden"
-              style={{ width: normalize(38), height: normalize(38), borderRadius: normalize(19), backgroundColor: post.author.avatarGradient[0] }}
-            >
-              {post.author.profileImageUrl ? (
-                <Image source={{ uri: post.author.profileImageUrl }} resizeMode="cover" style={{ width: '100%', height: '100%' }} />
-              ) : (
-                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_2XS, color: 'rgba(255,255,255,0.85)', letterSpacing: -0.1 }}>
-                  {post.author.initials}
-                </Text>
-              )}
-            </View>
+            <Avatar userId={post.author.id} nickname={post.author.handle} imageUrl={post.author.profileImageUrl} size={38} />
             <View style={{ flex: 1, minWidth: 0 }}>
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(14), color: '#fff', letterSpacing: -0.2 }}>
                 {post.author.handle}
