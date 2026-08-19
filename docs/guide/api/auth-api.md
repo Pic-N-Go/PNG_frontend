@@ -69,6 +69,7 @@ Refresh Token은 사용 시 소비되므로 성공 응답의 새 Refresh Token�
 > 로그인 응답과 동일한 새 `TokenResponse`
 
 ### 에러 케이스
+
 | 상황 | HTTP / code |
 |---|---|
 | Access Token 만료 | `401 / ACCESS_TOKEN_EXPIRED` |
