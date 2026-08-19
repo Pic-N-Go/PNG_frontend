@@ -31,7 +31,7 @@ export type MyPageStackParamList = {
   TermsOfService: undefined;
   PrivacyPolicy: undefined;
   OpenSourceLicenses: undefined;
-  Follow: { initialTab: 'followers' | 'following' };
+  Follow: { initialTab: 'followers' | 'following'; userId?: number };
   MyPhotos: undefined;
   MyReviews: undefined;
   PhotoMap: undefined;

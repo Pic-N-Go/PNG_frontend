@@ -345,6 +345,15 @@ export default function CommunityFeedScreen() {
           setKeyword(next);
           setSearchVisible(false);
         }}
+        // 스팟·사용자 결과는 오버레이 안에서 고르고, 상세로 넘어갈 때 오버레이를 닫는다.
+        onOpenSpot={(spotId) => {
+          setSearchVisible(false);
+          rootNavigation.navigate('SpotStack', { screen: 'SpotDetail', params: { spotId: String(spotId) } });
+        }}
+        onOpenUser={(userId) => {
+          setSearchVisible(false);
+          goToProfile(String(userId));
+        }}
       />
       <OptionSheet
         visible={feedSortSheetVisible}
