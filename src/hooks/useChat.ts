@@ -25,15 +25,6 @@ function authorizationHeaders(accessToken: string): Record<string, string> {
   return { Authorization: `Bearer ${accessToken}` };
 }
 
-function debugStomp(message: string): void {
-  if (!__DEV__) return;
-  const sanitized = message.replace(
-    /^(authorization:\s*bearer\s+)[^\r\n]+/gim,
-    '$1[REDACTED]',
-  );
-  console.debug('[chat:stomp]', sanitized);
-}
-
 function isAccessTokenExpiredFrame(frame: IFrame): boolean {
   const errorText = `${frame.headers.message ?? ''}\n${frame.body ?? ''}`;
   return ACCESS_TOKEN_EXPIRED_MARKERS.some((marker) => errorText.includes(marker));
@@ -181,7 +172,6 @@ export function useChat(spotId: number) {
       forceBinaryWSFrames: true,
       // React Native WebSocket may remove STOMP's trailing NULL byte.
       appendMissingNULLonIncoming: true,
-      debug: debugStomp,
       onConnect: () => {
         if (disposed) return;
         setConnectionStatus('connected');
@@ -258,8 +248,10 @@ export function useChat(spotId: number) {
       },
       onWebSocketClose: (event) => {
         if (disposed) return;
-        if (__DEV__) {
-          console.warn('[chat] WebSocket 종료:', {
+
+        const isExpectedClose = event.code === 1000 || event.code === 4001;
+        if (__DEV__ && !isExpectedClose) {
+          console.warn('[chat] WebSocket 비정상 종료:', {
             code: event.code,
             reason: event.reason || '(이유 없음)',
           });

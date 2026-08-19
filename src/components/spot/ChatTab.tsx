@@ -159,7 +159,7 @@ export default function ChatTab({ spotId, spotName, onFocusChange }: Props) {
         </Fragment>
       );
     }),
-    [currentUserId, messages],
+    [currentUserId, messages, spotName],
   );
 
   useEffect(() => {
