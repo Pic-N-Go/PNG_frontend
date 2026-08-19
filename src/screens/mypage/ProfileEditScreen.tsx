@@ -125,13 +125,18 @@ export default function ProfileEditScreen({ navigation }: Props) {
 
   const onSave = async () => {
     if (!canSave) return;
+    // catch에서 pendingImage/imageRemoved로 되짚으면 안 된다 — 사진 단계가 실패해도 그 값은
+    // 그대로라 "사진은 이미 변경됐어요"가 거짓으로 뜬다. 성공한 직후에만 올린다.
+    let photoDone = false;
     try {
       // 사진을 먼저 처리한다. 여기서 실패하면 아무것도 바뀌지 않은 상태로 멈춘다 —
       // 용량·네트워크 문제로 실패할 확률이 닉네임 저장보다 높다.
       if (pendingImage) {
         await updateImage.mutateAsync(pendingImage);
+        photoDone = true;
       } else if (imageRemoved) {
         await deleteImage.mutateAsync();
+        photoDone = true;
       }
 
       if (nickDirty || bioDirty) {
@@ -150,7 +155,6 @@ export default function ProfileEditScreen({ navigation }: Props) {
       //
       // 서버 메시지를 살린다 — 가장 흔한 실패가 NICKNAME_ALREADY_EXISTS다(중복 확인과 저장
       // 사이에 남이 같은 값을 쓸 수 있다). "저장하지 못했어요"만 띄우면 무엇을 고쳐야 할지 알 수 없다.
-      const photoDone = pendingImage !== null || imageRemoved;
       Alert.alert(
         '저장 실패',
         [
