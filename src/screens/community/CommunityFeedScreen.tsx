@@ -116,7 +116,10 @@ export default function CommunityFeedScreen() {
 
   const galleryPhotos = React.useMemo(() => toGalleryPhotos(displayedPosts), [displayedPosts]);
   const galleryCells = React.useMemo(() => {
-    const popularIds = pickPopularIds(galleryPhotos, GALLERY_POPULAR_COUNT);
+    // 2x2 한 칸이 일반 칸 4개를 먹는다. 사진이 적을 때 상한을 그대로 쓰면 격자 대부분이
+    // 큰 칸이 되어 빈자리가 남고 배치가 뒤죽박죽으로 보인다 — 사진 수에 비례시킨다.
+    const popularCount = Math.min(GALLERY_POPULAR_COUNT, Math.floor(galleryPhotos.length / 6));
+    const popularIds = pickPopularIds(galleryPhotos, popularCount);
     return layoutGalleryGrid(galleryPhotos, (photo) => popularIds.has(photo.id));
   }, [galleryPhotos]);
   const galleryRowCount = galleryCells.reduce((max, cell) => Math.max(max, cell.row + cell.span), 0);
