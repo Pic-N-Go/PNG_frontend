@@ -19,6 +19,7 @@ import { parseValidCoordinate } from '@/utils/geo';
 import { getDayColor, DAY_COLOR_PALETTE } from '@/constants/dayColors';
 import { CATEGORY_LABELS, CODE_BY_LABEL } from '@/constants/spotCategories';
 import { FONT_SM, FONT_MD, FONT_XL, BUTTON_HEIGHT, BUTTON_RADIUS, HEADER_HEIGHT, ICON_SM, CONTROL_SIZE } from '@/constants/layout';
+import Chip from '@/components/common/Chip';
 
 const KAKAO_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_API_KEY;
 
@@ -1074,34 +1075,16 @@ export default function MapScreen() {
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 4, gap: 6 }}
               >
-                {CATEGORIES.map((cat) => {
-                  const isActive = selectedCategory === cat.id;
-                  return (
-                    <TouchableOpacity
-                      key={cat.id}
-                      onPress={() => setSelectedCategory(cat.id)}
-                      style={{
-                        height: normalize(32),
-                        paddingHorizontal: normalize(14),
-                        borderRadius: normalize(16),
-                        backgroundColor: isActive ? '#E31B59' : '#F5F5F7',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <Text
-                        style={{
-                          fontFamily: isActive ? 'Pretendard-Medium' : 'Pretendard-Regular',
-                          fontSize: normalizeFontSize(12),
-                          color: isActive ? '#ffffff' : 'rgba(0,0,0,0.55)',
-                          letterSpacing: -0.2,
-                        }}
-                      >
-                        {cat.label}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
+                {/* 지도에 뿌릴 스팟만 거르는 필터라 활성색은 블랙이다. 모양은 공통 Chip으로 통일. */}
+                {CATEGORIES.map((cat) => (
+                  <Chip
+                    key={cat.id}
+                    label={cat.label}
+                    selected={selectedCategory === cat.id}
+                    onPress={() => setSelectedCategory(cat.id)}
+                    height={normalize(32)}
+                  />
+                ))}
               </ScrollView>
             </View>
           )}

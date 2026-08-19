@@ -11,6 +11,7 @@ import {
 import { MyPageStackParamList } from '@/navigation/stacks/MyPageStack';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { FONT_2XS, FONT_XS, FONT_SM, FONT_MD, FONT_LG, CONTENT_PADDING } from '@/constants/layout';
+import Chip from '@/components/common/Chip';
 
 type Props = NativeStackScreenProps<MyPageStackParamList, 'FAQ'>;
 
@@ -123,25 +124,17 @@ export default function FAQScreen({ navigation }: Props) {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ gap: normalize(8), paddingBottom: normalize(14) }}
         >
-          {CATEGORIES.map((c) => {
-            const active = c.id === category;
-            return (
-              <Pressable
-                key={c.id}
-                onPress={() => setCategory(c.id)}
-                className="items-center justify-center"
-                style={{
-                  height: normalize(34), paddingHorizontal: normalize(14), borderRadius: normalize(9999),
-                  backgroundColor: active ? BRAND : '#fff',
-                  borderWidth: active ? 0 : 1, borderColor: CHIP_BORDER,
-                }}
-              >
-                <Text style={{ fontSize: FONT_SM, fontWeight: active ? '600' : '500', color: active ? '#fff' : '#000' }}>
-                  {c.label}
-                </Text>
-              </Pressable>
-            );
-          })}
+          {/* 목록만 거르는 필터라 활성색은 블랙이다(핑크는 화면 전환·데이터 변경용).
+              모양도 공통 Chip으로 맞춰 앱 전체 필터 칩이 한 벌이 되게 한다. */}
+          {CATEGORIES.map((c) => (
+            <Chip
+              key={c.id}
+              label={c.label}
+              selected={c.id === category}
+              onPress={() => setCategory(c.id)}
+              height={normalize(34)}
+            />
+          ))}
         </ScrollView>
 
         {/* 리스트 헤더 */}
