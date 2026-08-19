@@ -142,7 +142,11 @@ export default function SaveToPlanSheet({ visible, onClose, spot, onSaved }: Pro
       onSaved?.(`'${selectedCourse.title}' 코스에 저장했습니다`);
       handleClose();
     } catch (err: any) {
-      Alert.alert('저장 실패', err?.message || '코스에 스팟을 저장하는 중 오류가 발생했습니다.');
+      if (err?.status === 409 || err?.code === 'COURSE_MODIFIED_CONCURRENTLY') {
+        Alert.alert('코스 변경 알림', err?.message || '다른 기기에서 코스가 변경되었습니다. 코스를 다시 불러온 후 담아주세요.');
+      } else {
+        Alert.alert('저장 실패', err?.message || '코스에 스팟을 저장하는 중 오류가 발생했습니다.');
+      }
     }
   }
 

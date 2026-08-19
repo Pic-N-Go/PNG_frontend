@@ -34,15 +34,17 @@ const TIMEOUT_MS = 30_000;
 // fetch 자체 실패는 일반 Error/DOMException이라 구분되고, 사용자에게 영어 원문 대신 한글 기본 메시지를 보여줄 수 있음.
 export class ApiError extends Error {
   /**
-   * HTTP 상태코드. 401(만료·미인증)·413(용량 초과)처럼 호출부가 다르게 대응해야 하는 경우가 있어
+   * HTTP 상태코드. 401(만료·미인증)·413(용량 초과)·409(충돌)처럼 호출부가 다르게 대응해야 하는 경우가 있어
    * 메시지만으로는 부족하다. 서버가 본문 없이 응답하면 message가 `HTTP 401`이 되어버려
    * 사용자에게 그대로 노출됐다. 상태코드를 모르는 실패(네트워크 단절 등)는 undefined.
    */
   readonly status?: number;
+  readonly code?: string;
 
-  constructor(message: string, status?: number) {
+  constructor(message: string, status?: number, code?: string) {
     super(message);
     this.status = status;
+    this.code = code;
   }
 }
 
@@ -59,6 +61,7 @@ export function toErrorMessage(err: unknown, fallback: string): string {
 const MESSAGE_BY_STATUS: Record<number, string> = {
   401: '로그인이 만료됐어요. 다시 로그인해 주세요.',
   403: '권한이 없어요. 다시 로그인해 주세요.',
+  409: '다른 곳에서 데이터가 변경되었습니다. 새로고침 후 다시 시도해주세요.',
   413: '사진 용량이 너무 커요. 더 작은 사진으로 시도해 주세요.',
 };
 
@@ -84,10 +87,10 @@ export function setUnauthorizedHandler(fn: (token?: string) => void) {
  * @param requestToken 이 요청이 Authorization 헤더로 보낸 토큰. 알 수 있으면 넘긴다.
  */
 export async function toHttpError(res: Response, requestToken?: string): Promise<ApiError> {
-  const body = (await res.json().catch(() => ({}))) as { message?: string };
+  const body = (await res.json().catch(() => ({}))) as { message?: string; code?: string };
   const message = body.message ?? MESSAGE_BY_STATUS[res.status] ?? `요청에 실패했어요. (${res.status})`;
   if (res.status === 401) onUnauthorized?.(requestToken);
-  return new ApiError(message, res.status);
+  return new ApiError(message, res.status, body.code);
 }
 
 /** Authorization 헤더에서 토큰만 꺼낸다. 헤더를 options로 받는 래퍼용. */

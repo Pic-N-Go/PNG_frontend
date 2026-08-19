@@ -65,6 +65,7 @@ export type Course = {
   startDate: string; // YYYY-MM-DD
   endDate: string; // YYYY-MM-DD
   createdAt: string;
+  version?: number;
   spots?: SpotInCourse[];
   checklists?: CourseChecklist[];
 };
@@ -103,6 +104,7 @@ export const coursesApi = {
 
   // 6. 코스 스팟 일괄 동기화 (전체 스팟)
   syncSpots: (id: number, data: {
+    version?: number;
     spots: { courseSpotId?: number, spotId: number, dayNumber: number, sequenceOrder: number, memo?: string }[]
   }): Promise<void> => {
     return fetchWithAuth(`/courses/${id}/spots/sync`, {

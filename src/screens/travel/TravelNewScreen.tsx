@@ -158,12 +158,15 @@ export default function TravelNewScreen() {
 
       // 1. 코스 생성 (재시도라면 기존 코스를 재사용하고 입력값만 반영)
       let courseId = createdCourseIdRef.current;
+      let courseVersion: number | undefined;
       if (courseId === null) {
         const course = await coursesApi.createCourse(payload);
         createdCourseIdRef.current = course.id;
         courseId = course.id;
+        courseVersion = course.version;
       } else {
-        await coursesApi.updateCourse(courseId, payload);
+        const course = await coursesApi.updateCourse(courseId, payload);
+        courseVersion = course.version;
       }
 
       // 2. 스팟 추가
@@ -177,7 +180,7 @@ export default function TravelNewScreen() {
         }));
       });
 
-      await coursesApi.syncSpots(courseId, { spots: allSpots });
+      await coursesApi.syncSpots(courseId, { version: courseVersion, spots: allSpots });
       return courseId;
     },
     onSuccess: () => {
