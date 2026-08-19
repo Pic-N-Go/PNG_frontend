@@ -22,7 +22,12 @@ const SURFACE = '#f5f5f7';
 const RECENT_KEY = 'community.recentSearches';
 const RECENT_MAX = 10;
 
-/** "전체"는 종류별 미리보기만 보여준다 — 전체 목록은 각 칩이 맡는다. */
+/**
+ * "전체"는 종류별 미리보기만 보여준다 — 전체 목록은 각 칩이 맡는다.
+ *
+ * ponytail: 스팟·사용자 칩의 "전체 목록"도 서버 기본 size(20)에서 잘리고 더 있다는 표시가 없다.
+ * 실사용자가 20건을 넘기면 useInfiniteQuery로 올릴 것.
+ */
 const PREVIEW_ROWS = 3;
 const PREVIEW_CELLS = 6;
 
@@ -265,7 +270,12 @@ function Spinner() {
   );
 }
 
-type QueryLike<T> = { data?: T; isLoading: boolean; isError: boolean };
+/**
+ * isFetching까지 보는 이유: 스팟·게시글 쿼리는 keepPreviousData를 쓴다. 두 번째 검색에서는
+ * status가 success로 유지돼 isLoading이 false가 되고, 검색어 B 아래에 A의 결과가 로딩 표시
+ * 없이 남는다(사용자 쿼리는 keepPreviousData가 없어 정상적으로 비므로 한 화면에서 동작이 갈렸다).
+ */
+type QueryLike<T> = { data?: T; isLoading: boolean; isFetching: boolean; isError: boolean };
 type UserQuery = QueryLike<{ content: FollowUserResponse[] }>;
 type SpotQuery = QueryLike<{ content: SpotResponse[] }>;
 type PostQuery = QueryLike<{ posts: Post[] }>;
@@ -281,7 +291,7 @@ function toGridItems(posts: Post[]): ProfilePostItem[] {
 }
 
 function UserResults({ query, onOpenUser }: { query: UserQuery; onOpenUser: (userId: number) => void }) {
-  if (query.isLoading) return <Spinner />;
+  if (query.isLoading || query.isFetching) return <Spinner />;
   if (query.isError) return <StatusText text="검색 결과를 불러오지 못했어요" />;
   const found = query.data?.content ?? [];
   if (found.length === 0) return <StatusText text="일치하는 사용자가 없어요" />;
@@ -323,7 +333,7 @@ function SpotRow({ spot, onPress }: { spot: SpotResponse; onPress: () => void })
 }
 
 function SpotResults({ query, onOpenSpot }: { query: SpotQuery; onOpenSpot: (spotId: number) => void }) {
-  if (query.isLoading) return <Spinner />;
+  if (query.isLoading || query.isFetching) return <Spinner />;
   if (query.isError) return <StatusText text="검색 결과를 불러오지 못했어요" />;
   const found = query.data?.content ?? [];
   if (found.length === 0) return <StatusText text="일치하는 스팟이 없어요" />;
@@ -361,7 +371,7 @@ function AllPreview({
   const foundSpots = (spots.data?.content ?? []).slice(0, PREVIEW_ROWS);
   const foundPosts = (posts.data?.posts ?? []).slice(0, PREVIEW_CELLS);
 
-  const loading = users.isLoading || spots.isLoading || posts.isLoading;
+  const loading = users.isFetching || spots.isFetching || posts.isFetching;
   const empty = foundUsers.length === 0 && foundSpots.length === 0 && foundPosts.length === 0;
   const allFailed = users.isError && spots.isError && posts.isError;
 

@@ -21,7 +21,6 @@ export const USER_KEYS = {
   following: (userId?: number) => [...USER_KEYS.all, userId, 'following'] as const,
   followers: (userId?: number) => [...USER_KEYS.all, userId, 'followers'] as const,
   reviews: (params?: any) => [...USER_KEYS.all, 'reviews', params] as const,
-  userProfile: (userId?: number) => [...USER_KEYS.all, 'other', userId] as const,
 };
 
 // 1. 내 프로필 조회 훅

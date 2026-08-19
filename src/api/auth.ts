@@ -1,29 +1,16 @@
+import type { UserResponse } from '@/types/user';
+
 const BASE = process.env.EXPO_PUBLIC_API_URL ?? '';
 
 if (__DEV__ && !BASE) {
   console.warn('[auth] EXPO_PUBLIC_API_URL 환경 변수가 설정되지 않았습니다. API 요청이 실패할 수 있습니다.');
 }
 
-export type UserResponse = {
-  id: number;
-  email: string;
-  nickname: string;
-  profileImageUrl: string | null;
-  /**
-   * 소셜에서 받은 프로필 사진. 올린 사진을 지웠을 때 되돌아갈 값이라 삭제 미리보기에 쓴다 —
-   * 이게 없으면 미리보기가 "사진 없음"으로 보이는데 저장하면 이 사진이 나온다.
-   */
-  socialProfileImageUrl: string | null;
-  /**
-   * 직접 올린 사진이 있는지. profileImageUrl은 "보여줄 사진"이라 올린 사진을 지워도
-   * 소셜 사진이 그 자리를 채워 non-null이 된다 — 그 값으로는 지울 대상이 있는지 알 수 없다.
-   */
-  hasUploadedProfileImage: boolean;
-  bio: string | null;
-  role: 'USER' | 'ADMIN';
-  provider: 'LOCAL' | 'KAKAO';
-  spotCategories: string[];
-};
+/**
+ * `/users/me` 응답. 정의는 `@/types/user`에 둔다 — 여기에 한 벌 더 두면 손으로 동기화해야 하고,
+ * 구조가 같아 한쪽만 바뀌어도 TS가 알려주지 않는다(bio 추가 때 실제로 양쪽을 고쳐야 했다).
+ */
+export type { UserResponse };
 
 export type TokenResponse = {
   tokenType: string;

@@ -84,14 +84,6 @@ export type MyReviewListResponse = {
   number: number;
 };
 
-export type UserProfileResponse = {
-  id: number;
-  nickname: string;
-  profileImageUrl: string | null;
-  bio: string | null;
-  spotCategories: string[];
-};
-
 /** `GET /users/search` — Spring Page 형태(스팟 검색과 동일) */
 export type UserSearchPageResponse = {
   content: FollowUserResponse[];

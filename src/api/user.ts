@@ -4,7 +4,6 @@ import type {
   UserStatsResponse,
   FollowUserResponse,
   MyReviewListResponse,
-  UserProfileResponse,
   UserProfileUpdateRequest,
   PasswordChangeRequest,
   ProfileImageUpload,
@@ -99,18 +98,10 @@ export const userApi = {
     return (await res.json()) as MyReviewListResponse;
   },
 
-  // 6. 타 유저 프로필 조회
-  getUserProfile: async (userId: number, accessToken?: string): Promise<UserProfileResponse> => {
-    const headers: Record<string, string> = {};
-    if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
-    const res = await fetchWithTimeout(`${BASE}/users/${userId}/profile`, {
-      method: 'GET',
-      headers,
-    });
-    return (await res.json()) as UserProfileResponse;
-  },
+  // 타 유저 프로필 조회는 communityApi.getUserProfile을 쓴다 —
+  // 같은 엔드포인트를 두 곳에 두면 한쪽만 필드가 추가돼(followerCount·withdrawn 등) 조용히 틀린다.
 
-  // 7. 내 관심 테마 수정
+  // 6. 내 관심 테마 수정
   updateSpotCategories: async (
     categories: string[],
     accessToken: string
@@ -126,7 +117,7 @@ export const userApi = {
     return (await res.json()) as UserResponse;
   },
 
-  // 8. 내 프로필 수정 (닉네임·프로필 이미지·자기소개)
+  // 7. 내 프로필 수정 (닉네임·프로필 이미지·자기소개)
   updateMyProfile: async (
     request: UserProfileUpdateRequest,
     accessToken: string
@@ -142,7 +133,7 @@ export const userApi = {
     return (await res.json()) as UserResponse;
   },
 
-  // 9. 사용자 검색 (닉네임 부분일치)
+  // 8. 사용자 검색 (닉네임 부분일치)
   searchUsers: async (
     keyword: string,
     accessToken: string,
@@ -156,7 +147,7 @@ export const userApi = {
     return (await res.json()) as UserSearchPageResponse;
   },
 
-  // 10. 회원 탈퇴 (소프트 삭제 — 30일 이내 authApi.restore로 복구 가능)
+  // 9. 회원 탈퇴 (소프트 삭제 — 30일 이내 authApi.restore로 복구 가능)
   withdraw: async (accessToken: string): Promise<void> => {
     await fetchWithTimeout(`${BASE}/users/me`, {
       method: 'DELETE',
@@ -164,7 +155,7 @@ export const userApi = {
     });
   },
 
-  // 11. 내 앨범 목록 조회
+  // 10. 내 앨범 목록 조회
   /**
    * 프로필 사진 교체. multipart part 이름은 서버 @RequestPart("image")와 맞춘다.
    * 사진 업로드는 느릴 수 있어 공용 타임아웃(fetchWithTimeout)을 쓰지 않는다.
