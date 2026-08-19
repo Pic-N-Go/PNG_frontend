@@ -86,7 +86,8 @@ LoginScreen "비밀번호를 잊으셨나요?" 바텀시트 3단계: 이메일 �
 | 파일 | 변경 내용 |
 |---|---|
 | `src/api/auth.ts` | API 함수 10개 + TS 타입 (`TokenResponse`, `UserResponse`(spotCategories 포함), `EmailVerificationResponse`), 자동 갱신·204 응답 처리 |
-| `src/store/useAuthStore.ts` | `accessToken`, `user`, `setAuth`, `clearAuth`, `expo-secure-store`(Keychain/Keystore) persist |
+| `src/store/useAuthStore.ts` | 인증 상태 관리, single-flight 토큰 갱신, 로그인·로그아웃 및 SecureStore 저장 완료 대기 |
+| `src/store/authStorage.ts` | Access/Refresh Token 분리 저장, revision 검증, 순차 쓰기 및 저장 완료 Promise 관리 |
 | `src/constants/themes.ts` | `THEME_CATEGORY_MAP` — 한글 라벨 ↔ `SpotCategory` enum 매핑 |
 | `src/screens/auth/LoginScreen.tsx` | login/카카오 로그인/비밀번호 재설정(3단계) API 연결, Apple 버튼 주석 처리 |
 | `src/screens/auth/SignupScreen.tsx` | register API 연결(관심테마 포함), 이메일 인증 플로우, 닉네임 10자 제한 |
