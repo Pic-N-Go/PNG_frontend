@@ -17,6 +17,7 @@ import type {
   SpotMapResponse,
   SpotSummaryResponse,
   NearbySpotResponse,
+  RecommendedSpotResponse,
 } from '@/types/spot';
 
 /** RN이 파일 파트로 인식하는 최소 형태 (expo/RN 이미지 피커 결과 그대로) */
@@ -183,6 +184,10 @@ export const spotApi = {
     const kwQs = `keyword=${encodeURIComponent(keyword.trim())}&`;
     return request<PageSpotResponse>(`/spots/search?${kwQs}${catQs}size=${size}&page=${page}`, { token });
   },
+
+  // 3-2. 추천 스팟 조회 (GET /spots/recommended) — 로그인 필수(관심 테마 기반)
+  getRecommendedSpots: (limit = 10, token?: string) =>
+    request<RecommendedSpotResponse[]>(`/spots/recommended?limit=${limit}`, { token }),
 
   // 3-1. 주변 스팟 조회 (GET /spots/nearby)
   getNearbySpots: (params: NearbySpotsParams) => {
