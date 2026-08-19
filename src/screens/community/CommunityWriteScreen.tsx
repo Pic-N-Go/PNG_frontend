@@ -28,6 +28,11 @@ const ACCENT = '#E31B59';
 const SURFACE = '#f5f5f7';
 const CAPTION_MAX = 500;
 const MAX_PHOTOS = 5;
+// 서버 max-file-size와 동일. 초과분은 업로드 전에 걸러 낸다.
+const MAX_PHOTO_BYTES = 20 * 1024 * 1024;
+// 서버 max-request-size는 100MB인데 5장 × 20MB면 여유가 0이다. 같은 요청에 JSON 파트와
+// multipart 경계 문자열도 들어가므로 한 단계 낮춰 잡는다(ReviewWriteScreen과 동일 기준).
+const MAX_TOTAL_BYTES = 90 * 1024 * 1024;
 // 서버 PostCreateRequest.tags = @Size(max = 10). 카테고리가 13개라 전부 고르면 400이 난다.
 const TAG_MAX = 10;
 
@@ -35,6 +40,8 @@ interface PickedPhoto {
   /** iOS는 assetId, Android는 assetId가 없어 uri로 대체(중복 판정용) */
   id: string;
   uri: string;
+  /** 새로 고른 사진의 원본 크기(byte). 요청 전체 용량 합산에 쓴다. 서버 사진은 undefined. */
+  bytes?: number;
   /**
    * 수정 모드에서 이미 서버에 올라가 있는 사진의 id. 새로 고른 사진은 undefined다.
    * 이 값이 있는 것만 retainedImageIds로 보내고, 없는 것만 newImages로 업로드한다.
@@ -214,16 +221,45 @@ export default function CommunityWriteScreen() {
         mediaTypes: ['images'],
         allowsMultipleSelection: true,
         selectionLimit: MAX_PHOTOS - photos.length,
-        quality: 0.8,
+        // quality < 1이면 expo-image-picker가 비트맵에서 JPEG를 다시 인코딩해 파일의 EXIF가
+        // 통째로 날아간다 — 상세 라이트박스의 사진 정보 시트가 그 바이트에 의존한다.
+        // 이유 전문은 ReviewWriteScreen의 같은 옵션 주석 참고.
+        quality: 1,
         // 촬영 일시를 사진에서 읽기 위해 EXIF를 함께 받는다.
         exif: true,
         preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
       });
       if (result.canceled) return;
 
+      // quality 1이라 원본 바이트가 그대로 올라간다 — 서버 상한을 넘는 사진은 여기서 걸러낸다.
+      // 수정 모드의 기존 서버 사진은 이번 요청에 실려 가지 않으므로 bytes가 없고 합계에도 안 잡힌다.
+      let totalBytes = photos.reduce((sum, p) => sum + (p.bytes ?? 0), 0);
+      let tooLarge = 0;
+      let overBudget = 0;
+      const picked = result.assets.filter((asset) => {
+        const bytes = asset.fileSize ?? 0;
+        if (bytes > MAX_PHOTO_BYTES) {
+          tooLarge += 1;
+          return false;
+        }
+        if (totalBytes + bytes > MAX_TOTAL_BYTES) {
+          overBudget += 1;
+          return false;
+        }
+        totalBytes += bytes;
+        return true;
+      });
+
+      // 사유가 여러 개여도 Alert는 하나만 띄운다(iOS에서는 여러 개가 쌓여 연달아 닫아야 한다).
+      const skipped: string[] = [];
+      if (tooLarge > 0) skipped.push(`${tooLarge}장은 용량이 너무 커요(장당 20MB까지)`);
+      if (overBudget > 0) skipped.push(`${overBudget}장은 전체 용량 한도를 넘어 담지 못했어요`);
+      if (skipped.length > 0) Alert.alert('첨부하지 못한 사진', skipped.join('\n'));
+      if (picked.length === 0) return;
+
       // 사용자가 직접 고른 값과 이미 저장된 값은 덮지 않는다. 스크린샷·편집본은 EXIF가 없어 null이 온다.
       if (shotAtSource !== 'manual' && shotAtSource !== 'saved') {
-        const exifDate = result.assets.map((a) => parseExifDateTime(a.exif)).find(Boolean);
+        const exifDate = picked.map((a) => parseExifDateTime(a.exif)).find(Boolean);
         if (exifDate) {
           setShotAt(exifDate);
           setShotAtSource('exif');
@@ -233,8 +269,8 @@ export default function CommunityWriteScreen() {
 
       setPhotos((prev) => {
         const seen = new Set(prev.map((p) => p.id));
-        const fresh = result.assets
-          .map((asset) => ({ id: asset.assetId ?? asset.uri, uri: asset.uri }))
+        const fresh = picked
+          .map((asset) => ({ id: asset.assetId ?? asset.uri, uri: asset.uri, bytes: asset.fileSize ?? 0 }))
           .filter((p) => !seen.has(p.id));
         return [...prev, ...fresh].slice(0, MAX_PHOTOS);
       });
@@ -380,6 +416,9 @@ export default function CommunityWriteScreen() {
               </Pressable>
             )}
 
+            {/* 사진이 없을 때는 썸네일 줄을 그리지 않는다 — 위 영역이 이미 "사진 추가" 버튼이라
+                + 타일이 같은 일을 하는 버튼을 두 개로 만든다. 한 장이라도 있으면 추가·순서 변경에 필요하다. */}
+            {photos.length > 0 && (
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -415,6 +454,7 @@ export default function CommunityWriteScreen() {
                 </Pressable>
               ))}
             </ScrollView>
+            )}
           </View>
 
           {/* 폼 */}
