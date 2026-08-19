@@ -9,6 +9,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { SvgUri } from "react-native-svg";
 import { WebView } from "react-native-webview";
 import Sortable from "react-native-sortables";
+import { shareContent } from "@/utils/share";
 import { normalize, normalizeFontSize } from "@/utils/normalize";
 import {
   IconChevronLeft,
@@ -32,7 +33,6 @@ import { Share as ShareIcon } from "lucide-react-native";
 import NaviSheet from "@/components/spot/NaviSheet";
 import CourseMoreSheet from "@/components/travel/CourseMoreSheet";
 import { parseValidCoordinate } from "@/utils/geo";
-import ShareSheet from "@/components/common/ShareSheet";
 import Toast from "@/components/common/Toast";
 import CourseChecklistSection from "@/components/travel/CourseChecklistSection";
 import { getCourseStats } from "@/utils/distance";
@@ -395,7 +395,6 @@ export default function TravelPlanScreen({ navigation, route }: any) {
   const [isEditMode, setIsEditMode] = useState(false);
   const [isDepartModalVisible, setIsDepartModalVisible] = useState(false);
   const [isMoreSheetVisible, setIsMoreSheetVisible] = useState(false);
-  const [isShareSheetVisible, setShareSheetVisible] = useState(false);
   const [data, setData] = useState<Record<string, any>>(MOCK_DATA);
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
@@ -410,6 +409,15 @@ export default function TravelPlanScreen({ navigation, route }: any) {
     queryFn: () => coursesApi.getCourse(Number(planId)),
     enabled: !!planId,
   });
+
+  // 공유할 웹 URL이 없어 텍스트만 보낸다. 계획 공유 링크가 생기면 url을 함께 넘긴다.
+  const handleShare = async () => {
+    const period = course ? `${course.startDate.replace(/-/g, '.')} ~ ${course.endDate.replace(/-/g, '.')}` : null;
+    const title = course?.title || '출사 계획';
+    const ok = await shareContent({ title, message: [title, period].filter(Boolean).join('\n') });
+    // 성공 토스트는 띄우지 않는다 — Android는 취소해도 성공으로 오므로 거짓이 된다.
+    if (!ok) showToast('공유 화면을 열지 못했어요');
+  };
 
   const { data: weatherData } = useQuery({
     queryKey: ['courseWeather', planId],
@@ -1238,7 +1246,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
         </View>
         <View className="flex-row gap-1">
           <TouchableOpacity 
-            onPress={() => setShareSheetVisible(true)}
+            onPress={handleShare}
             className="w-8 h-8 rounded-full bg-black/5 items-center justify-center"
           >
             <ShareIcon size={18} color="rgba(0,0,0,0.6)" />
@@ -1365,12 +1373,6 @@ export default function TravelPlanScreen({ navigation, route }: any) {
             ]
           );
         }}
-      />
-
-      <ShareSheet
-        visible={isShareSheetVisible}
-        onClose={() => setShareSheetVisible(false)}
-        onShared={(message) => showToast(message)}
       />
 
       <Toast message={toastMessage} visible={toastVisible} onHide={() => setToastVisible(false)} />

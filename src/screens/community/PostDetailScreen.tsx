@@ -9,9 +9,9 @@ import PostActionSheet from '@/components/community/PostActionSheet';
 import PostReportSheet from '@/components/community/PostReportSheet';
 import PhotoLightbox from '@/components/community/PhotoLightbox';
 import ConfirmModal from '@/components/common/ConfirmModal';
-import ShareSheet from '@/components/common/ShareSheet';
 import Toast from '@/components/common/Toast';
 import { useKeyboardOverlap } from '@/hooks/useKeyboardHeight';
+import { shareContent } from '@/utils/share';
 import {
   useComments,
   useCreateComment,
@@ -77,7 +77,6 @@ export default function PostDetailScreen() {
   // 렌더 조건을 lightboxOpen && exifOpen으로 걸어 "EXIF만 닫아도 라이트박스는 유지" 규칙을 자연히 만족시킨다.
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [exifOpen, setExifOpen] = useState(false);
-  const [shareSheetVisible, setShareSheetVisible] = useState(false);
 
   const [toastMessage, setToastMessage] = useState('');
   const [toastVisible, setToastVisible] = useState(false);
@@ -239,6 +238,18 @@ export default function PostDetailScreen() {
   function handlePressCommentAuthor(comment: Comment) {
     if (!comment.author.id) return;
     navigation.navigate('UserProfile', { userId: comment.author.id });
+  }
+
+  // 공유할 웹 URL이 없어 텍스트만 보낸다. 게시글 웹 페이지·딥링크가 생기면 url을 함께 넘긴다.
+  async function handleShare() {
+    if (!post) return;
+    const lines = [post.caption, post.location].filter(Boolean);
+    const ok = await shareContent({
+      title: `${post.author.handle}님의 사진`,
+      message: lines.join('\n'),
+    });
+    // 성공 토스트는 띄우지 않는다 — Android는 취소해도 성공으로 오므로 거짓이 된다.
+    if (!ok) showToast('공유 화면을 열지 못했어요');
   }
 
   function handleConfirmDeleteComment() {
@@ -429,7 +440,7 @@ export default function PostDetailScreen() {
                   {post.bookmarkCount}
                 </Text>
               </Pressable>
-              <Pressable onPress={() => setShareSheetVisible(true)} hitSlop={8} accessibilityLabel="공유">
+              <Pressable onPress={handleShare} hitSlop={8} accessibilityLabel="공유">
                 <ShareIcon size={normalize(16)} color="rgba(0,0,0,0.6)" strokeWidth={1.8} />
               </Pressable>
             </View>
@@ -534,7 +545,7 @@ export default function PostDetailScreen() {
         visible={actionSheetOpen}
         onClose={() => setActionSheetOpen(false)}
         isMyPost={isMyPost}
-        onShare={() => openAfterActionSheet(() => setShareSheetVisible(true))}
+        onShare={handleShare}
         // 작성 화면을 수정 모드로 재사용한다(항목이 동일). postId가 있으면 CommunityWriteScreen이 폼을 채운다.
         onEdit={() => openAfterActionSheet(() => navigation.navigate('CommunityWrite', { postId }))}
         onRequestDelete={() => openAfterActionSheet(() => setDeleteModalOpen(true))}
@@ -579,11 +590,6 @@ export default function PostDetailScreen() {
         />
       )}
 
-      <ShareSheet
-        visible={shareSheetVisible}
-        onClose={() => setShareSheetVisible(false)}
-        onShared={(message) => showToast(message)}
-      />
 
       <Toast message={toastMessage} visible={toastVisible} onHide={handleToastHide} />
     </View>

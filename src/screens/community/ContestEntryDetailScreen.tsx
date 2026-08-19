@@ -7,12 +7,12 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Check, ChevronLeft, MapPin, MoreHorizontal, Share as ShareIcon, Flag, Trash2, ThumbsUp } from 'lucide-react-native';
 import BottomSheet from '@/components/common/BottomSheet';
 import ConfirmModal from '@/components/common/ConfirmModal';
-import ShareSheet from '@/components/common/ShareSheet';
 import Toast from '@/components/common/Toast';
 import DevStateSwitch from '@/components/common/DevStateSwitch';
 import { CommunityDetailStackParamList } from '@/navigation/stacks/CommunityDetailStack';
 import type { RootStackParamList } from '@/navigation';
 import { HEADER_HEIGHT, BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING, FONT_LG, FONT_MD, FONT_SM, FONT_XS } from '@/constants/layout';
+import { shareContent } from '@/utils/share';
 import { normalize, normalizeFontSize, normalizeHeight } from '@/utils/normalize';
 
 /**
@@ -50,10 +50,19 @@ export default function ContestEntryDetailScreen() {
   const [votesLeft, setVotesLeft] = useState(2);
   const [voted, setVoted] = useState(false);
   const [actionSheetVisible, setActionSheetVisible] = useState(false);
-  const [shareSheetVisible, setShareSheetVisible] = useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastVisible, setToastVisible] = useState(false);
+
+  // 출품작은 아직 목데이터다. 공유 텍스트도 그 값에서 만든다 — 서버 연동 시 entry로 교체한다.
+  const handleShare = async () => {
+    const ok = await shareContent({
+      title: `${MOCK_ENTRY.spot} 출품작`,
+      message: [MOCK_ENTRY.caption, MOCK_ENTRY.spot].filter(Boolean).join('\n'),
+    });
+    // 성공 토스트는 띄우지 않는다 — Android는 취소해도 성공으로 오므로 거짓이 된다.
+    if (!ok) showToast('공유 화면을 열지 못했어요');
+  };
 
   const showToast = (message: string) => {
     setToastMessage(message);
@@ -204,7 +213,7 @@ export default function ContestEntryDetailScreen() {
           <Pressable
             onPress={() => {
               setActionSheetVisible(false);
-              setShareSheetVisible(true);
+              handleShare();
             }}
             style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(12), height: normalize(56) }}
           >
@@ -268,7 +277,6 @@ export default function ContestEntryDetailScreen() {
         />
       </BottomSheet>
 
-      <ShareSheet visible={shareSheetVisible} onClose={() => setShareSheetVisible(false)} onShared={(message) => showToast(message)} />
 
       <Toast message={toastMessage} visible={toastVisible} onHide={() => setToastVisible(false)} />
     </View>

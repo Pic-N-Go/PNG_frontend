@@ -19,7 +19,7 @@ const DESTRUCTIVE = '#ff453a';
 /**
  * 내 리뷰 액션 메뉴. 스팟 상세 리뷰 탭과 마이페이지 내 리뷰 두 곳에서 쓴다.
  * OptionSheet는 "N개 중 하나 고르기"용(체크 표시·selected 필수)이라 액션 메뉴엔 맞지 않아
- * BottomSheet에 항목만 얹었다. 구성은 ShareSheet의 제목+아이콘 행 패턴을 따른다.
+ * BottomSheet에 항목만 얹었다. 구성은 다른 시트의 제목+행 패턴을 따른다.
  */
 export default function ReviewActionSheet({ visible, onClose, onEdit, onDelete }: Props) {
   return (
