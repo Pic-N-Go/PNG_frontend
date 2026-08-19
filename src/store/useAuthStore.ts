@@ -7,7 +7,7 @@ import {
   type TokenResponse,
   type UserResponse,
 } from '@/api/auth';
-import { authSecureStorage } from '@/store/authStorage';
+import { authSecureStorage, waitForAuthStorageWrite } from '@/store/authStorage';
 
 type AuthState = {
   accessToken: string | null;
@@ -28,26 +28,28 @@ export const useAuthStore = create<AuthState>()(
       bio: null,
       setAuth: async (tokens) => {
         try {
-          await set({
+          set({
             accessToken: tokens.accessToken,
             refreshToken: tokens.refreshToken,
             user: tokens.user,
           });
+          await waitForAuthStorageWrite();
         } catch (error) {
           // 저장에 실패한 토큰으로 로그인 상태를 유지하면 앱 재실행 후 세션이 달라진다.
-          await Promise.resolve(
-            set({ accessToken: null, refreshToken: null, user: null, bio: null }),
-          ).catch(() => undefined);
+          set({ accessToken: null, refreshToken: null, user: null, bio: null });
+          await waitForAuthStorageWrite().catch(() => undefined);
           throw error;
         }
       },
       setBio: (bio) => {
-        void Promise.resolve(set({ bio })).catch((error) => {
+        set({ bio });
+        void waitForAuthStorageWrite().catch((error) => {
           if (__DEV__) console.error('[authStore] bio persist failed:', error);
         });
       },
       clearAuth: async () => {
-        await set({ accessToken: null, refreshToken: null, user: null, bio: null });
+        set({ accessToken: null, refreshToken: null, user: null, bio: null });
+        await waitForAuthStorageWrite();
       },
     }),
     {

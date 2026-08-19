@@ -17,10 +17,28 @@ type StoredToken = {
 
 let revisionSequence = 0;
 let writeQueue: Promise<void> = Promise.resolve();
+let latestWrite: Promise<void> = Promise.resolve();
 
 function nextRevision(): string {
   revisionSequence += 1;
   return `${Date.now()}-${revisionSequence}`;
+}
+
+function enqueueAuthStorageWrite(operation: () => Promise<void>): Promise<void> {
+  const write = writeQueue.then(operation);
+  latestWrite = write;
+
+  // 한 번 실패해도 이후 저장 작업은 계속 실행할 수 있도록 큐만 복구한다.
+  writeQueue = write.catch((error) => {
+    if (__DEV__) console.error('[authStorage] SecureStore write failed:', error);
+  });
+
+  return write;
+}
+
+/** Zustand set()의 반환값에 의존하지 않고 가장 최근 SecureStore 쓰기를 기다린다. */
+export function waitForAuthStorageWrite(): Promise<void> {
+  return latestWrite;
 }
 
 function parseStoredToken(raw: string | null): StoredToken | null {
@@ -76,7 +94,7 @@ export const authSecureStorage: StateStorage = {
   },
 
   setItem: (name, value) => {
-    const write = writeQueue.then(async () => {
+    return enqueueAuthStorageWrite(async () => {
       const envelope = JSON.parse(value) as PersistEnvelope;
       const state = { ...(envelope.state ?? {}) };
       const accessToken = typeof state.accessToken === 'string' ? state.accessToken : null;
@@ -95,25 +113,15 @@ export const authSecureStorage: StateStorage = {
         JSON.stringify({ ...envelope, state, tokenRevision: revision }),
       );
     });
-    writeQueue = write.catch(() => undefined);
-    return write.catch((error) => {
-      if (__DEV__) console.error('[authStorage] SecureStore setItem failed:', error);
-      throw error;
-    });
   },
 
   removeItem: (name) => {
-    const write = writeQueue.then(async () => {
+    return enqueueAuthStorageWrite(async () => {
       await Promise.all([
         SecureStore.deleteItemAsync(name),
         SecureStore.deleteItemAsync(ACCESS_TOKEN_KEY),
         SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY),
       ]);
-    });
-    writeQueue = write.catch(() => undefined);
-    return write.catch((error) => {
-      if (__DEV__) console.error('[authStorage] SecureStore removeItem failed:', error);
-      throw error;
     });
   },
 };
