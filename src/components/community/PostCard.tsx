@@ -62,7 +62,8 @@ export default function PostCard({ post, onPress, onToggleLike, onToggleBookmark
               {post.createdAtLabel}
             </Text>
           </View>
-          {!post.isMine && (
+          {/* 탈퇴 계정은 팔로우할 수 없다 — 서버가 요청을 거절하므로 버튼을 아예 두지 않는다 */}
+          {!post.isMine && !post.author.isWithdrawn && (
             <Pressable
               onPress={onToggleFollow}
               style={{

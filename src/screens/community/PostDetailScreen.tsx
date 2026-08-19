@@ -346,7 +346,8 @@ export default function PostDetailScreen() {
                   {[post.createdAtLabel, post.location].filter(Boolean).join(' · ')}
                 </Text>
               </View>
-              {!isMyPost && (
+              {/* 탈퇴 계정은 팔로우할 수 없다 — 서버가 요청을 거절하므로 버튼을 아예 두지 않는다 */}
+              {!isMyPost && !post.author.isWithdrawn && (
                 <Pressable
                   onPress={toggleFollow}
                   className="items-center justify-center"

@@ -5,6 +5,8 @@ export interface PostAuthor {
   handle: string;
   /** 서버 프로필 사진. 없으면 Avatar가 id·닉네임으로 폴백을 그린다. */
   profileImageUrl?: string | null;
+  /** 탈퇴 계정. 서버가 이름을 '탈퇴한 사용자'로 치환해 보내며, 팔로우는 막는다. */
+  isWithdrawn?: boolean;
 }
 
 export interface PostShotMeta {
@@ -47,7 +49,7 @@ export interface PostDetail extends Post {
 
 export interface Comment {
   id: string;
-  author: Pick<PostAuthor, 'handle'> & { id?: string; profileImageUrl?: string | null };
+  author: Pick<PostAuthor, 'handle'> & { id?: string; profileImageUrl?: string | null; isWithdrawn?: boolean };
   text: string;
   createdAtLabel: string;
   /** 내가 쓴 댓글이면 삭제 가능 */
@@ -73,6 +75,7 @@ export interface PostAuthorDTO {
   id: number;
   nickname: string;
   profileImageUrl: string | null;
+  withdrawn: boolean;
 }
 
 export interface PostImageDTO {
@@ -193,6 +196,8 @@ export interface UserProfileDTO {
   spotCategories: string[];
   followerCount: number;
   followingCount: number;
+  /** 탈퇴 계정이면 서버가 툼스톤(이름만 있는 빈 프로필)을 보낸다 */
+  withdrawn: boolean;
 }
 
 export interface FollowUserDTO {

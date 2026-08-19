@@ -132,6 +132,7 @@ export default function UserProfileScreen() {
 
           {/* 게시글 수 카운트는 유저별 게시글 API가 없어 뺐다 — 팔로워·팔로잉만 서버 값이다.
               목록은 마이페이지 FollowScreen을 그대로 재사용한다(GET /users/{id}/followers|following은 본인 제한이 없다) */}
+          {!profile.withdrawn && (
           <View className="flex-row" style={{ paddingVertical: normalize(14), paddingHorizontal: normalize(4), backgroundColor: SURFACE, borderRadius: normalize(14), marginBottom: normalize(16) }}>
             <Pressable className="flex-1 items-center" onPress={() => goToFollow('followers')}>
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_LG, color: '#000', letterSpacing: -0.3 }}>
@@ -151,7 +152,10 @@ export default function UserProfileScreen() {
               </Text>
             </Pressable>
           </View>
+          )}
 
+          {/* 탈퇴 계정은 팔로우·메시지 대상이 아니다. 서버도 요청을 거절한다. */}
+          {!profile.withdrawn && (
           <View className="flex-row" style={{ gap: normalize(8) }}>
             <Pressable
               onPress={() => userId && toggleFollow.mutate({ userId, next: !isFollowing })}
@@ -181,8 +185,21 @@ export default function UserProfileScreen() {
               </View>
             </Pressable>
           </View>
+          )}
         </View>
 
+        {/* 탈퇴 계정은 탭·목록 대신 안내 한 줄로 끝낸다. 404로 막으면 "없는 사용자"와
+            구별되지 않아 오류로 읽히고, 탭을 남기면 빈 목록만 보여 고장처럼 보인다. */}
+        {profile.withdrawn ? (
+          <Text
+            allowFontScaling={false}
+            className="text-center"
+            style={{ paddingHorizontal: CONTENT_PADDING, paddingVertical: normalize(48), fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: 'rgba(0,0,0,0.35)', letterSpacing: -0.2, lineHeight: FONT_SM * 1.6 }}
+          >
+            탈퇴한 사용자예요.{'\n'}작성한 게시글과 댓글은 그대로 남아 있어요.
+          </Text>
+        ) : (
+        <>
         <View className="flex-row" style={{ paddingHorizontal: CONTENT_PADDING, gap: normalize(20), borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.08)' }}>
           {subTabs(userPosts?.totalElements ?? 0).map((tab) => {
             const isActive = tab.key === activeTab;
@@ -260,6 +277,8 @@ export default function UserProfileScreen() {
               준비 중이에요
             </Text>
           </View>
+        )}
+        </>
         )}
       </ScrollView>
       )}

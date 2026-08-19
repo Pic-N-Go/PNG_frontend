@@ -92,6 +92,7 @@ export function mapAuthor(dto: PostAuthorDTO): PostAuthor {
     id: String(dto.id),
     handle: dto.nickname,
     profileImageUrl: dto.profileImageUrl,
+    isWithdrawn: dto.withdrawn,
   };
 }
 
@@ -181,6 +182,7 @@ export function mapComment(dto: CommentResponseDTO, myUserId?: number | null): C
       id: String(dto.author.id),
       handle: dto.author.nickname,
       profileImageUrl: dto.author.profileImageUrl,
+      isWithdrawn: dto.author.withdrawn,
     },
     text: dto.content,
     createdAtLabel: formatRelativeTime(dto.createdAt),
