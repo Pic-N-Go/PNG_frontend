@@ -1,4 +1,4 @@
-import { toHttpError, tokenFromHeaders } from '@/api/auth';
+import { fetchWithAuthRetry, toHttpError, tokenFromHeaders } from '@/api/auth';
 import type {
   UserResponse,
   UserStatsResponse,
@@ -21,7 +21,7 @@ async function fetchWithTimeout(url: string, options: RequestInit) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
   try {
-    const res = await fetch(url, { ...options, signal: controller.signal });
+    const res = await fetchWithAuthRetry(url, { ...options, signal: controller.signal });
     if (!res.ok) throw await toHttpError(res, tokenFromHeaders(options.headers));
     return res;
   } finally {

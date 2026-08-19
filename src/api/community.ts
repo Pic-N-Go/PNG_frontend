@@ -1,7 +1,7 @@
 // 커뮤니티(게시글·댓글)와 팔로우 API (순수 fetch). 매핑은 utils/communityMappers.ts,
 // 캐싱·낙관적 갱신은 hooks/useCommunity.ts에서 처리한다.
 // 백엔드: PNG_backend `community` 모듈(PostController·PostCommentController) + `user` 모듈(UserController).
-import { ApiError, toHttpError } from '@/api/auth';
+import { ApiError, fetchWithAuthRetry, toHttpError } from '@/api/auth';
 import type {
   CommentPageResponseDTO,
   CommentResponseDTO,
@@ -61,7 +61,7 @@ async function request<T>(path: string, opts: { method?: Method; body?: unknown;
     const headers: Record<string, string> = {};
     if (body !== undefined) headers['Content-Type'] = 'application/json';
     if (token) headers.Authorization = `Bearer ${token}`;
-    const res = await fetch(`${BASE}${path}`, {
+    const res = await fetchWithAuthRetry(`${BASE}${path}`, {
       method,
       headers,
       body: body !== undefined ? JSON.stringify(body) : undefined,
@@ -84,7 +84,7 @@ async function upload<T>(path: string, method: 'POST' | 'PATCH', form: FormData,
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), UPLOAD_TIMEOUT_MS);
   try {
-    const res = await fetch(`${BASE}${path}`, {
+    const res = await fetchWithAuthRetry(`${BASE}${path}`, {
       method,
       headers: { Authorization: `Bearer ${token}` },
       body: form,
