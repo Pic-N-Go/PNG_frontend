@@ -141,6 +141,17 @@ export default function SettingScreen({ navigation }: Props) {
     Alert.alert('준비 중이에요', '차단 목록 관리 기능을 준비하고 있어요.');
   };
 
+  // 일반 계정의 이메일 변경은 서버에 엔드포인트가 없다. 셰브런이 달려 있어 눌러지는 것처럼
+  // 보이므로, 아무 일도 안 나는 대신 왜 그런지 알려준다(차단 목록과 같은 방식).
+  const openEmailChangeAlert = () => {
+    Alert.alert('준비 중이에요', '이메일 변경 기능을 준비하고 있어요.');
+  };
+
+  // 소셜 계정 연결·해제도 마찬가지다. 지금은 어떤 계정으로 로그인 중인지만 보여준다.
+  const openSocialLinkAlert = () => {
+    Alert.alert('준비 중이에요', '소셜 계정 연결 관리 기능을 준비하고 있어요.');
+  };
+
   const openSystemNotifSettingsAlert = () => {
     Alert.alert(
       '알림 권한 필요',
@@ -192,10 +203,8 @@ export default function SettingScreen({ navigation }: Props) {
     ]);
   };
 
-  const handlePress = (key: string) => {
-    // TODO: email/social/location/delete-account 내비게이션 연결
-    void key;
-  };
+  // 남은 미구현 행은 위 openXxxAlert들이 각각 맡는다.
+  // 이 자리에 아무 일도 하지 않는 핸들러를 두면 셰브런만 있고 반응 없는 행이 남는다.
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right']}>
@@ -224,7 +233,7 @@ export default function SettingScreen({ navigation }: Props) {
               chevron
               disabled={isSocialAccount}
               disabledPress={openSocialEmailAlert}
-              onPress={() => handlePress('email')}
+              onPress={openEmailChangeAlert}
             />
             <SettingRow
               icon={IconLock}
@@ -235,7 +244,7 @@ export default function SettingScreen({ navigation }: Props) {
               onPress={() => setPasswordSheetVisible(true)}
             />
             <SettingRow icon={IconAdjustmentsHorizontal} iconBg="#fde3ec" iconColor={BRAND} label="관심 테마" desc="홈 피드 및 추천에 반영" chevron onPress={() => setThemeSheetVisible(true)} />
-            <SettingRow icon={IconShare2} label="연결된 소셜 계정" desc={socialDesc} chevron onPress={() => handlePress('social')} />
+            <SettingRow icon={IconShare2} label="연결된 소셜 계정" desc={socialDesc} chevron onPress={openSocialLinkAlert} />
           </Card>
         </View>
 
