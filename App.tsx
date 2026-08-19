@@ -2,19 +2,18 @@ import "./global.css";
 
 import { useFonts } from "expo-font";
 import { FugazOne_400Regular } from "@expo-google-fonts/fugaz-one";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { StatusBar } from "expo-status-bar";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import RootNavigator from "@/navigation";
+import { queryClient } from "@/store/queryClient";
 import { configureReanimatedLogger, ReanimatedLogLevel } from "react-native-reanimated";
 
 configureReanimatedLogger({
   level: ReanimatedLogLevel.warn,
   strict: false, // Suppresses 'Writing to value during component render' from older libraries
 });
-
-const queryClient = new QueryClient();
 
 export default function App() {
   const [fontsLoaded, fontError] = useFonts({

@@ -3,6 +3,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage, StateStorage } from 'zustand/middleware';
 import * as SecureStore from 'expo-secure-store';
 import { authApi, setUnauthorizedHandler, type UserResponse } from '@/api/auth';
+import { queryClient } from './queryClient';
 
 const secureStorage: StateStorage = {
   getItem: async (key) => {
@@ -32,9 +33,7 @@ const secureStorage: StateStorage = {
 type AuthState = {
   accessToken: string | null;
   user: UserResponse | null;
-  bio: string | null;
   setAuth: (token: string, user: UserResponse) => void;
-  setBio: (bio: string) => void;
   clearAuth: () => void;
 };
 
@@ -43,17 +42,22 @@ export const useAuthStore = create<AuthState>()(
     (set) => ({
       accessToken: null,
       user: null,
-      bio: null,
       setAuth: (token, user) => set({ accessToken: token, user }),
-      setBio: (bio) => set({ bio }),
-      clearAuth: () => set({ accessToken: null, user: null, bio: null }),
+      // 쿼리 캐시까지 비워야 한다 — `['user','profile']`처럼 키에 계정 식별자가 없는 쿼리가 많아
+      // 다른 계정으로 다시 로그인하면 staleTime 안쪽에서는 이전 계정의 캐시가 그대로 렌더된다.
+      // 로그아웃·토큰 만료(401)·재수화 실패가 모두 이 함수를 지나가므로 여기 한 곳이면 된다.
+      clearAuth: () => {
+        queryClient.clear();
+        set({ accessToken: null, user: null });
+      },
     }),
     {
       name: 'auth-storage',
       storage: createJSONStorage(() => secureStorage),
       // SecureStore는 키당 저장 용량 제한(Android 기준 약 2048바이트)이 있어
-      // accessToken과 bio만 저장하고, user는 재수화 후 /users/me로 새로 받아온다.
-      partialize: (state) => ({ accessToken: state.accessToken, bio: state.bio }),
+      // accessToken만 저장하고, user는 재수화 후 /users/me로 새로 받아온다.
+      // 자기소개는 서버(users.bio)로 옮겼다 — 기기에만 두면 재설치·기기 변경에 날아갔다.
+      partialize: (state) => ({ accessToken: state.accessToken }),
       onRehydrateStorage: () => (state) => {
         if (!state?.accessToken) return;
         // 이 검사의 401은 "쓰던 세션이 끊긴 것"이 아니라 "저장된 토큰이 이미 죽어 있던 것"이다.
