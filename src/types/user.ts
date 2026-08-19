@@ -23,6 +23,11 @@ export type UserResponse = {
   email: string;
   nickname: string;
   profileImageUrl: string | null;
+  /**
+   * 소셜에서 받은 프로필 사진. 올린 사진을 지웠을 때 되돌아갈 값이라 삭제 미리보기에 쓴다 —
+   * 이게 없으면 미리보기가 "사진 없음"으로 보이는데 저장하면 이 사진이 나온다.
+   */
+  socialProfileImageUrl: string | null;
   bio: string | null;
   role: 'USER' | 'ADMIN';
   provider: 'LOCAL' | 'KAKAO';

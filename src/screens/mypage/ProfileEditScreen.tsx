@@ -97,8 +97,14 @@ export default function ProfileEditScreen({ navigation }: Props) {
   if (bio.length > BIO_MAX) canSave = false;
   if (saving) canSave = false;
 
-  /** 미리보기: 고른 사진 > 삭제 예약 > 서버 사진 순. */
-  const previewImageUrl = pendingImage?.uri ?? (imageRemoved ? null : profile?.profileImageUrl);
+  /**
+   * 미리보기: 고른 사진 > (삭제 예약이면 소셜 사진) > 서버 사진 순.
+   *
+   * 삭제를 무조건 "사진 없음"으로 그리면 안 된다 — 서버는 올린 사진을 지울 때 소셜 사진으로
+   * 되돌리므로, 카카오 사진이 있는 계정은 이니셜이 아니라 그 사진이 나온다.
+   */
+  const previewImageUrl = pendingImage?.uri
+    ?? (imageRemoved ? profile?.socialProfileImageUrl : profile?.profileImageUrl);
 
   const onSave = async () => {
     if (!canSave) return;
@@ -172,8 +178,10 @@ export default function ProfileEditScreen({ navigation }: Props) {
 
   const onChangeAvatar = () => {
     if (saving) return;
-    // 보여줄 사진이 없으면 고를 것만 있으면 되고, 있으면 삭제 선택지가 필요하다.
-    if (!previewImageUrl) {
+    // 지울 수 있는 건 내가 올린 사진뿐이다. 소셜 사진만 있는 상태면 삭제할 것이 없으므로
+    // 선택지를 띄우지 않고 바로 앨범을 연다(고른 사진을 되돌리는 것도 삭제로 친다).
+    const canRemove = pendingImage !== null || (!!profile?.profileImageUrl && !imageRemoved);
+    if (!canRemove) {
       void pickAvatar();
       return;
     }
@@ -184,7 +192,7 @@ export default function ProfileEditScreen({ navigation }: Props) {
         style: 'destructive',
         onPress: () => {
           setPendingImage(null);
-          // 서버에 사진이 없는데(고른 것만 취소된 상태) 삭제를 예약하면 저장할 게 없다.
+          // 서버에 올린 사진이 없으면(고른 것만 취소하는 경우) 삭제를 예약할 대상이 없다.
           setImageRemoved(!!profile?.profileImageUrl);
         },
       },
