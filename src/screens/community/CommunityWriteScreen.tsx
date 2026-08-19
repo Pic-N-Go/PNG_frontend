@@ -112,6 +112,10 @@ export default function CommunityWriteScreen() {
   const editingPostId = params?.postId;
   const isEdit = !!editingPostId;
 
+  const scrollRef = useRef<ScrollView>(null);
+  /** 폼(캡션 시작 지점)의 스크롤 안 y좌표. 캡션 포커스 시 여기까지 올린다. */
+  const formY = useRef(0);
+
   const [photos, setPhotos] = useState<PickedPhoto[]>([]);
   const [caption, setCaption] = useState('');
   const [location, setLocation] = useState<LocationOption | null>(null);
@@ -406,7 +410,7 @@ export default function CommunityWriteScreen() {
       {/* 안드로이드도 behavior가 필요하다 — 엣지투엣지에서 adjustResize가 창을 줄여주지 않는다
           (BottomSheet.tsx 주석 참고). */}
       <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: normalize(40) }}>
+        <ScrollView ref={scrollRef} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: normalize(40) }}>
           {/* 사진 */}
           <View style={{ backgroundColor: '#000' }}>
             {mainPhoto ? (
@@ -464,7 +468,7 @@ export default function CommunityWriteScreen() {
           </View>
 
           {/* 폼 */}
-          <View style={{ paddingHorizontal: CONTENT_PADDING }}>
+          <View onLayout={(e) => { formY.current = e.nativeEvent.layout.y; }} style={{ paddingHorizontal: CONTENT_PADDING }}>
             {/* 캡션 */}
             <View style={{ paddingTop: normalize(20), paddingBottom: normalize(8), borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)' }}>
               <TextInput
@@ -473,6 +477,9 @@ export default function CommunityWriteScreen() {
                 multiline
                 textAlignVertical="top"
                 maxLength={CAPTION_MAX}
+                // 캡션은 사진(4:3)+썸네일 줄 아래라 키보드가 올라오면 화면 밖으로 밀린다.
+                // KeyboardAvoidingView는 여백만 만들 뿐 스크롤은 안 해 주므로 직접 폼 상단으로 올린다.
+                onFocus={() => scrollRef.current?.scrollTo({ y: formY.current, animated: true })}
                 placeholder="이 사진에 대한 이야기를 들려주세요"
                 placeholderTextColor="rgba(0,0,0,0.28)"
                 allowFontScaling={false}
