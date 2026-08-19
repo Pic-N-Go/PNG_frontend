@@ -37,13 +37,13 @@ import {
   SPACING_LG,
   SPACING_XL,
 } from '@/constants/layout';
+import { NICK_RE, NICK_MAX, nicknameError, passwordError } from '@/constants/validation';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Signup'>;
 
 const HERO_RATIO = 160 / 844;
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const NICK_RE = /^[가-힣a-zA-Z0-9]{2,10}$/;
 
 function getPwStrength(val: string): number {
   if (val.length < 4) return 0;
@@ -56,7 +56,10 @@ function getPwStrength(val: string): number {
   return 1;
 }
 
-const STRENGTH_COLORS = ['rgba(0,0,0,0.06)', '#FF453A', '#FF9F0A', '#34C759', '#34C759'];
+// 성공 상태(인증 완료·안전한 비밀번호). iOS 시스템 그린(#34C759)은 채도가 높아 흑·백·핑크
+// 팔레트에서 혼자 튀어, 의미는 유지하고 톤만 낮춘 딥 그린을 쓴다.
+const SUCCESS = '#2A9D6E';
+const STRENGTH_COLORS = ['rgba(0,0,0,0.06)', '#FF453A', '#FF9F0A', SUCCESS, SUCCESS];
 
 export default function SignupScreen({ navigation }: Props) {
   const setAuth = useAuthStore((s) => s.setAuth);
@@ -133,7 +136,8 @@ export default function SignupScreen({ navigation }: Props) {
 
   const emailOk = EMAIL_RE.test(email.trim());
   const pwLevel = pw1.length > 0 ? getPwStrength(pw1) : 0;
-  const pwOk = pwLevel >= 2;
+  // 강도 바는 4단계로 보여주되, 통과 판정은 설정 화면과 같은 기준을 쓴다.
+  const pwOk = passwordError(pw1) === null;
   const matchOk = pw1.length > 0 && pw1 === pw2;
   const nickOk = NICK_RE.test(nickname.trim());
   const allOk = emailOk && emailVerified && pwOk && matchOk && term1 && term2 && nickOk;
@@ -266,7 +270,7 @@ export default function SignupScreen({ navigation }: Props) {
                   height: INPUT_HEIGHT,
                   borderRadius: 12,
                   backgroundColor: emailVerified
-                    ? '#34C759'
+                    ? SUCCESS
                     : emailOk ? '#E31B59' : 'rgba(0,0,0,0.06)',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -353,8 +357,8 @@ export default function SignupScreen({ navigation }: Props) {
             {/* ── Email Verified Indicator ── */}
             {emailVerified && (
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4, marginBottom: 4 }}>
-                <Feather name="check-circle" size={13} color="#34C759" />
-                <Text style={{ fontSize: FONT_XS, color: '#34C759', fontFamily: 'Pretendard-Regular', letterSpacing: -0.1 }}>
+                <Feather name="check-circle" size={13} color={SUCCESS} />
+                <Text style={{ fontSize: FONT_XS, color: SUCCESS, fontFamily: 'Pretendard-Regular', letterSpacing: -0.1 }}>
                   이메일 인증이 완료됐어요.
                 </Text>
               </View>
@@ -395,7 +399,7 @@ export default function SignupScreen({ navigation }: Props) {
             {/* ── Password Confirm ── */}
             <Text style={[labelStyle, { marginTop: 14 }]}>비밀번호 확인</Text>
             <AuthInput
-              icon="shield"
+              icon="lock"
               value={pw2}
               onChangeText={setPw2}
               placeholder="비밀번호를 다시 입력하세요"
@@ -412,7 +416,7 @@ export default function SignupScreen({ navigation }: Props) {
                 value={nickname}
                 onChangeText={setNickname}
                 placeholder="2~10자 한글, 영문, 숫자"
-                maxLength={10}
+                maxLength={NICK_MAX}
                 isInvalid={showNickErr}
               />
               <Text
@@ -430,7 +434,7 @@ export default function SignupScreen({ navigation }: Props) {
                 {nickname.length}/10
               </Text>
             </View>
-            {showNickErr && <ErrorText style={{ marginTop: 4 }}>닉네임은 2~10자 한글, 영문, 숫자만 사용할 수 있어요.</ErrorText>}
+            {showNickErr && <ErrorText style={{ marginTop: 4 }}>{nicknameError(nickname)}</ErrorText>}
 
             {/* Divider */}
             <View style={{ height: 0.5, backgroundColor: 'rgba(0,0,0,0.08)', marginVertical: SPACING_LG }} />

@@ -19,6 +19,7 @@ import { Spot } from '@/store/useCourseStore';
 import { SpotResponse } from '@/types/spot';
 import { normalize } from '@/utils/normalize';
 import { FONT_XS, FONT_SM, FONT_MD, GRID_PADDING } from '@/constants/layout';
+import Chip from '@/components/common/Chip';
 
 export type SearchCategory = 'all' | 'post' | 'photo' | 'spot' | 'user';
 
@@ -145,7 +146,7 @@ export default function SearchModal({
           </TouchableOpacity>
 
           <View
-            className="flex-1 flex-row items-center bg-[#f2f4f6]"
+            className="flex-1 flex-row items-center bg-[#f5f5f7]"
             style={{
               height: normalize(44),
               borderRadius: normalize(22),
@@ -190,31 +191,16 @@ export default function SearchModal({
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ paddingHorizontal: GRID_PADDING, gap: normalize(8) }}
           >
-            {CATEGORIES.map((cat) => {
-              const isActive = selectedCategory === cat.id;
-              return (
-                <TouchableOpacity
-                  key={cat.id}
-                  onPress={() => setSelectedCategory(cat.id)}
-                  style={{
-                    paddingHorizontal: normalize(16),
-                    paddingVertical: normalize(8),
-                    borderRadius: normalize(20),
-                    backgroundColor: isActive ? '#000' : '#f2f4f6',
-                  }}
-                >
-                  <Text
-                    className="font-medium"
-                    style={{
-                      fontSize: FONT_SM,
-                      color: isActive ? '#fff' : 'rgba(0,0,0,0.6)',
-                    }}
-                  >
-                    {cat.label}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
+            {CATEGORIES.map((cat) => (
+              <Chip
+                key={cat.id}
+                label={cat.label}
+                selected={selectedCategory === cat.id}
+                onPress={() => setSelectedCategory(cat.id)}
+                height={normalize(34)}
+                paddingHorizontal={normalize(16)}
+              />
+            ))}
           </ScrollView>
         </View>
 
@@ -279,7 +265,7 @@ export default function SearchModal({
                         setQuery(keyword);
                         handleSearchSubmit(keyword);
                       }}
-                      className="flex-row items-center bg-[#f2f4f6]"
+                      className="flex-row items-center bg-[#f5f5f7]"
                       style={{
                         paddingHorizontal: normalize(14),
                         paddingVertical: normalize(8),

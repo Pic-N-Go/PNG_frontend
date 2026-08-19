@@ -19,8 +19,8 @@ import { layoutGalleryGrid } from '@/utils/galleryGrid';
 const GALLERY_POPULAR_COUNT = 2;
 const GALLERY_GAP = normalize(3);
 
-type FeedSortOption = '인기' | '최신' | '팔로잉' | '내 글';
-const FEED_SORT_OPTIONS: FeedSortOption[] = ['인기', '최신', '팔로잉', '내 글'];
+type FeedSortOption = '인기' | '최신' | '팔로잉' | '내 글' | '저장';
+const FEED_SORT_OPTIONS: FeedSortOption[] = ['인기', '최신', '팔로잉', '내 글', '저장'];
 
 // 정렬·필터는 전부 서버가 처리한다(GET /posts?sort=). 클라이언트에서 다시 정렬하면
 // 한 페이지 안에서만 맞는 순서가 나와 페이지를 넘길 때 순서가 뒤섞인다.
@@ -29,6 +29,8 @@ const SORT_TO_API: Record<FeedSortOption, PostSortApi> = {
   최신: 'LATEST',
   팔로잉: 'FOLLOWING',
   '내 글': 'MY_POSTS',
+  // 카드의 책갈피로 저장한 글. 저장은 되는데 꺼내 볼 경로가 없어서 추가했다.
+  저장: 'BOOKMARKED',
 };
 
 const ACCENT = '#E31B59';
@@ -50,6 +52,8 @@ interface GalleryPhoto {
   likeCount: number;
   postId: string;
   isMine: boolean;
+  /** 이 사진이 게시글에서 몇 번째인지. 상세로 들어갈 때 이 사진부터 보여주려고 들고 다닌다. */
+  photoIndex: number;
 }
 
 /** 갤러리 탭은 같은 피드의 사진만 격자로 다시 보여준다 — 전용 API가 없다. */
@@ -62,6 +66,7 @@ function toGalleryPhotos(posts: Post[]): GalleryPhoto[] {
       likeCount: post.likeCount,
       postId: post.id,
       isMine: post.isMine,
+      photoIndex: idx,
     })),
   );
 }
@@ -96,7 +101,8 @@ export default function CommunityFeedScreen() {
   const toggleFollow = useToggleFollow();
 
   // 팔로잉·내 글은 서버가 토큰을 요구한다. 비로그인이면 조회를 아예 안 하므로 안내를 따로 띄운다.
-  const needsLogin = !isLoggedIn && (feedSort === '팔로잉' || feedSort === '내 글');
+  // 훅의 needsAuth와 같은 목록이어야 한다 — 여기서 빠지면 쿼리는 막히는데 화면은 '결과 없음'을 띄운다.
+  const needsLogin = !isLoggedIn && (feedSort === '팔로잉' || feedSort === '내 글' || feedSort === '저장');
 
   // 카드 목록 대신 안내 한 줄만 띄우는 상태. null이면 정상 목록을 그린다.
   const postsState: 'login' | 'loading' | 'error' | 'empty' | null =
@@ -116,7 +122,10 @@ export default function CommunityFeedScreen() {
 
   const galleryPhotos = React.useMemo(() => toGalleryPhotos(displayedPosts), [displayedPosts]);
   const galleryCells = React.useMemo(() => {
-    const popularIds = pickPopularIds(galleryPhotos, GALLERY_POPULAR_COUNT);
+    // 2x2 한 칸이 일반 칸 4개를 먹는다. 사진이 적을 때 상한을 그대로 쓰면 격자 대부분이
+    // 큰 칸이 되어 빈자리가 남고 배치가 뒤죽박죽으로 보인다 — 사진 수에 비례시킨다.
+    const popularCount = Math.min(GALLERY_POPULAR_COUNT, Math.floor(galleryPhotos.length / 6));
+    const popularIds = pickPopularIds(galleryPhotos, popularCount);
     return layoutGalleryGrid(galleryPhotos, (photo) => popularIds.has(photo.id));
   }, [galleryPhotos]);
   const galleryRowCount = galleryCells.reduce((max, cell) => Math.max(max, cell.row + cell.span), 0);
@@ -124,8 +133,8 @@ export default function CommunityFeedScreen() {
 
   const goToPost = (post: Post) =>
     rootNavigation.navigate('CommunityDetailStack', { screen: 'PostDetail', params: { postId: post.id, isMyPost: post.isMine } });
-  const goToPostById = (postId: string, isMine: boolean) =>
-    rootNavigation.navigate('CommunityDetailStack', { screen: 'PostDetail', params: { postId, isMyPost: isMine } });
+  const goToPostById = (postId: string, isMine: boolean, photoIndex?: number) =>
+    rootNavigation.navigate('CommunityDetailStack', { screen: 'PostDetail', params: { postId, isMyPost: isMine, photoIndex } });
   const goToProfile = (userId: string) =>
     rootNavigation.navigate('CommunityDetailStack', { screen: 'UserProfile', params: { userId } });
   const goToContestResult = (item: ContestPastMonthItem) =>
@@ -172,7 +181,7 @@ export default function CommunityFeedScreen() {
             </Pressable>
           </View>
         )}
-        <View className="flex-row items-center" style={{ paddingHorizontal: CONTENT_PADDING, paddingBottom: normalize(14), gap: normalize(10) }}>
+        <View className="flex-row items-center" style={{ paddingHorizontal: CONTENT_PADDING, paddingBottom: normalize(14) }}>
           <View className="flex-1 flex-row" style={{ backgroundColor: SURFACE, borderRadius: normalize(22), padding: normalize(3), height: normalize(36) }}>
             {SEGMENTS.map((seg) => {
               const isActive = seg.key === segment;
@@ -190,28 +199,36 @@ export default function CommunityFeedScreen() {
               );
             })}
           </View>
-          {segment === 'posts' && (
-            <Pressable onPress={() => setFeedSortSheetVisible(true)} className="flex-row items-center" style={{ gap: normalize(3) }}>
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: 'rgba(0,0,0,0.55)', letterSpacing: -0.2 }}>
-                {feedSort}
-              </Text>
-              <ChevronDown size={normalize(12)} color="rgba(0,0,0,0.55)" strokeWidth={2} />
-            </Pressable>
-          )}
         </View>
-        {/* 검색어가 걸린 동안에는 게시글·갤러리가 모두 결과로 좁혀진다 — 해제 수단을 항상 보이게 둔다 */}
-        {!!keyword && segment !== 'contest' && (
-          <View className="flex-row" style={{ paddingHorizontal: CONTENT_PADDING, paddingBottom: normalize(14) }}>
-            <Pressable
-              onPress={() => setKeyword('')}
-              className="flex-row items-center"
-              style={{ gap: normalize(6), height: normalize(30), paddingHorizontal: normalize(12), borderRadius: normalize(15), backgroundColor: '#000' }}
-            >
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, color: '#fff', letterSpacing: -0.2 }}>
-                {`'${keyword}' 검색 결과`}
-              </Text>
-              <X size={normalize(11)} color="#fff" strokeWidth={2.4} />
-            </Pressable>
+        {/* 정렬은 세그먼트와 같은 행에 두면 '게시글'일 때만 세그먼트가 좁아져 탭 위치가 흔들린다 —
+            아래 행으로 내려 검색어 칩과 한 줄을 공유한다. 칩은 왼쪽, 정렬은 오른쪽 고정. */}
+        {(segment === 'posts' || (!!keyword && segment !== 'contest')) && (
+          <View className="flex-row items-center" style={{ paddingHorizontal: CONTENT_PADDING, paddingBottom: normalize(14), height: normalize(44), gap: normalize(10) }}>
+            {/* 검색어가 걸린 동안에는 게시글·갤러리가 모두 결과로 좁혀진다 — 해제 수단을 항상 보이게 둔다 */}
+            {!!keyword && (
+              <Pressable
+                onPress={() => setKeyword('')}
+                className="flex-row items-center shrink"
+                style={{ gap: normalize(6), height: normalize(30), paddingHorizontal: normalize(12), borderRadius: normalize(15), backgroundColor: '#000' }}
+              >
+                <Text allowFontScaling={false} numberOfLines={1} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, color: '#fff', letterSpacing: -0.2 }}>
+                  {`'${keyword}' 검색 결과`}
+                </Text>
+                <X size={normalize(11)} color="#fff" strokeWidth={2.4} />
+              </Pressable>
+            )}
+            {segment === 'posts' && (
+              <Pressable
+                onPress={() => setFeedSortSheetVisible(true)}
+                className="flex-row items-center"
+                style={{ marginLeft: 'auto', gap: normalize(3) }}
+              >
+                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: 'rgba(0,0,0,0.55)', letterSpacing: -0.2 }}>
+                  {feedSort}
+                </Text>
+                <ChevronDown size={normalize(12)} color="rgba(0,0,0,0.55)" strokeWidth={2} />
+              </Pressable>
+            )}
           </View>
         )}
       </View>
@@ -251,7 +268,14 @@ export default function CommunityFeedScreen() {
                 )}
                 {postsState === 'empty' && (
                   <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: 'rgba(0,0,0,0.4)', letterSpacing: -0.2 }}>
-                    {keyword ? '검색 결과가 없어요' : feedSort === '팔로잉' ? '팔로잉한 유저의 게시글이 없어요' : '표시할 게시글이 없어요'}
+                    {keyword
+                      ? '검색 결과가 없어요'
+                      : feedSort === '팔로잉'
+                        ? '팔로잉한 유저의 게시글이 없어요'
+                        : feedSort === '저장'
+                          // 무엇을 해야 저장되는지 알려준다 — 책갈피 아이콘이 카드 어디 있는지 모를 수 있다
+                          ? '저장한 게시글이 없어요. 카드의 책갈피를 눌러 저장해 보세요'
+                          : '표시할 게시글이 없어요'}
                   </Text>
                 )}
               </View>
@@ -304,7 +328,7 @@ export default function CommunityFeedScreen() {
                 return (
                   <Pressable
                     key={cell.id}
-                    onPress={() => goToPostById(cell.postId, cell.isMine)}
+                    onPress={() => goToPostById(cell.postId, cell.isMine, cell.photoIndex)}
                     style={{
                       position: 'absolute',
                       top: row * (galleryCellSize + GALLERY_GAP),
@@ -343,7 +367,23 @@ export default function CommunityFeedScreen() {
         onClose={() => setSearchVisible(false)}
         onSubmitKeyword={(next) => {
           setKeyword(next);
+          // 오버레이의 게시글 미리보기는 최신순이다. 정렬을 맞추지 않으면 더보기로 넘어온 목록이
+          // 미리보기와 달라지고, '팔로잉'·'내 글'·'저장'에 있었다면 부분집합이라 "결과 없음"이 뜬다.
+          setFeedSort('최신');
           setSearchVisible(false);
+        }}
+        // 스팟·사용자 결과는 오버레이 안에서 고르고, 상세로 넘어갈 때 오버레이를 닫는다.
+        onOpenSpot={(spotId) => {
+          setSearchVisible(false);
+          rootNavigation.navigate('SpotStack', { screen: 'SpotDetail', params: { spotId: String(spotId) } });
+        }}
+        onOpenUser={(userId) => {
+          setSearchVisible(false);
+          goToProfile(String(userId));
+        }}
+        onOpenPost={(postId, isMine) => {
+          setSearchVisible(false);
+          goToPostById(postId, isMine);
         }}
       />
       <OptionSheet

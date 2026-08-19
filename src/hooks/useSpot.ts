@@ -87,6 +87,17 @@ export function useSpots(params?: GetSpotsParams, options?: QueryToggle) {
   });
 }
 
+// 관심 테마 기반 추천 스팟. 서버가 userDetails.getId()를 그대로 쓰므로 로그인 필수다.
+export function useRecommendedSpots(limit = 10, options?: QueryToggle) {
+  const token = useAuthStore((s) => s.accessToken);
+  return useQuery({
+    queryKey: ['spots', 'recommended', limit, token ?? 'guest'],
+    queryFn: () => spotApi.getRecommendedSpots(limit, token ?? undefined),
+    enabled: !!token && (options?.enabled ?? true),
+    staleTime: SPOTS_STALE_TIME,
+  });
+}
+
 export function useSearchSpots(params: SearchSpotsParams, options?: QueryToggle) {
   const token = useAuthStore((s) => s.accessToken);
   const hasKeyword = !!params.keyword && params.keyword.trim().length > 0;

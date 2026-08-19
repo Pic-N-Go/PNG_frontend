@@ -5,38 +5,33 @@ import {
   TouchableOpacity,
   ScrollView,
   Dimensions,
-  Image,
   ActivityIndicator,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconChevronLeft } from '@tabler/icons-react-native';
-import { normalize, normalizeFontSize } from '@/utils/normalize';
+import { normalize } from '@/utils/normalize';
 import { FONT_SM, FONT_XS, FONT_LG } from '@/constants/layout';
+import UserRow from '@/components/common/UserRow';
 import Toast from '@/components/common/Toast';
 import { useUserFollowers, useUserFollowing } from '@/hooks/useUser';
+import { useToggleFollow } from '@/hooks/useCommunity';
+import { toErrorMessage } from '@/api/auth';
 import { useAuthStore } from '@/store/useAuthStore';
 import type { FollowUserResponse } from '@/types/user';
 
 type FollowTab = 'followers' | 'following';
 
-const AVATAR_COLORS = [
-  '#2c5364',
-  '#4a3060',
-  '#6b3a2a',
-  '#1a4a3a',
-  '#2a2a5a',
-  '#1a3a5a',
-  '#3a4a2a',
-];
-
 export default function FollowScreen() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
   const route = useRoute<any>();
   const insets = useSafeAreaInsets();
   const authUser = useAuthStore((s) => s.user);
 
   const targetUserId = route.params?.userId || authUser?.id;
+  // 남의 프로필에서도 열리는 화면이라, 삭제·팔로우 취소는 본인 목록에서만 노출한다.
+  // 남의 팔로워를 내가 지우는 버튼이 보이면 안 된다.
+  const isMe = !!authUser?.id && Number(targetUserId) === authUser.id;
 
   const [activeTab, setActiveTab] = useState<FollowTab>(route.params?.initialTab || 'followers');
   const [toastVisible, setToastVisible] = useState(false);
@@ -46,132 +41,65 @@ export default function FollowScreen() {
     useUserFollowers(targetUserId);
   const { data: following = [], isLoading: isFollowingLoading } =
     useUserFollowing(targetUserId);
+  const toggleFollow = useToggleFollow();
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setToastVisible(true);
   };
 
-  const handleRemoveFollower = (_userId: number) => {
-    showToast('팔로워를 삭제했어요');
-  };
-
-  const handleToggleFollowing = (user: FollowUserResponse) => {
-    showToast(`${user.nickname} 팔로우를 취소했어요`);
-  };
-
-  const renderItem = (user: FollowUserResponse) => {
-    const initial = user.nickname?.charAt(0) || 'U';
-    const bgColor = AVATAR_COLORS[Math.abs(user.id) % AVATAR_COLORS.length];
-
-    return (
-      <View
-        key={user.id}
-        className="flex-row items-center"
-        style={{
-          paddingVertical: normalize(12),
-          borderBottomWidth: 0.5,
-          borderBottomColor: 'rgba(0,0,0,0.04)',
-        }}
-      >
-        <View
-          style={{
-            width: normalize(44),
-            height: normalize(44),
-            borderRadius: normalize(22),
-            backgroundColor: bgColor,
-            alignItems: 'center',
-            justifyContent: 'center',
-            overflow: 'hidden',
-          }}
-        >
-          {user.profileImageUrl ? (
-            <Image
-              source={{ uri: user.profileImageUrl }}
-              style={{ width: '100%', height: '100%' }}
-              resizeMode="cover"
-            />
-          ) : (
-            <Text style={{ fontSize: normalizeFontSize(15), fontFamily: 'Pretendard-SemiBold', color: '#fff' }}>
-              {initial}
-            </Text>
-          )}
-        </View>
-
-        <View style={{ flex: 1, marginLeft: normalize(12), marginRight: normalize(12) }}>
-          <Text
-            style={{
-              fontSize: FONT_SM,
-              fontFamily: 'Pretendard-SemiBold',
-              color: '#000',
-              letterSpacing: -0.2,
-              marginBottom: normalize(2),
-            }}
-          >
-            {user.nickname}
-          </Text>
-          <Text
-            style={{
-              fontSize: FONT_XS,
-              fontFamily: 'Pretendard-Regular',
-              color: 'rgba(0,0,0,0.35)',
-              letterSpacing: -0.1,
-            }}
-          >
-            @{user.nickname}
-          </Text>
-        </View>
-
-        {activeTab === 'followers' ? (
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={() => handleRemoveFollower(user.id)}
-            style={{
-              height: normalize(30),
-              paddingHorizontal: normalize(14),
-              borderRadius: normalize(15),
-              backgroundColor: '#f8f8f9',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Text
-              style={{
-                fontSize: FONT_XS,
-                fontFamily: 'Pretendard-Medium',
-                color: 'rgba(0,0,0,0.45)',
-              }}
-            >
-              삭제
-            </Text>
-          </TouchableOpacity>
-        ) : (
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={() => handleToggleFollowing(user)}
-            style={{
-              height: normalize(30),
-              paddingHorizontal: normalize(14),
-              borderRadius: normalize(15),
-              backgroundColor: '#f8f8f9',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Text
-              style={{
-                fontSize: FONT_XS,
-                fontFamily: 'Pretendard-Medium',
-                color: 'rgba(0,0,0,0.45)',
-              }}
-            >
-              팔로잉
-            </Text>
-          </TouchableOpacity>
-        )}
-      </View>
+  const handleUnfollow = (user: FollowUserResponse) => {
+    toggleFollow.mutate(
+      { userId: String(user.id), next: false },
+      {
+        onSuccess: () => showToast(`${user.nickname} 팔로우를 취소했어요`),
+        onError: (err) => showToast(toErrorMessage(err, '팔로우를 취소하지 못했어요')),
+      },
     );
   };
+
+  /**
+   * 팔로잉 탭에만 버튼을 둔다.
+   *
+   * 팔로워 탭에는 '삭제' 버튼이 있었지만 서버에 팔로워를 제거하는 엔드포인트가 없다
+   * (`/users/{id}/follow`는 내가 남을 언팔로우하는 것뿐이다). 호출 없이 토스트만 띄우면
+   * 일어나지 않은 일을 했다고 말하는 셈이라 버튼째로 없앴다.
+   *
+   * 남의 목록에서는 action을 넘기지 않아 버튼이 아예 렌더되지 않는다.
+   */
+  const actionFor = (user: FollowUserResponse) => {
+    if (!isMe || activeTab !== 'following') return undefined;
+    return (
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={() => handleUnfollow(user)}
+        disabled={toggleFollow.isPending}
+        style={{
+          height: normalize(30),
+          paddingHorizontal: normalize(14),
+          borderRadius: normalize(15),
+          backgroundColor: '#f8f8f9',
+          alignItems: 'center',
+          justifyContent: 'center',
+          opacity: toggleFollow.isPending ? 0.5 : 1,
+        }}
+      >
+        <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-Medium', color: 'rgba(0,0,0,0.45)' }}>
+          팔로잉
+        </Text>
+      </TouchableOpacity>
+    );
+  };
+
+  const renderItem = (user: FollowUserResponse) => (
+    <UserRow
+      key={user.id}
+      user={user}
+      // FollowScreen은 MyPageStack·CommunityDetailStack 양쪽에 등록돼 있고 둘 다 UserProfile을 가진다.
+      onPress={() => navigation.navigate('UserProfile', { userId: String(user.id) })}
+      action={actionFor(user)}
+    />
+  );
 
   const scrollViewRef = useRef<ScrollView>(null);
   const screenWidth = Dimensions.get('window').width;

@@ -11,6 +11,7 @@ import {
 import { MyPageStackParamList } from '@/navigation/stacks/MyPageStack';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { FONT_2XS, FONT_XS, FONT_SM, FONT_MD, FONT_LG, CONTENT_PADDING } from '@/constants/layout';
+import Chip from '@/components/common/Chip';
 
 type Props = NativeStackScreenProps<MyPageStackParamList, 'FAQ'>;
 
@@ -47,7 +48,7 @@ const FAQ_LIST: Faq[] = [
   { id: 6, category: 'photo', q: '저장한 장소는 어디서 다시 볼 수 있나요?', a: '마이페이지 > 저장한 스팟에서 확인할 수 있어요. 폴더로 묶어서 정리할 수도 있습니다.' },
   { id: 7, category: 'photo', q: '올린 사진은 언제든 삭제할 수 있나요?', a: '내가 올린 사진 화면에서 언제든 삭제 가능해요. 삭제 후 30일간 임시보관되고 그 이후 영구 삭제됩니다.' },
   { id: 8, category: 'account', q: '비밀번호를 잊어버렸어요. 어떻게 재설정하나요?', a: '로그인 화면 하단의 [비밀번호 찾기]를 눌러 가입 시 등록한 이메일로 인증코드를 받아 재설정할 수 있어요.' },
-  { id: 9, category: 'account', q: '회원 탈퇴 후 데이터는 어떻게 되나요?', a: '탈퇴 시 계정 정보와 활동 이력은 30일 보관 후 영구 삭제됩니다. 관련 법령에 따라 일부 기록은 최대 5년간 보관될 수 있어요.' },
+  { id: 9, category: 'account', q: '회원 탈퇴 후 데이터는 어떻게 되나요?', a: '탈퇴하면 바로 로그아웃되고, 프로필과 작성자 이름이 \'탈퇴한 사용자\'로 바뀌어요. 작성한 게시글·댓글은 그대로 남습니다. 30일 안에 같은 계정으로 로그인하면 복구할 수 있고(이름도 함께 돌아와요), 30일이 지나면 개인정보가 영구 삭제됩니다. 관련 법령에 따라 일부 기록은 최대 5년간 보관될 수 있어요.' },
   { id: 10, category: 'guide', q: '알림 설정은 어디서 바꾸나요?', a: '마이페이지 > 설정 > 알림에서 날씨/골든아워/새 스팟 알림을 개별로 켜고 끌 수 있어요.' },
   { id: 11, category: 'guide', q: '앱 버전은 어디서 확인하나요?', a: '마이페이지 > 설정 > 앱 정보에서 확인할 수 있어요.' },
   { id: 12, category: 'etc', q: '해외에서도 사용할 수 있나요?', a: '해외에서도 지도와 스팟 정보가 그대로 노출돼요. 추천 스팟은 국내 위주로 채워져 있어 지역에 따라 결과 수가 다를 수 있어요.' },
@@ -72,12 +73,12 @@ export default function FAQScreen({ navigation }: Props) {
     });
   }, []);
 
+  // 질문 제목만 본다. 답변(f.a)까지 검색하면 아코디언이 접혀 있어 어디가 맞았는지 보이지 않고,
+  // 답변은 긴 산문이라 노이즈가 제목 일치보다 많아진다 — '스팟'은 제목 3건 대 답변만 5건이었다.
   const filtered = React.useMemo(() => {
     const q = query.trim().toLowerCase();
     return FAQ_LIST.filter(
-      (f) =>
-        (category === 'all' || f.category === category) &&
-        (!q || f.q.toLowerCase().includes(q) || f.a.toLowerCase().includes(q)),
+      (f) => (category === 'all' || f.category === category) && (!q || f.q.toLowerCase().includes(q)),
     );
   }, [query, category]);
 
@@ -123,25 +124,17 @@ export default function FAQScreen({ navigation }: Props) {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={{ gap: normalize(8), paddingBottom: normalize(14) }}
         >
-          {CATEGORIES.map((c) => {
-            const active = c.id === category;
-            return (
-              <Pressable
-                key={c.id}
-                onPress={() => setCategory(c.id)}
-                className="items-center justify-center"
-                style={{
-                  height: normalize(34), paddingHorizontal: normalize(14), borderRadius: normalize(9999),
-                  backgroundColor: active ? BRAND : '#fff',
-                  borderWidth: active ? 0 : 1, borderColor: CHIP_BORDER,
-                }}
-              >
-                <Text style={{ fontSize: FONT_SM, fontWeight: active ? '600' : '500', color: active ? '#fff' : '#000' }}>
-                  {c.label}
-                </Text>
-              </Pressable>
-            );
-          })}
+          {/* 목록만 거르는 필터라 활성색은 블랙이다(핑크는 화면 전환·데이터 변경용).
+              모양도 공통 Chip으로 맞춰 앱 전체 필터 칩이 한 벌이 되게 한다. */}
+          {CATEGORIES.map((c) => (
+            <Chip
+              key={c.id}
+              label={c.label}
+              selected={c.id === category}
+              onPress={() => setCategory(c.id)}
+              height={normalize(34)}
+            />
+          ))}
         </ScrollView>
 
         {/* 리스트 헤더 */}
@@ -163,10 +156,11 @@ export default function FAQScreen({ navigation }: Props) {
             ))}
           </View>
         )}
-      </ScrollView>
 
-      {/* 문의 CTA */}
-      <View style={{ paddingHorizontal: CONTENT_PADDING, paddingTop: normalize(12), paddingBottom: normalize(12) }}>
+        {/* 문의 CTA는 목록 끝에 둔다 — 화면 하단에 고정하면 마지막 질문들을 계속 가린다.
+            "답을 못 찾았다"는 안내이기도 해서 목록을 다 본 뒤에 나오는 게 맥락에도 맞다.
+            질문 카드와 배경색(#f5f5f7)이 같아 목록의 연장으로 읽히므로 구분선으로 끊는다. */}
+        <View style={{ height: 0.5, backgroundColor: DIVIDER, marginTop: normalize(24), marginBottom: normalize(20) }} />
         <Pressable
           onPress={() => navigation.navigate('Inquiry')}
           className="flex-row items-center justify-between bg-[#f5f5f7]"
@@ -183,7 +177,8 @@ export default function FAQScreen({ navigation }: Props) {
             <Text className="font-semibold text-white" style={{ fontSize: FONT_SM }}>문의하기</Text>
           </View>
         </Pressable>
-      </View>
+      </ScrollView>
+
     </SafeAreaView>
   );
 }

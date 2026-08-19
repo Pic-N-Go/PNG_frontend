@@ -14,7 +14,8 @@
     "filelist": "node scripts/generate-filelist.js",
     "build:apk": "eas build -p android --profile preview",
     "lint": "eslint .",
-    "prepare": "husky"
+    "prepare": "husky",
+    "licenses:gen": "node scripts/gen-licenses.mjs"
   },
   "dependencies": {
     "@expo-google-fonts/fugaz-one": "^0.4.1",

@@ -3,10 +3,10 @@ import { PhotoExifData } from '@/types/photo';
 export interface PostAuthor {
   id: string;
   handle: string;
-  initials: string;
-  avatarGradient: [string, string];
-  /** 서버 프로필 사진. 없으면 initials + avatarGradient로 대체한다. */
+  /** 서버 프로필 사진. 없으면 Avatar가 id·닉네임으로 폴백을 그린다. */
   profileImageUrl?: string | null;
+  /** 탈퇴 계정. 서버가 이름을 '탈퇴한 사용자'로 치환해 보내며, 팔로우는 막는다. */
+  isWithdrawn?: boolean;
 }
 
 export interface PostShotMeta {
@@ -27,6 +27,8 @@ export interface Post {
   caption: string;
   location: string;
   createdAtLabel: string;
+  /** `2026.08.18`. 내가 쓴 글 목록을 날짜별로 묶는 데 쓴다(createdAtLabel은 최근 글이 상대 시각이라 키로 못 쓴다). */
+  createdAtDate: string;
   likeCount: number;
   isLiked: boolean;
   commentCount: number;
@@ -49,7 +51,7 @@ export interface PostDetail extends Post {
 
 export interface Comment {
   id: string;
-  author: Pick<PostAuthor, 'handle' | 'initials'> & { id?: string; profileImageUrl?: string | null };
+  author: Pick<PostAuthor, 'handle'> & { id?: string; profileImageUrl?: string | null; isWithdrawn?: boolean };
   text: string;
   createdAtLabel: string;
   /** 내가 쓴 댓글이면 삭제 가능 */
@@ -68,13 +70,14 @@ export type ReportReasonId = 'spam' | 'abuse' | 'copyright' | 'inappropriate' | 
 // ── 서버 DTO (PNG_backend `community` 모듈 · `/posts`, `/users`) ──────────────
 // 위쪽 UI 타입과 1:1이 아니다. 변환은 utils/communityMappers.ts에서만 한다.
 
-export type PostSortApi = 'POPULAR' | 'LATEST' | 'FOLLOWING' | 'MY_POSTS';
+export type PostSortApi = 'POPULAR' | 'LATEST' | 'FOLLOWING' | 'MY_POSTS' | 'BOOKMARKED';
 export type PostWeatherApi = 'CLEAR' | 'PARTLY_CLOUDY' | 'CLOUDY' | 'RAIN' | 'SNOW' | 'NIGHT';
 
 export interface PostAuthorDTO {
   id: number;
   nickname: string;
   profileImageUrl: string | null;
+  withdrawn: boolean;
 }
 
 export interface PostImageDTO {
@@ -186,14 +189,17 @@ export interface PostUpdateRequestDTO extends PostCreateRequestDTO {
   retainedImageIds?: number[];
 }
 
-/** `/users/{id}/profile` — bio·게시글 수·팔로우 여부는 서버에 없다 */
+/** `/users/{id}/profile` — 게시글 수·팔로우 여부는 서버에 없다 */
 export interface UserProfileDTO {
   id: number;
   nickname: string;
   profileImageUrl: string | null;
+  bio: string | null;
   spotCategories: string[];
   followerCount: number;
   followingCount: number;
+  /** 탈퇴 계정이면 서버가 툼스톤(이름만 있는 빈 프로필)을 보낸다 */
+  withdrawn: boolean;
 }
 
 export interface FollowUserDTO {
@@ -224,20 +230,6 @@ export interface ContestResultDetail {
 
 export type VoteModalMode = 'confirm' | 'cancel';
 export type GearSheetKind = 'camera' | 'lens';
-
-export interface UserProfileSummary {
-  id: string;
-  displayName: string;
-  handle: string;
-  initials: string;
-  avatarGradient: [string, string];
-  bio: string;
-  winCount: number;
-  postCount: number;
-  followerCount: number;
-  followingCount: number;
-  isFollowing: boolean;
-}
 
 export interface ProfilePostItem {
   id: string;

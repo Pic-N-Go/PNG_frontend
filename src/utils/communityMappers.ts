@@ -25,33 +25,28 @@ const PHOTO_FALLBACKS: [string, string, string][] = [
   ['#020010', '#1a1545', '#4a4080'],
 ];
 
-const AVATAR_FALLBACKS: [string, string][] = [
-  ['#2c5364', '#4a7c8a'],
-  ['#8b4a6b', '#d4856a'],
-  ['#3a506b', '#5bc0be'],
-  ['#4a1942', '#e8855a'],
-  ['#1c2541', '#3a506b'],
-];
-
 /** 같은 id면 항상 같은 색이 나오도록 id를 인덱스로 쓴다(랜덤이면 리렌더마다 색이 바뀐다). */
 function pick<T>(list: T[], seed: number | string): T {
   const n = typeof seed === 'number' ? seed : [...String(seed)].reduce((acc, c) => acc + c.charCodeAt(0), 0);
   return list[Math.abs(n) % list.length];
 }
 
-/** 닉네임 앞 2글자. 한글은 1글자, 영문은 2글자가 목업과 가장 비슷하다. */
-export function initialsOf(nickname: string): string {
-  const trimmed = nickname.trim();
-  if (!trimmed) return '?';
-  const isHangul = /[가-힣]/.test(trimmed[0]);
-  return (isHangul ? trimmed.slice(0, 1) : trimmed.slice(0, 2)).toUpperCase();
-}
-
 /**
- * 서버 LocalDateTime은 오프셋 없이 "2026-08-17T12:34:56"로 온다 — JS는 이 형식을 기기 로컬
- * 시각으로 파싱한다. 서버와 사용자가 모두 KST라 실무상 맞지만, 해외 로밍 중이면 시차만큼 어긋난다.
+ * 아래 두 함수가 공유하는 전제: 서버 LocalDateTime은 오프셋 없이 "2026-08-17T12:34:56"로
+ * 온다 — JS는 이 형식을 기기 로컬 시각으로 파싱한다. 서버와 사용자가 모두 KST라 실무상
+ * 맞지만, 해외 로밍 중이면 시차만큼 어긋난다.
  * ponytail: 서버가 오프셋을 붙여주면 그대로 정확해진다. 그전까지 이 근사로 둔다.
  */
+
+/** `2026.08.18`. 목록을 날짜별로 묶을 때의 그룹 키이자 헤더 문구다. */
+export function formatDate(iso: string | null | undefined): string {
+  if (!iso) return '';
+  const then = new Date(iso).getTime();
+  if (Number.isNaN(then)) return '';
+  const d = new Date(then);
+  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+}
+
 export function formatRelativeTime(iso: string | null | undefined): string {
   if (!iso) return '';
   const then = new Date(iso).getTime();
@@ -63,8 +58,16 @@ export function formatRelativeTime(iso: string | null | undefined): string {
   if (diffHour < 24) return `${diffHour}시간 전`;
   const diffDay = Math.floor(diffHour / 24);
   if (diffDay < 7) return `${diffDay}일 전`;
-  const d = new Date(then);
-  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, '0')}.${String(d.getDate()).padStart(2, '0')}`;
+  return formatDate(iso);
+}
+
+// ponytail: dev 전용 self-check — formatDate는 '내가 쓴 글'의 날짜 묶음 키다.
+// 월·일 패딩이 틀리면 같은 날이 두 그룹으로 조용히 쪼개진다 (프로덕션 no-op)
+if (__DEV__) {
+  console.assert(formatDate('2026-08-05T09:00:00') === '2026.08.05', '한 자리 월·일은 0으로 채워야 한다');
+  console.assert(formatDate('2026-12-31T23:59:00') === '2026.12.31', '두 자리 월·일');
+  console.assert(formatDate(null) === '', 'null은 빈 문자열');
+  console.assert(formatDate('아무말') === '', '파싱 실패는 빈 문자열');
 }
 
 const WEATHER_LABELS: Record<PostWeatherApi, string> = {
@@ -107,9 +110,8 @@ export function mapAuthor(dto: PostAuthorDTO): PostAuthor {
   return {
     id: String(dto.id),
     handle: dto.nickname,
-    initials: initialsOf(dto.nickname),
-    avatarGradient: pick(AVATAR_FALLBACKS, dto.id),
     profileImageUrl: dto.profileImageUrl,
+    isWithdrawn: dto.withdrawn,
   };
 }
 
@@ -131,6 +133,7 @@ export function mapPost(dto: PostResponseDTO, ctx: PostMapContext = {}): Post {
     caption: dto.content,
     location: dto.spotName ?? '',
     createdAtLabel: formatRelativeTime(dto.createdAt),
+    createdAtDate: formatDate(dto.createdAt),
     likeCount: dto.likeCount,
     isLiked: dto.liked,
     commentCount: dto.commentCount,
@@ -198,8 +201,8 @@ export function mapComment(dto: CommentResponseDTO, myUserId?: number | null): C
     author: {
       id: String(dto.author.id),
       handle: dto.author.nickname,
-      initials: initialsOf(dto.author.nickname),
       profileImageUrl: dto.author.profileImageUrl,
+      isWithdrawn: dto.author.withdrawn,
     },
     text: dto.content,
     createdAtLabel: formatRelativeTime(dto.createdAt),

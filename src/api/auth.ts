@@ -1,18 +1,16 @@
+import type { UserResponse } from '@/types/user';
+
 const BASE = process.env.EXPO_PUBLIC_API_URL ?? '';
 
 if (__DEV__ && !BASE) {
   console.warn('[auth] EXPO_PUBLIC_API_URL 환경 변수가 설정되지 않았습니다. API 요청이 실패할 수 있습니다.');
 }
 
-export type UserResponse = {
-  id: number;
-  email: string;
-  nickname: string;
-  profileImageUrl: string | null;
-  role: 'USER' | 'ADMIN';
-  provider: 'LOCAL' | 'KAKAO';
-  spotCategories: string[];
-};
+/**
+ * `/users/me` 응답. 정의는 `@/types/user`에 둔다 — 여기에 한 벌 더 두면 손으로 동기화해야 하고,
+ * 구조가 같아 한쪽만 바뀌어도 TS가 알려주지 않는다(bio 추가 때 실제로 양쪽을 고쳐야 했다).
+ */
+export type { UserResponse };
 
 export type TokenResponse = {
   tokenType: string;
@@ -21,6 +19,11 @@ export type TokenResponse = {
   refreshToken: string;
   refreshTokenExpiresIn: number;
   user: UserResponse;
+  /**
+   * 이번 요청으로 계정이 처음 만들어졌는지. 소셜 로그인에서 true면 온보딩으로 보낸다 —
+   * 카카오 닉네임은 중복·특수문자가 흔해 서버가 다듬은 값이 그대로 굳지 않게 확인받는다.
+   */
+  isNewUser: boolean;
 };
 
 export type EmailVerificationResponse = {
@@ -41,6 +44,11 @@ export class ApiError extends Error {
    * 사용자에게 그대로 노출됐다. 상태코드를 모르는 실패(네트워크 단절 등)는 undefined.
    */
   readonly status?: number;
+
+  /**
+   * 백엔드 ErrorResponse.code (예: `ACCOUNT_WITHDRAWN`, `ACCESS_TOKEN_EXPIRED`). 상태코드만으로는
+   * 구분할 수 없는 실패를 호출부가 분기하는 데 쓴다 — 메시지 문자열 매칭은 문구를 고치면 조용히 깨진다.
+   */
   readonly code?: string;
 
   constructor(message: string, status?: number, code?: string) {
@@ -48,6 +56,11 @@ export class ApiError extends Error {
     this.status = status;
     this.code = code;
   }
+}
+
+/** 특정 에러 코드인지. 문구 변경에 영향받지 않는 분기용. */
+export function isErrorCode(err: unknown, code: string): boolean {
+  return err instanceof ApiError && err.code === code;
 }
 
 export function toErrorMessage(err: unknown, fallback: string): string {
@@ -198,6 +211,16 @@ export const authApi = {
 
   refreshToken: (refreshToken: string) =>
     post<TokenResponse>('/auth/token/refresh', { refreshToken }),
+
+  /**
+   * 탈퇴 대기 중(30일 이내) 계정 복구. 탈퇴 계정은 토큰을 받을 수 없어 인증이 필요한
+   * 경로로는 복구를 시작할 수 없다 — 그래서 로그인과 같은 자격증명을 그대로 보낸다.
+   */
+  restore: (email: string, password: string) =>
+    post<TokenResponse>('/auth/restore', { email, password }),
+
+  restoreWithKakao: (accessToken: string) =>
+    post<TokenResponse>('/auth/restore/social', { accessToken }),
 
   sendPasswordResetCode: (email: string) =>
     post<EmailVerificationResponse>('/auth/password/reset/code', { email }),

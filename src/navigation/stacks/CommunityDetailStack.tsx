@@ -7,10 +7,12 @@ import UserProfileScreen from '@/screens/community/UserProfileScreen';
 import ContestAllEntriesScreen from '@/screens/community/ContestAllEntriesScreen';
 import ContestSubmitScreen from '@/screens/community/ContestSubmitScreen';
 import ContestEntryDetailScreen from '@/screens/community/ContestEntryDetailScreen';
+import FollowScreen from '@/screens/mypage/FollowScreen';
 import type { ContestSubmitTarget } from '@/types/community';
 
 export type CommunityDetailStackParamList = {
-  PostDetail: { postId: string; isMyPost?: boolean };
+  /** photoIndex: 갤러리에서 특정 사진을 눌러 들어온 경우 그 사진부터 보여준다(기본 0). */
+  PostDetail: { postId: string; isMyPost?: boolean; photoIndex?: number };
   /** postId가 있으면 그 글의 수정 모드로 연다. 없으면 새 글 작성. */
   CommunityWrite: { postId?: string } | undefined;
   /** submitTarget: 빈 상태 CTA가 출품 화면으로 넘길 값. 없으면 출품 경로를 막는다(남은 자리를 모르므로) */
@@ -20,6 +22,8 @@ export type CommunityDetailStackParamList = {
   UserProfile: { userId?: string } | undefined;
   ContestSubmit: { theme?: string; monthLabel?: string; remainingSlots?: number } | undefined;
   ContestEntryDetail: { entryId?: string; isMine?: boolean; isEnded?: boolean; rank?: number; totalCount?: number; voteCount?: number } | undefined;
+  /** 마이페이지와 같은 화면을 재사용한다. userId를 넘기면 그 사람의 팔로워·팔로잉 목록이 열린다. */
+  Follow: { initialTab: 'followers' | 'following'; userId?: number };
 };
 
 const Stack = createNativeStackNavigator<CommunityDetailStackParamList>();
@@ -39,6 +43,7 @@ export default function CommunityDetailStack() {
       <Stack.Screen name="UserProfile" component={UserProfileScreen} />
       <Stack.Screen name="ContestSubmit" component={ContestSubmitScreen} />
       <Stack.Screen name="ContestEntryDetail" component={ContestEntryDetailScreen} />
+      <Stack.Screen name="Follow" component={FollowScreen} />
     </Stack.Navigator>
   );
 }
