@@ -28,6 +28,11 @@ export type UserResponse = {
    * 이게 없으면 미리보기가 "사진 없음"으로 보이는데 저장하면 이 사진이 나온다.
    */
   socialProfileImageUrl: string | null;
+  /**
+   * 직접 올린 사진이 있는지. profileImageUrl은 "보여줄 사진"이라 올린 사진을 지워도
+   * 소셜 사진이 그 자리를 채워 non-null이 된다 — 그 값으로는 지울 대상이 있는지 알 수 없다.
+   */
+  hasUploadedProfileImage: boolean;
   bio: string | null;
   role: 'USER' | 'ADMIN';
   provider: 'LOCAL' | 'KAKAO';

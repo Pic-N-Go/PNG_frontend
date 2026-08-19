@@ -180,7 +180,8 @@ export default function ProfileEditScreen({ navigation }: Props) {
     if (saving) return;
     // 지울 수 있는 건 내가 올린 사진뿐이다. 소셜 사진만 있는 상태면 삭제할 것이 없으므로
     // 선택지를 띄우지 않고 바로 앨범을 연다(고른 사진을 되돌리는 것도 삭제로 친다).
-    const canRemove = pendingImage !== null || (!!profile?.profileImageUrl && !imageRemoved);
+    // profileImageUrl로 판단하면 안 된다 — 올린 사진을 지워도 소셜 사진이 그 자리를 채운다.
+    const canRemove = pendingImage !== null || (!!profile?.hasUploadedProfileImage && !imageRemoved);
     if (!canRemove) {
       void pickAvatar();
       return;
@@ -193,7 +194,7 @@ export default function ProfileEditScreen({ navigation }: Props) {
         onPress: () => {
           setPendingImage(null);
           // 서버에 올린 사진이 없으면(고른 것만 취소하는 경우) 삭제를 예약할 대상이 없다.
-          setImageRemoved(!!profile?.profileImageUrl);
+          setImageRemoved(!!profile?.hasUploadedProfileImage);
         },
       },
       { text: '취소', style: 'cancel' },
