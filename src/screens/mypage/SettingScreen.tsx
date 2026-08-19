@@ -318,7 +318,15 @@ export default function SettingScreen({ navigation }: Props) {
               }
               chevron onPress={handleLocationPress}
             />
-            <SettingRow icon={IconBan} label="차단 목록" desc="차단한 사용자 관리" chevron onPress={() => handlePress('block')} />
+            <SettingRow
+              icon={IconBan}
+              label="차단 목록"
+              desc="차단한 사용자 관리"
+              // 위치 권한 행의 '허용됨'과 같은 자리(화살표 왼쪽)를 쓴다.
+              right={<BetaBadge />}
+              chevron
+              onPress={() => handlePress('block')}
+            />
           </Card>
         </View>
 
@@ -434,6 +442,18 @@ function SectionLabel({ text, actionLabel, onActionPress }: { text: string; acti
         <Text style={{ fontSize: FONT_SM, fontWeight: '500', color: 'rgba(0,0,0,0.48)' }}>{actionLabel}</Text>
         <IconChevronRight size={normalize(14)} color="rgba(0,0,0,0.28)" strokeWidth={2} />
       </Pressable>
+    </View>
+  );
+}
+
+/** 아직 다듬는 중인 기능 표시. 상태 라벨이라 블랙을 쓴다 — 핑크는 화면 전환·데이터 변경용이다. */
+function BetaBadge() {
+  return (
+    <View
+      className="items-center justify-center bg-black"
+      style={{ height: normalize(18), paddingHorizontal: normalize(6), borderRadius: normalize(9), marginRight: normalize(6) }}
+    >
+      <Text className="font-semibold text-white" style={{ fontSize: FONT_2XS, letterSpacing: 0.4 }}>BETA</Text>
     </View>
   );
 }
