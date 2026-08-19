@@ -5,14 +5,14 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Animated, { FadeInDown, ZoomIn } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronLeft, ChevronRight, MapPin, Share2 } from 'lucide-react-native';
+import { ChevronLeft, ChevronRight, MapPin, Share as ShareIcon } from 'lucide-react-native';
 import DevStateSwitch from '@/components/common/DevStateSwitch';
-import ShareSheet from '@/components/common/ShareSheet';
 import Toast from '@/components/common/Toast';
 import { CommunityDetailStackParamList } from '@/navigation/stacks/CommunityDetailStack';
 import type { RootStackParamList } from '@/navigation';
 import { ContestPhotoEntry } from '@/types/community';
 import { CARD_RADIUS, HEADER_HEIGHT, CONTENT_PADDING, FONT_2XS, FONT_LG, FONT_MD, FONT_SM, FONT_XL, FONT_XS } from '@/constants/layout';
+import { shareContent } from '@/utils/share';
 import { normalize, normalizeFontSize, normalizeHeight } from '@/utils/normalize';
 import { awardHaptic } from '@/utils/haptics';
 
@@ -55,13 +55,25 @@ export default function ContestResultScreen() {
   const [detailEntry, setDetailEntry] = useState<ContestPhotoEntry | null>(null);
   // 내 순위는 진입 경로(지난 탭 카드 등)가 넘겨준다. 스위처는 그 값을 __DEV__에서만 덮어쓴다.
   const [devVariant, setDevVariant] = useState<'route' | 'award' | 'outrank'>('route');
-  const [shareVisible, setShareVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastVisible, setToastVisible] = useState(false);
   const myRank = devVariant === 'award' ? 1 : devVariant === 'outrank' ? 42 : route.params?.myRank;
   const myVotes = devVariant === 'award' ? 214 : devVariant === 'outrank' ? 23 : (route.params?.myVotes ?? 0);
 
   const isAward = myRank != null && myRank <= 3;
+
+  // 콘테스트 결과는 아직 목데이터다. 서버 연동 시 MY_ENTRY_META를 실제 출품 정보로 교체한다.
+  const handleShare = async () => {
+    const ok = await shareContent({
+      title: `${monthLabel} 콘테스트 결과`,
+      message: [myRank != null ? `${monthLabel} 콘테스트 ${myRank}위` : `${monthLabel} 콘테스트`, MY_ENTRY_META].join('\n'),
+    });
+    // 성공 토스트는 띄우지 않는다 — Android는 취소해도 성공으로 오므로 거짓이 된다.
+    if (!ok) {
+      setToastMessage('공유 화면을 열지 못했어요');
+      setToastVisible(true);
+    }
+  };
 
   // 수상일 때만 진입 축하 — 컨페티·모달은 쓰지 않는다는 결정(ui-publishing.md)에 맞춰
   // 햅틱 한 번과 카드 등장 애니메이션으로만 표현한다. 시뮬레이터에선 햅틱이 나지 않는다.
@@ -133,8 +145,8 @@ export default function ContestResultScreen() {
                   {MY_ENTRY_META}
                 </Text>
               </View>
-              <Pressable onPress={() => setShareVisible(true)} style={{ height: normalize(40), paddingHorizontal: normalize(18), borderRadius: normalize(20), backgroundColor: ACCENT, flexDirection: 'row', alignItems: 'center', gap: normalize(6), flexShrink: 0 }}>
-                <Share2 size={normalize(16)} color="#fff" strokeWidth={2} />
+              <Pressable onPress={handleShare} style={{ height: normalize(40), paddingHorizontal: normalize(18), borderRadius: normalize(20), backgroundColor: ACCENT, flexDirection: 'row', alignItems: 'center', gap: normalize(6), flexShrink: 0 }}>
+                <ShareIcon size={normalize(16)} color="#fff" strokeWidth={2} />
                 <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, letterSpacing: -0.2, color: '#fff' }}>
                   공유
                 </Text>
@@ -219,14 +231,6 @@ export default function ContestResultScreen() {
         </Pressable>
       </ScrollView>
 
-      <ShareSheet
-        visible={shareVisible}
-        onClose={() => setShareVisible(false)}
-        onShared={(message) => {
-          setToastMessage(message);
-          setToastVisible(true);
-        }}
-      />
       <Toast message={toastMessage} visible={toastVisible} onHide={() => setToastVisible(false)} />
     </SafeAreaView>
   );

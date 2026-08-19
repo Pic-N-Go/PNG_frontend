@@ -5,8 +5,9 @@ import Reanimated, { runOnJS, useAnimatedStyle, useSharedValue, withTiming } fro
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Heart, Info, X } from 'lucide-react-native';
 import { PhotoExifLayer } from '@/components/common/PhotoExifSheet';
+import Avatar from '@/components/common/Avatar';
 import { PostDetail } from '@/types/community';
-import { FONT_2XS, FONT_SM, FONT_XS } from '@/constants/layout';
+import { FONT_SM, FONT_XS } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 
 /** 이 거리(px)보다 더 아래로 끌면 닫는다. 짧으면 스크롤하려다 닫히고, 길면 안 닫힌다. */
@@ -23,6 +24,8 @@ interface Props {
   onCloseExif: () => void;
   /** 라이트박스를 닫은 뒤 작성자 프로필로 이동한다(Modal 위로 화면이 push되지 않도록 호출부가 순서를 잡는다) */
   onPressAuthor: () => void;
+  /** 처음 보여줄 사진. 히어로에 뜬 사진과 같은 것에서 시작해야 눌렀을 때 그림이 안 바뀐다. */
+  initialIndex?: number;
   post: PostDetail;
 }
 
@@ -31,7 +34,7 @@ interface Props {
  * `PhotoLightbox`의 Modal 안에서 렌더한다. RN에서 Modal 두 개를 동시에 띄우면 두 번째가
  * 안 뜨는 경우가 있어(iOS 네이티브 모달 프레젠테이션 제약), 별도 Modal로 분리하지 않는다.
  */
-export default function PhotoLightbox({ visible, onClose, exifOpen, onOpenExif, onCloseExif, onPressAuthor, post }: Props) {
+export default function PhotoLightbox({ visible, onClose, exifOpen, onOpenExif, onCloseExif, onPressAuthor, post, initialIndex = 0 }: Props) {
   const insets = useSafeAreaInsets();
 
   // 확대 배율과 이동량. saved*는 제스처가 끝난 시점의 값으로, 다음 제스처의 기준이 된다.
@@ -48,7 +51,7 @@ export default function PhotoLightbox({ visible, onClose, exifOpen, onOpenExif, 
   const panStartedZoomed = useSharedValue(false);
 
   const photos = post.imageUrls ?? [];
-  const [index, setIndex] = useState(0);
+  const [index, setIndex] = useState(initialIndex);
   const currentExif = post.exifList?.[index] ?? {};
   /** 다중 터치(핀치) 중이었는지. 핀치의 중심점 이동이 스와이프로 오인되는 걸 막는다. */
   const usedMultiTouch = useSharedValue(false);
@@ -65,11 +68,11 @@ export default function PhotoLightbox({ visible, onClose, exifOpen, onOpenExif, 
   // 확대하거나 넘겨 본 채로 닫았다가 다시 열면 그 상태가 남아 있으면 안 된다.
   useEffect(() => {
     if (visible) {
-      setIndex(0);
+      setIndex(initialIndex);
       resetTransform();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visible]);
+  }, [visible, initialIndex]);
 
   /**
    * 사진을 넘긴다. 절대 인덱스가 아니라 방향을 받는다 — 공유 값으로 인덱스를 미러링하면
@@ -243,18 +246,7 @@ export default function PhotoLightbox({ visible, onClose, exifOpen, onOpenExif, 
         >
           {/* 아바타·닉네임 묶어서 프로필 진입 — 목록 카드(PostCard)와 같은 규칙 */}
           <Pressable onPress={onPressAuthor} className="flex-row items-center" style={{ flex: 1, minWidth: 0, gap: normalize(16) }}>
-            <View
-              className="items-center justify-center overflow-hidden"
-              style={{ width: normalize(38), height: normalize(38), borderRadius: normalize(19), backgroundColor: post.author.avatarGradient[0] }}
-            >
-              {post.author.profileImageUrl ? (
-                <Image source={{ uri: post.author.profileImageUrl }} resizeMode="cover" style={{ width: '100%', height: '100%' }} />
-              ) : (
-                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_2XS, color: 'rgba(255,255,255,0.85)', letterSpacing: -0.1 }}>
-                  {post.author.initials}
-                </Text>
-              )}
-            </View>
+            <Avatar userId={post.author.id} nickname={post.author.handle} imageUrl={post.author.profileImageUrl} size={38} />
             <View style={{ flex: 1, minWidth: 0 }}>
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(14), color: '#fff', letterSpacing: -0.2 }}>
                 {post.author.handle}

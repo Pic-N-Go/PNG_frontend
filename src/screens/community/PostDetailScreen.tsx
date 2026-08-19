@@ -3,15 +3,15 @@ import { ActivityIndicator, Image, Pressable, ScrollView, Text, TextInput, View 
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Bookmark, Camera, ChevronLeft, Clock, Heart, Maximize, MessageSquare, MoreHorizontal, Send, Share2, Sun, X } from 'lucide-react-native';
+import { Bookmark, Camera, ChevronLeft, Clock, Heart, MessageSquare, MoreHorizontal, Send, Share as ShareIcon, Sun, X } from 'lucide-react-native';
 import CommentThread from '@/components/community/CommentThread';
 import PostActionSheet from '@/components/community/PostActionSheet';
 import PostReportSheet from '@/components/community/PostReportSheet';
 import PhotoLightbox from '@/components/community/PhotoLightbox';
 import ConfirmModal from '@/components/common/ConfirmModal';
-import ShareSheet from '@/components/common/ShareSheet';
 import Toast from '@/components/common/Toast';
 import { useKeyboardOverlap } from '@/hooks/useKeyboardHeight';
+import { shareContent } from '@/utils/share';
 import {
   useComments,
   useCreateComment,
@@ -26,10 +26,10 @@ import {
 } from '@/hooks/useCommunity';
 import { toErrorMessage } from '@/api/auth';
 import { useAuthStore } from '@/store/useAuthStore';
-import { initialsOf } from '@/utils/communityMappers';
+import Avatar from '@/components/common/Avatar';
 import { CommunityDetailStackParamList } from '@/navigation/stacks/CommunityDetailStack';
 import { Comment, ReportReasonId } from '@/types/community';
-import { HEADER_HEIGHT, CONTENT_PADDING, FONT_2XS, FONT_LG, FONT_MD, FONT_SM, FONT_XS } from '@/constants/layout';
+import { HEADER_HEIGHT, CONTENT_PADDING, FONT_LG, FONT_MD, FONT_SM, FONT_XS } from '@/constants/layout';
 import { normalize, normalizeHeight } from '@/utils/normalize';
 
 const ACCENT = '#E31B59';
@@ -77,7 +77,6 @@ export default function PostDetailScreen() {
   // 렌더 조건을 lightboxOpen && exifOpen으로 걸어 "EXIF만 닫아도 라이트박스는 유지" 규칙을 자연히 만족시킨다.
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [exifOpen, setExifOpen] = useState(false);
-  const [shareSheetVisible, setShareSheetVisible] = useState(false);
 
   const [toastMessage, setToastMessage] = useState('');
   const [toastVisible, setToastVisible] = useState(false);
@@ -235,6 +234,24 @@ export default function PostDetailScreen() {
     commentInputRef.current?.focus();
   }
 
+  // 댓글 작성자 프로필. author.id는 mapComment가 채우지만 옵셔널 타입이라 없으면 아무 것도 하지 않는다.
+  function handlePressCommentAuthor(comment: Comment) {
+    if (!comment.author.id) return;
+    navigation.navigate('UserProfile', { userId: comment.author.id });
+  }
+
+  // 공유할 웹 URL이 없어 텍스트만 보낸다. 게시글 웹 페이지·딥링크가 생기면 url을 함께 넘긴다.
+  async function handleShare() {
+    if (!post) return;
+    const lines = [post.caption, post.location].filter(Boolean);
+    const ok = await shareContent({
+      title: `${post.author.handle}님의 사진`,
+      message: lines.join('\n'),
+    });
+    // 성공 토스트는 띄우지 않는다 — Android는 취소해도 성공으로 오므로 거짓이 된다.
+    if (!ok) showToast('공유 화면을 열지 못했어요');
+  }
+
   function handleConfirmDeleteComment() {
     const commentId = commentPendingDelete;
     setCommentPendingDelete(null);
@@ -250,7 +267,14 @@ export default function PostDetailScreen() {
   const remainingComments = Math.max((commentData?.totalElements ?? 0) - comments.length, 0);
   const canSendComment =
     commentText.trim().length > 0 && !createComment.isPending && !updateCommentM.isPending;
-  const mainPhoto = post?.imageUrls?.[0];
+  /**
+   * 히어로에 보여줄 사진. 갤러리에서 특정 사진을 눌러 들어왔으면 그 사진부터 보여준다 —
+   * 폭포를 눌렀는데 글의 첫 사진이 뜨면 다른 글에 들어온 것처럼 읽힌다.
+   * 목록이 아직 안 왔거나 사진이 지워졌을 수 있어 범위를 다시 맞춘다.
+   */
+  const photoCount = post?.imageUrls?.length ?? 0;
+  const heroPhotoIndex = Math.min(Math.max(route.params?.photoIndex ?? 0, 0), Math.max(photoCount - 1, 0));
+  const mainPhoto = post?.imageUrls?.[heroPhotoIndex];
 
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
@@ -307,8 +331,28 @@ export default function PostDetailScreen() {
           <>
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: normalize(24) }}>
           {/* 히어로 사진 */}
-          <Pressable onPress={() => setLightboxOpen(true)} style={{ height: normalizeHeight(320), backgroundColor: post.photoGradient[0], position: 'relative' }}>
+          {/* 확대 버튼을 없애면서 라벨도 함께 사라졌다 — 아래 카운터는 장식이라 읽히지 않으므로,
+              스크린리더에게는 이 히어로가 라이트박스로 들어가는 유일한 경로다. */}
+          <Pressable
+            onPress={() => setLightboxOpen(true)}
+            accessibilityRole="button"
+            accessibilityLabel={photoCount > 1 ? `사진 크게 보기 (${photoCount}장)` : '사진 크게 보기'}
+            style={{ height: normalizeHeight(320), backgroundColor: post.photoGradient[0], position: 'relative' }}
+          >
             {!!mainPhoto && <Image source={{ uri: mainPhoto }} resizeMode="cover" style={{ width: '100%', height: '100%' }} />}
+            {/* 사진이 여러 장이면 몇 번째인지 알린다. 점이 아니라 숫자를 쓰는 이유는 이 히어로가
+                좌우로 넘어가지 않기 때문이다 — 점은 넘길 수 있다는 약속으로 읽힌다.
+                넘기기는 탭해서 여는 라이트박스가 맡고, 거기에는 점이 있다. */}
+            {photoCount > 1 && (
+              <View
+                className="items-center justify-center absolute"
+                style={{ top: normalize(14), right: normalize(14), height: normalize(24), paddingHorizontal: normalize(10), borderRadius: normalize(12), backgroundColor: 'rgba(0,0,0,0.4)' }}
+              >
+                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, color: '#fff', letterSpacing: -0.1 }}>
+                  {heroPhotoIndex + 1}/{photoCount}
+                </Text>
+              </View>
+            )}
             {/* 위치는 사진 위에 겹치지 않고 아래 작성자 줄에서 보여준다 */}
             <Pressable
               onPress={toggleLike}
@@ -320,14 +364,6 @@ export default function PostDetailScreen() {
                 {post.likeCount}
               </Text>
             </Pressable>
-            <Pressable
-              onPress={() => setLightboxOpen(true)}
-              className="items-center justify-center absolute"
-              style={{ top: normalize(12), right: normalize(12), width: normalize(32), height: normalize(32), borderRadius: normalize(16), backgroundColor: 'rgba(0,0,0,0.35)' }}
-              accessibilityLabel="확대"
-            >
-              <Maximize size={normalize(15)} color="#fff" strokeWidth={1.8} />
-            </Pressable>
           </Pressable>
 
           {/* 본문 */}
@@ -335,18 +371,8 @@ export default function PostDetailScreen() {
             {/* 유저 행 */}
             <View className="flex-row items-center" style={{ gap: normalize(11), marginBottom: normalize(14) }}>
               {/* 닉네임뿐 아니라 아바타로도 프로필에 들어갈 수 있어야 한다 */}
-              <Pressable
-                onPress={() => navigation.navigate('UserProfile', { userId: post.author.id })}
-                className="items-center justify-center overflow-hidden"
-                style={{ width: normalize(38), height: normalize(38), borderRadius: normalize(19), backgroundColor: post.author.avatarGradient[0] }}
-              >
-                {post.author.profileImageUrl ? (
-                  <Image source={{ uri: post.author.profileImageUrl }} resizeMode="cover" style={{ width: '100%', height: '100%' }} />
-                ) : (
-                  <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, color: 'rgba(255,255,255,0.85)', letterSpacing: -0.1 }}>
-                    {post.author.initials}
-                  </Text>
-                )}
+              <Pressable onPress={() => navigation.navigate('UserProfile', { userId: post.author.id })}>
+                <Avatar userId={post.author.id} nickname={post.author.handle} imageUrl={post.author.profileImageUrl} size={38} />
               </Pressable>
               <View style={{ flex: 1, minWidth: 0 }}>
                 <Pressable onPress={() => navigation.navigate('UserProfile', { userId: post.author.id })}>
@@ -358,7 +384,8 @@ export default function PostDetailScreen() {
                   {[post.createdAtLabel, post.location].filter(Boolean).join(' · ')}
                 </Text>
               </View>
-              {!isMyPost && (
+              {/* 탈퇴 계정은 팔로우할 수 없다 — 서버가 요청을 거절하므로 버튼을 아예 두지 않는다 */}
+              {!isMyPost && !post.author.isWithdrawn && (
                 <Pressable
                   onPress={toggleFollow}
                   className="items-center justify-center"
@@ -440,8 +467,8 @@ export default function PostDetailScreen() {
                   {post.bookmarkCount}
                 </Text>
               </Pressable>
-              <Pressable onPress={() => setShareSheetVisible(true)} hitSlop={8} accessibilityLabel="공유">
-                <Share2 size={normalize(16)} color="rgba(0,0,0,0.6)" strokeWidth={1.8} />
+              <Pressable onPress={handleShare} hitSlop={8} accessibilityLabel="공유">
+                <ShareIcon size={normalize(16)} color="rgba(0,0,0,0.6)" strokeWidth={1.8} />
               </Pressable>
             </View>
 
@@ -458,6 +485,7 @@ export default function PostDetailScreen() {
                   comment={comment}
                   onToggleLike={handleToggleCommentLike}
                   onPressReply={handlePressReply}
+                  onPressAuthor={handlePressCommentAuthor}
                   onPressEdit={handlePressEdit}
                   onDelete={setCommentPendingDelete}
                 />
@@ -511,15 +539,7 @@ export default function PostDetailScreen() {
             borderTopColor: 'rgba(0,0,0,0.06)',
           }}
         >
-          <View className="items-center justify-center overflow-hidden" style={{ width: normalize(32), height: normalize(32), borderRadius: normalize(16), backgroundColor: SURFACE }}>
-            {me?.profileImageUrl ? (
-              <Image source={{ uri: me.profileImageUrl }} resizeMode="cover" style={{ width: '100%', height: '100%' }} />
-            ) : (
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_2XS, color: 'rgba(0,0,0,0.35)' }}>
-                {me ? initialsOf(me.nickname) : 'ME'}
-              </Text>
-            )}
-          </View>
+          <Avatar userId={me?.id} nickname={me?.nickname} imageUrl={me?.profileImageUrl} size={32} />
           <View style={{ flex: 1, height: normalize(40), backgroundColor: SURFACE, borderRadius: normalize(20), paddingHorizontal: normalize(16), justifyContent: 'center' }}>
             <TextInput
               ref={commentInputRef}
@@ -552,7 +572,7 @@ export default function PostDetailScreen() {
         visible={actionSheetOpen}
         onClose={() => setActionSheetOpen(false)}
         isMyPost={isMyPost}
-        onShare={() => openAfterActionSheet(() => setShareSheetVisible(true))}
+        onShare={() => openAfterActionSheet(handleShare)}
         // 작성 화면을 수정 모드로 재사용한다(항목이 동일). postId가 있으면 CommunityWriteScreen이 폼을 채운다.
         onEdit={() => openAfterActionSheet(() => navigation.navigate('CommunityWrite', { postId }))}
         onRequestDelete={() => openAfterActionSheet(() => setDeleteModalOpen(true))}
@@ -589,6 +609,7 @@ export default function PostDetailScreen() {
         <PhotoLightbox
           visible={lightboxOpen}
           onClose={handleCloseLightbox}
+          initialIndex={heroPhotoIndex}
           exifOpen={exifOpen}
           onOpenExif={() => setExifOpen(true)}
           onCloseExif={() => setExifOpen(false)}
@@ -597,11 +618,6 @@ export default function PostDetailScreen() {
         />
       )}
 
-      <ShareSheet
-        visible={shareSheetVisible}
-        onClose={() => setShareSheetVisible(false)}
-        onShared={(message) => showToast(message)}
-      />
 
       <Toast message={toastMessage} visible={toastVisible} onHide={handleToastHide} />
     </View>

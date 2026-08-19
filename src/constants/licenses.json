@@ -1,0 +1,4190 @@
+[
+  {
+    "name": "@0no-co/graphql.web",
+    "owner": "0no.co",
+    "version": "1.2.0",
+    "license": "MIT"
+  },
+  {
+    "name": "@alloc/quick-lru",
+    "owner": "Sindre Sorhus",
+    "version": "5.2.0",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/code-frame",
+    "owner": "The Babel Team",
+    "version": "7.10.4, 7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/compat-data",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/core",
+    "owner": "The Babel Team",
+    "version": "7.29.0, 7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/generator",
+    "owner": "The Babel Team",
+    "version": "7.29.1, 7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/helper-annotate-as-pure",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/helper-compilation-targets",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/helper-create-class-features-plugin",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/helper-create-regexp-features-plugin",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/helper-define-polyfill-provider",
+    "owner": "작성자 미표기",
+    "version": "0.6.8",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/helper-globals",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/helper-member-expression-to-functions",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/helper-module-imports",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/helper-module-transforms",
+    "owner": "The Babel Team",
+    "version": "7.28.6, 7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/helper-optimise-call-expression",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/helper-plugin-utils",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/helper-remap-async-to-generator",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/helper-replace-supers",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/helper-skip-transparent-expression-wrappers",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/helper-string-parser",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/helper-validator-identifier",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/helper-validator-option",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/helper-wrap-function",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/helpers",
+    "owner": "The Babel Team",
+    "version": "7.29.2, 7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/highlight",
+    "owner": "The Babel Team",
+    "version": "7.25.9",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/parser",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-proposal-decorators",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-proposal-export-default-from",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-syntax-async-generators",
+    "owner": "작성자 미표기",
+    "version": "7.8.4",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-syntax-bigint",
+    "owner": "작성자 미표기",
+    "version": "7.8.3",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-syntax-class-properties",
+    "owner": "작성자 미표기",
+    "version": "7.12.13",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-syntax-class-static-block",
+    "owner": "The Babel Team",
+    "version": "7.14.5",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-syntax-decorators",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-syntax-dynamic-import",
+    "owner": "작성자 미표기",
+    "version": "7.8.3",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-syntax-export-default-from",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-syntax-flow",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-syntax-import-attributes",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-syntax-import-meta",
+    "owner": "작성자 미표기",
+    "version": "7.10.4",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-syntax-json-strings",
+    "owner": "작성자 미표기",
+    "version": "7.8.3",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-syntax-jsx",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-syntax-logical-assignment-operators",
+    "owner": "작성자 미표기",
+    "version": "7.10.4",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-syntax-nullish-coalescing-operator",
+    "owner": "작성자 미표기",
+    "version": "7.8.3",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-syntax-numeric-separator",
+    "owner": "작성자 미표기",
+    "version": "7.10.4",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-syntax-object-rest-spread",
+    "owner": "작성자 미표기",
+    "version": "7.8.3",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-syntax-optional-catch-binding",
+    "owner": "작성자 미표기",
+    "version": "7.8.3",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-syntax-optional-chaining",
+    "owner": "작성자 미표기",
+    "version": "7.8.3",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-syntax-private-property-in-object",
+    "owner": "The Babel Team",
+    "version": "7.14.5",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-syntax-top-level-await",
+    "owner": "The Babel Team",
+    "version": "7.14.5",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-syntax-typescript",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-transform-arrow-functions",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-transform-async-generator-functions",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-transform-async-to-generator",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-transform-block-scoping",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-transform-class-properties",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-transform-class-static-block",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-transform-classes",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-transform-computed-properties",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-transform-destructuring",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-transform-export-namespace-from",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-transform-flow-strip-types",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-transform-for-of",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-transform-function-name",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-transform-literals",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-transform-logical-assignment-operators",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-transform-modules-commonjs",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-transform-named-capturing-groups-regex",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-transform-nullish-coalescing-operator",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-transform-numeric-separator",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-transform-object-rest-spread",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-transform-optional-catch-binding",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-transform-optional-chaining",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-transform-parameters",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-transform-private-methods",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-transform-private-property-in-object",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-transform-react-display-name",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-transform-react-jsx",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-transform-react-jsx-development",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-transform-react-jsx-self",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-transform-react-jsx-source",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-transform-react-pure-annotations",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-transform-regenerator",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-transform-runtime",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-transform-shorthand-properties",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-transform-spread",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-transform-sticky-regex",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-transform-template-literals",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-transform-typescript",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/plugin-transform-unicode-regex",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/preset-react",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/preset-typescript",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/runtime",
+    "owner": "The Babel Team",
+    "version": "7.29.2, 7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/template",
+    "owner": "The Babel Team",
+    "version": "7.28.6, 7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/traverse",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@babel/types",
+    "owner": "The Babel Team",
+    "version": "7.29.7",
+    "license": "MIT"
+  },
+  {
+    "name": "@egjs/hammerjs",
+    "owner": "작성자 미표기",
+    "version": "2.0.17",
+    "license": "MIT"
+  },
+  {
+    "name": "@expo-google-fonts/fugaz-one",
+    "owner": "Expo Team",
+    "version": "0.4.1",
+    "license": "MIT AND OFL-1.1"
+  },
+  {
+    "name": "@expo/cli",
+    "owner": "Expo",
+    "version": "54.0.25",
+    "license": "MIT"
+  },
+  {
+    "name": "@expo/code-signing-certificates",
+    "owner": "Expo",
+    "version": "0.0.6",
+    "license": "MIT"
+  },
+  {
+    "name": "@expo/config",
+    "owner": "작성자 미표기",
+    "version": "12.0.13",
+    "license": "MIT"
+  },
+  {
+    "name": "@expo/config-plugins",
+    "owner": "작성자 미표기",
+    "version": "54.0.4",
+    "license": "MIT"
+  },
+  {
+    "name": "@expo/config-types",
+    "owner": "작성자 미표기",
+    "version": "54.0.10",
+    "license": "MIT"
+  },
+  {
+    "name": "@expo/devcert",
+    "owner": "Dave Wasmer",
+    "version": "1.2.1",
+    "license": "MIT"
+  },
+  {
+    "name": "@expo/devtools",
+    "owner": "작성자 미표기",
+    "version": "0.1.8",
+    "license": "MIT"
+  },
+  {
+    "name": "@expo/env",
+    "owner": "작성자 미표기",
+    "version": "2.0.11",
+    "license": "MIT"
+  },
+  {
+    "name": "@expo/fingerprint",
+    "owner": "650 Industries, Inc.",
+    "version": "0.15.5",
+    "license": "MIT"
+  },
+  {
+    "name": "@expo/image-utils",
+    "owner": "작성자 미표기",
+    "version": "0.8.14",
+    "license": "MIT"
+  },
+  {
+    "name": "@expo/json-file",
+    "owner": "작성자 미표기",
+    "version": "10.0.16, 10.2.0",
+    "license": "MIT"
+  },
+  {
+    "name": "@expo/metro",
+    "owner": "Expo",
+    "version": "54.2.0",
+    "license": "MIT"
+  },
+  {
+    "name": "@expo/metro-config",
+    "owner": "작성자 미표기",
+    "version": "54.0.16",
+    "license": "MIT"
+  },
+  {
+    "name": "@expo/osascript",
+    "owner": "작성자 미표기",
+    "version": "2.6.0",
+    "license": "MIT"
+  },
+  {
+    "name": "@expo/package-manager",
+    "owner": "작성자 미표기",
+    "version": "1.12.1",
+    "license": "MIT"
+  },
+  {
+    "name": "@expo/plist",
+    "owner": "작성자 미표기",
+    "version": "0.4.9",
+    "license": "MIT"
+  },
+  {
+    "name": "@expo/prebuild-config",
+    "owner": "작성자 미표기",
+    "version": "54.0.8",
+    "license": "MIT"
+  },
+  {
+    "name": "@expo/require-utils",
+    "owner": "작성자 미표기",
+    "version": "55.0.5",
+    "license": "MIT"
+  },
+  {
+    "name": "@expo/schema-utils",
+    "owner": "작성자 미표기",
+    "version": "0.1.8, 56.0.1",
+    "license": "MIT"
+  },
+  {
+    "name": "@expo/sdk-runtime-versions",
+    "owner": "Expo",
+    "version": "1.0.0",
+    "license": "MIT"
+  },
+  {
+    "name": "@expo/spawn-async",
+    "owner": "Expo",
+    "version": "1.8.0",
+    "license": "MIT"
+  },
+  {
+    "name": "@expo/sudo-prompt",
+    "owner": "Joran Dirk Greef",
+    "version": "9.3.2",
+    "license": "MIT"
+  },
+  {
+    "name": "@expo/vector-icons",
+    "owner": "Brent Vatne",
+    "version": "15.1.1",
+    "license": "MIT"
+  },
+  {
+    "name": "@expo/ws-tunnel",
+    "owner": "작성자 미표기",
+    "version": "1.0.6",
+    "license": "MIT"
+  },
+  {
+    "name": "@expo/xcpretty",
+    "owner": "Evan Bacon",
+    "version": "4.4.4",
+    "license": "BSD-3-Clause"
+  },
+  {
+    "name": "@firebase/ai",
+    "owner": "Firebase",
+    "version": "2.13.1",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "@firebase/analytics",
+    "owner": "Firebase",
+    "version": "0.10.22",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "@firebase/analytics-compat",
+    "owner": "Firebase",
+    "version": "0.2.28",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "@firebase/analytics-types",
+    "owner": "Firebase",
+    "version": "0.8.4",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "@firebase/app",
+    "owner": "Firebase",
+    "version": "0.15.0",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "@firebase/app-check",
+    "owner": "Firebase",
+    "version": "0.12.0",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "@firebase/app-check-compat",
+    "owner": "Firebase",
+    "version": "0.4.5",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "@firebase/app-check-interop-types",
+    "owner": "Firebase",
+    "version": "0.3.4",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "@firebase/app-check-types",
+    "owner": "Firebase",
+    "version": "0.5.4",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "@firebase/app-compat",
+    "owner": "Firebase",
+    "version": "0.5.14",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "@firebase/app-types",
+    "owner": "Firebase",
+    "version": "0.9.5",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "@firebase/auth",
+    "owner": "Firebase",
+    "version": "1.13.3",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "@firebase/auth-compat",
+    "owner": "Firebase",
+    "version": "0.6.8",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "@firebase/auth-interop-types",
+    "owner": "Firebase",
+    "version": "0.2.5",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "@firebase/auth-types",
+    "owner": "Firebase",
+    "version": "0.13.1",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "@firebase/component",
+    "owner": "Firebase",
+    "version": "0.7.3",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "@firebase/data-connect",
+    "owner": "Firebase",
+    "version": "0.7.1",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "@firebase/database",
+    "owner": "Firebase",
+    "version": "1.1.3",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "@firebase/database-compat",
+    "owner": "Firebase",
+    "version": "2.1.4",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "@firebase/database-types",
+    "owner": "Firebase",
+    "version": "1.0.20",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "@firebase/firestore",
+    "owner": "Firebase",
+    "version": "4.16.0",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "@firebase/firestore-compat",
+    "owner": "Firebase",
+    "version": "0.4.11",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "@firebase/firestore-types",
+    "owner": "Firebase",
+    "version": "3.0.4",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "@firebase/functions",
+    "owner": "Firebase",
+    "version": "0.13.5",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "@firebase/functions-compat",
+    "owner": "Firebase",
+    "version": "0.4.5",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "@firebase/functions-types",
+    "owner": "Firebase",
+    "version": "0.6.4",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "@firebase/installations",
+    "owner": "Firebase",
+    "version": "0.6.22",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "@firebase/installations-compat",
+    "owner": "Firebase",
+    "version": "0.2.22",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "@firebase/installations-types",
+    "owner": "Firebase",
+    "version": "0.5.4",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "@firebase/logger",
+    "owner": "Firebase",
+    "version": "0.5.1",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "@firebase/messaging",
+    "owner": "Firebase",
+    "version": "0.13.0",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "@firebase/messaging-compat",
+    "owner": "Firebase",
+    "version": "0.2.27",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "@firebase/messaging-interop-types",
+    "owner": "Firebase",
+    "version": "0.2.5",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "@firebase/performance",
+    "owner": "Firebase",
+    "version": "0.7.12",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "@firebase/performance-compat",
+    "owner": "Firebase",
+    "version": "0.2.25",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "@firebase/performance-types",
+    "owner": "Firebase",
+    "version": "0.2.4",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "@firebase/remote-config",
+    "owner": "Firebase",
+    "version": "0.8.5",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "@firebase/remote-config-compat",
+    "owner": "Firebase",
+    "version": "0.2.26",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "@firebase/remote-config-types",
+    "owner": "Firebase",
+    "version": "0.5.1",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "@firebase/storage",
+    "owner": "Firebase",
+    "version": "0.14.3",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "@firebase/storage-compat",
+    "owner": "Firebase",
+    "version": "0.4.3",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "@firebase/storage-types",
+    "owner": "Firebase",
+    "version": "0.8.4",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "@firebase/util",
+    "owner": "Firebase",
+    "version": "1.15.1",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "@firebase/webchannel-wrapper",
+    "owner": "Firebase",
+    "version": "1.0.6",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "@grpc/grpc-js",
+    "owner": "Google Inc.",
+    "version": "1.9.16",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "@grpc/proto-loader",
+    "owner": "Google Inc.",
+    "version": "0.7.15",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "@isaacs/fs-minipass",
+    "owner": "Isaac Z. Schlueter",
+    "version": "4.0.1",
+    "license": "ISC"
+  },
+  {
+    "name": "@isaacs/ttlcache",
+    "owner": "Isaac Z. Schlueter",
+    "version": "1.4.1",
+    "license": "ISC"
+  },
+  {
+    "name": "@istanbuljs/load-nyc-config",
+    "owner": "작성자 미표기",
+    "version": "1.1.0",
+    "license": "ISC"
+  },
+  {
+    "name": "@istanbuljs/schema",
+    "owner": "Corey Farrell",
+    "version": "0.1.6",
+    "license": "MIT"
+  },
+  {
+    "name": "@jest/create-cache-key-function",
+    "owner": "작성자 미표기",
+    "version": "29.7.0",
+    "license": "MIT"
+  },
+  {
+    "name": "@jest/environment",
+    "owner": "작성자 미표기",
+    "version": "29.7.0",
+    "license": "MIT"
+  },
+  {
+    "name": "@jest/fake-timers",
+    "owner": "작성자 미표기",
+    "version": "29.7.0",
+    "license": "MIT"
+  },
+  {
+    "name": "@jest/schemas",
+    "owner": "작성자 미표기",
+    "version": "29.6.3",
+    "license": "MIT"
+  },
+  {
+    "name": "@jest/transform",
+    "owner": "작성자 미표기",
+    "version": "29.7.0",
+    "license": "MIT"
+  },
+  {
+    "name": "@jest/types",
+    "owner": "작성자 미표기",
+    "version": "29.6.3",
+    "license": "MIT"
+  },
+  {
+    "name": "@jridgewell/gen-mapping",
+    "owner": "Justin Ridgewell",
+    "version": "0.3.13",
+    "license": "MIT"
+  },
+  {
+    "name": "@jridgewell/remapping",
+    "owner": "Justin Ridgewell",
+    "version": "2.3.5",
+    "license": "MIT"
+  },
+  {
+    "name": "@jridgewell/resolve-uri",
+    "owner": "Justin Ridgewell",
+    "version": "3.1.2",
+    "license": "MIT"
+  },
+  {
+    "name": "@jridgewell/source-map",
+    "owner": "Justin Ridgewell",
+    "version": "0.3.11",
+    "license": "MIT"
+  },
+  {
+    "name": "@jridgewell/sourcemap-codec",
+    "owner": "Justin Ridgewell",
+    "version": "1.5.5",
+    "license": "MIT"
+  },
+  {
+    "name": "@jridgewell/trace-mapping",
+    "owner": "Justin Ridgewell",
+    "version": "0.3.31",
+    "license": "MIT"
+  },
+  {
+    "name": "@nodelib/fs.scandir",
+    "owner": "작성자 미표기",
+    "version": "2.1.5",
+    "license": "MIT"
+  },
+  {
+    "name": "@nodelib/fs.stat",
+    "owner": "작성자 미표기",
+    "version": "2.0.5",
+    "license": "MIT"
+  },
+  {
+    "name": "@nodelib/fs.walk",
+    "owner": "작성자 미표기",
+    "version": "1.2.8",
+    "license": "MIT"
+  },
+  {
+    "name": "@protobufjs/aspromise",
+    "owner": "Daniel Wirtz",
+    "version": "1.1.2",
+    "license": "BSD-3-Clause"
+  },
+  {
+    "name": "@protobufjs/base64",
+    "owner": "Daniel Wirtz",
+    "version": "1.1.2",
+    "license": "BSD-3-Clause"
+  },
+  {
+    "name": "@protobufjs/codegen",
+    "owner": "Daniel Wirtz",
+    "version": "2.0.5",
+    "license": "BSD-3-Clause"
+  },
+  {
+    "name": "@protobufjs/eventemitter",
+    "owner": "Daniel Wirtz",
+    "version": "1.1.1",
+    "license": "BSD-3-Clause"
+  },
+  {
+    "name": "@protobufjs/fetch",
+    "owner": "Daniel Wirtz",
+    "version": "1.1.1",
+    "license": "BSD-3-Clause"
+  },
+  {
+    "name": "@protobufjs/float",
+    "owner": "Daniel Wirtz",
+    "version": "1.0.2",
+    "license": "BSD-3-Clause"
+  },
+  {
+    "name": "@protobufjs/path",
+    "owner": "Daniel Wirtz",
+    "version": "1.1.2",
+    "license": "BSD-3-Clause"
+  },
+  {
+    "name": "@protobufjs/pool",
+    "owner": "Daniel Wirtz",
+    "version": "1.1.0",
+    "license": "BSD-3-Clause"
+  },
+  {
+    "name": "@protobufjs/utf8",
+    "owner": "Daniel Wirtz",
+    "version": "1.1.2",
+    "license": "BSD-3-Clause"
+  },
+  {
+    "name": "@react-native-async-storage/async-storage",
+    "owner": "Krzysztof Borowy",
+    "version": "2.2.0",
+    "license": "MIT"
+  },
+  {
+    "name": "@react-native-community/datetimepicker",
+    "owner": "Martijn Swaagman",
+    "version": "8.4.4",
+    "license": "MIT"
+  },
+  {
+    "name": "@react-native-firebase/app",
+    "owner": "Invertase",
+    "version": "25.1.0",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "@react-native-firebase/messaging",
+    "owner": "Invertase",
+    "version": "25.1.0",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "@react-native-seoul/kakao-login",
+    "owner": "dooboolab",
+    "version": "5.4.2",
+    "license": "MIT"
+  },
+  {
+    "name": "@react-native/assets-registry",
+    "owner": "작성자 미표기",
+    "version": "0.81.5",
+    "license": "MIT"
+  },
+  {
+    "name": "@react-native/babel-plugin-codegen",
+    "owner": "작성자 미표기",
+    "version": "0.81.5, 0.85.3",
+    "license": "MIT"
+  },
+  {
+    "name": "@react-native/babel-preset",
+    "owner": "작성자 미표기",
+    "version": "0.81.5, 0.85.3",
+    "license": "MIT"
+  },
+  {
+    "name": "@react-native/codegen",
+    "owner": "작성자 미표기",
+    "version": "0.81.5, 0.85.3",
+    "license": "MIT"
+  },
+  {
+    "name": "@react-native/community-cli-plugin",
+    "owner": "작성자 미표기",
+    "version": "0.81.5",
+    "license": "MIT"
+  },
+  {
+    "name": "@react-native/debugger-frontend",
+    "owner": "작성자 미표기",
+    "version": "0.81.5",
+    "license": "BSD-3-Clause"
+  },
+  {
+    "name": "@react-native/dev-middleware",
+    "owner": "작성자 미표기",
+    "version": "0.81.5",
+    "license": "MIT"
+  },
+  {
+    "name": "@react-native/gradle-plugin",
+    "owner": "작성자 미표기",
+    "version": "0.81.5",
+    "license": "MIT"
+  },
+  {
+    "name": "@react-native/js-polyfills",
+    "owner": "작성자 미표기",
+    "version": "0.81.5, 0.85.3",
+    "license": "MIT"
+  },
+  {
+    "name": "@react-native/metro-babel-transformer",
+    "owner": "작성자 미표기",
+    "version": "0.85.3",
+    "license": "MIT"
+  },
+  {
+    "name": "@react-native/metro-config",
+    "owner": "작성자 미표기",
+    "version": "0.85.3",
+    "license": "MIT"
+  },
+  {
+    "name": "@react-native/normalize-colors",
+    "owner": "작성자 미표기",
+    "version": "0.74.89, 0.81.5",
+    "license": "MIT"
+  },
+  {
+    "name": "@react-native/virtualized-lists",
+    "owner": "작성자 미표기",
+    "version": "0.81.5",
+    "license": "MIT"
+  },
+  {
+    "name": "@react-navigation/bottom-tabs",
+    "owner": "작성자 미표기",
+    "version": "7.18.2",
+    "license": "MIT"
+  },
+  {
+    "name": "@react-navigation/core",
+    "owner": "작성자 미표기",
+    "version": "7.21.1",
+    "license": "MIT"
+  },
+  {
+    "name": "@react-navigation/elements",
+    "owner": "작성자 미표기",
+    "version": "2.9.25",
+    "license": "MIT"
+  },
+  {
+    "name": "@react-navigation/native",
+    "owner": "작성자 미표기",
+    "version": "7.3.3",
+    "license": "MIT"
+  },
+  {
+    "name": "@react-navigation/native-stack",
+    "owner": "작성자 미표기",
+    "version": "7.17.5",
+    "license": "MIT"
+  },
+  {
+    "name": "@react-navigation/routers",
+    "owner": "작성자 미표기",
+    "version": "7.6.0",
+    "license": "MIT"
+  },
+  {
+    "name": "@sinclair/typebox",
+    "owner": "sinclairzx81",
+    "version": "0.27.10",
+    "license": "MIT"
+  },
+  {
+    "name": "@sinonjs/commons",
+    "owner": "작성자 미표기",
+    "version": "3.0.1",
+    "license": "BSD-3-Clause"
+  },
+  {
+    "name": "@sinonjs/fake-timers",
+    "owner": "Christian Johansen",
+    "version": "10.3.0",
+    "license": "BSD-3-Clause"
+  },
+  {
+    "name": "@tabler/icons",
+    "owner": "codecalm",
+    "version": "3.44.0",
+    "license": "MIT"
+  },
+  {
+    "name": "@tabler/icons-react-native",
+    "owner": "codecalm",
+    "version": "3.44.0",
+    "license": "MIT"
+  },
+  {
+    "name": "@tanstack/query-core",
+    "owner": "tannerlinsley",
+    "version": "5.101.0",
+    "license": "MIT"
+  },
+  {
+    "name": "@tanstack/react-query",
+    "owner": "tannerlinsley",
+    "version": "5.101.0",
+    "license": "MIT"
+  },
+  {
+    "name": "@types/babel__core",
+    "owner": "작성자 미표기",
+    "version": "7.20.5",
+    "license": "MIT"
+  },
+  {
+    "name": "@types/babel__generator",
+    "owner": "작성자 미표기",
+    "version": "7.27.0",
+    "license": "MIT"
+  },
+  {
+    "name": "@types/babel__template",
+    "owner": "작성자 미표기",
+    "version": "7.4.4",
+    "license": "MIT"
+  },
+  {
+    "name": "@types/babel__traverse",
+    "owner": "작성자 미표기",
+    "version": "7.28.0",
+    "license": "MIT"
+  },
+  {
+    "name": "@types/graceful-fs",
+    "owner": "작성자 미표기",
+    "version": "4.1.9",
+    "license": "MIT"
+  },
+  {
+    "name": "@types/hammerjs",
+    "owner": "작성자 미표기",
+    "version": "2.0.46",
+    "license": "MIT"
+  },
+  {
+    "name": "@types/istanbul-lib-coverage",
+    "owner": "작성자 미표기",
+    "version": "2.0.6",
+    "license": "MIT"
+  },
+  {
+    "name": "@types/istanbul-lib-report",
+    "owner": "작성자 미표기",
+    "version": "3.0.3",
+    "license": "MIT"
+  },
+  {
+    "name": "@types/istanbul-reports",
+    "owner": "작성자 미표기",
+    "version": "3.0.4",
+    "license": "MIT"
+  },
+  {
+    "name": "@types/node",
+    "owner": "작성자 미표기",
+    "version": "25.9.3",
+    "license": "MIT"
+  },
+  {
+    "name": "@types/react",
+    "owner": "작성자 미표기",
+    "version": "19.1.17",
+    "license": "MIT"
+  },
+  {
+    "name": "@types/stack-utils",
+    "owner": "작성자 미표기",
+    "version": "2.0.3",
+    "license": "MIT"
+  },
+  {
+    "name": "@types/yargs",
+    "owner": "작성자 미표기",
+    "version": "17.0.35",
+    "license": "MIT"
+  },
+  {
+    "name": "@types/yargs-parser",
+    "owner": "작성자 미표기",
+    "version": "21.0.3",
+    "license": "MIT"
+  },
+  {
+    "name": "@ungap/structured-clone",
+    "owner": "Andrea Giammarchi",
+    "version": "1.3.1",
+    "license": "ISC"
+  },
+  {
+    "name": "@urql/core",
+    "owner": "urql GraphQL Contributors",
+    "version": "5.2.0",
+    "license": "MIT"
+  },
+  {
+    "name": "@urql/exchange-retry",
+    "owner": "urql GraphQL Contributors",
+    "version": "1.3.2",
+    "license": "MIT"
+  },
+  {
+    "name": "@xmldom/xmldom",
+    "owner": "작성자 미표기",
+    "version": "0.8.13, 0.9.10",
+    "license": "MIT"
+  },
+  {
+    "name": "abort-controller",
+    "owner": "Toru Nagashima",
+    "version": "3.0.0",
+    "license": "MIT"
+  },
+  {
+    "name": "accepts",
+    "owner": "작성자 미표기",
+    "version": "1.3.8, 2.0.0",
+    "license": "MIT"
+  },
+  {
+    "name": "acorn",
+    "owner": "작성자 미표기",
+    "version": "8.16.0",
+    "license": "MIT"
+  },
+  {
+    "name": "agent-base",
+    "owner": "Nathan Rajlich",
+    "version": "7.1.4",
+    "license": "MIT"
+  },
+  {
+    "name": "anser",
+    "owner": "Ionică Bizău",
+    "version": "1.4.10",
+    "license": "MIT"
+  },
+  {
+    "name": "ansi-escapes",
+    "owner": "Sindre Sorhus",
+    "version": "4.3.2",
+    "license": "MIT"
+  },
+  {
+    "name": "ansi-regex",
+    "owner": "Sindre Sorhus",
+    "version": "4.1.1, 5.0.1",
+    "license": "MIT"
+  },
+  {
+    "name": "ansi-styles",
+    "owner": "Sindre Sorhus",
+    "version": "3.2.1, 4.3.0, 5.2.0",
+    "license": "MIT"
+  },
+  {
+    "name": "any-promise",
+    "owner": "Kevin Beaty",
+    "version": "1.3.0",
+    "license": "MIT"
+  },
+  {
+    "name": "anymatch",
+    "owner": "Elan Shanker",
+    "version": "3.1.3",
+    "license": "ISC"
+  },
+  {
+    "name": "arg",
+    "owner": "Josh Junon",
+    "version": "5.0.2",
+    "license": "MIT"
+  },
+  {
+    "name": "argparse",
+    "owner": "작성자 미표기",
+    "version": "1.0.10",
+    "license": "MIT"
+  },
+  {
+    "name": "array-timsort",
+    "owner": "작성자 미표기",
+    "version": "1.0.3",
+    "license": "MIT"
+  },
+  {
+    "name": "asap",
+    "owner": "작성자 미표기",
+    "version": "2.0.6",
+    "license": "MIT"
+  },
+  {
+    "name": "async-limiter",
+    "owner": "Samuel Reed",
+    "version": "1.0.1",
+    "license": "MIT"
+  },
+  {
+    "name": "babel-jest",
+    "owner": "작성자 미표기",
+    "version": "29.7.0",
+    "license": "MIT"
+  },
+  {
+    "name": "babel-plugin-istanbul",
+    "owner": "Thai Pangsakulyanont @dtinth",
+    "version": "6.1.1",
+    "license": "BSD-3-Clause"
+  },
+  {
+    "name": "babel-plugin-jest-hoist",
+    "owner": "작성자 미표기",
+    "version": "29.6.3",
+    "license": "MIT"
+  },
+  {
+    "name": "babel-plugin-polyfill-corejs2",
+    "owner": "작성자 미표기",
+    "version": "0.4.17",
+    "license": "MIT"
+  },
+  {
+    "name": "babel-plugin-polyfill-corejs3",
+    "owner": "작성자 미표기",
+    "version": "0.13.0",
+    "license": "MIT"
+  },
+  {
+    "name": "babel-plugin-polyfill-regenerator",
+    "owner": "작성자 미표기",
+    "version": "0.6.8",
+    "license": "MIT"
+  },
+  {
+    "name": "babel-plugin-react-compiler",
+    "owner": "작성자 미표기",
+    "version": "1.0.0",
+    "license": "MIT"
+  },
+  {
+    "name": "babel-plugin-react-native-web",
+    "owner": "Nicolas Gallagher",
+    "version": "0.21.2",
+    "license": "MIT"
+  },
+  {
+    "name": "babel-plugin-syntax-hermes-parser",
+    "owner": "작성자 미표기",
+    "version": "0.29.1, 0.33.3",
+    "license": "MIT"
+  },
+  {
+    "name": "babel-plugin-transform-flow-enums",
+    "owner": "작성자 미표기",
+    "version": "0.0.2",
+    "license": "MIT"
+  },
+  {
+    "name": "babel-preset-current-node-syntax",
+    "owner": "Nicolò Ribaudo",
+    "version": "1.2.0",
+    "license": "MIT"
+  },
+  {
+    "name": "babel-preset-expo",
+    "owner": "Expo",
+    "version": "54.0.11",
+    "license": "MIT"
+  },
+  {
+    "name": "babel-preset-jest",
+    "owner": "작성자 미표기",
+    "version": "29.6.3",
+    "license": "MIT"
+  },
+  {
+    "name": "balanced-match",
+    "owner": "작성자 미표기",
+    "version": "1.0.2, 4.0.4",
+    "license": "MIT"
+  },
+  {
+    "name": "base64-js",
+    "owner": "T. Jameson Little",
+    "version": "1.5.1",
+    "license": "MIT"
+  },
+  {
+    "name": "baseline-browser-mapping",
+    "owner": "작성자 미표기",
+    "version": "2.10.34",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "better-opn",
+    "owner": "Michael Lin",
+    "version": "3.0.2",
+    "license": "MIT"
+  },
+  {
+    "name": "big-integer",
+    "owner": "Peter Olson",
+    "version": "1.6.52",
+    "license": "Unlicense"
+  },
+  {
+    "name": "binary-extensions",
+    "owner": "Sindre Sorhus",
+    "version": "2.3.0",
+    "license": "MIT"
+  },
+  {
+    "name": "boolbase",
+    "owner": "Felix Boehm",
+    "version": "1.0.0",
+    "license": "ISC"
+  },
+  {
+    "name": "bplist-creator",
+    "owner": "Joe Ferner",
+    "version": "0.1.0",
+    "license": "MIT"
+  },
+  {
+    "name": "bplist-parser",
+    "owner": "Joe Ferner",
+    "version": "0.3.1, 0.3.2",
+    "license": "MIT"
+  },
+  {
+    "name": "brace-expansion",
+    "owner": "작성자 미표기",
+    "version": "1.1.14, 2.1.1, 5.0.6",
+    "license": "MIT"
+  },
+  {
+    "name": "braces",
+    "owner": "Jon Schlinkert",
+    "version": "3.0.3",
+    "license": "MIT"
+  },
+  {
+    "name": "browserslist",
+    "owner": "Andrey Sitnik",
+    "version": "4.28.2",
+    "license": "MIT"
+  },
+  {
+    "name": "bser",
+    "owner": "Wez Furlong",
+    "version": "2.1.1",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "buffer",
+    "owner": "Feross Aboukhadijeh",
+    "version": "5.7.1",
+    "license": "MIT"
+  },
+  {
+    "name": "buffer-from",
+    "owner": "작성자 미표기",
+    "version": "1.1.2",
+    "license": "MIT"
+  },
+  {
+    "name": "bytes",
+    "owner": "TJ Holowaychuk",
+    "version": "3.1.2",
+    "license": "MIT"
+  },
+  {
+    "name": "camelcase",
+    "owner": "Sindre Sorhus",
+    "version": "5.3.1, 6.3.0",
+    "license": "MIT"
+  },
+  {
+    "name": "camelcase-css",
+    "owner": "Steven Vachon",
+    "version": "2.0.1",
+    "license": "MIT"
+  },
+  {
+    "name": "caniuse-lite",
+    "owner": "Ben Briggs",
+    "version": "1.0.30001797",
+    "license": "CC-BY-4.0"
+  },
+  {
+    "name": "chalk",
+    "owner": "작성자 미표기",
+    "version": "2.4.2, 4.1.2",
+    "license": "MIT"
+  },
+  {
+    "name": "chokidar",
+    "owner": "Paul Miller",
+    "version": "3.6.0",
+    "license": "MIT"
+  },
+  {
+    "name": "chownr",
+    "owner": "Isaac Z. Schlueter",
+    "version": "3.0.0",
+    "license": "BlueOak-1.0.0"
+  },
+  {
+    "name": "chrome-launcher",
+    "owner": "The Chromium Authors",
+    "version": "0.15.2",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "chromium-edge-launcher",
+    "owner": "Cezar Augusto",
+    "version": "0.2.0",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "ci-info",
+    "owner": "Thomas Watson Steen",
+    "version": "2.0.0, 3.9.0",
+    "license": "MIT"
+  },
+  {
+    "name": "cli-cursor",
+    "owner": "Sindre Sorhus",
+    "version": "2.1.0",
+    "license": "MIT"
+  },
+  {
+    "name": "cli-spinners",
+    "owner": "Sindre Sorhus",
+    "version": "2.9.2",
+    "license": "MIT"
+  },
+  {
+    "name": "cliui",
+    "owner": "Ben Coe",
+    "version": "8.0.1",
+    "license": "ISC"
+  },
+  {
+    "name": "clone",
+    "owner": "Paul Vorbach",
+    "version": "1.0.4",
+    "license": "MIT"
+  },
+  {
+    "name": "color",
+    "owner": "작성자 미표기",
+    "version": "4.2.3",
+    "license": "MIT"
+  },
+  {
+    "name": "color-convert",
+    "owner": "Heather Arthur",
+    "version": "1.9.3, 2.0.1",
+    "license": "MIT"
+  },
+  {
+    "name": "color-name",
+    "owner": "DY",
+    "version": "1.1.3, 1.1.4",
+    "license": "MIT"
+  },
+  {
+    "name": "color-string",
+    "owner": "Heather Arthur",
+    "version": "1.9.1",
+    "license": "MIT"
+  },
+  {
+    "name": "commander",
+    "owner": "TJ Holowaychuk",
+    "version": "2.20.3, 4.1.1, 7.2.0, 12.1.0",
+    "license": "MIT"
+  },
+  {
+    "name": "comment-json",
+    "owner": "kaelzhang",
+    "version": "4.6.2",
+    "license": "MIT"
+  },
+  {
+    "name": "compressible",
+    "owner": "작성자 미표기",
+    "version": "2.0.18",
+    "license": "MIT"
+  },
+  {
+    "name": "compression",
+    "owner": "작성자 미표기",
+    "version": "1.8.1",
+    "license": "MIT"
+  },
+  {
+    "name": "concat-map",
+    "owner": "James Halliday",
+    "version": "0.0.1",
+    "license": "MIT"
+  },
+  {
+    "name": "connect",
+    "owner": "TJ Holowaychuk",
+    "version": "3.7.0",
+    "license": "MIT"
+  },
+  {
+    "name": "convert-source-map",
+    "owner": "Thorsten Lorenz",
+    "version": "2.0.0",
+    "license": "MIT"
+  },
+  {
+    "name": "core-js-compat",
+    "owner": "Denis Pushkarev",
+    "version": "3.49.0",
+    "license": "MIT"
+  },
+  {
+    "name": "cross-fetch",
+    "owner": "Leonardo Quixada",
+    "version": "3.2.0",
+    "license": "MIT"
+  },
+  {
+    "name": "cross-spawn",
+    "owner": "André Cruz",
+    "version": "7.0.6",
+    "license": "MIT"
+  },
+  {
+    "name": "css-in-js-utils",
+    "owner": "robinweser",
+    "version": "3.1.0",
+    "license": "MIT"
+  },
+  {
+    "name": "css-select",
+    "owner": "Felix Boehm",
+    "version": "5.2.2",
+    "license": "BSD-2-Clause"
+  },
+  {
+    "name": "css-tree",
+    "owner": "Roman Dvornov",
+    "version": "1.1.3",
+    "license": "MIT"
+  },
+  {
+    "name": "css-what",
+    "owner": "Felix Böhm",
+    "version": "6.2.2",
+    "license": "BSD-2-Clause"
+  },
+  {
+    "name": "cssesc",
+    "owner": "Mathias Bynens",
+    "version": "3.0.0",
+    "license": "MIT"
+  },
+  {
+    "name": "csstype",
+    "owner": "Fredrik Nicol",
+    "version": "3.2.3",
+    "license": "MIT"
+  },
+  {
+    "name": "debug",
+    "owner": "Josh Junon",
+    "version": "2.6.9, 3.2.7, 4.4.3",
+    "license": "MIT"
+  },
+  {
+    "name": "decode-uri-component",
+    "owner": "Sam Verschueren",
+    "version": "0.2.2",
+    "license": "MIT"
+  },
+  {
+    "name": "deep-extend",
+    "owner": "Viacheslav Lotsmanov",
+    "version": "0.6.0",
+    "license": "MIT"
+  },
+  {
+    "name": "deepmerge",
+    "owner": "작성자 미표기",
+    "version": "4.3.1",
+    "license": "MIT"
+  },
+  {
+    "name": "defaults",
+    "owner": "Elijah Insua",
+    "version": "1.0.4",
+    "license": "MIT"
+  },
+  {
+    "name": "define-lazy-prop",
+    "owner": "Sindre Sorhus",
+    "version": "2.0.0",
+    "license": "MIT"
+  },
+  {
+    "name": "depd",
+    "owner": "Douglas Christopher Wilson",
+    "version": "2.0.0",
+    "license": "MIT"
+  },
+  {
+    "name": "destroy",
+    "owner": "Jonathan Ong",
+    "version": "1.2.0",
+    "license": "MIT"
+  },
+  {
+    "name": "detect-libc",
+    "owner": "Lovell Fuller",
+    "version": "1.0.3, 2.1.2",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "didyoumean",
+    "owner": "Dave Porter",
+    "version": "1.2.2",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "dlv",
+    "owner": "Jason Miller",
+    "version": "1.1.3",
+    "license": "MIT"
+  },
+  {
+    "name": "dom-serializer",
+    "owner": "Felix Boehm",
+    "version": "2.0.0",
+    "license": "MIT"
+  },
+  {
+    "name": "domelementtype",
+    "owner": "Felix Boehm",
+    "version": "2.3.0",
+    "license": "BSD-2-Clause"
+  },
+  {
+    "name": "domhandler",
+    "owner": "Felix Boehm",
+    "version": "5.0.3",
+    "license": "BSD-2-Clause"
+  },
+  {
+    "name": "domutils",
+    "owner": "Felix Boehm",
+    "version": "3.2.2",
+    "license": "BSD-2-Clause"
+  },
+  {
+    "name": "dooboolab-welcome",
+    "owner": "support@dooboolab.com",
+    "version": "1.3.2",
+    "license": "ISC"
+  },
+  {
+    "name": "dotenv",
+    "owner": "작성자 미표기",
+    "version": "16.4.7",
+    "license": "BSD-2-Clause"
+  },
+  {
+    "name": "dotenv-expand",
+    "owner": "motdotla",
+    "version": "11.0.7",
+    "license": "BSD-2-Clause"
+  },
+  {
+    "name": "ee-first",
+    "owner": "Jonathan Ong",
+    "version": "1.1.1",
+    "license": "MIT"
+  },
+  {
+    "name": "electron-to-chromium",
+    "owner": "Kilian Valkhof",
+    "version": "1.5.368",
+    "license": "ISC"
+  },
+  {
+    "name": "emoji-regex",
+    "owner": "Mathias Bynens",
+    "version": "8.0.0",
+    "license": "MIT"
+  },
+  {
+    "name": "encodeurl",
+    "owner": "작성자 미표기",
+    "version": "1.0.2, 2.0.0",
+    "license": "MIT"
+  },
+  {
+    "name": "entities",
+    "owner": "Felix Boehm",
+    "version": "4.5.0",
+    "license": "BSD-2-Clause"
+  },
+  {
+    "name": "env-editor",
+    "owner": "Sindre Sorhus",
+    "version": "0.4.2",
+    "license": "MIT"
+  },
+  {
+    "name": "error-stack-parser",
+    "owner": "작성자 미표기",
+    "version": "2.1.4",
+    "license": "MIT"
+  },
+  {
+    "name": "es-errors",
+    "owner": "Jordan Harband",
+    "version": "1.3.0",
+    "license": "MIT"
+  },
+  {
+    "name": "escalade",
+    "owner": "Luke Edwards",
+    "version": "3.2.0",
+    "license": "MIT"
+  },
+  {
+    "name": "escape-html",
+    "owner": "작성자 미표기",
+    "version": "1.0.3",
+    "license": "MIT"
+  },
+  {
+    "name": "escape-string-regexp",
+    "owner": "Sindre Sorhus",
+    "version": "1.0.5, 2.0.0, 4.0.0",
+    "license": "MIT"
+  },
+  {
+    "name": "esprima",
+    "owner": "Ariya Hidayat",
+    "version": "4.0.1",
+    "license": "BSD-2-Clause"
+  },
+  {
+    "name": "etag",
+    "owner": "작성자 미표기",
+    "version": "1.8.1",
+    "license": "MIT"
+  },
+  {
+    "name": "event-target-shim",
+    "owner": "Toru Nagashima",
+    "version": "5.0.1",
+    "license": "MIT"
+  },
+  {
+    "name": "expo",
+    "owner": "Expo",
+    "version": "54.0.35",
+    "license": "MIT"
+  },
+  {
+    "name": "expo-asset",
+    "owner": "650 Industries, Inc.",
+    "version": "12.0.13",
+    "license": "MIT"
+  },
+  {
+    "name": "expo-build-properties",
+    "owner": "650 Industries, Inc.",
+    "version": "56.0.19",
+    "license": "MIT"
+  },
+  {
+    "name": "expo-constants",
+    "owner": "650 Industries, Inc.",
+    "version": "18.0.13",
+    "license": "MIT"
+  },
+  {
+    "name": "expo-file-system",
+    "owner": "650 Industries, Inc.",
+    "version": "19.0.23",
+    "license": "MIT"
+  },
+  {
+    "name": "expo-font",
+    "owner": "650 Industries, Inc.",
+    "version": "14.0.12",
+    "license": "MIT"
+  },
+  {
+    "name": "expo-haptics",
+    "owner": "650 Industries, Inc.",
+    "version": "15.0.8",
+    "license": "MIT"
+  },
+  {
+    "name": "expo-image-loader",
+    "owner": "650 Industries, Inc.",
+    "version": "6.0.0",
+    "license": "MIT"
+  },
+  {
+    "name": "expo-image-picker",
+    "owner": "650 Industries, Inc.",
+    "version": "17.0.11",
+    "license": "MIT"
+  },
+  {
+    "name": "expo-keep-awake",
+    "owner": "650 Industries, Inc.",
+    "version": "15.0.8",
+    "license": "MIT"
+  },
+  {
+    "name": "expo-linear-gradient",
+    "owner": "650 Industries, Inc.",
+    "version": "15.0.8",
+    "license": "MIT"
+  },
+  {
+    "name": "expo-location",
+    "owner": "650 Industries, Inc.",
+    "version": "19.0.8",
+    "license": "MIT"
+  },
+  {
+    "name": "expo-modules-autolinking",
+    "owner": "650 Industries, Inc.",
+    "version": "3.0.26",
+    "license": "MIT"
+  },
+  {
+    "name": "expo-modules-core",
+    "owner": "650 Industries, Inc.",
+    "version": "3.0.30",
+    "license": "MIT"
+  },
+  {
+    "name": "expo-secure-store",
+    "owner": "650 Industries, Inc.",
+    "version": "15.0.8",
+    "license": "MIT"
+  },
+  {
+    "name": "expo-server",
+    "owner": "작성자 미표기",
+    "version": "1.0.7",
+    "license": "MIT"
+  },
+  {
+    "name": "expo-status-bar",
+    "owner": "650 Industries, Inc.",
+    "version": "3.0.9",
+    "license": "MIT"
+  },
+  {
+    "name": "exponential-backoff",
+    "owner": "Sami Sayegh",
+    "version": "3.1.3",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "fast-deep-equal",
+    "owner": "Evgeny Poberezkin",
+    "version": "3.1.3",
+    "license": "MIT"
+  },
+  {
+    "name": "fast-glob",
+    "owner": "Denis Malinochkin",
+    "version": "3.3.3",
+    "license": "MIT"
+  },
+  {
+    "name": "fast-json-stable-stringify",
+    "owner": "James Halliday",
+    "version": "2.1.0",
+    "license": "MIT"
+  },
+  {
+    "name": "fastq",
+    "owner": "Matteo Collina",
+    "version": "1.20.1",
+    "license": "ISC"
+  },
+  {
+    "name": "faye-websocket",
+    "owner": "James Coglan",
+    "version": "0.11.4",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "fb-watchman",
+    "owner": "Wez Furlong",
+    "version": "2.0.2",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "fbjs",
+    "owner": "작성자 미표기",
+    "version": "3.0.5",
+    "license": "MIT"
+  },
+  {
+    "name": "fbjs-css-vars",
+    "owner": "작성자 미표기",
+    "version": "1.0.2",
+    "license": "MIT"
+  },
+  {
+    "name": "fdir",
+    "owner": "thecodrr",
+    "version": "6.5.0",
+    "license": "MIT"
+  },
+  {
+    "name": "fill-range",
+    "owner": "Jon Schlinkert",
+    "version": "7.1.1",
+    "license": "MIT"
+  },
+  {
+    "name": "filter-obj",
+    "owner": "Sindre Sorhus",
+    "version": "1.1.0",
+    "license": "MIT"
+  },
+  {
+    "name": "finalhandler",
+    "owner": "Douglas Christopher Wilson",
+    "version": "1.1.2",
+    "license": "MIT"
+  },
+  {
+    "name": "find-up",
+    "owner": "Sindre Sorhus",
+    "version": "4.1.0",
+    "license": "MIT"
+  },
+  {
+    "name": "firebase",
+    "owner": "Firebase",
+    "version": "12.15.0",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "flow-enums-runtime",
+    "owner": "작성자 미표기",
+    "version": "0.0.6",
+    "license": "MIT"
+  },
+  {
+    "name": "fontfaceobserver",
+    "owner": "Bram Stein",
+    "version": "2.3.0",
+    "license": "BSD-2-Clause"
+  },
+  {
+    "name": "freeport-async",
+    "owner": "Expo",
+    "version": "2.0.0",
+    "license": "MIT"
+  },
+  {
+    "name": "fresh",
+    "owner": "TJ Holowaychuk",
+    "version": "0.5.2",
+    "license": "MIT"
+  },
+  {
+    "name": "fs.realpath",
+    "owner": "Isaac Z. Schlueter",
+    "version": "1.0.0",
+    "license": "ISC"
+  },
+  {
+    "name": "fsevents",
+    "owner": "작성자 미표기",
+    "version": "2.3.3",
+    "license": "MIT"
+  },
+  {
+    "name": "function-bind",
+    "owner": "Raynos",
+    "version": "1.1.2",
+    "license": "MIT"
+  },
+  {
+    "name": "gensync",
+    "owner": "Logan Smyth",
+    "version": "1.0.0-beta.2",
+    "license": "MIT"
+  },
+  {
+    "name": "get-caller-file",
+    "owner": "Stefan Penner",
+    "version": "2.0.5",
+    "license": "ISC"
+  },
+  {
+    "name": "get-package-type",
+    "owner": "Corey Farrell",
+    "version": "0.1.0",
+    "license": "MIT"
+  },
+  {
+    "name": "getenv",
+    "owner": "Christoph Tavan",
+    "version": "2.0.0",
+    "license": "MIT"
+  },
+  {
+    "name": "glob",
+    "owner": "Isaac Z. Schlueter",
+    "version": "7.2.3",
+    "license": "ISC"
+  },
+  {
+    "name": "glob-parent",
+    "owner": "Gulp Team",
+    "version": "5.1.2, 6.0.2",
+    "license": "ISC"
+  },
+  {
+    "name": "graceful-fs",
+    "owner": "작성자 미표기",
+    "version": "4.2.11",
+    "license": "ISC"
+  },
+  {
+    "name": "graphql",
+    "owner": "작성자 미표기",
+    "version": "16.8.1",
+    "license": "MIT"
+  },
+  {
+    "name": "has-flag",
+    "owner": "Sindre Sorhus",
+    "version": "3.0.0, 4.0.0",
+    "license": "MIT"
+  },
+  {
+    "name": "hasown",
+    "owner": "Jordan Harband",
+    "version": "2.0.3",
+    "license": "MIT"
+  },
+  {
+    "name": "hermes-estree",
+    "owner": "작성자 미표기",
+    "version": "0.29.1, 0.32.0, 0.33.3, 0.35.0",
+    "license": "MIT"
+  },
+  {
+    "name": "hermes-parser",
+    "owner": "작성자 미표기",
+    "version": "0.29.1, 0.32.0, 0.33.3, 0.35.0",
+    "license": "MIT"
+  },
+  {
+    "name": "hoist-non-react-statics",
+    "owner": "Michael Ridgway",
+    "version": "3.3.2",
+    "license": "BSD-3-Clause"
+  },
+  {
+    "name": "hosted-git-info",
+    "owner": "GitHub Inc.",
+    "version": "7.0.2",
+    "license": "ISC"
+  },
+  {
+    "name": "http-errors",
+    "owner": "Jonathan Ong",
+    "version": "2.0.1",
+    "license": "MIT"
+  },
+  {
+    "name": "http-parser-js",
+    "owner": "Tim Caswell",
+    "version": "0.5.10",
+    "license": "MIT"
+  },
+  {
+    "name": "https-proxy-agent",
+    "owner": "Nathan Rajlich",
+    "version": "7.0.6",
+    "license": "MIT"
+  },
+  {
+    "name": "hyphenate-style-name",
+    "owner": "Espen Hovlandsdal",
+    "version": "1.1.0",
+    "license": "BSD-3-Clause"
+  },
+  {
+    "name": "idb",
+    "owner": "Jake Archibald",
+    "version": "7.1.1",
+    "license": "ISC"
+  },
+  {
+    "name": "ieee754",
+    "owner": "Feross Aboukhadijeh",
+    "version": "1.2.1",
+    "license": "BSD-3-Clause"
+  },
+  {
+    "name": "ignore",
+    "owner": "kael",
+    "version": "5.3.2",
+    "license": "MIT"
+  },
+  {
+    "name": "image-size",
+    "owner": "netroy",
+    "version": "1.2.1",
+    "license": "MIT"
+  },
+  {
+    "name": "imurmurhash",
+    "owner": "Jens Taylor",
+    "version": "0.1.4",
+    "license": "MIT"
+  },
+  {
+    "name": "inflight",
+    "owner": "Isaac Z. Schlueter",
+    "version": "1.0.6",
+    "license": "ISC"
+  },
+  {
+    "name": "inherits",
+    "owner": "작성자 미표기",
+    "version": "2.0.4",
+    "license": "ISC"
+  },
+  {
+    "name": "ini",
+    "owner": "Isaac Z. Schlueter",
+    "version": "1.3.8",
+    "license": "ISC"
+  },
+  {
+    "name": "inline-style-prefixer",
+    "owner": "Robin Weser",
+    "version": "7.0.1",
+    "license": "MIT"
+  },
+  {
+    "name": "invariant",
+    "owner": "Andres Suarez",
+    "version": "2.2.4",
+    "license": "MIT"
+  },
+  {
+    "name": "is-arrayish",
+    "owner": "Qix",
+    "version": "0.3.4",
+    "license": "MIT"
+  },
+  {
+    "name": "is-binary-path",
+    "owner": "Sindre Sorhus",
+    "version": "2.1.0",
+    "license": "MIT"
+  },
+  {
+    "name": "is-core-module",
+    "owner": "Jordan Harband",
+    "version": "2.16.2",
+    "license": "MIT"
+  },
+  {
+    "name": "is-docker",
+    "owner": "Sindre Sorhus",
+    "version": "2.2.1",
+    "license": "MIT"
+  },
+  {
+    "name": "is-extglob",
+    "owner": "Jon Schlinkert",
+    "version": "2.1.1",
+    "license": "MIT"
+  },
+  {
+    "name": "is-fullwidth-code-point",
+    "owner": "Sindre Sorhus",
+    "version": "3.0.0",
+    "license": "MIT"
+  },
+  {
+    "name": "is-glob",
+    "owner": "Jon Schlinkert",
+    "version": "4.0.3",
+    "license": "MIT"
+  },
+  {
+    "name": "is-number",
+    "owner": "Jon Schlinkert",
+    "version": "7.0.0",
+    "license": "MIT"
+  },
+  {
+    "name": "is-plain-obj",
+    "owner": "Sindre Sorhus",
+    "version": "2.1.0",
+    "license": "MIT"
+  },
+  {
+    "name": "is-wsl",
+    "owner": "Sindre Sorhus",
+    "version": "2.2.0",
+    "license": "MIT"
+  },
+  {
+    "name": "isexe",
+    "owner": "Isaac Z. Schlueter",
+    "version": "2.0.0",
+    "license": "ISC"
+  },
+  {
+    "name": "istanbul-lib-coverage",
+    "owner": "Krishnan Anantheswaran",
+    "version": "3.2.2",
+    "license": "BSD-3-Clause"
+  },
+  {
+    "name": "istanbul-lib-instrument",
+    "owner": "Krishnan Anantheswaran",
+    "version": "5.2.1",
+    "license": "BSD-3-Clause"
+  },
+  {
+    "name": "jest-environment-node",
+    "owner": "작성자 미표기",
+    "version": "29.7.0",
+    "license": "MIT"
+  },
+  {
+    "name": "jest-get-type",
+    "owner": "작성자 미표기",
+    "version": "29.6.3",
+    "license": "MIT"
+  },
+  {
+    "name": "jest-haste-map",
+    "owner": "작성자 미표기",
+    "version": "29.7.0",
+    "license": "MIT"
+  },
+  {
+    "name": "jest-message-util",
+    "owner": "작성자 미표기",
+    "version": "29.7.0",
+    "license": "MIT"
+  },
+  {
+    "name": "jest-mock",
+    "owner": "작성자 미표기",
+    "version": "29.7.0",
+    "license": "MIT"
+  },
+  {
+    "name": "jest-regex-util",
+    "owner": "작성자 미표기",
+    "version": "29.6.3",
+    "license": "MIT"
+  },
+  {
+    "name": "jest-util",
+    "owner": "작성자 미표기",
+    "version": "29.7.0",
+    "license": "MIT"
+  },
+  {
+    "name": "jest-validate",
+    "owner": "작성자 미표기",
+    "version": "29.7.0",
+    "license": "MIT"
+  },
+  {
+    "name": "jest-worker",
+    "owner": "작성자 미표기",
+    "version": "29.7.0",
+    "license": "MIT"
+  },
+  {
+    "name": "jimp-compact",
+    "owner": "작성자 미표기",
+    "version": "0.16.1",
+    "license": "MIT"
+  },
+  {
+    "name": "jiti",
+    "owner": "작성자 미표기",
+    "version": "1.21.7",
+    "license": "MIT"
+  },
+  {
+    "name": "js-tokens",
+    "owner": "Simon Lydell",
+    "version": "4.0.0",
+    "license": "MIT"
+  },
+  {
+    "name": "js-yaml",
+    "owner": "Vladimir Zapparov",
+    "version": "3.14.2, 4.2.0",
+    "license": "MIT"
+  },
+  {
+    "name": "jsc-safe-url",
+    "owner": "Rob Hogan",
+    "version": "0.2.4",
+    "license": "0BSD"
+  },
+  {
+    "name": "jsesc",
+    "owner": "Mathias Bynens",
+    "version": "3.1.0",
+    "license": "MIT"
+  },
+  {
+    "name": "json5",
+    "owner": "Aseem Kishore",
+    "version": "2.2.3",
+    "license": "MIT"
+  },
+  {
+    "name": "kleur",
+    "owner": "Luke Edwards",
+    "version": "3.0.3",
+    "license": "MIT"
+  },
+  {
+    "name": "lan-network",
+    "owner": "Phil Pluckthun",
+    "version": "0.2.1",
+    "license": "MIT"
+  },
+  {
+    "name": "leven",
+    "owner": "Sindre Sorhus",
+    "version": "3.1.0",
+    "license": "MIT"
+  },
+  {
+    "name": "lighthouse-logger",
+    "owner": "작성자 미표기",
+    "version": "1.4.2",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "lightningcss",
+    "owner": "작성자 미표기",
+    "version": "1.27.0, 1.32.0",
+    "license": "MPL-2.0"
+  },
+  {
+    "name": "lightningcss-darwin-arm64",
+    "owner": "작성자 미표기",
+    "version": "1.27.0, 1.32.0",
+    "license": "MPL-2.0"
+  },
+  {
+    "name": "lilconfig",
+    "owner": "antonk52",
+    "version": "3.1.3",
+    "license": "MIT"
+  },
+  {
+    "name": "lines-and-columns",
+    "owner": "Brian Donovan",
+    "version": "1.2.4",
+    "license": "MIT"
+  },
+  {
+    "name": "locate-path",
+    "owner": "Sindre Sorhus",
+    "version": "5.0.0",
+    "license": "MIT"
+  },
+  {
+    "name": "lodash.camelcase",
+    "owner": "John-David Dalton",
+    "version": "4.3.0",
+    "license": "MIT"
+  },
+  {
+    "name": "lodash.debounce",
+    "owner": "John-David Dalton",
+    "version": "4.0.8",
+    "license": "MIT"
+  },
+  {
+    "name": "lodash.throttle",
+    "owner": "John-David Dalton",
+    "version": "4.1.1",
+    "license": "MIT"
+  },
+  {
+    "name": "log-symbols",
+    "owner": "Sindre Sorhus",
+    "version": "2.2.0",
+    "license": "MIT"
+  },
+  {
+    "name": "long",
+    "owner": "Daniel Wirtz",
+    "version": "5.3.2",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "loose-envify",
+    "owner": "Andres Suarez",
+    "version": "1.4.0",
+    "license": "MIT"
+  },
+  {
+    "name": "lru-cache",
+    "owner": "Isaac Z. Schlueter",
+    "version": "5.1.1, 10.4.3",
+    "license": "ISC"
+  },
+  {
+    "name": "lucide-react-native",
+    "owner": "Eric Fennis",
+    "version": "1.24.0",
+    "license": "ISC"
+  },
+  {
+    "name": "makeerror",
+    "owner": "Naitik Shah",
+    "version": "1.0.12",
+    "license": "BSD-3-Clause"
+  },
+  {
+    "name": "marky",
+    "owner": "Nolan Lawson",
+    "version": "1.3.0",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "mdn-data",
+    "owner": "Mozilla Developer Network",
+    "version": "2.0.14",
+    "license": "CC0-1.0"
+  },
+  {
+    "name": "memoize-one",
+    "owner": "Alex Reardon",
+    "version": "5.2.1, 6.0.0",
+    "license": "MIT"
+  },
+  {
+    "name": "merge-options",
+    "owner": "Michael Mayer",
+    "version": "3.0.4",
+    "license": "MIT"
+  },
+  {
+    "name": "merge-stream",
+    "owner": "Stephen Sugden",
+    "version": "2.0.0",
+    "license": "MIT"
+  },
+  {
+    "name": "merge2",
+    "owner": "작성자 미표기",
+    "version": "1.4.1",
+    "license": "MIT"
+  },
+  {
+    "name": "metro",
+    "owner": "작성자 미표기",
+    "version": "0.83.3, 0.83.7, 0.84.4",
+    "license": "MIT"
+  },
+  {
+    "name": "metro-babel-transformer",
+    "owner": "작성자 미표기",
+    "version": "0.83.3, 0.83.7, 0.84.4",
+    "license": "MIT"
+  },
+  {
+    "name": "metro-cache",
+    "owner": "작성자 미표기",
+    "version": "0.83.3, 0.83.7, 0.84.4",
+    "license": "MIT"
+  },
+  {
+    "name": "metro-cache-key",
+    "owner": "작성자 미표기",
+    "version": "0.83.3, 0.83.7, 0.84.4",
+    "license": "MIT"
+  },
+  {
+    "name": "metro-config",
+    "owner": "작성자 미표기",
+    "version": "0.83.3, 0.83.7, 0.84.4",
+    "license": "MIT"
+  },
+  {
+    "name": "metro-core",
+    "owner": "작성자 미표기",
+    "version": "0.83.3, 0.83.7, 0.84.4",
+    "license": "MIT"
+  },
+  {
+    "name": "metro-file-map",
+    "owner": "작성자 미표기",
+    "version": "0.83.3, 0.83.7, 0.84.4",
+    "license": "MIT"
+  },
+  {
+    "name": "metro-minify-terser",
+    "owner": "작성자 미표기",
+    "version": "0.83.3, 0.83.7, 0.84.4",
+    "license": "MIT"
+  },
+  {
+    "name": "metro-resolver",
+    "owner": "작성자 미표기",
+    "version": "0.83.3, 0.83.7, 0.84.4",
+    "license": "MIT"
+  },
+  {
+    "name": "metro-runtime",
+    "owner": "작성자 미표기",
+    "version": "0.83.3, 0.83.7, 0.84.4",
+    "license": "MIT"
+  },
+  {
+    "name": "metro-source-map",
+    "owner": "작성자 미표기",
+    "version": "0.83.3, 0.83.7, 0.84.4",
+    "license": "MIT"
+  },
+  {
+    "name": "metro-symbolicate",
+    "owner": "작성자 미표기",
+    "version": "0.83.3, 0.83.7, 0.84.4",
+    "license": "MIT"
+  },
+  {
+    "name": "metro-transform-plugins",
+    "owner": "작성자 미표기",
+    "version": "0.83.3, 0.83.7, 0.84.4",
+    "license": "MIT"
+  },
+  {
+    "name": "metro-transform-worker",
+    "owner": "작성자 미표기",
+    "version": "0.83.3, 0.83.7, 0.84.4",
+    "license": "MIT"
+  },
+  {
+    "name": "micromatch",
+    "owner": "Jon Schlinkert",
+    "version": "4.0.8",
+    "license": "MIT"
+  },
+  {
+    "name": "mime",
+    "owner": "Robert Kieffer",
+    "version": "1.6.0",
+    "license": "MIT"
+  },
+  {
+    "name": "mime-db",
+    "owner": "작성자 미표기",
+    "version": "1.52.0, 1.54.0",
+    "license": "MIT"
+  },
+  {
+    "name": "mime-types",
+    "owner": "작성자 미표기",
+    "version": "2.1.35, 3.0.2",
+    "license": "MIT"
+  },
+  {
+    "name": "mimic-fn",
+    "owner": "Sindre Sorhus",
+    "version": "1.2.0",
+    "license": "MIT"
+  },
+  {
+    "name": "minimatch",
+    "owner": "Isaac Z. Schlueter",
+    "version": "3.1.5, 9.0.9",
+    "license": "ISC"
+  },
+  {
+    "name": "minimist",
+    "owner": "James Halliday",
+    "version": "1.2.8",
+    "license": "MIT"
+  },
+  {
+    "name": "minipass",
+    "owner": "Isaac Z. Schlueter",
+    "version": "7.1.3",
+    "license": "BlueOak-1.0.0"
+  },
+  {
+    "name": "minizlib",
+    "owner": "Isaac Z. Schlueter",
+    "version": "3.1.0",
+    "license": "MIT"
+  },
+  {
+    "name": "mkdirp",
+    "owner": "작성자 미표기",
+    "version": "1.0.4",
+    "license": "MIT"
+  },
+  {
+    "name": "ms",
+    "owner": "작성자 미표기",
+    "version": "2.0.0, 2.1.3",
+    "license": "MIT"
+  },
+  {
+    "name": "mz",
+    "owner": "Jonathan Ong",
+    "version": "2.7.0",
+    "license": "MIT"
+  },
+  {
+    "name": "nanoid",
+    "owner": "Andrey Sitnik",
+    "version": "3.3.12",
+    "license": "MIT"
+  },
+  {
+    "name": "nativewind",
+    "owner": "Mark Lawlor",
+    "version": "4.2.5",
+    "license": "MIT"
+  },
+  {
+    "name": "negotiator",
+    "owner": "작성자 미표기",
+    "version": "0.6.3, 0.6.4, 1.0.0",
+    "license": "MIT"
+  },
+  {
+    "name": "nested-error-stacks",
+    "owner": "Matt Lavin",
+    "version": "2.0.1",
+    "license": "MIT"
+  },
+  {
+    "name": "node-fetch",
+    "owner": "David Frank",
+    "version": "2.7.0",
+    "license": "MIT"
+  },
+  {
+    "name": "node-forge",
+    "owner": "Digital Bazaar, Inc.",
+    "version": "1.4.0",
+    "license": "(BSD-3-Clause OR GPL-2.0)"
+  },
+  {
+    "name": "node-int64",
+    "owner": "Robert Kieffer",
+    "version": "0.4.0",
+    "license": "MIT"
+  },
+  {
+    "name": "node-releases",
+    "owner": "Sergey Rubanov",
+    "version": "2.0.47",
+    "license": "MIT"
+  },
+  {
+    "name": "normalize-path",
+    "owner": "Jon Schlinkert",
+    "version": "3.0.0",
+    "license": "MIT"
+  },
+  {
+    "name": "npm-package-arg",
+    "owner": "GitHub Inc.",
+    "version": "11.0.3",
+    "license": "ISC"
+  },
+  {
+    "name": "nth-check",
+    "owner": "Felix Boehm",
+    "version": "2.1.1",
+    "license": "BSD-2-Clause"
+  },
+  {
+    "name": "nullthrows",
+    "owner": "Andres Suarez",
+    "version": "1.1.1",
+    "license": "MIT"
+  },
+  {
+    "name": "ob1",
+    "owner": "작성자 미표기",
+    "version": "0.83.3, 0.83.7, 0.84.4",
+    "license": "MIT"
+  },
+  {
+    "name": "object-assign",
+    "owner": "Sindre Sorhus",
+    "version": "4.1.1",
+    "license": "MIT"
+  },
+  {
+    "name": "object-hash",
+    "owner": "Scott Puleo",
+    "version": "3.0.0",
+    "license": "MIT"
+  },
+  {
+    "name": "on-finished",
+    "owner": "작성자 미표기",
+    "version": "2.3.0, 2.4.1",
+    "license": "MIT"
+  },
+  {
+    "name": "on-headers",
+    "owner": "Douglas Christopher Wilson",
+    "version": "1.1.0",
+    "license": "MIT"
+  },
+  {
+    "name": "once",
+    "owner": "Isaac Z. Schlueter",
+    "version": "1.4.0",
+    "license": "ISC"
+  },
+  {
+    "name": "onetime",
+    "owner": "Sindre Sorhus",
+    "version": "2.0.1",
+    "license": "MIT"
+  },
+  {
+    "name": "open",
+    "owner": "Sindre Sorhus",
+    "version": "7.4.2, 8.4.2",
+    "license": "MIT"
+  },
+  {
+    "name": "ora",
+    "owner": "Sindre Sorhus",
+    "version": "3.4.0",
+    "license": "MIT"
+  },
+  {
+    "name": "p-limit",
+    "owner": "Sindre Sorhus",
+    "version": "2.3.0, 3.1.0",
+    "license": "MIT"
+  },
+  {
+    "name": "p-locate",
+    "owner": "Sindre Sorhus",
+    "version": "4.1.0",
+    "license": "MIT"
+  },
+  {
+    "name": "p-try",
+    "owner": "Sindre Sorhus",
+    "version": "2.2.0",
+    "license": "MIT"
+  },
+  {
+    "name": "parse-png",
+    "owner": "Kevin Martensson",
+    "version": "2.1.0",
+    "license": "MIT"
+  },
+  {
+    "name": "parseurl",
+    "owner": "작성자 미표기",
+    "version": "1.3.3",
+    "license": "MIT"
+  },
+  {
+    "name": "path-exists",
+    "owner": "Sindre Sorhus",
+    "version": "4.0.0",
+    "license": "MIT"
+  },
+  {
+    "name": "path-is-absolute",
+    "owner": "Sindre Sorhus",
+    "version": "1.0.1",
+    "license": "MIT"
+  },
+  {
+    "name": "path-key",
+    "owner": "Sindre Sorhus",
+    "version": "3.1.1",
+    "license": "MIT"
+  },
+  {
+    "name": "path-parse",
+    "owner": "Javier Blanco",
+    "version": "1.0.7",
+    "license": "MIT"
+  },
+  {
+    "name": "path-scurry",
+    "owner": "Isaac Z. Schlueter",
+    "version": "2.0.2",
+    "license": "BlueOak-1.0.0"
+  },
+  {
+    "name": "picocolors",
+    "owner": "Alexey Raspopov",
+    "version": "1.1.1",
+    "license": "ISC"
+  },
+  {
+    "name": "picomatch",
+    "owner": "Jon Schlinkert",
+    "version": "2.3.2, 4.0.4",
+    "license": "MIT"
+  },
+  {
+    "name": "pify",
+    "owner": "Sindre Sorhus",
+    "version": "2.3.0",
+    "license": "MIT"
+  },
+  {
+    "name": "pirates",
+    "owner": "Ari Porad",
+    "version": "4.0.7",
+    "license": "MIT"
+  },
+  {
+    "name": "plist",
+    "owner": "Nathan Rajlich",
+    "version": "3.1.1",
+    "license": "MIT"
+  },
+  {
+    "name": "pngjs",
+    "owner": "작성자 미표기",
+    "version": "3.4.0",
+    "license": "MIT"
+  },
+  {
+    "name": "postcss",
+    "owner": "Andrey Sitnik",
+    "version": "8.4.49",
+    "license": "MIT"
+  },
+  {
+    "name": "postcss-import",
+    "owner": "Maxime Thirouin",
+    "version": "15.1.0",
+    "license": "MIT"
+  },
+  {
+    "name": "postcss-js",
+    "owner": "Andrey Sitnik",
+    "version": "4.1.0",
+    "license": "MIT"
+  },
+  {
+    "name": "postcss-load-config",
+    "owner": "Michael Ciniawky",
+    "version": "6.0.1",
+    "license": "MIT"
+  },
+  {
+    "name": "postcss-nested",
+    "owner": "Andrey Sitnik",
+    "version": "6.2.0",
+    "license": "MIT"
+  },
+  {
+    "name": "postcss-selector-parser",
+    "owner": "작성자 미표기",
+    "version": "6.1.2",
+    "license": "MIT"
+  },
+  {
+    "name": "postcss-value-parser",
+    "owner": "Bogdan Chadkin",
+    "version": "4.2.0",
+    "license": "MIT"
+  },
+  {
+    "name": "pretty-bytes",
+    "owner": "Sindre Sorhus",
+    "version": "5.6.0",
+    "license": "MIT"
+  },
+  {
+    "name": "pretty-format",
+    "owner": "James Kyle",
+    "version": "29.7.0",
+    "license": "MIT"
+  },
+  {
+    "name": "proc-log",
+    "owner": "GitHub Inc.",
+    "version": "4.2.0",
+    "license": "ISC"
+  },
+  {
+    "name": "progress",
+    "owner": "TJ Holowaychuk",
+    "version": "2.0.3",
+    "license": "MIT"
+  },
+  {
+    "name": "promise",
+    "owner": "ForbesLindesay",
+    "version": "7.3.1, 8.3.0",
+    "license": "MIT"
+  },
+  {
+    "name": "prompts",
+    "owner": "Terkel Gjervig",
+    "version": "2.4.2",
+    "license": "MIT"
+  },
+  {
+    "name": "protobufjs",
+    "owner": "Daniel Wirtz",
+    "version": "7.6.5",
+    "license": "BSD-3-Clause"
+  },
+  {
+    "name": "punycode",
+    "owner": "Mathias Bynens",
+    "version": "2.3.1",
+    "license": "MIT"
+  },
+  {
+    "name": "qrcode-terminal",
+    "owner": "작성자 미표기",
+    "version": "0.11.0",
+    "license": "Apache 2.0"
+  },
+  {
+    "name": "query-string",
+    "owner": "Sindre Sorhus",
+    "version": "7.1.3",
+    "license": "MIT"
+  },
+  {
+    "name": "queue",
+    "owner": "Jesse Tane",
+    "version": "6.0.2",
+    "license": "MIT"
+  },
+  {
+    "name": "queue-microtask",
+    "owner": "Feross Aboukhadijeh",
+    "version": "1.2.3",
+    "license": "MIT"
+  },
+  {
+    "name": "range-parser",
+    "owner": "TJ Holowaychuk",
+    "version": "1.2.1",
+    "license": "MIT"
+  },
+  {
+    "name": "rc",
+    "owner": "Dominic Tarr",
+    "version": "1.2.8",
+    "license": "(BSD-2-Clause OR MIT OR Apache-2.0)"
+  },
+  {
+    "name": "re2js",
+    "owner": "Alexey Vasiliev",
+    "version": "0.4.3",
+    "license": "MIT"
+  },
+  {
+    "name": "react",
+    "owner": "작성자 미표기",
+    "version": "19.1.0",
+    "license": "MIT"
+  },
+  {
+    "name": "react-devtools-core",
+    "owner": "작성자 미표기",
+    "version": "6.1.5",
+    "license": "MIT"
+  },
+  {
+    "name": "react-dom",
+    "owner": "작성자 미표기",
+    "version": "19.1.0",
+    "license": "MIT"
+  },
+  {
+    "name": "react-freeze",
+    "owner": "작성자 미표기",
+    "version": "1.0.4",
+    "license": "MIT"
+  },
+  {
+    "name": "react-is",
+    "owner": "작성자 미표기",
+    "version": "16.13.1, 18.3.1, 19.2.7",
+    "license": "MIT"
+  },
+  {
+    "name": "react-native",
+    "owner": "작성자 미표기",
+    "version": "0.81.5",
+    "license": "MIT"
+  },
+  {
+    "name": "react-native-css-interop",
+    "owner": "Mark Lawlor",
+    "version": "0.2.5",
+    "license": "MIT"
+  },
+  {
+    "name": "react-native-gesture-handler",
+    "owner": "Krzysztof Magiera",
+    "version": "2.28.0",
+    "license": "MIT"
+  },
+  {
+    "name": "react-native-haptic-feedback",
+    "owner": "Michael Kuczera",
+    "version": "3.0.0",
+    "license": "MIT"
+  },
+  {
+    "name": "react-native-is-edge-to-edge",
+    "owner": "Mathieu Acthernoene",
+    "version": "1.3.1",
+    "license": "MIT"
+  },
+  {
+    "name": "react-native-reanimated",
+    "owner": "Krzysztof Magiera",
+    "version": "4.1.7",
+    "license": "MIT"
+  },
+  {
+    "name": "react-native-safe-area-context",
+    "owner": "Janic Duplessis",
+    "version": "5.6.2",
+    "license": "MIT"
+  },
+  {
+    "name": "react-native-screens",
+    "owner": "Krzysztof Magiera",
+    "version": "4.16.0",
+    "license": "MIT"
+  },
+  {
+    "name": "react-native-sortables",
+    "owner": "Mateusz Łopaciński",
+    "version": "1.9.4",
+    "license": "MIT"
+  },
+  {
+    "name": "react-native-svg",
+    "owner": "작성자 미표기",
+    "version": "15.15.5",
+    "license": "MIT"
+  },
+  {
+    "name": "react-native-web",
+    "owner": "Nicolas Gallagher",
+    "version": "0.21.2",
+    "license": "MIT"
+  },
+  {
+    "name": "react-native-webview",
+    "owner": "Jamon Holmgren",
+    "version": "14.0.1",
+    "license": "MIT"
+  },
+  {
+    "name": "react-native-worklets",
+    "owner": "작성자 미표기",
+    "version": "0.8.3",
+    "license": "MIT"
+  },
+  {
+    "name": "react-refresh",
+    "owner": "작성자 미표기",
+    "version": "0.14.2",
+    "license": "MIT"
+  },
+  {
+    "name": "read-cache",
+    "owner": "Bogdan Chadkin",
+    "version": "1.0.0",
+    "license": "MIT"
+  },
+  {
+    "name": "readdirp",
+    "owner": "Thorsten Lorenz",
+    "version": "3.6.0",
+    "license": "MIT"
+  },
+  {
+    "name": "regenerate",
+    "owner": "Mathias Bynens",
+    "version": "1.4.2",
+    "license": "MIT"
+  },
+  {
+    "name": "regenerate-unicode-properties",
+    "owner": "Mathias Bynens",
+    "version": "10.2.2",
+    "license": "MIT"
+  },
+  {
+    "name": "regenerator-runtime",
+    "owner": "Ben Newman",
+    "version": "0.13.11",
+    "license": "MIT"
+  },
+  {
+    "name": "regexpu-core",
+    "owner": "Mathias Bynens",
+    "version": "6.4.0",
+    "license": "MIT"
+  },
+  {
+    "name": "regjsgen",
+    "owner": "Benjamin Tan",
+    "version": "0.8.0",
+    "license": "MIT"
+  },
+  {
+    "name": "regjsparser",
+    "owner": "'Julian Viereck'",
+    "version": "0.13.1",
+    "license": "BSD-2-Clause"
+  },
+  {
+    "name": "require-directory",
+    "owner": "Troy Goode",
+    "version": "2.1.1",
+    "license": "MIT"
+  },
+  {
+    "name": "require-from-string",
+    "owner": "Vsevolod Strukchinsky",
+    "version": "2.0.2",
+    "license": "MIT"
+  },
+  {
+    "name": "requireg",
+    "owner": "작성자 미표기",
+    "version": "0.2.2",
+    "license": "MIT"
+  },
+  {
+    "name": "resolve",
+    "owner": "James Halliday",
+    "version": "1.7.1, 1.22.12",
+    "license": "MIT"
+  },
+  {
+    "name": "resolve-from",
+    "owner": "Sindre Sorhus",
+    "version": "5.0.0",
+    "license": "MIT"
+  },
+  {
+    "name": "resolve-workspace-root",
+    "owner": "Cedric van Putten",
+    "version": "2.0.1",
+    "license": "MIT"
+  },
+  {
+    "name": "resolve.exports",
+    "owner": "Luke Edwards",
+    "version": "2.0.3",
+    "license": "MIT"
+  },
+  {
+    "name": "restore-cursor",
+    "owner": "Sindre Sorhus",
+    "version": "2.0.0",
+    "license": "MIT"
+  },
+  {
+    "name": "reusify",
+    "owner": "Matteo Collina",
+    "version": "1.1.0",
+    "license": "MIT"
+  },
+  {
+    "name": "rimraf",
+    "owner": "Isaac Z. Schlueter",
+    "version": "3.0.2",
+    "license": "ISC"
+  },
+  {
+    "name": "run-parallel",
+    "owner": "Feross Aboukhadijeh",
+    "version": "1.2.0",
+    "license": "MIT"
+  },
+  {
+    "name": "safe-buffer",
+    "owner": "Feross Aboukhadijeh",
+    "version": "5.2.1",
+    "license": "MIT"
+  },
+  {
+    "name": "sax",
+    "owner": "Isaac Z. Schlueter",
+    "version": "1.6.0",
+    "license": "BlueOak-1.0.0"
+  },
+  {
+    "name": "scheduler",
+    "owner": "작성자 미표기",
+    "version": "0.26.0",
+    "license": "MIT"
+  },
+  {
+    "name": "semver",
+    "owner": "GitHub Inc.",
+    "version": "6.3.1, 7.8.4",
+    "license": "ISC"
+  },
+  {
+    "name": "send",
+    "owner": "TJ Holowaychuk",
+    "version": "0.19.2",
+    "license": "MIT"
+  },
+  {
+    "name": "serialize-error",
+    "owner": "Sindre Sorhus",
+    "version": "2.1.0",
+    "license": "MIT"
+  },
+  {
+    "name": "serve-static",
+    "owner": "Douglas Christopher Wilson",
+    "version": "1.16.3",
+    "license": "MIT"
+  },
+  {
+    "name": "setimmediate",
+    "owner": "YuzuJS",
+    "version": "1.0.5",
+    "license": "MIT"
+  },
+  {
+    "name": "setprototypeof",
+    "owner": "Wes Todd",
+    "version": "1.2.0",
+    "license": "ISC"
+  },
+  {
+    "name": "sf-symbols-typescript",
+    "owner": "Fernando Rojo",
+    "version": "2.2.0",
+    "license": "MIT"
+  },
+  {
+    "name": "shebang-command",
+    "owner": "Kevin Mårtensson",
+    "version": "2.0.0",
+    "license": "MIT"
+  },
+  {
+    "name": "shebang-regex",
+    "owner": "Sindre Sorhus",
+    "version": "3.0.0",
+    "license": "MIT"
+  },
+  {
+    "name": "shell-quote",
+    "owner": "James Halliday",
+    "version": "1.8.4",
+    "license": "MIT"
+  },
+  {
+    "name": "signal-exit",
+    "owner": "Ben Coe",
+    "version": "3.0.7",
+    "license": "ISC"
+  },
+  {
+    "name": "simple-plist",
+    "owner": "Joe Wollard",
+    "version": "1.3.1",
+    "license": "MIT"
+  },
+  {
+    "name": "simple-swizzle",
+    "owner": "Qix",
+    "version": "0.2.4",
+    "license": "MIT"
+  },
+  {
+    "name": "sisteransi",
+    "owner": "Terkel Gjervig",
+    "version": "1.0.5",
+    "license": "MIT"
+  },
+  {
+    "name": "slash",
+    "owner": "Sindre Sorhus",
+    "version": "3.0.0",
+    "license": "MIT"
+  },
+  {
+    "name": "slugify",
+    "owner": "Simeon Velichkov",
+    "version": "1.6.9",
+    "license": "MIT"
+  },
+  {
+    "name": "source-map",
+    "owner": "Nick Fitzgerald",
+    "version": "0.5.7, 0.6.1",
+    "license": "BSD-3-Clause"
+  },
+  {
+    "name": "source-map-js",
+    "owner": "Valentin 7rulnik Semirulnik",
+    "version": "1.2.1",
+    "license": "BSD-3-Clause"
+  },
+  {
+    "name": "source-map-support",
+    "owner": "작성자 미표기",
+    "version": "0.5.21",
+    "license": "MIT"
+  },
+  {
+    "name": "split-on-first",
+    "owner": "Sindre Sorhus",
+    "version": "1.1.0",
+    "license": "MIT"
+  },
+  {
+    "name": "sprintf-js",
+    "owner": "Alexandru Marasteanu",
+    "version": "1.0.3",
+    "license": "BSD-3-Clause"
+  },
+  {
+    "name": "stack-utils",
+    "owner": "James Talmage",
+    "version": "2.0.6",
+    "license": "MIT"
+  },
+  {
+    "name": "stackframe",
+    "owner": "작성자 미표기",
+    "version": "1.3.4",
+    "license": "MIT"
+  },
+  {
+    "name": "stacktrace-parser",
+    "owner": "Georg Tavonius",
+    "version": "0.1.11",
+    "license": "MIT"
+  },
+  {
+    "name": "standard-navigation",
+    "owner": "Satyajit Sahoo",
+    "version": "0.0.7",
+    "license": "MIT"
+  },
+  {
+    "name": "statuses",
+    "owner": "작성자 미표기",
+    "version": "1.5.0, 2.0.2",
+    "license": "MIT"
+  },
+  {
+    "name": "stream-buffers",
+    "owner": "Sam Day",
+    "version": "2.2.0",
+    "license": "Unlicense"
+  },
+  {
+    "name": "strict-uri-encode",
+    "owner": "Kevin Mårtensson",
+    "version": "2.0.0",
+    "license": "MIT"
+  },
+  {
+    "name": "string-width",
+    "owner": "Sindre Sorhus",
+    "version": "4.2.3",
+    "license": "MIT"
+  },
+  {
+    "name": "strip-ansi",
+    "owner": "Sindre Sorhus",
+    "version": "5.2.0, 6.0.1",
+    "license": "MIT"
+  },
+  {
+    "name": "strip-json-comments",
+    "owner": "Sindre Sorhus",
+    "version": "2.0.1",
+    "license": "MIT"
+  },
+  {
+    "name": "structured-headers",
+    "owner": "Evert Pot",
+    "version": "0.4.1",
+    "license": "MIT"
+  },
+  {
+    "name": "styleq",
+    "owner": "Nicolas Gallagher",
+    "version": "0.1.3",
+    "license": "MIT"
+  },
+  {
+    "name": "sucrase",
+    "owner": "Alan Pierce",
+    "version": "3.35.1",
+    "license": "MIT"
+  },
+  {
+    "name": "supports-color",
+    "owner": "Sindre Sorhus",
+    "version": "5.5.0, 7.2.0, 8.1.1",
+    "license": "MIT"
+  },
+  {
+    "name": "supports-hyperlinks",
+    "owner": "James Talmage",
+    "version": "2.3.0",
+    "license": "MIT"
+  },
+  {
+    "name": "supports-preserve-symlinks-flag",
+    "owner": "Jordan Harband",
+    "version": "1.0.0",
+    "license": "MIT"
+  },
+  {
+    "name": "tailwindcss",
+    "owner": "작성자 미표기",
+    "version": "3.4.19",
+    "license": "MIT"
+  },
+  {
+    "name": "tar",
+    "owner": "Isaac Z. Schlueter",
+    "version": "7.5.16",
+    "license": "BlueOak-1.0.0"
+  },
+  {
+    "name": "terminal-link",
+    "owner": "Sindre Sorhus",
+    "version": "2.1.1",
+    "license": "MIT"
+  },
+  {
+    "name": "terser",
+    "owner": "Mihai Bazon",
+    "version": "5.47.1, 5.48.0",
+    "license": "BSD-2-Clause"
+  },
+  {
+    "name": "test-exclude",
+    "owner": "Ben Coe",
+    "version": "6.0.0",
+    "license": "ISC"
+  },
+  {
+    "name": "thenify",
+    "owner": "Jonathan Ong",
+    "version": "3.3.1",
+    "license": "MIT"
+  },
+  {
+    "name": "thenify-all",
+    "owner": "Jonathan Ong",
+    "version": "1.6.0",
+    "license": "MIT"
+  },
+  {
+    "name": "throat",
+    "owner": "ForbesLindesay",
+    "version": "5.0.0",
+    "license": "MIT"
+  },
+  {
+    "name": "tinyglobby",
+    "owner": "Superchupu",
+    "version": "0.2.16, 0.2.17",
+    "license": "MIT"
+  },
+  {
+    "name": "tmpl",
+    "owner": "Naitik Shah",
+    "version": "1.0.5",
+    "license": "BSD-3-Clause"
+  },
+  {
+    "name": "to-regex-range",
+    "owner": "Jon Schlinkert",
+    "version": "5.0.1",
+    "license": "MIT"
+  },
+  {
+    "name": "toidentifier",
+    "owner": "Douglas Christopher Wilson",
+    "version": "1.0.1",
+    "license": "MIT"
+  },
+  {
+    "name": "tr46",
+    "owner": "Sebastian Mayr",
+    "version": "0.0.3",
+    "license": "MIT"
+  },
+  {
+    "name": "ts-interface-checker",
+    "owner": "Dmitry S, Grist Labs",
+    "version": "0.1.13",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "tslib",
+    "owner": "Microsoft Corp.",
+    "version": "2.8.1",
+    "license": "0BSD"
+  },
+  {
+    "name": "type-detect",
+    "owner": "Jake Luer",
+    "version": "4.0.8",
+    "license": "MIT"
+  },
+  {
+    "name": "type-fest",
+    "owner": "Sindre Sorhus",
+    "version": "0.7.1, 0.21.3",
+    "license": "(MIT OR CC0-1.0)"
+  },
+  {
+    "name": "typescript",
+    "owner": "Microsoft Corp.",
+    "version": "5.9.3",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "ua-parser-js",
+    "owner": "Faisal Salman",
+    "version": "1.0.41",
+    "license": "MIT"
+  },
+  {
+    "name": "undici",
+    "owner": "작성자 미표기",
+    "version": "6.26.0",
+    "license": "MIT"
+  },
+  {
+    "name": "undici-types",
+    "owner": "작성자 미표기",
+    "version": "7.24.6",
+    "license": "MIT"
+  },
+  {
+    "name": "unicode-canonical-property-names-ecmascript",
+    "owner": "Mathias Bynens",
+    "version": "2.0.1",
+    "license": "MIT"
+  },
+  {
+    "name": "unicode-match-property-ecmascript",
+    "owner": "Mathias Bynens",
+    "version": "2.0.0",
+    "license": "MIT"
+  },
+  {
+    "name": "unicode-match-property-value-ecmascript",
+    "owner": "Mathias Bynens",
+    "version": "2.2.1",
+    "license": "MIT"
+  },
+  {
+    "name": "unicode-property-aliases-ecmascript",
+    "owner": "Mathias Bynens",
+    "version": "2.2.0",
+    "license": "MIT"
+  },
+  {
+    "name": "unpipe",
+    "owner": "Douglas Christopher Wilson",
+    "version": "1.0.0",
+    "license": "MIT"
+  },
+  {
+    "name": "update-browserslist-db",
+    "owner": "Andrey Sitnik",
+    "version": "1.2.3",
+    "license": "MIT"
+  },
+  {
+    "name": "use-latest-callback",
+    "owner": "Satyajit Sahoo",
+    "version": "0.2.6",
+    "license": "MIT"
+  },
+  {
+    "name": "use-sync-external-store",
+    "owner": "작성자 미표기",
+    "version": "1.6.0",
+    "license": "MIT"
+  },
+  {
+    "name": "util-deprecate",
+    "owner": "Nathan Rajlich",
+    "version": "1.0.2",
+    "license": "MIT"
+  },
+  {
+    "name": "utils-merge",
+    "owner": "Jared Hanson",
+    "version": "1.0.1",
+    "license": "MIT"
+  },
+  {
+    "name": "uuid",
+    "owner": "작성자 미표기",
+    "version": "7.0.3",
+    "license": "MIT"
+  },
+  {
+    "name": "validate-npm-package-name",
+    "owner": "GitHub Inc.",
+    "version": "5.0.1",
+    "license": "ISC"
+  },
+  {
+    "name": "vary",
+    "owner": "Douglas Christopher Wilson",
+    "version": "1.1.2",
+    "license": "MIT"
+  },
+  {
+    "name": "vlq",
+    "owner": "Rich Harris",
+    "version": "1.0.1",
+    "license": "MIT"
+  },
+  {
+    "name": "walker",
+    "owner": "Naitik Shah",
+    "version": "1.0.8",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "warn-once",
+    "owner": "Satyajit Sahoo",
+    "version": "0.1.1",
+    "license": "MIT"
+  },
+  {
+    "name": "wcwidth",
+    "owner": "Tim Oxley",
+    "version": "1.0.1",
+    "license": "MIT"
+  },
+  {
+    "name": "web-vitals",
+    "owner": "Philip Walton",
+    "version": "4.2.4",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "webidl-conversions",
+    "owner": "Domenic Denicola",
+    "version": "3.0.1, 5.0.0",
+    "license": "BSD-2-Clause"
+  },
+  {
+    "name": "websocket-driver",
+    "owner": "James Coglan",
+    "version": "0.7.5",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "websocket-extensions",
+    "owner": "James Coglan",
+    "version": "0.1.4",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "whatwg-fetch",
+    "owner": "작성자 미표기",
+    "version": "3.6.20",
+    "license": "MIT"
+  },
+  {
+    "name": "whatwg-url",
+    "owner": "Sebastian Mayr",
+    "version": "5.0.0",
+    "license": "MIT"
+  },
+  {
+    "name": "whatwg-url-without-unicode",
+    "owner": "Sebastian Mayr",
+    "version": "8.0.0-3",
+    "license": "MIT"
+  },
+  {
+    "name": "which",
+    "owner": "Isaac Z. Schlueter",
+    "version": "2.0.2",
+    "license": "ISC"
+  },
+  {
+    "name": "wonka",
+    "owner": "0no.co",
+    "version": "6.3.6",
+    "license": "MIT"
+  },
+  {
+    "name": "wrap-ansi",
+    "owner": "Sindre Sorhus",
+    "version": "7.0.0",
+    "license": "MIT"
+  },
+  {
+    "name": "wrappy",
+    "owner": "Isaac Z. Schlueter",
+    "version": "1.0.2",
+    "license": "ISC"
+  },
+  {
+    "name": "write-file-atomic",
+    "owner": "GitHub Inc.",
+    "version": "4.0.2",
+    "license": "ISC"
+  },
+  {
+    "name": "ws",
+    "owner": "Einar Otto Stangvik",
+    "version": "6.2.4, 7.5.11, 8.21.0",
+    "license": "MIT"
+  },
+  {
+    "name": "xcode",
+    "owner": "Apache Software Foundation",
+    "version": "3.0.1",
+    "license": "Apache-2.0"
+  },
+  {
+    "name": "xml2js",
+    "owner": "Marek Kubica",
+    "version": "0.6.0",
+    "license": "MIT"
+  },
+  {
+    "name": "xmlbuilder",
+    "owner": "Ozgur Ozcitak",
+    "version": "11.0.1, 15.1.1",
+    "license": "MIT"
+  },
+  {
+    "name": "y18n",
+    "owner": "Ben Coe",
+    "version": "5.0.8",
+    "license": "ISC"
+  },
+  {
+    "name": "yallist",
+    "owner": "Isaac Z. Schlueter",
+    "version": "3.1.1",
+    "license": "ISC"
+  },
+  {
+    "name": "yaml",
+    "owner": "Eemeli Aro",
+    "version": "2.9.0",
+    "license": "ISC"
+  },
+  {
+    "name": "yargs",
+    "owner": "작성자 미표기",
+    "version": "17.7.2",
+    "license": "MIT"
+  },
+  {
+    "name": "yargs-parser",
+    "owner": "Ben Coe",
+    "version": "21.1.1",
+    "license": "ISC"
+  },
+  {
+    "name": "yocto-queue",
+    "owner": "Sindre Sorhus",
+    "version": "0.1.0",
+    "license": "MIT"
+  },
+  {
+    "name": "zustand",
+    "owner": "Paul Henschel",
+    "version": "5.0.14",
+    "license": "MIT"
+  }
+]

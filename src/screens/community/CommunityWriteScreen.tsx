@@ -28,6 +28,11 @@ const ACCENT = '#E31B59';
 const SURFACE = '#f5f5f7';
 const CAPTION_MAX = 500;
 const MAX_PHOTOS = 5;
+// 서버 max-file-size와 동일. 초과분은 업로드 전에 걸러 낸다.
+const MAX_PHOTO_BYTES = 20 * 1024 * 1024;
+// 서버 max-request-size는 100MB인데 5장 × 20MB면 여유가 0이다. 같은 요청에 JSON 파트와
+// multipart 경계 문자열도 들어가므로 한 단계 낮춰 잡는다(ReviewWriteScreen과 동일 기준).
+const MAX_TOTAL_BYTES = 90 * 1024 * 1024;
 // 서버 PostCreateRequest.tags = @Size(max = 10). 카테고리가 13개라 전부 고르면 400이 난다.
 const TAG_MAX = 10;
 
@@ -35,6 +40,8 @@ interface PickedPhoto {
   /** iOS는 assetId, Android는 assetId가 없어 uri로 대체(중복 판정용) */
   id: string;
   uri: string;
+  /** 새로 고른 사진의 원본 크기(byte). 요청 전체 용량 합산에 쓴다. 서버 사진은 undefined. */
+  bytes?: number;
   /**
    * 수정 모드에서 이미 서버에 올라가 있는 사진의 id. 새로 고른 사진은 undefined다.
    * 이 값이 있는 것만 retainedImageIds로 보내고, 없는 것만 newImages로 업로드한다.
@@ -104,6 +111,10 @@ export default function CommunityWriteScreen() {
   const { params } = useRoute<RouteProp<CommunityDetailStackParamList, 'CommunityWrite'>>();
   const editingPostId = params?.postId;
   const isEdit = !!editingPostId;
+
+  const scrollRef = useRef<ScrollView>(null);
+  /** 폼(캡션 시작 지점)의 스크롤 안 y좌표. 캡션 포커스 시 여기까지 올린다. */
+  const formY = useRef(0);
 
   const [photos, setPhotos] = useState<PickedPhoto[]>([]);
   const [caption, setCaption] = useState('');
@@ -214,16 +225,51 @@ export default function CommunityWriteScreen() {
         mediaTypes: ['images'],
         allowsMultipleSelection: true,
         selectionLimit: MAX_PHOTOS - photos.length,
-        quality: 0.8,
+        // quality < 1이면 expo-image-picker가 비트맵에서 JPEG를 다시 인코딩해 파일의 EXIF가
+        // 통째로 날아간다 — 상세 라이트박스의 사진 정보 시트가 그 바이트에 의존한다.
+        // 이유 전문은 ReviewWriteScreen의 같은 옵션 주석 참고.
+        quality: 1,
         // 촬영 일시를 사진에서 읽기 위해 EXIF를 함께 받는다.
         exif: true,
         preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
       });
       if (result.canceled) return;
 
+      // quality 1이라 원본 바이트가 그대로 올라간다 — 서버 상한을 넘는 사진은 여기서 걸러낸다.
+      // 수정 모드의 기존 서버 사진은 이번 요청에 실려 가지 않으므로 bytes가 없고 합계에도 안 잡힌다.
+      // 합계는 아래 중복 제거·MAX_PHOTOS 절단으로 빠지는 사진까지 세므로 실제보다 조금 크게 잡힌다
+      // (한도를 넘겨 통과시키는 쪽이 아니라 덜 담는 쪽이라 안전한 방향의 오차다).
+      let totalBytes = photos.reduce((sum, p) => sum + (p.bytes ?? 0), 0);
+      let tooLarge = 0;
+      let overBudget = 0;
+      const picked = result.assets.filter((asset) => {
+        // ponytail: fileSize는 옵셔널이고 안드로이드에서 비어 오는 경우가 있다. 그러면 0으로
+        // 계산돼 이 가드를 그냥 통과하고 서버에서 413이 난다(업로드 실패 토스트로는 뜬다).
+        // 크기를 알 방법이 없어 여기서는 통과시킨다 — 막아야 하면 expo-file-system의
+        // getInfoAsync로 실제 크기를 재는 단계를 추가할 것.
+        const bytes = asset.fileSize ?? 0;
+        if (bytes > MAX_PHOTO_BYTES) {
+          tooLarge += 1;
+          return false;
+        }
+        if (totalBytes + bytes > MAX_TOTAL_BYTES) {
+          overBudget += 1;
+          return false;
+        }
+        totalBytes += bytes;
+        return true;
+      });
+
+      // 사유가 여러 개여도 Alert는 하나만 띄운다(iOS에서는 여러 개가 쌓여 연달아 닫아야 한다).
+      const skipped: string[] = [];
+      if (tooLarge > 0) skipped.push(`${tooLarge}장은 용량이 너무 커요(장당 20MB까지)`);
+      if (overBudget > 0) skipped.push(`${overBudget}장은 전체 용량 한도를 넘어 담지 못했어요`);
+      if (skipped.length > 0) Alert.alert('첨부하지 못한 사진', skipped.join('\n'));
+      if (picked.length === 0) return;
+
       // 사용자가 직접 고른 값과 이미 저장된 값은 덮지 않는다. 스크린샷·편집본은 EXIF가 없어 null이 온다.
       if (shotAtSource !== 'manual' && shotAtSource !== 'saved') {
-        const exifDate = result.assets.map((a) => parseExifDateTime(a.exif)).find(Boolean);
+        const exifDate = picked.map((a) => parseExifDateTime(a.exif)).find(Boolean);
         if (exifDate) {
           setShotAt(exifDate);
           setShotAtSource('exif');
@@ -233,8 +279,8 @@ export default function CommunityWriteScreen() {
 
       setPhotos((prev) => {
         const seen = new Set(prev.map((p) => p.id));
-        const fresh = result.assets
-          .map((asset) => ({ id: asset.assetId ?? asset.uri, uri: asset.uri }))
+        const fresh = picked
+          .map((asset) => ({ id: asset.assetId ?? asset.uri, uri: asset.uri, bytes: asset.fileSize ?? 0 }))
           .filter((p) => !seen.has(p.id));
         return [...prev, ...fresh].slice(0, MAX_PHOTOS);
       });
@@ -364,7 +410,7 @@ export default function CommunityWriteScreen() {
       {/* 안드로이드도 behavior가 필요하다 — 엣지투엣지에서 adjustResize가 창을 줄여주지 않는다
           (BottomSheet.tsx 주석 참고). */}
       <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: normalize(40) }}>
+        <ScrollView ref={scrollRef} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: normalize(40) }}>
           {/* 사진 */}
           <View style={{ backgroundColor: '#000' }}>
             {mainPhoto ? (
@@ -380,6 +426,9 @@ export default function CommunityWriteScreen() {
               </Pressable>
             )}
 
+            {/* 사진이 없을 때는 썸네일 줄을 그리지 않는다 — 위 영역이 이미 "사진 추가" 버튼이라
+                + 타일이 같은 일을 하는 버튼을 두 개로 만든다. 한 장이라도 있으면 추가·순서 변경에 필요하다. */}
+            {photos.length > 0 && (
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -415,10 +464,11 @@ export default function CommunityWriteScreen() {
                 </Pressable>
               ))}
             </ScrollView>
+            )}
           </View>
 
           {/* 폼 */}
-          <View style={{ paddingHorizontal: CONTENT_PADDING }}>
+          <View onLayout={(e) => { formY.current = e.nativeEvent.layout.y; }} style={{ paddingHorizontal: CONTENT_PADDING }}>
             {/* 캡션 */}
             <View style={{ paddingTop: normalize(20), paddingBottom: normalize(8), borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)' }}>
               <TextInput
@@ -427,6 +477,9 @@ export default function CommunityWriteScreen() {
                 multiline
                 textAlignVertical="top"
                 maxLength={CAPTION_MAX}
+                // 캡션은 사진(4:3)+썸네일 줄 아래라 키보드가 올라오면 화면 밖으로 밀린다.
+                // KeyboardAvoidingView는 여백만 만들 뿐 스크롤은 안 해 주므로 직접 폼 상단으로 올린다.
+                onFocus={() => scrollRef.current?.scrollTo({ y: formY.current, animated: true })}
                 placeholder="이 사진에 대한 이야기를 들려주세요"
                 placeholderTextColor="rgba(0,0,0,0.28)"
                 allowFontScaling={false}

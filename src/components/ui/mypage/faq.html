@@ -31,7 +31,8 @@
     /* ── 카테고리 칩 ── */
     .cat-row{display:flex;gap:8px;overflow-x:auto;margin-bottom:14px}
     .cat-chip{height:34px;padding:0 14px;border-radius:9999px;border:1px solid var(--color-border);background:#fff;font-family:var(--font-family);font-size:var(--font-sm);font-weight:500;color:var(--color-text-primary);cursor:pointer;flex-shrink:0;transition:all 0.15s}
-    .cat-chip.active{background:var(--color-accent);color:#fff;font-weight:600;border-color:transparent}
+    /* 목록만 거르는 필터라 활성색은 블랙 (accent는 화면 전환·데이터 변경용) */
+    .cat-chip.active{background:#000;color:#fff;font-weight:600;border-color:transparent}
 
     /* ── 리스트 헤더 ── */
     .faq-listhead{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:12px}

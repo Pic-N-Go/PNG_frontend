@@ -17,13 +17,13 @@ import ReviewTab from '@/components/spot/ReviewTab';
 import ChatTab from '@/components/spot/ChatTab';
 import SaveToPlanSheet from '@/components/spot/SaveToPlanSheet';
 import NaviSheet from '@/components/spot/NaviSheet';
-import ShareSheet from '@/components/common/ShareSheet';
 import BookmarkSheet from '@/components/spot/BookmarkSheet';
 import PhotoLightbox from '@/components/spot/PhotoLightbox';
 import { useBookmarkCollections, useSpotDetail, useSpotPhotogenicScore, useSpotPhotos } from '@/hooks/useSpot';
 import { useKeyboardOverlap } from '@/hooks/useKeyboardHeight';
 import { exifFromPhotoUrl } from '@/utils/spotMappers';
 import { BUTTON_RADIUS, GRID_PADDING, SPACING_LG } from '@/constants/layout';
+import { shareContent } from '@/utils/share';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 
 type Props = NativeStackScreenProps<SpotStackParamList, 'SpotDetail'>;
@@ -61,7 +61,6 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
 
   const [saveSheetVisible, setSaveSheetVisible] = useState(false);
   const [naviSheetVisible, setNaviSheetVisible] = useState(false);
-  const [shareSheetVisible, setShareSheetVisible] = useState(false);
   const [bookmarkSheetVisible, setBookmarkSheetVisible] = useState(false);
 
   const [toastVisible, setToastVisible] = useState(false);
@@ -70,6 +69,17 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
   function showToast(message: string) {
     setToastMessage(message);
     setToastVisible(true);
+  }
+
+  // 공유할 웹 URL이 없어 텍스트만 보낸다. 스팟 웹 페이지·딥링크가 생기면 url을 함께 넘긴다.
+  async function handleShare() {
+    if (!spot) return;
+    const ok = await shareContent({
+      title: spot.name,
+      message: [spot.name, spot.address].filter(Boolean).join('\n'),
+    });
+    // 성공 토스트는 띄우지 않는다 — Android는 취소해도 성공으로 오므로 거짓이 된다.
+    if (!ok) showToast('공유 화면을 열지 못했어요');
   }
 
   function handleTabChange(tab: SpotTabKey) {
@@ -193,7 +203,7 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
             heroPhotoCount={viewerPhotos.length}
             onPressPhoto={viewerPhotos.length ? () => setPhotoViewerVisible(true) : undefined}
             onBack={() => navigation.goBack()}
-            onShare={() => setShareSheetVisible(true)}
+            onShare={handleShare}
             onBookmark={() => setBookmarkSheetVisible(true)}
           />
           <SpotInfoHeader spot={spot} />
@@ -274,11 +284,6 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
           setNaviSheetVisible(false);
           showToast(message);
         }}
-      />
-      <ShareSheet
-        visible={shareSheetVisible}
-        onClose={() => setShareSheetVisible(false)}
-        onShared={(message) => showToast(message)}
       />
       <BookmarkSheet
         visible={bookmarkSheetVisible}

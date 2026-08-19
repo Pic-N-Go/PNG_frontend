@@ -1,25 +1,19 @@
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import {
-  IconHome,
-  IconMap,
-  IconRoute,
-  IconMessageCircle,
-  IconUser,
-} from '@tabler/icons-react-native';
+import { Home, Map, Route, MessageCircle, User } from 'lucide-react-native';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { TAB_BAR_HEIGHT } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 
-type TabIcon = typeof IconHome;
+type TabIcon = typeof Home;
 
 const TABS: { route: string; label: string; Icon: TabIcon }[] = [
-  { route: 'HomeTab',      label: '홈',      Icon: IconHome },
-  { route: 'MapTab',       label: '지도',    Icon: IconMap },
-  { route: 'TravelTab',    label: '출사',    Icon: IconRoute },
-  { route: 'CommunityTab', label: '커뮤니티', Icon: IconMessageCircle },
-  { route: 'MyPageTab',    label: 'MY',      Icon: IconUser },
+  { route: 'HomeTab',      label: '홈',      Icon: Home },
+  { route: 'MapTab',       label: '지도',    Icon: Map },
+  { route: 'TravelTab',    label: '출사',    Icon: Route },
+  { route: 'CommunityTab', label: '커뮤니티', Icon: MessageCircle },
+  { route: 'MyPageTab',    label: 'MY',      Icon: User },
 ];
 
 const ACTIVE_COLOR = '#E31B59';

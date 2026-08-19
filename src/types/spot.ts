@@ -466,6 +466,20 @@ export interface SpotSummaryResponse {
 
 // 백엔드 SpotResponse DTO — /spots 목록·검색·인기 응답 아이템
 // zipcode·overview·source: 응답에서 누락되기도 하고 null로 오기도 해 optional + nullable 둘 다 받는다
+/** `GET /spots/recommended` — 목록·검색 응답보다 항목이 적다(점수·리뷰 평균 없음) */
+export interface RecommendedSpotResponse {
+  id: number;
+  name: string;
+  address: string;
+  categories: string[];
+  thumbnailUrl: string | null;
+  badge: boolean | null;
+  latitude: number;
+  longitude: number;
+  reviewCount: number;
+  bookmarkCount: number;
+}
+
 export interface SpotResponse {
   id: number;
   name: string;

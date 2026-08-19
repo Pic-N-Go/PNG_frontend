@@ -5,7 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { FONT_SM } from '@/constants/layout';
 import { useMyAlbums } from '@/hooks/useUser';
-import { getCategoryKoreanName } from '@/types/user';
+import { categoryLabel } from '@/constants/spotCategories';
 
 const GRADIENT_PALETTES: [string, string, ...string[]][] = [
   ['#0f2027', '#203a43', '#e8a87c'],
@@ -93,7 +93,7 @@ export default function RecentAlbums() {
                   {album.name}
                 </Text>
                 <Text className="tracking-tight" style={{ fontSize: normalizeFontSize(12), color: 'rgba(255,255,255,0.7)' }}>
-                  {getCategoryKoreanName(album.category)} · {album.photoCount}장
+                  {categoryLabel(album.category)} · {album.photoCount}장
                 </Text>
               </LinearGradient>
             </LinearGradient>

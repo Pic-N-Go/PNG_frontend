@@ -5,6 +5,7 @@ import type { QueryClient } from '@tanstack/react-query';
 import { communityApi } from '@/api/community';
 import type { PostImageUpload } from '@/api/community';
 import { useAuthStore } from '@/store/useAuthStore';
+import { USER_KEYS } from '@/hooks/useUser';
 import { mapComment, mapPostDetail, mapPosts } from '@/utils/communityMappers';
 import type { PostMapContext } from '@/utils/communityMappers';
 import type {
@@ -60,13 +61,17 @@ export function useMyFollowing() {
 }
 
 /** 피드 — 정렬·검색·페이징 모두 서버가 처리한다. */
-export function useCommunityFeed(sort: PostSortApi, keyword?: string) {
+/**
+ * 피드 목록. `options.enabled=false`로 요청을 막을 수 있다 —
+ * 검색 오버레이의 "전체" 미리보기가 검색어 없을 때 전체 피드를 받아오지 않게 하려고 열어뒀다.
+ */
+export function useCommunityFeed(sort: PostSortApi, keyword?: string, options?: { enabled?: boolean }) {
   const { token, myUserId } = useAuth();
   const { data: followingIds } = useMyFollowing();
   const ctx: PostMapContext = { myUserId, followingIds };
 
-  // MY_POSTS·FOLLOWING은 서버가 토큰을 요구한다. 비로그인이면 요청 자체를 막는다(400 방지).
-  const needsAuth = sort === 'MY_POSTS' || sort === 'FOLLOWING';
+  // MY_POSTS·FOLLOWING·BOOKMARKED는 서버가 토큰을 요구한다. 비로그인이면 요청 자체를 막는다(400 방지).
+  const needsAuth = sort === 'MY_POSTS' || sort === 'FOLLOWING' || sort === 'BOOKMARKED';
 
   return useInfiniteQuery({
     queryKey: feedKey(sort, keyword, token),
@@ -74,7 +79,7 @@ export function useCommunityFeed(sort: PostSortApi, keyword?: string) {
       communityApi.getPosts({ sort, keyword, page: pageParam, size: FEED_PAGE_SIZE, token: token ?? undefined }),
     initialPageParam: 0,
     getNextPageParam: (last: PostPageResponseDTO) => (last.hasNext ? last.page + 1 : undefined),
-    enabled: !needsAuth || !!token,
+    enabled: (!needsAuth || !!token) && (options?.enabled ?? true),
     placeholderData: keepPreviousData,
     select: (data) => ({
       posts: data.pages.flatMap((p) => mapPosts(p.posts, ctx)),
@@ -254,6 +259,15 @@ export const useToggleBookmark = () => useReactionMutation('bookmark');
 
 // ── 게시글 CRUD ───────────────────────────────────────────────────────────
 
+/**
+ * 글 개수가 바뀌면 마이페이지 통계도 다시 받아야 한다 — /users/me/stats의 postCount가
+ * staleTime 2분이라, 무효화하지 않으면 글을 쓰거나 지운 뒤에도 이전 개수가 남는다.
+ */
+function invalidatePostLists(qc: QueryClient) {
+  qc.invalidateQueries({ queryKey: ['community', 'posts'] });
+  qc.invalidateQueries({ queryKey: USER_KEYS.stats() });
+}
+
 export function useCreatePost() {
   const { token } = useAuth();
   const qc = useQueryClient();
@@ -263,7 +277,7 @@ export function useCreatePost() {
       return communityApi.createPost(request, images, token);
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['community', 'posts'] });
+      invalidatePostLists(qc);
     },
   });
 }
@@ -279,7 +293,8 @@ export function useUpdatePost(postId: string) {
     onSuccess: () => {
       // 상세는 토큰별로 키가 갈리므로 id까지만 지정해 전부 무효화한다.
       qc.invalidateQueries({ queryKey: ['community', 'post', postId] });
-      qc.invalidateQueries({ queryKey: ['community', 'posts'] });
+      // 수정은 개수가 그대로라 통계까지 건드릴 필요는 없지만, 목록 갱신 경로를 하나로 둔다.
+      invalidatePostLists(qc);
     },
   });
 }
@@ -294,7 +309,7 @@ export function useDeletePost() {
     },
     onSuccess: (_res, postId) => {
       qc.removeQueries({ queryKey: ['community', 'post', postId] });
-      qc.invalidateQueries({ queryKey: ['community', 'posts'] });
+      invalidatePostLists(qc);
     },
   });
 }
@@ -430,6 +445,15 @@ export function useToggleFollow() {
       if (myUserId != null) qc.invalidateQueries({ queryKey: ['community', 'profile', String(myUserId)] });
       // 팔로잉 피드는 팔로우 관계가 바뀌면 내용이 달라진다.
       qc.invalidateQueries({ queryKey: ['community', 'posts'] });
+      // 마이페이지 팔로워·팔로잉 타일(/users/me/stats)과 팔로우 목록 화면도 같은 값을 본다.
+      // 여기서 지우지 않으면 staleTime 2분 동안 이전 숫자가 남고, FollowScreen의 목록에서
+      // 방금 팔로우 취소한 사람이 그대로 보인다.
+      qc.invalidateQueries({ queryKey: USER_KEYS.stats() });
+      if (myUserId != null) {
+        qc.invalidateQueries({ queryKey: USER_KEYS.following(myUserId) });
+        qc.invalidateQueries({ queryKey: USER_KEYS.followers(myUserId) });
+      }
+      qc.invalidateQueries({ queryKey: USER_KEYS.followers(Number(userId)) });
     },
   });
 }

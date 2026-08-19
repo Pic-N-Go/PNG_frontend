@@ -9,6 +9,7 @@ import { getInquiryTypeLabel } from '@/types/inquiry';
 import { normalize } from '@/utils/normalize';
 import { FONT_2XS, FONT_XS, FONT_SM, FONT_MD, FONT_LG, BUTTON_HEIGHT, BUTTON_RADIUS } from '@/constants/layout';
 import type { InquiryItem, InquiryStatus } from '@/types/inquiry';
+import Chip from '@/components/common/Chip';
 
 type Props = NativeStackScreenProps<MyPageStackParamList, 'Inquiry'>;
 
@@ -115,29 +116,9 @@ export default function InquiryListScreen({ navigation }: Props) {
   );
 }
 
+// 목록만 거르는 필터 — 활성색 블랙, 모양은 공통 Chip. FAQ·홈·지도 필터와 같은 규칙.
 function FilterPill({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
-  return (
-    <Pressable
-      onPress={onPress}
-      className={active ? 'items-center justify-center' : 'items-center justify-center border border-black/5'}
-      style={{
-        paddingHorizontal: normalize(14),
-        paddingVertical: normalize(7),
-        borderRadius: normalize(9999),
-        backgroundColor: active ? BRAND : '#f5f5f7',
-      }}
-    >
-      <Text
-        style={{
-          fontSize: FONT_SM,
-          fontFamily: active ? 'Pretendard-SemiBold' : 'Pretendard-Regular',
-          color: active ? '#ffffff' : '#555555',
-        }}
-      >
-        {label}
-      </Text>
-    </Pressable>
-  );
+  return <Chip label={label} selected={active} onPress={onPress} />;
 }
 
 function InquiryCard({ item, onPress }: { item: InquiryItem; onPress: () => void }) {

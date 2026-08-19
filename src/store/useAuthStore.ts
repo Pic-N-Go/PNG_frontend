@@ -9,14 +9,19 @@ import {
   type UserResponse,
 } from '@/api/auth';
 import { authSecureStorage, waitForAuthStorageWrite } from '@/store/authStorage';
+import { queryClient } from './queryClient';
 
 type AuthState = {
   accessToken: string | null;
   refreshToken: string | null;
   user: UserResponse | null;
-  bio: string | null;
   setAuth: (tokens: TokenResponse) => Promise<void>;
-  setBio: (bio: string) => void;
+  /**
+   * 토큰은 그대로 두고 user만 갱신한다. 프로필 수정 후 화면들이 `authUser`를 폴백으로 읽어서
+   * 여기까지 맞춰줘야 한다 — setAuth를 부르면 세션을 새로 시작해 refresh 흐름이 끊긴다.
+   * user는 persist 대상이 아니라 저장 완료를 기다릴 필요가 없다.
+   */
+  setUser: (user: UserResponse) => void;
   clearAuth: () => Promise<void>;
 };
 
@@ -46,7 +51,6 @@ export const useAuthStore = create<AuthState>()(
       accessToken: null,
       refreshToken: null,
       user: null,
-      bio: null,
       setAuth: async (tokens) => {
         const newSessionRevision = beginSession(tokens.accessToken);
         try {
@@ -60,31 +64,32 @@ export const useAuthStore = create<AuthState>()(
           // 저장에 실패한 토큰으로 로그인 상태를 유지하면 앱 재실행 후 세션이 달라진다.
           if (sessionRevision === newSessionRevision) {
             invalidateSession();
-            set({ accessToken: null, refreshToken: null, user: null, bio: null });
+            set({ accessToken: null, refreshToken: null, user: null });
             await waitForAuthStorageWrite().catch(() => undefined);
           }
           throw error;
         }
       },
-      setBio: (bio) => {
-        set({ bio });
-        void waitForAuthStorageWrite().catch((error) => {
-          if (__DEV__) console.error('[authStore] bio persist failed:', error);
-        });
-      },
+      setUser: (user) => set({ user }),
+      // 쿼리 캐시까지 비워야 한다 — `['user','profile']`처럼 키에 계정 식별자가 없는 쿼리가 많아
+      // 다른 계정으로 다시 로그인하면 staleTime 안쪽에서는 이전 계정의 캐시가 그대로 렌더된다.
+      // 로그아웃·토큰 만료·재수화 실패가 모두 이 함수를 지나가므로 여기 한 곳이면 된다.
       clearAuth: async () => {
         invalidateSession();
-        set({ accessToken: null, refreshToken: null, user: null, bio: null });
+        queryClient.clear();
+        set({ accessToken: null, refreshToken: null, user: null });
         await waitForAuthStorageWrite();
       },
     }),
     {
       name: 'auth-storage',
       storage: createJSONStorage(() => authSecureStorage),
+      // SecureStore는 키당 저장 용량 제한(Android 기준 약 2048바이트)이 있어 토큰만 저장하고,
+      // user는 재수화 후 /users/me로 새로 받아온다.
+      // 자기소개는 서버(users.bio)로 옮겼다 — 기기에만 두면 재설치·기기 변경에 날아갔다.
       partialize: (state) => ({
         accessToken: state.accessToken,
         refreshToken: state.refreshToken,
-        bio: state.bio,
       }),
       onRehydrateStorage: () => (state) => {
         if (!state?.accessToken) return;

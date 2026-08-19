@@ -35,7 +35,7 @@ export function LogoutModal({ visible, onClose, onConfirm }: ModalProps) {
   );
 }
 
-export function WithdrawModal({ visible, onClose, onConfirm }: ModalProps) {
+export function WithdrawModal({ visible, onClose, onConfirm, pending }: ModalProps & { pending?: boolean }) {
   const insets = useSafeAreaInsets();
   return (
     <Modal visible={visible} transparent animationType="slide" statusBarTranslucent onRequestClose={onClose}>
@@ -44,12 +44,22 @@ export function WithdrawModal({ visible, onClose, onConfirm }: ModalProps) {
           <Text className="font-semibold text-black tracking-tight" style={{ fontSize: normalizeFontSize(20), marginBottom: normalize(8) }}>
             정말 탈퇴하시겠어요?
           </Text>
+          {/* 서버는 소프트 삭제 후 30일 뒤에 개인정보를 파기한다 —
+              "복구할 수 없어요"로 두면 실제 동작과 다른 안내가 된다. */}
           <Text className="tracking-tight" style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.45)', lineHeight: normalize(22), marginBottom: normalize(24) }}>
-            탈퇴 시 모든 데이터(스팟, 사진, 여행 계획, 위시리스트)가 삭제되며 복구할 수 없어요.
+            탈퇴하면 바로 로그아웃되고, 프로필과 작성자 이름이 &apos;탈퇴한 사용자&apos;로 바뀌어요.
+            작성한 게시글·댓글은 그대로 남습니다.{'\n'}
+            30일 안에 같은 계정으로 다시 로그인하면 되돌릴 수 있고, 30일이 지나면 개인정보가 영구 삭제돼요.
           </Text>
 
-          <TouchableOpacity onPress={onConfirm} style={{ width: '100%', height: BUTTON_HEIGHT, borderRadius: BUTTON_HEIGHT / 2, backgroundColor: 'rgba(255, 69, 58, 0.1)', alignItems: 'center', justifyContent: 'center', marginBottom: normalize(10) }}>
-            <Text className="font-medium tracking-tight" style={{ fontSize: FONT_MD, color: '#ff453a' }}>탈퇴하기</Text>
+          <TouchableOpacity
+            onPress={onConfirm}
+            disabled={pending}
+            style={{ width: '100%', height: BUTTON_HEIGHT, borderRadius: BUTTON_HEIGHT / 2, backgroundColor: 'rgba(255, 69, 58, 0.1)', alignItems: 'center', justifyContent: 'center', marginBottom: normalize(10), opacity: pending ? 0.5 : 1 }}
+          >
+            <Text className="font-medium tracking-tight" style={{ fontSize: FONT_MD, color: '#ff453a' }}>
+              {pending ? '처리 중...' : '탈퇴하기'}
+            </Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={onClose} style={{ width: '100%', height: BUTTON_HEIGHT, borderRadius: BUTTON_HEIGHT / 2, backgroundColor: '#f8f8f9', alignItems: 'center', justifyContent: 'center' }}>
             <Text className="font-medium tracking-tight" style={{ fontSize: FONT_MD, color: 'rgba(0,0,0,0.55)' }}>취소</Text>
