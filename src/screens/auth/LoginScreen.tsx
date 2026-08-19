@@ -112,7 +112,19 @@ export default function LoginScreen({ navigation }: Props) {
       const token = await kakaoLogin();
       return authApi.loginWithKakao(token.accessToken);
     },
-    onSuccess: (data) => setAuth(data.accessToken, data.user),
+    onSuccess: (data) => {
+      // 신규 가입은 온보딩에서 닉네임을 확정한 뒤 로그인을 완료시킨다. 여기서 setAuth를
+      // 부르면 앱이 곧장 MainTab으로 넘어가 온보딩을 띄울 수 없다.
+      if (data.isNewUser) {
+        navigation.navigate('Onboarding', {
+          provider: 'kakao',
+          accessToken: data.accessToken,
+          user: data.user,
+        });
+        return;
+      }
+      setAuth(data.accessToken, data.user);
+    },
     onError: (e: unknown) => {
       if ((e as { code?: string })?.code === "E_CANCELLED") return;
       console.error("[KakaoLogin Error]", e);

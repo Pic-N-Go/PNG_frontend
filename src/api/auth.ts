@@ -20,6 +20,11 @@ export type TokenResponse = {
   accessToken: string;
   expiresIn: number;
   user: UserResponse;
+  /**
+   * 이번 요청으로 계정이 처음 만들어졌는지. 소셜 로그인에서 true면 온보딩으로 보낸다 —
+   * 카카오 닉네임은 중복·특수문자가 흔해 서버가 다듬은 값이 그대로 굳지 않게 확인받는다.
+   */
+  isNewUser: boolean;
 };
 
 export type EmailVerificationResponse = {

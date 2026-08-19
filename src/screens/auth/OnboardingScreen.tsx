@@ -16,7 +16,11 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '@/navigation/AuthStack';
 import AuthInput from '@/components/auth/AuthInput';
 import ThemePill from '@/components/auth/ThemePill';
-import { THEMES } from '@/constants/themes';
+import Avatar from '@/components/common/Avatar';
+import { THEMES, THEME_CATEGORY_MAP } from '@/constants/themes';
+import { userApi } from '@/api/user';
+import { ApiError } from '@/api/auth';
+import { useAuthStore } from '@/store/useAuthStore';
 import {
   BUTTON_HEIGHT,
   BUTTON_RADIUS,
@@ -29,16 +33,17 @@ import {
   SPACING_LG,
   SPACING_XL,
 } from '@/constants/layout';
+import { NICK_RE, NICK_MAX, nicknameError } from '@/constants/validation';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Onboarding'>;
 
 const HERO_RATIO = 200 / 844;
 
-const NICK_RE = /^[가-힣a-zA-Z0-9]{2,10}$/;
 
 export default function OnboardingScreen({ navigation, route }: Props) {
   const insets = useSafeAreaInsets();
-  const { provider } = route.params;
+  const { provider, accessToken, user } = route.params;
+  const setAuth = useAuthStore((s) => s.setAuth);
 
   const { height: SCREEN_H } = useWindowDimensions();
   const initialHeroHeightRef = useRef<number | null>(null);
@@ -48,9 +53,14 @@ export default function OnboardingScreen({ navigation, route }: Props) {
   }
   const heroHeight = initialHeroHeightRef.current;
 
-  const [nickname, setNickname] = useState('');
+  // 서버가 카카오 닉네임을 규칙에 맞게 다듬고 중복이면 접미사까지 붙여 내려준다.
+  // 그 값을 그대로 채워두고 사용자가 확인·수정하게 한다.
+  const [nickname, setNickname] = useState(user?.nickname ?? '');
   const [selectedThemes, setSelectedThemes] = useState<Set<string>>(new Set());
   const [nickError, setNickError] = useState(false);
+  /** 서버가 돌려준 실패 사유(중복 등). 형식 오류 문구와 자리를 공유한다. */
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const nickOk = NICK_RE.test(nickname.trim());
 
@@ -62,14 +72,40 @@ export default function OnboardingScreen({ navigation, route }: Props) {
     });
   }
 
-  function handleStart() {
-    if (!nickOk) {
+  async function handleStart() {
+    if (!nickOk || submitting) {
       setNickError(true);
       return;
     }
-    // 이 화면은 실제 OAuth 온보딩 API 연동 전까지 로그인을 완료시키지 않음.
-    // Apple 로그인 재개 시 여기를 실제 API 호출로 교체할 것 — setAuth로 가짜 세션을 만들지 말 것.
-    Alert.alert('준비 중', '아직 지원하지 않는 로그인 방식이에요.');
+    // 애플은 아직 미연동이라 토큰 없이 들어온다 — setAuth로 가짜 세션을 만들지 말 것.
+    if (!accessToken || !user) {
+      Alert.alert('준비 중', '아직 지원하지 않는 로그인 방식이에요.');
+      return;
+    }
+
+    setSubmitting(true);
+    setSubmitError(null);
+    try {
+      // 닉네임이 먼저다 — 중복이면 여기서 실패하고, 관심 테마는 저장되지 않아야 한다.
+      // PUT /users/me는 전체 교체라 건드리지 않는 값도 함께 보낸다.
+      let updated = await userApi.updateMyProfile(
+        { nickname: nickname.trim(), profileImageUrl: user.profileImageUrl ?? null, bio: null },
+        accessToken,
+      );
+      if (selectedThemes.size > 0) {
+        updated = await userApi.updateSpotCategories(
+          Array.from(selectedThemes, (t) => THEME_CATEGORY_MAP[t]),
+          accessToken,
+        );
+      }
+      // 여기서 비로소 로그인이 완료된다 → 앱이 MainTab으로 전환된다.
+      setAuth(accessToken, updated);
+    } catch (err) {
+      setSubmitError(
+        err instanceof ApiError ? err.message : '저장하지 못했어요. 잠시 후 다시 시도해 주세요.',
+      );
+      setSubmitting(false);
+    }
   }
 
   const isKakao = provider === 'kakao';
@@ -219,6 +255,15 @@ export default function OnboardingScreen({ navigation, route }: Props) {
               {'PNG에서 사용할 닉네임을 설정해주세요.\n나중에 프로필에서 변경할 수 있어요.'}
             </Text>
 
+            {/* 카카오 프로필 사진. 서버가 가입 시 저장해 응답에 실어준다(http는 https로 변환됨).
+                사진이 없는 계정은 Avatar가 이니셜로 대체한다. 여기서 사진을 바꾸지는 못한다 —
+                업로드 엔드포인트가 아직 없어서 버튼을 달면 눌러도 아무 일이 없다. */}
+            {!!user && (
+              <View style={{ alignItems: 'center', marginBottom: SPACING_XL }}>
+                <Avatar userId={user.id} nickname={user.nickname} imageUrl={user.profileImageUrl} size={80} />
+              </View>
+            )}
+
             {/* Nickname */}
             <Text
               style={{
@@ -240,9 +285,10 @@ export default function OnboardingScreen({ navigation, route }: Props) {
                 onChangeText={(t) => {
                   setNickname(t);
                   setNickError(false);
+                  setSubmitError(null);
                 }}
                 placeholder="2~10자 한글, 영문, 숫자"
-                maxLength={10}
+                maxLength={NICK_MAX}
                 isInvalid={nickError && !nickOk}
               />
               <Text
@@ -260,7 +306,7 @@ export default function OnboardingScreen({ navigation, route }: Props) {
                 {nickname.length}/10
               </Text>
             </View>
-            {nickError && !nickOk && (
+            {((nickError && !nickOk) || !!submitError) && (
               <Text
                 style={{
                   fontSize: FONT_XS,
@@ -271,7 +317,7 @@ export default function OnboardingScreen({ navigation, route }: Props) {
                   fontFamily: 'Pretendard-Regular',
                 }}
               >
-                닉네임은 2~10자 한글, 영문, 숫자만 사용할 수 있어요.
+                {nickError && !nickOk ? nicknameError(nickname) : submitError}
               </Text>
             )}
 
@@ -306,12 +352,14 @@ export default function OnboardingScreen({ navigation, route }: Props) {
             {/* Start Button */}
             <Pressable
               onPress={handleStart}
+              disabled={submitting}
               style={{
                 height: BUTTON_HEIGHT,
                 borderRadius: BUTTON_RADIUS,
                 backgroundColor: nickOk ? '#E31B59' : 'rgba(0,0,0,0.06)',
                 alignItems: 'center',
                 justifyContent: 'center',
+                opacity: submitting ? 0.6 : 1,
               }}
             >
               <Text
@@ -322,7 +370,7 @@ export default function OnboardingScreen({ navigation, route }: Props) {
                   fontFamily: 'Pretendard-Medium',
                 }}
               >
-                시작하기
+                {submitting ? '저장 중...' : '시작하기'}
               </Text>
             </Pressable>
           </View>
