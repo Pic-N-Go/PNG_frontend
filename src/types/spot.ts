@@ -174,20 +174,6 @@ export interface Review {
   equipment?: string;
 }
 
-export type ChatEntryType = 'message' | 'system' | 'date';
-
-export interface ChatEntry {
-  id: string;
-  type: ChatEntryType;
-  isMe?: boolean;
-  senderName?: string;
-  avatarInitial?: string;
-  avatarColor?: string;
-  text?: string;
-  time?: string;
-  isImage?: boolean;
-}
-
 export interface TravelPlanOption {
   id: string;
   name: string;
