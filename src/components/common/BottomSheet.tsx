@@ -127,7 +127,7 @@ export default function BottomSheet({ visible, onClose, children, dimOpacity = D
               <View
                 {...panResponder.current.panHandlers}
                 className="items-center"
-                style={{ paddingTop: normalize(10), paddingBottom: normalize(20) }}
+                style={{ paddingTop: normalize(10), paddingBottom: normalize(8) }}
               >
                 <View
                   className="bg-black/10"

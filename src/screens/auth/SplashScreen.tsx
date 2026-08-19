@@ -13,6 +13,9 @@ const HOME_W = normalize(110);
 const HOME_H = normalize(5);
 const LOGO_SIZE = normalizeFontSize(80);
 const SUB_SIZE = normalizeFontSize(12);
+// 실제 로딩 대기가 아니라 브랜드 노출용 연출 시간이라 고정값
+const HOLD_MS = 1200;
+const FADE_MS = 300;
 
 export default function SplashScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
@@ -34,7 +37,7 @@ export default function SplashScreen({ navigation }: Props) {
   useEffect(() => {
     Animated.timing(loadBarScale, {
       toValue: 1,
-      duration: 2500,
+      duration: HOLD_MS,
       easing: Easing.linear,
       useNativeDriver: true,
     }).start();
@@ -42,7 +45,7 @@ export default function SplashScreen({ navigation }: Props) {
     const timer = setTimeout(() => {
       Animated.timing(screenOpacity, {
         toValue: 0,
-        duration: 400,
+        duration: FADE_MS,
         useNativeDriver: true,
       }).start(({ finished }) => {
         if (finished && !hasNavigated.current) {
@@ -50,7 +53,7 @@ export default function SplashScreen({ navigation }: Props) {
           navigation.replace('Login');
         }
       });
-    }, 2500);
+    }, HOLD_MS);
 
     return () => {
       clearTimeout(timer);
@@ -72,7 +75,6 @@ export default function SplashScreen({ navigation }: Props) {
             fontSize: LOGO_SIZE,
             color: '#ffffff',
             letterSpacing: -1,
-            lineHeight: LOGO_SIZE * 1.1,
           }}
         >
           P N G

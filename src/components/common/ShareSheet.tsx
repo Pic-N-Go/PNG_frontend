@@ -90,7 +90,9 @@ export default function ShareSheet({ visible, onClose, onShared }: Props) {
 
   return (
     <BottomSheet visible={visible} onClose={onClose}>
-      <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(16), paddingBottom: normalize(12) }}>
+      {/* 아래 앱 아이콘 행은 자체 상단 패딩이 없다 — 다른 시트(행 paddingVertical 14)와
+          같은 체감 간격을 내려면 제목 쪽에서 그만큼 더 벌려야 한다. */}
+      <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(16), paddingBottom: normalize(24) }}>
         <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_LG, color: '#000', letterSpacing: -0.35 }}>
           공유하기
         </Text>
