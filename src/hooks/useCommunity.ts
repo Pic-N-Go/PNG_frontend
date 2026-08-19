@@ -5,6 +5,7 @@ import type { QueryClient } from '@tanstack/react-query';
 import { communityApi } from '@/api/community';
 import type { PostImageUpload } from '@/api/community';
 import { useAuthStore } from '@/store/useAuthStore';
+import { USER_KEYS } from '@/hooks/useUser';
 import { mapComment, mapPostDetail, mapPosts } from '@/utils/communityMappers';
 import type { PostMapContext } from '@/utils/communityMappers';
 import type {
@@ -258,6 +259,15 @@ export const useToggleBookmark = () => useReactionMutation('bookmark');
 
 // ── 게시글 CRUD ───────────────────────────────────────────────────────────
 
+/**
+ * 글 개수가 바뀌면 마이페이지 통계도 다시 받아야 한다 — /users/me/stats의 postCount가
+ * staleTime 2분이라, 무효화하지 않으면 글을 쓰거나 지운 뒤에도 이전 개수가 남는다.
+ */
+function invalidatePostLists(qc: QueryClient) {
+  qc.invalidateQueries({ queryKey: ['community', 'posts'] });
+  qc.invalidateQueries({ queryKey: USER_KEYS.stats() });
+}
+
 export function useCreatePost() {
   const { token } = useAuth();
   const qc = useQueryClient();
@@ -267,7 +277,7 @@ export function useCreatePost() {
       return communityApi.createPost(request, images, token);
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['community', 'posts'] });
+      invalidatePostLists(qc);
     },
   });
 }
@@ -283,7 +293,8 @@ export function useUpdatePost(postId: string) {
     onSuccess: () => {
       // 상세는 토큰별로 키가 갈리므로 id까지만 지정해 전부 무효화한다.
       qc.invalidateQueries({ queryKey: ['community', 'post', postId] });
-      qc.invalidateQueries({ queryKey: ['community', 'posts'] });
+      // 수정은 개수가 그대로라 통계까지 건드릴 필요는 없지만, 목록 갱신 경로를 하나로 둔다.
+      invalidatePostLists(qc);
     },
   });
 }
@@ -298,7 +309,7 @@ export function useDeletePost() {
     },
     onSuccess: (_res, postId) => {
       qc.removeQueries({ queryKey: ['community', 'post', postId] });
-      qc.invalidateQueries({ queryKey: ['community', 'posts'] });
+      invalidatePostLists(qc);
     },
   });
 }
