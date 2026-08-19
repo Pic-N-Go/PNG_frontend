@@ -59,6 +59,15 @@ export function formatRelativeTime(iso: string | null | undefined): string {
   return formatDate(iso);
 }
 
+// ponytail: dev 전용 self-check — formatDate는 '내가 쓴 글'의 날짜 묶음 키다.
+// 월·일 패딩이 틀리면 같은 날이 두 그룹으로 조용히 쪼개진다 (프로덕션 no-op)
+if (__DEV__) {
+  console.assert(formatDate('2026-08-05T09:00:00') === '2026.08.05', '한 자리 월·일은 0으로 채워야 한다');
+  console.assert(formatDate('2026-12-31T23:59:00') === '2026.12.31', '두 자리 월·일');
+  console.assert(formatDate(null) === '', 'null은 빈 문자열');
+  console.assert(formatDate('아무말') === '', '파싱 실패는 빈 문자열');
+}
+
 const WEATHER_LABELS: Record<PostWeatherApi, string> = {
   CLEAR: '맑음',
   PARTLY_CLOUDY: '구름 조금',

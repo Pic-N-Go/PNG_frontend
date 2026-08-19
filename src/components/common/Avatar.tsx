@@ -93,3 +93,15 @@ export default function Avatar({ userId, nickname, imageUrl, size }: Props) {
     </View>
   );
 }
+
+// ponytail: dev 전용 self-check — 통합의 핵심(문자열/숫자 id 동등성) 회귀 방지 (프로덕션 no-op)
+if (__DEV__) {
+  // 커뮤니티는 문자열 id, 마이페이지·팔로우 목록은 숫자 id를 넘긴다.
+  // 이게 깨지면 같은 사람이 화면마다 다른 색이 되는데, 그게 통합 전의 증상이었다.
+  console.assert(colorOf('42') === colorOf(42), '문자열/숫자 id가 같은 색이어야 한다');
+  console.assert(colorOf(-3) === colorOf(3), '음수 id도 팔레트 범위 안이어야 한다');
+  console.assert(FALLBACK_COLORS.includes(colorOf(null)), 'id가 없어도 팔레트 색이어야 한다');
+  console.assert(initialsOf('예은') === '예', '한글은 1글자');
+  console.assert(initialsOf('yeeun') === 'YE', '영문은 2글자 대문자');
+  console.assert(initialsOf('  ') === '?', '공백만이면 ?');
+}
