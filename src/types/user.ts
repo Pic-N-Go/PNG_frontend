@@ -14,26 +14,9 @@ export type SpotCategory =
   | 'MILKY_WAY'
   | 'ETC';
 
-export const SPOT_CATEGORY_KOREAN_MAP: Record<string, string> = {
-  PARK: '공원',
-  BEACH: '바다',
-  MOUNTAIN: '산',
-  HANOK: '한옥',
-  FOREST: '숲',
-  HERITAGE: '유적지',
-  CAFE: '카페',
-  CITY: '도시',
-  NIGHT_VIEW: '야경',
-  FESTIVAL: '축제',
-  FLOWER: '꽃',
-  SUNRISE_SUNSET: '일출일몰',
-  MILKY_WAY: '은하수',
-  ETC: '기타',
-};
-
-export function getCategoryKoreanName(category: string): string {
-  return SPOT_CATEGORY_KOREAN_MAP[category] || category;
-}
+// 카테고리 한글 라벨은 여기 두지 않는다 — @/constants/spotCategories의 categoryLabel()이
+// 유일한 출처다. 예전에 이 파일이 별도 맵을 들고 있어서 같은 코드가 화면마다 다르게 보였다
+// (설정 시트는 '문화유산', 마이페이지는 '유적지').
 
 export type UserResponse = {
   id: number;

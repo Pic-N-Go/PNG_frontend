@@ -11,7 +11,7 @@ import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { FONT_XS, FONT_SM, FONT_MD, FONT_LG } from '@/constants/layout';
 
 import { useMyAlbums, useMyStats } from '@/hooks/useUser';
-import { getCategoryKoreanName } from '@/types/user';
+import { categoryLabel } from '@/constants/spotCategories';
 
 // Types
 type ViewMode = 'album' | 'grid';
@@ -175,7 +175,7 @@ export default function MyPhotosScreen() {
               <View style={{ gap: normalize(10) }}>
                 {albums.map((album, index) => {
                   const colors = GRADIENT_PALETTES[index % GRADIENT_PALETTES.length];
-                  const categoryName = getCategoryKoreanName(album.category);
+                  const categoryName = categoryLabel(album.category);
                   return (
                     <View 
                       key={album.id} 

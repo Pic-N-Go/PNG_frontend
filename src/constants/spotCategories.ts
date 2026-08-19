@@ -112,4 +112,6 @@ if (__DEV__) {
   console.assert(pickSpotCategory(undefined) === 'ETC', 'undefined → ETC 오류');
   console.assert(CATEGORY_CODES.length === Object.keys(SPOT_CATEGORY_MAP).length - 1, 'ETC 외 코드가 목록에서 누락됨');
   console.assert(new Set(CATEGORY_LABELS).size === CATEGORY_LABELS.length, '라벨 중복 — CODE_BY_LABEL이 덮어써진다');
+  console.assert(categoryLabel('HERITAGE') === '문화유산', 'categoryLabel이 이 파일의 라벨을 그대로 써야 한다');
+  console.assert(categoryLabel('UNKNOWN_CODE') === '기타', '모르는 코드는 기타로 떨어져야 한다');
 }
