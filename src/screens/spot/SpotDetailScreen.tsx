@@ -178,7 +178,11 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
           {!chatInputFocused && <SpotInfoHeader spot={spot} />}
           <SpotTabBar activeTab={activeTab} onChange={handleTabChange} />
           <View style={{ flex: 1, paddingBottom: keyboardOverlap || insets.bottom }}>
-            <ChatTab onFocusChange={setChatInputFocused} />
+            <ChatTab
+              spotId={Number(spot.id)}
+              spotName={spot.name}
+              onFocusChange={setChatInputFocused}
+            />
           </View>
         </View>
       ) : (
