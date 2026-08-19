@@ -7,6 +7,7 @@ import { ChevronLeft } from 'lucide-react-native';
 import ProfilePostsTab from '@/components/community/ProfilePostsTab';
 import { useMyFollowing, useToggleFollow, useUserPosts, useUserProfile } from '@/hooks/useCommunity';
 import { useAuthStore } from '@/store/useAuthStore';
+import { categoryLabel } from '@/constants/spotCategories';
 import Avatar from '@/components/common/Avatar';
 import type { CommunityDetailStackParamList } from '@/navigation/stacks/CommunityDetailStack';
 import { ProfilePostItem, ProfileTabKey } from '@/types/community';
@@ -122,8 +123,10 @@ export default function UserProfileScreen() {
                       className="items-center justify-center bg-black"
                       style={{ height: normalize(22), paddingHorizontal: normalize(9), borderRadius: normalize(11) }}
                     >
+                      {/* 서버는 enum 코드(NIGHT_VIEW 등)를 준다. 한글 라벨은 프론트가 갖는다 —
+                          그대로 그리면 한국어 화면에 영문 코드가 뜬다(마이페이지 헤더는 이미 변환해서 쓴다). */}
                       <Text allowFontScaling={false} className="text-white" style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, letterSpacing: -0.1 }}>
-                        {category}
+                        {categoryLabel(category)}
                       </Text>
                     </View>
                   ))}

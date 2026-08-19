@@ -213,7 +213,9 @@ export default function ContestEntryDetailScreen() {
           <Pressable
             onPress={() => {
               setActionSheetVisible(false);
-              handleShare();
+              // 시트 닫힘 애니메이션(300ms)이 끝난 뒤에 OS 공유 시트를 띄운다 —
+              // iOS는 dismiss 중에 다른 모달을 올리면 조용히 무시한다.
+              setTimeout(handleShare, 320);
             }}
             style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(12), height: normalize(56) }}
           >

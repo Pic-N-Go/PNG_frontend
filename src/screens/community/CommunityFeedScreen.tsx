@@ -101,7 +101,8 @@ export default function CommunityFeedScreen() {
   const toggleFollow = useToggleFollow();
 
   // 팔로잉·내 글은 서버가 토큰을 요구한다. 비로그인이면 조회를 아예 안 하므로 안내를 따로 띄운다.
-  const needsLogin = !isLoggedIn && (feedSort === '팔로잉' || feedSort === '내 글');
+  // 훅의 needsAuth와 같은 목록이어야 한다 — 여기서 빠지면 쿼리는 막히는데 화면은 '결과 없음'을 띄운다.
+  const needsLogin = !isLoggedIn && (feedSort === '팔로잉' || feedSort === '내 글' || feedSort === '저장');
 
   // 카드 목록 대신 안내 한 줄만 띄우는 상태. null이면 정상 목록을 그린다.
   const postsState: 'login' | 'loading' | 'error' | 'empty' | null =
@@ -358,6 +359,9 @@ export default function CommunityFeedScreen() {
         onClose={() => setSearchVisible(false)}
         onSubmitKeyword={(next) => {
           setKeyword(next);
+          // 오버레이의 게시글 미리보기는 최신순이다. 정렬을 맞추지 않으면 더보기로 넘어온 목록이
+          // 미리보기와 달라지고, '팔로잉'·'내 글'·'저장'에 있었다면 부분집합이라 "결과 없음"이 뜬다.
+          setFeedSort('최신');
           setSearchVisible(false);
         }}
         // 스팟·사용자 결과는 오버레이 안에서 고르고, 상세로 넘어갈 때 오버레이를 닫는다.

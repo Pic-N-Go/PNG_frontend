@@ -565,7 +565,7 @@ export default function PostDetailScreen() {
         visible={actionSheetOpen}
         onClose={() => setActionSheetOpen(false)}
         isMyPost={isMyPost}
-        onShare={handleShare}
+        onShare={() => openAfterActionSheet(handleShare)}
         // 작성 화면을 수정 모드로 재사용한다(항목이 동일). postId가 있으면 CommunityWriteScreen이 폼을 채운다.
         onEdit={() => openAfterActionSheet(() => navigation.navigate('CommunityWrite', { postId }))}
         onRequestDelete={() => openAfterActionSheet(() => setDeleteModalOpen(true))}
