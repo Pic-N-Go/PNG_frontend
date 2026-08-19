@@ -60,7 +60,11 @@ export function useMyFollowing() {
 }
 
 /** 피드 — 정렬·검색·페이징 모두 서버가 처리한다. */
-export function useCommunityFeed(sort: PostSortApi, keyword?: string) {
+/**
+ * 피드 목록. `options.enabled=false`로 요청을 막을 수 있다 —
+ * 검색 오버레이의 "전체" 미리보기가 검색어 없을 때 전체 피드를 받아오지 않게 하려고 열어뒀다.
+ */
+export function useCommunityFeed(sort: PostSortApi, keyword?: string, options?: { enabled?: boolean }) {
   const { token, myUserId } = useAuth();
   const { data: followingIds } = useMyFollowing();
   const ctx: PostMapContext = { myUserId, followingIds };
@@ -74,7 +78,7 @@ export function useCommunityFeed(sort: PostSortApi, keyword?: string) {
       communityApi.getPosts({ sort, keyword, page: pageParam, size: FEED_PAGE_SIZE, token: token ?? undefined }),
     initialPageParam: 0,
     getNextPageParam: (last: PostPageResponseDTO) => (last.hasNext ? last.page + 1 : undefined),
-    enabled: !needsAuth || !!token,
+    enabled: (!needsAuth || !!token) && (options?.enabled ?? true),
     placeholderData: keepPreviousData,
     select: (data) => ({
       posts: data.pages.flatMap((p) => mapPosts(p.posts, ctx)),

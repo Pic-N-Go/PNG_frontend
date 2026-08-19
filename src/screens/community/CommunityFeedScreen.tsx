@@ -354,6 +354,10 @@ export default function CommunityFeedScreen() {
           setSearchVisible(false);
           goToProfile(String(userId));
         }}
+        onOpenPost={(postId, isMine) => {
+          setSearchVisible(false);
+          goToPostById(postId, isMine);
+        }}
       />
       <OptionSheet
         visible={feedSortSheetVisible}

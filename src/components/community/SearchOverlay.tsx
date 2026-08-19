@@ -2,14 +2,17 @@ import React, { useEffect, useState } from 'react';
 import { ActivityIndicator, Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Clock, MapPin, X } from 'lucide-react-native';
+import { ChevronRight, Clock, MapPin, X } from 'lucide-react-native';
 import UserRow from '@/components/common/UserRow';
+import ProfilePostsTab from '@/components/community/ProfilePostsTab';
 import { useSearchUsers } from '@/hooks/useUser';
 import { useRecommendedSpots, useSearchSpots } from '@/hooks/useSpot';
+import { useCommunityFeed } from '@/hooks/useCommunity';
 import { GRID_PADDING, FONT_SM, FONT_XS } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import type { FollowUserResponse } from '@/types/user';
 import type { SpotResponse } from '@/types/spot';
+import type { Post, ProfilePostItem } from '@/types/community';
 
 const ACCENT = '#E31B59';
 const SURFACE = '#f5f5f7';
@@ -18,11 +21,16 @@ const SURFACE = '#f5f5f7';
 const RECENT_KEY = 'community.recentSearches';
 const RECENT_MAX = 10;
 
+/** "전체"는 종류별 미리보기만 보여준다 — 전체 목록은 각 칩이 맡는다. */
+const PREVIEW_ROWS = 3;
+const PREVIEW_CELLS = 6;
+
 /**
  * "사진"은 게시글이 곧 사진이라 게시글 칩과 구분이 없어 뺐다.
- * 나머지 셋은 각각 다른 엔드포인트로 실제 분기한다.
+ * 나머지는 각각 다른 엔드포인트로 실제 분기한다.
  */
 const CHIPS = [
+  { key: 'all', label: '전체' },
   { key: 'posts', label: '게시글' },
   { key: 'spots', label: '스팟' },
   { key: 'users', label: '사용자' },
@@ -33,23 +41,33 @@ type ChipKey = (typeof CHIPS)[number]['key'];
 interface Props {
   visible: boolean;
   onClose: () => void;
-  /** 게시글 검색 — 오버레이를 닫고 피드가 `GET /posts?keyword=`로 결과를 보여준다 */
+  /** 게시글 전체 목록 — 오버레이를 닫고 피드가 `GET /posts?keyword=`로 보여준다 */
   onSubmitKeyword: (keyword: string) => void;
-  /** 스팟·사용자 결과 탭 — 각자의 상세 화면으로 보낸다 */
   onOpenSpot: (spotId: number) => void;
   onOpenUser: (userId: number) => void;
+  onOpenPost: (postId: string, isMine: boolean) => void;
 }
 
-export default function SearchOverlay({ visible, onClose, onSubmitKeyword, onOpenSpot, onOpenUser }: Props) {
+export default function SearchOverlay({ visible, onClose, onSubmitKeyword, onOpenSpot, onOpenUser, onOpenPost }: Props) {
   // 부모 SafeAreaView의 상단 패딩은 position:absolute 자식에게 적용되지 않는다.
   // 직접 인셋만큼 내려주지 않으면 내용이 상태바 아래로 파고들고, 그 자리에 놓인
   // "취소" 버튼은 iOS가 상태바 탭을 가로채 눌리지 않는다.
   const insets = useSafeAreaInsets();
   const [query, setQuery] = useState('');
-  const [chip, setChip] = useState<ChipKey>('posts');
+  // 아무 필터도 고르지 않은 상태가 기본이어야 한다 — 특정 칩이 미리 선택돼 있으면 결과를 조용히 좁힌다.
+  const [chip, setChip] = useState<ChipKey>('all');
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   /** 검색이 실행된 키워드. query와 분리해야 타이핑 중에 매 글자 요청이 나가지 않는다. */
   const [submitted, setSubmitted] = useState('');
+
+  // `visible=false`에서 언마운트되지 않으므로(아래 return null) 상태가 그대로 남는다.
+  // 초기화하지 않으면 다시 열었을 때 지난 검색어와 칩이 그대로 보인다.
+  useEffect(() => {
+    if (!visible) return;
+    setQuery('');
+    setSubmitted('');
+    setChip('all');
+  }, [visible]);
 
   useEffect(() => {
     AsyncStorage.getItem(RECENT_KEY)
@@ -62,11 +80,13 @@ export default function SearchOverlay({ visible, onClose, onSubmitKeyword, onOpe
       .catch(() => undefined);
   }, []);
 
-  // 스팟·사용자만 오버레이 안에서 결과를 그린다. 게시글은 피드로 넘어간다.
-  const wantSpots = chip === 'spots' && !!submitted;
-  const wantUsers = chip === 'users' && !!submitted;
-  const spotResults = useSearchSpots({ keyword: submitted }, { enabled: wantSpots });
-  const userResults = useSearchUsers(submitted, wantUsers);
+  const isAll = chip === 'all';
+  const searching = !!submitted;
+  // 미리보기와 전체 목록이 같은 쿼리를 쓴다(slice만 다르다) — 칩을 오가도 재요청이 없다.
+  const spotResults = useSearchSpots({ keyword: submitted }, { enabled: searching && (isAll || chip === 'spots') });
+  const userResults = useSearchUsers(submitted, searching && (isAll || chip === 'users'));
+  // 게시글 전체 목록은 피드가 맡으므로 오버레이에서는 "전체" 미리보기용으로만 받는다.
+  const postResults = useCommunityFeed('LATEST', submitted, { enabled: searching && isAll });
 
   const persistRecent = (next: string[]) => {
     setRecentSearches(next);
@@ -79,20 +99,17 @@ export default function SearchOverlay({ visible, onClose, onSubmitKeyword, onOpe
     persistRecent([trimmed, ...recentSearches.filter((t) => t !== trimmed)].slice(0, RECENT_MAX));
     setQuery(trimmed);
     setSubmitted(trimmed);
-    // 게시글은 기존 경로 그대로 — 피드가 키워드 필터를 이미 갖고 있다.
+    // 게시글 칩만 화면을 옮긴다 — 피드가 키워드 필터를 이미 갖고 있다.
     if (chip === 'posts') onSubmitKeyword(trimmed);
   };
 
-  // 칩을 바꾸면 같은 키워드로 다시 검색한다 — 결과 종류만 갈아끼우는 것이 기대 동작이다.
+  // 칩을 바꾸면 같은 키워드로 결과 종류만 갈아끼운다.
   const changeChip = (next: ChipKey) => {
     setChip(next);
-    if (!submitted) return;
-    if (next === 'posts') onSubmitKeyword(submitted);
+    if (submitted && next === 'posts') onSubmitKeyword(submitted);
   };
 
   if (!visible) return null;
-
-  const showResults = wantSpots || wantUsers;
 
   return (
     <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, paddingTop: insets.top, backgroundColor: '#fff', zIndex: 40 }}>
@@ -147,15 +164,7 @@ export default function SearchOverlay({ visible, onClose, onSubmitKeyword, onOpe
           })}
         </View>
 
-        {showResults ? (
-          <ResultList
-            chip={chip}
-            spots={spotResults}
-            users={userResults}
-            onOpenSpot={onOpenSpot}
-            onOpenUser={onOpenUser}
-          />
-        ) : (
+        {!searching ? (
           <>
             {recentSearches.length > 0 && (
               <>
@@ -174,10 +183,7 @@ export default function SearchOverlay({ visible, onClose, onSubmitKeyword, onOpe
                       <Text allowFontScaling={false} style={{ flex: 1, fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(14), color: '#000', letterSpacing: -0.2 }}>
                         {term}
                       </Text>
-                      <Pressable
-                        onPress={() => persistRecent(recentSearches.filter((t) => t !== term))}
-                        style={{ padding: normalize(4) }}
-                      >
+                      <Pressable onPress={() => persistRecent(recentSearches.filter((t) => t !== term))} style={{ padding: normalize(4) }}>
                         <X size={normalize(12)} color="rgba(0,0,0,0.25)" strokeWidth={2} />
                       </Pressable>
                     </Pressable>
@@ -190,6 +196,23 @@ export default function SearchOverlay({ visible, onClose, onSubmitKeyword, onOpe
                 그 자리는 실데이터인 추천 스팟이 넓게 쓴다. */}
             <RecommendedSpots onOpenSpot={onOpenSpot} />
           </>
+        ) : isAll ? (
+          <AllPreview
+            users={userResults}
+            spots={spotResults}
+            posts={postResults}
+            onOpenUser={onOpenUser}
+            onOpenSpot={onOpenSpot}
+            onOpenPost={onOpenPost}
+            onMore={changeChip}
+          />
+        ) : chip === 'users' ? (
+          <UserResults query={userResults} onOpenUser={onOpenUser} />
+        ) : chip === 'spots' ? (
+          <SpotResults query={spotResults} onOpenSpot={onOpenSpot} />
+        ) : (
+          // 게시글 칩은 피드로 나가므로 오버레이에 남을 일이 거의 없다(전환 한 프레임용).
+          <StatusText text="피드에서 결과를 보여드릴게요" />
         )}
       </ScrollView>
     </View>
@@ -201,6 +224,20 @@ function SectionLabel({ text }: { text: string }) {
     <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, color: 'rgba(0,0,0,0.45)', letterSpacing: 0.4 }}>
       {text}
     </Text>
+  );
+}
+
+function SectionHeader({ text, onMore }: { text: string; onMore: () => void }) {
+  return (
+    <View className="flex-row items-center justify-between" style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(12), paddingBottom: normalize(4) }}>
+      <SectionLabel text={text} />
+      <Pressable onPress={onMore} className="flex-row items-center" hitSlop={6} style={{ gap: normalize(2) }}>
+        <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: 'rgba(0,0,0,0.45)', letterSpacing: -0.2 }}>
+          더보기
+        </Text>
+        <ChevronRight size={normalize(14)} color="rgba(0,0,0,0.3)" strokeWidth={2} />
+      </Pressable>
+    </View>
   );
 }
 
@@ -216,73 +253,155 @@ function StatusText({ text }: { text: string }) {
   );
 }
 
+function Spinner() {
+  return (
+    <View style={{ paddingVertical: normalize(40) }}>
+      <ActivityIndicator color={ACCENT} />
+    </View>
+  );
+}
+
 type QueryLike<T> = { data?: T; isLoading: boolean; isError: boolean };
+type UserQuery = QueryLike<{ content: FollowUserResponse[] }>;
+type SpotQuery = QueryLike<{ content: SpotResponse[] }>;
+type PostQuery = QueryLike<{ posts: Post[] }>;
 
-function ResultList({
-  chip,
-  spots,
-  users,
-  onOpenSpot,
-  onOpenUser,
-}: {
-  chip: ChipKey;
-  spots: QueryLike<{ content: SpotResponse[] }>;
-  users: QueryLike<{ content: FollowUserResponse[] }>;
-  onOpenSpot: (spotId: number) => void;
-  onOpenUser: (userId: number) => void;
-}) {
-  const active = chip === 'spots' ? spots : users;
+/** 그리드는 프로필 게시글 탭과 같은 것을 쓴다 — 셀 모양이 갈리지 않게. */
+function toGridItems(posts: Post[]): ProfilePostItem[] {
+  return posts.map((post) => ({
+    id: post.id,
+    imageUrl: post.imageUrls[0],
+    photoGradient: post.photoGradient,
+    likeCount: post.likeCount,
+  }));
+}
 
-  if (active.isLoading) {
-    return (
-      <View style={{ paddingVertical: normalize(40) }}>
-        <ActivityIndicator color={ACCENT} />
+function UserResults({ query, onOpenUser }: { query: UserQuery; onOpenUser: (userId: number) => void }) {
+  if (query.isLoading) return <Spinner />;
+  if (query.isError) return <StatusText text="검색 결과를 불러오지 못했어요" />;
+  const found = query.data?.content ?? [];
+  if (found.length === 0) return <StatusText text="일치하는 사용자가 없어요" />;
+  return (
+    <View style={{ paddingHorizontal: GRID_PADDING }}>
+      {found.map((user) => (
+        <UserRow key={user.id} user={user} onPress={() => onOpenUser(user.id)} />
+      ))}
+    </View>
+  );
+}
+
+function SpotRow({ spot, onPress }: { spot: SpotResponse; onPress: () => void }) {
+  return (
+    <Pressable
+      onPress={onPress}
+      className="flex-row items-center"
+      style={{ gap: normalize(12), paddingVertical: normalize(12), borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.04)' }}
+    >
+      <View className="items-center justify-center overflow-hidden" style={{ width: normalize(44), height: normalize(44), borderRadius: normalize(12), backgroundColor: SURFACE }}>
+        {spot.thumbnailUrl ? (
+          <Image source={{ uri: spot.thumbnailUrl }} resizeMode="cover" style={{ width: '100%', height: '100%' }} />
+        ) : (
+          <MapPin size={normalize(18)} color="rgba(0,0,0,0.25)" strokeWidth={1.8} />
+        )}
       </View>
-    );
-  }
-  if (active.isError) return <StatusText text="검색 결과를 불러오지 못했어요" />;
-
-  if (chip === 'users') {
-    const found = users.data?.content ?? [];
-    if (found.length === 0) return <StatusText text="일치하는 사용자가 없어요" />;
-    return (
-      <View style={{ paddingHorizontal: GRID_PADDING }}>
-        {found.map((user) => (
-          <UserRow key={user.id} user={user} onPress={() => onOpenUser(user.id)} />
-        ))}
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <Text allowFontScaling={false} numberOfLines={1} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, color: '#000', letterSpacing: -0.2 }}>
+          {spot.name}
+        </Text>
+        <Text allowFontScaling={false} numberOfLines={1} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.35)', letterSpacing: -0.1, marginTop: normalize(2) }}>
+          {spot.address}
+        </Text>
       </View>
-    );
-  }
+    </Pressable>
+  );
+}
 
-  const found = spots.data?.content ?? [];
+function SpotResults({ query, onOpenSpot }: { query: SpotQuery; onOpenSpot: (spotId: number) => void }) {
+  if (query.isLoading) return <Spinner />;
+  if (query.isError) return <StatusText text="검색 결과를 불러오지 못했어요" />;
+  const found = query.data?.content ?? [];
   if (found.length === 0) return <StatusText text="일치하는 스팟이 없어요" />;
   return (
     <View style={{ paddingHorizontal: GRID_PADDING }}>
       {found.map((spot) => (
-        <Pressable
-          key={spot.id}
-          onPress={() => onOpenSpot(spot.id)}
-          className="flex-row items-center"
-          style={{ gap: normalize(12), paddingVertical: normalize(12), borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.04)' }}
-        >
-          <View className="items-center justify-center overflow-hidden" style={{ width: normalize(44), height: normalize(44), borderRadius: normalize(12), backgroundColor: SURFACE }}>
-            {spot.thumbnailUrl ? (
-              <Image source={{ uri: spot.thumbnailUrl }} resizeMode="cover" style={{ width: '100%', height: '100%' }} />
-            ) : (
-              <MapPin size={normalize(18)} color="rgba(0,0,0,0.25)" strokeWidth={1.8} />
-            )}
-          </View>
-          <View style={{ flex: 1, minWidth: 0 }}>
-            <Text allowFontScaling={false} numberOfLines={1} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, color: '#000', letterSpacing: -0.2 }}>
-              {spot.name}
-            </Text>
-            <Text allowFontScaling={false} numberOfLines={1} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.35)', letterSpacing: -0.1, marginTop: normalize(2) }}>
-              {spot.address}
-            </Text>
-          </View>
-        </Pressable>
+        <SpotRow key={spot.id} spot={spot} onPress={() => onOpenSpot(spot.id)} />
       ))}
     </View>
+  );
+}
+
+/**
+ * "전체" 탭. 종류별로 앞 몇 건만 보여주고 전체 목록은 각 칩에 넘긴다.
+ * 사용자·스팟을 위에 두는 이유는 목록이 짧고 의도가 뚜렷해서다 — 긴 사진 그리드가 위에 오면 나머지가 묻힌다.
+ */
+function AllPreview({
+  users,
+  spots,
+  posts,
+  onOpenUser,
+  onOpenSpot,
+  onOpenPost,
+  onMore,
+}: {
+  users: UserQuery;
+  spots: SpotQuery;
+  posts: PostQuery;
+  onOpenUser: (userId: number) => void;
+  onOpenSpot: (spotId: number) => void;
+  onOpenPost: (postId: string, isMine: boolean) => void;
+  onMore: (chip: ChipKey) => void;
+}) {
+  const foundUsers = (users.data?.content ?? []).slice(0, PREVIEW_ROWS);
+  const foundSpots = (spots.data?.content ?? []).slice(0, PREVIEW_ROWS);
+  const foundPosts = (posts.data?.posts ?? []).slice(0, PREVIEW_CELLS);
+
+  const loading = users.isLoading || spots.isLoading || posts.isLoading;
+  const empty = foundUsers.length === 0 && foundSpots.length === 0 && foundPosts.length === 0;
+  const allFailed = users.isError && spots.isError && posts.isError;
+
+  // 셋 다 아직이면 스피너, 하나라도 왔으면 온 것부터 그린다(먼저 온 결과를 기다리게 하지 않는다).
+  if (loading && empty) return <Spinner />;
+  // 전부 실패한 걸 "결과가 없어요"로 보여주면 네트워크 오류를 빈 결과로 오인한다.
+  if (allFailed) return <StatusText text="검색 결과를 불러오지 못했어요" />;
+  if (empty) return <StatusText text="검색 결과가 없어요" />;
+
+  return (
+    <>
+      {foundUsers.length > 0 && (
+        <>
+          <SectionHeader text="사용자" onMore={() => onMore('users')} />
+          <View style={{ paddingHorizontal: GRID_PADDING }}>
+            {foundUsers.map((user) => (
+              <UserRow key={user.id} user={user} onPress={() => onOpenUser(user.id)} />
+            ))}
+          </View>
+        </>
+      )}
+
+      {foundSpots.length > 0 && (
+        <>
+          <SectionHeader text="스팟" onMore={() => onMore('spots')} />
+          <View style={{ paddingHorizontal: GRID_PADDING }}>
+            {foundSpots.map((spot) => (
+              <SpotRow key={spot.id} spot={spot} onPress={() => onOpenSpot(spot.id)} />
+            ))}
+          </View>
+        </>
+      )}
+
+      {foundPosts.length > 0 && (
+        <>
+          <SectionHeader text="게시글" onMore={() => onMore('posts')} />
+          <ProfilePostsTab
+            items={toGridItems(foundPosts)}
+            onSelectPost={(postId) => {
+              const target = foundPosts.find((post) => post.id === postId);
+              onOpenPost(postId, !!target?.isMine);
+            }}
+          />
+        </>
+      )}
+    </>
   );
 }
 
