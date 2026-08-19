@@ -1,9 +1,8 @@
 import React from 'react';
-import { Animated, Dimensions, Pressable, ScrollView, Text, View } from 'react-native';
+import { Animated, Dimensions, PanResponder, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { WebView } from 'react-native-webview';
 import { Aperture, Camera, MapPin, X } from 'lucide-react-native';
-import BottomSheet from '@/components/common/BottomSheet';
 import { PhotoExifData } from '@/types/photo';
 import { hasAnyExif } from '@/utils/spotMappers';
 import { BOTTOM_SHEET_RADIUS, FONT_2XS, FONT_LG, FONT_SM, FONT_XS, GRID_PADDING } from '@/constants/layout';
@@ -18,7 +17,6 @@ const MAP_PREVIEW_HEIGHT = 120;
 const MAP_PIN_WIDTH = 20;
 
 interface Props {
-  visible: boolean;
   onClose: () => void;
   exif: PhotoExifData;
 }
@@ -213,7 +211,7 @@ export function PhotoExifSheetContent({
   onClose,
   exif,
   showMap = true,
-}: Omit<Props, 'visible'> & {
+}: Props & {
   /**
    * 지도 미리보기 마운트 여부. `PhotoExifLayer`처럼 시트를 상시 마운트해두는 호출부는
    * 시트를 실제로 연 뒤에만 true로 넘긴다 — 안 그러면 사용자가 열지도 않은 시트 때문에
@@ -316,14 +314,6 @@ export function PhotoExifSheetContent({
   );
 }
 
-export default function PhotoExifSheet({ visible, onClose, exif }: Props) {
-  return (
-    <BottomSheet visible={visible} onClose={onClose}>
-      <PhotoExifSheetContent onClose={onClose} exif={exif} />
-    </BottomSheet>
-  );
-}
-
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
 /**
@@ -365,6 +355,29 @@ export function PhotoExifLayer({
     }).start();
   }, [open, translateY]);
 
+  // 핸들을 아래로 끌어 닫기. 공통 BottomSheet와 같은 임계값(100px 또는 vy 0.5)을 쓴다 —
+  // 이 레이어는 Modal이 아니라 손으로 만든 시트라 그쪽 PanResponder를 물려받지 못한다.
+  // 핸들에만 붙인다: 본문은 ScrollView라 여기까지 제스처를 넓히면 스크롤과 싸운다.
+  const onCloseRef = React.useRef(onClose);
+  React.useEffect(() => {
+    onCloseRef.current = onClose;
+  }, [onClose]);
+
+  const pan = React.useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onMoveShouldSetPanResponder: () => true,
+      onPanResponderMove: (_e, g) => {
+        if (g.dy > 0) translateY.setValue(g.dy);
+      },
+      onPanResponderRelease: (_e, g) => {
+        // 닫기 애니메이션은 open=false로 바뀌면서 위 effect가 이어받는다.
+        if (g.dy > 100 || g.vy > 0.5) onCloseRef.current();
+        else Animated.timing(translateY, { toValue: 0, duration: 200, useNativeDriver: true }).start();
+      },
+    }),
+  ).current;
+
   // Android 백 버튼 처리는 여기서 못 한다 — Modal이 떠 있는 동안 RN은 BackHandler 이벤트를
   // 발행하지 않고 Modal의 onRequestClose만 부른다. 그래서 "시트가 열려 있으면 시트만 닫기"는
   // 이 레이어를 감싼 각 라이트박스의 onRequestClose에서 분기한다.
@@ -392,7 +405,7 @@ export function PhotoExifLayer({
           zIndex: 6,
         }}
       >
-        <View style={{ alignItems: 'center', paddingTop: normalize(10), paddingBottom: normalize(8) }}>
+        <View {...pan.panHandlers} style={{ alignItems: 'center', paddingTop: normalize(10), paddingBottom: normalize(8) }}>
           <View style={{ width: normalize(36), height: normalize(4), borderRadius: normalize(2), backgroundColor: 'rgba(0,0,0,0.12)' }} />
         </View>
         <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
