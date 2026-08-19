@@ -3,6 +3,7 @@ import { ActivityIndicator, Image, Pressable, ScrollView, Text, TextInput, View 
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ChevronRight, Clock, MapPin, X } from 'lucide-react-native';
+import Chip from '@/components/common/Chip';
 import UserRow from '@/components/common/UserRow';
 import ProfilePostsTab from '@/components/community/ProfilePostsTab';
 import { useSearchUsers } from '@/hooks/useUser';
@@ -60,10 +61,15 @@ export default function SearchOverlay({ visible, onClose, onSubmitKeyword, onOpe
   /** 검색이 실행된 키워드. query와 분리해야 타이핑 중에 매 글자 요청이 나가지 않는다. */
   const [submitted, setSubmitted] = useState('');
 
-  // `visible=false`에서 언마운트되지 않으므로(아래 return null) 상태가 그대로 남는다.
-  // 초기화하지 않으면 다시 열었을 때 지난 검색어와 칩이 그대로 보인다.
+  /**
+   * `visible=false`에서 언마운트되지 않으므로(아래 return null) 상태가 그대로 남는다.
+   *
+   * 닫힐 때 비운다 — 열릴 때 비우면 닫힌 동안 submitted가 남아 세 쿼리가 계속 enabled인
+   * 상태로 피드 화면에 붙어 있고(포커스·재연결 시 재요청), 다시 열 때 한 프레임 동안
+   * 지난 검색 결과가 스친다.
+   */
   useEffect(() => {
-    if (!visible) return;
+    if (visible) return;
     setQuery('');
     setSubmitted('');
     setChip('all');
@@ -148,20 +154,18 @@ export default function SearchOverlay({ visible, onClose, onSubmitKeyword, onOpe
         </View>
 
         <View className="flex-row" style={{ paddingHorizontal: GRID_PADDING, paddingBottom: normalize(14), gap: normalize(6) }}>
-          {CHIPS.map((item) => {
-            const isActive = item.key === chip;
-            return (
-              <Pressable
-                key={item.key}
-                onPress={() => changeChip(item.key)}
-                style={{ height: normalize(30), paddingHorizontal: normalize(13), borderRadius: normalize(15), backgroundColor: isActive ? '#000' : SURFACE, alignItems: 'center', justifyContent: 'center' }}
-              >
-                <Text allowFontScaling={false} style={{ fontFamily: isActive ? 'Pretendard-SemiBold' : 'Pretendard-Medium', fontSize: FONT_SM, color: isActive ? '#fff' : 'rgba(0,0,0,0.55)', letterSpacing: -0.2 }}>
-                  {item.label}
-                </Text>
-              </Pressable>
-            );
-          })}
+          {/* 결과 종류를 거르는 필터라 활성색은 블랙이다. 공통 Chip을 쓴다 —
+              직접 그리면 회색 톤·글자 색이 다른 필터 칩과 조금씩 어긋난다. */}
+          {CHIPS.map((item) => (
+            <Chip
+              key={item.key}
+              label={item.label}
+              selected={item.key === chip}
+              onPress={() => changeChip(item.key)}
+              height={normalize(30)}
+              paddingHorizontal={normalize(13)}
+            />
+          ))}
         </View>
 
         {!searching ? (
@@ -294,6 +298,8 @@ function SpotRow({ spot, onPress }: { spot: SpotResponse; onPress: () => void })
   return (
     <Pressable
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`${spot.name} 스팟 보기`}
       className="flex-row items-center"
       style={{ gap: normalize(12), paddingVertical: normalize(12), borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.04)' }}
     >

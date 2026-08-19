@@ -32,10 +32,12 @@ function pick<T>(list: T[], seed: number | string): T {
 }
 
 /**
- * 서버 LocalDateTime은 오프셋 없이 "2026-08-17T12:34:56"로 온다 — JS는 이 형식을 기기 로컬
- * 시각으로 파싱한다. 서버와 사용자가 모두 KST라 실무상 맞지만, 해외 로밍 중이면 시차만큼 어긋난다.
+ * 아래 두 함수가 공유하는 전제: 서버 LocalDateTime은 오프셋 없이 "2026-08-17T12:34:56"로
+ * 온다 — JS는 이 형식을 기기 로컬 시각으로 파싱한다. 서버와 사용자가 모두 KST라 실무상
+ * 맞지만, 해외 로밍 중이면 시차만큼 어긋난다.
  * ponytail: 서버가 오프셋을 붙여주면 그대로 정확해진다. 그전까지 이 근사로 둔다.
  */
+
 /** `2026.08.18`. 목록을 날짜별로 묶을 때의 그룹 키이자 헤더 문구다. */
 export function formatDate(iso: string | null | undefined): string {
   if (!iso) return '';
