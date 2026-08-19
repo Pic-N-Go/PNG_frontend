@@ -7,7 +7,7 @@ import { IconChevronLeft, IconPencil, IconCheck } from '@tabler/icons-react-nati
 import { MyPageStackParamList } from '@/navigation/stacks/MyPageStack';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { FONT_XS, FONT_SM, FONT_MD, FONT_LG, BUTTON_HEIGHT, BUTTON_RADIUS, TAB_BAR_HEIGHT } from '@/constants/layout';
-import { authApi } from '@/api/auth';
+import { authApi, toErrorMessage } from '@/api/auth';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useMyProfile, useUpdateMyProfile, useUpdateProfileImage, useDeleteProfileImage } from '@/hooks/useUser';
 import * as ImagePicker from 'expo-image-picker';
@@ -59,6 +59,8 @@ export default function ProfileEditScreen({ navigation }: Props) {
 
   const [nick, setNick] = React.useState(initialNick);
   const [bio, setBio] = React.useState(initialBio);
+  /** 사용자가 입력창을 건드렸는지. 서버 값이 늦게 와도 손댄 값은 덮지 않는다. */
+  const touched = React.useRef(false);
   const [nickStatus, setNickStatus] = React.useState<Status>('idle');
   const [nickReason, setNickReason] = React.useState('');
   /**
@@ -68,6 +70,19 @@ export default function ProfileEditScreen({ navigation }: Props) {
   const [pendingImage, setPendingImage] = React.useState<ProfileImageUpload | null>(null);
   /** 사진 삭제를 골랐는지. 이것도 저장 시점에 반영한다. */
   const [imageRemoved, setImageRemoved] = React.useState(false);
+
+  /**
+   * 서버 값이 도착하면 폼에 채운다.
+   *
+   * useState 초기값은 첫 렌더에서 한 번만 잡힌다. 토큰은 SecureStore에서 동기로 재수화되는데
+   * /users/me는 아직 비행 중일 수 있어(그 사이 user는 null) 폼이 '사용자'·''로 시작한다.
+   * 그 상태에서 저장하면 PUT이 전체 교체라 실제 닉네임·자기소개를 그 값으로 덮어쓴다.
+   */
+  React.useEffect(() => {
+    if (touched.current) return;
+    setNick(initialNick);
+    setBio(initialBio);
+  }, [initialNick, initialBio]);
 
   const checkNickname = () => {
     if (!nick) return;
@@ -80,8 +95,10 @@ export default function ProfileEditScreen({ navigation }: Props) {
       return;
     }
     setNickStatus('checking');
+    // nicknameError가 trim 후 검사하므로 조회·저장도 같은 값으로 해야 한다 —
+    // 원본을 보내면 검증을 통과한 문자열과 다른 값을 조회하고, 저장 시점에 서버 정규식에서 400이 난다.
     authApi
-      .checkNickname(nick)
+      .checkNickname(nick.trim())
       .then((res) => setNickStatus(res.available ? 'available' : 'taken'))
       // 통신 실패를 형식 오류로 뭉치면 사용자가 멀쩡한 닉네임을 계속 고치게 된다.
       .catch(() => setNickStatus('error'));
@@ -121,16 +138,28 @@ export default function ProfileEditScreen({ navigation }: Props) {
         // PUT /users/me는 전체 교체다 — 바꾸지 않은 값까지 함께 보내야 서버에서 비워지지 않는다.
         // 사진은 예외다. 서버가 준 값은 presigned URL이라 되돌려 보내면 죽은 URL이 저장되므로,
         // 전용 경로(PATCH/DELETE /users/me/profile-image)로만 바꾼다.
-        await updateProfile.mutateAsync({ nickname: nick, bio: bio.trim() || null });
+        await updateProfile.mutateAsync({ nickname: nick.trim(), bio: bio.trim() || null });
       }
 
       setPendingImage(null);
       setImageRemoved(false);
       Alert.alert('저장 완료', '프로필이 저장됐어요.', [{ text: '확인', onPress: () => navigation.goBack() }]);
-    } catch {
+    } catch (err) {
       // 사진만 올라가고 닉네임이 실패했을 수 있다. 다시 저장을 누르면 사진은 새로 올라가고
       // 직전 것은 서버가 지우므로(updateProfileImage) 남는 파일 없이 재시도된다.
-      Alert.alert('저장 실패', '프로필을 저장하지 못했어요. 잠시 후 다시 시도해 주세요.');
+      //
+      // 서버 메시지를 살린다 — 가장 흔한 실패가 NICKNAME_ALREADY_EXISTS다(중복 확인과 저장
+      // 사이에 남이 같은 값을 쓸 수 있다). "저장하지 못했어요"만 띄우면 무엇을 고쳐야 할지 알 수 없다.
+      const photoDone = pendingImage !== null || imageRemoved;
+      Alert.alert(
+        '저장 실패',
+        [
+          toErrorMessage(err, '프로필을 저장하지 못했어요. 잠시 후 다시 시도해 주세요.'),
+          photoDone ? '사진은 이미 변경됐어요.' : null,
+        ]
+          .filter(Boolean)
+          .join('\n'),
+      );
     }
   };
 
@@ -258,7 +287,7 @@ export default function ProfileEditScreen({ navigation }: Props) {
               <View className="flex-row items-stretch" style={{ gap: normalize(8) }}>
                 <TextInput
                   value={nick}
-                  onChangeText={(t) => { setNick(t); setNickStatus('idle'); }}
+                  onChangeText={(t) => { touched.current = true; setNick(t); setNickStatus('idle'); }}
                   maxLength={NICK_MAX}
                   className="flex-1 bg-[#f5f5f7] text-black"
                   style={{ height: normalize(52), borderRadius: normalize(12), paddingHorizontal: normalize(16), fontSize: FONT_MD }}
