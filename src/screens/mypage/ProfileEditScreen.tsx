@@ -134,46 +134,58 @@ export default function ProfileEditScreen({ navigation }: Props) {
     }
   };
 
+  /**
+   * 피커가 뜨는 동안 다시 열리지 않게 막는다. iOS 사진 피커는 별도 프로세스라 탭과 표시
+   * 사이에 지연이 있어(시뮬레이터에서 특히 길다) 반응이 없다고 한 번 더 누르기 쉽다.
+   * CommunityWriteScreen도 같은 이유로 같은 장치를 쓴다.
+   */
+  const picking = React.useRef(false);
+
   const pickAvatar = async () => {
-    if (saving) return;
-    // iOS PHPickerViewController는 앱 프로세스 밖에서 뜨므로 권한 요청이 필요 없다.
-    if (Platform.OS === 'android') {
-      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!permission.granted) {
-        Alert.alert(
-          '사진 접근 권한 필요',
-          '설정에서 사진 접근을 허용해 주세요.',
-          permission.canAskAgain
-            ? [{ text: '확인' }]
-            : [{ text: '취소', style: 'cancel' }, { text: '설정 열기', onPress: () => Linking.openSettings() }],
-        );
-        return;
+    if (saving || picking.current) return;
+    picking.current = true;
+    try {
+      // iOS PHPickerViewController는 앱 프로세스 밖에서 뜨므로 권한 요청이 필요 없다.
+      if (Platform.OS === 'android') {
+        const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (!permission.granted) {
+          Alert.alert(
+            '사진 접근 권한 필요',
+            '설정에서 사진 접근을 허용해 주세요.',
+            permission.canAskAgain
+              ? [{ text: '확인' }]
+              : [{ text: '취소', style: 'cancel' }, { text: '설정 열기', onPress: () => Linking.openSettings() }],
+          );
+          return;
+        }
       }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        // 아바타는 원형으로 잘려 보이므로 정사각으로 받는다(aspect는 안드로이드 전용,
+        // iOS는 allowsEditing이면 항상 정사각이다).
+        allowsEditing: true,
+        aspect: [1, 1],
+        // 게시글·리뷰와 달리 EXIF를 쓸 일이 없다. 작을수록 좋으므로 압축한다.
+        quality: 0.8,
+        preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
+      });
+      if (result.canceled) return;
+
+      const asset = result.assets[0];
+      if (!asset) return;
+      const ext = asset.uri.split('.').pop()?.toLowerCase();
+      const safeExt = ext && /^(jpe?g|png|heic|webp)$/.test(ext) ? ext : 'jpg';
+      // 여기서 올리지 않는다 — 저장 버튼을 눌러야 반영된다.
+      setPendingImage({
+        uri: asset.uri,
+        name: `profile.${safeExt}`,
+        type: safeExt === 'png' ? 'image/png' : safeExt === 'webp' ? 'image/webp' : 'image/jpeg',
+      });
+      setImageRemoved(false);
+    } finally {
+      picking.current = false;
     }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      // 아바타는 원형으로 잘려 보이므로 정사각으로 받는다(aspect는 안드로이드 전용,
-      // iOS는 allowsEditing이면 항상 정사각이다).
-      allowsEditing: true,
-      aspect: [1, 1],
-      // 게시글·리뷰와 달리 EXIF를 쓸 일이 없다. 작을수록 좋으므로 압축한다.
-      quality: 0.8,
-      preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
-    });
-    if (result.canceled) return;
-
-    const asset = result.assets[0];
-    if (!asset) return;
-    const ext = asset.uri.split('.').pop()?.toLowerCase();
-    const safeExt = ext && /^(jpe?g|png|heic|webp)$/.test(ext) ? ext : 'jpg';
-    // 여기서 올리지 않는다 — 저장 버튼을 눌러야 반영된다.
-    setPendingImage({
-      uri: asset.uri,
-      name: `profile.${safeExt}`,
-      type: safeExt === 'png' ? 'image/png' : safeExt === 'webp' ? 'image/webp' : 'image/jpeg',
-    });
-    setImageRemoved(false);
   };
 
   const onChangeAvatar = () => {
