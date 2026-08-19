@@ -50,6 +50,8 @@ interface GalleryPhoto {
   likeCount: number;
   postId: string;
   isMine: boolean;
+  /** 이 사진이 게시글에서 몇 번째인지. 상세로 들어갈 때 이 사진부터 보여주려고 들고 다닌다. */
+  photoIndex: number;
 }
 
 /** 갤러리 탭은 같은 피드의 사진만 격자로 다시 보여준다 — 전용 API가 없다. */
@@ -62,6 +64,7 @@ function toGalleryPhotos(posts: Post[]): GalleryPhoto[] {
       likeCount: post.likeCount,
       postId: post.id,
       isMine: post.isMine,
+      photoIndex: idx,
     })),
   );
 }
@@ -127,8 +130,8 @@ export default function CommunityFeedScreen() {
 
   const goToPost = (post: Post) =>
     rootNavigation.navigate('CommunityDetailStack', { screen: 'PostDetail', params: { postId: post.id, isMyPost: post.isMine } });
-  const goToPostById = (postId: string, isMine: boolean) =>
-    rootNavigation.navigate('CommunityDetailStack', { screen: 'PostDetail', params: { postId, isMyPost: isMine } });
+  const goToPostById = (postId: string, isMine: boolean, photoIndex?: number) =>
+    rootNavigation.navigate('CommunityDetailStack', { screen: 'PostDetail', params: { postId, isMyPost: isMine, photoIndex } });
   const goToProfile = (userId: string) =>
     rootNavigation.navigate('CommunityDetailStack', { screen: 'UserProfile', params: { userId } });
   const goToContestResult = (item: ContestPastMonthItem) =>
@@ -307,7 +310,7 @@ export default function CommunityFeedScreen() {
                 return (
                   <Pressable
                     key={cell.id}
-                    onPress={() => goToPostById(cell.postId, cell.isMine)}
+                    onPress={() => goToPostById(cell.postId, cell.isMine, cell.photoIndex)}
                     style={{
                       position: 'absolute',
                       top: row * (galleryCellSize + GALLERY_GAP),

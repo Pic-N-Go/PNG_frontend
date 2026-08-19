@@ -11,7 +11,8 @@ import FollowScreen from '@/screens/mypage/FollowScreen';
 import type { ContestSubmitTarget } from '@/types/community';
 
 export type CommunityDetailStackParamList = {
-  PostDetail: { postId: string; isMyPost?: boolean };
+  /** photoIndex: 갤러리에서 특정 사진을 눌러 들어온 경우 그 사진부터 보여준다(기본 0). */
+  PostDetail: { postId: string; isMyPost?: boolean; photoIndex?: number };
   /** postId가 있으면 그 글의 수정 모드로 연다. 없으면 새 글 작성. */
   CommunityWrite: { postId?: string } | undefined;
   /** submitTarget: 빈 상태 CTA가 출품 화면으로 넘길 값. 없으면 출품 경로를 막는다(남은 자리를 모르므로) */

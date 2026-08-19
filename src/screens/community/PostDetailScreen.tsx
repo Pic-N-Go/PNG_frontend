@@ -267,7 +267,14 @@ export default function PostDetailScreen() {
   const remainingComments = Math.max((commentData?.totalElements ?? 0) - comments.length, 0);
   const canSendComment =
     commentText.trim().length > 0 && !createComment.isPending && !updateCommentM.isPending;
-  const mainPhoto = post?.imageUrls?.[0];
+  /**
+   * 히어로에 보여줄 사진. 갤러리에서 특정 사진을 눌러 들어왔으면 그 사진부터 보여준다 —
+   * 폭포를 눌렀는데 글의 첫 사진이 뜨면 다른 글에 들어온 것처럼 읽힌다.
+   * 목록이 아직 안 왔거나 사진이 지워졌을 수 있어 범위를 다시 맞춘다.
+   */
+  const photoCount = post?.imageUrls?.length ?? 0;
+  const heroPhotoIndex = Math.min(Math.max(route.params?.photoIndex ?? 0, 0), Math.max(photoCount - 1, 0));
+  const mainPhoto = post?.imageUrls?.[heroPhotoIndex];
 
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
@@ -582,6 +589,7 @@ export default function PostDetailScreen() {
         <PhotoLightbox
           visible={lightboxOpen}
           onClose={handleCloseLightbox}
+          initialIndex={heroPhotoIndex}
           exifOpen={exifOpen}
           onOpenExif={() => setExifOpen(true)}
           onCloseExif={() => setExifOpen(false)}
