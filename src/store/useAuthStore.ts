@@ -19,6 +19,26 @@ type AuthState = {
   clearAuth: () => Promise<void>;
 };
 
+let sessionRevision = 0;
+const tokenSessionRevisions = new Map<string, number>();
+
+function beginSession(accessToken: string): number {
+  sessionRevision += 1;
+  tokenSessionRevisions.clear();
+  tokenSessionRevisions.set(accessToken, sessionRevision);
+  return sessionRevision;
+}
+
+function invalidateSession(): void {
+  sessionRevision += 1;
+  tokenSessionRevisions.clear();
+}
+
+function resolveTokenSessionRevision(accessToken: string): number | null {
+  const revision = tokenSessionRevisions.get(accessToken);
+  return revision === sessionRevision ? revision : null;
+}
+
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
@@ -27,6 +47,7 @@ export const useAuthStore = create<AuthState>()(
       user: null,
       bio: null,
       setAuth: async (tokens) => {
+        const newSessionRevision = beginSession(tokens.accessToken);
         try {
           set({
             accessToken: tokens.accessToken,
@@ -36,8 +57,11 @@ export const useAuthStore = create<AuthState>()(
           await waitForAuthStorageWrite();
         } catch (error) {
           // 저장에 실패한 토큰으로 로그인 상태를 유지하면 앱 재실행 후 세션이 달라진다.
-          set({ accessToken: null, refreshToken: null, user: null, bio: null });
-          await waitForAuthStorageWrite().catch(() => undefined);
+          if (sessionRevision === newSessionRevision) {
+            invalidateSession();
+            set({ accessToken: null, refreshToken: null, user: null, bio: null });
+            await waitForAuthStorageWrite().catch(() => undefined);
+          }
           throw error;
         }
       },
@@ -48,6 +72,7 @@ export const useAuthStore = create<AuthState>()(
         });
       },
       clearAuth: async () => {
+        invalidateSession();
         set({ accessToken: null, refreshToken: null, user: null, bio: null });
         await waitForAuthStorageWrite();
       },
@@ -65,16 +90,23 @@ export const useAuthStore = create<AuthState>()(
 
         silentUnauthorized = true;
         const rehydratedToken = state.accessToken;
+        const rehydratedSessionRevision = beginSession(rehydratedToken);
         authApi.me(rehydratedToken)
           .then((user) => {
             const current = useAuthStore.getState();
-            if (current.accessToken === rehydratedToken) {
+            if (
+              sessionRevision === rehydratedSessionRevision &&
+              current.accessToken === rehydratedToken
+            ) {
               useAuthStore.setState({ user });
             }
           })
           .catch(async () => {
             const current = useAuthStore.getState();
-            if (current.accessToken === rehydratedToken) {
+            if (
+              sessionRevision === rehydratedSessionRevision &&
+              current.accessToken === rehydratedToken
+            ) {
               await current.clearAuth().catch((error) => {
                 if (__DEV__) console.error('[authStore] rehydration cleanup failed:', error);
               });
@@ -89,9 +121,12 @@ export const useAuthStore = create<AuthState>()(
 );
 
 let silentUnauthorized = false;
-let refreshPromise: Promise<string | null> | null = null;
+type RefreshResult = { accessToken: string; sessionRevision: number };
+type RefreshTask = { sessionRevision: number; promise: Promise<RefreshResult | null> };
+let refreshTask: RefreshTask | null = null;
 
-async function clearExpiredSession(): Promise<void> {
+async function clearExpiredSession(expectedSessionRevision: number): Promise<void> {
+  if (sessionRevision !== expectedSessionRevision) return;
   await useAuthStore.getState().clearAuth().catch((error) => {
     if (__DEV__) console.error('[authStore] expired session cleanup failed:', error);
   });
@@ -100,42 +135,81 @@ async function clearExpiredSession(): Promise<void> {
   }
 }
 
-setAccessTokenExpiredHandler(async (requestToken) => {
+setAccessTokenExpiredHandler(resolveTokenSessionRevision, async (requestToken, requestRevision) => {
   const current = useAuthStore.getState();
-  if (!current.accessToken) return null;
+  if (!current.accessToken || sessionRevision !== requestRevision) return null;
 
-  // 다른 요청이 이미 갱신했으면 소비된 Refresh Token을 다시 쓰지 않고 최신 토큰을 반환한다.
-  if (current.accessToken !== requestToken) return current.accessToken;
+  // 같은 세션의 다른 요청이 이미 갱신했다면 소비된 Refresh Token을 다시 쓰지 않는다.
+  if (current.accessToken !== requestToken) {
+    return { accessToken: current.accessToken, sessionRevision: requestRevision };
+  }
 
   if (!current.refreshToken) {
-    await clearExpiredSession();
+    await clearExpiredSession(requestRevision);
     return null;
   }
 
-  if (!refreshPromise) {
+  if (!refreshTask || refreshTask.sessionRevision !== requestRevision) {
     const refreshTokenForRequest = current.refreshToken;
-    refreshPromise = authApi.refreshToken(refreshTokenForRequest)
+    const promise = authApi.refreshToken(refreshTokenForRequest)
       .then(async (tokens) => {
         const latest = useAuthStore.getState();
-        // 로그아웃 또는 새 로그인 뒤에 도착한 예전 갱신 결과는 현재 세션을 덮지 않는다.
-        if (latest.refreshToken !== refreshTokenForRequest) {
-          return latest.accessToken;
+        if (
+          sessionRevision !== requestRevision ||
+          latest.refreshToken !== refreshTokenForRequest
+        ) {
+          return null;
         }
-        await latest.setAuth(tokens);
-        return tokens.accessToken;
+
+        // Refresh Token rotation은 같은 로그인 세션이므로 revision을 유지한다.
+        tokenSessionRevisions.set(tokens.accessToken, requestRevision);
+        useAuthStore.setState({
+          accessToken: tokens.accessToken,
+          refreshToken: tokens.refreshToken,
+          user: tokens.user,
+        });
+        try {
+          await waitForAuthStorageWrite();
+        } catch (error) {
+          await clearExpiredSession(requestRevision);
+          throw error;
+        }
+
+        if (
+          sessionRevision !== requestRevision ||
+          useAuthStore.getState().accessToken !== tokens.accessToken
+        ) {
+          return null;
+        }
+        return { accessToken: tokens.accessToken, sessionRevision: requestRevision };
       })
       .catch(async (error) => {
         const latest = useAuthStore.getState();
-        if (latest.refreshToken !== refreshTokenForRequest) {
-          return latest.accessToken;
+        if (
+          sessionRevision !== requestRevision ||
+          latest.refreshToken !== refreshTokenForRequest
+        ) {
+          return null;
         }
-        await clearExpiredSession();
+        await clearExpiredSession(requestRevision);
         throw error;
-      })
-      .finally(() => {
-        refreshPromise = null;
       });
+
+    const task: RefreshTask = {
+      sessionRevision: requestRevision,
+      promise: promise.then(
+        (result) => {
+          if (refreshTask === task) refreshTask = null;
+          return result;
+        },
+        (error) => {
+          if (refreshTask === task) refreshTask = null;
+          throw error;
+        },
+      ),
+    };
+    refreshTask = task;
   }
 
-  return refreshPromise;
+  return refreshTask.promise;
 });

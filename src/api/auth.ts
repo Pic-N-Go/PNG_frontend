@@ -66,13 +66,27 @@ const MESSAGE_BY_STATUS: Record<number, string> = {
   413: '사진 용량이 너무 커요. 더 작은 사진으로 시도해 주세요.',
 };
 
+type RefreshedAccessToken = {
+  accessToken: string;
+  sessionRevision: number;
+};
+
 /** Access Token 만료 시 실행할 갱신 처리. 구현은 순환 참조를 피하려고 스토어가 주입한다. */
-type AccessTokenExpiredHandler = (requestToken: string) => Promise<string | null>;
+type AccessTokenExpiredHandler = (
+  requestToken: string,
+  requestSessionRevision: number,
+) => Promise<RefreshedAccessToken | null>;
+type SessionRevisionResolver = (requestToken: string) => number | null;
 
 // 스토어를 여기서 직접 import하면 순환 참조가 생기므로 갱신 동작만 주입받는다.
 let onAccessTokenExpired: AccessTokenExpiredHandler | null = null;
-export function setAccessTokenExpiredHandler(fn: AccessTokenExpiredHandler) {
-  onAccessTokenExpired = fn;
+let resolveSessionRevision: SessionRevisionResolver | null = null;
+export function setAccessTokenExpiredHandler(
+  resolver: SessionRevisionResolver,
+  handler: AccessTokenExpiredHandler,
+) {
+  resolveSessionRevision = resolver;
+  onAccessTokenExpired = handler;
 }
 
 /**
@@ -104,10 +118,15 @@ export async function fetchWithAuthRetry(
   init: RequestInit = {},
 ): Promise<Response> {
   const requestToken = tokenFromHeaders(init.headers);
+  // 네트워크 응답을 기다리는 동안 로그아웃/새 로그인이 발생할 수 있으므로 요청 시작 시점을 고정한다.
+  const requestSessionRevision = requestToken
+    ? (resolveSessionRevision?.(requestToken) ?? null)
+    : null;
   const res = await fetch(input, init);
 
   if (
     !requestToken ||
+    requestSessionRevision === null ||
     res.status !== 401 ||
     (await getErrorCode(res)) !== 'ACCESS_TOKEN_EXPIRED' ||
     !onAccessTokenExpired
@@ -115,11 +134,11 @@ export async function fetchWithAuthRetry(
     return res;
   }
 
-  const nextAccessToken = await onAccessTokenExpired(requestToken);
-  if (!nextAccessToken) return res;
+  const refreshed = await onAccessTokenExpired(requestToken, requestSessionRevision);
+  if (!refreshed || refreshed.sessionRevision !== requestSessionRevision) return res;
 
   const retryHeaders = new Headers(init.headers);
-  retryHeaders.set('Authorization', `Bearer ${nextAccessToken}`);
+  retryHeaders.set('Authorization', `Bearer ${refreshed.accessToken}`);
   return fetch(input, { ...init, headers: retryHeaders });
 }
 
