@@ -40,6 +40,13 @@ export default function SettingScreen({ navigation }: Props) {
   // 서버 UserResponse.provider가 가입 경로를 알려준다. LOCAL은 이메일 가입이라 연결된 소셜이 없다.
   // user가 아직 안 왔을 때(재수화 직후) 둘 중 하나로 단정하지 않고 행을 비워 둔다.
   const socialDesc = user == null ? undefined : user.provider === 'KAKAO' ? '카카오 연결됨' : '연결된 계정 없음';
+  const isSocialAccount = user?.provider === 'KAKAO';
+  /**
+   * 카카오는 이메일 제공이 선택 동의라, 동의하지 않은 계정은 서버가 `{providerId}@kakao.local`을
+   * 대신 저장한다(KakaoAuthClient). 실제로 존재하지 않는 주소라 화면에 보여주지 않는다 —
+   * 보여주면 사용자가 자기 이메일이 저렇게 바뀐 줄 안다.
+   */
+  const accountEmail = user?.email && !user.email.endsWith('@kakao.local') ? user.email : undefined;
   const [dndTimeSheetVisible, setDndTimeSheetVisible] = React.useState(false);
   const [dndRepeatSheetVisible, setDndRepeatSheetVisible] = React.useState(false);
   const [versionSheetVisible, setVersionSheetVisible] = React.useState(false);
@@ -104,6 +111,15 @@ export default function SettingScreen({ navigation }: Props) {
     };
   }, [checkPushPermission, checkLocationPermission]);
 
+
+  // 카카오 계정의 이메일은 카카오가 소유한다. 우리 쪽에서 바꾸면 다음 로그인 때 되돌아오거나
+  // 로그인 식별자가 어긋난다 — 행을 숨기는 대신 왜 안 되는지 알려준다.
+  const openSocialEmailAlert = () => {
+    Alert.alert(
+      '이메일을 변경할 수 없어요',
+      '카카오 계정으로 로그인 중이에요. 이메일은 카카오에서 관리돼요.',
+    );
+  };
 
   const openSystemNotifSettingsAlert = () => {
     Alert.alert(
@@ -181,7 +197,15 @@ export default function SettingScreen({ navigation }: Props) {
           <SectionLabel text="계정" />
           <Card>
             <SettingRow icon={IconUser} label="프로필 편집" desc="이미지, 닉네임, 소개 수정" chevron onPress={() => navigation.navigate('ProfileEdit')} />
-            <SettingRow icon={IconMail} label="이메일 변경" desc={user?.email} chevron onPress={() => handlePress('email')} />
+            <SettingRow
+              icon={IconMail}
+              label="이메일 변경"
+              desc={accountEmail}
+              chevron
+              disabled={isSocialAccount}
+              disabledPress={openSocialEmailAlert}
+              onPress={() => handlePress('email')}
+            />
             <SettingRow icon={IconLock} label="비밀번호 변경" chevron onPress={() => handlePress('password')} />
             <SettingRow icon={IconAdjustmentsHorizontal} iconBg="#fde3ec" iconColor={BRAND} label="관심 테마" desc="홈 피드 및 추천에 반영" chevron onPress={() => setThemeSheetVisible(true)} />
             <SettingRow icon={IconShare2} label="연결된 소셜 계정" desc={socialDesc} chevron onPress={() => handlePress('social')} />
