@@ -333,6 +333,19 @@ export default function PostDetailScreen() {
           {/* 히어로 사진 */}
           <Pressable onPress={() => setLightboxOpen(true)} style={{ height: normalizeHeight(320), backgroundColor: post.photoGradient[0], position: 'relative' }}>
             {!!mainPhoto && <Image source={{ uri: mainPhoto }} resizeMode="cover" style={{ width: '100%', height: '100%' }} />}
+            {/* 사진이 여러 장이면 몇 번째인지 알린다. 점이 아니라 숫자를 쓰는 이유는 이 히어로가
+                좌우로 넘어가지 않기 때문이다 — 점은 넘길 수 있다는 약속으로 읽힌다.
+                넘기기는 탭해서 여는 라이트박스가 맡고, 거기에는 점이 있다. */}
+            {photoCount > 1 && (
+              <View
+                className="items-center justify-center absolute"
+                style={{ top: normalize(14), right: normalize(14), height: normalize(24), paddingHorizontal: normalize(10), borderRadius: normalize(12), backgroundColor: 'rgba(0,0,0,0.4)' }}
+              >
+                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, color: '#fff', letterSpacing: -0.1 }}>
+                  {heroPhotoIndex + 1}/{photoCount}
+                </Text>
+              </View>
+            )}
             {/* 위치는 사진 위에 겹치지 않고 아래 작성자 줄에서 보여준다 */}
             <Pressable
               onPress={toggleLike}
