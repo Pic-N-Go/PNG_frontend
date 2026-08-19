@@ -16,6 +16,7 @@
 | LoginScreen | 카카오 소셜 로그인 | `POST /auth/login/social` | ✅ 완료 |
 | LoginScreen | 비밀번호 재설정 코드 발송 | `POST /auth/password/reset/code` | ✅ 완료 |
 | LoginScreen | 비밀번호 재설정 | `POST /auth/password/reset` | ✅ 완료 |
+| 공통 API 계층 | Access Token 자동 갱신 | `POST /auth/token/refresh` | ✅ 완료 |
 
 ### 카카오 소셜 로그인 상세
 
@@ -28,6 +29,10 @@
 ### 비밀번호 재설정 상세
 
 LoginScreen "비밀번호를 잊으셨나요?" 바텀시트 3단계: 이메일 입력 → 인증코드 입력 → 새 비밀번호 입력. 이메일 인증코드 발송과 달리 별도 "코드 확인" API가 없어서, 코드 검증은 최종 `POST /auth/password/reset` 호출 시점에 함께 이루어짐 (틀리면 에러 응답으로 반환).
+
+### Refresh Token 상세
+
+로그인·회원가입·카카오 로그인 응답의 토큰 쌍을 SecureStore에 분리 저장한다. 인증 REST 요청이 `401 / ACCESS_TOKEN_EXPIRED`를 반환하면 `POST /auth/token/refresh`를 한 번 호출하고, rotation 응답의 새 토큰 쌍을 저장한 뒤 원 요청을 한 번 재시도한다. 동시 만료 요청은 하나의 갱신 Promise를 공유하며 갱신 실패 시에만 로그아웃한다. 상세 설계는 [`token-refresh-plan.md`](./token-refresh-plan.md) 참고.
 
 ### 관심 테마 상세
 
@@ -71,7 +76,6 @@ LoginScreen "비밀번호를 잊으셨나요?" 바텀시트 3단계: 이메일 �
 ### 이후
 
 - **기존 유저 이메일 미갱신**: `UserService.getOrCreateSocialUser()`가 기존 유저는 `updateSocialProfile(nickname, profileImageUrl)`만 호출하고 email은 갱신 안 함. 카카오 이메일이 바뀌어도 최초 가입 시점 값(또는 폴백값)이 계속 유지됨 — 의도된 정책인지 확인 필요
-- **토큰 만료 처리**: refresh token 없이 access token 1시간 만료 후 앱 동작 방침 합의 — 프론트는 임시로 "401 → 즉시 로그아웃"을 적용해 둠. 현재 동작과 리프레시 토큰 도입 시 작업 목록은 [`token-refresh-plan.md`](./token-refresh-plan.md) 참고
 - **닉네임 글자 수**: 백엔드 `@Size(max = 50)`, 프론트 최대 10자 — 기준 통일 필요
 - **관심테마 옵션 범위**: 백엔드 `SpotCategory` 15개 중 프론트가 10개만 노출 — 나머지 5개(`PARK/MOUNTAIN/CITY/FOREST/ETC`) 노출 여부 기획 확인
 
@@ -81,8 +85,9 @@ LoginScreen "비밀번호를 잊으셨나요?" 바텀시트 3단계: 이메일 �
 
 | 파일 | 변경 내용 |
 |---|---|
-| `src/api/auth.ts` | API 함수 9개 + TS 타입 (`TokenResponse`, `UserResponse`(spotCategories 포함), `EmailVerificationResponse`), 204 응답 처리 |
-| `src/store/useAuthStore.ts` | `accessToken`, `user`, `setAuth`, `clearAuth`, `expo-secure-store`(Keychain/Keystore) persist |
+| `src/api/auth.ts` | API 함수 10개 + TS 타입 (`TokenResponse`, `UserResponse`(spotCategories 포함), `EmailVerificationResponse`), 자동 갱신·204 응답 처리 |
+| `src/store/useAuthStore.ts` | 인증 상태 관리, single-flight 토큰 갱신, 로그인·로그아웃 및 SecureStore 저장 완료 대기 |
+| `src/store/authStorage.ts` | Access/Refresh Token 분리 저장, revision 검증, 순차 쓰기 및 저장 완료 Promise 관리 |
 | `src/constants/themes.ts` | `THEME_CATEGORY_MAP` — 한글 라벨 ↔ `SpotCategory` enum 매핑 |
 | `src/screens/auth/LoginScreen.tsx` | login/카카오 로그인/비밀번호 재설정(3단계) API 연결, Apple 버튼 주석 처리 |
 | `src/screens/auth/SignupScreen.tsx` | register API 연결(관심테마 포함), 이메일 인증 플로우, 닉네임 10자 제한 |

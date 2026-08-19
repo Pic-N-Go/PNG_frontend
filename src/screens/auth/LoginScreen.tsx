@@ -104,14 +104,14 @@ export default function LoginScreen({ navigation }: Props) {
   // 탈퇴 대기 계정 복구. 탈퇴 계정은 토큰을 못 받으므로 로그인과 같은 자격증명으로 되돌린다.
   const restoreMutation = useMutation({
     mutationFn: () => authApi.restore(email.trim(), password),
-    onSuccess: (data) => setAuth(data.accessToken, data.user),
+    onSuccess: (data) => setAuth(data),
     onError: (err: unknown) =>
       showToast(toErrorMessage(err, "계정을 복구하지 못했어요. 잠시 후 다시 시도해주세요.")),
   });
 
   const loginMutation = useMutation({
     mutationFn: () => authApi.login(email.trim(), password),
-    onSuccess: (data) => setAuth(data.accessToken, data.user),
+    onSuccess: (data) => setAuth(data),
     onError: (err: unknown) => {
       // 자격증명은 맞았고 탈퇴 대기 중인 경우다. 토스트로 흘리면 복구 경로가 사라진다.
       if (isErrorCode(err, "ACCOUNT_WITHDRAWN")) {
@@ -135,7 +135,7 @@ export default function LoginScreen({ navigation }: Props) {
       const token = await kakaoLogin();
       return authApi.restoreWithKakao(token.accessToken);
     },
-    onSuccess: (data) => setAuth(data.accessToken, data.user),
+    onSuccess: (data) => setAuth(data),
     onError: (err: unknown) =>
       showToast(toErrorMessage(err, "계정을 복구하지 못했어요. 잠시 후 다시 시도해주세요.")),
   });
@@ -149,14 +149,10 @@ export default function LoginScreen({ navigation }: Props) {
       // 신규 가입은 온보딩에서 닉네임을 확정한 뒤 로그인을 완료시킨다. 여기서 setAuth를
       // 부르면 앱이 곧장 MainTab으로 넘어가 온보딩을 띄울 수 없다.
       if (data.isNewUser) {
-        navigation.navigate('Onboarding', {
-          provider: 'kakao',
-          accessToken: data.accessToken,
-          user: data.user,
-        });
+        navigation.navigate('Onboarding', { provider: 'kakao', tokens: data });
         return;
       }
-      setAuth(data.accessToken, data.user);
+      return setAuth(data);
     },
     onError: (e: unknown) => {
       if ((e as { code?: string })?.code === "E_CANCELLED") return;

@@ -1,102 +1,230 @@
 import { Alert } from 'react-native';
 import { create } from 'zustand';
-import { persist, createJSONStorage, StateStorage } from 'zustand/middleware';
-import * as SecureStore from 'expo-secure-store';
-import { authApi, setUnauthorizedHandler, type UserResponse } from '@/api/auth';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import {
+  ApiError,
+  authApi,
+  setAccessTokenExpiredHandler,
+  type TokenResponse,
+  type UserResponse,
+} from '@/api/auth';
+import { authSecureStorage, waitForAuthStorageWrite } from '@/store/authStorage';
 import { queryClient } from './queryClient';
-
-const secureStorage: StateStorage = {
-  getItem: async (key) => {
-    try {
-      return await SecureStore.getItemAsync(key);
-    } catch (e) {
-      if (__DEV__) console.error('[authStore] SecureStore getItem failed:', e);
-      return null;
-    }
-  },
-  setItem: async (key, value) => {
-    try {
-      await SecureStore.setItemAsync(key, value);
-    } catch (e) {
-      if (__DEV__) console.error('[authStore] SecureStore setItem failed:', e);
-    }
-  },
-  removeItem: async (key) => {
-    try {
-      await SecureStore.deleteItemAsync(key);
-    } catch (e) {
-      if (__DEV__) console.error('[authStore] SecureStore removeItem failed:', e);
-    }
-  },
-};
 
 type AuthState = {
   accessToken: string | null;
+  refreshToken: string | null;
   user: UserResponse | null;
-  setAuth: (token: string, user: UserResponse) => void;
-  clearAuth: () => void;
+  setAuth: (tokens: TokenResponse) => Promise<void>;
+  /**
+   * 토큰은 그대로 두고 user만 갱신한다. 프로필 수정 후 화면들이 `authUser`를 폴백으로 읽어서
+   * 여기까지 맞춰줘야 한다 — setAuth를 부르면 세션을 새로 시작해 refresh 흐름이 끊긴다.
+   * user는 persist 대상이 아니라 저장 완료를 기다릴 필요가 없다.
+   */
+  setUser: (user: UserResponse) => void;
+  clearAuth: () => Promise<void>;
 };
+
+let sessionRevision = 0;
+const tokenSessionRevisions = new Map<string, number>();
+
+function beginSession(accessToken: string): number {
+  sessionRevision += 1;
+  tokenSessionRevisions.clear();
+  tokenSessionRevisions.set(accessToken, sessionRevision);
+  return sessionRevision;
+}
+
+function invalidateSession(): void {
+  sessionRevision += 1;
+  tokenSessionRevisions.clear();
+}
+
+function resolveTokenSessionRevision(accessToken: string): number | null {
+  const revision = tokenSessionRevisions.get(accessToken);
+  return revision === sessionRevision ? revision : null;
+}
 
 export const useAuthStore = create<AuthState>()(
   persist(
     (set) => ({
       accessToken: null,
+      refreshToken: null,
       user: null,
-      setAuth: (token, user) => set({ accessToken: token, user }),
+      setAuth: async (tokens) => {
+        const newSessionRevision = beginSession(tokens.accessToken);
+        try {
+          set({
+            accessToken: tokens.accessToken,
+            refreshToken: tokens.refreshToken,
+            user: tokens.user,
+          });
+          await waitForAuthStorageWrite();
+        } catch (error) {
+          // 저장에 실패한 토큰으로 로그인 상태를 유지하면 앱 재실행 후 세션이 달라진다.
+          if (sessionRevision === newSessionRevision) {
+            invalidateSession();
+            set({ accessToken: null, refreshToken: null, user: null });
+            await waitForAuthStorageWrite().catch(() => undefined);
+          }
+          throw error;
+        }
+      },
+      setUser: (user) => set({ user }),
       // 쿼리 캐시까지 비워야 한다 — `['user','profile']`처럼 키에 계정 식별자가 없는 쿼리가 많아
       // 다른 계정으로 다시 로그인하면 staleTime 안쪽에서는 이전 계정의 캐시가 그대로 렌더된다.
-      // 로그아웃·토큰 만료(401)·재수화 실패가 모두 이 함수를 지나가므로 여기 한 곳이면 된다.
-      clearAuth: () => {
+      // 로그아웃·토큰 만료·재수화 실패가 모두 이 함수를 지나가므로 여기 한 곳이면 된다.
+      clearAuth: async () => {
+        invalidateSession();
         queryClient.clear();
-        set({ accessToken: null, user: null });
+        set({ accessToken: null, refreshToken: null, user: null });
+        await waitForAuthStorageWrite();
       },
     }),
     {
       name: 'auth-storage',
-      storage: createJSONStorage(() => secureStorage),
-      // SecureStore는 키당 저장 용량 제한(Android 기준 약 2048바이트)이 있어
-      // accessToken만 저장하고, user는 재수화 후 /users/me로 새로 받아온다.
+      storage: createJSONStorage(() => authSecureStorage),
+      // SecureStore는 키당 저장 용량 제한(Android 기준 약 2048바이트)이 있어 토큰만 저장하고,
+      // user는 재수화 후 /users/me로 새로 받아온다.
       // 자기소개는 서버(users.bio)로 옮겼다 — 기기에만 두면 재설치·기기 변경에 날아갔다.
-      partialize: (state) => ({ accessToken: state.accessToken }),
+      partialize: (state) => ({
+        accessToken: state.accessToken,
+        refreshToken: state.refreshToken,
+      }),
       onRehydrateStorage: () => (state) => {
         if (!state?.accessToken) return;
-        // 이 검사의 401은 "쓰던 세션이 끊긴 것"이 아니라 "저장된 토큰이 이미 죽어 있던 것"이다.
-        // 안내 Alert이 스플래시 위에 뜨면 로그인한 적 없는 사람에게 만료를 알리는 꼴이라 조용히 버린다.
+
         silentUnauthorized = true;
-        // 검증 도중 사용자가 이미 새로 로그인했을 수 있다 — 그 사이 스토어의 토큰이 바뀌었으면
-        // 이 비동기 검증 결과(성공이든 실패든)로 새 세션을 덮어쓰지 않는다.
         const rehydratedToken = state.accessToken;
+        const rehydratedSessionRevision = beginSession(rehydratedToken);
         authApi.me(rehydratedToken)
           .then((user) => {
-            if (useAuthStore.getState().accessToken === rehydratedToken) {
-              state.setAuth(rehydratedToken as string, user);
+            const current = useAuthStore.getState();
+            if (
+              sessionRevision === rehydratedSessionRevision &&
+              current.accessToken === rehydratedToken
+            ) {
+              useAuthStore.setState({ user });
             }
           })
-          .catch(() => {
-            if (useAuthStore.getState().accessToken === rehydratedToken) {
-              state.clearAuth();
+          .catch(async (error) => {
+            const current = useAuthStore.getState();
+            const shouldClearAuth =
+              error instanceof ApiError &&
+              error.status === 401 &&
+              error.code !== 'ACCESS_TOKEN_EXPIRED';
+            if (
+              shouldClearAuth &&
+              sessionRevision === rehydratedSessionRevision &&
+              current.accessToken === rehydratedToken
+            ) {
+              await current.clearAuth().catch((cleanupError) => {
+                if (__DEV__) {
+                  console.error('[authStore] rehydration cleanup failed:', cleanupError);
+                }
+              });
+            } else if (__DEV__ && !shouldClearAuth) {
+              console.warn('[authStore] session validation deferred:', error);
             }
           })
-          .finally(() => { silentUnauthorized = false; });
+          .finally(() => {
+            silentUnauthorized = false;
+          });
       },
     },
   ),
 );
 
-// 어느 API에서 401이 나든 죽은 토큰을 버린다. 리프레시 토큰이 없어 재발급 수단이 없으므로
-// 만료 = 로그아웃이다. RootNavigator가 accessToken으로 트리를 갈아끼우므로 곧 화면 이동이기도 하다.
-// 설계 근거와 리프레시 토큰 도입 시 교체 방법 → `docs/guide/api/token-refresh-plan.md`
-/** 앱 시작 시 저장된 토큰을 검사하는 동안에는 만료 안내를 띄우지 않는다. */
 let silentUnauthorized = false;
+type RefreshResult = { accessToken: string; sessionRevision: number };
+type RefreshTask = { sessionRevision: number; promise: Promise<RefreshResult | null> };
+let refreshTask: RefreshTask | null = null;
 
-setUnauthorizedHandler((requestToken) => {
-  const current = useAuthStore.getState().accessToken;
-  // 이미 비어 있으면 할 일이 없다(로그인 실패의 401도 여기서 걸러진다).
-  if (!current) return;
-  // 뒤늦게 도착한 옛 요청의 401이 새 세션을 끊지 않게 한다.
-  if (requestToken && requestToken !== current) return;
+async function clearExpiredSession(expectedSessionRevision: number): Promise<void> {
+  if (sessionRevision !== expectedSessionRevision) return;
+  await useAuthStore.getState().clearAuth().catch((error) => {
+    if (__DEV__) console.error('[authStore] expired session cleanup failed:', error);
+  });
+  if (!silentUnauthorized) {
+    Alert.alert('로그인이 만료됐어요', '다시 로그인해 주세요.');
+  }
+}
 
-  useAuthStore.getState().clearAuth();
-  // query 401은 아무도 렌더하지 않아 안내 없이 튕긴다. 여기서 한 번만 알린다.
-  if (!silentUnauthorized) Alert.alert('로그인이 만료됐어요', '다시 로그인해 주세요.');
+setAccessTokenExpiredHandler(resolveTokenSessionRevision, async (requestToken, requestRevision) => {
+  const current = useAuthStore.getState();
+  if (!current.accessToken || sessionRevision !== requestRevision) return null;
+
+  // 같은 세션의 다른 요청이 이미 갱신했다면 소비된 Refresh Token을 다시 쓰지 않는다.
+  if (current.accessToken !== requestToken) {
+    return { accessToken: current.accessToken, sessionRevision: requestRevision };
+  }
+
+  if (!current.refreshToken) {
+    await clearExpiredSession(requestRevision);
+    return null;
+  }
+
+  if (!refreshTask || refreshTask.sessionRevision !== requestRevision) {
+    const refreshTokenForRequest = current.refreshToken;
+    const promise = authApi.refreshToken(refreshTokenForRequest)
+      .then(async (tokens) => {
+        const latest = useAuthStore.getState();
+        if (
+          sessionRevision !== requestRevision ||
+          latest.refreshToken !== refreshTokenForRequest
+        ) {
+          return null;
+        }
+
+        // Refresh Token rotation은 같은 로그인 세션이므로 revision을 유지한다.
+        tokenSessionRevisions.set(tokens.accessToken, requestRevision);
+        useAuthStore.setState({
+          accessToken: tokens.accessToken,
+          refreshToken: tokens.refreshToken,
+          user: tokens.user,
+        });
+        try {
+          await waitForAuthStorageWrite();
+        } catch (error) {
+          await clearExpiredSession(requestRevision);
+          throw error;
+        }
+
+        if (
+          sessionRevision !== requestRevision ||
+          useAuthStore.getState().accessToken !== tokens.accessToken
+        ) {
+          return null;
+        }
+        return { accessToken: tokens.accessToken, sessionRevision: requestRevision };
+      })
+      .catch(async (error) => {
+        const latest = useAuthStore.getState();
+        if (
+          sessionRevision !== requestRevision ||
+          latest.refreshToken !== refreshTokenForRequest
+        ) {
+          return null;
+        }
+        await clearExpiredSession(requestRevision);
+        throw error;
+      });
+
+    const task: RefreshTask = {
+      sessionRevision: requestRevision,
+      promise: promise.then(
+        (result) => {
+          if (refreshTask === task) refreshTask = null;
+          return result;
+        },
+        (error) => {
+          if (refreshTask === task) refreshTask = null;
+          throw error;
+        },
+      ),
+    };
+    refreshTask = task;
+  }
+
+  return refreshTask.promise;
 });

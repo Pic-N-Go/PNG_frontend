@@ -42,7 +42,9 @@ const HERO_RATIO = 200 / 844;
 
 export default function OnboardingScreen({ navigation, route }: Props) {
   const insets = useSafeAreaInsets();
-  const { provider, accessToken, user } = route.params;
+  const { provider, tokens } = route.params;
+  const accessToken = tokens?.accessToken;
+  const user = tokens?.user;
   const setAuth = useAuthStore((s) => s.setAuth);
 
   const { height: SCREEN_H } = useWindowDimensions();
@@ -101,7 +103,8 @@ export default function OnboardingScreen({ navigation, route }: Props) {
         );
       }
       // 여기서 비로소 로그인이 완료된다 → 앱이 MainTab으로 전환된다.
-      setAuth(accessToken, updated);
+      // 카카오 로그인이 받아온 토큰 묶음을 그대로 쓰고 user만 방금 저장한 값으로 바꾼다.
+      await setAuth({ ...tokens!, user: updated });
     } catch (err) {
       setSubmitError(
         err instanceof ApiError ? err.message : '저장하지 못했어요. 잠시 후 다시 시도해 주세요.',

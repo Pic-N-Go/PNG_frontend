@@ -4,7 +4,7 @@ import SplashScreen from '@/screens/auth/SplashScreen';
 import LoginScreen from '@/screens/auth/LoginScreen';
 import SignupScreen from '@/screens/auth/SignupScreen';
 import OnboardingScreen from '@/screens/auth/OnboardingScreen';
-import type { UserResponse } from '@/types/user';
+import type { TokenResponse } from '@/api/auth';
 
 export type AuthStackParamList = {
   Splash: undefined;
@@ -16,7 +16,7 @@ export type AuthStackParamList = {
    * (navigation/index.tsx의 isLoggedIn 분기). 온보딩을 마친 뒤에 setAuth를 부른다.
    * 애플은 아직 미연동이라 토큰 없이 들어온다.
    */
-  Onboarding: { provider: 'kakao' | 'apple'; accessToken?: string; user?: UserResponse };
+  Onboarding: { provider: 'kakao' | 'apple'; tokens?: TokenResponse };
 };
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();

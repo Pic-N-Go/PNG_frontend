@@ -113,7 +113,7 @@ export function useInfiniteMyReviews(options?: {
 // 6. 내 관심 테마 수정 뮤테이션
 export function useUpdateSpotCategories() {
   const accessToken = useAuthStore((s) => s.accessToken);
-  const setAuth = useAuthStore((s) => s.setAuth);
+  const setUser = useAuthStore((s) => s.setUser);
   const queryClient = useQueryClient();
 
   return useMutation<UserResponse, Error, string[]>({
@@ -125,7 +125,7 @@ export function useUpdateSpotCategories() {
       queryClient.setQueryData(USER_KEYS.profile(), updatedUser);
       // 스토어의 user도 갱신한다 — 설정 화면은 profile 쿼리가 아니라 authUser를 읽어서,
       // 여기서 안 맞춰주면 시트를 다시 열었을 때 저장 전 선택이 그대로 보인다.
-      if (accessToken) setAuth(accessToken, updatedUser);
+      setUser(updatedUser);
       queryClient.invalidateQueries({ queryKey: USER_KEYS.profile() });
     },
   });
@@ -134,7 +134,7 @@ export function useUpdateSpotCategories() {
 // 7. 내 프로필 수정 뮤테이션 (닉네임·프로필 이미지·자기소개)
 export function useUpdateMyProfile() {
   const accessToken = useAuthStore((s) => s.accessToken);
-  const setAuth = useAuthStore((s) => s.setAuth);
+  const setUser = useAuthStore((s) => s.setUser);
   const queryClient = useQueryClient();
 
   return useMutation<UserResponse, Error, UserProfileUpdateRequest>({
@@ -145,7 +145,7 @@ export function useUpdateMyProfile() {
     onSuccess: (updatedUser) => {
       queryClient.setQueryData(USER_KEYS.profile(), updatedUser);
       // 스토어의 user도 갱신한다 — 화면 여러 곳이 profile 대신 authUser를 폴백으로 읽는다.
-      if (accessToken) setAuth(accessToken, updatedUser);
+      setUser(updatedUser);
       // 커뮤니티 쪽 타 유저 프로필 캐시에도 내 닉네임·자기소개가 실려 있다.
       queryClient.invalidateQueries({ queryKey: ['community', 'profile'] });
     },
@@ -171,7 +171,7 @@ function useProfileImageMutation<TVariables>(
   call: (vars: TVariables, token: string) => Promise<UserResponse>,
 ) {
   const accessToken = useAuthStore((s) => s.accessToken);
-  const setAuth = useAuthStore((s) => s.setAuth);
+  const setUser = useAuthStore((s) => s.setUser);
   const queryClient = useQueryClient();
 
   return useMutation<UserResponse, Error, TVariables>({
@@ -181,7 +181,7 @@ function useProfileImageMutation<TVariables>(
     },
     onSuccess: (updatedUser) => {
       queryClient.setQueryData(USER_KEYS.profile(), updatedUser);
-      if (accessToken) setAuth(accessToken, updatedUser);
+      setUser(updatedUser);
       // 아바타는 피드·댓글·팔로우 목록에도 실려 있다.
       queryClient.invalidateQueries({ queryKey: ['community'] });
     },

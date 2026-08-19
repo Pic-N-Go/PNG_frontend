@@ -111,7 +111,7 @@ export default function SignupScreen({ navigation }: Props) {
         nickname.trim(),
         Array.from(selectedThemes, (t) => THEME_CATEGORY_MAP[t]),
       ),
-    onSuccess: (data) => setAuth(data.accessToken, data.user),
+    onSuccess: (data) => setAuth(data),
     onError: (err: unknown) => showToast(toErrorMessage(err, '회원가입에 실패했어요. 다시 시도해주세요.')),
   });
 
