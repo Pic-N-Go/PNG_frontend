@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useLayoutEffect } from 'react';
-import { Dimensions, Modal, Pressable, View, Animated, PanResponder } from 'react-native';
+import { Dimensions, Keyboard, Modal, Pressable, View, Animated, PanResponder } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BOTTOM_SHEET_RADIUS, SPACING_LG } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
@@ -59,6 +59,10 @@ export default function BottomSheet({ visible, onClose, children, dimOpacity = D
 
   useLayoutEffect(() => {
     if (visible) {
+      // 시트를 열어도 아래 화면의 TextInput은 포커스를 유지한 채 Modal에 가려질 뿐이라,
+      // 시트를 닫는 순간 OS가 직전 first responder를 복원해 키보드가 혼자 다시 올라온다.
+      // 열 때 한 번 내려두면 복원할 대상이 없다. (시트 자체 입력란은 탭할 때 다시 뜬다.)
+      Keyboard.dismiss();
       panY.setValue(Dimensions.get('window').height);
       Animated.timing(panY, {
         toValue: 0,
