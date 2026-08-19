@@ -5,7 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { IconSettings } from '@tabler/icons-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { FONT_XS } from '@/constants/layout';
+import { FONT_XS, FONT_XL } from '@/constants/layout';
 import Avatar from '@/components/common/Avatar';
 import { useMyProfile, useMyStats, useMyAlbums } from '@/hooks/useUser';
 import { categoryLabel } from '@/constants/spotCategories';
@@ -77,7 +77,8 @@ export default function ProfileHeader() {
               ))}
             </View>
           )}
-          <Text className="leading-relaxed tracking-tight" style={{ fontSize: normalizeFontSize(12), color: 'rgba(255, 255, 255, 0.5)' }}>
+          {/* CLAUDE.md는 12px을 금지하고 11 또는 13을 쓰라고 명시한다 — 자기소개는 보조 정보라 11 */}
+          <Text className="leading-relaxed tracking-tight" style={{ fontSize: FONT_XS, color: 'rgba(255, 255, 255, 0.5)' }}>
             {bio || '자기소개를 입력해 보세요'}
           </Text>
         </View>
@@ -170,7 +171,8 @@ function StatTile({
       }}
       onPress={onPress}
     >
-      <Text className="font-semibold text-white tracking-tight" style={{ fontSize: normalizeFontSize(20), marginBottom: normalize(2) }}>
+      {/* 20px은 8단계 스케일 밖이다(CLAUDE.md) — 가장 가까운 토큰인 FONT_XL(22)을 쓴다 */}
+      <Text className="font-semibold text-white tracking-tight" style={{ fontSize: FONT_XL, marginBottom: normalize(2) }}>
         {loading ? '-' : value.toLocaleString()}
       </Text>
       <Text className="tracking-tight" style={{ fontSize: FONT_XS, color: 'rgba(255, 255, 255, 0.35)' }}>

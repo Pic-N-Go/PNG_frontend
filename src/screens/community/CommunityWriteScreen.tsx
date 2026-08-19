@@ -233,10 +233,16 @@ export default function CommunityWriteScreen() {
 
       // quality 1이라 원본 바이트가 그대로 올라간다 — 서버 상한을 넘는 사진은 여기서 걸러낸다.
       // 수정 모드의 기존 서버 사진은 이번 요청에 실려 가지 않으므로 bytes가 없고 합계에도 안 잡힌다.
+      // 합계는 아래 중복 제거·MAX_PHOTOS 절단으로 빠지는 사진까지 세므로 실제보다 조금 크게 잡힌다
+      // (한도를 넘겨 통과시키는 쪽이 아니라 덜 담는 쪽이라 안전한 방향의 오차다).
       let totalBytes = photos.reduce((sum, p) => sum + (p.bytes ?? 0), 0);
       let tooLarge = 0;
       let overBudget = 0;
       const picked = result.assets.filter((asset) => {
+        // ponytail: fileSize는 옵셔널이고 안드로이드에서 비어 오는 경우가 있다. 그러면 0으로
+        // 계산돼 이 가드를 그냥 통과하고 서버에서 413이 난다(업로드 실패 토스트로는 뜬다).
+        // 크기를 알 방법이 없어 여기서는 통과시킨다 — 막아야 하면 expo-file-system의
+        // getInfoAsync로 실제 크기를 재는 단계를 추가할 것.
         const bytes = asset.fileSize ?? 0;
         if (bytes > MAX_PHOTO_BYTES) {
           tooLarge += 1;

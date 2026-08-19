@@ -331,7 +331,14 @@ export default function PostDetailScreen() {
           <>
         <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: normalize(24) }}>
           {/* 히어로 사진 */}
-          <Pressable onPress={() => setLightboxOpen(true)} style={{ height: normalizeHeight(320), backgroundColor: post.photoGradient[0], position: 'relative' }}>
+          {/* 확대 버튼을 없애면서 라벨도 함께 사라졌다 — 아래 카운터는 장식이라 읽히지 않으므로,
+              스크린리더에게는 이 히어로가 라이트박스로 들어가는 유일한 경로다. */}
+          <Pressable
+            onPress={() => setLightboxOpen(true)}
+            accessibilityRole="button"
+            accessibilityLabel={photoCount > 1 ? `사진 크게 보기 (${photoCount}장)` : '사진 크게 보기'}
+            style={{ height: normalizeHeight(320), backgroundColor: post.photoGradient[0], position: 'relative' }}
+          >
             {!!mainPhoto && <Image source={{ uri: mainPhoto }} resizeMode="cover" style={{ width: '100%', height: '100%' }} />}
             {/* 사진이 여러 장이면 몇 번째인지 알린다. 점이 아니라 숫자를 쓰는 이유는 이 히어로가
                 좌우로 넘어가지 않기 때문이다 — 점은 넘길 수 있다는 약속으로 읽힌다.

@@ -24,6 +24,8 @@ export default function UserRow({ user, onPress, action }: Props) {
     <Pressable
       onPress={onPress}
       disabled={!onPress}
+      accessibilityRole={onPress ? 'button' : undefined}
+      accessibilityLabel={onPress ? `${user.nickname} 프로필 보기` : undefined}
       className="flex-row items-center"
       style={{
         paddingVertical: normalize(12),
