@@ -445,6 +445,15 @@ export function useToggleFollow() {
       if (myUserId != null) qc.invalidateQueries({ queryKey: ['community', 'profile', String(myUserId)] });
       // 팔로잉 피드는 팔로우 관계가 바뀌면 내용이 달라진다.
       qc.invalidateQueries({ queryKey: ['community', 'posts'] });
+      // 마이페이지 팔로워·팔로잉 타일(/users/me/stats)과 팔로우 목록 화면도 같은 값을 본다.
+      // 여기서 지우지 않으면 staleTime 2분 동안 이전 숫자가 남고, FollowScreen의 목록에서
+      // 방금 팔로우 취소한 사람이 그대로 보인다.
+      qc.invalidateQueries({ queryKey: USER_KEYS.stats() });
+      if (myUserId != null) {
+        qc.invalidateQueries({ queryKey: USER_KEYS.following(myUserId) });
+        qc.invalidateQueries({ queryKey: USER_KEYS.followers(myUserId) });
+      }
+      qc.invalidateQueries({ queryKey: USER_KEYS.followers(Number(userId)) });
     },
   });
 }
