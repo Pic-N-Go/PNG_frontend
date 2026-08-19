@@ -18,6 +18,9 @@ import { MyPageStackParamList } from '@/navigation/stacks/MyPageStack';
 import { useNotificationSettings, DndRepeatPreset } from '@/hooks/useNotificationSettings';
 import { useInquiries } from '@/hooks/useInquiries';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useUpdateSpotCategories } from '@/hooks/useUser';
+import ThemePill from '@/components/auth/ThemePill';
+import { CATEGORY_LABELS, CODE_BY_LABEL, SPOT_CATEGORY_MAP } from '@/constants/spotCategories';
 import { normalize } from '@/utils/normalize';
 import { FONT_2XS, FONT_XS, FONT_SM, FONT_MD, FONT_LG, FONT_XL, GRID_PADDING, SPACING_LG, SPACING_SM, CARD_RADIUS, BUTTON_HEIGHT, BUTTON_RADIUS, WHEEL_WIDTH, WHEEL_ITEM_HEIGHT, WHEEL_VISIBLE_HEIGHT, WHEEL_SELECTION_RADIUS } from '@/constants/layout';
 
@@ -34,9 +37,13 @@ export default function SettingScreen({ navigation }: Props) {
   const user = useAuthStore((s) => s.user);
   const clearAuth = useAuthStore((s) => s.clearAuth);
   const isAdmin = user?.role === 'ADMIN';
+  // 서버 UserResponse.provider가 가입 경로를 알려준다. LOCAL은 이메일 가입이라 연결된 소셜이 없다.
+  // user가 아직 안 왔을 때(재수화 직후) 둘 중 하나로 단정하지 않고 행을 비워 둔다.
+  const socialDesc = user == null ? undefined : user.provider === 'KAKAO' ? '카카오 연결됨' : '연결된 계정 없음';
   const [dndTimeSheetVisible, setDndTimeSheetVisible] = React.useState(false);
   const [dndRepeatSheetVisible, setDndRepeatSheetVisible] = React.useState(false);
   const [versionSheetVisible, setVersionSheetVisible] = React.useState(false);
+  const [themeSheetVisible, setThemeSheetVisible] = React.useState(false);
 
   const [hasSystemPermission, setHasSystemPermission] = React.useState<boolean>(true);
   const [locationPermissionStatus, setLocationPermissionStatus] = React.useState<'loading' | 'granted' | 'denied'>('loading');
@@ -150,7 +157,7 @@ export default function SettingScreen({ navigation }: Props) {
   };
 
   const handlePress = (key: string) => {
-    // TODO: email/password/themes/social/location/block/delete-account 내비게이션 연결
+    // TODO: email/password/social/location/block/delete-account 내비게이션 연결
     void key;
   };
 
@@ -174,10 +181,10 @@ export default function SettingScreen({ navigation }: Props) {
           <SectionLabel text="계정" />
           <Card>
             <SettingRow icon={IconUser} label="프로필 편집" desc="이미지, 닉네임, 소개 수정" chevron onPress={() => navigation.navigate('ProfileEdit')} />
-            <SettingRow icon={IconMail} label="이메일 변경" desc="sunset_jk@gmail.com" chevron onPress={() => handlePress('email')} />
+            <SettingRow icon={IconMail} label="이메일 변경" desc={user?.email} chevron onPress={() => handlePress('email')} />
             <SettingRow icon={IconLock} label="비밀번호 변경" chevron onPress={() => handlePress('password')} />
-            <SettingRow icon={IconAdjustmentsHorizontal} iconBg="#fde3ec" iconColor={BRAND} label="관심 테마" desc="홈 피드 및 추천에 반영" chevron onPress={() => handlePress('themes')} />
-            <SettingRow icon={IconShare2} label="연결된 소셜 계정" desc="카카오 연결됨" chevron onPress={() => handlePress('social')} />
+            <SettingRow icon={IconAdjustmentsHorizontal} iconBg="#fde3ec" iconColor={BRAND} label="관심 테마" desc="홈 피드 및 추천에 반영" chevron onPress={() => setThemeSheetVisible(true)} />
+            <SettingRow icon={IconShare2} label="연결된 소셜 계정" desc={socialDesc} chevron onPress={() => handlePress('social')} />
           </Card>
         </View>
 
@@ -238,12 +245,14 @@ export default function SettingScreen({ navigation }: Props) {
               label="시간"
               right={<Text style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.35)', marginRight: normalize(6) }}>{settings.dnd.start} ~ {settings.dnd.end}</Text>}
               chevron onPress={() => setDndTimeSheetVisible(true)}
+              disabled={!settings.dnd.enabled}
             />
             <SettingRow
               indent
               label="반복"
               desc={repeatRowLabel(settings.dnd.repeatPreset, settings.dnd.repeatDays)}
               chevron onPress={() => setDndRepeatSheetVisible(true)}
+              disabled={!settings.dnd.enabled}
             />
           </Card>
           <Text style={{ fontSize: FONT_XS, color: 'rgba(0,0,0,0.35)', marginTop: normalize(8), lineHeight: normalize(18) }}>
@@ -342,6 +351,11 @@ export default function SettingScreen({ navigation }: Props) {
         onClose={() => setDndRepeatSheetVisible(false)}
         initial={{ preset: settings.dnd.repeatPreset, days: settings.dnd.repeatDays }}
         onConfirm={({ preset, days }) => setDndRepeat(preset, days)}
+      />
+      <InterestThemeSheet
+        visible={themeSheetVisible}
+        onClose={() => setThemeSheetVisible(false)}
+        initialCodes={user?.spotCategories ?? []}
       />
       <VersionInfoSheet
         visible={versionSheetVisible}
@@ -846,6 +860,96 @@ function VersionInfoSheet({ visible, onClose, onOpenDoc }: { visible: boolean; o
             <DocRow label="오픈소스 라이선스" onPress={() => onOpenDoc('OpenSourceLicenses')} divider />
           </View>
         </View>
+      </View>
+    </BottomSheet>
+  );
+}
+
+/**
+ * 관심 테마 선택 시트 (setting.html의 themeSheet).
+ *
+ * 선택 상태는 라벨로 들고 서버에는 코드로 보낸다 — 회원가입·온보딩과 같은 방식이다
+ * (`CODE_BY_LABEL`). 서버가 내려주는 값도 코드라 열 때 라벨로 되돌린다.
+ */
+function InterestThemeSheet({
+  visible,
+  onClose,
+  initialCodes,
+}: {
+  visible: boolean;
+  onClose: () => void;
+  initialCodes: string[];
+}) {
+  const updateCategories = useUpdateSpotCategories();
+  const [selected, setSelected] = React.useState<Set<string>>(new Set());
+
+  // 열 때마다 서버 값으로 되돌린다 — 저장 안 하고 닫았던 선택이 남아 있으면 안 된다.
+  React.useEffect(() => {
+    if (!visible) return;
+    setSelected(new Set(initialCodes.map((code) => SPOT_CATEGORY_MAP[code]?.label).filter(Boolean)));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visible]);
+
+  const toggle = (label: string) =>
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(label)) next.delete(label);
+      else next.add(label);
+      return next;
+    });
+
+  const save = () => {
+    updateCategories.mutate(
+      Array.from(selected, (label) => CODE_BY_LABEL[label]),
+      {
+        onSuccess: onClose,
+        onError: () => Alert.alert('저장하지 못했어요', '잠시 후 다시 시도해 주세요.'),
+      },
+    );
+  };
+
+  return (
+    <BottomSheet visible={visible} onClose={onClose}>
+      <View style={{ paddingHorizontal: normalize(20), paddingBottom: normalize(8) }}>
+        <View className="flex-row items-center justify-between" style={{ marginBottom: normalize(14) }}>
+          <Text className="font-semibold text-black" style={{ fontSize: FONT_XL, letterSpacing: -0.3 }}>관심 테마</Text>
+          <Pressable
+            onPress={onClose}
+            hitSlop={8}
+            className="items-center justify-center bg-[#f5f5f7]"
+            style={{ width: normalize(30), height: normalize(30), borderRadius: normalize(15) }}
+            accessibilityLabel="닫기"
+          >
+            <IconX size={normalize(13)} color="rgba(0,0,0,0.5)" strokeWidth={2} />
+          </Pressable>
+        </View>
+
+        <Text style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.45)', letterSpacing: -0.1, marginBottom: normalize(16) }}>
+          홈 피드 및 스팟 추천에 반영돼요. 복수 선택 가능해요.
+        </Text>
+
+        <View className="flex-row flex-wrap" style={{ gap: normalize(8) }}>
+          {CATEGORY_LABELS.map((label) => (
+            <ThemePill key={label} label={label} selected={selected.has(label)} onPress={() => toggle(label)} />
+          ))}
+        </View>
+
+        <Pressable
+          onPress={save}
+          disabled={updateCategories.isPending}
+          className="items-center justify-center"
+          style={{
+            height: BUTTON_HEIGHT,
+            borderRadius: BUTTON_RADIUS,
+            backgroundColor: BRAND,
+            marginTop: normalize(20),
+            opacity: updateCategories.isPending ? 0.6 : 1,
+          }}
+        >
+          <Text className="font-semibold text-white" style={{ fontSize: FONT_MD }}>
+            {updateCategories.isPending ? '저장 중...' : '저장하기'}
+          </Text>
+        </Pressable>
       </View>
     </BottomSheet>
   );
