@@ -114,13 +114,15 @@ export default function UserProfileScreen() {
               )}
               {profile.spotCategories?.length > 0 && (
                 <View className="flex-row flex-wrap" style={{ gap: normalize(4), marginTop: normalize(8) }}>
+                  {/* 대표 색상(블랙+흰색) 조합. 이 화면의 탭은 핑크 언더라인 방식이라 꽉 찬 블랙
+                      칩이 없어, 필터 칩 활성 상태와 혼동될 여지가 없다. */}
                   {profile.spotCategories.map((category) => (
                     <View
                       key={category}
-                      className="items-center justify-center"
-                      style={{ height: normalize(22), paddingHorizontal: normalize(9), borderRadius: normalize(11), backgroundColor: 'rgba(227,27,89,0.08)' }}
+                      className="items-center justify-center bg-black"
+                      style={{ height: normalize(22), paddingHorizontal: normalize(9), borderRadius: normalize(11) }}
                     >
-                      <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, color: ACCENT, letterSpacing: -0.1 }}>
+                      <Text allowFontScaling={false} className="text-white" style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, letterSpacing: -0.1 }}>
                         {category}
                       </Text>
                     </View>
