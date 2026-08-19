@@ -32,7 +32,10 @@ export function useAddSpotToCourse() {
         },
       ];
 
-      return coursesApi.syncSpots(courseId, { spots: allSpotsPayload });
+      return coursesApi.syncSpots(courseId, {
+        version: courseDetail.version,
+        spots: allSpotsPayload,
+      });
     },
     onSuccess: (_data, { courseId }) =>
       Promise.all([

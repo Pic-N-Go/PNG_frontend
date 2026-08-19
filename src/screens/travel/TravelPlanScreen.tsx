@@ -520,9 +520,10 @@ export default function TravelPlanScreen({ navigation, route }: any) {
   };
 
   const syncSpotsMutation = useMutation({
-    mutationFn: (data: {
-      spots: { courseSpotId?: number, spotId: number, dayNumber: number, sequenceOrder: number, memo?: string }[]
-    }) => coursesApi.syncSpots(Number(planId), data),
+    mutationFn: (payload: {
+      version?: number;
+      spots: { courseSpotId?: number, spotId: number, dayNumber: number, sequenceOrder: number, memo?: string }[];
+    }) => coursesApi.syncSpots(Number(planId), payload),
     onSuccess: () => refetch(),
     // 동기화가 실패했는데 화면은 낙관적으로 갱신된 상태라, 알리지 않으면 저장된 것처럼 보이다가
     // 다시 들어왔을 때 조용히 사라진다. 실패를 알리고 화면을 서버 상태로 되돌린다.
@@ -532,12 +533,16 @@ export default function TravelPlanScreen({ navigation, route }: any) {
     // 그러면 [course] 의존 effect가 재실행되지 않아 거부된 낙관적 상태가 화면에 남는다.
     // 결과를 직접 받아 setData 한다.
     onError: async (error: any) => {
-      showToast(error?.message || "스팟을 저장하지 못했어요. 잠시 후 다시 시도해 주세요.");
+      if (error?.status === 409 || error?.code === 'COURSE_MODIFIED_CONCURRENTLY') {
+        showToast(error?.message || '다른 곳에서 코스가 변경되었습니다. 최신 코스로 다시 불러옵니다.');
+      } else {
+        showToast(error?.message || '스팟을 저장하지 못했어요. 잠시 후 다시 시도해 주세요.');
+      }
       const { data: fresh } = await refetch();
       if (!fresh) return;
       const restored = mapCourseToData(fresh);
       setData(restored);
-      setCurrentDay((day) => (restored[day] ? day : "1"));
+      setCurrentDay((day) => (restored[day] ? day : '1'));
     },
   });
 
@@ -571,6 +576,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
   useFocusEffect(
     React.useCallback(() => {
       if (selectedSpots.length > 0 && planId) {
+        if (syncSpotsMutation.isPending) return;
         
         const spotsToAdd = [...selectedSpots];
         clearSpots();
@@ -615,13 +621,15 @@ export default function TravelPlanScreen({ navigation, route }: any) {
         setData(newData);
 
         syncSpotsMutation.mutate({
+          version: course?.version,
           spots: buildAllSpotsPayload(newData)
         });
       }
-    }, [selectedSpots, currentDay, data, planId, syncSpotsMutation, clearSpots, buildAllSpotsPayload])
+    }, [selectedSpots, currentDay, data, planId, course?.version, syncSpotsMutation, clearSpots, buildAllSpotsPayload])
   );
 
   const reorderSpots = (spots: any[]) => {
+    if (syncSpotsMutation.isPending) return;
     const newData = {
       ...data,
       [currentDay]: { ...data[currentDay], spots },
@@ -629,12 +637,14 @@ export default function TravelPlanScreen({ navigation, route }: any) {
     setData(newData);
     if (planId) {
       syncSpotsMutation.mutate({
+        version: course?.version,
         spots: buildAllSpotsPayload(newData)
       });
     }
   };
 
   const removeSpot = (spotId: string) => {
+    if (syncSpotsMutation.isPending) return;
     delete rowHeights.current[spotId];
     
     const dayData = data[currentDay];
@@ -650,6 +660,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
     
     if (planId) {
       syncSpotsMutation.mutate({
+        version: course?.version,
         spots: buildAllSpotsPayload(newData)
       });
     }
@@ -1361,7 +1372,8 @@ export default function TravelPlanScreen({ navigation, route }: any) {
               courseId: planId,
               initialTitle: course.title,
               initialStartDate: course.startDate,
-              initialEndDate: course.endDate
+              initialEndDate: course.endDate,
+              initialVersion: course.version,
             });
           }
         }}
