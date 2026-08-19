@@ -9,6 +9,7 @@ export type UserResponse = {
   email: string;
   nickname: string;
   profileImageUrl: string | null;
+  bio: string | null;
   role: 'USER' | 'ADMIN';
   provider: 'LOCAL' | 'KAKAO';
   spotCategories: string[];

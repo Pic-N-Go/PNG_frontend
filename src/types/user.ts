@@ -23,6 +23,7 @@ export type UserResponse = {
   email: string;
   nickname: string;
   profileImageUrl: string | null;
+  bio: string | null;
   role: 'USER' | 'ADMIN';
   provider: 'LOCAL' | 'KAKAO';
   spotCategories: string[];
@@ -39,6 +40,7 @@ export type FollowUserResponse = {
   id: number;
   nickname: string;
   profileImageUrl: string | null;
+  bio: string | null;
 };
 
 export type ReviewPhotoResponse = {
@@ -73,7 +75,24 @@ export type UserProfileResponse = {
   id: number;
   nickname: string;
   profileImageUrl: string | null;
+  bio: string | null;
   spotCategories: string[];
+};
+
+/** `GET /users/search` — Spring Page 형태(스팟 검색과 동일) */
+export type UserSearchPageResponse = {
+  content: FollowUserResponse[];
+  totalElements: number;
+  totalPages: number;
+  number: number;
+  last: boolean;
+};
+
+/** `PUT /users/me` — 전체 교체다. 한 항목만 보내면 나머지가 비워지므로 항상 세 값을 함께 넘긴다. */
+export type UserProfileUpdateRequest = {
+  nickname: string;
+  profileImageUrl: string | null;
+  bio: string | null;
 };
 
 export type UserSpotCategoryUpdateRequest = {

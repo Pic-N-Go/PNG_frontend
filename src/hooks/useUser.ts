@@ -6,11 +6,14 @@ import type {
   UserStatsResponse,
   FollowUserResponse,
   MyReviewListResponse,
+  UserProfileUpdateRequest,
+  UserSearchPageResponse,
   AlbumResponse,
 } from '@/types/user';
 
 export const USER_KEYS = {
   all: ['user'] as const,
+  search: (keyword: string) => [...USER_KEYS.all, 'search', keyword] as const,
   profile: () => [...USER_KEYS.all, 'profile'] as const,
   stats: () => [...USER_KEYS.all, 'stats'] as const,
   following: (userId?: number) => [...USER_KEYS.all, userId, 'following'] as const,
@@ -109,6 +112,7 @@ export function useInfiniteMyReviews(options?: {
 // 6. 내 관심 테마 수정 뮤테이션
 export function useUpdateSpotCategories() {
   const accessToken = useAuthStore((s) => s.accessToken);
+  const setAuth = useAuthStore((s) => s.setAuth);
   const queryClient = useQueryClient();
 
   return useMutation<UserResponse, Error, string[]>({
@@ -118,12 +122,53 @@ export function useUpdateSpotCategories() {
     },
     onSuccess: (updatedUser) => {
       queryClient.setQueryData(USER_KEYS.profile(), updatedUser);
+      // 스토어의 user도 갱신한다 — 설정 화면은 profile 쿼리가 아니라 authUser를 읽어서,
+      // 여기서 안 맞춰주면 시트를 다시 열었을 때 저장 전 선택이 그대로 보인다.
+      if (accessToken) setAuth(accessToken, updatedUser);
       queryClient.invalidateQueries({ queryKey: USER_KEYS.profile() });
     },
   });
 }
 
-// 7. 내 앨범 목록 조회 훅
+// 7. 내 프로필 수정 뮤테이션 (닉네임·프로필 이미지·자기소개)
+export function useUpdateMyProfile() {
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const setAuth = useAuthStore((s) => s.setAuth);
+  const queryClient = useQueryClient();
+
+  return useMutation<UserResponse, Error, UserProfileUpdateRequest>({
+    mutationFn: (request) => {
+      if (!accessToken) throw new Error('로그인이 필요합니다.');
+      return userApi.updateMyProfile(request, accessToken);
+    },
+    onSuccess: (updatedUser) => {
+      queryClient.setQueryData(USER_KEYS.profile(), updatedUser);
+      // 스토어의 user도 갱신한다 — 화면 여러 곳이 profile 대신 authUser를 폴백으로 읽는다.
+      if (accessToken) setAuth(accessToken, updatedUser);
+      // 커뮤니티 쪽 타 유저 프로필 캐시에도 내 닉네임·자기소개가 실려 있다.
+      queryClient.invalidateQueries({ queryKey: ['community', 'profile'] });
+    },
+  });
+}
+
+// 8. 사용자 검색 훅 (닉네임 부분일치)
+export function useSearchUsers(keyword: string, enabled = true) {
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const trimmed = keyword.trim();
+
+  return useQuery<UserSearchPageResponse, Error>({
+    queryKey: USER_KEYS.search(trimmed),
+    queryFn: () => {
+      if (!accessToken) throw new Error('로그인이 필요합니다.');
+      return userApi.searchUsers(trimmed, accessToken);
+    },
+    // 서버가 빈 검색어를 400으로 막는다 — 보내기 전에 걸러야 오버레이에 에러가 뜬다.
+    enabled: enabled && !!accessToken && trimmed.length > 0,
+    staleTime: 1000 * 60,
+  });
+}
+
+// 9. 내 앨범 목록 조회 훅
 export function useMyAlbums() {
   const accessToken = useAuthStore((s) => s.accessToken);
 

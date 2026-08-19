@@ -5,6 +5,8 @@ import type {
   FollowUserResponse,
   MyReviewListResponse,
   UserProfileResponse,
+  UserProfileUpdateRequest,
+  UserSearchPageResponse,
   AlbumResponse,
 } from '@/types/user';
 
@@ -122,7 +124,37 @@ export const userApi = {
     return (await res.json()) as UserResponse;
   },
 
-  // 8. 내 앨범 목록 조회
+  // 8. 내 프로필 수정 (닉네임·프로필 이미지·자기소개)
+  updateMyProfile: async (
+    request: UserProfileUpdateRequest,
+    accessToken: string
+  ): Promise<UserResponse> => {
+    const res = await fetchWithTimeout(`${BASE}/users/me`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify(request),
+    });
+    return (await res.json()) as UserResponse;
+  },
+
+  // 9. 사용자 검색 (닉네임 부분일치)
+  searchUsers: async (
+    keyword: string,
+    accessToken: string,
+    page = 0,
+    size = 20
+  ): Promise<UserSearchPageResponse> => {
+    const res = await fetchWithTimeout(
+      `${BASE}/users/search?keyword=${encodeURIComponent(keyword.trim())}&page=${page}&size=${size}`,
+      { method: 'GET', headers: { Authorization: `Bearer ${accessToken}` } }
+    );
+    return (await res.json()) as UserSearchPageResponse;
+  },
+
+  // 10. 내 앨범 목록 조회
   getMyAlbums: async (accessToken: string): Promise<AlbumResponse[]> => {
     const res = await fetchWithTimeout(`${BASE}/users/me/albums`, {
       method: 'GET',

@@ -2,14 +2,16 @@ import React from 'react';
 import { View, Text, TextInput, ScrollView, Pressable, Alert } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useKeyboardOverlap } from '@/hooks/useKeyboardHeight';
-import { LinearGradient } from 'expo-linear-gradient';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { IconChevronLeft, IconUser, IconPencil, IconCheck } from '@tabler/icons-react-native';
+import { IconChevronLeft, IconPencil, IconCheck } from '@tabler/icons-react-native';
 import { MyPageStackParamList } from '@/navigation/stacks/MyPageStack';
-import { normalize } from '@/utils/normalize';
+import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { FONT_XS, FONT_SM, FONT_MD, FONT_LG, BUTTON_HEIGHT, BUTTON_RADIUS, TAB_BAR_HEIGHT } from '@/constants/layout';
+import { authApi } from '@/api/auth';
 import { useAuthStore } from '@/store/useAuthStore';
-import { useMyProfile } from '@/hooks/useUser';
+import { useMyProfile, useUpdateMyProfile } from '@/hooks/useUser';
+import Avatar from '@/components/common/Avatar';
+import { NICK_MAX, NICK_HELP as NICK_HELP_TEXT, nicknameError } from '@/constants/validation';
 
 type Props = NativeStackScreenProps<MyPageStackParamList, 'ProfileEdit'>;
 
@@ -19,23 +21,17 @@ const OK = '#5a9855';
 const ERR = '#ff453a';
 const BIO_MAX = 100;
 
-type Status = 'idle' | 'checking' | 'available' | 'taken' | 'invalid';
+/** `invalid`는 사유 문구를 따로 들고 다닌다 — 무엇이 잘못됐는지가 고칠 행동을 결정한다. */
+type Status = 'idle' | 'checking' | 'available' | 'taken' | 'invalid' | 'error';
 
-const HELP: Record<'nick' | 'handle', Record<Status, string>> = {
-  nick: {
-    idle: '한글/영문/숫자 2~12자, 특수문자 불가',
-    checking: '확인 중…',
-    available: '사용 가능한 닉네임이에요',
-    taken: '이미 사용 중인 닉네임이에요',
-    invalid: '사용할 수 없는 닉네임이에요',
-  },
-  handle: {
-    idle: '영문·숫자·언더바만 사용 가능, 변경 후 30일 이내 재변경 불가',
-    checking: '확인 중…',
-    available: '사용 가능한 핸들이에요',
-    taken: '이미 사용 중인 핸들이에요',
-    invalid: '사용할 수 없는 핸들이에요',
-  },
+// 핸들(고유 ID) 필드는 없앴다 — 서버에 핸들 컬럼이 없고 닉네임이 이미 유니크라 중복 정보였다.
+const NICK_HELP: Record<Exclude<Status, 'invalid'>, string> = {
+  idle: NICK_HELP_TEXT,
+  checking: '확인 중…',
+  available: '사용 가능한 닉네임이에요',
+  taken: '이미 사용 중인 닉네임이에요',
+  // 형식 문제와 구분한다 — 사용자가 닉네임을 고쳐도 해결되지 않는다.
+  error: '확인하지 못했어요. 잠시 후 다시 시도해 주세요',
 };
 
 export default function ProfileEditScreen({ navigation }: Props) {
@@ -43,12 +39,12 @@ export default function ProfileEditScreen({ navigation }: Props) {
   const keyboardOverlap = useKeyboardOverlap();
 
   const authUser = useAuthStore((s) => s.user);
-  const authBio = useAuthStore((s) => s.bio);
-  const setAuthBio = useAuthStore((s) => s.setBio);
   const { data: profile } = useMyProfile();
+  const updateProfile = useUpdateMyProfile();
 
   const initialNick = profile?.nickname || authUser?.nickname || '사용자';
-  const initialBio = authBio ?? '안녕하세요! 사진과 일상을 기록하는 것을 좋아합니다!';
+  // 자기소개는 이제 서버 값이다. 비어 있으면 플레이스홀더만 보여주고 값은 빈 문자열로 둔다.
+  const initialBio = profile?.bio ?? authUser?.bio ?? '';
 
   const keyboardLift = Math.max(0, keyboardOverlap - (TAB_BAR_HEIGHT + insets.bottom));
 
@@ -58,18 +54,26 @@ export default function ProfileEditScreen({ navigation }: Props) {
   };
 
   const [nick, setNick] = React.useState(initialNick);
-  const [handle, setHandle] = React.useState(profile?.nickname ? `@${profile.nickname}` : 'user');
   const [bio, setBio] = React.useState(initialBio);
   const [nickStatus, setNickStatus] = React.useState<Status>('idle');
-  const [handleStatus, setHandleStatus] = React.useState<Status>('idle');
+  const [nickReason, setNickReason] = React.useState('');
 
-  // 중복 확인 (mock — API 확정 시 교체)
-  const checkField = (field: 'nick' | 'handle') => {
-    const value = field === 'nick' ? nick : handle;
-    if (!value) return;
-    const setStatus = field === 'nick' ? setNickStatus : setHandleStatus;
-    setStatus('checking');
-    setTimeout(() => setStatus('available'), 400);
+  const checkNickname = () => {
+    if (!nick) return;
+    // 서버의 /auth/nickname/check는 중복만 본다 — 형식은 여기서 먼저 거른다.
+    // 안 거르면 '!!!' 같은 값이 '사용 가능'으로 뜨고 저장 시점에야 400이 난다.
+    const reason = nicknameError(nick);
+    if (reason) {
+      setNickReason(reason);
+      setNickStatus('invalid');
+      return;
+    }
+    setNickStatus('checking');
+    authApi
+      .checkNickname(nick)
+      .then((res) => setNickStatus(res.available ? 'available' : 'taken'))
+      // 통신 실패를 형식 오류로 뭉치면 사용자가 멀쩡한 닉네임을 계속 고치게 된다.
+      .catch(() => setNickStatus('error'));
   };
 
   const nickDirty = nick !== initialNick;
@@ -78,13 +82,22 @@ export default function ProfileEditScreen({ navigation }: Props) {
   let canSave = nickDirty || bioDirty;
   if (nickDirty && nickStatus !== 'available') canSave = false;
   if (bio.length > BIO_MAX) canSave = false;
+  if (updateProfile.isPending) canSave = false;
 
   const onSave = () => {
     if (!canSave) return;
-    if (bioDirty) {
-      setAuthBio(bio);
-    }
-    Alert.alert('저장 완료', '프로필이 저장됐어요.', [{ text: '확인', onPress: () => navigation.goBack() }]);
+    // PUT /users/me는 전체 교체다 — 바꾸지 않은 값까지 함께 보내야 서버에서 비워지지 않는다.
+    updateProfile.mutate(
+      { nickname: nick, profileImageUrl: profile?.profileImageUrl ?? null, bio: bio.trim() || null },
+      {
+        onSuccess: () => {
+          Alert.alert('저장 완료', '프로필이 저장됐어요.', [{ text: '확인', onPress: () => navigation.goBack() }]);
+        },
+        onError: () => {
+          Alert.alert('저장 실패', '프로필을 저장하지 못했어요. 잠시 후 다시 시도해 주세요.');
+        },
+      },
+    );
   };
 
   const onChangeAvatar = () => {
@@ -108,9 +121,7 @@ export default function ProfileEditScreen({ navigation }: Props) {
           {/* 아바타 */}
           <View className="items-center" style={{ paddingTop: normalize(16), paddingHorizontal: normalize(20), paddingBottom: normalize(16) }}>
             <Pressable onPress={onChangeAvatar} style={{ marginBottom: normalize(12) }}>
-              <LinearGradient colors={['#2c5364', '#4a7c8a']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={{ width: normalize(88), height: normalize(88), borderRadius: normalize(44), alignItems: 'center', justifyContent: 'center' }}>
-                <IconUser size={normalize(40)} color="rgba(255,255,255,0.75)" strokeWidth={2} />
-              </LinearGradient>
+              <Avatar userId={profile?.id ?? authUser?.id} nickname={nick} imageUrl={profile?.profileImageUrl} size={88} />
               <View className="items-center justify-center" style={{ position: 'absolute', bottom: 0, right: 0, width: normalize(28), height: normalize(28), borderRadius: normalize(14), backgroundColor: BRAND, borderWidth: 2, borderColor: '#fff' }}>
                 <IconPencil size={normalize(12)} color="#fff" strokeWidth={2} />
               </View>
@@ -123,39 +134,21 @@ export default function ProfileEditScreen({ navigation }: Props) {
           {/* 폼 */}
           <View style={{ paddingHorizontal: normalize(20) }}>
             {/* 닉네임 */}
-            <View style={{ marginBottom: normalize(16) }}>
+            {/* 아래 여백은 구분선의 marginVertical이 맡는다 — 여기에 marginBottom을 더하면
+                도움말↔구분선(32)이 구분선↔자기소개(16)의 두 배가 되어 어긋난다. */}
+            <View>
               <FieldLabel text="닉네임" />
               <View className="flex-row items-stretch" style={{ gap: normalize(8) }}>
                 <TextInput
                   value={nick}
                   onChangeText={(t) => { setNick(t); setNickStatus('idle'); }}
-                  maxLength={12}
+                  maxLength={NICK_MAX}
                   className="flex-1 bg-[#f5f5f7] text-black"
                   style={{ height: normalize(52), borderRadius: normalize(12), paddingHorizontal: normalize(16), fontSize: FONT_MD }}
                 />
-                <CheckButton onPress={() => checkField('nick')} disabled={nickStatus === 'checking'} />
+                <CheckButton onPress={checkNickname} disabled={nickStatus === 'checking'} />
               </View>
-              <FieldHelper field="nick" status={nickStatus} />
-            </View>
-
-            {/* 핸들 */}
-            <View style={{ marginBottom: normalize(16) }}>
-              <FieldLabel text="핸들 (고유 ID)" />
-              <View className="flex-row items-stretch" style={{ gap: normalize(8) }}>
-                <View className="flex-1 flex-row items-center bg-[#f5f5f7]" style={{ height: normalize(52), borderRadius: normalize(12), paddingHorizontal: normalize(16) }}>
-                  <Text className="font-medium" style={{ fontSize: FONT_MD, color: SUB, marginRight: normalize(2) }}>@</Text>
-                  <TextInput
-                    value={handle}
-                    onChangeText={(t) => { setHandle(t); setHandleStatus('idle'); }}
-                    autoCapitalize="none"
-                    autoCorrect={false}
-                    className="flex-1 p-0 text-black"
-                    style={{ fontSize: FONT_MD }}
-                  />
-                </View>
-                <CheckButton onPress={() => checkField('handle')} disabled={handleStatus === 'checking'} />
-              </View>
-              <FieldHelper field="handle" status={handleStatus} />
+              <FieldHelper status={nickStatus} reason={nickReason} />
             </View>
 
             <View style={{ height: 0.5, backgroundColor: 'rgba(0,0,0,0.06)', marginVertical: normalize(16) }} />
@@ -172,7 +165,7 @@ export default function ProfileEditScreen({ navigation }: Props) {
                 placeholder="안녕하세요! 사진과 일상을 기록하는 것을 좋아합니다!"
                 placeholderTextColor="rgba(0,0,0,0.25)"
                 className="bg-[#f5f5f7] text-black"
-                style={{ height: normalize(96), borderRadius: normalize(12), padding: normalize(14), fontSize: FONT_MD, lineHeight: normalize(22), textAlignVertical: 'top' }}
+                style={{ height: normalize(96), borderRadius: normalize(12), padding: normalize(14), fontSize: normalizeFontSize(14), lineHeight: normalize(22), textAlignVertical: 'top' }}
               />
               <Text className="text-right" style={{ fontSize: FONT_XS, color: 'rgba(0,0,0,0.25)', marginTop: normalize(4) }}>
                 {bio.length}/{BIO_MAX}
@@ -191,7 +184,9 @@ export default function ProfileEditScreen({ navigation }: Props) {
             className="items-center justify-center"
             style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS, backgroundColor: canSave ? BRAND : '#f5f5f7' }}
           >
-            <Text className="font-semibold" style={{ fontSize: FONT_MD, color: canSave ? '#fff' : '#c7c7cc' }}>저장</Text>
+            <Text className="font-semibold" style={{ fontSize: FONT_MD, color: canSave ? '#fff' : '#c7c7cc' }}>
+              {updateProfile.isPending ? '저장 중...' : '저장'}
+            </Text>
           </Pressable>
         </View>
       </View>
@@ -216,14 +211,15 @@ function CheckButton({ onPress, disabled }: { onPress: () => void; disabled?: bo
   );
 }
 
-function FieldHelper({ field, status }: { field: 'nick' | 'handle'; status: Status }) {
+function FieldHelper({ status, reason }: { status: Status; reason: string }) {
   const ok = status === 'available';
-  const err = status === 'taken' || status === 'invalid';
+  const err = status === 'taken' || status === 'invalid' || status === 'error';
   const color = ok ? OK : err ? ERR : SUB;
+  const text = status === 'invalid' ? reason : NICK_HELP[status];
   return (
     <View className="flex-row items-center" style={{ gap: normalize(4), marginTop: normalize(8) }}>
       {ok && <IconCheck size={normalize(14)} color={OK} strokeWidth={2} />}
-      <Text style={{ fontSize: FONT_XS, color }}>{HELP[field][status]}</Text>
+      <Text style={{ fontSize: FONT_XS, color }}>{text}</Text>
     </View>
   );
 }
