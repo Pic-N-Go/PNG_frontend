@@ -73,12 +73,12 @@ export default function FAQScreen({ navigation }: Props) {
     });
   }, []);
 
+  // 질문 제목만 본다. 답변(f.a)까지 검색하면 아코디언이 접혀 있어 어디가 맞았는지 보이지 않고,
+  // 답변은 긴 산문이라 노이즈가 제목 일치보다 많아진다 — '스팟'은 제목 3건 대 답변만 5건이었다.
   const filtered = React.useMemo(() => {
     const q = query.trim().toLowerCase();
     return FAQ_LIST.filter(
-      (f) =>
-        (category === 'all' || f.category === category) &&
-        (!q || f.q.toLowerCase().includes(q) || f.a.toLowerCase().includes(q)),
+      (f) => (category === 'all' || f.category === category) && (!q || f.q.toLowerCase().includes(q)),
     );
   }, [query, category]);
 
@@ -156,10 +156,11 @@ export default function FAQScreen({ navigation }: Props) {
             ))}
           </View>
         )}
-      </ScrollView>
 
-      {/* 문의 CTA */}
-      <View style={{ paddingHorizontal: CONTENT_PADDING, paddingTop: normalize(12), paddingBottom: normalize(12) }}>
+        {/* 문의 CTA는 목록 끝에 둔다 — 화면 하단에 고정하면 마지막 질문들을 계속 가린다.
+            "답을 못 찾았다"는 안내이기도 해서 목록을 다 본 뒤에 나오는 게 맥락에도 맞다.
+            질문 카드와 배경색(#f5f5f7)이 같아 목록의 연장으로 읽히므로 구분선으로 끊는다. */}
+        <View style={{ height: 0.5, backgroundColor: DIVIDER, marginTop: normalize(24), marginBottom: normalize(20) }} />
         <Pressable
           onPress={() => navigation.navigate('Inquiry')}
           className="flex-row items-center justify-between bg-[#f5f5f7]"
@@ -176,7 +177,8 @@ export default function FAQScreen({ navigation }: Props) {
             <Text className="font-semibold text-white" style={{ fontSize: FONT_SM }}>문의하기</Text>
           </View>
         </Pressable>
-      </View>
+      </ScrollView>
+
     </SafeAreaView>
   );
 }
