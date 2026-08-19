@@ -11,6 +11,7 @@ import { authApi } from '@/api/auth';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useMyProfile, useUpdateMyProfile, useUpdateProfileImage, useDeleteProfileImage } from '@/hooks/useUser';
 import * as ImagePicker from 'expo-image-picker';
+import type { ProfileImageUpload } from '@/types/user';
 import Avatar from '@/components/common/Avatar';
 import { NICK_MAX, NICK_HELP as NICK_HELP_TEXT, nicknameError } from '@/constants/validation';
 
@@ -60,6 +61,13 @@ export default function ProfileEditScreen({ navigation }: Props) {
   const [bio, setBio] = React.useState(initialBio);
   const [nickStatus, setNickStatus] = React.useState<Status>('idle');
   const [nickReason, setNickReason] = React.useState('');
+  /**
+   * 고르기만 하고 아직 안 올린 사진. 저장 버튼을 눌러야 실제로 반영된다 —
+   * 사진만 즉시 반영하면 한 화면에 "바로 적용"과 "저장해야 적용" 두 규칙이 생긴다.
+   */
+  const [pendingImage, setPendingImage] = React.useState<ProfileImageUpload | null>(null);
+  /** 사진 삭제를 골랐는지. 이것도 저장 시점에 반영한다. */
+  const [imageRemoved, setImageRemoved] = React.useState(false);
 
   const checkNickname = () => {
     if (!nick) return;
@@ -81,34 +89,47 @@ export default function ProfileEditScreen({ navigation }: Props) {
 
   const nickDirty = nick !== initialNick;
   const bioDirty = bio !== initialBio;
+  const imageDirty = pendingImage !== null || imageRemoved;
+  const saving = updateProfile.isPending || updateImage.isPending || deleteImage.isPending;
 
-  let canSave = nickDirty || bioDirty;
+  let canSave = nickDirty || bioDirty || imageDirty;
   if (nickDirty && nickStatus !== 'available') canSave = false;
   if (bio.length > BIO_MAX) canSave = false;
-  if (updateProfile.isPending) canSave = false;
+  if (saving) canSave = false;
 
-  const onSave = () => {
+  /** 미리보기: 고른 사진 > 삭제 예약 > 서버 사진 순. */
+  const previewImageUrl = pendingImage?.uri ?? (imageRemoved ? null : profile?.profileImageUrl);
+
+  const onSave = async () => {
     if (!canSave) return;
-    // PUT /users/me는 전체 교체다 — 바꾸지 않은 값까지 함께 보내야 서버에서 비워지지 않는다.
-    // 사진은 예외다. 서버가 준 값은 presigned URL이라 되돌려 보내면 죽은 URL이 저장되므로,
-    // 전용 경로(PATCH /users/me/profile-image)로만 바꾼다.
-    updateProfile.mutate(
-      { nickname: nick, bio: bio.trim() || null },
-      {
-        onSuccess: () => {
-          Alert.alert('저장 완료', '프로필이 저장됐어요.', [{ text: '확인', onPress: () => navigation.goBack() }]);
-        },
-        onError: () => {
-          Alert.alert('저장 실패', '프로필을 저장하지 못했어요. 잠시 후 다시 시도해 주세요.');
-        },
-      },
-    );
+    try {
+      // 사진을 먼저 처리한다. 여기서 실패하면 아무것도 바뀌지 않은 상태로 멈춘다 —
+      // 용량·네트워크 문제로 실패할 확률이 닉네임 저장보다 높다.
+      if (pendingImage) {
+        await updateImage.mutateAsync(pendingImage);
+      } else if (imageRemoved) {
+        await deleteImage.mutateAsync();
+      }
+
+      if (nickDirty || bioDirty) {
+        // PUT /users/me는 전체 교체다 — 바꾸지 않은 값까지 함께 보내야 서버에서 비워지지 않는다.
+        // 사진은 예외다. 서버가 준 값은 presigned URL이라 되돌려 보내면 죽은 URL이 저장되므로,
+        // 전용 경로(PATCH/DELETE /users/me/profile-image)로만 바꾼다.
+        await updateProfile.mutateAsync({ nickname: nick, bio: bio.trim() || null });
+      }
+
+      setPendingImage(null);
+      setImageRemoved(false);
+      Alert.alert('저장 완료', '프로필이 저장됐어요.', [{ text: '확인', onPress: () => navigation.goBack() }]);
+    } catch {
+      // 사진만 올라가고 닉네임이 실패했을 수 있다. 다시 저장을 누르면 사진은 새로 올라가고
+      // 직전 것은 서버가 지우므로(updateProfileImage) 남는 파일 없이 재시도된다.
+      Alert.alert('저장 실패', '프로필을 저장하지 못했어요. 잠시 후 다시 시도해 주세요.');
+    }
   };
 
-  const imageBusy = updateImage.isPending || deleteImage.isPending;
-
   const pickAvatar = async () => {
-    if (imageBusy) return;
+    if (saving) return;
     // iOS PHPickerViewController는 앱 프로세스 밖에서 뜨므로 권한 요청이 필요 없다.
     if (Platform.OS === 'android') {
       const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -140,20 +161,19 @@ export default function ProfileEditScreen({ navigation }: Props) {
     if (!asset) return;
     const ext = asset.uri.split('.').pop()?.toLowerCase();
     const safeExt = ext && /^(jpe?g|png|heic|webp)$/.test(ext) ? ext : 'jpg';
-    updateImage.mutate(
-      {
-        uri: asset.uri,
-        name: `profile.${safeExt}`,
-        type: safeExt === 'png' ? 'image/png' : safeExt === 'webp' ? 'image/webp' : 'image/jpeg',
-      },
-      { onError: () => Alert.alert('사진을 바꾸지 못했어요', '잠시 후 다시 시도해 주세요.') },
-    );
+    // 여기서 올리지 않는다 — 저장 버튼을 눌러야 반영된다.
+    setPendingImage({
+      uri: asset.uri,
+      name: `profile.${safeExt}`,
+      type: safeExt === 'png' ? 'image/png' : safeExt === 'webp' ? 'image/webp' : 'image/jpeg',
+    });
+    setImageRemoved(false);
   };
 
   const onChangeAvatar = () => {
-    if (imageBusy) return;
-    // 사진이 없으면 고를 것만 있으면 되고, 있으면 삭제 선택지가 필요하다.
-    if (!profile?.profileImageUrl) {
+    if (saving) return;
+    // 보여줄 사진이 없으면 고를 것만 있으면 되고, 있으면 삭제 선택지가 필요하다.
+    if (!previewImageUrl) {
       void pickAvatar();
       return;
     }
@@ -162,10 +182,11 @@ export default function ProfileEditScreen({ navigation }: Props) {
       {
         text: '사진 삭제',
         style: 'destructive',
-        onPress: () =>
-          deleteImage.mutate(undefined, {
-            onError: () => Alert.alert('사진을 삭제하지 못했어요', '잠시 후 다시 시도해 주세요.'),
-          }),
+        onPress: () => {
+          setPendingImage(null);
+          // 서버에 사진이 없는데(고른 것만 취소된 상태) 삭제를 예약하면 저장할 게 없다.
+          setImageRemoved(!!profile?.profileImageUrl);
+        },
       },
       { text: '취소', style: 'cancel' },
     ]);
@@ -187,9 +208,9 @@ export default function ProfileEditScreen({ navigation }: Props) {
         <ScrollView ref={scrollRef} style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: normalize(24) }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           {/* 아바타 */}
           <View className="items-center" style={{ paddingTop: normalize(16), paddingHorizontal: normalize(20), paddingBottom: normalize(16) }}>
-            <Pressable onPress={onChangeAvatar} disabled={imageBusy} style={{ marginBottom: normalize(12) }}>
-              <Avatar userId={profile?.id ?? authUser?.id} nickname={nick} imageUrl={profile?.profileImageUrl} size={88} />
-              {imageBusy && (
+            <Pressable onPress={onChangeAvatar} disabled={saving} style={{ marginBottom: normalize(12) }}>
+              <Avatar userId={profile?.id ?? authUser?.id} nickname={nick} imageUrl={previewImageUrl} size={88} />
+              {saving && (
                 <View
                   className="items-center justify-center"
                   style={{ position: 'absolute', top: 0, left: 0, width: normalize(88), height: normalize(88), borderRadius: normalize(44), backgroundColor: 'rgba(0,0,0,0.35)' }}
@@ -260,7 +281,7 @@ export default function ProfileEditScreen({ navigation }: Props) {
             style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS, backgroundColor: canSave ? BRAND : '#f5f5f7' }}
           >
             <Text className="font-semibold" style={{ fontSize: FONT_MD, color: canSave ? '#fff' : '#c7c7cc' }}>
-              {updateProfile.isPending ? '저장 중...' : '저장'}
+              {saving ? '저장 중...' : '저장'}
             </Text>
           </Pressable>
         </View>
