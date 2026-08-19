@@ -2,6 +2,7 @@ import { Alert } from 'react-native';
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import {
+  ApiError,
   authApi,
   setAccessTokenExpiredHandler,
   type TokenResponse,
@@ -101,15 +102,24 @@ export const useAuthStore = create<AuthState>()(
               useAuthStore.setState({ user });
             }
           })
-          .catch(async () => {
+          .catch(async (error) => {
             const current = useAuthStore.getState();
+            const shouldClearAuth =
+              error instanceof ApiError &&
+              error.status === 401 &&
+              error.code !== 'ACCESS_TOKEN_EXPIRED';
             if (
+              shouldClearAuth &&
               sessionRevision === rehydratedSessionRevision &&
               current.accessToken === rehydratedToken
             ) {
-              await current.clearAuth().catch((error) => {
-                if (__DEV__) console.error('[authStore] rehydration cleanup failed:', error);
+              await current.clearAuth().catch((cleanupError) => {
+                if (__DEV__) {
+                  console.error('[authStore] rehydration cleanup failed:', cleanupError);
+                }
               });
+            } else if (__DEV__ && !shouldClearAuth) {
+              console.warn('[authStore] session validation deferred:', error);
             }
           })
           .finally(() => {
