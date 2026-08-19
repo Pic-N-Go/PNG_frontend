@@ -3,7 +3,7 @@ import { ActivityIndicator, Image, Pressable, ScrollView, Text, TextInput, View 
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Bookmark, Camera, ChevronLeft, Clock, Heart, Maximize, MessageSquare, MoreHorizontal, Send, Share2, Sun, X } from 'lucide-react-native';
+import { Bookmark, Camera, ChevronLeft, Clock, Heart, MessageSquare, MoreHorizontal, Send, Share as ShareIcon, Sun, X } from 'lucide-react-native';
 import CommentThread from '@/components/community/CommentThread';
 import PostActionSheet from '@/components/community/PostActionSheet';
 import PostReportSheet from '@/components/community/PostReportSheet';
@@ -26,10 +26,10 @@ import {
 } from '@/hooks/useCommunity';
 import { toErrorMessage } from '@/api/auth';
 import { useAuthStore } from '@/store/useAuthStore';
-import { initialsOf } from '@/utils/communityMappers';
+import Avatar from '@/components/common/Avatar';
 import { CommunityDetailStackParamList } from '@/navigation/stacks/CommunityDetailStack';
 import { Comment, ReportReasonId } from '@/types/community';
-import { HEADER_HEIGHT, CONTENT_PADDING, FONT_2XS, FONT_LG, FONT_MD, FONT_SM, FONT_XS } from '@/constants/layout';
+import { HEADER_HEIGHT, CONTENT_PADDING, FONT_LG, FONT_MD, FONT_SM, FONT_XS } from '@/constants/layout';
 import { normalize, normalizeHeight } from '@/utils/normalize';
 
 const ACCENT = '#E31B59';
@@ -235,6 +235,12 @@ export default function PostDetailScreen() {
     commentInputRef.current?.focus();
   }
 
+  // 댓글 작성자 프로필. author.id는 mapComment가 채우지만 옵셔널 타입이라 없으면 아무 것도 하지 않는다.
+  function handlePressCommentAuthor(comment: Comment) {
+    if (!comment.author.id) return;
+    navigation.navigate('UserProfile', { userId: comment.author.id });
+  }
+
   function handleConfirmDeleteComment() {
     const commentId = commentPendingDelete;
     setCommentPendingDelete(null);
@@ -320,14 +326,6 @@ export default function PostDetailScreen() {
                 {post.likeCount}
               </Text>
             </Pressable>
-            <Pressable
-              onPress={() => setLightboxOpen(true)}
-              className="items-center justify-center absolute"
-              style={{ top: normalize(12), right: normalize(12), width: normalize(32), height: normalize(32), borderRadius: normalize(16), backgroundColor: 'rgba(0,0,0,0.35)' }}
-              accessibilityLabel="확대"
-            >
-              <Maximize size={normalize(15)} color="#fff" strokeWidth={1.8} />
-            </Pressable>
           </Pressable>
 
           {/* 본문 */}
@@ -335,18 +333,8 @@ export default function PostDetailScreen() {
             {/* 유저 행 */}
             <View className="flex-row items-center" style={{ gap: normalize(11), marginBottom: normalize(14) }}>
               {/* 닉네임뿐 아니라 아바타로도 프로필에 들어갈 수 있어야 한다 */}
-              <Pressable
-                onPress={() => navigation.navigate('UserProfile', { userId: post.author.id })}
-                className="items-center justify-center overflow-hidden"
-                style={{ width: normalize(38), height: normalize(38), borderRadius: normalize(19), backgroundColor: post.author.avatarGradient[0] }}
-              >
-                {post.author.profileImageUrl ? (
-                  <Image source={{ uri: post.author.profileImageUrl }} resizeMode="cover" style={{ width: '100%', height: '100%' }} />
-                ) : (
-                  <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, color: 'rgba(255,255,255,0.85)', letterSpacing: -0.1 }}>
-                    {post.author.initials}
-                  </Text>
-                )}
+              <Pressable onPress={() => navigation.navigate('UserProfile', { userId: post.author.id })}>
+                <Avatar userId={post.author.id} nickname={post.author.handle} imageUrl={post.author.profileImageUrl} size={38} />
               </Pressable>
               <View style={{ flex: 1, minWidth: 0 }}>
                 <Pressable onPress={() => navigation.navigate('UserProfile', { userId: post.author.id })}>
@@ -441,7 +429,7 @@ export default function PostDetailScreen() {
                 </Text>
               </Pressable>
               <Pressable onPress={() => setShareSheetVisible(true)} hitSlop={8} accessibilityLabel="공유">
-                <Share2 size={normalize(16)} color="rgba(0,0,0,0.6)" strokeWidth={1.8} />
+                <ShareIcon size={normalize(16)} color="rgba(0,0,0,0.6)" strokeWidth={1.8} />
               </Pressable>
             </View>
 
@@ -458,6 +446,7 @@ export default function PostDetailScreen() {
                   comment={comment}
                   onToggleLike={handleToggleCommentLike}
                   onPressReply={handlePressReply}
+                  onPressAuthor={handlePressCommentAuthor}
                   onPressEdit={handlePressEdit}
                   onDelete={setCommentPendingDelete}
                 />
@@ -511,15 +500,7 @@ export default function PostDetailScreen() {
             borderTopColor: 'rgba(0,0,0,0.06)',
           }}
         >
-          <View className="items-center justify-center overflow-hidden" style={{ width: normalize(32), height: normalize(32), borderRadius: normalize(16), backgroundColor: SURFACE }}>
-            {me?.profileImageUrl ? (
-              <Image source={{ uri: me.profileImageUrl }} resizeMode="cover" style={{ width: '100%', height: '100%' }} />
-            ) : (
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_2XS, color: 'rgba(0,0,0,0.35)' }}>
-                {me ? initialsOf(me.nickname) : 'ME'}
-              </Text>
-            )}
-          </View>
+          <Avatar userId={me?.id} nickname={me?.nickname} imageUrl={me?.profileImageUrl} size={32} />
           <View style={{ flex: 1, height: normalize(40), backgroundColor: SURFACE, borderRadius: normalize(20), paddingHorizontal: normalize(16), justifyContent: 'center' }}>
             <TextInput
               ref={commentInputRef}
