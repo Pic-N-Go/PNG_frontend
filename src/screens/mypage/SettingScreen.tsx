@@ -133,6 +133,11 @@ export default function SettingScreen({ navigation }: Props) {
     );
   };
 
+  // BETA 배지만으로는 눌러보기 전까지 모른다 — 눌렀을 때도 같은 이야기를 해준다.
+  const openBlockListAlert = () => {
+    Alert.alert('준비 중이에요', '차단 목록 관리 기능을 준비하고 있어요.');
+  };
+
   const openSystemNotifSettingsAlert = () => {
     Alert.alert(
       '알림 권한 필요',
@@ -185,7 +190,7 @@ export default function SettingScreen({ navigation }: Props) {
   };
 
   const handlePress = (key: string) => {
-    // TODO: email/social/location/block/delete-account 내비게이션 연결
+    // TODO: email/social/location/delete-account 내비게이션 연결
     void key;
   };
 
@@ -325,7 +330,7 @@ export default function SettingScreen({ navigation }: Props) {
               // 위치 권한 행의 '허용됨'과 같은 자리(화살표 왼쪽)를 쓴다.
               right={<BetaBadge />}
               chevron
-              onPress={() => handlePress('block')}
+              onPress={openBlockListAlert}
             />
           </Card>
         </View>
