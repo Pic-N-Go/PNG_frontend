@@ -33,6 +33,7 @@ export default function ProfileHeader() {
   const followingCount = stats?.followingCount ?? 0;
   const visitedSpotCount = stats?.visitedSpotCount ?? 0;
   const reviewCount = stats?.reviewCount ?? 0;
+  const postCount = stats?.postCount ?? 0;
   const photoCount = totalAlbumPhotos > 0 ? totalAlbumPhotos : reviewCount;
 
   return (
@@ -97,103 +98,84 @@ export default function ProfileHeader() {
         </TouchableOpacity>
       </View>
 
+      {/* 3개씩 두 줄. 타일 5개가 똑같은 스타일로 복붙돼 있어 StatTile로 뺐다 — 한 곳만 고치면 된다. */}
       <View style={{ gap: normalize(8) }}>
         <View className="flex-row" style={{ gap: normalize(8) }}>
-          <TouchableOpacity
-            className="flex-1 items-center justify-center"
-            style={{
-              paddingVertical: normalize(12),
-              borderRadius: normalize(12),
-              backgroundColor: 'rgba(255, 255, 255, 0.06)',
-              borderWidth: 0.5,
-              borderColor: 'rgba(255, 255, 255, 0.06)',
-            }}
-            onPress={() => navigation.navigate('Follow', { initialTab: 'followers', userId: profile?.id || authUser?.id } as never)}
-          >
-            <Text className="font-semibold text-white tracking-tight" style={{ fontSize: normalizeFontSize(20), marginBottom: normalize(2) }}>
-              {isStatsLoading ? '-' : followerCount.toLocaleString()}
-            </Text>
-            <Text className="tracking-tight" style={{ fontSize: FONT_XS, color: 'rgba(255, 255, 255, 0.35)' }}>
-              팔로워
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            className="flex-1 items-center justify-center"
-            style={{
-              paddingVertical: normalize(12),
-              borderRadius: normalize(12),
-              backgroundColor: 'rgba(255, 255, 255, 0.06)',
-              borderWidth: 0.5,
-              borderColor: 'rgba(255, 255, 255, 0.06)',
-            }}
-            onPress={() => navigation.navigate('Follow', { initialTab: 'following', userId: profile?.id || authUser?.id } as never)}
-          >
-            <Text className="font-semibold text-white tracking-tight" style={{ fontSize: normalizeFontSize(20), marginBottom: normalize(2) }}>
-              {isStatsLoading ? '-' : followingCount.toLocaleString()}
-            </Text>
-            <Text className="tracking-tight" style={{ fontSize: FONT_XS, color: 'rgba(255, 255, 255, 0.35)' }}>
-              팔로잉
-            </Text>
-          </TouchableOpacity>
+          <StatTile
+            value={followerCount}
+            label="팔로워"
+            loading={isStatsLoading}
+            onPress={() => navigation.navigate('Follow', { initialTab: 'followers', userId: profile?.id || authUser?.id })}
+          />
+          <StatTile
+            value={followingCount}
+            label="팔로잉"
+            loading={isStatsLoading}
+            onPress={() => navigation.navigate('Follow', { initialTab: 'following', userId: profile?.id || authUser?.id })}
+          />
+          <StatTile
+            value={visitedSpotCount}
+            label="방문 스팟"
+            loading={isStatsLoading}
+            onPress={() => navigation.navigate('PhotoMap')}
+          />
         </View>
 
         <View className="flex-row" style={{ gap: normalize(8) }}>
-          <TouchableOpacity
-            className="flex-1 items-center justify-center"
-            style={{
-              paddingVertical: normalize(12),
-              borderRadius: normalize(12),
-              backgroundColor: 'rgba(255, 255, 255, 0.06)',
-              borderWidth: 0.5,
-              borderColor: 'rgba(255, 255, 255, 0.06)',
-            }}
-            onPress={() => navigation.navigate('PhotoMap' as never)}
-          >
-            <Text className="font-semibold text-white tracking-tight" style={{ fontSize: normalizeFontSize(20), marginBottom: normalize(2) }}>
-              {isStatsLoading ? '-' : visitedSpotCount.toLocaleString()}
-            </Text>
-            <Text className="tracking-tight" style={{ fontSize: FONT_XS, color: 'rgba(255, 255, 255, 0.35)' }}>
-              방문 스팟
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            className="flex-1 items-center justify-center"
-            style={{
-              paddingVertical: normalize(12),
-              borderRadius: normalize(12),
-              backgroundColor: 'rgba(255, 255, 255, 0.06)',
-              borderWidth: 0.5,
-              borderColor: 'rgba(255, 255, 255, 0.06)',
-            }}
-            onPress={() => navigation.navigate('MyPhotos' as never)}
-          >
-            <Text className="font-semibold text-white tracking-tight" style={{ fontSize: normalizeFontSize(20), marginBottom: normalize(2) }}>
-              {isStatsLoading ? '-' : photoCount.toLocaleString()}
-            </Text>
-            <Text className="tracking-tight" style={{ fontSize: FONT_XS, color: 'rgba(255, 255, 255, 0.35)' }}>
-              사진
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            className="flex-1 items-center justify-center"
-            style={{
-              paddingVertical: normalize(12),
-              borderRadius: normalize(12),
-              backgroundColor: 'rgba(255, 255, 255, 0.06)',
-              borderWidth: 0.5,
-              borderColor: 'rgba(255, 255, 255, 0.06)',
-            }}
-            onPress={() => navigation.navigate('MyReviews' as never)}
-          >
-            <Text className="font-semibold text-white tracking-tight" style={{ fontSize: normalizeFontSize(20), marginBottom: normalize(2) }}>
-              {isStatsLoading ? '-' : reviewCount.toLocaleString()}
-            </Text>
-            <Text className="tracking-tight" style={{ fontSize: FONT_XS, color: 'rgba(255, 255, 255, 0.35)' }}>
-              리뷰
-            </Text>
-          </TouchableOpacity>
+          <StatTile
+            value={photoCount}
+            label="사진"
+            loading={isStatsLoading}
+            onPress={() => navigation.navigate('MyPhotos')}
+          />
+          <StatTile
+            value={postCount}
+            label="글"
+            loading={isStatsLoading}
+            onPress={() => navigation.navigate('MyPosts')}
+          />
+          <StatTile
+            value={reviewCount}
+            label="리뷰"
+            loading={isStatsLoading}
+            onPress={() => navigation.navigate('MyReviews')}
+          />
         </View>
       </View>
     </LinearGradient>
+  );
+}
+
+/** 통계 타일 하나. 6개가 값·라벨·이동만 다르고 나머지는 같다. */
+function StatTile({
+  value,
+  label,
+  loading,
+  onPress,
+}: {
+  value: number;
+  label: string;
+  loading?: boolean;
+  onPress: () => void;
+}) {
+  return (
+    <TouchableOpacity
+      className="flex-1 items-center justify-center"
+      style={{
+        paddingVertical: normalize(12),
+        borderRadius: normalize(12),
+        backgroundColor: 'rgba(255, 255, 255, 0.06)',
+        borderWidth: 0.5,
+        borderColor: 'rgba(255, 255, 255, 0.06)',
+      }}
+      onPress={onPress}
+    >
+      <Text className="font-semibold text-white tracking-tight" style={{ fontSize: normalizeFontSize(20), marginBottom: normalize(2) }}>
+        {loading ? '-' : value.toLocaleString()}
+      </Text>
+      <Text className="tracking-tight" style={{ fontSize: FONT_XS, color: 'rgba(255, 255, 255, 0.35)' }}>
+        {label}
+      </Text>
+    </TouchableOpacity>
   );
 }

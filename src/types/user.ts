@@ -42,8 +42,11 @@ export type UserResponse = {
 export type UserStatsResponse = {
   followerCount: number;
   followingCount: number;
+  /** 집계 기준 미확정으로 서버가 아직 0을 반환한다 */
   reviewCount: number;
+  /** 집계 기준 미확정으로 서버가 아직 0을 반환한다 */
   visitedSpotCount: number;
+  postCount: number;
 };
 
 export type FollowUserResponse = {
