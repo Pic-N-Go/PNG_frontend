@@ -156,7 +156,15 @@ export const userApi = {
     return (await res.json()) as UserSearchPageResponse;
   },
 
-  // 10. 내 앨범 목록 조회
+  // 10. 회원 탈퇴 (소프트 삭제 — 30일 이내 authApi.restore로 복구 가능)
+  withdraw: async (accessToken: string): Promise<void> => {
+    await fetchWithTimeout(`${BASE}/users/me`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+  },
+
+  // 11. 내 앨범 목록 조회
   /**
    * 프로필 사진 교체. multipart part 이름은 서버 @RequestPart("image")와 맞춘다.
    * 사진 업로드는 느릴 수 있어 공용 타임아웃(fetchWithTimeout)을 쓰지 않는다.

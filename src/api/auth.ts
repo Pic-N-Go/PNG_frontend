@@ -56,10 +56,22 @@ export class ApiError extends Error {
    */
   readonly status?: number;
 
-  constructor(message: string, status?: number) {
+  /**
+   * 백엔드 ErrorResponse.code (예: `ACCOUNT_WITHDRAWN`). 상태코드만으로는 구분할 수 없는
+   * 실패를 호출부가 분기하는 데 쓴다 — 메시지 문자열 매칭은 문구를 고치면 조용히 깨진다.
+   */
+  readonly code?: string;
+
+  constructor(message: string, status?: number, code?: string) {
     super(message);
     this.status = status;
+    this.code = code;
   }
+}
+
+/** 특정 에러 코드인지. 문구 변경에 영향받지 않는 분기용. */
+export function isErrorCode(err: unknown, code: string): boolean {
+  return err instanceof ApiError && err.code === code;
 }
 
 export function toErrorMessage(err: unknown, fallback: string): string {
@@ -100,10 +112,10 @@ export function setUnauthorizedHandler(fn: (token?: string) => void) {
  * @param requestToken 이 요청이 Authorization 헤더로 보낸 토큰. 알 수 있으면 넘긴다.
  */
 export async function toHttpError(res: Response, requestToken?: string): Promise<ApiError> {
-  const body = (await res.json().catch(() => ({}))) as { message?: string };
+  const body = (await res.json().catch(() => ({}))) as { message?: string; code?: string };
   const message = body.message ?? MESSAGE_BY_STATUS[res.status] ?? `요청에 실패했어요. (${res.status})`;
   if (res.status === 401) onUnauthorized?.(requestToken);
-  return new ApiError(message, res.status);
+  return new ApiError(message, res.status, body.code);
 }
 
 /** Authorization 헤더에서 토큰만 꺼낸다. 헤더를 options로 받는 래퍼용. */
@@ -165,6 +177,16 @@ export const authApi = {
 
   loginWithKakao: (accessToken: string) =>
     post<TokenResponse>('/auth/login/social', { accessToken }),
+
+  /**
+   * 탈퇴 대기 중(30일 이내) 계정 복구. 탈퇴 계정은 토큰을 받을 수 없어 인증이 필요한
+   * 경로로는 복구를 시작할 수 없다 — 그래서 로그인과 같은 자격증명을 그대로 보낸다.
+   */
+  restore: (email: string, password: string) =>
+    post<TokenResponse>('/auth/restore', { email, password }),
+
+  restoreWithKakao: (accessToken: string) =>
+    post<TokenResponse>('/auth/restore/social', { accessToken }),
 
   sendPasswordResetCode: (email: string) =>
     post<EmailVerificationResponse>('/auth/password/reset/code', { email }),

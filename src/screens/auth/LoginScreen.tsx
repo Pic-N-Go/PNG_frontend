@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
+  Alert,
   KeyboardAvoidingView,
   Modal,
   Platform,
@@ -17,7 +18,7 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { login as kakaoLogin } from "@react-native-seoul/kakao-login";
 import { AuthStackParamList } from "@/navigation/AuthStack";
 import { useAuthStore } from "@/store/useAuthStore";
-import { authApi, toErrorMessage } from "@/api/auth";
+import { authApi, isErrorCode, toErrorMessage } from "@/api/auth";
 import AuthInput from "@/components/auth/AuthInput";
 import Toast from "@/components/common/Toast";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -100,11 +101,43 @@ export default function LoginScreen({ navigation }: Props) {
 
   const canLogin = email.trim().length > 0 && password.length > 0;
 
+  // 탈퇴 대기 계정 복구. 탈퇴 계정은 토큰을 못 받으므로 로그인과 같은 자격증명으로 되돌린다.
+  const restoreMutation = useMutation({
+    mutationFn: () => authApi.restore(email.trim(), password),
+    onSuccess: (data) => setAuth(data.accessToken, data.user),
+    onError: (err: unknown) =>
+      showToast(toErrorMessage(err, "계정을 복구하지 못했어요. 잠시 후 다시 시도해주세요.")),
+  });
+
   const loginMutation = useMutation({
     mutationFn: () => authApi.login(email.trim(), password),
     onSuccess: (data) => setAuth(data.accessToken, data.user),
+    onError: (err: unknown) => {
+      // 자격증명은 맞았고 탈퇴 대기 중인 경우다. 토스트로 흘리면 복구 경로가 사라진다.
+      if (isErrorCode(err, "ACCOUNT_WITHDRAWN")) {
+        Alert.alert(
+          "탈퇴 대기 중인 계정이에요",
+          "30일 안에는 계정을 되돌릴 수 있어요. 지금 복구할까요?",
+          [
+            { text: "취소", style: "cancel" },
+            { text: "복구하기", onPress: () => restoreMutation.mutate() },
+          ],
+        );
+        return;
+      }
+      showToast(toErrorMessage(err, "로그인에 실패했어요. 다시 시도해주세요."));
+    },
+  });
+
+  // 소셜 계정은 비밀번호가 없어 카카오 accessToken으로 본인 확인 후 복구한다.
+  const kakaoRestoreMutation = useMutation({
+    mutationFn: async () => {
+      const token = await kakaoLogin();
+      return authApi.restoreWithKakao(token.accessToken);
+    },
+    onSuccess: (data) => setAuth(data.accessToken, data.user),
     onError: (err: unknown) =>
-      showToast(toErrorMessage(err, "로그인에 실패했어요. 다시 시도해주세요.")),
+      showToast(toErrorMessage(err, "계정을 복구하지 못했어요. 잠시 후 다시 시도해주세요.")),
   });
 
   const kakaoLoginMutation = useMutation({
@@ -127,6 +160,17 @@ export default function LoginScreen({ navigation }: Props) {
     },
     onError: (e: unknown) => {
       if ((e as { code?: string })?.code === "E_CANCELLED") return;
+      if (isErrorCode(e, "ACCOUNT_WITHDRAWN")) {
+        Alert.alert(
+          "탈퇴 대기 중인 계정이에요",
+          "30일 안에는 계정을 되돌릴 수 있어요. 지금 복구할까요?",
+          [
+            { text: "취소", style: "cancel" },
+            { text: "복구하기", onPress: () => kakaoRestoreMutation.mutate() },
+          ],
+        );
+        return;
+      }
       console.error("[KakaoLogin Error]", e);
       let rawMsg: string | undefined;
       if (e instanceof Error && typeof e.message === "string" && e.message.trim()) {

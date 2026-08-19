@@ -18,7 +18,8 @@ import { MyPageStackParamList } from '@/navigation/stacks/MyPageStack';
 import { useNotificationSettings, DndRepeatPreset } from '@/hooks/useNotificationSettings';
 import { useInquiries } from '@/hooks/useInquiries';
 import { useAuthStore } from '@/store/useAuthStore';
-import { useUpdateSpotCategories, useChangePassword } from '@/hooks/useUser';
+import { useUpdateSpotCategories, useChangePassword, useWithdraw } from '@/hooks/useUser';
+import { WithdrawModal } from '@/screens/mypage/components/sheets/SettingModals';
 import ThemePill from '@/components/auth/ThemePill';
 import { CATEGORY_LABELS, CODE_BY_LABEL, SPOT_CATEGORY_MAP } from '@/constants/spotCategories';
 import { passwordError } from '@/constants/validation';
@@ -52,6 +53,8 @@ export default function SettingScreen({ navigation }: Props) {
   const [dndTimeSheetVisible, setDndTimeSheetVisible] = React.useState(false);
   const [dndRepeatSheetVisible, setDndRepeatSheetVisible] = React.useState(false);
   const [versionSheetVisible, setVersionSheetVisible] = React.useState(false);
+  const [withdrawModalVisible, setWithdrawModalVisible] = React.useState(false);
+  const withdraw = useWithdraw();
   const [themeSheetVisible, setThemeSheetVisible] = React.useState(false);
   const [passwordSheetVisible, setPasswordSheetVisible] = React.useState(false);
 
@@ -372,7 +375,7 @@ export default function SettingScreen({ navigation }: Props) {
               icon={IconTrash} iconBg="rgba(255,69,58,0.08)" iconColor={DANGER}
               label="회원 탈퇴" labelColor={DANGER}
               chevron chevronColor={DANGER}
-              onPress={() => handlePress('delete-account')}
+              onPress={() => setWithdrawModalVisible(true)}
             />
           </Card>
         </View>
@@ -416,6 +419,19 @@ export default function SettingScreen({ navigation }: Props) {
         visible={themeSheetVisible}
         onClose={() => setThemeSheetVisible(false)}
         initialCodes={user?.spotCategories ?? []}
+      />
+      {/* 탈퇴 성공 시 useWithdraw가 clearAuth를 부르고, RootNavigator가 토큰을 보고
+          로그인 화면으로 트리를 갈아끼운다 — 여기서 따로 이동시키지 않는다. */}
+      <WithdrawModal
+        visible={withdrawModalVisible}
+        onClose={() => setWithdrawModalVisible(false)}
+        pending={withdraw.isPending}
+        onConfirm={() =>
+          withdraw.mutate(undefined, {
+            onSuccess: () => setWithdrawModalVisible(false),
+            onError: (err) => Alert.alert('탈퇴 실패', toErrorMessage(err, '탈퇴 처리에 실패했어요. 잠시 후 다시 시도해 주세요.')),
+          })
+        }
       />
       <VersionInfoSheet
         visible={versionSheetVisible}

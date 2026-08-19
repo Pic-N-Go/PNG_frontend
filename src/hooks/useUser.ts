@@ -216,7 +216,23 @@ export function useSearchUsers(keyword: string, enabled = true) {
   });
 }
 
-// 9. 내 앨범 목록 조회 훅
+// 9. 회원 탈퇴 뮤테이션
+export function useWithdraw() {
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const clearAuth = useAuthStore((s) => s.clearAuth);
+
+  return useMutation<void, Error, void>({
+    mutationFn: () => {
+      if (!accessToken) throw new Error('로그인이 필요합니다.');
+      return userApi.withdraw(accessToken);
+    },
+    // clearAuth가 쿼리 캐시까지 비우므로 남의 계정처럼 내 데이터가 남지 않는다.
+    // RootNavigator가 accessToken을 보고 트리를 갈아끼워 로그인 화면으로 나간다.
+    onSuccess: () => clearAuth(),
+  });
+}
+
+// 10. 내 앨범 목록 조회 훅
 export function useMyAlbums() {
   const accessToken = useAuthStore((s) => s.accessToken);
 
