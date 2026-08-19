@@ -1,6 +1,6 @@
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
-import { Share2, Pencil, Trash2, Flag } from 'lucide-react-native';
+import { Share as ShareIcon, Pencil, Trash2, Flag } from 'lucide-react-native';
 import BottomSheet from '@/components/common/BottomSheet';
 import { FONT_MD, GRID_PADDING } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
@@ -42,7 +42,7 @@ export default function PostActionSheet({ visible, onClose, isMyPost, onShare, o
     <BottomSheet visible={visible} onClose={onClose}>
       <View style={{ paddingHorizontal: GRID_PADDING + normalize(8) }}>
         <ActionRow
-          icon={<Share2 size={normalize(18)} color="#000" strokeWidth={1.8} />}
+          icon={<ShareIcon size={normalize(18)} color="#000" strokeWidth={1.8} />}
           label="공유하기"
           onPress={() => {
             onClose();

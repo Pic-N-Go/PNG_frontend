@@ -9,7 +9,8 @@ import Animated, {
   useAnimatedStyle,
   type SharedValue,
 } from 'react-native-reanimated';
-import { IconBookmark, IconChevronLeft, IconShare } from '@tabler/icons-react-native';
+import { IconBookmark, IconChevronLeft } from '@tabler/icons-react-native';
+import { Share as ShareIcon } from 'lucide-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import SpotHeroPlaceholder, { HeroActionButton } from '@/components/spot/SpotHeroPlaceholder';
 
@@ -83,7 +84,7 @@ export default function SpotHero({
               <>
                 <HeroActionButton>
                   <Pressable onPress={onShare} hitSlop={8}>
-                    <IconShare size={normalize(19)} color="#111" strokeWidth={2} />
+                    <ShareIcon size={normalize(19)} color="#111" strokeWidth={2} />
                   </Pressable>
                 </HeroActionButton>
                 <HeroActionButton>
@@ -162,7 +163,7 @@ export default function SpotHero({
             hitSlop={8}
             style={{ width: normalize(36), height: normalize(36), borderRadius: normalize(18), backgroundColor: 'rgba(0,0,0,0.25)', alignItems: 'center', justifyContent: 'center' }}
           >
-            <IconShare size={normalize(18)} color="#fff" strokeWidth={2} />
+            <ShareIcon size={normalize(18)} color="#fff" strokeWidth={2} />
           </Pressable>
           <Pressable
             onPress={onBookmark}

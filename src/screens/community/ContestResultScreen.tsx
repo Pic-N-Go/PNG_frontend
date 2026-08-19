@@ -5,7 +5,7 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Animated, { FadeInDown, ZoomIn } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
-import { ChevronLeft, ChevronRight, MapPin, Share2 } from 'lucide-react-native';
+import { ChevronLeft, ChevronRight, MapPin, Share as ShareIcon } from 'lucide-react-native';
 import DevStateSwitch from '@/components/common/DevStateSwitch';
 import ShareSheet from '@/components/common/ShareSheet';
 import Toast from '@/components/common/Toast';
@@ -134,7 +134,7 @@ export default function ContestResultScreen() {
                 </Text>
               </View>
               <Pressable onPress={() => setShareVisible(true)} style={{ height: normalize(40), paddingHorizontal: normalize(18), borderRadius: normalize(20), backgroundColor: ACCENT, flexDirection: 'row', alignItems: 'center', gap: normalize(6), flexShrink: 0 }}>
-                <Share2 size={normalize(16)} color="#fff" strokeWidth={2} />
+                <ShareIcon size={normalize(16)} color="#fff" strokeWidth={2} />
                 <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, letterSpacing: -0.2, color: '#fff' }}>
                   공유
                 </Text>

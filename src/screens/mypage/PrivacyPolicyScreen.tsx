@@ -2,7 +2,8 @@ import React from 'react';
 import { View, Text, ScrollView, Pressable, Share } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { IconChevronLeft, IconUpload, IconHistory, IconInfoCircle } from '@tabler/icons-react-native';
+import { IconChevronLeft, IconHistory } from '@tabler/icons-react-native';
+import { Info, Share as ShareIcon } from 'lucide-react-native';
 import { MyPageStackParamList } from '@/navigation/stacks/MyPageStack';
 import { normalize } from '@/utils/normalize';
 import { FONT_XS, FONT_SM, FONT_MD, FONT_LG } from '@/constants/layout';
@@ -63,7 +64,7 @@ export default function PrivacyPolicyScreen({ navigation }: Props) {
         <View style={{ paddingHorizontal: normalize(24), paddingTop: normalize(16), paddingBottom: normalize(12) }}>
           <View className="bg-[#f5f5f7]" style={{ borderRadius: normalize(14), padding: normalize(16) }}>
             <View className="flex-row items-center" style={{ gap: normalize(6), marginBottom: normalize(8) }}>
-              <IconInfoCircle size={normalize(14)} color={BRAND} strokeWidth={2} />
+              <Info size={normalize(14)} color={BRAND} strokeWidth={2} />
               <Text className="font-semibold text-black" style={{ fontSize: FONT_SM }}>핵심 요약</Text>
             </View>
             {SUMMARY.map((s) => (
@@ -92,12 +93,12 @@ export default function PrivacyPolicyScreen({ navigation }: Props) {
       {/* Footer */}
       <View className="flex-row border-t border-black/5" style={{ gap: normalize(8), paddingHorizontal: normalize(20), paddingTop: normalize(12), paddingBottom: normalize(12), borderTopColor: DIVIDER }}>
         <Pressable onPress={onShare} className="flex-1 flex-row items-center justify-center border border-black/10 bg-white" style={{ height: normalize(44), borderRadius: normalize(12) }}>
-          <IconUpload size={normalize(14)} color="#000" strokeWidth={2} />
+          <ShareIcon size={normalize(14)} color="#000" strokeWidth={2} />
           <Text className="font-semibold text-black" style={{ fontSize: FONT_SM, marginLeft: normalize(6) }}>공유</Text>
         </Pressable>
         <Pressable className="flex-1 flex-row items-center justify-center bg-black" style={{ height: normalize(44), borderRadius: normalize(12) }}>
-          <Text className="font-semibold text-white" style={{ fontSize: FONT_SM, marginRight: normalize(6) }}>이전 버전 보기</Text>
           <IconHistory size={normalize(14)} color="#fff" strokeWidth={2} />
+          <Text className="font-semibold text-white" style={{ fontSize: FONT_SM, marginLeft: normalize(6) }}>이전 버전 보기</Text>
         </Pressable>
       </View>
     </SafeAreaView>

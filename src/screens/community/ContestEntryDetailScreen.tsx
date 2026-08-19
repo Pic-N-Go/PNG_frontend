@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Check, ChevronLeft, MapPin, MoreHorizontal, Share2, Flag, Trash2, ThumbsUp } from 'lucide-react-native';
+import { Check, ChevronLeft, MapPin, MoreHorizontal, Share as ShareIcon, Flag, Trash2, ThumbsUp } from 'lucide-react-native';
 import BottomSheet from '@/components/common/BottomSheet';
 import ConfirmModal from '@/components/common/ConfirmModal';
 import ShareSheet from '@/components/common/ShareSheet';
@@ -208,7 +208,7 @@ export default function ContestEntryDetailScreen() {
             }}
             style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(12), height: normalize(56) }}
           >
-            <Share2 size={normalize(19)} color="#000" strokeWidth={1.8} />
+            <ShareIcon size={normalize(19)} color="#000" strokeWidth={1.8} />
             <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_MD, letterSpacing: -0.3, color: '#000' }}>
               공유하기
             </Text>

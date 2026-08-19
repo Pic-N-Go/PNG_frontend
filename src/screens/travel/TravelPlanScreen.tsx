@@ -12,7 +12,6 @@ import Sortable from "react-native-sortables";
 import { normalize, normalizeFontSize } from "@/utils/normalize";
 import {
   IconChevronLeft,
-  IconShare,
   IconDots,
   IconClock,
   IconCar,
@@ -29,6 +28,7 @@ import {
   IconAlertCircle,
   IconMap2,
 } from "@tabler/icons-react-native";
+import { Share as ShareIcon } from "lucide-react-native";
 import NaviSheet from "@/components/spot/NaviSheet";
 import CourseMoreSheet from "@/components/travel/CourseMoreSheet";
 import { parseValidCoordinate } from "@/utils/geo";
@@ -1241,7 +1241,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
             onPress={() => setShareSheetVisible(true)}
             className="w-8 h-8 rounded-full bg-black/5 items-center justify-center"
           >
-            <IconShare size={18} color="rgba(0,0,0,0.6)" />
+            <ShareIcon size={18} color="rgba(0,0,0,0.6)" />
           </TouchableOpacity>
           <TouchableOpacity 
             onPress={handleMorePress}

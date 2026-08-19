@@ -2,7 +2,8 @@ import React from 'react';
 import { View, Text, ScrollView, Pressable, Share, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { IconChevronLeft, IconUpload, IconExternalLink } from '@tabler/icons-react-native';
+import { IconChevronLeft, IconExternalLink } from '@tabler/icons-react-native';
+import { Share as ShareIcon } from 'lucide-react-native';
 import { MyPageStackParamList } from '@/navigation/stacks/MyPageStack';
 import { normalize } from '@/utils/normalize';
 import { FONT_XS, FONT_SM, FONT_MD, FONT_LG } from '@/constants/layout';
@@ -78,7 +79,7 @@ export default function TermsOfServiceScreen({ navigation }: Props) {
       {/* Footer */}
       <View className="flex-row border-t border-black/5" style={{ gap: normalize(8), paddingHorizontal: normalize(20), paddingTop: normalize(12), paddingBottom: normalize(12), borderTopColor: DIVIDER }}>
         <Pressable onPress={onShare} className="flex-1 flex-row items-center justify-center border border-black/10 bg-white" style={{ height: normalize(44), borderRadius: normalize(12) }}>
-          <IconUpload size={normalize(14)} color="#000" strokeWidth={2} />
+          <ShareIcon size={normalize(14)} color="#000" strokeWidth={2} />
           <Text className="font-semibold text-black" style={{ fontSize: FONT_SM, marginLeft: normalize(6) }}>공유</Text>
         </Pressable>
         <Pressable onPress={onOpenPdf} className="flex-1 flex-row items-center justify-center bg-black" style={{ height: normalize(44), borderRadius: normalize(12) }}>
