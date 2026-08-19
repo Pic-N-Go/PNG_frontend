@@ -563,6 +563,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
   useFocusEffect(
     React.useCallback(() => {
       if (selectedSpots.length > 0 && planId) {
+        if (syncSpotsMutation.isPending) return;
         
         const spotsToAdd = [...selectedSpots];
         clearSpots();
@@ -615,6 +616,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
   );
 
   const reorderSpots = (spots: any[]) => {
+    if (syncSpotsMutation.isPending) return;
     const newData = {
       ...data,
       [currentDay]: { ...data[currentDay], spots },
@@ -629,6 +631,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
   };
 
   const removeSpot = (spotId: string) => {
+    if (syncSpotsMutation.isPending) return;
     delete rowHeights.current[spotId];
     
     const dayData = data[currentDay];
@@ -1356,7 +1359,8 @@ export default function TravelPlanScreen({ navigation, route }: any) {
               courseId: planId,
               initialTitle: course.title,
               initialStartDate: course.startDate,
-              initialEndDate: course.endDate
+              initialEndDate: course.endDate,
+              initialVersion: course.version,
             });
           }
         }}

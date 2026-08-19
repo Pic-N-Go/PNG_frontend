@@ -140,6 +140,8 @@ export default function TravelNewScreen() {
     markDirty();
   };
 
+  const [courseVersion, setCourseVersion] = useState<number | undefined>(route.params?.initialVersion);
+
   // 코스 생성은 createCourse → syncSpots 2단계다. 1단계만 성공한 뒤 실패하면
   // 코스는 이미 만들어진 상태이므로, 재시도 시 생성을 건너뛰지 않으면 코스가 또 생긴다.
   const createdCourseIdRef = useRef<number | null>(null);
@@ -158,15 +160,23 @@ export default function TravelNewScreen() {
 
       // 1. 코스 생성 (재시도라면 기존 코스를 재사용하고 입력값만 반영)
       let courseId = createdCourseIdRef.current;
-      let courseVersion: number | undefined;
+      let currentVersion = courseVersion;
       if (courseId === null) {
         const course = await coursesApi.createCourse(payload);
         createdCourseIdRef.current = course.id;
         courseId = course.id;
-        courseVersion = course.version;
+        currentVersion = course.version;
+        setCourseVersion(course.version);
       } else {
-        const course = await coursesApi.updateCourse(courseId, payload);
-        courseVersion = course.version;
+        try {
+          const fresh = await coursesApi.getCourse(courseId);
+          if (fresh) currentVersion = fresh.version;
+        } catch {
+          // ignore
+        }
+        const course = await coursesApi.updateCourse(courseId, { ...payload, version: currentVersion });
+        currentVersion = course.version;
+        setCourseVersion(course.version);
       }
 
       // 2. 스팟 추가
@@ -180,29 +190,63 @@ export default function TravelNewScreen() {
         }));
       });
 
-      await coursesApi.syncSpots(courseId, { version: courseVersion, spots: allSpots });
+      await coursesApi.syncSpots(courseId, { version: currentVersion, spots: allSpots });
       return courseId;
     },
     onSuccess: () => {
       navigation.goBack();
     },
-    onError: (err: any) => {
-      showToast(err.message || '코스 생성에 실패했어요.');
+    onError: async (err: any) => {
+      if (err?.status === 409 || err?.code === 'COURSE_MODIFIED_CONCURRENTLY') {
+        showToast(err.message || '다른 곳에서 코스가 변경되었습니다. 최신 정보를 불러옵니다.');
+        if (createdCourseIdRef.current) {
+          try {
+            const fresh = await coursesApi.getCourse(createdCourseIdRef.current);
+            if (fresh) {
+              setTripName(fresh.title);
+              if (fresh.startDate) setStartDate(new Date(fresh.startDate));
+              if (fresh.endDate) setEndDate(new Date(fresh.endDate));
+              setCourseVersion(fresh.version);
+            }
+          } catch {
+            // ignore
+          }
+        }
+      } else {
+        showToast(err.message || '코스 생성에 실패했어요.');
+      }
     },
   });
 
   const queryClient = useQueryClient();
 
   const updateCourseMutation = useMutation({
-    mutationFn: (data: { title: string; startDate: string; endDate: string }) =>
+    mutationFn: (data: { title: string; startDate: string; endDate: string; version?: number }) =>
       coursesApi.updateCourse(courseId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['courses'] });
       queryClient.invalidateQueries({ queryKey: ['course', courseId] });
       navigation.goBack();
     },
-    onError: (err: any) => {
-      showToast(err.message || '코스 수정에 실패했어요.');
+    onError: async (err: any) => {
+      if (err?.status === 409 || err?.code === 'COURSE_MODIFIED_CONCURRENTLY') {
+        showToast(err.message || '다른 곳에서 코스가 변경되었습니다. 최신 정보를 불러옵니다.');
+        if (courseId) {
+          try {
+            const fresh = await coursesApi.getCourse(courseId);
+            if (fresh) {
+              setTripName(fresh.title);
+              if (fresh.startDate) setStartDate(new Date(fresh.startDate));
+              if (fresh.endDate) setEndDate(new Date(fresh.endDate));
+              setCourseVersion(fresh.version);
+            }
+          } catch {
+            // ignore
+          }
+        }
+      } else {
+        showToast(err.message || '코스 수정에 실패했어요.');
+      }
     },
   });
 
@@ -224,6 +268,7 @@ export default function TravelNewScreen() {
         title: tripName,
         startDate: sDate,
         endDate: eDate,
+        version: courseVersion,
       });
     } else {
       createCourseMutation.mutate();

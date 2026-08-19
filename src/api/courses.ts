@@ -90,7 +90,7 @@ export const coursesApi = {
   },
 
   // 4. 코스 정보 수정
-  updateCourse: (id: number, data: { title?: string; startDate?: string; endDate?: string }): Promise<Course> => {
+  updateCourse: (id: number, data: { title?: string; startDate?: string; endDate?: string; version?: number }): Promise<Course> => {
     return fetchWithAuth(`/courses/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),

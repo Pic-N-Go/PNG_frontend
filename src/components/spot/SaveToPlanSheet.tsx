@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { IconCheck, IconChevronLeft, IconPlus } from '@tabler/icons-react-native';
 import BottomSheet from '@/components/common/BottomSheet';
 import { BUTTON_HEIGHT, BUTTON_RADIUS, GRID_PADDING } from '@/constants/layout';
@@ -79,6 +79,7 @@ interface Props {
 
 export default function SaveToPlanSheet({ visible, onClose, spot, onSaved }: Props) {
   const navigation = useNavigation<any>();
+  const queryClient = useQueryClient();
 
   const [step, setStep] = useState<1 | 2>(1);
   const [selectedCourseId, setSelectedCourseId] = useState<number | null>(null);
@@ -142,6 +143,8 @@ export default function SaveToPlanSheet({ visible, onClose, spot, onSaved }: Pro
       onSaved?.(`'${selectedCourse.title}' 코스에 저장했습니다`);
       handleClose();
     } catch (err: any) {
+      await queryClient.invalidateQueries({ queryKey: ['courses'] });
+      await queryClient.invalidateQueries({ queryKey: ['course', selectedCourse.id] });
       if (err?.status === 409 || err?.code === 'COURSE_MODIFIED_CONCURRENTLY') {
         Alert.alert('코스 변경 알림', err?.message || '다른 기기에서 코스가 변경되었습니다. 코스를 다시 불러온 후 담아주세요.');
       } else {
