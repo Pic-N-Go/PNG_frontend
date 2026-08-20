@@ -622,7 +622,7 @@ export default function MapScreen() {
                 textAlign: 'center',
                 lineHeight: '34px',
                 fontWeight: '700',
-                fontSize: '12px',
+                fontSize: '11px',
                 boxShadow: '0 2px 8px rgba(227, 27, 89, 0.4)',
                 border: '2px solid #FFFFFF'
             }]
@@ -704,7 +704,7 @@ export default function MapScreen() {
               content.style.background = spot.__dayColor;
               content.style.boxShadow = '0 2px 6px rgba(0,0,0,0.25)';
             }
-            content.innerHTML = '<span style="color:white; font-size:12px; font-weight:bold;">' + (spot.__label || (index + 1)) + '</span>';
+            content.innerHTML = '<span style="color:white; font-size:11px; font-weight:bold;">' + (spot.__label || (index + 1)) + '</span>';
           } else {
             content.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>';
           }
