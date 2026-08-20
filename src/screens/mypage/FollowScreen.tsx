@@ -11,7 +11,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconChevronLeft } from '@tabler/icons-react-native';
 import { normalize } from '@/utils/normalize';
-import { FONT_SM, FONT_XS, FONT_LG } from '@/constants/layout';
+import { FONT_LG, FONT_SM, FONT_XS, HAIRLINE_WIDTH } from '@/constants/layout';
 import UserRow from '@/components/common/UserRow';
 import Toast from '@/components/common/Toast';
 import { useUserFollowers, useUserFollowing } from '@/hooks/useUser';
@@ -19,6 +19,7 @@ import { useToggleFollow } from '@/hooks/useCommunity';
 import { toErrorMessage } from '@/api/auth';
 import { useAuthStore } from '@/store/useAuthStore';
 import type { FollowUserResponse } from '@/types/user';
+import { BRAND, CARD, HAIRLINE } from '@/constants/colors';
 
 type FollowTab = 'followers' | 'following';
 
@@ -78,7 +79,7 @@ export default function FollowScreen() {
           height: normalize(30),
           paddingHorizontal: normalize(14),
           borderRadius: normalize(15),
-          backgroundColor: '#f8f8f9',
+          backgroundColor: CARD,
           alignItems: 'center',
           justifyContent: 'center',
           opacity: toggleFollow.isPending ? 0.5 : 1,
@@ -136,8 +137,8 @@ export default function FollowScreen() {
         style={{
           height: normalize(54),
           paddingHorizontal: normalize(20),
-          borderBottomWidth: 0.5,
-          borderBottomColor: 'rgba(0,0,0,0.06)',
+          borderBottomWidth: HAIRLINE_WIDTH,
+          borderBottomColor: HAIRLINE,
         }}
       >
         <TouchableOpacity
@@ -170,8 +171,8 @@ export default function FollowScreen() {
         className="flex-row"
         style={{
           marginHorizontal: normalize(20),
-          borderBottomWidth: 0.5,
-          borderBottomColor: 'rgba(0,0,0,0.07)',
+          borderBottomWidth: HAIRLINE_WIDTH,
+          borderBottomColor: HAIRLINE,
         }}
       >
         <TouchableOpacity
@@ -263,7 +264,7 @@ export default function FollowScreen() {
           >
             {isFollowersLoading ? (
               <View style={{ paddingVertical: normalize(40), alignItems: 'center' }}>
-                <ActivityIndicator size="small" color="#E31B59" />
+                <ActivityIndicator size="small" color={BRAND} />
               </View>
             ) : followers.length > 0 ? (
               followers.map(renderItem)
@@ -289,7 +290,7 @@ export default function FollowScreen() {
           >
             {isFollowingLoading ? (
               <View style={{ paddingVertical: normalize(40), alignItems: 'center' }}>
-                <ActivityIndicator size="small" color="#E31B59" />
+                <ActivityIndicator size="small" color={BRAND} />
               </View>
             ) : following.length > 0 ? (
               following.map(renderItem)

@@ -8,10 +8,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconChevronLeft, IconLayoutGrid, IconList, IconX, IconChevronRight } from '@tabler/icons-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { FONT_XS, FONT_SM, FONT_MD, FONT_LG } from '@/constants/layout';
+import { FONT_LG, FONT_MD, FONT_SM, FONT_XS, HAIRLINE_WIDTH } from '@/constants/layout';
 
 import { useMyAlbums, useMyStats } from '@/hooks/useUser';
 import { categoryLabel } from '@/constants/spotCategories';
+import { BRAND, BRAND_TINT, CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
 
 // Types
 type ViewMode = 'album' | 'grid';
@@ -291,16 +292,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: normalize(20),
-    borderBottomWidth: 0.5,
-    borderBottomColor: 'rgba(0,0,0,0.06)',
+    borderBottomWidth: HAIRLINE_WIDTH,
+    borderBottomColor: HAIRLINE,
   },
   backBtn: { width: normalize(36), height: normalize(36), alignItems: 'center', justifyContent: 'center', marginLeft: -normalize(8) },
   navTitle: { fontSize: normalizeFontSize(18), fontWeight: '600', color: '#000' },
-  viewToggleGroup: { flexDirection: 'row', backgroundColor: '#f8f8f9', borderRadius: normalize(8), padding: normalize(2), gap: normalize(2) },
+  viewToggleGroup: { flexDirection: 'row', backgroundColor: CARD, borderRadius: normalize(8), padding: normalize(2), gap: normalize(2) },
   viewToggleBtn: { width: normalize(32), height: normalize(28), borderRadius: normalize(6), alignItems: 'center', justifyContent: 'center' },
   viewToggleBtnActive: { backgroundColor: '#fff', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.08, shadowRadius: 3, elevation: 2 },
   
-  summaryCard: { flexDirection: 'row', marginHorizontal: normalize(20), marginTop: normalize(14), backgroundColor: '#f8f8f9', borderRadius: normalize(12), paddingVertical: normalize(16), alignItems: 'center' },
+  summaryCard: { flexDirection: 'row', marginHorizontal: normalize(20), marginTop: normalize(14), backgroundColor: CARD, borderRadius: normalize(12), paddingVertical: normalize(16), alignItems: 'center' },
   summaryStat: { flex: 1, alignItems: 'center', gap: normalize(4) },
   summaryNum: { fontSize: normalizeFontSize(22), fontWeight: '600', color: '#000', lineHeight: normalizeFontSize(24) },
   summaryLabel: { fontSize: FONT_XS, color: 'rgba(0,0,0,0.38)' },
@@ -308,25 +309,25 @@ const styles = StyleSheet.create({
 
   filterWrapper: { paddingVertical: normalize(14) },
   filterContent: { paddingHorizontal: normalize(20), gap: normalize(8) },
-  filterChip: { height: normalize(32), paddingHorizontal: normalize(14), borderRadius: normalize(16), backgroundColor: '#f8f8f9', alignItems: 'center', justifyContent: 'center' },
-  filterChipActive: { backgroundColor: '#e31b59' },
+  filterChip: { height: normalize(32), paddingHorizontal: normalize(14), borderRadius: normalize(16), backgroundColor: CARD, alignItems: 'center', justifyContent: 'center' },
+  filterChipActive: { backgroundColor: BRAND },
   filterText: { fontSize: FONT_SM, fontWeight: '500', color: 'rgba(0,0,0,0.5)' },
   filterTextActive: { color: '#fff' },
 
   sectionTitle: { fontSize: normalizeFontSize(12), fontWeight: '600', color: 'rgba(0,0,0,0.3)', marginBottom: normalize(10), marginTop: normalize(4) },
   
-  albumItem: { flexDirection: 'row', alignItems: 'center', gap: normalize(14), padding: normalize(12), backgroundColor: '#f8f8f9', borderRadius: normalize(12) },
+  albumItem: { flexDirection: 'row', alignItems: 'center', gap: normalize(14), padding: normalize(12), backgroundColor: CARD, borderRadius: normalize(12) },
   albumThumbWrap: { width: normalize(72), height: normalize(72), borderRadius: normalize(10), position: 'relative' },
   albumThumb: { width: '100%', height: '100%', borderRadius: normalize(10), zIndex: 2 },
-  albumThumbStack: { position: 'absolute', bottom: -4, right: -4, width: normalize(68), height: normalize(68), borderRadius: normalize(9), borderWidth: 2, borderColor: '#f8f8f9', backgroundColor: 'rgba(0,0,0,0.1)', zIndex: 1 },
+  albumThumbStack: { position: 'absolute', bottom: -4, right: -4, width: normalize(68), height: normalize(68), borderRadius: normalize(9), borderWidth: 2, borderColor: CARD, backgroundColor: 'rgba(0,0,0,0.1)', zIndex: 1 },
   albumInfo: { flex: 1 },
   albumName: { fontSize: FONT_MD, fontWeight: '600', color: '#000', marginBottom: normalize(3) },
   albumLoc: { fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.38)', marginBottom: normalize(6) },
   albumMeta: { flexDirection: 'row', alignItems: 'center', gap: normalize(8) },
-  albumCount: { fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.4)' },
+  albumCount: { fontSize: normalizeFontSize(12), color: TEXT_SUB },
   albumBadge: { height: normalize(18), paddingHorizontal: normalize(7), borderRadius: normalize(9), backgroundColor: 'rgba(0,0,0,0.06)', justifyContent: 'center' },
-  albumBadgeText: { fontSize: normalizeFontSize(10), fontWeight: '500', color: 'rgba(0,0,0,0.4)' },
-  albumScore: { height: normalize(18), paddingHorizontal: normalize(7), borderRadius: normalize(9), backgroundColor: 'rgba(227,27,89,0.08)', justifyContent: 'center', overflow: 'hidden', color: '#e31b59', fontSize: normalizeFontSize(10), fontWeight: '600', textAlignVertical: 'center' },
+  albumBadgeText: { fontSize: normalizeFontSize(10), fontWeight: '500', color: TEXT_SUB },
+  albumScore: { height: normalize(18), paddingHorizontal: normalize(7), borderRadius: normalize(9), backgroundColor: BRAND_TINT, justifyContent: 'center', overflow: 'hidden', color: BRAND, fontSize: normalizeFontSize(10), fontWeight: '600', textAlignVertical: 'center' },
 
   photoCell: { width: CELL_SIZE, height: CELL_SIZE, position: 'relative' },
   photoInner: { flex: 1 },

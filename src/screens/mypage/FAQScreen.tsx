@@ -12,13 +12,12 @@ import { MyPageStackParamList } from '@/navigation/stacks/MyPageStack';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { FONT_2XS, FONT_XS, FONT_SM, FONT_MD, FONT_LG, CONTENT_PADDING } from '@/constants/layout';
 import Chip from '@/components/common/Chip';
+import { BRAND , HAIRLINE } from '@/constants/colors';
 
 type Props = NativeStackScreenProps<MyPageStackParamList, 'FAQ'>;
 
-const BRAND = '#E31B59';
 const TEXT2 = 'rgba(0,0,0,0.48)';
 const TEXT3 = 'rgba(0,0,0,0.28)';
-const DIVIDER = 'rgba(0,0,0,0.06)';
 const CHIP_BORDER = 'rgba(0,0,0,0.08)';
 
 const CATEGORIES = [
@@ -103,7 +102,7 @@ export default function FAQScreen({ navigation }: Props) {
       >
         {/* 검색 */}
         <View
-          className="flex-row items-center bg-[#f5f5f7]"
+          className="flex-row items-center bg-card"
           style={{ gap: normalize(8), height: normalize(44), paddingHorizontal: normalize(14), borderRadius: normalize(12), marginBottom: normalize(14) }}
         >
           <IconSearch size={normalize(18)} color={TEXT2} strokeWidth={2} />
@@ -160,10 +159,10 @@ export default function FAQScreen({ navigation }: Props) {
         {/* 문의 CTA는 목록 끝에 둔다 — 화면 하단에 고정하면 마지막 질문들을 계속 가린다.
             "답을 못 찾았다"는 안내이기도 해서 목록을 다 본 뒤에 나오는 게 맥락에도 맞다.
             질문 카드와 배경색(#f5f5f7)이 같아 목록의 연장으로 읽히므로 구분선으로 끊는다. */}
-        <View style={{ height: 0.5, backgroundColor: DIVIDER, marginTop: normalize(24), marginBottom: normalize(20) }} />
+        <View style={{ height: 0.5, backgroundColor: HAIRLINE, marginTop: normalize(24), marginBottom: normalize(20) }} />
         <Pressable
           onPress={() => navigation.navigate('Inquiry')}
-          className="flex-row items-center justify-between bg-[#f5f5f7]"
+          className="flex-row items-center justify-between bg-card"
           style={{ gap: normalize(12), paddingVertical: normalize(14), paddingHorizontal: normalize(18), borderRadius: normalize(16) }}
         >
           <View className="flex-row items-center" style={{ gap: normalize(10) }}>
@@ -187,7 +186,7 @@ function FaqItem({ item, open, onToggle }: { item: Faq; open: boolean; onToggle:
   return (
     <Pressable
       onPress={() => onToggle(item.id)}
-      className="bg-[#f5f5f7]"
+      className="bg-card"
       style={{ borderRadius: normalize(16), paddingVertical: normalize(16), paddingHorizontal: normalize(18) }}
     >
       <View className="flex-row" style={{ gap: normalize(12), alignItems: open ? 'flex-start' : 'center' }}>
@@ -207,8 +206,8 @@ function FaqItem({ item, open, onToggle }: { item: Faq; open: boolean; onToggle:
 
       {open && (
         <View
-          className="flex-row border-t"
-          style={{ marginTop: normalize(12), paddingTop: normalize(12), borderTopColor: DIVIDER, gap: normalize(12) }}
+          className="flex-row border-t-[0.5px]"
+          style={{ marginTop: normalize(12), paddingTop: normalize(12), borderTopColor: HAIRLINE, gap: normalize(12) }}
         >
           <View
             className="items-center justify-center bg-white"

@@ -3,6 +3,7 @@ import { Pressable, Text, View } from 'react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { CARD_RADIUS, FONT_MD, FONT_SM, FONT_XL, GRID_PADDING, SPACING_XS } from '@/constants/layout';
 import type { CalendarEvent } from '@/types/spot';
+import { BRAND, CARD, TEXT_SUB } from '@/constants/colors';
 
 // TODO: API 연동 시 GET /calendar/events 로 교체
 const MOCK_EVENTS: CalendarEvent[] = [
@@ -56,7 +57,7 @@ export default function CalendarSection({ onEventPress }: Props) {
         style={{
           fontFamily: 'Pretendard-Regular',
           fontSize: FONT_SM,
-          color: 'rgba(0,0,0,0.4)',
+          color: TEXT_SUB,
           letterSpacing: -0.1,
           marginBottom: normalize(14),
         }}
@@ -66,7 +67,7 @@ export default function CalendarSection({ onEventPress }: Props) {
 
       <View style={{ flexDirection: 'row', gap: normalize(12) }}>
         {MOCK_EVENTS.map((event) => (
-          <View key={event.id} style={{ flex: 1, borderRadius: CARD_RADIUS, overflow: 'hidden', backgroundColor: '#F5F5F7' }}>
+          <View key={event.id} style={{ flex: 1, borderRadius: CARD_RADIUS, overflow: 'hidden', backgroundColor: CARD }}>
           <Pressable
             onPress={onEventPress ? () => onEventPress(event.id) : undefined}
             style={({ pressed }) => ({
@@ -120,7 +121,7 @@ export default function CalendarSection({ onEventPress }: Props) {
                 style={{
                   fontFamily: 'Pretendard-Regular',
                   fontSize: normalizeFontSize(12),
-                  color: 'rgba(0,0,0,0.4)',
+                  color: TEXT_SUB,
                   marginBottom: normalize(10),
                 }}
                 numberOfLines={1}
@@ -143,12 +144,12 @@ export default function CalendarSection({ onEventPress }: Props) {
               >
                 <Text
                   allowFontScaling={false}
-                  style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(11), color: 'rgba(0,0,0,0.4)' }}
+                  style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(11), color: TEXT_SUB }}
                 >
                   포토제닉 지수
                 </Text>
                 <Text allowFontScaling={false}>
-                  <Text style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, color: '#E31B59' }}>
+                  <Text style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, color: BRAND }}>
                     {event.photoScore}
                   </Text>
                   <Text style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(10), color: 'rgba(0,0,0,0.2)' }}>
@@ -174,7 +175,7 @@ export default function CalendarSection({ onEventPress }: Props) {
                   style={{
                     fontFamily: 'Pretendard-Regular',
                     fontSize: normalizeFontSize(10),
-                    color: 'rgba(0,0,0,0.4)',
+                    color: TEXT_SUB,
                   }}
                   numberOfLines={1}
                 >

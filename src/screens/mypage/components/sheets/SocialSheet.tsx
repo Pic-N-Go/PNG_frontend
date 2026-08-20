@@ -3,7 +3,8 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import BottomSheet from '@/components/common/BottomSheet';
 import { IconX } from '@tabler/icons-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { FONT_SM } from '@/constants/layout';
+import { FONT_SM, HAIRLINE_WIDTH } from '@/constants/layout';
+import { BRAND, BRAND_TINT, HAIRLINE, TEXT_SUB } from '@/constants/colors';
 
 interface SocialSheetProps {
   visible: boolean;
@@ -19,12 +20,12 @@ export default function SocialSheet({ visible, onClose }: SocialSheetProps) {
             소셜 계정
           </Text>
           <TouchableOpacity onPress={onClose} style={{ padding: normalize(4) }}>
-            <IconX size={normalize(24)} color="rgba(0,0,0,0.4)" strokeWidth={2} />
+            <IconX size={normalize(24)} color={TEXT_SUB} strokeWidth={2} />
           </TouchableOpacity>
         </View>
 
         {/* Kakao - Connected */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: normalize(12), borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.05)' }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: normalize(12), borderBottomWidth: HAIRLINE_WIDTH, borderBottomColor: HAIRLINE }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(10) }}>
             <View style={{ width: normalize(32), height: normalize(32), borderRadius: normalize(8), backgroundColor: '#fee500', alignItems: 'center', justifyContent: 'center' }}>
               {/* Mock Icon */}
@@ -42,7 +43,7 @@ export default function SocialSheet({ visible, onClose }: SocialSheetProps) {
         </View>
 
         {/* Apple - Not connected */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: normalize(12), borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.05)' }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: normalize(12), borderBottomWidth: HAIRLINE_WIDTH, borderBottomColor: HAIRLINE }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(10) }}>
             <View style={{ width: normalize(32), height: normalize(32), borderRadius: normalize(8), backgroundColor: '#000', alignItems: 'center', justifyContent: 'center' }}>
               <Text style={{ fontWeight: 'bold', color: '#fff', fontSize: normalizeFontSize(16) }}>A</Text>
@@ -52,8 +53,8 @@ export default function SocialSheet({ visible, onClose }: SocialSheetProps) {
               <Text className="tracking-tight mt-0.5" style={{ fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.35)' }}>연결 안 됨</Text>
             </View>
           </View>
-          <TouchableOpacity style={{ height: normalize(30), paddingHorizontal: normalize(14), borderRadius: normalize(15), backgroundColor: 'rgba(227, 27, 89, 0.08)', justifyContent: 'center' }}>
-            <Text className="font-medium" style={{ fontSize: FONT_SM, color: '#e31b59' }}>연결하기</Text>
+          <TouchableOpacity style={{ height: normalize(30), paddingHorizontal: normalize(14), borderRadius: normalize(15), backgroundColor: BRAND_TINT, justifyContent: 'center' }}>
+            <Text className="font-medium" style={{ fontSize: FONT_SM, color: BRAND }}>연결하기</Text>
           </TouchableOpacity>
         </View>
 
@@ -68,8 +69,8 @@ export default function SocialSheet({ visible, onClose }: SocialSheetProps) {
               <Text className="tracking-tight mt-0.5" style={{ fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.35)' }}>연결 안 됨</Text>
             </View>
           </View>
-          <TouchableOpacity style={{ height: normalize(30), paddingHorizontal: normalize(14), borderRadius: normalize(15), backgroundColor: 'rgba(227, 27, 89, 0.08)', justifyContent: 'center' }}>
-            <Text className="font-medium" style={{ fontSize: FONT_SM, color: '#e31b59' }}>연결하기</Text>
+          <TouchableOpacity style={{ height: normalize(30), paddingHorizontal: normalize(14), borderRadius: normalize(15), backgroundColor: BRAND_TINT, justifyContent: 'center' }}>
+            <Text className="font-medium" style={{ fontSize: FONT_SM, color: BRAND }}>연결하기</Text>
           </TouchableOpacity>
         </View>
 

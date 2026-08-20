@@ -37,7 +37,8 @@ import Toast from "@/components/common/Toast";
 import CourseChecklistSection from "@/components/travel/CourseChecklistSection";
 import { getCourseStats } from "@/utils/distance";
 import { getDayColor } from "@/constants/dayColors";
-import { FONT_XS, FONT_SM, FONT_MD, FONT_LG, CONTENT_PADDING, BUTTON_HEIGHT, BUTTON_RADIUS, CARD_RADIUS, HEADER_HEIGHT, ICON_SM } from "@/constants/layout";
+import { FONT_XS, FONT_SM, FONT_MD, FONT_LG, CONTENT_PADDING, BUTTON_HEIGHT, BUTTON_RADIUS, CARD_RADIUS, HEADER_HEIGHT, ICON_SM , BORDER_CONTROL } from "@/constants/layout";
+import { BRAND, BRAND_MUTED, BRAND_STRONG, BRAND_TINT, CARD } from '@/constants/colors';
 
 const KAKAO_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_API_KEY;
 
@@ -79,10 +80,10 @@ const getWeatherIcon = (status: string | undefined) => {
 };
 
 const WeatherCell = ({ period, data }: { period: string; data: { weatherStatus: string; temperature: number | null } }) => (
-  <View className="flex-1 py-3 px-[14px] bg-[#f5f5f7] rounded-xl relative">
+  <View className="flex-1 py-3 px-[14px] bg-card rounded-xl relative">
     <Text className="text-black/35 mb-1.5" style={{ fontSize: normalizeFontSize(11) }}>{period}</Text>
     <Text className="font-semibold text-black mb-0.5" style={{ fontSize: normalizeFontSize(20) }}>{data.temperature ?? '-'}°</Text>
-    <Text className="text-black/40" style={{ fontSize: normalizeFontSize(11) }}>{data.weatherStatus}</Text>
+    <Text className="text-sub" style={{ fontSize: normalizeFontSize(11) }}>{data.weatherStatus}</Text>
     <View className="absolute right-3 top-1/2 -translate-y-1/2 opacity-80" style={{ transform: [{ translateY: -10 }] }}>
       <SvgUri width="20" height="20" uri={getWeatherIcon(data.weatherStatus)} />
     </View>
@@ -155,7 +156,7 @@ const MOCK_DATA: Record<string, any> = {
         time: "09:30 ~ 11:00",
         dur: "1시간 30분",
         score: "91점",
-        scoreColor: "#e31b59",
+        scoreColor: BRAND,
         bg: "#667eea",
         lat: 35.0788,
         lng: 129.0439,
@@ -223,7 +224,7 @@ const MOCK_DATA: Record<string, any> = {
         time: "17:30 ~ 19:00",
         dur: "1시간 30분",
         score: "93점",
-        scoreColor: "#e31b59",
+        scoreColor: BRAND,
         bg: "#1c4b5e",
         lat: 35.0968,
         lng: 129.1214,
@@ -331,7 +332,7 @@ function mapCourseToData(course: any) {
           score: typeof s.photogenicScore === "number" ? `${s.photogenicScore}점` : null,
           scoreColor:
             typeof s.photogenicScore !== "number" ? null
-              : s.photogenicScore >= 60 ? "#E31B59"
+              : s.photogenicScore >= 60 ? BRAND
                 : s.photogenicScore >= 40 ? "#E8890B"
                   : "#9A9A9A",
           bg: "#2c6e91", // Default background color
@@ -460,8 +461,8 @@ export default function TravelPlanScreen({ navigation, route }: any) {
   // 계획 전체가 아니라 현재 선택된 Day 기준. DAY 1에 스팟이 있고 DAY 2가 비면 DAY 2에서만 비활성으로 보인다.
   const isDayEmpty = (currentData?.spots?.length ?? 0) === 0;
   // 비활성은 채도만 뺀다 — 레이블은 활성과 같은 색을 유지해 무슨 항목인지 계속 읽히게.
-  const statIconBg = isDayEmpty ? "rgba(0,0,0,0.05)" : "rgba(227,27,89,0.09)";
-  const statIconColor = isDayEmpty ? "rgba(0,0,0,0.3)" : "#E31B59";
+  const statIconBg = isDayEmpty ? "rgba(0,0,0,0.05)" : BRAND_TINT;
+  const statIconColor = isDayEmpty ? "rgba(0,0,0,0.3)" : BRAND;
   const statValueColor = isDayEmpty ? "rgba(0,0,0,0.35)" : "#000";
 
   const { totalDistance, totalDurationFormatted } = React.useMemo(() => {
@@ -804,7 +805,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
         {/* Map Area — 스팟 0개면 지도 SDK를 비운 채 두지 않고 플레이스홀더로 교체(같은 높이 유지) */}
         {isDayEmpty ? (
           <View
-            className="bg-[#f5f5f7] items-center justify-center"
+            className="bg-card items-center justify-center"
             style={{ height: normalize(210), gap: 8 }}
           >
             <IconMap2 size={normalize(26)} color="rgba(0,0,0,0.2)" strokeWidth={1.5} />
@@ -834,7 +835,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
         <View className="pt-6 pb-0" style={{ paddingHorizontal: CONTENT_PADDING }}>
           {/* Summary Card — 스팟 0개면 카드/레이아웃은 그대로 두고 아이콘·값의 채도만 뺀다.
               opacity·pointerEvents는 쓰지 않는다(레이블 가독성이 같이 죽고 로딩으로 오해된다) */}
-          <View className="bg-[#f5f5f7] p-4 rounded-2xl mb-5 flex-row">
+          <View className="bg-card p-4 rounded-2xl mb-5 flex-row">
             <View className="flex-1 items-center">
               <View className="items-center justify-center mb-1" style={{ width: normalize(40), height: normalize(40), borderRadius: normalize(12), backgroundColor: statIconBg }}>
                 <IconMapPinFilled size={normalize(20)} color={statIconColor} strokeWidth={1.8} />
@@ -865,7 +866,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
                 <TouchableOpacity 
                   key={day}
                   onPress={() => setCurrentDay(day)}
-                  className={`rounded-full items-center justify-center flex-row ${currentDay === day ? "bg-[#e31b59]" : "bg-[#f5f5f7]"}`}
+                  className={`rounded-full items-center justify-center flex-row ${currentDay === day ? "bg-brand" : "bg-card"}`}
                   style={{ height: normalize(36), paddingHorizontal: normalize(16) }}
                 >
                   <View className="rounded-full" style={{ width: normalize(6), height: normalize(6), marginRight: normalize(6), backgroundColor: currentDay === day ? "#fff" : getDayColor(day).text }} />
@@ -902,7 +903,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
           </View>
         ) : (
           <View
-            className="bg-[#f5f5f7] rounded-2xl items-center justify-center"
+            className="bg-card rounded-2xl items-center justify-center"
             style={{ paddingVertical: normalize(28), paddingHorizontal: normalize(24) }}
           >
             {/* wand/sparkles 계열은 짧은 획이 round cap으로 뭉쳐 점처럼 보임 → 획이 긴 아이콘으로 교체 */}
@@ -948,15 +949,15 @@ export default function TravelPlanScreen({ navigation, route }: any) {
             width: normalize(48),
             height: normalize(48),
             borderRadius: normalize(14),
-            backgroundColor: "rgba(227,27,89,0.08)",
+            backgroundColor: BRAND_TINT,
             alignItems: "center",
             justifyContent: "center",
           }}
         >
           {isError ? (
-            <IconAlertCircle size={normalize(24)} color="#E31B59" strokeWidth={1.6} />
+            <IconAlertCircle size={normalize(24)} color={BRAND} strokeWidth={1.6} />
           ) : (
-            <IconCamera size={normalize(24)} color="#E31B59" strokeWidth={1.6} />
+            <IconCamera size={normalize(24)} color={BRAND} strokeWidth={1.6} />
           )}
         </View>
         <Text
@@ -982,7 +983,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
             alignSelf: "stretch",
             height: BUTTON_HEIGHT,
             borderRadius: BUTTON_RADIUS,
-            backgroundColor: "#E31B59",
+            backgroundColor: BRAND,
             flexDirection: "row",
             alignItems: "center",
             justifyContent: "center",
@@ -1008,7 +1009,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
   const renderFooter = () => (
     <View className="pb-12 pt-0" style={{ paddingHorizontal: CONTENT_PADDING }}>
       {isCourseLoading ? (
-        <View className="mt-9" style={{ height: normalize(88), borderRadius: CARD_RADIUS, backgroundColor: "#f5f5f7" }} />
+        <View className="mt-9" style={{ height: normalize(88), borderRadius: CARD_RADIUS, backgroundColor: CARD }} />
       ) : /* 데이터가 아예 없을 때만 에러. 이미 받아둔 코스가 있으면 재조회 한 번 실패로 화면을 덮지 않는다 */
       isCourseError && !course ? (
         renderDayEmptyState("error")
@@ -1019,7 +1020,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
           onPress={handleAddSpot}
           className="h-12 border-[1px] border-dashed border-black/15 rounded-2xl items-center justify-center mt-9 flex-row"
         >
-          <Text allowFontScaling={false} className="text-black/40 font-medium" style={{ fontSize: FONT_MD }}>
+          <Text allowFontScaling={false} className="text-sub font-medium" style={{ fontSize: FONT_MD }}>
             + 스팟 추가하기
           </Text>
         </TouchableOpacity>
@@ -1027,9 +1028,9 @@ export default function TravelPlanScreen({ navigation, route }: any) {
 
       {/* Tip Banner — 일몰 정보가 있을 때만. '자유로운 셔터 찬스'는 스팟 0개 빈 상태 블록으로 옮겼다 */}
       {currentWeather && currentWeather.sunsetTime && (
-        <View className="flex-row gap-3 p-4 bg-[#f5f5f7] rounded-2xl items-center mt-9">
-          <View className="w-8 h-8 rounded-lg bg-[#e31b59]/10 items-center justify-center shrink-0">
-            <IconBulb size={normalize(16)} color="#e31b59" />
+        <View className="flex-row gap-3 p-4 bg-card rounded-2xl items-center mt-9">
+          <View className="w-8 h-8 rounded-lg bg-brand/10 items-center justify-center shrink-0">
+            <IconBulb size={normalize(16)} color={BRAND} />
           </View>
           <View className="flex-1">
             <Text allowFontScaling={false} className="font-semibold text-black tracking-[-0.15px] mb-0.5" style={{ fontSize: normalizeFontSize(14) }}>
@@ -1066,7 +1067,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
         <View className="mt-12">
           <TouchableOpacity
             onPress={() => setIsEditMode(false)}
-            className="rounded-full bg-[#e31b59] items-center justify-center"
+            className="rounded-full bg-brand items-center justify-center"
             style={{ height: BUTTON_HEIGHT }}
           >
             <Text allowFontScaling={false} className="font-medium text-white" style={{ fontSize: FONT_MD }}>
@@ -1078,7 +1079,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
         <View className="flex-row gap-3 mt-12">
           <TouchableOpacity
             onPress={() => setIsEditMode(true)}
-            className="flex-1 rounded-full bg-[#f5f5f7] items-center justify-center"
+            className="flex-1 rounded-full bg-card items-center justify-center"
             style={{ height: BUTTON_HEIGHT }}
           >
             <Text allowFontScaling={false} className="font-medium text-black" style={{ fontSize: FONT_MD }}>
@@ -1087,7 +1088,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setIsDepartModalVisible(true)}
-            className="flex-1 rounded-full bg-[#e31b59] items-center justify-center"
+            className="flex-1 rounded-full bg-brand items-center justify-center"
             style={{ height: BUTTON_HEIGHT }}
           >
             <Text allowFontScaling={false} className="font-medium text-white" style={{ fontSize: FONT_MD }}>
@@ -1121,12 +1122,12 @@ export default function TravelPlanScreen({ navigation, route }: any) {
           <View
             className="flex-1 flex-row gap-3 p-3 rounded-[16px] relative"
             style={[
-              { backgroundColor: "#f5f5f7" },
+              { backgroundColor: CARD },
               isSelected
                 ? {
-                    backgroundColor: "rgba(227,27,89,0.06)",
-                    borderColor: "rgba(227,27,89,0.5)",
-                    borderWidth: 1.5,
+                    backgroundColor: BRAND_TINT,
+                    borderColor: BRAND_MUTED,
+                    borderWidth: BORDER_CONTROL,
                   }
                 : undefined,
             ]}
@@ -1141,7 +1142,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
                 onPress={() => removeSpot(item.id)}
                 className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-white border border-black/10 items-center justify-center z-20"
               >
-                <IconTrash size={12} color="rgba(227,27,89,0.9)" />
+                <IconTrash size={12} color={BRAND_STRONG} />
               </TouchableOpacity>
             )}
             {item.photo ? (
@@ -1183,7 +1184,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
               {Boolean(item.loc) && (
                 // 한 줄로 자르면 장소를 특정하는 도로명·번지가 잘려나가고 광역 단위만 남는다 → 2줄 허용
                 <Text allowFontScaling={false}
-                  className="text-black/40"
+                  className="text-sub"
                   style={{ fontSize: FONT_XS, lineHeight: normalize(16) }}
                   numberOfLines={2}
                 >
@@ -1256,7 +1257,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
           >
             {course?.title || "출사 계획"}
           </Text>
-          <Text className="text-black/40 tracking-[-0.1px] mt-[1px]" style={{ fontSize: normalizeFontSize(11) }}>
+          <Text className="text-sub tracking-[-0.1px] mt-[1px]" style={{ fontSize: normalizeFontSize(11) }}>
             {course ? `${course.startDate.replace(/-/g, '.')} ~ ${course.endDate.replace(/-/g, '.')}` : "날짜 미정"}
           </Text>
         </View>
@@ -1294,7 +1295,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
                   타임라인
                 </Text>
                 {/* 탭 아래에 떠 있으면 소속이 애매해 제목 서브라인으로. 네비의 기간 표기와는 요일 유무로 구분 */}
-                <Text allowFontScaling={false} className="text-black/40 tracking-[-0.1px] mt-1" style={{ fontSize: normalizeFontSize(14) }}>
+                <Text allowFontScaling={false} className="text-sub tracking-[-0.1px] mt-1" style={{ fontSize: normalizeFontSize(14) }}>
                   {currentData.date}
                 </Text>
               </View>

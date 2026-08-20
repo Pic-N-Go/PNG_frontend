@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { TextInput, View, TextInputProps } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { INPUT_HEIGHT, INPUT_RADIUS, FONT_MD } from "@/constants/layout";
+import { INPUT_HEIGHT, INPUT_RADIUS, FONT_MD , BORDER_CONTROL } from "@/constants/layout";
+import { BRAND, CARD } from '@/constants/colors';
 
 type Props = TextInputProps & {
   icon: React.ComponentProps<typeof Feather>["name"];
@@ -21,17 +22,17 @@ export default function AuthInput({
   const borderColor = isInvalid
     ? "#FF3B30"
     : focused
-      ? "#E31B59"
+      ? BRAND
       : "transparent";
-  const bgColor = focused || isInvalid ? "#fff" : "#F5F5F7";
-  const iconColor = focused ? "#E31B59" : "rgba(0,0,0,0.25)";
+  const bgColor = focused || isInvalid ? "#fff" : CARD;
+  const iconColor = focused ? BRAND : "rgba(0,0,0,0.25)";
 
   return (
     <View
       style={{
         height: INPUT_HEIGHT,
         borderRadius: INPUT_RADIUS,
-        borderWidth: 1.5,
+        borderWidth: BORDER_CONTROL,
         borderColor,
         backgroundColor: bgColor,
         flexDirection: "row",

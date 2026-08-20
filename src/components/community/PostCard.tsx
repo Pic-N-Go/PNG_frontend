@@ -5,8 +5,9 @@ import Avatar from '@/components/common/Avatar';
 import { Post, PostShotMeta } from '@/types/community';
 import { FONT_XS, FONT_SM, FONT_MD } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
+import { BRAND, BRAND_TINT, CARD } from '@/constants/colors';
 
-const ACCENT = '#E31B59';
+const ACCENT = BRAND;
 
 const WEATHER_ICONS: Record<PostShotMeta['weatherIcon'], typeof Sun> = {
   'clear-day': Sun,
@@ -28,7 +29,7 @@ interface Props {
 export default function PostCard({ post, onPress, onToggleLike, onToggleBookmark, onToggleFollow, onPressUsername, onPressMore }: Props) {
   const mainPhoto = post.imageUrls?.[0];
   return (
-    <Pressable onPress={onPress} className="rounded-[20px] overflow-hidden" style={{ backgroundColor: '#f5f5f7', borderRadius: normalize(20) }}>
+    <Pressable onPress={onPress} className="rounded-[20px] overflow-hidden" style={{ backgroundColor: CARD, borderRadius: normalize(20) }}>
       <View style={{ height: normalize(230), position: 'relative' }}>
         {/* 사진이 로드되기 전/실패했을 때도 카드 높이가 유지되도록 대체 색을 배경으로 깔아둔다 */}
         <View style={{ flex: 1, backgroundColor: post.photoGradient[0] }}>
@@ -85,7 +86,7 @@ export default function PostCard({ post, onPress, onToggleLike, onToggleBookmark
                 height: normalize(30),
                 paddingHorizontal: normalize(12),
                 borderRadius: normalize(15),
-                backgroundColor: post.isFollowingAuthor ? '#f5f5f7' : 'rgba(227,27,89,0.08)',
+                backgroundColor: post.isFollowingAuthor ? CARD : BRAND_TINT,
                 alignItems: 'center',
                 justifyContent: 'center',
               }}

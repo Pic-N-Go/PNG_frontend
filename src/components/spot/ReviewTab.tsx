@@ -13,10 +13,11 @@ import { ApiError } from '@/api/auth';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/store/useAuthStore';
 import { SORT_TO_API } from '@/utils/spotMappers';
-import { BUTTON_HEIGHT, BUTTON_RADIUS, FONT_2XS, FONT_MD, FONT_SM, FONT_XS, GRID_PADDING } from '@/constants/layout';
+import { BUTTON_HEIGHT, BUTTON_RADIUS, FONT_2XS, FONT_MD, FONT_SM, FONT_XS, GRID_PADDING, HAIRLINE_WIDTH } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import type { ReviewEditSeed } from '@/navigation/stacks/SpotStack';
 import type { Review, ReviewSortOption, ReviewSummaryData } from '@/types/spot';
+import { BRAND, CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
 
 // 아이콘 회색은 불투명 값으로 고정한다. rgba로 두면 획이 교차하는 지점에서 알파가 두 번
 // 합성돼 그 점만 진해진다(ReviewWriteScreen과 동일 처리). 값은 흰 배경 위 등가 명도.
@@ -108,7 +109,7 @@ export default function ReviewTab({ spotId, onWriteReview, onEditReview }: Props
     <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(20) }}>
       {/* 리뷰가 없으면 0.0과 0% 막대만 남아 의미가 없다. 로딩 중에는 유지해 레이아웃이 튀지 않게 한다. */}
       {!isError && (isLoading || summary.reviewCount > 0) && (
-      <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: normalize(20), padding: normalize(20), borderRadius: normalize(16), backgroundColor: '#F5F5F7', marginBottom: normalize(16) }}>
+      <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: normalize(20), padding: normalize(20), borderRadius: normalize(16), backgroundColor: CARD, marginBottom: normalize(16) }}>
         <View style={{ width: normalize(80), alignItems: 'center' }}>
           {/* 44는 폰트 스케일 토큰(최대 28) 밖이지만 본문이 아니라 요약 카드의 디스플레이 수치다(목업 44px). */}
           <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(44), color: '#000', letterSpacing: -1, lineHeight: normalizeFontSize(44) }}>
@@ -124,7 +125,7 @@ export default function ReviewTab({ spotId, onWriteReview, onEditReview }: Props
         <View style={{ flex: 1, justifyContent: 'center', gap: normalize(6) }}>
           {summary.distribution.map((row) => (
             <View key={row.star} style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(6) }}>
-              <Text allowFontScaling={false} style={{ width: normalize(14), textAlign: 'right', fontSize: FONT_XS, color: 'rgba(0,0,0,0.4)' }}>
+              <Text allowFontScaling={false} style={{ width: normalize(14), textAlign: 'right', fontSize: FONT_XS, color: TEXT_SUB }}>
                 {row.star}
               </Text>
               <View style={{ flex: 1, height: normalize(4), borderRadius: normalize(2), backgroundColor: 'rgba(0,0,0,0.07)', overflow: 'hidden' }}>
@@ -148,17 +149,17 @@ export default function ReviewTab({ spotId, onWriteReview, onEditReview }: Props
       <View>
         {isLoading ? (
           <View style={{ paddingVertical: normalize(40), alignItems: 'center' }}>
-            <ActivityIndicator color="#E31B59" />
+            <ActivityIndicator color={BRAND} />
           </View>
         ) : isError ? (
           <View style={{ paddingVertical: normalize(40), alignItems: 'center' }}>
-            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(14), color: 'rgba(0,0,0,0.4)', letterSpacing: -0.2 }}>
+            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(14), color: TEXT_SUB, letterSpacing: -0.2 }}>
               리뷰를 불러오지 못했어요.
             </Text>
           </View>
         ) : reviews.length === 0 ? (
           <View style={{ paddingVertical: normalize(40), alignItems: 'center' }}>
-            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(14), color: 'rgba(0,0,0,0.4)', letterSpacing: -0.2 }}>
+            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(14), color: TEXT_SUB, letterSpacing: -0.2 }}>
               아직 등록된 리뷰가 없어요.
             </Text>
           </View>
@@ -168,8 +169,8 @@ export default function ReviewTab({ spotId, onWriteReview, onEditReview }: Props
               key={review.id}
               style={{
                 paddingVertical: normalize(18),
-                borderBottomWidth: idx < reviews.length - 1 ? 0.5 : 0,
-                borderBottomColor: 'rgba(0,0,0,0.06)',
+                borderBottomWidth: idx < reviews.length - 1 ? HAIRLINE_WIDTH : 0,
+                borderBottomColor: HAIRLINE,
               }}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(10), marginBottom: normalize(10) }}>
@@ -255,10 +256,10 @@ export default function ReviewTab({ spotId, onWriteReview, onEditReview }: Props
             onPress={() => fetchNextPage()}
             disabled={isFetchingNextPage}
             className="w-full items-center justify-center"
-            style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS, backgroundColor: '#F5F5F7' }}
+            style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS, backgroundColor: CARD }}
           >
             {isFetchingNextPage ? (
-              <ActivityIndicator color="rgba(0,0,0,0.4)" />
+              <ActivityIndicator color={TEXT_SUB} />
             ) : (
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_MD, color: 'rgba(0,0,0,0.55)', letterSpacing: -0.2 }}>
                 더보기
@@ -271,7 +272,7 @@ export default function ReviewTab({ spotId, onWriteReview, onEditReview }: Props
           onPress={myReviewId === null ? onWriteReview : openMyReview}
           disabled={loadingSeed}
           className="w-full flex-row items-center justify-center gap-2"
-          style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS, backgroundColor: '#e31b59', opacity: loadingSeed ? 0.6 : 1 }}
+          style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS, backgroundColor: BRAND, opacity: loadingSeed ? 0.6 : 1 }}
         >
           {loadingSeed ? (
             <ActivityIndicator color="#fff" />

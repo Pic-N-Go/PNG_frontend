@@ -4,8 +4,9 @@ import { Heart, Trophy } from 'lucide-react-native';
 import { ProfilePostItem } from '@/types/community';
 import { FONT_2XS, GRID_PADDING } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
+import { BRAND, SCRIM } from '@/constants/colors';
 
-const ACCENT = '#E31B59';
+const ACCENT = BRAND;
 const CELL_GAP = normalize(3);
 
 interface Props {
@@ -38,7 +39,7 @@ export default function ProfilePostsTab({ items, onSelectPost }: Props) {
             </View>
             <View
               className="flex-row items-center absolute"
-              style={{ right: normalize(6), bottom: normalize(6), gap: normalize(3), height: normalize(18), paddingHorizontal: normalize(6), borderRadius: normalize(9), backgroundColor: 'rgba(0,0,0,0.4)' }}
+              style={{ right: normalize(6), bottom: normalize(6), gap: normalize(3), height: normalize(18), paddingHorizontal: normalize(6), borderRadius: normalize(9), backgroundColor: SCRIM }}
             >
               <Heart size={normalize(8)} color="#ff453a" fill="#ff453a" strokeWidth={0} />
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_2XS, color: '#fff' }}>

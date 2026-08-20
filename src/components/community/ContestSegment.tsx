@@ -20,12 +20,13 @@ import {
   RankHistory,
   RankVariant,
 } from '@/types/community';
-import { CONTENT_PADDING, FONT_SM } from '@/constants/layout';
+import { CONTENT_PADDING, FONT_SM, HAIRLINE_WIDTH } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
+import { BRAND, HAIRLINE, TEXT_SUB } from '@/constants/colors';
 
-const ACCENT = '#E31B59';
+const ACCENT = BRAND;
 const INK = '#000000';
-const SUB = 'rgba(0,0,0,0.4)';
+const SUB = TEXT_SUB;
 
 type SubtabKey = 'active' | 'mine' | 'past';
 
@@ -123,7 +124,7 @@ const RANK_HISTORY_NORMAL: RankHistory = {
   ],
   // 선 색은 사진과 무관한 순위 서열 표시 — 1위만 accent, 나머지는 회색 농도로 구분한다(목업 11a 고정값)
   series: [
-    { gradient: ['#1a1530', '#5a3355', '#d4856a'], strokeColor: '#E31B59', strokeWidth: 2.4, points: rankPoints([2, 1, 1, 1, 1, 1, 1]) },
+    { gradient: ['#1a1530', '#5a3355', '#d4856a'], strokeColor: BRAND, strokeWidth: 2.4, points: rankPoints([2, 1, 1, 1, 1, 1, 1]) },
     { gradient: ['#12333a', '#2f5f5a', '#8fae9b'], strokeColor: '#b8b8be', strokeWidth: 2, points: rankPoints([1, 2, 2, 3, 2, 2, 2]) },
     { gradient: ['#241a33', '#8b4a6b', '#e8a87c'], strokeColor: '#d2d2d8', strokeWidth: 2, points: rankPoints([3, 3, 3, 2, 3, 3, 3]) },
   ],
@@ -152,7 +153,7 @@ const RANK_HISTORY_OUT: RankHistory = {
     { id: 'l3', author: '@dawnlee', meta: '31표 · 21일 3위권 진입', rank: 3, gradient: ['#2a1030', '#8b4438', '#f0c89a'], isNew: true },
   ],
   series: [
-    { gradient: ['#1a1530', '#5a3355', '#d4856a'], strokeColor: '#E31B59', strokeWidth: 2.4, points: rankPoints([1, 1, 1, 1, 1, 1, 1]) },
+    { gradient: ['#1a1530', '#5a3355', '#d4856a'], strokeColor: BRAND, strokeWidth: 2.4, points: rankPoints([1, 1, 1, 1, 1, 1, 1]) },
     { gradient: ['#12333a', '#2f5f5a', '#8fae9b'], strokeColor: '#b8b8be', strokeWidth: 2, points: rankPoints([2, 2, 2, 2, 2, 2, 2]) },
     // 3위권을 지키다 21일에 밀려난 작품 — 권외로 내려가는 선을 그리고 거기서 끝낸다(이후 순위는 비공개)
     { gradient: ['#241a33', '#8b4a6b', '#e8a87c'], strokeColor: '#d2d2d8', strokeWidth: 2, points: rankPoints([3, 3, 3, 3, 3, null]) },
@@ -302,7 +303,7 @@ export default function ContestSegment({ onSelectPastItem, onSeeAllEntries, onOp
 
   return (
     <View style={{ flex: 1 }}>
-      <View className="flex-row" style={{ paddingHorizontal: CONTENT_PADDING, gap: normalize(20), borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.08)' }}>
+      <View className="flex-row" style={{ paddingHorizontal: CONTENT_PADDING, gap: normalize(20), borderBottomWidth: HAIRLINE_WIDTH, borderBottomColor: HAIRLINE }}>
         {SUBTABS.map((tab) => {
           const isActive = tab.key === subtab;
           return (

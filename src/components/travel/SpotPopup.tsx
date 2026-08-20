@@ -6,6 +6,7 @@ import { IconMapPin, IconX, IconHeart, IconBookmark } from '@tabler/icons-react-
 import StarRating from '@/components/common/StarRating';
 import { Spot } from '@/store/useCourseStore';
 import { useSpotSummary } from '@/hooks/useSpot';
+import { TEXT_SUB } from '@/constants/colors';
 
 interface Props {
   activeSpot: Spot | null;
@@ -160,7 +161,7 @@ export default function SpotPopup({ activeSpot, onClose, renderButtons }: Props)
                 <IconX size={18} color="#fff" />
               </TouchableOpacity>
 
-              <View className="absolute top-3 left-3 h-7 px-3 rounded-full bg-[#E31B59] items-center justify-center z-10 shadow-sm shadow-[#E31B59]/30">
+              <View className="absolute top-3 left-3 h-7 px-3 rounded-full bg-brand items-center justify-center z-10 shadow-sm shadow-brand/30">
                 <Text className="font-semibold text-white" style={{ fontSize: FONT_SM }}>{currentSpot.score}점</Text>
               </View>
             </View>
@@ -177,14 +178,14 @@ export default function SpotPopup({ activeSpot, onClose, renderButtons }: Props)
                       {rating > 0 ? rating.toFixed(1) : '0.0'}
                     </Text>
                     {summary?.bookmarkCount !== undefined && summary.bookmarkCount > 0 && (
-                      <Text className="text-black/40 ml-1" style={{ fontSize: FONT_SM }}>
+                      <Text className="text-sub ml-1" style={{ fontSize: FONT_SM }}>
                         {` · 저장 ${summary.bookmarkCount.toLocaleString()}`}
                       </Text>
                     )}
                   </View>
 
                   <View className="flex-row items-center mt-2.5 mb-1">
-                    <IconMapPin size={14} color="rgba(0,0,0,0.4)" />
+                    <IconMapPin size={14} color={TEXT_SUB} />
                     <Text className="text-black/50 ml-1 flex-1" style={{ fontSize: FONT_SM }} numberOfLines={1}>
                       {currentSpot.loc || '주소 정보 없음'}
                     </Text>
@@ -198,7 +199,7 @@ export default function SpotPopup({ activeSpot, onClose, renderButtons }: Props)
 
               <View className="flex-row flex-wrap gap-1.5 mt-3 mb-1">
                 {(currentSpot.tags || []).map((tag: string) => (
-                  <View key={tag} className="px-2.5 py-1 bg-[#f5f5f7] rounded-full">
+                  <View key={tag} className="px-2.5 py-1 bg-card rounded-full">
                     <Text className="text-black/50" style={{ fontSize: normalizeFontSize(12) }}>{tag}</Text>
                   </View>
                 ))}

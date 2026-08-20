@@ -10,11 +10,11 @@ import { normalize } from '@/utils/normalize';
 import { FONT_2XS, FONT_XS, FONT_SM, FONT_MD, FONT_LG, BUTTON_HEIGHT, BUTTON_RADIUS } from '@/constants/layout';
 import type { InquiryItem, InquiryStatus } from '@/types/inquiry';
 import Chip from '@/components/common/Chip';
+import { BRAND, TEXT_SUB } from '@/constants/colors';
 
 type Props = NativeStackScreenProps<MyPageStackParamList, 'Inquiry'>;
 
-const BRAND = '#E31B59';
-const SUB = '#8a8a8e';
+const SUB = TEXT_SUB;
 
 type FilterKey = 'all' | 'pending' | 'answered';
 
@@ -129,7 +129,7 @@ function InquiryCard({ item, onPress }: { item: InquiryItem; onPress: () => void
   return (
     <Pressable
       onPress={onPress}
-      className="bg-[#f5f5f7] relative"
+      className="bg-card relative"
       style={{
         marginHorizontal: normalize(20),
         marginBottom: normalize(12),
@@ -183,7 +183,7 @@ function InquiryCard({ item, onPress }: { item: InquiryItem; onPress: () => void
 
       {isAnswered && item.answer && (
         <View
-          className="border-t border-black/5"
+          className="border-t-[0.5px] border-hairline"
           style={{ marginTop: normalize(12), paddingTop: normalize(12) }}
         >
           <Text
@@ -231,7 +231,7 @@ function StatusBadge({ status, isResolved }: { status: InquiryStatus; isResolved
       className="rounded-md"
       style={{ paddingHorizontal: normalize(8), paddingVertical: normalize(4), backgroundColor: '#ffffff' }}
     >
-      <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-SemiBold', color: '#8a8a8e' }}>
+      <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-SemiBold', color: TEXT_SUB }}>
         답변 대기
       </Text>
     </View>
@@ -250,7 +250,7 @@ function EmptyBody({ onCompose }: { onCompose: () => void }) {
   return (
     <View className="flex-1 items-center justify-center" style={{ paddingHorizontal: normalize(28) }}>
       <View
-        className="items-center justify-center bg-[#f5f5f7]"
+        className="items-center justify-center bg-card"
         style={{
           width: normalize(64),
           height: normalize(64),

@@ -4,9 +4,10 @@ import { Trophy } from 'lucide-react-native';
 import { ProfileContestItem } from '@/types/community';
 import { GRID_PADDING, FONT_2XS, FONT_XS } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
+import { BRAND, BRAND_TINT, CARD, SCRIM, TEXT_SUB } from '@/constants/colors';
 
-const ACCENT = '#E31B59';
-const SURFACE = '#f5f5f7';
+const ACCENT = BRAND;
+const SURFACE = CARD;
 
 interface Props {
   items: ProfileContestItem[];
@@ -28,7 +29,7 @@ export default function ProfileContestsTab({ items }: Props) {
             <View className="relative" style={{ width: normalize(64), height: normalize(64), borderRadius: normalize(12), backgroundColor: item.gradient[0] }}>
               <View
                 className="absolute items-center justify-center"
-                style={{ top: normalize(4), left: normalize(4), height: normalize(16), paddingHorizontal: normalize(5), borderRadius: normalize(8), backgroundColor: isTop ? ACCENT : 'rgba(0,0,0,0.4)' }}
+                style={{ top: normalize(4), left: normalize(4), height: normalize(16), paddingHorizontal: normalize(5), borderRadius: normalize(8), backgroundColor: isTop ? ACCENT : SCRIM }}
               >
                 <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_2XS, color: '#fff' }}>
                   {item.rank}위
@@ -39,7 +40,7 @@ export default function ProfileContestsTab({ items }: Props) {
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(14), color: '#000', letterSpacing: -0.2 }}>
                 {item.theme}
               </Text>
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.4)', letterSpacing: -0.1, marginTop: normalize(2) }}>
+              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: TEXT_SUB, letterSpacing: -0.1, marginTop: normalize(2) }}>
                 {statusLabel(item)}
               </Text>
               {(item.status === 'active' || item.status === 'won') && (
@@ -51,7 +52,7 @@ export default function ProfileContestsTab({ items }: Props) {
                     height: normalize(20),
                     paddingHorizontal: normalize(8),
                     borderRadius: normalize(10),
-                    backgroundColor: item.status === 'won' ? ACCENT : 'rgba(227,27,89,0.08)',
+                    backgroundColor: item.status === 'won' ? ACCENT : BRAND_TINT,
                   }}
                 >
                   {item.status === 'won' ? (

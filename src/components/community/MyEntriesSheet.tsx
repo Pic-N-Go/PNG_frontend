@@ -6,14 +6,15 @@ import ConfirmModal from '@/components/common/ConfirmModal';
 import { ContestEntry, ContestInfo, ContestPhase } from '@/types/community';
 import { BUTTON_HEIGHT, BUTTON_RADIUS, FONT_LG, FONT_SM, FONT_XS, GRID_PADDING } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
+import { BRAND, CARD, TEXT_SUB } from '@/constants/colors';
 
 /**
  * 내 출품작 시트 (시안 8d 출품 기간 · 8f 투표 기간) — 진행중 탭의 "내 출품작 N/3" pill에서 연다.
  * 사진·캡션은 수정 불가(삭제 후 재출품)이므로 이 시트가 하는 일은 목록 확인과 삭제뿐이다.
  */
 
-const ACCENT = '#E31B59';
-const SURFACE = '#f5f5f7';
+const ACCENT = BRAND;
+const SURFACE = CARD;
 
 interface Props {
   visible: boolean;
@@ -47,7 +48,7 @@ export default function MyEntriesSheet({ visible, onClose, phase, contest, maxEn
               {`${entries.length}/${maxEntries}`}
             </Text>
           </View>
-          <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, letterSpacing: -0.2, color: 'rgba(0,0,0,0.4)', marginTop: normalize(4) }}>
+          <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, letterSpacing: -0.2, color: TEXT_SUB, marginTop: normalize(4) }}>
             {`${contest.theme} · ${contest.monthLabel} 콘테스트 · 사진 ${maxEntries}장까지`}
           </Text>
 

@@ -2,7 +2,8 @@ import React, { useState, useRef } from 'react';
 import { View, Text, TouchableOpacity, Animated } from 'react-native';
 import { IconChevronRight } from '@tabler/icons-react-native';
 import { normalize } from '@/utils/normalize';
-import { FONT_SM, FONT_MD } from '@/constants/layout';
+import { FONT_MD, FONT_SM, HAIRLINE_WIDTH } from '@/constants/layout';
+import { HAIRLINE } from '@/constants/colors';
 
 interface FAQAccordionProps {
   question: string;
@@ -35,7 +36,7 @@ export default function FAQAccordion({ question, answer, isFirst = false }: FAQA
   });
 
   return (
-    <View style={{ borderTopWidth: isFirst ? 0 : 0.5, borderTopColor: 'rgba(0, 0, 0, 0.05)' }}>
+    <View style={{ borderTopWidth: isFirst ? 0 : HAIRLINE_WIDTH, borderTopColor: HAIRLINE }}>
       <TouchableOpacity
         onPress={toggleAccordion}
         activeOpacity={0.7}

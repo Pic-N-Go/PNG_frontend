@@ -11,11 +11,12 @@ import { categoryLabel } from '@/constants/spotCategories';
 import Avatar from '@/components/common/Avatar';
 import type { CommunityDetailStackParamList } from '@/navigation/stacks/CommunityDetailStack';
 import { ProfilePostItem, ProfileTabKey } from '@/types/community';
-import { HEADER_HEIGHT, CONTENT_PADDING, FONT_2XS, FONT_LG, FONT_SM, FONT_XS } from '@/constants/layout';
+import { CONTENT_PADDING, FONT_2XS, FONT_LG, FONT_SM, FONT_XS, HAIRLINE_WIDTH, HEADER_HEIGHT } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
+import { BRAND, CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
 
-const ACCENT = '#E31B59';
-const SURFACE = '#f5f5f7';
+const ACCENT = BRAND;
+const SURFACE = CARD;
 
 // ponytail: 콘테스트·방문 스팟은 아직 서버에 조회 API가 없어 목데이터를 남겨둔다.
 // 게시글 탭만 GET /posts?authorId={id}로 실 데이터를 쓴다.
@@ -69,7 +70,7 @@ export default function UserProfileScreen() {
     <SafeAreaView className="flex-1" style={{ backgroundColor: '#fff' }} edges={['top', 'left', 'right']}>
       <View
         className="flex-row items-center"
-        style={{ height: HEADER_HEIGHT, paddingHorizontal: normalize(20), gap: normalize(8), borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)' }}
+        style={{ height: HEADER_HEIGHT, paddingHorizontal: normalize(20), gap: normalize(8), borderBottomWidth: HAIRLINE_WIDTH, borderBottomColor: HAIRLINE }}
       >
         <Pressable
           onPress={() => navigation.goBack()}
@@ -88,7 +89,7 @@ export default function UserProfileScreen() {
           {isLoading ? (
             <ActivityIndicator color={ACCENT} />
           ) : (
-            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: 'rgba(0,0,0,0.4)', letterSpacing: -0.2 }}>
+            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: TEXT_SUB, letterSpacing: -0.2 }}>
               {/* 프로필 조회에도 인증이 필요해, 비로그인은 실패가 아니라 로그인 안내를 띄운다 */}
               {!isLoggedIn ? '로그인이 필요해요' : '프로필을 불러오지 못했어요'}
             </Text>
@@ -143,7 +144,7 @@ export default function UserProfileScreen() {
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_LG, color: '#000', letterSpacing: -0.3 }}>
                 {(profile?.followerCount ?? 0).toLocaleString()}
               </Text>
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.4)', letterSpacing: -0.1, marginTop: normalize(1) }}>
+              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: TEXT_SUB, letterSpacing: -0.1, marginTop: normalize(1) }}>
                 팔로워
               </Text>
             </Pressable>
@@ -152,7 +153,7 @@ export default function UserProfileScreen() {
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_LG, color: '#000', letterSpacing: -0.3 }}>
                 {(profile?.followingCount ?? 0).toLocaleString()}
               </Text>
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.4)', letterSpacing: -0.1, marginTop: normalize(1) }}>
+              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: TEXT_SUB, letterSpacing: -0.1, marginTop: normalize(1) }}>
                 팔로잉
               </Text>
             </Pressable>
@@ -205,7 +206,7 @@ export default function UserProfileScreen() {
           </Text>
         ) : (
         <>
-        <View className="flex-row" style={{ paddingHorizontal: CONTENT_PADDING, gap: normalize(20), borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.08)' }}>
+        <View className="flex-row" style={{ paddingHorizontal: CONTENT_PADDING, gap: normalize(20), borderBottomWidth: HAIRLINE_WIDTH, borderBottomColor: HAIRLINE }}>
           {subTabs(userPosts?.totalElements ?? 0).map((tab) => {
             const isActive = tab.key === activeTab;
             return (
@@ -214,7 +215,7 @@ export default function UserProfileScreen() {
                 onPress={() => setActiveTab(tab.key)}
                 style={{ paddingTop: normalize(16), paddingBottom: normalize(10), borderBottomWidth: isActive ? 2 : 0, borderBottomColor: ACCENT, marginBottom: -1 }}
               >
-                <Text allowFontScaling={false} style={{ fontFamily: isActive ? 'Pretendard-SemiBold' : 'Pretendard-Medium', fontSize: FONT_SM, color: isActive ? '#000' : 'rgba(0,0,0,0.4)', letterSpacing: -0.2 }}>
+                <Text allowFontScaling={false} style={{ fontFamily: isActive ? 'Pretendard-SemiBold' : 'Pretendard-Medium', fontSize: FONT_SM, color: isActive ? '#000' : TEXT_SUB, letterSpacing: -0.2 }}>
                   {tab.label}
                   {tab.count != null && (
                     <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', color: isActive ? 'rgba(0,0,0,0.35)' : 'rgba(0,0,0,0.25)' }}> {tab.count}</Text>
@@ -263,7 +264,7 @@ export default function UserProfileScreen() {
                   <Text
                     allowFontScaling={false}
                     className="text-center"
-                    style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: 'rgba(0,0,0,0.4)', letterSpacing: -0.15 }}
+                    style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: TEXT_SUB, letterSpacing: -0.15 }}
                   >
                     {fetchingMorePosts ? '불러오는 중...' : '게시글 더보기'}
                   </Text>

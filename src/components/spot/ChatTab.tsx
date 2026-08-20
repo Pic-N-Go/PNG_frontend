@@ -2,9 +2,10 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { IconPhoto, IconSend } from '@tabler/icons-react-native';
 import InitialAvatar from '@/components/common/InitialAvatar';
-import { GRID_PADDING } from '@/constants/layout';
+import { GRID_PADDING, HAIRLINE_WIDTH } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import type { ChatEntry } from '@/types/spot';
+import { BRAND, CARD, HAIRLINE } from '@/constants/colors';
 
 // TODO: API 연동 — 아래 MOCK_CHAT_ENTRIES와 handleSend의 로컬 append를 실제 채팅 API/웹소켓으로 교체
 // - 메시지 목록 조회: 스팟별 채팅방 메시지 히스토리 API 필요 (participant 수 "현재 12명 참여 중"도 실시간 값으로 교체)
@@ -51,7 +52,7 @@ export default function ChatTab({ onFocusChange }: Props) {
 
   return (
     <View style={{ flex: 1 }}>
-      <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(14), paddingBottom: normalize(12), borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)' }}>
+      <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(14), paddingBottom: normalize(12), borderBottomWidth: HAIRLINE_WIDTH, borderBottomColor: HAIRLINE }}>
         <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(15), color: '#000', letterSpacing: -0.2 }}>
           광안리 해수욕장 채팅방
         </Text>
@@ -107,7 +108,7 @@ export default function ChatTab({ onFocusChange }: Props) {
                       paddingHorizontal: normalize(14),
                       paddingVertical: normalize(10),
                       borderRadius: normalize(18),
-                      backgroundColor: isMe ? '#E31B59' : '#F5F5F7',
+                      backgroundColor: isMe ? BRAND : CARD,
                       borderBottomRightRadius: isMe ? normalize(6) : normalize(18),
                       borderBottomLeftRadius: isMe ? normalize(18) : normalize(6),
                     }}
@@ -126,8 +127,8 @@ export default function ChatTab({ onFocusChange }: Props) {
         })}
       </ScrollView>
 
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(10), paddingHorizontal: normalize(16), paddingTop: normalize(10), paddingBottom: normalize(16), borderTopWidth: 0.5, borderTopColor: 'rgba(0,0,0,0.06)' }}>
-        <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: normalize(8), backgroundColor: '#F5F5F7', borderRadius: normalize(22), paddingHorizontal: normalize(14), height: normalize(44) }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(10), paddingHorizontal: normalize(16), paddingTop: normalize(10), paddingBottom: normalize(16), borderTopWidth: HAIRLINE_WIDTH, borderTopColor: HAIRLINE }}>
+        <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: normalize(8), backgroundColor: CARD, borderRadius: normalize(22), paddingHorizontal: normalize(14), height: normalize(44) }}>
           <IconPhoto size={normalize(20)} color="#B3B3B3" strokeWidth={2} />
           <TextInput
             value={input}
@@ -142,7 +143,7 @@ export default function ChatTab({ onFocusChange }: Props) {
         </View>
         <Pressable
           onPress={handleSend}
-          style={{ width: normalize(44), height: normalize(44), borderRadius: normalize(22), backgroundColor: '#E31B59', alignItems: 'center', justifyContent: 'center' }}
+          style={{ width: normalize(44), height: normalize(44), borderRadius: normalize(22), backgroundColor: BRAND, alignItems: 'center', justifyContent: 'center' }}
         >
           <IconSend size={normalize(18)} color="#fff" strokeWidth={2} />
         </Pressable>

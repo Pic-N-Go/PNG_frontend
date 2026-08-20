@@ -3,15 +3,8 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 
 import BottomSheet from '@/components/common/BottomSheet';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import {
-  BUTTON_HEIGHT,
-  BUTTON_RADIUS,
-  FONT_LG,
-  FONT_MD,
-  FONT_SM,
-  GRID_PADDING,
-  SPACING_MD,
-} from '@/constants/layout';
+import { BORDER_CONTROL, BUTTON_HEIGHT, BUTTON_RADIUS, FONT_LG, FONT_MD, FONT_SM, GRID_PADDING, SPACING_MD } from '@/constants/layout';
+import { BRAND, BRAND_TINT_ACTIVE } from '@/constants/colors';
 
 type SingleKey = 'distance' | 'score';
 type MultiKey = 'time' | 'weather';
@@ -146,9 +139,9 @@ export default function FilterBottomSheet({ visible, onClose, onApply }: Props) 
                                 height: normalize(36),
                                 paddingHorizontal: SPACING_MD,
                                 borderRadius: normalize(18),
-                                borderWidth: 1.5,
-                                borderColor: isSelected ? '#E31B59' : 'rgba(0,0,0,0.1)',
-                                backgroundColor: isSelected ? 'rgba(227,27,89,0.04)' : '#fff',
+                                borderWidth: BORDER_CONTROL,
+                                borderColor: isSelected ? BRAND : 'rgba(0,0,0,0.1)',
+                                backgroundColor: isSelected ? BRAND_TINT_ACTIVE : '#fff',
                                 alignItems: 'center',
                                 justifyContent: 'center',
                               }}
@@ -158,7 +151,7 @@ export default function FilterBottomSheet({ visible, onClose, onApply }: Props) 
                                 style={{
                                   fontFamily: isSelected ? 'Pretendard-Medium' : 'Pretendard-Regular',
                                   fontSize: FONT_SM,
-                                  color: isSelected ? '#E31B59' : 'rgba(0,0,0,0.55)',
+                                  color: isSelected ? BRAND : 'rgba(0,0,0,0.55)',
                                 }}
                               >
                                 {option}
@@ -183,7 +176,7 @@ export default function FilterBottomSheet({ visible, onClose, onApply }: Props) 
                 style={{
                   height: BUTTON_HEIGHT,
                   borderRadius: BUTTON_RADIUS,
-                  backgroundColor: '#E31B59',
+                  backgroundColor: BRAND,
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}

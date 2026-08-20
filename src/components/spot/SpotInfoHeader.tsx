@@ -5,6 +5,7 @@ import StarRating from '@/components/common/StarRating';
 import { FONT_2XL, FONT_XS, GRID_PADDING } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import type { SpotDetailInfo } from '@/types/spot';
+import { BRAND, BRAND_TINT, CARD } from '@/constants/colors';
 
 interface Props {
   spot: SpotDetailInfo;
@@ -20,13 +21,13 @@ export default function SpotInfoHeader({ spot }: Props) {
             height: normalize(24),
             paddingHorizontal: normalize(10),
             borderRadius: normalize(6),
-            backgroundColor: 'rgba(227,27,89,0.08)',
+            backgroundColor: BRAND_TINT,
             alignItems: 'center',
             justifyContent: 'center',
             marginBottom: normalize(12),
           }}
         >
-          <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, color: '#E31B59', letterSpacing: 0.3 }}>
+          <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, color: BRAND, letterSpacing: 0.3 }}>
             {spot.badge}
           </Text>
         </View>
@@ -64,7 +65,7 @@ export default function SpotInfoHeader({ spot }: Props) {
               height: normalize(30),
               paddingHorizontal: normalize(14),
               borderRadius: normalize(17),
-              backgroundColor: '#F5F5F7',
+              backgroundColor: CARD,
               alignItems: 'center',
               justifyContent: 'center',
             }}

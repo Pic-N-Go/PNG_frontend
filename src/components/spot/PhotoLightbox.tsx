@@ -7,6 +7,7 @@ import { useReviewExif } from '@/hooks/useSpot';
 import type { PhotoExifData } from '@/types/photo';
 import { FONT_SM } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
+import { SCRIM } from '@/constants/colors';
 
 interface Props {
   /** 표시할 사진 URL 목록. visible=true인데 비어 있으면 uri가 undefined가 되므로 호출부가 보장해야 한다. */
@@ -115,7 +116,7 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose, 
               width: normalize(36),
               height: normalize(36),
               borderRadius: normalize(18),
-              backgroundColor: 'rgba(0,0,0,0.4)',
+              backgroundColor: SCRIM,
             }}
           >
             <IconX size={normalize(20)} color="#fff" strokeWidth={2} />
@@ -138,7 +139,7 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose, 
                   width: normalize(36),
                   height: normalize(36),
                   borderRadius: normalize(18),
-                  backgroundColor: 'rgba(0,0,0,0.4)',
+                  backgroundColor: SCRIM,
                 }}
               >
                 <Info size={normalize(18)} color="#fff" strokeWidth={1.8} />

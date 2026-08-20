@@ -1,7 +1,8 @@
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
-import { FONT_SM, GRID_PADDING } from '@/constants/layout';
+import { FONT_SM, GRID_PADDING, HAIRLINE_WIDTH } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
+import { BRAND, HAIRLINE, TEXT_SUB } from '@/constants/colors';
 
 export type SpotTabKey = 'info' | 'photo' | 'review' | 'chat';
 
@@ -22,8 +23,8 @@ export default function SpotTabBar({ activeTab, onChange }: Props) {
     <View
       style={{
         flexDirection: 'row',
-        borderBottomWidth: 0.5,
-        borderBottomColor: 'rgba(0,0,0,0.06)',
+        borderBottomWidth: HAIRLINE_WIDTH,
+        borderBottomColor: HAIRLINE,
         paddingHorizontal: GRID_PADDING,
         backgroundColor: '#fff',
       }}
@@ -41,7 +42,7 @@ export default function SpotTabBar({ activeTab, onChange }: Props) {
               style={{
                 fontFamily: isActive ? 'Pretendard-Medium' : 'Pretendard-Regular',
                 fontSize: FONT_SM,
-                color: isActive ? '#E31B59' : 'rgba(0,0,0,0.4)',
+                color: isActive ? BRAND : TEXT_SUB,
                 letterSpacing: -0.15,
               }}
             >
@@ -56,7 +57,7 @@ export default function SpotTabBar({ activeTab, onChange }: Props) {
                   right: 0,
                   height: 2,
                   borderRadius: 1,
-                  backgroundColor: '#E31B59',
+                  backgroundColor: BRAND,
                 }}
               />
             )}

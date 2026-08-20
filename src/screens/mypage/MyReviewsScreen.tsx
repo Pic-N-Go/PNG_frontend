@@ -14,7 +14,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconChevronLeft, IconTrash } from '@tabler/icons-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { BUTTON_HEIGHT, BUTTON_RADIUS, FONT_2XS, FONT_XS, FONT_SM, FONT_MD, FONT_LG } from '@/constants/layout';
+import { BUTTON_HEIGHT, BUTTON_RADIUS, FONT_2XS, FONT_LG, FONT_MD, FONT_SM, FONT_XS, HAIRLINE_WIDTH } from '@/constants/layout';
 import Toast from '@/components/common/Toast';
 import type { RootStackParamList } from '@/navigation';
 import ReviewTagRow from '@/components/spot/ReviewTagRow';
@@ -22,6 +22,7 @@ import PhotoLightbox from '@/components/spot/PhotoLightbox';
 import { useDeleteReview, useMyReviews } from '@/hooks/useSpot';
 import { useAuthStore } from '@/store/useAuthStore';
 import type { MyReview } from '@/types/spot';
+import { BRAND, BRAND_TINT, CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
 
 export default function MyReviewsScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -80,8 +81,8 @@ export default function MyReviewsScreen() {
         style={{
           height: normalize(54),
           paddingHorizontal: normalize(20),
-          borderBottomWidth: 0.5,
-          borderBottomColor: 'rgba(0,0,0,0.06)',
+          borderBottomWidth: HAIRLINE_WIDTH,
+          borderBottomColor: HAIRLINE,
         }}
       >
         <TouchableOpacity
@@ -125,7 +126,7 @@ export default function MyReviewsScreen() {
           </View>
         ) : isLoading ? (
           <View style={{ paddingVertical: normalize(40), alignItems: 'center' }}>
-            <ActivityIndicator color="#E31B59" />
+            <ActivityIndicator color={BRAND} />
           </View>
         ) : isError ? (
           <View style={{ paddingVertical: normalize(40), alignItems: 'center', gap: normalize(12) }}>
@@ -138,7 +139,7 @@ export default function MyReviewsScreen() {
                 height: normalize(44),
                 paddingHorizontal: normalize(24),
                 borderRadius: BUTTON_RADIUS,
-                backgroundColor: '#F5F5F7',
+                backgroundColor: CARD,
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
@@ -161,8 +162,8 @@ export default function MyReviewsScreen() {
                 key={review.reviewId}
                 style={{
                   paddingVertical: normalize(16),
-                  borderBottomWidth: index === reviews.length - 1 ? 0 : 0.5,
-                  borderBottomColor: 'rgba(0,0,0,0.06)',
+                  borderBottomWidth: index === reviews.length - 1 ? 0 : HAIRLINE_WIDTH,
+                  borderBottomColor: HAIRLINE,
                   gap: normalize(6),
                 }}
               >
@@ -210,12 +211,12 @@ export default function MyReviewsScreen() {
                       width: normalize(32),
                       height: normalize(32),
                       borderRadius: normalize(16),
-                      backgroundColor: 'rgba(227,27,89,0.06)',
+                      backgroundColor: BRAND_TINT,
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
                   >
-                    <IconTrash size={normalize(16)} color="#E31B59" strokeWidth={1.75} />
+                    <IconTrash size={normalize(16)} color={BRAND} strokeWidth={1.75} />
                   </TouchableOpacity>
                 </View>
 
@@ -258,7 +259,7 @@ export default function MyReviewsScreen() {
                             width: normalize(56),
                             height: normalize(56),
                             borderRadius: normalize(8),
-                            backgroundColor: '#f5f5f7',
+                            backgroundColor: CARD,
                           }}
                         />
                       </TouchableOpacity>
@@ -273,7 +274,7 @@ export default function MyReviewsScreen() {
                 style={{
                   height: BUTTON_HEIGHT,
                   borderRadius: BUTTON_RADIUS,
-                  backgroundColor: '#F5F5F7',
+                  backgroundColor: CARD,
                   alignItems: 'center',
                   justifyContent: 'center',
                   marginTop: normalize(12),
@@ -283,7 +284,7 @@ export default function MyReviewsScreen() {
                 activeOpacity={0.7}
               >
                 {isFetchingNextPage ? (
-                  <ActivityIndicator color="rgba(0,0,0,0.4)" />
+                  <ActivityIndicator color={TEXT_SUB} />
                 ) : (
                   <Text style={{ fontSize: FONT_MD, fontFamily: 'Pretendard-Medium', color: 'rgba(0,0,0,0.55)', letterSpacing: -0.2 }}>
                     더보기

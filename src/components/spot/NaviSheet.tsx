@@ -3,12 +3,13 @@ import { Pressable, Text, View } from 'react-native';
 import Svg, { Circle, Line, Path } from 'react-native-svg';
 import { IconClock } from '@tabler/icons-react-native';
 import BottomSheet from '@/components/common/BottomSheet';
-import { BADGE_RADIUS, BUTTON_RADIUS, GRID_PADDING } from '@/constants/layout';
+import { BADGE_RADIUS, BORDER_CONTROL, BUTTON_RADIUS, GRID_PADDING } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import type { NaviAppId, SpotNavigationDTO } from '@/types/spot';
 import { openKakaoNavi, SpotLocation } from '@/utils/kakaoNavi';
 import { openNaverMap } from '@/utils/naverMap';
 import { openAppleMap } from '@/utils/appleMap';
+import { BRAND, CARD, TEXT_SUB } from '@/constants/colors';
 
 const NAVI_APPS: { id: NaviAppId; label: string; bg: string }[] = [
   { id: 'kakao', label: '카카오맵', bg: '#FEE500' },
@@ -98,17 +99,17 @@ export default function NaviSheet({ visible, onClose, spotName, address, spots, 
       </View>
 
       <View style={{ paddingHorizontal: GRID_PADDING }}>
-        <View style={{ borderRadius: normalize(14), backgroundColor: '#F5F5F7', padding: normalize(16), marginBottom: normalize(12) }}>
+        <View style={{ borderRadius: normalize(14), backgroundColor: CARD, padding: normalize(16), marginBottom: normalize(12) }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(10) }}>
             <View style={{ width: normalize(10), height: normalize(10), borderRadius: normalize(5), backgroundColor: '#34C759' }} />
-            <Text allowFontScaling={false} style={{ fontSize: normalizeFontSize(14), color: 'rgba(0,0,0,0.4)' }}>현재 위치</Text>
+            <Text allowFontScaling={false} style={{ fontSize: normalizeFontSize(14), color: TEXT_SUB }}>현재 위치</Text>
           </View>
           <View style={{ marginLeft: normalize(4), width: 1, height: normalize(18), backgroundColor: 'rgba(0,0,0,0.12)' }} />
           <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: normalize(10) }}>
-            <View style={{ width: normalize(10), height: normalize(10), borderRadius: normalize(5), backgroundColor: '#E31B59', marginTop: normalize(3) }} />
+            <View style={{ width: normalize(10), height: normalize(10), borderRadius: normalize(5), backgroundColor: BRAND, marginTop: normalize(3) }} />
             <View style={{ flex: 1 }}>
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: normalizeFontSize(14), color: '#000' }}>{displayName}</Text>
-              <Text allowFontScaling={false} style={{ fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.4)', marginTop: normalize(2) }}>{address}</Text>
+              <Text allowFontScaling={false} style={{ fontSize: normalizeFontSize(12), color: TEXT_SUB, marginTop: normalize(2) }}>{address}</Text>
               {navStatus === 'CORRECTED' && targetNav && (
                 <View
                   className="mt-1.5 px-2 py-1 self-start bg-[#FFF5E5]"
@@ -133,11 +134,11 @@ export default function NaviSheet({ visible, onClose, spotName, address, spots, 
           </View>
         </View>
 
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(12), borderRadius: normalize(14), backgroundColor: '#F5F5F7', padding: normalize(16), marginBottom: normalize(16) }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(12), borderRadius: normalize(14), backgroundColor: CARD, padding: normalize(16), marginBottom: normalize(16) }}>
           <IconClock size={normalize(20)} color="rgba(0,0,0,0.5)" strokeWidth={2} />
           <View>
             <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: normalizeFontSize(14), color: '#000' }}>현재 위치에서 차로 18분</Text>
-            <Text allowFontScaling={false} style={{ fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.4)', marginTop: normalize(2) }}>약 12.4km · 실시간 교통 기준</Text>
+            <Text allowFontScaling={false} style={{ fontSize: normalizeFontSize(12), color: TEXT_SUB, marginTop: normalize(2) }}>약 12.4km · 실시간 교통 기준</Text>
           </View>
         </View>
 
@@ -155,9 +156,9 @@ export default function NaviSheet({ visible, onClose, spotName, address, spots, 
                 gap: normalize(8),
                 paddingVertical: normalize(14),
                 borderRadius: normalize(14),
-                borderWidth: 1.5,
-                borderColor: selectedApp === app.id ? '#E31B59' : 'transparent',
-                backgroundColor: '#F5F5F7',
+                borderWidth: BORDER_CONTROL,
+                borderColor: selectedApp === app.id ? BRAND : 'transparent',
+                backgroundColor: CARD,
               }}
             >
               <View style={{ width: normalize(48), height: normalize(48), borderRadius: normalize(24), backgroundColor: app.bg, alignItems: 'center', justifyContent: 'center' }}>
@@ -179,7 +180,7 @@ export default function NaviSheet({ visible, onClose, spotName, address, spots, 
             borderRadius: BUTTON_RADIUS,
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: selectedApp ? '#E31B59' : 'rgba(0,0,0,0.08)',
+            backgroundColor: selectedApp ? BRAND : 'rgba(0,0,0,0.08)',
           }}
         >
           <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(16), color: selectedApp ? '#fff' : 'rgba(0,0,0,0.25)' }}>

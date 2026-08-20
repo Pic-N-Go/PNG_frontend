@@ -1,14 +1,15 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import { SPOT_CATEGORY_MAP, pickSpotCategory } from '@/constants/spotCategories';
-import { FONT_XS, FONT_SM, FONT_XL } from '@/constants/layout';
+import { FONT_SM, FONT_XL, FONT_XS, HAIRLINE_WIDTH } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
+import { BRAND, HAIRLINE } from '@/constants/colors';
 
 // 카테고리 라벨·아이콘·선택 규칙은 @/constants/spotCategories가 단일 출처다.
 // 다른 화면(회원가입·지도·홈·마이페이지)도 같은 파일을 본다.
 export { SPOT_CATEGORY_MAP, pickSpotCategory };
 
-const PINK = '#E31B59';
+const PINK = BRAND;
 const WATERMARK = '#111111';
 
 interface Props {
@@ -39,8 +40,8 @@ export default function SpotHeroPlaceholder({
       style={{
         height,
         backgroundColor: '#ffffff',
-        borderBottomWidth: 1,
-        borderBottomColor: 'rgba(0,0,0,0.07)',
+        borderBottomWidth: HAIRLINE_WIDTH,
+        borderBottomColor: HAIRLINE,
         overflow: 'hidden',
       }}
     >

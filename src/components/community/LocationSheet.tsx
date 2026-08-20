@@ -6,9 +6,10 @@ import { useDebounce } from '@/hooks/useDebounce';
 import { useSearchSpots, useSpots } from '@/hooks/useSpot';
 import { BUTTON_HEIGHT, BUTTON_RADIUS, FONT_2XS, FONT_LG, FONT_MD, FONT_SM, FONT_XS, GRID_PADDING } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
+import { BRAND, BRAND_TINT_ACTIVE, CARD, TEXT_SUB } from '@/constants/colors';
 
-const ACCENT = '#E31B59';
-const SURFACE = '#f5f5f7';
+const ACCENT = BRAND;
+const SURFACE = CARD;
 
 export interface LocationOption {
   /** 서버 스팟 id — 게시글 등록 시 spotId로 그대로 보낸다(숫자 문자열) */
@@ -42,7 +43,7 @@ function Row({ option, isSelected, onPress }: { option: LocationOption; isSelect
         paddingVertical: normalize(12),
         paddingHorizontal: normalize(10),
         borderRadius: normalize(12),
-        backgroundColor: isSelected ? 'rgba(227,27,89,0.06)' : 'transparent',
+        backgroundColor: isSelected ? BRAND_TINT_ACTIVE : 'transparent',
       }}
     >
       <View
@@ -51,10 +52,10 @@ function Row({ option, isSelected, onPress }: { option: LocationOption; isSelect
           width: normalize(34),
           height: normalize(34),
           borderRadius: normalize(10),
-          backgroundColor: isSelected ? 'rgba(227,27,89,0.1)' : SURFACE,
+          backgroundColor: isSelected ? BRAND_TINT_ACTIVE : SURFACE,
         }}
       >
-        <Icon size={normalize(16)} color={isSelected ? ACCENT : 'rgba(0,0,0,0.4)'} strokeWidth={1.8} />
+        <Icon size={normalize(16)} color={isSelected ? ACCENT : TEXT_SUB} strokeWidth={1.8} />
       </View>
       <View className="flex-1 min-w-0">
         <Text allowFontScaling={false} numberOfLines={1} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, color: '#000', letterSpacing: -0.2 }}>
@@ -114,7 +115,7 @@ export default function LocationSheet({ visible, selected, onSelect, onClose }: 
         </View>
 
         <ScrollView style={{ maxHeight: SCROLL_MAX }} contentContainerStyle={{ paddingTop: normalize(4), paddingBottom: normalize(4) }} keyboardShouldPersistTaps="handled">
-          <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_2XS, color: 'rgba(0,0,0,0.4)', letterSpacing: 0.3, paddingTop: normalize(12), paddingBottom: normalize(6) }}>
+          <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_2XS, color: TEXT_SUB, letterSpacing: 0.3, paddingTop: normalize(12), paddingBottom: normalize(6) }}>
             {isSearching ? '검색 결과' : '인기 스팟'}
           </Text>
 

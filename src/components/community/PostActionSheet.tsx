@@ -4,8 +4,9 @@ import { Share as ShareIcon, Pencil, Trash2, Flag } from 'lucide-react-native';
 import BottomSheet from '@/components/common/BottomSheet';
 import { FONT_MD, GRID_PADDING } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
+import { BRAND } from '@/constants/colors';
 
-const ACCENT = '#E31B59';
+const ACCENT = BRAND;
 
 interface RowProps {
   icon: React.ReactNode;

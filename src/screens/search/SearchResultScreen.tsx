@@ -21,7 +21,8 @@ import { NativeStackNavigationProp, NativeStackScreenProps } from '@react-naviga
 import { HomeStackParamList } from '@/navigation/stacks/HomeStack';
 import type { RootStackParamList } from '@/navigation';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { FONT_MD, FONT_SM, GRID_PADDING, SPACING_LG, SPACING_MD } from '@/constants/layout';
+import { FONT_MD, FONT_SM, GRID_PADDING, HAIRLINE_WIDTH, SPACING_LG, SPACING_MD } from '@/constants/layout';
+import { BRAND, BRAND_TINT, CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'SearchResult'>;
 
@@ -44,7 +45,7 @@ const POPULAR = [
   { rank: 5, text: '해운대 블루라인', badge: '▲ 3', badgeType: 'up' as const },
 ];
 
-const BADGE_COLOR = { up: '#34c759', down: 'rgba(0,0,0,0.25)', new: '#E31B59' } as const;
+const BADGE_COLOR = { up: '#34c759', down: 'rgba(0,0,0,0.25)', new: BRAND } as const;
 
 export default function SearchResultScreen({ route, navigation }: Props) {
   const insets = useSafeAreaInsets();
@@ -109,7 +110,7 @@ export default function SearchResultScreen({ route, navigation }: Props) {
           style={{
             flex: 1,
             height: normalize(42),
-            backgroundColor: '#F5F5F7',
+            backgroundColor: CARD,
             borderRadius: normalize(12),
             flexDirection: 'row',
             alignItems: 'center',
@@ -194,7 +195,7 @@ export default function SearchResultScreen({ route, navigation }: Props) {
                     <Pressable
                       key={item}
                       onPress={() => submit(item)}
-                      style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: normalize(11), borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.05)' }}
+                      style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: normalize(11), borderBottomWidth: HAIRLINE_WIDTH, borderBottomColor: HAIRLINE }}
                     >
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(10) }}>
                         <IconSearch size={normalize(14)} color="rgba(0,0,0,0.2)" strokeWidth={1.5} />
@@ -219,14 +220,14 @@ export default function SearchResultScreen({ route, navigation }: Props) {
                   <Pressable
                     key={item.rank}
                     onPress={() => submit(item.text)}
-                    style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(12), paddingVertical: normalize(11), borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.05)' }}
+                    style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(12), paddingVertical: normalize(11), borderBottomWidth: HAIRLINE_WIDTH, borderBottomColor: HAIRLINE }}
                   >
                     <Text
                       allowFontScaling={false}
                       style={{
                         fontFamily: 'Pretendard-SemiBold',
                         fontSize: FONT_MD,
-                        color: item.rank <= 2 ? '#000' : '#E31B59',
+                        color: item.rank <= 2 ? '#000' : BRAND,
                         width: normalize(18),
                         textAlign: 'center',
                       }}
@@ -242,7 +243,7 @@ export default function SearchResultScreen({ route, navigation }: Props) {
                         fontFamily: item.badgeType === 'new' ? 'Pretendard-SemiBold' : 'Pretendard-Regular',
                         fontSize: FONT_SM,
                         color: BADGE_COLOR[item.badgeType],
-                        backgroundColor: item.badgeType === 'new' ? 'rgba(227,27,89,0.08)' : 'transparent',
+                        backgroundColor: item.badgeType === 'new' ? BRAND_TINT : 'transparent',
                         paddingHorizontal: item.badgeType === 'new' ? normalize(7) : 0,
                         paddingVertical: item.badgeType === 'new' ? normalize(2) : 0,
                         borderRadius: item.badgeType === 'new' ? normalize(10) : 0,
@@ -261,7 +262,7 @@ export default function SearchResultScreen({ route, navigation }: Props) {
       {submitted && (
         <>
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: GRID_PADDING, paddingVertical: normalize(14) }}>
-            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: 'rgba(0,0,0,0.4)' }}>
+            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: TEXT_SUB }}>
               스팟 <Text style={{ fontFamily: 'Pretendard-SemiBold', color: '#000' }}>{results.length}</Text>개
             </Text>
             {/* TODO: 정렬 기능 미구현 — 정렬 옵션 시트 연결 필요 */}
@@ -297,27 +298,27 @@ export default function SearchResultScreen({ route, navigation }: Props) {
                     const rootNavigation = navigation as unknown as NativeStackNavigationProp<RootStackParamList>;
                     rootNavigation.navigate('SpotStack', { screen: 'SpotDetail', params: { spotId: item.id } });
                   }}
-                  style={{ flexDirection: 'row', gap: normalize(14), paddingVertical: normalize(14), borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)' }}
+                  style={{ flexDirection: 'row', gap: normalize(14), paddingVertical: normalize(14), borderBottomWidth: HAIRLINE_WIDTH, borderBottomColor: HAIRLINE }}
                 >
-                  <View style={{ width: normalize(80), height: normalize(80), borderRadius: normalize(12), backgroundColor: '#F5F5F7', flexShrink: 0 }} />
+                  <View style={{ width: normalize(80), height: normalize(80), borderRadius: normalize(12), backgroundColor: CARD, flexShrink: 0 }} />
                   <View style={{ flex: 1, justifyContent: 'space-between' }}>
                     <View>
                       <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, color: '#000', letterSpacing: -0.3, marginBottom: normalize(3) }}>
                         {item.name}
                       </Text>
-                      <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.4)', marginBottom: normalize(8) }}>
+                      <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(12), color: TEXT_SUB, marginBottom: normalize(8) }}>
                         {item.addr}
                       </Text>
                     </View>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(6), flexWrap: 'wrap' }}>
-                      <View style={{ backgroundColor: 'rgba(227,27,89,0.07)', paddingHorizontal: normalize(8), paddingVertical: normalize(2), borderRadius: normalize(8) }}>
-                        <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(12), color: '#E31B59' }}>
+                      <View style={{ backgroundColor: BRAND_TINT, paddingHorizontal: normalize(8), paddingVertical: normalize(2), borderRadius: normalize(8) }}>
+                        <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(12), color: BRAND }}>
                           {item.score}점
                         </Text>
                       </View>
                       {item.tags.map((tag) => (
-                        <View key={tag} style={{ backgroundColor: '#F5F5F7', paddingHorizontal: normalize(8), paddingVertical: normalize(2), borderRadius: normalize(8) }}>
-                          <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.4)' }}>
+                        <View key={tag} style={{ backgroundColor: CARD, paddingHorizontal: normalize(8), paddingVertical: normalize(2), borderRadius: normalize(8) }}>
+                          <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(12), color: TEXT_SUB }}>
                             {tag}
                           </Text>
                         </View>

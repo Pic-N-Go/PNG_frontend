@@ -5,6 +5,7 @@ import { useReplies } from '@/hooks/useCommunity';
 import { Comment } from '@/types/community';
 import { FONT_XS } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
+import { TEXT_SUB } from '@/constants/colors';
 
 interface Props {
   postId: string;
@@ -92,7 +93,7 @@ export default function CommentThread({ postId, comment, onToggleLike, onPressRe
               disabled={isFetchingNextPage}
               style={{ paddingLeft: normalize(38), marginBottom: normalize(14) }}
             >
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.4)', letterSpacing: -0.1 }}>
+              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: TEXT_SUB, letterSpacing: -0.1 }}>
                 {isFetchingNextPage ? '불러오는 중...' : '답글 더보기'}
               </Text>
             </Pressable>

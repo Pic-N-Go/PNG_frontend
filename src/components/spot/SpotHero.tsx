@@ -13,6 +13,7 @@ import { IconBookmark, IconChevronLeft } from '@tabler/icons-react-native';
 import { Share as ShareIcon } from 'lucide-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import SpotHeroPlaceholder, { HeroActionButton } from '@/components/spot/SpotHeroPlaceholder';
+import { SCRIM } from '@/constants/colors';
 
 export const HERO_HEIGHT = normalize(360);
 
@@ -190,7 +191,7 @@ export default function SpotHero({
             height: normalize(26),
             paddingHorizontal: normalize(12),
             borderRadius: normalize(13),
-            backgroundColor: 'rgba(0,0,0,0.4)',
+            backgroundColor: SCRIM,
             alignItems: 'center',
             justifyContent: 'center',
           }}

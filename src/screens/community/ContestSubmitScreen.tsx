@@ -7,8 +7,9 @@ import * as ImagePicker from 'expo-image-picker';
 import { Camera, ChevronLeft, Info, MapPin, Plus, Search, X } from 'lucide-react-native';
 import DevStateSwitch from '@/components/common/DevStateSwitch';
 import { CommunityDetailStackParamList } from '@/navigation/stacks/CommunityDetailStack';
-import { CARD_RADIUS, HEADER_HEIGHT, CONTENT_PADDING, BUTTON_HEIGHT, BUTTON_RADIUS, FONT_LG, FONT_MD, FONT_SM, FONT_XS } from '@/constants/layout';
+import { BORDER_CONTROL, BUTTON_HEIGHT, BUTTON_RADIUS, CARD_RADIUS, CONTENT_PADDING, FONT_LG, FONT_MD, FONT_SM, FONT_XS, HAIRLINE_WIDTH, HEADER_HEIGHT } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
+import { BRAND, BRAND_MUTED, BRAND_TINT, BRAND_TINT_ACTIVE, CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
 
 /**
  * 콘테스트 출품 작성 (시안 13a~13e) — contest-submit.html 1:1.
@@ -16,8 +17,8 @@ import { normalize, normalizeFontSize } from '@/utils/normalize';
  * 사진·설명은 출품 후 수정 불가(삭제 후 재출품)이므로 저장은 이 화면 하나뿐이다.
  */
 
-const ACCENT = '#E31B59';
-const SURFACE = '#f5f5f7';
+const ACCENT = BRAND;
+const SURFACE = CARD;
 const CAPTION_MAX = 80;
 
 const SPOTS = [
@@ -174,15 +175,15 @@ export default function ContestSubmitScreen() {
         {photos.length === 0 ? (
           <Pressable
             onPress={pickPhotos}
-            style={{ marginHorizontal: CONTENT_PADDING, aspectRatio: 334 / 188, borderRadius: CARD_RADIUS, backgroundColor: 'rgba(227,27,89,0.04)', borderWidth: 2, borderColor: 'rgba(227,27,89,0.25)', alignItems: 'center', justifyContent: 'center', gap: normalize(10) }}
+            style={{ marginHorizontal: CONTENT_PADDING, aspectRatio: 334 / 188, borderRadius: CARD_RADIUS, backgroundColor: BRAND_TINT, borderWidth: BORDER_CONTROL, borderColor: BRAND_MUTED, alignItems: 'center', justifyContent: 'center', gap: normalize(10) }}
           >
-            <View style={{ width: normalize(56), height: normalize(56), borderRadius: normalize(16), backgroundColor: 'rgba(227,27,89,0.1)', alignItems: 'center', justifyContent: 'center' }}>
+            <View style={{ width: normalize(56), height: normalize(56), borderRadius: normalize(16), backgroundColor: BRAND_TINT, alignItems: 'center', justifyContent: 'center' }}>
               <Camera size={normalize(26)} color={ACCENT} strokeWidth={1.7} />
             </View>
             <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, letterSpacing: -0.2, color: ACCENT }}>
               사진 선택
             </Text>
-            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, letterSpacing: -0.1, color: 'rgba(0,0,0,0.4)' }}>
+            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, letterSpacing: -0.1, color: TEXT_SUB }}>
               {`${theme} 주제에 어울리는 사진 최대 ${remainingSlots}장`}
             </Text>
           </Pressable>
@@ -228,7 +229,7 @@ export default function ContestSubmitScreen() {
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, letterSpacing: -0.1, color: '#8e8e93' }}>
                 설명
               </Text>
-              <View style={{ marginTop: normalize(8), paddingBottom: normalize(2), borderBottomWidth: 1, borderBottomColor: '#e6e6ea' }}>
+              <View style={{ marginTop: normalize(8), paddingBottom: normalize(2), borderBottomWidth: HAIRLINE_WIDTH, borderBottomColor: '#e6e6ea' }}>
                 <TextInput
                   value={currentDraft.caption}
                   onChangeText={handleCaptionChange}
@@ -255,7 +256,7 @@ export default function ContestSubmitScreen() {
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, letterSpacing: -0.1, color: '#8e8e93' }}>
                 촬영 장소
               </Text>
-              <Pressable onPress={() => setSearchVisible(true)} style={{ width: '100%', marginTop: normalize(8), paddingBottom: normalize(10), borderBottomWidth: 1, borderBottomColor: '#e6e6ea', flexDirection: 'row', alignItems: 'center', gap: normalize(8) }}>
+              <Pressable onPress={() => setSearchVisible(true)} style={{ width: '100%', marginTop: normalize(8), paddingBottom: normalize(10), borderBottomWidth: HAIRLINE_WIDTH, borderBottomColor: '#e6e6ea', flexDirection: 'row', alignItems: 'center', gap: normalize(8) }}>
                 <MapPin size={normalize(16)} color="#8e8e93" strokeWidth={1.8} />
                 <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_MD, letterSpacing: -0.2, color: currentDraft.spotName ? '#000' : '#c7c7cc' }}>
                   {currentDraft.spotName || '장소 검색'}
@@ -281,7 +282,7 @@ export default function ContestSubmitScreen() {
               <Pressable
                 onPress={uploadState === 'uploading' ? undefined : startUpload}
                 disabled={uploadState === 'uploading'}
-                style={{ flex: photos.length > 1 && uploadState !== 'failed' ? 1.4 : 1, height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS, backgroundColor: uploadState === 'uploading' ? 'rgba(227,27,89,0.5)' : ACCENT, alignItems: 'center', justifyContent: 'center' }}
+                style={{ flex: photos.length > 1 && uploadState !== 'failed' ? 1.4 : 1, height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS, backgroundColor: uploadState === 'uploading' ? BRAND_MUTED : ACCENT, alignItems: 'center', justifyContent: 'center' }}
               >
                 <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, letterSpacing: -0.3, color: '#fff' }}>
                   {uploadState === 'uploading' ? '업로드 중…' : uploadState === 'failed' ? '다시 출품하기' : `${photos.length}장 출품하기`}
@@ -345,9 +346,9 @@ export default function ContestSubmitScreen() {
             <Pressable
               onPress={() => selectSpot(searchQuery)}
               disabled={!searchQuery}
-              style={{ width: '100%', paddingVertical: normalize(13), paddingHorizontal: CONTENT_PADDING, flexDirection: 'row', alignItems: 'center', gap: normalize(12), borderTopWidth: filteredSpots.length > 0 ? 1 : 0, borderTopColor: 'rgba(0,0,0,0.06)', marginTop: filteredSpots.length > 0 ? normalize(6) : 0 }}
+              style={{ width: '100%', paddingVertical: normalize(13), paddingHorizontal: CONTENT_PADDING, flexDirection: 'row', alignItems: 'center', gap: normalize(12), borderTopWidth: filteredSpots.length > 0 ? HAIRLINE_WIDTH : 0, borderTopColor: HAIRLINE, marginTop: filteredSpots.length > 0 ? normalize(6) : 0 }}
             >
-              <View style={{ width: normalize(34), height: normalize(34), borderRadius: normalize(17), backgroundColor: filteredSpots.length === 0 && searchQuery ? 'rgba(227,27,89,0.1)' : SURFACE, alignItems: 'center', justifyContent: 'center' }}>
+              <View style={{ width: normalize(34), height: normalize(34), borderRadius: normalize(17), backgroundColor: filteredSpots.length === 0 && searchQuery ? BRAND_TINT_ACTIVE : SURFACE, alignItems: 'center', justifyContent: 'center' }}>
                 <Plus size={normalize(18)} color="#8e8e93" strokeWidth={2} />
               </View>
               <View style={{ flex: 1, minWidth: 0 }}>

@@ -10,9 +10,10 @@ import Toast from '@/components/common/Toast';
 import DevStateSwitch from '@/components/common/DevStateSwitch';
 import { CommunityDetailStackParamList } from '@/navigation/stacks/CommunityDetailStack';
 import { ContestEntry, ContestSortKey, MyVoteEntry } from '@/types/community';
-import { CARD_RADIUS, HEADER_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING, FONT_2XS, FONT_LG, FONT_MD, FONT_SM, FONT_XS } from '@/constants/layout';
+import { BUTTON_RADIUS, CARD_RADIUS, CONTENT_PADDING, FONT_2XS, FONT_LG, FONT_MD, FONT_SM, FONT_XS, HAIRLINE_WIDTH, HEADER_HEIGHT } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
 import { voteHaptic } from '@/utils/haptics';
+import { BRAND, BRAND_TINT, CARD, HAIRLINE } from '@/constants/colors';
 
 /**
  * 콘테스트 > 전체 출품작 목록 — 목업 contest-all-entries.html 1:1, 두 가지 용도로 쓰인다.
@@ -21,14 +22,13 @@ import { voteHaptic } from '@/utils/haptics';
  *     투표 UI는 없다(그 자리에 마감일). ContestResultScreen의 "전체 보기"에서 이 모드로 들어온다.
  */
 
-const PINK = '#E31B59';
+const PINK = BRAND;
 const INK = '#000000';
-const FILL = '#f5f5f7';
+const FILL = CARD;
 const GRAY_DISABLED = '#c7c7cc';
 const GRAY_SUB = '#8e8e93';
 const GRAY_SPENT = '#e6e6ea';
 const GRAY_SPENT_ICON = '#b8b8be';
-const HAIRLINE = 'rgba(0,0,0,0.06)';
 
 const GAP = 20;
 const MAX_VOTES = 3;
@@ -103,7 +103,7 @@ function VoteButton({ voted, disabled, onPress }: { voted: boolean; disabled: bo
         height: normalize(28),
         borderRadius: normalize(14),
         flexShrink: 0,
-        backgroundColor: voted ? 'rgba(227,27,89,0.1)' : spent ? GRAY_SPENT : PINK,
+        backgroundColor: voted ? BRAND_TINT : spent ? GRAY_SPENT : PINK,
       }}
     >
       {voted ? (
@@ -355,7 +355,7 @@ export default function ContestAllEntriesScreen() {
       {devState === 'list' && (
         <>
       {/* 정렬 바 — 칩(pill)이 아니라 배경 없는 텍스트 2개. 우측은 투표 기간엔 남은 표 pill, 지난 기간엔 마감일 */}
-      <View className="flex-row items-center" style={{ paddingTop: normalize(6), paddingBottom: normalize(14), borderBottomWidth: 1, borderBottomColor: HAIRLINE }}>
+      <View className="flex-row items-center" style={{ paddingTop: normalize(6), paddingBottom: normalize(14), borderBottomWidth: HAIRLINE_WIDTH, borderBottomColor: HAIRLINE }}>
         <View className="flex-row items-center" style={{ height: normalize(34), paddingLeft: CONTENT_PADDING, gap: normalize(14) }}>
           {mode === 'voting'
             ? SORTS.map((option, index) => (

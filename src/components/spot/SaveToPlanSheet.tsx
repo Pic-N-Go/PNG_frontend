@@ -5,11 +5,12 @@ import { useNavigation } from '@react-navigation/native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { IconCheck, IconChevronLeft, IconPlus } from '@tabler/icons-react-native';
 import BottomSheet from '@/components/common/BottomSheet';
-import { BUTTON_HEIGHT, BUTTON_RADIUS, GRID_PADDING } from '@/constants/layout';
+import { BORDER_CONTROL, BUTTON_HEIGHT, BUTTON_RADIUS, GRID_PADDING } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { coursesApi } from '@/api/courses';
 import { useAddSpotToCourse } from '@/hooks/useCourses';
 import { useCourseStore } from '@/store/useCourseStore';
+import { BRAND, BRAND_MUTED, BRAND_TINT, BRAND_TINT_ACTIVE, CARD, TEXT_SUB } from '@/constants/colors';
 
 const GRADIENT_PALETTES: [string, string][] = [
   ['#f59e0b', '#c2410c'],
@@ -181,8 +182,8 @@ export default function SaveToPlanSheet({ visible, onClose, spot, onSaved }: Pro
             <View style={{ paddingHorizontal: GRID_PADDING }}>
               {isLoading ? (
                 <View style={{ paddingVertical: normalize(36), alignItems: 'center', justifyContent: 'center' }}>
-                  <ActivityIndicator size="small" color="#E31B59" />
-                  <Text allowFontScaling={false} style={{ fontSize: normalizeFontSize(13), color: 'rgba(0,0,0,0.4)', marginTop: normalize(8) }}>
+                  <ActivityIndicator size="small" color={BRAND} />
+                  <Text allowFontScaling={false} style={{ fontSize: normalizeFontSize(13), color: TEXT_SUB, marginTop: normalize(8) }}>
                     코스 목록을 불러오는 중...
                   </Text>
                 </View>
@@ -209,9 +210,9 @@ export default function SaveToPlanSheet({ visible, onClose, spot, onSaved }: Pro
                         gap: normalize(12),
                         padding: normalize(14),
                         borderRadius: normalize(16),
-                        backgroundColor: isSelected ? 'rgba(227,27,89,0.03)' : '#F5F5F7',
-                        borderWidth: 1.5,
-                        borderColor: isSelected ? '#E31B59' : 'transparent',
+                        backgroundColor: isSelected ? BRAND_TINT_ACTIVE : CARD,
+                        borderWidth: BORDER_CONTROL,
+                        borderColor: isSelected ? BRAND : 'transparent',
                         marginBottom: normalize(8),
                       }}
                     >
@@ -220,7 +221,7 @@ export default function SaveToPlanSheet({ visible, onClose, spot, onSaved }: Pro
                         <Text allowFontScaling={false} numberOfLines={1} style={{ fontFamily: 'Pretendard-Medium', fontSize: normalizeFontSize(15), color: '#000', letterSpacing: -0.2 }}>
                           {course.title}
                         </Text>
-                        <Text allowFontScaling={false} style={{ fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.4)', marginTop: normalize(2) }}>
+                        <Text allowFontScaling={false} style={{ fontSize: normalizeFontSize(12), color: TEXT_SUB, marginTop: normalize(2) }}>
                           {dateFormatted} · 스팟 {spotsCount}개
                         </Text>
                       </View>
@@ -229,9 +230,9 @@ export default function SaveToPlanSheet({ visible, onClose, spot, onSaved }: Pro
                           width: normalize(24),
                           height: normalize(24),
                           borderRadius: normalize(12),
-                          borderWidth: 1.5,
-                          borderColor: isSelected ? '#E31B59' : 'rgba(0,0,0,0.15)',
-                          backgroundColor: isSelected ? '#E31B59' : 'transparent',
+                          borderWidth: BORDER_CONTROL,
+                          borderColor: isSelected ? BRAND : 'rgba(0,0,0,0.15)',
+                          backgroundColor: isSelected ? BRAND : 'transparent',
                           alignItems: 'center',
                           justifyContent: 'center',
                         }}
@@ -252,17 +253,17 @@ export default function SaveToPlanSheet({ visible, onClose, spot, onSaved }: Pro
                   gap: normalize(12),
                   padding: normalize(14),
                   borderRadius: normalize(16),
-                  borderWidth: 1.5,
-                  borderColor: 'rgba(227,27,89,0.3)',
+                  borderWidth: BORDER_CONTROL,
+                  borderColor: BRAND_MUTED,
                   borderStyle: 'dashed',
                   marginTop: normalize(4),
                   marginBottom: normalize(12),
                 }}
               >
-                <View style={{ width: normalize(52), height: normalize(52), borderRadius: normalize(12), backgroundColor: 'rgba(227,27,89,0.06)', alignItems: 'center', justifyContent: 'center' }}>
-                  <IconPlus size={normalize(22)} color="#E31B59" strokeWidth={2} />
+                <View style={{ width: normalize(52), height: normalize(52), borderRadius: normalize(12), backgroundColor: BRAND_TINT, alignItems: 'center', justifyContent: 'center' }}>
+                  <IconPlus size={normalize(22)} color={BRAND} strokeWidth={2} />
                 </View>
-                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: normalizeFontSize(14), color: '#E31B59' }}>
+                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: normalizeFontSize(14), color: BRAND }}>
                   + 새 코스 만들기
                 </Text>
               </Pressable>
@@ -279,7 +280,7 @@ export default function SaveToPlanSheet({ visible, onClose, spot, onSaved }: Pro
                 borderRadius: BUTTON_RADIUS,
                 alignItems: 'center',
                 justifyContent: 'center',
-                backgroundColor: selectedCourse && !isSaving ? '#E31B59' : 'rgba(0,0,0,0.08)',
+                backgroundColor: selectedCourse && !isSaving ? BRAND : 'rgba(0,0,0,0.08)',
               }}
             >
               {isSaving ? (
@@ -321,15 +322,15 @@ export default function SaveToPlanSheet({ visible, onClose, spot, onSaved }: Pro
                       paddingVertical: normalize(12),
                       paddingHorizontal: normalize(16),
                       borderRadius: normalize(14),
-                      backgroundColor: isSelected ? 'rgba(227,27,89,0.06)' : '#F5F5F7',
-                      borderWidth: 2,
-                      borderColor: isSelected ? '#E31B59' : 'transparent',
+                      backgroundColor: isSelected ? BRAND_TINT_ACTIVE : CARD,
+                      borderWidth: BORDER_CONTROL,
+                      borderColor: isSelected ? BRAND : 'transparent',
                     }}
                   >
-                    <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(11), color: isSelected ? '#E31B59' : 'rgba(0,0,0,0.4)', letterSpacing: -0.1, marginBottom: normalize(2) }}>
+                    <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(11), color: isSelected ? BRAND : TEXT_SUB, letterSpacing: -0.1, marginBottom: normalize(2) }}>
                       {dayItem.label}
                     </Text>
-                    <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: normalizeFontSize(14), color: isSelected ? '#E31B59' : '#000', letterSpacing: -0.25 }}>
+                    <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: normalizeFontSize(14), color: isSelected ? BRAND : '#000', letterSpacing: -0.25 }}>
                       {dayItem.dateStr}
                     </Text>
                   </Pressable>
@@ -348,7 +349,7 @@ export default function SaveToPlanSheet({ visible, onClose, spot, onSaved }: Pro
                 borderRadius: BUTTON_RADIUS,
                 alignItems: 'center',
                 justifyContent: 'center',
-                backgroundColor: isSaving ? 'rgba(0,0,0,0.08)' : '#E31B59',
+                backgroundColor: isSaving ? 'rgba(0,0,0,0.08)' : BRAND,
               }}
             >
               {isSaving ? (

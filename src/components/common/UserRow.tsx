@@ -1,9 +1,10 @@
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 import Avatar from '@/components/common/Avatar';
-import { FONT_SM, FONT_XS } from '@/constants/layout';
+import { FONT_SM, FONT_XS, HAIRLINE_WIDTH } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
 import type { FollowUserResponse } from '@/types/user';
+import { HAIRLINE } from '@/constants/colors';
 
 interface Props {
   user: FollowUserResponse;
@@ -29,8 +30,8 @@ export default function UserRow({ user, onPress, action }: Props) {
       className="flex-row items-center"
       style={{
         paddingVertical: normalize(12),
-        borderBottomWidth: 0.5,
-        borderBottomColor: 'rgba(0,0,0,0.04)',
+        borderBottomWidth: HAIRLINE_WIDTH,
+        borderBottomColor: HAIRLINE,
       }}
     >
       <Avatar userId={user.id} nickname={user.nickname} imageUrl={user.profileImageUrl} size={44} />

@@ -4,14 +4,15 @@ import { CalendarDays } from 'lucide-react-native';
 import { ContestPastMonthItem } from '@/types/community';
 import { CONTENT_PADDING, FONT_LG, FONT_MD, FONT_SM, FONT_XS } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
+import { BRAND, BRAND_TINT, CARD } from '@/constants/colors';
 
 /**
  * 콘테스트 > 지난 — 시안 15a(회차 리스트)·15b(빈 상태). 가장 최근 결과는 진행중 탭 상단
  * 요약 행에 있어서 여기 첫 행은 항상 전전 달이다(ContestSegment의 PAST_ITEMS가 이미 그렇게 구성됨).
  */
 
-const ACCENT = '#E31B59';
-const SURFACE = '#f5f5f7';
+const ACCENT = BRAND;
+const SURFACE = CARD;
 const SUB = '#8e8e93';
 
 interface Props {
@@ -69,7 +70,7 @@ export default function ContestPastTab({ items, onSelectItem }: Props) {
                 alignItems: 'center',
                 justifyContent: 'center',
                 flexShrink: 0,
-                backgroundColor: item.kind === 'award' ? 'rgba(227,27,89,0.1)' : '#fff',
+                backgroundColor: item.kind === 'award' ? BRAND_TINT : '#fff',
               }}
             >
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, letterSpacing: -0.1, color: item.kind === 'award' ? ACCENT : item.kind === 'none' ? SUB : '#000' }}>

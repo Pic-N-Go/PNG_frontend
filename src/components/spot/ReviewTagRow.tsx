@@ -4,6 +4,7 @@ import { REVIEW_TAG_LABEL } from '@/constants/reviewTags';
 import { FONT_XS } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
 import type { ReviewTagApi } from '@/types/spot';
+import { CARD } from '@/constants/colors';
 
 interface Props {
   tags: ReviewTagApi[];
@@ -29,7 +30,7 @@ export default function ReviewTagRow({ tags }: Props) {
             height: normalize(24),
             paddingHorizontal: normalize(10),
             borderRadius: normalize(12),
-            backgroundColor: '#F5F5F7',
+            backgroundColor: CARD,
             alignItems: 'center',
             justifyContent: 'center',
           }}

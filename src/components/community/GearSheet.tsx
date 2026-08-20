@@ -6,9 +6,10 @@ import { useMyEquipments } from '@/hooks/useEquipment';
 import { GearSheetKind } from '@/types/community';
 import { BUTTON_HEIGHT, BUTTON_RADIUS, FONT_2XS, FONT_LG, FONT_MD, FONT_SM, GRID_PADDING } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
+import { BRAND, BRAND_TINT_ACTIVE, CARD, TEXT_SUB } from '@/constants/colors';
 
-const ACCENT = '#E31B59';
-const SURFACE = '#f5f5f7';
+const ACCENT = BRAND;
+const SURFACE = CARD;
 
 /**
  * 마이페이지에 등록한 장비가 없을 때 보여줄 기본 목록.
@@ -78,7 +79,7 @@ export default function GearSheet({ visible, kind, value, onSelect, onClose }: P
           />
         </View>
 
-        <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_2XS, color: 'rgba(0,0,0,0.4)', letterSpacing: 0.3, marginTop: normalize(16), marginBottom: normalize(8) }}>
+        <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_2XS, color: TEXT_SUB, letterSpacing: 0.3, marginTop: normalize(16), marginBottom: normalize(8) }}>
           {label}
         </Text>
         <View className="flex-row flex-wrap" style={{ gap: normalize(6) }}>
@@ -93,7 +94,7 @@ export default function GearSheet({ visible, kind, value, onSelect, onClose }: P
                   height: normalize(30),
                   paddingHorizontal: normalize(12),
                   borderRadius: normalize(15),
-                  backgroundColor: selected ? 'rgba(227,27,89,0.08)' : SURFACE,
+                  backgroundColor: selected ? BRAND_TINT_ACTIVE : SURFACE,
                 }}
               >
                 <Text

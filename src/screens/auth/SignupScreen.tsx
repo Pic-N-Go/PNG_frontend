@@ -22,22 +22,9 @@ import AuthInput from '@/components/auth/AuthInput';
 import AuthCheckbox from '@/components/auth/AuthCheckbox';
 import ThemePill from '@/components/auth/ThemePill';
 import { THEMES, THEME_CATEGORY_MAP } from '@/constants/themes';
-import {
-  BUTTON_HEIGHT,
-  BUTTON_RADIUS,
-  CONTENT_PADDING,
-  FONT_LG,
-  FONT_MD,
-  FONT_SM,
-  FONT_XS,
-  FONT_2XL,
-  INPUT_HEIGHT,
-  INPUT_RADIUS,
-  SPACING_MD,
-  SPACING_LG,
-  SPACING_XL,
-} from '@/constants/layout';
+import { BORDER_CONTROL, BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING, FONT_2XL, FONT_LG, FONT_MD, FONT_SM, FONT_XS, HAIRLINE_WIDTH, INPUT_HEIGHT, INPUT_RADIUS, SPACING_LG, SPACING_MD, SPACING_XL } from '@/constants/layout';
 import { NICK_RE, NICK_MAX, nicknameError, passwordError } from '@/constants/validation';
+import { BRAND, CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Signup'>;
 
@@ -271,7 +258,7 @@ export default function SignupScreen({ navigation }: Props) {
                   borderRadius: 12,
                   backgroundColor: emailVerified
                     ? SUCCESS
-                    : emailOk ? '#E31B59' : 'rgba(0,0,0,0.06)',
+                    : emailOk ? BRAND : 'rgba(0,0,0,0.06)',
                   alignItems: 'center',
                   justifyContent: 'center',
                   opacity: verifyEmailMutation.isPending ? 0.6 : 1,
@@ -299,9 +286,9 @@ export default function SignupScreen({ navigation }: Props) {
                     flex: 1,
                     height: INPUT_HEIGHT,
                     borderRadius: INPUT_RADIUS,
-                    borderWidth: 1.5,
-                    borderColor: codeFocused ? '#E31B59' : 'transparent',
-                    backgroundColor: codeFocused ? '#fff' : '#F5F5F7',
+                    borderWidth: BORDER_CONTROL,
+                    borderColor: codeFocused ? BRAND : 'transparent',
+                    backgroundColor: codeFocused ? '#fff' : CARD,
                     flexDirection: 'row',
                     alignItems: 'center',
                   }}
@@ -335,7 +322,7 @@ export default function SignupScreen({ navigation }: Props) {
                     width: 80,
                     height: INPUT_HEIGHT,
                     borderRadius: 12,
-                    backgroundColor: verifyCode.length === 6 ? '#E31B59' : 'rgba(0,0,0,0.06)',
+                    backgroundColor: verifyCode.length === 6 ? BRAND : 'rgba(0,0,0,0.06)',
                     alignItems: 'center',
                     justifyContent: 'center',
                     opacity: confirmEmailMutation.isPending ? 0.6 : 1,
@@ -468,8 +455,8 @@ export default function SignupScreen({ navigation }: Props) {
                   alignItems: 'center',
                   gap: 8,
                   paddingBottom: 14,
-                  borderBottomWidth: 0.5,
-                  borderBottomColor: 'rgba(0,0,0,0.08)',
+                  borderBottomWidth: HAIRLINE_WIDTH,
+                  borderBottomColor: HAIRLINE,
                   marginBottom: 14,
                 }}
               >
@@ -507,7 +494,7 @@ export default function SignupScreen({ navigation }: Props) {
               style={{
                 height: BUTTON_HEIGHT,
                 borderRadius: BUTTON_RADIUS,
-                backgroundColor: allOk ? '#E31B59' : 'rgba(0,0,0,0.06)',
+                backgroundColor: allOk ? BRAND : 'rgba(0,0,0,0.06)',
                 alignItems: 'center',
                 justifyContent: 'center',
                 opacity: registerMutation.isPending ? 0.6 : 1,
@@ -527,11 +514,11 @@ export default function SignupScreen({ navigation }: Props) {
 
             {/* Login link */}
             <View style={{ flexDirection: 'row', justifyContent: 'center', marginTop: SPACING_LG }}>
-              <Text style={{ fontSize: FONT_MD, color: 'rgba(0,0,0,0.4)', letterSpacing: -0.15, fontFamily: 'Pretendard-Regular' }}>
+              <Text style={{ fontSize: FONT_MD, color: TEXT_SUB, letterSpacing: -0.15, fontFamily: 'Pretendard-Regular' }}>
                 이미 계정이 있으신가요?
               </Text>
               <Pressable onPress={() => navigation.goBack()}>
-                <Text style={{ fontSize: FONT_MD, color: '#E31B59', letterSpacing: -0.15, marginLeft: 4, fontFamily: 'Pretendard-SemiBold' }}>
+                <Text style={{ fontSize: FONT_MD, color: BRAND, letterSpacing: -0.15, marginLeft: 4, fontFamily: 'Pretendard-SemiBold' }}>
                   로그인
                 </Text>
               </Pressable>

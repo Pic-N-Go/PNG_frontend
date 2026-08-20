@@ -5,6 +5,7 @@ import { IconX } from '@tabler/icons-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { FONT_SM, FONT_MD, BUTTON_HEIGHT, BUTTON_RADIUS } from '@/constants/layout';
 import { THEMES } from '@/constants/themes';
+import { CARD, TEXT_SUB } from '@/constants/colors';
 
 interface ThemeSheetProps {
   visible: boolean;
@@ -36,11 +37,11 @@ export default function ThemeSheet({ visible, onClose, onSave }: ThemeSheetProps
             관심 테마
           </Text>
           <TouchableOpacity onPress={onClose} style={{ padding: normalize(4) }}>
-            <IconX size={normalize(24)} color="rgba(0,0,0,0.4)" strokeWidth={2} />
+            <IconX size={normalize(24)} color={TEXT_SUB} strokeWidth={2} />
           </TouchableOpacity>
         </View>
 
-        <Text className="tracking-tight mb-4" style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.4)', letterSpacing: -0.1 }}>
+        <Text className="tracking-tight mb-4" style={{ fontSize: FONT_SM, color: TEXT_SUB, letterSpacing: -0.1 }}>
           홈 피드 및 스팟 추천에 반영돼요. 복수 선택 가능해요.
         </Text>
 
@@ -55,7 +56,7 @@ export default function ThemeSheet({ visible, onClose, onSave }: ThemeSheetProps
                   paddingHorizontal: normalize(14),
                   paddingVertical: normalize(8),
                   borderRadius: normalize(20),
-                  backgroundColor: isSelected ? '#1d1d1f' : '#f8f8f9',
+                  backgroundColor: isSelected ? '#1d1d1f' : CARD,
                 }}
               >
                 <Text
@@ -71,7 +72,7 @@ export default function ThemeSheet({ visible, onClose, onSave }: ThemeSheetProps
 
         <TouchableOpacity
           onPress={onSave}
-          className="w-full items-center justify-center bg-[#E31B59] mt-6"
+          className="w-full items-center justify-center bg-brand mt-6"
           style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}
         >
           <Text className="font-medium text-white tracking-tight" style={{ fontSize: FONT_MD }}>

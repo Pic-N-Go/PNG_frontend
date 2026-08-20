@@ -10,6 +10,7 @@ import {
 import BottomSheet from '@/components/common/BottomSheet';
 import { normalizeFontSize } from '@/utils/normalize';
 import { CONTENT_PADDING, GRID_PADDING, FONT_2XS } from '@/constants/layout';
+import { BRAND } from '@/constants/colors';
 
 // 미구현 항목 표시. 공동 편집자 초대·캘린더 추가 두 곳에서 같은 모양으로 쓴다.
 function BetaBadge() {
@@ -49,7 +50,7 @@ export default function CourseMoreSheet({
       </View>
 
       <View className="pb-[40px]" style={{ paddingHorizontal: GRID_PADDING }}>
-        <TouchableOpacity className="flex-row items-center bg-[#F5F5F7] rounded-2xl p-[16px] mb-[10px]" onPress={() => { onClose(); onEditName(); }}>
+        <TouchableOpacity className="flex-row items-center bg-card rounded-2xl p-[16px] mb-[10px]" onPress={() => { onClose(); onEditName(); }}>
           <View className="w-10 h-10 rounded-lg items-center justify-center mr-3">
             <IconEdit size={20} color="#333" strokeWidth={1.5} />
           </View>
@@ -58,7 +59,7 @@ export default function CourseMoreSheet({
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity className="flex-row items-center bg-[#F5F5F7] rounded-2xl p-[16px] mb-[10px]" onPress={() => { onClose(); onDuplicate(); }}>
+        <TouchableOpacity className="flex-row items-center bg-card rounded-2xl p-[16px] mb-[10px]" onPress={() => { onClose(); onDuplicate(); }}>
           <View className="w-10 h-10 rounded-lg items-center justify-center mr-3">
             <IconCopy size={20} color="#333" strokeWidth={1.5} />
           </View>
@@ -68,7 +69,7 @@ export default function CourseMoreSheet({
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity className="flex-row items-center bg-[#F5F5F7] rounded-2xl p-[16px] mb-[10px]" onPress={() => { onClose(); onInvite(); }}>
+        <TouchableOpacity className="flex-row items-center bg-card rounded-2xl p-[16px] mb-[10px]" onPress={() => { onClose(); onInvite(); }}>
           <View className="w-10 h-10 rounded-lg items-center justify-center mr-3">
             <IconUserPlus size={20} color="#333" strokeWidth={1.5} />
           </View>
@@ -81,7 +82,7 @@ export default function CourseMoreSheet({
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity className="flex-row items-center bg-[#F5F5F7] rounded-2xl p-[16px] mb-[10px]" onPress={() => { onClose(); onAddToCalendar(); }}>
+        <TouchableOpacity className="flex-row items-center bg-card rounded-2xl p-[16px] mb-[10px]" onPress={() => { onClose(); onAddToCalendar(); }}>
           <View className="w-10 h-10 rounded-lg items-center justify-center mr-3">
             <IconCalendarPlus size={20} color="#333" strokeWidth={1.5} />
           </View>
@@ -96,11 +97,11 @@ export default function CourseMoreSheet({
 
         <TouchableOpacity className="flex-row items-center bg-[#FFF0F3] rounded-2xl p-[16px] mb-[10px] mt-[10px]" onPress={() => { onClose(); onDelete(); }}>
           <View className="w-10 h-10 rounded-lg items-center justify-center mr-3 bg-transparent">
-            <IconTrash size={20} color="#E31B59" strokeWidth={1.5} />
+            <IconTrash size={20} color={BRAND} strokeWidth={1.5} />
           </View>
           <View className="flex-1 justify-center">
-            <Text className="font-semibold text-[#E31B59] tracking-[-0.3px]" style={{ fontSize: normalizeFontSize(16) }}>이 계획 전체 삭제</Text>
-            <Text className="font-normal text-[#E31B59] opacity-70 mt-0.5 tracking-[-0.2px]" style={{ fontSize: normalizeFontSize(12) }}>{"스팟 개별 삭제는 '코스 편집'에서 · 되돌릴 수 없어요"}</Text>
+            <Text className="font-semibold text-brand tracking-[-0.3px]" style={{ fontSize: normalizeFontSize(16) }}>이 계획 전체 삭제</Text>
+            <Text className="font-normal text-brand opacity-70 mt-0.5 tracking-[-0.2px]" style={{ fontSize: normalizeFontSize(12) }}>{"스팟 개별 삭제는 '코스 편집'에서 · 되돌릴 수 없어요"}</Text>
           </View>
         </TouchableOpacity>
       </View>

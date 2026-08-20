@@ -20,6 +20,8 @@ import { getDayColor, DAY_COLOR_PALETTE } from '@/constants/dayColors';
 import { CATEGORY_LABELS, CODE_BY_LABEL } from '@/constants/spotCategories';
 import { FONT_SM, FONT_MD, FONT_XL, BUTTON_HEIGHT, BUTTON_RADIUS, HEADER_HEIGHT, ICON_SM, CONTROL_SIZE } from '@/constants/layout';
 import Chip from '@/components/common/Chip';
+import { BRAND, TEXT_SUB } from '@/constants/colors';
+import { SHADOW_CONTROL, SHADOW_OVERLAY } from '@/constants/shadow';
 
 const KAKAO_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_API_KEY;
 
@@ -569,7 +571,7 @@ export default function MapScreen() {
       transform: translateZ(0);
     }
     .custom-marker {
-      width: 24px; height: 24px; border-radius: 50%; background: #E31B59;
+      width: 24px; height: 24px; border-radius: 50%; background: ${BRAND};
       display: flex; align-items: center; justify-content: center;
       box-shadow: 0 2px 6px rgba(227, 27, 89, 0.35); border: 2px solid white;
     }
@@ -614,7 +616,7 @@ export default function MapScreen() {
             gridSize: 50,
             styles: [{
                 width: '34px', height: '34px',
-                background: '#E31B59',
+                background: BRAND,
                 borderRadius: '17px',
                 color: '#FFFFFF',
                 textAlign: 'center',
@@ -667,7 +669,7 @@ export default function MapScreen() {
           var line = new kakao.maps.Polyline({
             path: group.map(function(s) { return new kakao.maps.LatLng(s.lat, s.lng); }),
             strokeWeight: 3,
-            strokeColor: group[0].__dayColor || '#e31b59',
+            strokeColor: group[0].__dayColor || BRAND,
             strokeOpacity: 0.8,
             strokeStyle: 'solid'
           });
@@ -898,7 +900,7 @@ export default function MapScreen() {
         <StatusBar style="dark" />
         {/* 상단 오버레이 (검색창 + 뒤로가기) */}
         {mode === 'wishlist-change' ? (
-          <View className="bg-[#E31B59] pt-14 pb-4 px-5 z-20 absolute top-0 left-0 right-0 w-full pointer-events-auto shadow-md">
+          <View className="bg-brand pt-14 pb-4 px-5 z-20 absolute top-0 left-0 right-0 w-full pointer-events-auto shadow-md">
             <View className="flex-row items-center justify-between mb-3">
               <TouchableOpacity onPress={handleBackNavigation} className="bg-white/20 items-center justify-center rounded-full" style={{ width: normalize(32), height: normalize(32) }}>
                 <IconChevronLeft size={normalize(20)} color="#fff" />
@@ -920,7 +922,7 @@ export default function MapScreen() {
               />
               {searchQuery.length > 0 && (
                 <TouchableOpacity onPress={() => setSearchQuery('')} hitSlop={8}>
-                  <IconX size={normalize(16)} color="rgba(0,0,0,0.4)" />
+                  <IconX size={normalize(16)} color={TEXT_SUB} />
                 </TouchableOpacity>
               )}
             </View>
@@ -941,11 +943,7 @@ export default function MapScreen() {
                 borderColor: 'rgba(255,255,255,0.6)',
                 alignItems: 'center',
                 justifyContent: 'center',
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 2 },
-                shadowOpacity: 0.06,
-                shadowRadius: 12,
-                elevation: 3,
+                ...SHADOW_CONTROL,
               }}
             >
               <IconChevronLeft size={normalize(24)} color="#000" strokeWidth={1.5} />
@@ -964,11 +962,7 @@ export default function MapScreen() {
                   flexDirection: 'row',
                   alignItems: 'center',
                   paddingHorizontal: normalize(16),
-                  shadowColor: '#000',
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.06,
-                  shadowRadius: 12,
-                  elevation: 3,
+                  ...SHADOW_CONTROL,
                 }}
               >
                 <TouchableOpacity
@@ -992,7 +986,7 @@ export default function MapScreen() {
                   </Text>
                   {searchQuery.length > 0 && (
                     <TouchableOpacity onPress={() => setSearchQuery('')} hitSlop={8} style={{ padding: 4 }}>
-                      <IconX size={normalize(16)} color="rgba(0,0,0,0.4)" strokeWidth={1.5} />
+                      <IconX size={normalize(16)} color={TEXT_SUB} strokeWidth={1.5} />
                     </TouchableOpacity>
                   )}
                 </TouchableOpacity>
@@ -1014,7 +1008,7 @@ export default function MapScreen() {
                           width: normalize(14),
                           height: normalize(14),
                           borderRadius: normalize(7),
-                          backgroundColor: '#E31B59',
+                          backgroundColor: BRAND,
                           alignItems: 'center',
                           justifyContent: 'center',
                         }}
@@ -1060,8 +1054,8 @@ export default function MapScreen() {
                     {isAllDays ? '전체' : `DAY ${currentPlanDay}`}
                   </Text>
                   {dayMenuOpen
-                    ? <IconChevronUp size={normalize(16)} color="rgba(0,0,0,0.4)" strokeWidth={2} />
-                    : <IconChevronDown size={normalize(16)} color="rgba(0,0,0,0.4)" strokeWidth={2} />}
+                    ? <IconChevronUp size={normalize(16)} color={TEXT_SUB} strokeWidth={2} />
+                    : <IconChevronDown size={normalize(16)} color={TEXT_SUB} strokeWidth={2} />}
                 </TouchableOpacity>
 
               </View>
@@ -1131,11 +1125,7 @@ export default function MapScreen() {
               borderRadius: normalize(14),
               backgroundColor: '#fff',
               overflow: 'hidden',
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: 4 },
-              shadowOpacity: 0.16,
-              shadowRadius: 16,
-              elevation: 6,
+              ...SHADOW_OVERLAY,
             }}
           >
             {/* 5행까지 노출하고 그 이상은 목록만 스크롤 */}
@@ -1205,11 +1195,7 @@ export default function MapScreen() {
               backgroundColor: '#ffffff',
               borderRadius: 12,
               overflow: 'hidden',
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.1,
-              shadowRadius: 8,
-              elevation: 3,
+              ...SHADOW_CONTROL,
             }}
           >
             <TouchableOpacity
@@ -1232,11 +1218,7 @@ export default function MapScreen() {
               backgroundColor: '#ffffff',
               borderRadius: 12,
               overflow: 'hidden',
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.1,
-              shadowRadius: 8,
-              elevation: 3,
+              ...SHADOW_CONTROL,
             }}
           >
             <TouchableOpacity
@@ -1288,11 +1270,7 @@ export default function MapScreen() {
               paddingHorizontal: normalize(16),
               borderRadius: normalize(16),
               backgroundColor: '#fff',
-              shadowColor: '#000',
-              shadowOffset: { width: 0, height: 2 },
-              shadowOpacity: 0.12,
-              shadowRadius: 10,
-              elevation: 3,
+              ...SHADOW_CONTROL,
             }}
           >
             <View
@@ -1337,7 +1315,7 @@ export default function MapScreen() {
                   <Image source={{ uri: activeSpot.photo }} className="rounded-xl mr-3" style={{ width: normalize(64), height: normalize(64) }} />
                   <View className="flex-1 justify-center">
                     <Text className="font-semibold text-black mb-1" style={{ fontSize: normalizeFontSize(20) }}>{activeSpot.name}</Text>
-                    <Text className="text-black/40 mb-2.5" style={{ fontSize: normalizeFontSize(14) }}>{activeSpot.loc}</Text>
+                    <Text className="text-sub mb-2.5" style={{ fontSize: normalizeFontSize(14) }}>{activeSpot.loc}</Text>
                     {/* 포토제닉 칩 없음 — 여기 뜨던 값은 고정 컬럼이라 상세의 실시간 지수와 어긋난다.
                         score는 아래 필터(detailFilter.score)에서 계속 쓰므로 필드 자체는 남긴다. */}
                     <View className="flex-row items-center gap-2 flex-wrap">
@@ -1366,7 +1344,7 @@ export default function MapScreen() {
                     }
                     navigation.navigate('WishlistSetting', { newSpot: activeSpot }, { merge: true });
                   }} 
-                  className="bg-[#E31B59] items-center justify-center" 
+                  className="bg-brand items-center justify-center" 
                   style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}>
                   <Text className="font-medium text-white" style={{ fontSize: normalizeFontSize(16) }}>이 스팟으로 변경</Text>
                 </TouchableOpacity>
@@ -1400,7 +1378,7 @@ export default function MapScreen() {
                         addSpot(popupSpot);
                       }
                     }}
-                    className={`flex-1 items-center justify-center ${saved ? 'bg-[#E31B59]' : 'bg-[#f5f5f7]'}`}
+                    className={`flex-1 items-center justify-center ${saved ? 'bg-brand' : 'bg-card'}`}
                     style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}
                   >
                     <Text className={`font-semibold ${saved ? 'text-white' : 'text-black/60'}`} style={{ fontSize: FONT_MD }}>
@@ -1411,7 +1389,7 @@ export default function MapScreen() {
 
               <TouchableOpacity
                 onPress={() => navigation.navigate('SpotStack', { screen: 'SpotDetail', params: { spotId: popupSpot.id } })}
-                className="flex-1 bg-[#E31B59] items-center justify-center"
+                className="flex-1 bg-brand items-center justify-center"
                 style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}
               >
                 <Text className="font-semibold text-white" style={{ fontSize: FONT_MD }}>상세 보기</Text>

@@ -4,6 +4,7 @@ import { IconCheck } from '@tabler/icons-react-native';
 import BottomSheet from '@/components/common/BottomSheet';
 import { GRID_PADDING } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
+import { BRAND } from '@/constants/colors';
 
 interface Props {
   visible: boolean;
@@ -39,13 +40,13 @@ export default function OptionSheet({ visible, title, options, selected, onSelec
                 style={{
                   fontFamily: isSelected ? 'Pretendard-SemiBold' : 'Pretendard-Regular',
                   fontSize: normalizeFontSize(15),
-                  color: isSelected ? '#E31B59' : '#000',
+                  color: isSelected ? BRAND : '#000',
                   letterSpacing: -0.2,
                 }}
               >
                 {option}
               </Text>
-              {isSelected && <IconCheck size={normalize(18)} color="#E31B59" strokeWidth={2} />}
+              {isSelected && <IconCheck size={normalize(18)} color={BRAND} strokeWidth={2} />}
             </Pressable>
           );
         })}

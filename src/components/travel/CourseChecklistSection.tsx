@@ -4,8 +4,9 @@ import { Check, ChevronDown, ChevronUp, Plus, X } from 'lucide-react-native';
 import { useMutation } from '@tanstack/react-query';
 import { toErrorMessage } from '@/api/auth';
 import { coursesApi, type CourseChecklist } from '@/api/courses';
-import { FONT_LG, FONT_MD, FONT_SM } from '@/constants/layout';
+import { BORDER_CONTROL, FONT_LG, FONT_MD, FONT_SM } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
+import { BRAND, CARD, TEXT_SUB } from '@/constants/colors';
 
 // 스팟 상세 ChecklistSection의 UI를 코스 API(플랫 목록 + 서버 저장 isChecked)에 맞춰 옮긴 것.
 // 인라인 스타일인 이유: 높이·radius·아이콘은 normalize()로 스케일해야 해서 className으로 옮길 수 없다.
@@ -20,7 +21,7 @@ const PRESET = ['삼각대', '여분 배터리', '메모리카드', '렌즈 클�
 // 카드 한 줄에 담기는 길이만 받도록 스팟과 같은 20자로 맞춘다.
 const MAX_CONTENT_LEN = 20;
 
-const ACCENT = '#E31B59';
+const ACCENT = BRAND;
 const C = { text: '#1F1E1D', muted: '#B5B0AA', labelMuted: '#A39E98' };
 
 interface Props {
@@ -90,7 +91,7 @@ export default function CourseChecklistSection({ courseId, items, loading, onCha
     return (
       <View>
         {heading()}
-        <View style={{ borderRadius: normalize(14), backgroundColor: '#f5f5f7', padding: 20, alignItems: 'center' }}>
+        <View style={{ borderRadius: normalize(14), backgroundColor: CARD, padding: 20, alignItems: 'center' }}>
           <ActivityIndicator color={ACCENT} />
         </View>
       </View>
@@ -114,7 +115,7 @@ export default function CourseChecklistSection({ courseId, items, loading, onCha
           return (
             <View
               key={item.id}
-              style={{ flexDirection: 'row', alignItems: 'center', gap: 12, height: normalize(52), backgroundColor: '#f5f5f7', borderRadius: normalize(13), paddingHorizontal: 15 }}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 12, height: normalize(52), backgroundColor: CARD, borderRadius: normalize(13), paddingHorizontal: 15 }}
             >
               <Pressable
                 onPress={() => toggleItem.mutate(item.id)}
@@ -126,7 +127,7 @@ export default function CourseChecklistSection({ courseId, items, loading, onCha
                   alignItems: 'center',
                   justifyContent: 'center',
                   backgroundColor: checked ? ACCENT : 'transparent',
-                  borderWidth: 2,
+                  borderWidth: BORDER_CONTROL,
                   borderColor: checked ? ACCENT : '#D8D4CF',
                 }}
               >
@@ -153,7 +154,7 @@ export default function CourseChecklistSection({ courseId, items, loading, onCha
         })}
 
         {/* 자유 입력 추가 카드 */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, height: normalize(52), backgroundColor: '#f5f5f7', borderRadius: normalize(13), paddingLeft: 15, paddingRight: 12 }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, height: normalize(52), backgroundColor: CARD, borderRadius: normalize(13), paddingLeft: 15, paddingRight: 12 }}>
           <TextInput
             value={input}
             onChangeText={setInput}
@@ -209,12 +210,12 @@ export default function CourseChecklistSection({ courseId, items, loading, onCha
                   key={`p:${content}`}
                   onPress={() => addItem.mutate(content)}
                   disabled={addItem.isPending}
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: 12, height: normalize(48), backgroundColor: '#f5f5f7', borderRadius: normalize(12), paddingHorizontal: 16 }}
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 12, height: normalize(48), backgroundColor: CARD, borderRadius: normalize(12), paddingHorizontal: 16 }}
                 >
                   <Text
                     allowFontScaling={false}
                     numberOfLines={1}
-                    style={{ flex: 1, fontFamily: 'Pretendard-Medium', fontSize: FONT_MD, color: 'rgba(0,0,0,0.4)', letterSpacing: -0.2 }}
+                    style={{ flex: 1, fontFamily: 'Pretendard-Medium', fontSize: FONT_MD, color: TEXT_SUB, letterSpacing: -0.2 }}
                   >
                     {content}
                   </Text>
