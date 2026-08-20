@@ -157,7 +157,7 @@ export default function EquipmentSection() {
 
   return (
     <View className="mb-10" style={{ paddingHorizontal: GRID_PADDING }}>
-      <View className="flex-row justify-between items-baseline mb-3">
+      <View className="flex-row justify-between items-center mb-3">
         <Text className="font-semibold tracking-tight text-black" style={{ fontSize: normalizeFontSize(20) }}>
           내 장비
         </Text>

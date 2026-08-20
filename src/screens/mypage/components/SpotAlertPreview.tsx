@@ -26,23 +26,31 @@ export default function SpotAlertPreview() {
 
   return (
     <View className="mb-10">
-      <View className="mb-3" style={{ paddingHorizontal: GRID_PADDING }}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: normalize(4) }}>
+      {/* 액션은 제목 밑선이 아니라 헤더 블록 수직 중앙에 맞춘다.
+          밑선 기준이면 부제 유무에 따라 액션 위치가 달라 보인다(내 장비와 비교). */}
+      <View
+        className="mb-3 flex-row items-center justify-between"
+        style={{ paddingHorizontal: GRID_PADDING }}
+      >
+        <View className="flex-1">
           <Text className="font-semibold tracking-tight text-black" style={{ fontSize: normalizeFontSize(20) }}>
             출사 알림 스팟
           </Text>
-          <TouchableOpacity 
-            onPress={() => navigation.navigate('Wishlist')}
-            hitSlop={{ top: 12, bottom: 12, left: 16, right: 16 }}
+          <Text
+            className="tracking-tight font-normal"
+            style={{ fontSize: FONT_SM, color: TEXT_SUB, marginTop: normalize(4) }}
           >
-            <Text className="tracking-tight font-normal" style={{ fontSize: FONT_SM, color: BRAND }}>
-              설정
-            </Text>
-          </TouchableOpacity>
+            날씨 알림이 설정된 스팟
+          </Text>
         </View>
-        <Text className="tracking-tight font-normal" style={{ fontSize: FONT_SM, color: TEXT_SUB }}>
-          날씨 알림이 설정된 스팟
-        </Text>
+        <TouchableOpacity
+          onPress={() => navigation.navigate('Wishlist')}
+          hitSlop={{ top: 12, bottom: 12, left: 16, right: 16 }}
+        >
+          <Text className="tracking-tight font-normal" style={{ fontSize: FONT_SM, color: BRAND }}>
+            설정
+          </Text>
+        </TouchableOpacity>
       </View>
 
       {isLoading ? (
