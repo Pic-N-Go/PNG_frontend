@@ -52,3 +52,9 @@ export const WHEEL_WIDTH = normalize(56);
 export const WHEEL_ITEM_HEIGHT = normalize(40);
 export const WHEEL_VISIBLE_HEIGHT = WHEEL_ITEM_HEIGHT * 3;
 export const WHEEL_SELECTION_RADIUS = normalize(8);
+
+/** 구분선 굵기. 색은 constants/colors의 HAIRLINE */
+export const HAIRLINE_WIDTH = 0.5;
+
+/** 폼 컨트롤 테두리 굵기 — 입력 포커스, 선택 상태 칩/체크박스, 아웃라인 버튼 */
+export const BORDER_CONTROL = 1.5;

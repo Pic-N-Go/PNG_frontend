@@ -14,10 +14,12 @@ import CategoryFilter from '@/components/home/CategoryFilter';
 import MapBanner from '@/components/home/MapBanner';
 import PopularSpotsSection from '@/components/home/PopularSpotsSection';
 import CalendarSection from '@/components/home/CalendarSection';
-import SpotAlertBanner from '@/components/home/SpotAlertBanner';
+import { IconBell } from '@tabler/icons-react-native';
+import LinkBanner from '@/components/common/LinkBanner';
 import FilterBottomSheet from '@/components/home/FilterBottomSheet';
 import { useNotification } from '@/hooks/useNotification';
 import { useNearbySpots } from '@/hooks/useSpot';
+import { TEXT_SUB } from '@/constants/colors';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'Home'>;
 
@@ -202,7 +204,7 @@ export default function HomeScreen({ navigation }: Props) {
           </Text>
           <Text
             allowFontScaling={false}
-            style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: 'rgba(0,0,0,0.4)', marginTop: normalize(4), marginBottom: normalize(14) }}
+            style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: TEXT_SUB, marginTop: normalize(4), marginBottom: normalize(14) }}
           >
             {userLocation.isReal ? `${userAddress} 기준 · 반경 5km · 탭하면 전체 지도로 이동` : '위치 탐색 중 · 반경 5km · 탭하면 전체 지도로 이동'}
           </Text>
@@ -232,7 +234,13 @@ export default function HomeScreen({ navigation }: Props) {
         />
 
         <CalendarSection />
-        <SpotAlertBanner onPress={() => (navigation as any).navigate('Wishlist')} />
+        <LinkBanner
+          icon={IconBell}
+          title="출사 알림 조건 설정"
+          subtitle="원하는 날씨가 되면 알려드려요"
+          marginTop={normalize(28)}
+          onPress={() => (navigation as any).navigate('Wishlist')}
+        />
 
       </ScrollView>
 

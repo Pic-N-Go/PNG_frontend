@@ -10,7 +10,7 @@ import EquipmentSection from './components/EquipmentSection';
 
 export default function MyPageScreen({ navigation }: any) {
   return (
-    <View style={{ flex: 1, backgroundColor: '#f5f5f7' }}>
+    <View style={{ flex: 1, backgroundColor: '#fff' }}>
       <ScrollView
         showsVerticalScrollIndicator={false}
         bounces={false}

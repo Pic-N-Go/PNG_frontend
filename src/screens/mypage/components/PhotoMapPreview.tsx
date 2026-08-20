@@ -5,6 +5,7 @@ import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { FONT_SM } from '@/constants/layout';
 
 import { useNavigation } from '@react-navigation/native';
+import { BRAND, CARD, TEXT_SUB } from '@/constants/colors';
 
 export default function PhotoMapPreview() {
   const navigation = useNavigation();
@@ -16,7 +17,7 @@ export default function PhotoMapPreview() {
           PIC MAP
         </Text>
         <TouchableOpacity onPress={() => navigation.navigate('PhotoMap' as never)}>
-          <Text className="tracking-tight" style={{ fontSize: FONT_SM, color: '#e31b59' }}>
+          <Text className="tracking-tight" style={{ fontSize: FONT_SM, color: BRAND }}>
             전체보기
           </Text>
         </TouchableOpacity>
@@ -26,14 +27,9 @@ export default function PhotoMapPreview() {
         style={{
           height: normalize(200),
           borderRadius: normalize(16),
-          backgroundColor: '#fff',
+          backgroundColor: CARD,
           position: 'relative',
           overflow: 'hidden',
-          shadowColor: '#000',
-          shadowOffset: { width: 0, height: 1 },
-          shadowOpacity: 0.05,
-          shadowRadius: 5,
-          elevation: 2,
         }}
       >
         <Svg width="100%" height="100%" style={{ position: 'absolute' }}>
@@ -65,13 +61,13 @@ export default function PhotoMapPreview() {
         >
           <View className="flex-row items-center" style={{ gap: normalize(4) }}>
             <View style={{ width: normalize(8), height: normalize(8), borderRadius: normalize(4), backgroundColor: '#1c1c1e' }} />
-            <Text className="tracking-tight" style={{ fontSize: normalizeFontSize(10), color: 'rgba(0, 0, 0, 0.4)' }}>
+            <Text className="tracking-tight" style={{ fontSize: normalizeFontSize(10), color: TEXT_SUB }}>
               방문
             </Text>
           </View>
           <View className="flex-row items-center" style={{ gap: normalize(4) }}>
-            <View style={{ width: normalize(8), height: normalize(8), borderRadius: normalize(4), backgroundColor: '#E31B59' }} />
-            <Text className="tracking-tight" style={{ fontSize: normalizeFontSize(10), color: 'rgba(0, 0, 0, 0.4)' }}>
+            <View style={{ width: normalize(8), height: normalize(8), borderRadius: normalize(4), backgroundColor: BRAND }} />
+            <Text className="tracking-tight" style={{ fontSize: normalizeFontSize(10), color: TEXT_SUB }}>
               즐겨찾기
             </Text>
           </View>
@@ -83,7 +79,7 @@ export default function PhotoMapPreview() {
 
 function renderPin(left: string, top: string, type: 'visit' | 'featured') {
   const isVisit = type === 'visit';
-  const color = isVisit ? '#1c1c1e' : '#E31B59';
+  const color = isVisit ? '#1c1c1e' : BRAND;
   const shadowColor = isVisit ? 'rgba(0,0,0,0.22)' : 'rgba(227,27,89,0.4)';
   const size = isVisit ? normalize(16) : normalize(20);
   const viewBoxHeight = isVisit ? 20 : 25;

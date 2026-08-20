@@ -6,6 +6,7 @@ import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { FONT_SM } from '@/constants/layout';
 import { useMyAlbums } from '@/hooks/useUser';
 import { categoryLabel } from '@/constants/spotCategories';
+import { BRAND, CARD } from '@/constants/colors';
 
 const GRADIENT_PALETTES: [string, string, ...string[]][] = [
   ['#0f2027', '#203a43', '#e8a87c'],
@@ -29,12 +30,10 @@ export default function RecentAlbums() {
         <View
           style={{
             height: normalize(120),
-            backgroundColor: '#ffffff',
+            backgroundColor: CARD,
             borderRadius: normalize(14),
             alignItems: 'center',
             justifyContent: 'center',
-            borderWidth: 0.5,
-            borderColor: 'rgba(0,0,0,0.06)',
           }}
         >
           <Text style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.3)', fontFamily: 'Pretendard-Regular' }}>
@@ -52,7 +51,7 @@ export default function RecentAlbums() {
           지난 촬영
         </Text>
         <TouchableOpacity onPress={() => navigation.navigate('MyPhotos' as never)}>
-          <Text className="tracking-tight" style={{ fontSize: FONT_SM, color: '#e31b59' }}>
+          <Text className="tracking-tight" style={{ fontSize: FONT_SM, color: BRAND }}>
             전체보기
           </Text>
         </TouchableOpacity>

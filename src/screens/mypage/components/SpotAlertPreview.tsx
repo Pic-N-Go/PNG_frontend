@@ -6,6 +6,7 @@ import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { FONT_SM, FONT_MD, FONT_XS } from '@/constants/layout';
 import { useSpotAlert } from '@/hooks/useSpotAlert';
 import { mapSpotAlertToUI } from '@/utils/spotAlertMapper';
+import { BRAND, BRAND_STRONG, CARD, TEXT_SUB } from '@/constants/colors';
 
 export default function SpotAlertPreview() {
   const navigation = useNavigation<any>();
@@ -35,24 +36,24 @@ export default function SpotAlertPreview() {
             hitSlop={{ top: 12, bottom: 12, left: 16, right: 16 }}
             style={{ paddingVertical: normalize(4), paddingHorizontal: normalize(6) }}
           >
-            <Text className="tracking-tight font-medium" style={{ fontSize: FONT_SM, color: '#e31b59' }}>
+            <Text className="tracking-tight font-medium" style={{ fontSize: FONT_SM, color: BRAND }}>
               설정
             </Text>
           </TouchableOpacity>
         </View>
-        <Text className="tracking-tight" style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.4)' }}>
+        <Text className="tracking-tight" style={{ fontSize: FONT_SM, color: TEXT_SUB }}>
           날씨 알림이 설정된 스팟
         </Text>
       </View>
 
       {isLoading ? (
         <View className="py-8 items-center justify-center">
-          <ActivityIndicator color="#E31B59" size="small" />
+          <ActivityIndicator color={BRAND} size="small" />
         </View>
       ) : uiItems.length === 0 ? (
-        <View className="mx-5 p-5 bg-white rounded-2xl items-center justify-center border border-black/5">
+        <View className="mx-5 p-5 bg-card rounded-2xl items-center justify-center">
           <IconBookmark size={normalize(24)} color="rgba(0,0,0,0.2)" style={{ marginBottom: normalize(6) }} />
-          <Text className="text-black/40 text-xs font-medium">설정한 출사 조건이 없어요.</Text>
+          <Text className="text-sub text-xs font-medium">설정한 출사 조건이 없어요.</Text>
         </View>
       ) : (
         <ScrollView
@@ -69,13 +70,8 @@ export default function SpotAlertPreview() {
               style={{
                 width: normalize(200),
                 borderRadius: normalize(16),
-                backgroundColor: '#fff',
+                backgroundColor: CARD,
                 overflow: 'hidden',
-                shadowColor: '#000',
-                shadowOffset: { width: 0, height: 1 },
-                shadowOpacity: 0.05,
-                shadowRadius: 5,
-                elevation: 2,
               }}
             >
               <View
@@ -100,7 +96,7 @@ export default function SpotAlertPreview() {
                       width: normalize(28),
                       height: normalize(28),
                       borderRadius: normalize(14),
-                      backgroundColor: item.isAlertEnabled ? 'rgba(227,27,89,0.9)' : 'rgba(0,0,0,0.3)',
+                      backgroundColor: item.isAlertEnabled ? BRAND_STRONG : 'rgba(0,0,0,0.3)',
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
@@ -118,10 +114,10 @@ export default function SpotAlertPreview() {
                 <Text className="font-semibold text-black tracking-tight" style={{ fontSize: FONT_MD, marginBottom: normalize(2) }}>
                   {item.title}
                 </Text>
-                <Text className="tracking-tight" style={{ fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.4)', marginBottom: normalize(6) }}>
+                <Text className="tracking-tight" style={{ fontSize: normalizeFontSize(12), color: TEXT_SUB, marginBottom: normalize(6) }}>
                   {item.loc}
                 </Text>
-                <Text className="font-medium tracking-tight" style={{ fontSize: FONT_XS, color: '#e31b59' }}>
+                <Text className="font-medium tracking-tight" style={{ fontSize: FONT_XS, color: BRAND }}>
                   {item.notifText || '조건 맞춤 알림'}
                 </Text>
               </View>

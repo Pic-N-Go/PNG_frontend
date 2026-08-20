@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Modal, Animated, Pressable, PanResponder, TextInput, Platform, Keyboard, Alert, ActivityIndicator } from 'react-native';
 import { IconCamera, IconAperture, IconChevronRight, IconX, IconTrash } from '@tabler/icons-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { FONT_SM, FONT_XS } from '@/constants/layout';
+import { BORDER_CONTROL, FONT_SM, FONT_XS, HAIRLINE_WIDTH } from '@/constants/layout';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCreateEquipment, useDeleteEquipment, useMyEquipments } from '@/hooks/useEquipment';
 import { toErrorMessage } from '@/api/auth';
+import { BRAND, BRAND_TINT, CARD, HAIRLINE, SCRIM, TEXT_SUB } from '@/constants/colors';
 
 // 서버 EquipmentType은 CAMERA·LENS 둘뿐이다. 목업에 있던 "드론"은 저장할 곳이 없어 뺐다.
 const CATEGORIES = [
@@ -165,13 +166,13 @@ export default function EquipmentSection() {
             height: normalize(26),
             paddingHorizontal: normalize(14),
             borderRadius: normalize(13),
-            backgroundColor: 'rgba(227, 27, 89, 0.08)',
+            backgroundColor: BRAND_TINT,
             alignItems: 'center',
             justifyContent: 'center',
           }}
           onPress={openSheet}
         >
-          <Text className="font-medium tracking-tight" style={{ fontSize: normalizeFontSize(12), color: '#e31b59' }}>
+          <Text className="font-medium tracking-tight" style={{ fontSize: normalizeFontSize(12), color: BRAND }}>
             관리
           </Text>
         </TouchableOpacity>
@@ -180,13 +181,13 @@ export default function EquipmentSection() {
       <View
         style={{
           borderRadius: normalize(16),
-          backgroundColor: '#f8f8f9',
+          backgroundColor: CARD,
           overflow: 'hidden',
         }}
       >
         {isLoading && (
           <View style={{ paddingVertical: normalize(28) }}>
-            <ActivityIndicator color="#e31b59" />
+            <ActivityIndicator color={BRAND} />
           </View>
         )}
 
@@ -216,8 +217,8 @@ export default function EquipmentSection() {
               alignItems: 'center',
               paddingHorizontal: normalize(16),
               paddingVertical: normalize(14),
-              borderTopWidth: index > 0 ? 0.5 : 0,
-              borderTopColor: 'rgba(0,0,0,0.04)',
+              borderTopWidth: index > 0 ? HAIRLINE_WIDTH : 0,
+              borderTopColor: HAIRLINE,
               gap: normalize(12),
             }}
           >
@@ -232,9 +233,9 @@ export default function EquipmentSection() {
               }}
             >
               {item.isCamera ? (
-                <IconCamera size={normalize(18)} color="rgba(0,0,0,0.4)" strokeWidth={1.5} />
+                <IconCamera size={normalize(18)} color={TEXT_SUB} strokeWidth={1.5} />
               ) : (
-                <IconAperture size={normalize(18)} color="rgba(0,0,0,0.4)" strokeWidth={1.5} />
+                <IconAperture size={normalize(18)} color={TEXT_SUB} strokeWidth={1.5} />
               )}
             </View>
             <View style={{ flex: 1 }}>
@@ -260,7 +261,7 @@ export default function EquipmentSection() {
 
       <Modal transparent visible={sheetVisible} animationType="none" onRequestClose={handleOverlayPress}>
         <View style={{ flex: 1 }}>
-          <Pressable style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(0,0,0,0.4)' }} onPress={handleOverlayPress} />
+          <Pressable style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, backgroundColor: SCRIM }} onPress={handleOverlayPress} />
           <Animated.View
             {...panResponder.panHandlers}
             style={{
@@ -290,7 +291,7 @@ export default function EquipmentSection() {
                   width: normalize(32),
                   height: normalize(32),
                   borderRadius: normalize(16),
-                  backgroundColor: '#f5f5f7',
+                  backgroundColor: CARD,
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
@@ -307,8 +308,8 @@ export default function EquipmentSection() {
                     flexDirection: 'row',
                     alignItems: 'center',
                     paddingVertical: normalize(12),
-                    borderBottomWidth: index < items.length - 1 ? 0.5 : 0,
-                    borderBottomColor: 'rgba(0,0,0,0.05)',
+                    borderBottomWidth: index < items.length - 1 ? HAIRLINE_WIDTH : 0,
+                    borderBottomColor: HAIRLINE,
                     gap: normalize(12),
                   }}
                 >
@@ -317,7 +318,7 @@ export default function EquipmentSection() {
                       width: normalize(36),
                       height: normalize(36),
                       borderRadius: normalize(10),
-                      backgroundColor: '#f5f5f7',
+                      backgroundColor: CARD,
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
@@ -339,7 +340,7 @@ export default function EquipmentSection() {
                           paddingHorizontal: normalize(8),
                           borderRadius: normalize(9),
                           marginLeft: normalize(6),
-                          backgroundColor: item.isCamera ? 'rgba(0,0,0,0.06)' : 'rgba(227, 27, 89, 0.08)',
+                          backgroundColor: item.isCamera ? 'rgba(0,0,0,0.06)' : BRAND_TINT,
                           alignItems: 'center',
                           justifyContent: 'center',
                         }}
@@ -348,7 +349,7 @@ export default function EquipmentSection() {
                           className="font-medium tracking-tight"
                           style={{
                             fontSize: normalizeFontSize(10),
-                            color: item.isCamera ? 'rgba(0,0,0,0.4)' : '#e31b59',
+                            color: item.isCamera ? TEXT_SUB : BRAND,
                           }}
                         >
                           {item.type}
@@ -366,13 +367,13 @@ export default function EquipmentSection() {
                       width: normalize(32),
                       height: normalize(32),
                       borderRadius: normalize(16),
-                      backgroundColor: 'rgba(227, 27, 89, 0.08)',
+                      backgroundColor: BRAND_TINT,
                       alignItems: 'center',
                       justifyContent: 'center',
                       opacity: deleteEquipment.isPending && deleteEquipment.variables === item.id ? 0.4 : 1,
                     }}
                   >
-                    <IconTrash size={normalize(18)} color="#e31b59" strokeWidth={1.5} />
+                    <IconTrash size={normalize(18)} color={BRAND} strokeWidth={1.5} />
                   </TouchableOpacity>
                 </View>
               ))}
@@ -389,14 +390,14 @@ export default function EquipmentSection() {
                             paddingHorizontal: normalize(16),
                             paddingVertical: normalize(8),
                             borderRadius: normalize(16),
-                            backgroundColor: selectedCategory === cat.type ? '#000' : '#f5f5f7',
+                            backgroundColor: selectedCategory === cat.type ? '#000' : CARD,
                           }}
                         >
                           <Text
                             className="font-medium tracking-tight"
                             style={{
                               fontSize: normalizeFontSize(13),
-                              color: selectedCategory === cat.type ? '#fff' : 'rgba(0,0,0,0.4)',
+                              color: selectedCategory === cat.type ? '#fff' : TEXT_SUB,
                             }}
                           >
                             {cat.label}
@@ -416,8 +417,8 @@ export default function EquipmentSection() {
                         style={{
                           flex: 1,
                           height: normalize(44),
-                          borderWidth: 1,
-                          borderColor: isFocused || newEquipmentName ? '#e31b59' : 'rgba(0,0,0,0.1)',
+                          borderWidth: BORDER_CONTROL,
+                          borderColor: isFocused || newEquipmentName ? BRAND : 'rgba(0,0,0,0.1)',
                           borderRadius: normalize(12),
                           paddingHorizontal: normalize(14),
                           fontSize: normalizeFontSize(14),
@@ -431,7 +432,7 @@ export default function EquipmentSection() {
                           height: normalize(44),
                           paddingHorizontal: normalize(20),
                           borderRadius: normalize(12),
-                          backgroundColor: '#e31b59',
+                          backgroundColor: BRAND,
                           alignItems: 'center',
                           justifyContent: 'center',
                           opacity: !newEquipmentName.trim() || createEquipment.isPending ? 0.35 : 1,
@@ -450,7 +451,7 @@ export default function EquipmentSection() {
                     style={{
                       height: normalize(44),
                       borderRadius: normalize(22),
-                      borderWidth: 1,
+                      borderWidth: BORDER_CONTROL,
                       borderColor: 'rgba(0,0,0,0.1)',
                       borderStyle: 'dashed',
                       alignItems: 'center',
