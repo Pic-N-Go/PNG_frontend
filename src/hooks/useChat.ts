@@ -148,16 +148,32 @@ export function useChat(spotId: number) {
       });
     };
 
+    const publishWithCurrentAuth = (
+      client: Client,
+      destination: string,
+      body = '{}',
+    ): boolean => {
+      const currentToken = useAuthStore.getState().accessToken;
+      if (!currentToken) return false;
+
+      publishWithAuth(client, destination, currentToken, body);
+      return true;
+    };
+
     const publishPendingRetry = (client: Client) => {
       const pending = pendingMessageRef.current;
       if (!pending || pending.retryCount !== 1) return;
 
-      publishWithAuth(
+      const published = publishWithCurrentAuth(
         client,
         `/app/chats/${spotId}/messages`,
-        tokenForConnection,
         JSON.stringify({ content: pending.content }),
       );
+      if (!published) {
+        clearPendingMessage();
+        setConnectionError('채팅 인증 정보를 확인할 수 없어요.');
+        return;
+      }
       startPendingTimeout();
     };
 
@@ -198,7 +214,13 @@ export function useChat(spotId: number) {
           if (Number.isFinite(count) && count >= 0) setLiveParticipantCount(count);
         });
 
-        publishWithAuth(client, `/app/chats/${spotId}/enter`, tokenForConnection);
+        const entered = publishWithCurrentAuth(client, `/app/chats/${spotId}/enter`);
+        if (!entered) {
+          setConnectionStatus('disconnected');
+          setConnectionError('채팅 인증 정보를 확인할 수 없어요.');
+          void client.deactivate({ force: true });
+          return;
+        }
         publishPendingRetry(client);
 
         void queryClient.invalidateQueries({
@@ -282,7 +304,7 @@ export function useChat(spotId: number) {
       pausedInBackground = true;
       if (client.connected) {
         try {
-          publishWithAuth(client, `/app/chats/${spotId}/leave`, tokenForConnection);
+          publishWithCurrentAuth(client, `/app/chats/${spotId}/leave`);
         } catch (error) {
           if (__DEV__) console.warn('[chat] 백그라운드 전환 중 퇴장 전송 실패:', error);
         }
