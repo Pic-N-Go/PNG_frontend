@@ -101,6 +101,42 @@ export function useRecommendedSpots(limit = 10, options?: QueryToggle) {
   });
 }
 
+/** MY 탭 "북마크한 스팟". 북마크 저장 시 무효화 대상이라 키를 내보낸다. */
+export const BOOKMARKED_SPOTS_KEY = ['spots', 'bookmarked'] as const;
+
+export function useBookmarkedSpots(options?: QueryToggle) {
+  const token = useAuthStore((s) => s.accessToken);
+  return useQuery({
+    queryKey: [...BOOKMARKED_SPOTS_KEY, token ?? 'guest'],
+    queryFn: () => spotApi.getBookmarkedSpots(token!),
+    enabled: !!token && (options?.enabled ?? true),
+    staleTime: SPOTS_STALE_TIME,
+  });
+}
+
+/** 컬렉션 목록(이름·개수). 스팟별 contains가 필요 없는 자리 — MY 탭 컬렉션 필터용. */
+export function useMyBookmarkCollections(options?: QueryToggle) {
+  const token = useAuthStore((s) => s.accessToken);
+  return useQuery({
+    queryKey: ['bookmark-collections', 'mine', token ?? 'guest'],
+    queryFn: () => spotApi.getMyBookmarkCollections(token!),
+    enabled: !!token && (options?.enabled ?? true),
+    staleTime: SPOTS_STALE_TIME,
+  });
+}
+
+/** 한 컬렉션에 담긴 스팟. collectionId가 null이면 조회하지 않는다(= "전체" 탭). */
+export function useCollectionSpots(collectionId: number | null) {
+  const token = useAuthStore((s) => s.accessToken);
+  return useQuery({
+    // ['spots', ...] 아래 두면 북마크 해제 시 무효화(useSyncSpotBookmarks)에 같이 걸린다.
+    queryKey: ['spots', 'collection', collectionId, token ?? 'guest'],
+    queryFn: () => spotApi.getCollectionSpots(collectionId!, token!),
+    enabled: !!token && collectionId !== null,
+    staleTime: SPOTS_STALE_TIME,
+  });
+}
+
 export function useSearchSpots(params: SearchSpotsParams, options?: QueryToggle) {
   const token = useAuthStore((s) => s.accessToken);
   const hasKeyword = !!params.keyword && params.keyword.trim().length > 0;
@@ -326,7 +362,9 @@ export function useSyncSpotBookmarks(id: string) {
       qc.invalidateQueries({ queryKey: bookmarkKey(id) });
       // 카드의 채워짐 상태는 목록 응답의 isBookmarked에서 온다. 화면이 아니라 여기서 무효화해야
       // 상세에서 해제한 게 스택 아래 홈 카드에도 반영된다 (홈은 refetch 트리거가 없다).
-      qc.invalidateQueries({ queryKey: ['spots', 'list'] });
+      // 'spots' 접두사로 목록 전체(list·recommended·bookmarked·search·nearby·map)를 한 번에 지운다 —
+      // 하나씩 열거하면 목록이 늘 때마다 여기 추가하는 걸 잊는다. 상세는 ['spot', ...]이라 안 걸린다.
+      qc.invalidateQueries({ queryKey: ['spots'] });
     },
   });
 }

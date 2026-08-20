@@ -141,27 +141,37 @@ export default function SpotCard({ item, onPress, onBookmarkPress }: Props) {
         >
           {item.location}
         </Text>
-        {/* 별점·평점·리뷰 수 한 줄. 흰 박스를 없앤 자리라 아래 여백은 컨테이너 paddingBottom이 맡는다. */}
+        {/* 별점·평점·리뷰 수 한 줄. 흰 박스를 없앤 자리라 아래 여백은 컨테이너 paddingBottom이 맡는다.
+            리뷰가 없으면 별점 대신 "리뷰 없음" — ☆☆☆☆☆ 0.0은 평점 0점(혹평)으로 읽힌다.
+            줄을 비우지 않는 이유는 카드 높이를 일정하게 두기 위해서다. */}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(6) }}>
-          <Text
-            allowFontScaling={false}
-            style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(12), color: '#ff9f0a' }}
-          >
-            {stars}
-          </Text>
-          <Text
-            allowFontScaling={false}
-            style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, color: '#000' }}
-          >
-            {rating.toFixed(1)}
-          </Text>
-          {/* 0건이면 "(0)"이 리뷰가 있는 카드처럼 읽혀서 아예 그리지 않는다 */}
-          {!!item.reviewCount && (
+          {item.reviewCount ? (
+            <>
+              <Text
+                allowFontScaling={false}
+                style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(12), color: '#ff9f0a' }}
+              >
+                {stars}
+              </Text>
+              <Text
+                allowFontScaling={false}
+                style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, color: '#000' }}
+              >
+                {rating.toFixed(1)}
+              </Text>
+              <Text
+                allowFontScaling={false}
+                style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: '#8e8e93' }}
+              >
+                ({item.reviewCount})
+              </Text>
+            </>
+          ) : (
             <Text
               allowFontScaling={false}
               style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: '#8e8e93' }}
             >
-              ({item.reviewCount})
+              리뷰 없음
             </Text>
           )}
         </View>
