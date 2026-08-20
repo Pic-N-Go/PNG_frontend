@@ -114,6 +114,14 @@ export default function EquipmentSection() {
     }).start();
   };
 
+  // 빈 상태 카드 탭은 '탭하여 추가' 문구대로 추가 폼까지 바로 연다.
+  // 관리 버튼(목록 모드)과 역할을 나누기 위한 것이므로 openSheet를 그대로 쓰지 않는다.
+  // 인자 있는 형태로 만들면 onPress가 이벤트 객체를 넘겨 오작동하므로 핸들러를 분리한다.
+  const openSheetForAdd = () => {
+    setIsAdding(true);
+    openSheet();
+  };
+
   const closeSheet = () => {
     Keyboard.dismiss();
     Animated.timing(translateY, {
@@ -192,7 +200,7 @@ export default function EquipmentSection() {
 
         {!isLoading && !isError && items.length === 0 && (
           <TouchableOpacity
-            onPress={openSheet}
+            onPress={openSheetForAdd}
             style={{ height: EMPTY_CARD_HEIGHT, alignItems: 'center', justifyContent: 'center' }}
           >
             <Text className="tracking-tight font-normal" style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.3)' }}>
