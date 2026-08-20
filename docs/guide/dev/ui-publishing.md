@@ -161,6 +161,8 @@ src/components/ui/
 
 - `body { font-family: var(--font-family); }` — `--font-family`는 `fonts.css`에서 정의, `common.css`의 `body` 스타일에서 적용
 - Pretendard Variable — `font-weight` 100~600 사용 (700 이상 사용 안 함)
+  > 목업(웹)만 Variable을 씁니다. **RN 구현은 정적 3웨이트**(`Regular`/`Medium`/`SemiBold`)로 매핑되고
+  > `fontWeight`를 쓰지 않습니다 → `docs/guide/dev/design-tokens.md`
 - 모든 텍스트에 음수 `letter-spacing` 적용 (`-0.2px` ~ `-0.6px`)
   - 한글 본문·메타: `--font-2xs`/`--font-xs`는 `-0.1px`, `--font-sm` 이상은 `-0.2px` ~ `-0.6px`
   - **예외 — 대문자·마이크로 라벨은 양수 트래킹 허용** (`+0.3px` ~ `+1px`): `WEEKLY`, `D-3`, `BETA` 같은 배지, `--font-2xs`/`--font-xs` 섹션 라벨("현재 순위", "받은 표"). 좁은 글자를 벌려 라벨로 읽히게 하는 의도이며 레포 전반에서 쓰이는 확립된 패턴

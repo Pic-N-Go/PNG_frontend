@@ -70,7 +70,7 @@ import { BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING, CARD_RADIUS, FONT_LG } f
 
 // 버튼
 <TouchableOpacity
-  className="w-full items-center justify-center bg-[#E31B59]"
+  className="w-full items-center justify-center bg-brand"
   style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}
 >
   <Text style={{ fontSize: FONT_LG }} className="text-white font-medium">
@@ -84,7 +84,7 @@ import { BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING, CARD_RADIUS, FONT_LG } f
 </View>
 
 // 카드
-<View style={{ borderRadius: CARD_RADIUS }} className="bg-[#f5f5f7]">
+<View style={{ borderRadius: CARD_RADIUS }} className="bg-card">
   {/* 카드 내용 */}
 </View>
 ```

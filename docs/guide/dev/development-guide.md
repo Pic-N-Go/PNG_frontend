@@ -128,6 +128,7 @@ src/
 
 | 값 종류 | 방법 | 예시 |
 |---|---|---|
+| 색 (브랜드·배경·텍스트·구분선) | 토큰 (`docs/guide/dev/design-tokens.md`) | `className="bg-brand text-sub"` / `style={{ backgroundColor: CARD }}` |
 | 패딩 · 마진 · gap | `className` | `className="px-7 gap-2"` |
 | 폰트 크기 (스케일 내) | `layout.ts` 상수 (`FONT_*`) | `style={{ fontSize: FONT_LG }}` |
 | 폰트 크기 (14px, 상수 없음) | `normalizeFontSize(14)` 인라인 | `style={{ fontSize: normalizeFontSize(14) }}` |
@@ -154,7 +155,7 @@ src/
 ```tsx
 // ✅ 올바른 사용 — className과 style 동시 사용
 <TouchableOpacity
-  className="w-full items-center justify-center bg-[#E31B59] rounded-full"
+  className="w-full items-center justify-center bg-brand rounded-full"
   style={{ height: BUTTON_HEIGHT }}
 >
   <Text style={{ fontSize: FONT_LG }} className="text-white font-medium">
