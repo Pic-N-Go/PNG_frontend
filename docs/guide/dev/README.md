@@ -7,6 +7,8 @@
 | 파일 | 용도 |
 |---|---|
 | `development-guide.md` | RN 구현 기준 — 폴더 구조, 상태 관리, 스타일링, 네비게이션 |
+| `design-tokens.md` | 색·테두리·그림자·폰트 토큰 — 하드코딩 금지 규칙, 예외 목록 |
+| `design-handoff-brief.md` | 디자이너·design Claude용 핸드오프 브리프 |
 | `bottom-tab-usage.md` | 하단탭(TabBar) 사용법 — 탭 화면 구현 예시, 하단 여백/탭 이동 규칙 |
 | `ui-publishing.md` | HTML 목업 구조 및 화면 간 네비게이션 흐름 |
 | `device-support.md` | 지원 기기 범위(360dp–430dp), normalize/layout 상수 사용법 |

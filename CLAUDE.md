@@ -84,57 +84,26 @@ const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 
 ## Design System
 
-### 색·테두리·그림자 토큰
+### 토큰 사용 (하드코딩 금지)
 
-하드코딩 금지. 단일 소스는 `src/constants/colors.json`이며 `tailwind.config.js`와 TS가 같은 파일을 읽는다.
+색·테두리·그림자·폰트는 상수로만 쓴다. 단일 소스는 `src/constants/colors.json`이며
+`tailwind.config.js`와 TS가 같은 파일을 읽어 className과 style prop이 어긋나지 않는다.
 
-| 토큰 | 값 | className | TS |
-|---|---|---|---|
-| 브랜드/액센트 | `#E31B59` | `bg-brand` `text-brand` `border-brand` | `BRAND` |
-| 브랜드 틴트 — 배경·타일 | 5% | `bg-brand/5` | `BRAND_TINT` |
-| 브랜드 틴트 — 선택·활성 | 10% | `bg-brand/10` | `BRAND_TINT_ACTIVE` |
-| 브랜드 — 테두리·강조 | 30% | `border-brand/30` | `BRAND_MUTED` |
-| 브랜드 — 오버레이 배지 | 90% | `bg-brand/90` | `BRAND_STRONG` |
-| 카드·인풋 배경 | `#F5F5F7` | `bg-card` | `CARD` |
-| 보조 텍스트·아이콘 | `#8A8A8E` (iOS `secondaryLabel` 합성값) | `text-sub` | `TEXT_SUB` |
-| 구분선 색 | `rgba(0,0,0,0.06)` | `border-hairline` | `HAIRLINE` |
-| 모달 딤·반투명 배지 | `rgba(0,0,0,0.4)` | — | `SCRIM` |
+| 대상 | className | TS |
+|---|---|---|
+| 브랜드 (틴트 5/10/30/90) | `bg-brand` `bg-brand/5` | `BRAND` `BRAND_TINT` … |
+| 카드·인풋 배경 | `bg-card` | `CARD` |
+| 보조 텍스트 | `text-sub` | `TEXT_SUB` |
+| 구분선 | `border-hairline` + `border-b-[0.5px]` | `HAIRLINE` / `HAIRLINE_WIDTH` |
+| 컨트롤 보더 | — | `BORDER_CONTROL` |
+| 그림자 | — | `SHADOW_CONTROL` / `SHADOW_OVERLAY` |
 
-굵기·그림자는 `src/constants/layout.ts` / `src/constants/shadow.ts`:
+- 폰트는 Pretendard **3웨이트**(`Regular`/`Medium`/`SemiBold`)만 로드. `PretendardVariable`은 쓰지 않는다
+- **`fontWeight`를 쓰지 말 것** — RN은 웨이트별로 패밀리가 갈린다. `font-*` 유틸리티가 패밀리 지정으로 재정의돼 있다
+- 그림자는 떠 있는 것에만. 콘텐츠 카드는 테두리·그림자 없이 배경 대비로만 구분한다
+- 새 웨이트는 `App.tsx`의 `useFonts` 등록이 선행 조건이다
 
-- `HAIRLINE_WIDTH` (0.5) — 구분선. className은 `border-b-[0.5px] border-hairline`
-- `BORDER_CONTROL` (1.5) — 입력 포커스, 선택 상태 칩/체크박스, 아웃라인 버튼
-- `SHADOW_CONTROL` / `SHADOW_OVERLAY` — 그림자는 **떠 있는 것에만**. 콘텐츠 카드는 배경 대비로만 구분(보더·그림자 없음)
-
-### 폰트
-
-Pretendard **3웨이트만** 로드한다 (`Regular` / `Medium` / `SemiBold`). 로고는 `FugazOne_400Regular`.
-디자인 규칙이 `max weight 600`이므로 Bold 이상은 쓰지 않는다 — `font-bold`도 SemiBold로 매핑된다.
-
-- **새 웨이트가 필요하면 `App.tsx`의 `useFonts`에 등록부터 할 것.** 등록 없이 `fontFamily`만 쓰면
-  iOS는 조용히 시스템 폰트로 폴백하고 안드로이드는 폴백하거나 죽는다
-- `font-normal` `font-medium` `font-semibold` `font-bold` 유틸리티는 `global.css`에서
-  **패밀리 지정으로 재정의**돼 있다. `tailwind.config.js`에서 `fontWeight` 코어 플러그인을 꺼서
-  정의가 하나만 남게 했으므로 캐스케이드 순서에 의존하지 않는다
-- **`fontWeight`를 쓰지 말 것.** RN은 웨이트별로 패밀리가 갈리므로 `fontFamily` 단독으로 지정한다.
-  named-weight 패밀리에 `fontWeight`를 병용하면 안드로이드에서 폴백이 난다
-- React 19에서 함수 컴포넌트의 `defaultProps`가 제거돼 `Text.defaultProps`로 전역 기본값을
-  까는 방식은 쓸 수 없다. 모든 `<Text>`에 패밀리를 명시한다
-- 지도 WebView는 번들 폰트 스코프 밖이라 숫자 서브셋(`src/constants/mapFont.ts`)을
-  base64로 인라인한다. 재생성 방법은 그 파일 주석에 있다
-
-**토큰을 쓰지 않는 예외** (의도된 것으로 통일 대상 아님):
-
-- 의미 색 — 상태 배지 초록·노랑·파랑, 에러/성공
-- 히어로·어두운 배경 위 반투명 흰 보더
-- 배경색과 맞춰 파내는 장식 링 — 아바타 흰 링, 썸네일 겹침
-- 골든아워 계열 — `PhotogenicScoreCard`의 `COLORS.golden`, 히어로 그라디언트
-- `AdminDashboardScreen` — 내부 관리자 도구라 앱 디자인 시스템 미적용
-- 핑크 글로우 — 지도 핀 그림자·펄스 애니메이션(`MapScreen`, `MapBanner`, `PhotoMapPreview`, `PhotoMapScreen`). 배경 틴트가 아니라 발광 효과라 4단계 밖
-
-> 브랜드 투명도는 **4단계(5/10/30/90)로 고정**. 이전에 17종이 흩어져 있었고 "선택하면 진해진다"는 위계가 없었다. 새 단계를 늘리지 말 것.
-
-> 스팟 상세(`ConvenienceInfoSection`, `PhotogenicScoreCard`)는 한때 자체 웜그레이 팔레트를 썼으나, 목업 원본(`src/components/ui/spot/spot-detail.html`)이 표준 토큰을 쓰는 것을 확인하고 편입했다. 되돌리지 말 것.
+> 토큰 전체 목록, 예외 6종, 폰트 상세, 판단 근거 → **`docs/guide/dev/design-tokens.md`**
 
 Key rules:
 
@@ -145,7 +114,7 @@ Key rules:
 - **Backgrounds**: page `#ffffff`, card/input `#f5f5f7`
 - **Cards**: no border, no shadow — elevation via background color contrast only
 - **Buttons**: pill shape (`border-radius: 50%` of height), primary height 52px
-- **Typography**: Pretendard Variable font, negative letter-spacing on all sizes, max weight 600
+- **Typography**: Pretendard (Regular/Medium/SemiBold 3 weights), negative letter-spacing on all sizes, max weight 600
 - **Layout**: 28px horizontal padding for content, 20px for card grids
 - **No emojis anywhere in the UI**
 - **Text alignment**: left-align everything; center only in hero/logo areas

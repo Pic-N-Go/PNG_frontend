@@ -20,10 +20,17 @@ React Native(Expo, bare) 앱. **모바일 전용**(iOS/Android), 태블릿 미�
     (`contest-all-entries.html`의 `.sort-btn.is-active`와 `community-feed.html`의 `.vote-sort.is-active`가
      accent로 넘어온 적이 있는데 이건 오류였고, RN에서는 블랙으로 교정해 구현했습니다)
 - **배경**: 페이지 `#ffffff`, 카드/인풋 `#f5f5f7`
-- **카드(기본 규칙)**: 테두리·그림자 없음, 배경 대비로만 elevation
-  - 예외: 최근 편의정보 카드처럼 흰 카드+옅은 테두리(`rgba(0,0,0,0.07)`)+미세 그림자를 쓴 곳도 있음. **테두리/그림자 쓸 거면 명시**해주세요(기본은 무테·무그림자)
+- **연분홍 틴트는 4단계 고정** — 배경·아이콘 타일 **5%** / 선택·활성 **10%** / 테두리·강조 **30%** / 사진 위 오버레이 배지 **90%**
+  - 이전에 투명도가 17종 흩어져 있어 정리했습니다. **그 사이값(7%, 8%, 12% 등)으로 넘기지 마세요**
+  - "선택하면 진해진다"가 규칙입니다 — 깔린 배경은 5%, 선택된 상태는 10%
+- **구분선**: 굵기 `0.5px`, 색 `rgba(0,0,0,0.06)` 한 종류
+- **컨트롤 테두리**(입력 포커스·선택 칩·체크박스·아웃라인 버튼): 굵기 `1.5px` 한 종류
+- **카드: 테두리·그림자 없음. 배경 대비로만 elevation** — 예외 없습니다
+  - 한때 편의정보 카드가 흰 배경+옅은 테두리+미세 그림자를 썼으나, 목업 원본이 표준(`--color-surface` 배경, 무테)을 쓰는 것을 확인하고 되돌렸습니다
+  - 그림자는 **떠 있는 것에만** 씁니다 — 바텀시트, 팝업, 지도 위 컨트롤. 스크롤 흐름 안의 카드에는 쓰지 않습니다
 - **버튼**: pill(높이의 50% radius), primary 높이 **52px**
-- **타이포**: Pretendard Variable, 모든 크기 음수 자간(letter-spacing), **최대 weight 600**(그 이상 금지)
+- **타이포**: Pretendard **3웨이트만**(`Regular` 400 / `Medium` 500 / `SemiBold` 600). 모든 크기 음수 자간(letter-spacing), **최대 weight 600**(그 이상 금지)
+  - RN에는 Variable 폰트를 쓰지 않습니다. 목업(웹)에서 `font-weight: 100~600`을 쓰더라도 구현은 위 3단계로 매핑됩니다
   - 예외: **대문자 스페이스드-캡스(spaced caps) 라벨**(워터마크·`DAY 1`·`HIGHLIGHTS`·`D1/D2` 등)은 양수 자간 허용 — 벌어진 대문자 룩이 의도된 타이포
 - **레이아웃 여백**: 콘텐츠 좌우 **28px**, 카드 그리드 **20px**
 - **정렬**: 기본 좌측 정렬, 히어로/로고 영역만 가운데
@@ -37,7 +44,9 @@ React Native(Expo, bare) 앱. **모바일 전용**(iOS/Android), 태블릿 미�
 - **폰트 크기·높이에 raw 픽셀 금지**: `src/constants/layout.ts` 상수(`FONT_2XS`~`FONT_2XL`, `BUTTON_HEIGHT` 등) 사용. 스케일 필요한 고정값은 `normalize(n)` (`src/utils/normalize.ts`)
   - **폰트 크기는 8개 토큰만**: `10 · 11 · 13 · 14 · 15 · 17 · 22 · 28px` → `FONT_2XS / FONT_XS / FONT_SM / FONT_MD / FONT_LG / FONT_XL / FONT_2XL`. 그 사이값(`9 · 12 · 16 · 18 · 20px` 등)은 **금지**(`12`는 `11` 또는 `13`으로). `14px`만 상수가 없어 `normalizeFontSize(14)` 사용
   - **역할별 토큰**: 배지 10 / 캡션·행 설명 11 / 우측 값·링크·칩·버튼 13 / 본문·토스트 14 / 행 제목 15 / 네비·화면 타이틀 17 / 섹션 타이틀 22 / 대제목 28 (상세: `docs/guide/dev/ui-publishing.md`)
-  - **weight는 최대 600** — `.native.jsx`에 `fontWeight: '700'` 쓰지 말 것
+  - **`.native.jsx`에 `fontWeight`를 아예 쓰지 말 것** — RN은 웨이트별로 폰트 패밀리가 갈려서
+    `fontWeight`를 주면 안드로이드에서 시스템 폰트로 폴백합니다. `fontFamily: 'Pretendard-SemiBold'`
+    또는 className `font-semibold`(패밀리 지정으로 재정의돼 있음)로 주세요
   - Tailwind 단위(`px-7` 등)는 고정 픽셀 — 패딩/마진/gap에만
 - **아이콘**: `@tabler/icons-react-native` + `lucide-react-native` **둘 다 사용 가능**(혼용 허용). 단 **핸드오프마다 어느 세트인지 명시**하고, **한 컴포넌트/섹션 안에서는 한 세트로 통일**할 것 (섹션 간 혼용은 OK)
 - **경로 alias**: `@/` → `src/`
