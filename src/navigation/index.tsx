@@ -72,11 +72,12 @@ function navigateToUserProfile(userId: string) {
 function handleDeepLinkNav(deepLink: string) {
   if (!deepLink) return;
 
+  const isLoggedIn = !!useAuthStore.getState().accessToken;
+
   // 1. 1:1 문의 딥링크 (/mypage/inquiry/123 또는 inquiryId=123)
   const inquiryMatch = deepLink.match(/(?:inquiryId=|\/mypage\/inquiry\/|\/inquiry\/)(\d+)/);
   if (inquiryMatch && inquiryMatch[1]) {
     const inquiryId = inquiryMatch[1];
-    const isLoggedIn = !!useAuthStore.getState().accessToken;
     if (navigationRef.isReady() && isLoggedIn) {
       navigateToInquiryDetail(inquiryId);
     } else {
@@ -89,7 +90,7 @@ function handleDeepLinkNav(deepLink: string) {
   const postMatch = deepLink.match(/(?:postId=|\/community\/post\/|\/post\/)(\d+)/);
   if (postMatch && postMatch[1]) {
     const postId = postMatch[1];
-    if (navigationRef.isReady()) {
+    if (navigationRef.isReady() && isLoggedIn) {
       navigateToPostDetail(postId);
     } else {
       pendingPostId = postId;
@@ -101,7 +102,7 @@ function handleDeepLinkNav(deepLink: string) {
   const userMatch = deepLink.match(/(?:userId=|\/users\/)(\d+)/);
   if (userMatch && userMatch[1]) {
     const userId = userMatch[1];
-    if (navigationRef.isReady()) {
+    if (navigationRef.isReady() && isLoggedIn) {
       navigateToUserProfile(userId);
     } else {
       pendingUserId = userId;
@@ -114,7 +115,7 @@ function handleDeepLinkNav(deepLink: string) {
   if (!spotIdMatch || !spotIdMatch[1]) return;
 
   const spotId = spotIdMatch[1];
-  if (navigationRef.isReady()) {
+  if (navigationRef.isReady() && isLoggedIn) {
     navigateToSpotDetail(spotId);
   } else {
     pendingSpotId = spotId;
