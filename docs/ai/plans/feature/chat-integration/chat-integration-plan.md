@@ -52,8 +52,18 @@
 
 ## 5) 롤백 계획
 
-- 영향 파일: 채팅 타입/API/훅, auth store, ChatTab, SpotDetailScreen, 패키지 잠금 파일.
-- 되돌림 방법: 신규 파일을 제거하고 ChatTab·SpotDetailScreen·auth store·패키지 파일 변경만 복원한다.
+- 복원할 기존 파일:
+  - `package.json`
+  - `pnpm-lock.yaml`
+  - `src/store/useAuthStore.ts`
+  - `src/components/spot/ChatTab.tsx`
+  - `src/screens/spot/SpotDetailScreen.tsx`
+  - `src/types/spot.ts`
+- 제거할 신규 파일:
+  - `src/types/chat.ts`
+  - `src/api/chat.ts`
+  - `src/hooks/useChat.ts`
+- 되돌림 방법: 신규 채팅 파일을 제거하고, 변경된 기존 파일을 채팅 연동 이전 상태로 복원한 뒤 의존성을 다시 설치한다.
 - 데이터 영향: 없음. 서버 메시지 및 기존 인증 저장 형식은 변경하지 않는다.
 
 ## 6) PR 구성
