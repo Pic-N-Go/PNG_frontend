@@ -62,6 +62,9 @@
 | `TAB_BAR_HEIGHT` | 80px | 하단 탭바 높이 |
 | `HEADER_HEIGHT` | 52px | 상단 네비게이션 바 높이 |
 | `BOTTOM_SHEET_RADIUS` | 24px | 바텀시트 상단 border-radius |
+| `HAIRLINE_WIDTH` | 0.5px | 구분선 굵기 (색은 `HAIRLINE` — `design-tokens.md`) |
+| `BORDER_CONTROL` | 1.5px | 폼 컨트롤 테두리 — 입력 포커스·선택 칩·아웃라인 버튼 |
+| `EMPTY_CARD_HEIGHT` | 120px | 빈 상태 카드 기본 높이 |
 
 ### 사용 예시
 
