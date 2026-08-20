@@ -616,7 +616,7 @@ export default function MapScreen() {
             gridSize: 50,
             styles: [{
                 width: '34px', height: '34px',
-                background: BRAND,
+                background: '${BRAND}',
                 borderRadius: '17px',
                 color: '#FFFFFF',
                 textAlign: 'center',
@@ -669,7 +669,7 @@ export default function MapScreen() {
           var line = new kakao.maps.Polyline({
             path: group.map(function(s) { return new kakao.maps.LatLng(s.lat, s.lng); }),
             strokeWeight: 3,
-            strokeColor: group[0].__dayColor || BRAND,
+            strokeColor: group[0].__dayColor || '${BRAND}',
             strokeOpacity: 0.8,
             strokeStyle: 'solid'
           });

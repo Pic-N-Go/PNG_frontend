@@ -136,7 +136,7 @@ export default function MapBanner({ onPress, spotCount = 0, isLoading, userLocat
       var spots = ${JSON.stringify(spotItems)};
       spots.forEach(function(s) {
         if (s.lat && s.lng) {
-          var pinSvg = '<div class="spot-pin"><svg width="22" height="27" viewBox="0 0 28 34"><path d="M14 0C6.3 0 0 6.3 0 14C0 23 14 34 14 34S28 23 28 14C28 6.3 21.7 0 14 0Z" fill={BRAND}/><circle cx="14" cy="12" r="5" fill="#fff"/></svg></div>';
+          var pinSvg = '<div class="spot-pin"><svg width="22" height="27" viewBox="0 0 28 34"><path d="M14 0C6.3 0 0 6.3 0 14C0 23 14 34 14 34S28 23 28 14C28 6.3 21.7 0 14 0Z" fill="${BRAND}"/><circle cx="14" cy="12" r="5" fill="#fff"/></svg></div>';
           new kakao.maps.CustomOverlay({
             map: map,
             position: new kakao.maps.LatLng(s.lat, s.lng),

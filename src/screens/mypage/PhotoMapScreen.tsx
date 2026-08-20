@@ -190,7 +190,7 @@ export default function PhotoMapScreen() {
 
         function createPinHtml(isFav) {
           var cls = isFav ? 'map-pin map-pin--fav' : 'map-pin map-pin--visit';
-          var svgColor = isFav ? BRAND : '#1c1c1e';
+          var svgColor = isFav ? '${BRAND}' : '#1c1c1e';
           var size = isFav ? 26 : 24;
           var viewBoxHeight = isFav ? 33 : 30;
           return \`
@@ -499,11 +499,11 @@ function SpotListSheet({ spots, activeSpot, onSpotPress, filterName }: { spots: 
                 <View className="bg-[rgba(0,0,0,0.06)] justify-center" style={{ height: normalize(18), paddingHorizontal: normalize(7), borderRadius: normalize(9) }}>
                   <Text className="font-medium text-sub" style={{ fontSize: normalizeFontSize(10) }}>{spot.date}</Text>
                 </View>
-                <View className="bg-[BRAND_TINT] justify-center" style={{ height: normalize(18), paddingHorizontal: normalize(7), borderRadius: normalize(9) }}>
+                <View className="bg-brand/5 justify-center" style={{ height: normalize(18), paddingHorizontal: normalize(7), borderRadius: normalize(9) }}>
                   <Text className="font-semibold text-brand" style={{ fontSize: normalizeFontSize(10) }}>{spot.score}점</Text>
                 </View>
                 {spot.isFav && (
-                  <View className="bg-[BRAND_TINT] justify-center" style={{ height: normalize(18), paddingHorizontal: normalize(7), borderRadius: normalize(9) }}>
+                  <View className="bg-brand/5 justify-center" style={{ height: normalize(18), paddingHorizontal: normalize(7), borderRadius: normalize(9) }}>
                     <Text className="font-medium text-brand" style={{ fontSize: normalizeFontSize(10) }}>즐겨찾기</Text>
                   </View>
                 )}
