@@ -7,14 +7,6 @@ module.exports = {
   theme: {
     extend: {
       colors,
-      fontFamily: {
-        // 한글: Pretendard Variable (Android / Web fallback)
-        pretendard: ["PretendardVariable"],
-        // 제목 (17px 이상): SF Pro Display → Pretendard fallback
-        "sf-display": ["SF Pro Display", "PretendardVariable"],
-        // 본문 (16px 이하): SF Pro Text → Pretendard fallback
-        "sf-text": ["SF Pro Text", "PretendardVariable"],
-      },
     },
   },
   // font-weight 유틸리티는 global.css에서 Pretendard 패밀리로 재정의한다.
