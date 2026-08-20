@@ -229,6 +229,35 @@ export default function ChatTab({ spotId, spotName, onFocusChange }: Props) {
           renderedMessages
         )}
 
+        {messages.length > 0 && isHistoryError && (
+          <View
+            style={{
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: normalize(10),
+              paddingHorizontal: normalize(12),
+              paddingVertical: normalize(10),
+              backgroundColor: 'rgba(227,27,89,0.06)',
+              borderRadius: normalize(10),
+            }}
+          >
+            <Text
+              allowFontScaling={false}
+              style={{ flex: 1, fontSize: FONT_XS, color: 'rgba(0,0,0,0.5)' }}
+            >
+              일부 채팅 정보를 불러오지 못했어요.
+            </Text>
+            <Pressable onPress={() => void refetch()} hitSlop={8}>
+              <Text
+                allowFontScaling={false}
+                style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, color: '#E31B59' }}
+              >
+                다시 시도
+              </Text>
+            </Pressable>
+          </View>
+        )}
+
         {!!connectionError && (
           <Text allowFontScaling={false} style={{ alignSelf: 'center', fontSize: FONT_XS, color: '#E31B59', textAlign: 'center' }}>
             {connectionError}
