@@ -35,6 +35,8 @@ export const navigationRef = createNavigationContainerRef<RootStackParamList>();
 
 let pendingSpotId: string | null = null;
 let pendingInquiryId: string | null = null;
+let pendingPostId: string | null = null;
+let pendingUserId: string | null = null;
 
 function navigateToSpotDetail(spotId: string) {
   (navigationRef as any).navigate('SpotStack', {
@@ -50,6 +52,20 @@ function navigateToInquiryDetail(inquiryId: string) {
       screen: 'InquiryDetail',
       params: { id: inquiryId },
     },
+  });
+}
+
+function navigateToPostDetail(postId: string) {
+  (navigationRef as any).navigate('CommunityDetailStack', {
+    screen: 'PostDetail',
+    params: { postId: String(postId) },
+  });
+}
+
+function navigateToUserProfile(userId: string) {
+  (navigationRef as any).navigate('CommunityDetailStack', {
+    screen: 'UserProfile',
+    params: { userId: String(userId) },
   });
 }
 
@@ -69,7 +85,31 @@ function handleDeepLinkNav(deepLink: string) {
     return;
   }
 
-  // 2. 스팟 딥링크
+  // 2. 커뮤니티 게시글 딥링크 (/community/post/123 또는 postId=123)
+  const postMatch = deepLink.match(/(?:postId=|\/community\/post\/|\/post\/)(\d+)/);
+  if (postMatch && postMatch[1]) {
+    const postId = postMatch[1];
+    if (navigationRef.isReady()) {
+      navigateToPostDetail(postId);
+    } else {
+      pendingPostId = postId;
+    }
+    return;
+  }
+
+  // 3. 유저 프로필 딥링크 (/users/123 또는 userId=123)
+  const userMatch = deepLink.match(/(?:userId=|\/users\/)(\d+)/);
+  if (userMatch && userMatch[1]) {
+    const userId = userMatch[1];
+    if (navigationRef.isReady()) {
+      navigateToUserProfile(userId);
+    } else {
+      pendingUserId = userId;
+    }
+    return;
+  }
+
+  // 4. 스팟 딥링크
   const spotIdMatch = deepLink.match(/(?:spotId=|\/spot\/|\/wishlist\/|\/spot-alerts\/|^)(\d+)/);
   if (!spotIdMatch || !spotIdMatch[1]) return;
 
@@ -104,6 +144,14 @@ export default function RootNavigator() {
         const targetInquiryId = pendingInquiryId;
         pendingInquiryId = null;
         navigateToInquiryDetail(targetInquiryId);
+      } else if (pendingPostId) {
+        const targetPostId = pendingPostId;
+        pendingPostId = null;
+        navigateToPostDetail(targetPostId);
+      } else if (pendingUserId) {
+        const targetUserId = pendingUserId;
+        pendingUserId = null;
+        navigateToUserProfile(targetUserId);
       } else if (pendingSpotId) {
         const targetSpotId = pendingSpotId;
         pendingSpotId = null;
@@ -119,6 +167,14 @@ export default function RootNavigator() {
         const targetInquiryId = pendingInquiryId;
         pendingInquiryId = null;
         navigateToInquiryDetail(targetInquiryId);
+      } else if (pendingPostId) {
+        const targetPostId = pendingPostId;
+        pendingPostId = null;
+        navigateToPostDetail(targetPostId);
+      } else if (pendingUserId) {
+        const targetUserId = pendingUserId;
+        pendingUserId = null;
+        navigateToUserProfile(targetUserId);
       } else if (pendingSpotId) {
         const targetSpotId = pendingSpotId;
         pendingSpotId = null;
