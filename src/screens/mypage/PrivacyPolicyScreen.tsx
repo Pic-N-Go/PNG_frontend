@@ -7,13 +7,12 @@ import { Info, Share as ShareIcon } from 'lucide-react-native';
 import { MyPageStackParamList } from '@/navigation/stacks/MyPageStack';
 import { normalize } from '@/utils/normalize';
 import { FONT_XS, FONT_SM, FONT_MD, FONT_LG } from '@/constants/layout';
+import { BRAND, CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
 
 type Props = NativeStackScreenProps<MyPageStackParamList, 'PrivacyPolicy'>;
 
-const BRAND = '#E31B59';
 const TEXT2 = 'rgba(0,0,0,0.55)';
 const BODY = 'rgba(0,0,0,0.7)';
-const DIVIDER = 'rgba(0,0,0,0.05)';
 
 const META = { effectiveDate: '2026.05.01', version: 'v1.3', totalItems: 12 };
 
@@ -42,7 +41,7 @@ export default function PrivacyPolicyScreen({ navigation }: Props) {
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right']}>
       {/* Nav */}
-      <View className="flex-row items-center border-b border-black/5" style={{ height: normalize(52), paddingHorizontal: normalize(12) }}>
+      <View className="flex-row items-center border-b-[0.5px] border-hairline" style={{ height: normalize(52), paddingHorizontal: normalize(12) }}>
         <Pressable onPress={() => navigation.goBack()} hitSlop={8} className="items-center justify-center" style={{ width: normalize(40), height: normalize(40) }}>
           <IconChevronLeft size={normalize(22)} color="#000" strokeWidth={2} />
         </Pressable>
@@ -50,7 +49,7 @@ export default function PrivacyPolicyScreen({ navigation }: Props) {
       </View>
 
       {/* Meta */}
-      <View className="flex-row items-center justify-between border-b border-black/5" style={{ paddingHorizontal: normalize(24), paddingVertical: normalize(14), backgroundColor: '#faf9fb' }}>
+      <View className="flex-row items-center justify-between border-b-[0.5px] border-hairline" style={{ paddingHorizontal: normalize(24), paddingVertical: normalize(14), backgroundColor: CARD }}>
         <View>
           <Text style={{ fontSize: FONT_XS, color: TEXT2 }}>시행일</Text>
           <Text className="font-semibold text-black" style={{ fontSize: FONT_SM, marginTop: normalize(2) }}>{META.effectiveDate}</Text>
@@ -64,7 +63,7 @@ export default function PrivacyPolicyScreen({ navigation }: Props) {
       <ScrollView contentContainerStyle={{ paddingBottom: normalize(20) }} showsVerticalScrollIndicator={false}>
         {/* 핵심 요약 카드 */}
         <View style={{ paddingHorizontal: normalize(24), paddingTop: normalize(16), paddingBottom: normalize(12) }}>
-          <View className="bg-[#f5f5f7]" style={{ borderRadius: normalize(14), padding: normalize(16) }}>
+          <View className="bg-card" style={{ borderRadius: normalize(14), padding: normalize(16) }}>
             <View className="flex-row items-center" style={{ gap: normalize(6), marginBottom: normalize(8) }}>
               <Info size={normalize(14)} color={BRAND} strokeWidth={2} />
               <Text className="font-semibold text-black" style={{ fontSize: FONT_SM }}>핵심 요약</Text>
@@ -86,15 +85,15 @@ export default function PrivacyPolicyScreen({ navigation }: Props) {
               <Text style={{ fontSize: FONT_SM, color: BODY, lineHeight: normalize(22) }}>{sec.body}</Text>
             </View>
           ))}
-          <Text className="text-center" style={{ fontSize: FONT_XS, color: 'rgba(0,0,0,0.4)', paddingTop: normalize(12) }}>
+          <Text className="text-center" style={{ fontSize: FONT_XS, color: TEXT_SUB, paddingTop: normalize(12) }}>
             — 이하 생략 · 총 {META.totalItems}개 항목 —
           </Text>
         </View>
       </ScrollView>
 
       {/* Footer */}
-      <View className="flex-row border-t border-black/5" style={{ gap: normalize(8), paddingHorizontal: normalize(20), paddingTop: normalize(12), paddingBottom: normalize(12), borderTopColor: DIVIDER }}>
-        <Pressable onPress={onShare} className="flex-1 flex-row items-center justify-center border border-black/10 bg-white" style={{ height: normalize(44), borderRadius: normalize(12) }}>
+      <View className="flex-row border-t-[0.5px] border-hairline" style={{ gap: normalize(8), paddingHorizontal: normalize(20), paddingTop: normalize(12), paddingBottom: normalize(12), borderTopColor: HAIRLINE }}>
+        <Pressable onPress={onShare} className="flex-1 flex-row items-center justify-center border-[1.5px] border-black/10 bg-white" style={{ height: normalize(44), borderRadius: normalize(12) }}>
           <ShareIcon size={normalize(14)} color="#000" strokeWidth={2} />
           <Text className="font-semibold text-black" style={{ fontSize: FONT_SM, marginLeft: normalize(6) }}>공유</Text>
         </Pressable>
