@@ -371,7 +371,10 @@ export default function EquipmentSection() {
                 </View>
               ))}
               
-              <View style={{ marginTop: normalize(20) }}>
+              {/* 추가 폼과 '+ 장비 추가하기' 버튼이 번갈아 들어가는 자리.
+                  높이를 고정하지 않으면 상태를 바꿀 때 시트 높이가 튄다.
+                  ponytail: 폼 실측값(칩 33 + 간격 12 + 입력 44). 폼 구성이 바뀌면 같이 고칠 것 */}
+              <View style={{ marginTop: normalize(20), minHeight: normalize(89), justifyContent: 'center' }}>
                 {isAdding ? (
                   <>
                     <View style={{ flexDirection: 'row', gap: normalize(8), marginBottom: normalize(12) }}>
