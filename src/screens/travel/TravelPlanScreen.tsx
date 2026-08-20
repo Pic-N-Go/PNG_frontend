@@ -27,7 +27,7 @@ import {
   IconBulb,
   IconPlus,
   IconAlertCircle,
-  IconMap2,
+  IconMap,
 } from "@tabler/icons-react-native";
 import { Share as ShareIcon } from "lucide-react-native";
 import NaviSheet from "@/components/spot/NaviSheet";
@@ -808,7 +808,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
             className="bg-card items-center justify-center"
             style={{ height: normalize(210), gap: 8 }}
           >
-            <IconMap2 size={normalize(26)} color="rgba(0,0,0,0.2)" strokeWidth={1.5} />
+            <IconMap size={normalize(26)} color="rgba(0,0,0,0.2)" strokeWidth={1.5} />
             <Text className="font-normal" allowFontScaling={false} style={{ fontSize: FONT_SM, color: "rgba(0,0,0,0.3)", letterSpacing: -0.2 }}>
               표시할 경로가 없어요
             </Text>
