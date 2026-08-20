@@ -70,12 +70,13 @@
   - STOMP `/topic/chats/{spotId}`, `/topic/chats/{spotId}/participants/count`
 - 요청/응답 핵심 필드: 메시지 전송 `{ content }`, 응답 `{ id, senderId, senderNickname, type, content, createdAt }`.
 - 실패 처리 방식: REST는 `fetchWithAuthRetry`, STOMP 만료는 인증 스토어의 동일한 single-flight 갱신을 사용한다. 일반 연결 오류는 메시지를 자동 재전송하지 않는다.
-- 캐싱/무효화 전략(TanStack Query): 최근 메시지와 참여자 수를 spotId별 query key로 캐시하고 실시간 이벤트를 같은 캐시에 병합한다.
+- 캐싱/무효화 전략(TanStack Query): REST로 조회한 최근 메시지와 참여자 수를 spotId별 query key로 캐시한다. STOMP 메시지와 참여자 수는 `useChat`의 로컬 상태에 저장하고, 렌더링 시 REST 조회 결과와 병합한다. STOMP 연결 완료 후 `['chat', spotId]` query prefix를 무효화해 서버 상태를 다시 동기화한다.
 
 ## 7) 상태 관리
 
-- 서버 상태: TanStack Query에 메시지와 참여자 수 저장.
-- 클라이언트 상태(Zustand): 기존 인증 토큰·세션 revision만 사용하고 채팅 전용 전역 store는 추가하지 않는다.
+- 서버 상태: REST로 조회한 메시지와 참여자 수를 TanStack Query에 저장한다.
+- 실시간 상태: STOMP로 수신한 메시지·참여자 수와 연결 상태를 `useChat`의 로컬 state에서 관리하고 렌더링 시 서버 상태와 병합한다.
+- 클라이언트 전역 상태(Zustand): 기존 인증 토큰과 세션 revision만 사용하며 채팅 전용 전역 store는 추가하지 않는다.
 - 영속화 필요 여부: 없음. 메시지는 서버에서 다시 조회한다.
 
 ## 8) 기술 제약 체크
