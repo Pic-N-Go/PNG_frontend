@@ -35,6 +35,8 @@ export const navigationRef = createNavigationContainerRef<RootStackParamList>();
 
 let pendingSpotId: string | null = null;
 let pendingInquiryId: string | null = null;
+let pendingPostId: string | null = null;
+let pendingUserId: string | null = null;
 
 function navigateToSpotDetail(spotId: string) {
   (navigationRef as any).navigate('SpotStack', {
@@ -53,14 +55,29 @@ function navigateToInquiryDetail(inquiryId: string) {
   });
 }
 
+function navigateToPostDetail(postId: string) {
+  (navigationRef as any).navigate('CommunityDetailStack', {
+    screen: 'PostDetail',
+    params: { postId: String(postId) },
+  });
+}
+
+function navigateToUserProfile(userId: string) {
+  (navigationRef as any).navigate('CommunityDetailStack', {
+    screen: 'UserProfile',
+    params: { userId: String(userId) },
+  });
+}
+
 function handleDeepLinkNav(deepLink: string) {
   if (!deepLink) return;
+
+  const isLoggedIn = !!useAuthStore.getState().accessToken;
 
   // 1. 1:1 문의 딥링크 (/mypage/inquiry/123 또는 inquiryId=123)
   const inquiryMatch = deepLink.match(/(?:inquiryId=|\/mypage\/inquiry\/|\/inquiry\/)(\d+)/);
   if (inquiryMatch && inquiryMatch[1]) {
     const inquiryId = inquiryMatch[1];
-    const isLoggedIn = !!useAuthStore.getState().accessToken;
     if (navigationRef.isReady() && isLoggedIn) {
       navigateToInquiryDetail(inquiryId);
     } else {
@@ -69,12 +86,36 @@ function handleDeepLinkNav(deepLink: string) {
     return;
   }
 
-  // 2. 스팟 딥링크
+  // 2. 커뮤니티 게시글 딥링크 (/community/post/123 또는 postId=123)
+  const postMatch = deepLink.match(/(?:postId=|\/community\/post\/|\/post\/)(\d+)/);
+  if (postMatch && postMatch[1]) {
+    const postId = postMatch[1];
+    if (navigationRef.isReady() && isLoggedIn) {
+      navigateToPostDetail(postId);
+    } else {
+      pendingPostId = postId;
+    }
+    return;
+  }
+
+  // 3. 유저 프로필 딥링크 (/users/123 또는 userId=123)
+  const userMatch = deepLink.match(/(?:userId=|\/users\/)(\d+)/);
+  if (userMatch && userMatch[1]) {
+    const userId = userMatch[1];
+    if (navigationRef.isReady() && isLoggedIn) {
+      navigateToUserProfile(userId);
+    } else {
+      pendingUserId = userId;
+    }
+    return;
+  }
+
+  // 4. 스팟 딥링크
   const spotIdMatch = deepLink.match(/(?:spotId=|\/spot\/|\/wishlist\/|\/spot-alerts\/|^)(\d+)/);
   if (!spotIdMatch || !spotIdMatch[1]) return;
 
   const spotId = spotIdMatch[1];
-  if (navigationRef.isReady()) {
+  if (navigationRef.isReady() && isLoggedIn) {
     navigateToSpotDetail(spotId);
   } else {
     pendingSpotId = spotId;
@@ -104,6 +145,14 @@ export default function RootNavigator() {
         const targetInquiryId = pendingInquiryId;
         pendingInquiryId = null;
         navigateToInquiryDetail(targetInquiryId);
+      } else if (pendingPostId) {
+        const targetPostId = pendingPostId;
+        pendingPostId = null;
+        navigateToPostDetail(targetPostId);
+      } else if (pendingUserId) {
+        const targetUserId = pendingUserId;
+        pendingUserId = null;
+        navigateToUserProfile(targetUserId);
       } else if (pendingSpotId) {
         const targetSpotId = pendingSpotId;
         pendingSpotId = null;
@@ -119,6 +168,14 @@ export default function RootNavigator() {
         const targetInquiryId = pendingInquiryId;
         pendingInquiryId = null;
         navigateToInquiryDetail(targetInquiryId);
+      } else if (pendingPostId) {
+        const targetPostId = pendingPostId;
+        pendingPostId = null;
+        navigateToPostDetail(targetPostId);
+      } else if (pendingUserId) {
+        const targetUserId = pendingUserId;
+        pendingUserId = null;
+        navigateToUserProfile(targetUserId);
       } else if (pendingSpotId) {
         const targetSpotId = pendingSpotId;
         pendingSpotId = null;
