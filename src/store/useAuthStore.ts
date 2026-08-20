@@ -150,7 +150,10 @@ async function clearExpiredSession(expectedSessionRevision: number): Promise<voi
   }
 }
 
-setAccessTokenExpiredHandler(resolveTokenSessionRevision, async (requestToken, requestRevision) => {
+async function refreshAccessTokenForSession(
+  requestToken: string,
+  requestRevision: number,
+): Promise<RefreshResult | null> {
   const current = useAuthStore.getState();
   if (!current.accessToken || sessionRevision !== requestRevision) return null;
 
@@ -227,4 +230,17 @@ setAccessTokenExpiredHandler(resolveTokenSessionRevision, async (requestToken, r
   }
 
   return refreshTask.promise;
-});
+}
+
+/** REST가 아닌 STOMP 연결도 동일한 rotation·single-flight·세션 검증을 재사용한다. */
+export async function refreshAccessTokenForWebSocket(
+  requestToken: string,
+): Promise<string | null> {
+  const requestRevision = resolveTokenSessionRevision(requestToken);
+  if (requestRevision === null) return null;
+
+  const refreshed = await refreshAccessTokenForSession(requestToken, requestRevision);
+  return refreshed?.sessionRevision === requestRevision ? refreshed.accessToken : null;
+}
+
+setAccessTokenExpiredHandler(resolveTokenSessionRevision, refreshAccessTokenForSession);

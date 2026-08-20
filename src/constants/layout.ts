@@ -6,6 +6,8 @@ export const INPUT_HEIGHT = normalize(52);
 export const CONTROL_SIZE = normalize(40);
 export const BUTTON_RADIUS = normalize(26);   // pill shape (height / 2)
 export const INPUT_RADIUS = normalize(12);
+export const COMPACT_CONTROL_HEIGHT = normalize(44);
+export const COMPACT_CONTROL_RADIUS = normalize(22);
 
 // ── 카드 / 배지 ───────────────────────────────
 export const CARD_RADIUS = normalize(16);
