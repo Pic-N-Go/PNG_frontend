@@ -58,3 +58,6 @@ export const HAIRLINE_WIDTH = 0.5;
 
 /** 폼 컨트롤 테두리 굵기 — 입력 포커스, 선택 상태 칩/체크박스, 아웃라인 버튼 */
 export const BORDER_CONTROL = 1.5;
+
+/** 빈 상태 카드 기본 높이 (MY 탭 섹션 등) */
+export const EMPTY_CARD_HEIGHT = normalize(120);

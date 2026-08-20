@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { FONT_SM, GRID_PADDING } from '@/constants/layout';
+import { EMPTY_CARD_HEIGHT, FONT_SM, GRID_PADDING } from '@/constants/layout';
 import { useMyAlbums } from '@/hooks/useUser';
 import { categoryLabel } from '@/constants/spotCategories';
 import { BRAND, CARD } from '@/constants/colors';
@@ -29,14 +29,14 @@ export default function RecentAlbums() {
         </Text>
         <View
           style={{
-            height: normalize(120),
+            height: EMPTY_CARD_HEIGHT,
             backgroundColor: CARD,
             borderRadius: normalize(14),
             alignItems: 'center',
             justifyContent: 'center',
           }}
         >
-          <Text style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.3)', fontFamily: 'Pretendard-Regular' }}>
+          <Text className="tracking-tight font-normal" style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.3)' }}>
             등록된 앨범이 없어요
           </Text>
         </View>

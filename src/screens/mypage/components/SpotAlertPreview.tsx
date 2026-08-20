@@ -1,9 +1,9 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { IconBellFilled, IconBellOff, IconBookmark } from '@tabler/icons-react-native';
+import { IconBellFilled, IconBellOff } from '@tabler/icons-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { FONT_MD, FONT_SM, FONT_XS, GRID_PADDING } from '@/constants/layout';
+import { EMPTY_CARD_HEIGHT, FONT_MD, FONT_SM, FONT_XS, GRID_PADDING } from '@/constants/layout';
 import { useSpotAlert } from '@/hooks/useSpotAlert';
 import { mapSpotAlertToUI } from '@/utils/spotAlertMapper';
 import { BRAND, BRAND_STRONG, CARD, TEXT_SUB } from '@/constants/colors';
@@ -58,9 +58,13 @@ export default function SpotAlertPreview() {
           <ActivityIndicator color={BRAND} size="small" />
         </View>
       ) : uiItems.length === 0 ? (
-        <View className="p-5 bg-card rounded-2xl items-center justify-center" style={{ marginHorizontal: GRID_PADDING }}>
-          <IconBookmark size={normalize(24)} color="rgba(0,0,0,0.2)" style={{ marginBottom: normalize(6) }} />
-          <Text className="text-sub text-xs font-medium">설정한 출사 조건이 없어요.</Text>
+        <View
+          className="bg-card rounded-2xl items-center justify-center"
+          style={{ marginHorizontal: GRID_PADDING, height: EMPTY_CARD_HEIGHT }}
+        >
+          <Text className="tracking-tight font-normal" style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.3)' }}>
+            설정한 출사 조건이 없어요.
+          </Text>
         </View>
       ) : (
         <ScrollView
