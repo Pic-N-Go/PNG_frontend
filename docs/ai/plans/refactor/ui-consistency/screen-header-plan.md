@@ -1,7 +1,8 @@
 # 구현 계획 — 화면 헤더(ScreenHeader) 공용화
 
 > 선행 브랜치: `refactor/design-token-unification`
-> `border-radius-plan.md`와 독립적으로 진행 가능하나, 둘 다 시각 변화가 커서 동시 진행은 권하지 않는다.
+> 같은 폴더의 `border-radius-plan.md` · `font-scale-plan.md`와 독립적으로 진행 가능하다.
+> 다만 radius와는 둘 다 시각 변화가 커서 동시 진행은 권하지 않는다.
 
 ## 1) 입력 스펙
 

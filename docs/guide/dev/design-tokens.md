@@ -100,5 +100,13 @@ Pretendard **3웨이트만** 로드한다 — `Regular` / `Medium` / `SemiBold`.
 
 ## 아직 통일되지 않은 것
 
-`border-radius`는 이 작업 범위 밖이다. 상수 7개(`CARD_RADIUS` 등)가 있으나 생값이 3.7배 많고
-값 종류가 30가지다. radius는 요소 크기에 종속돼 일괄 치환이 불가능하므로 별도 작업이 필요하다.
+후속 브랜치용 계획 문서가 `docs/ai/plans/refactor/ui-consistency/`에 있다.
+
+| 항목 | 규모 | 계획 문서 |
+|---|---|---|
+| `border-radius` | 상수 7개가 있으나 생값이 3.7배(432곳), 값 종류 30가지 | `border-radius-plan.md` |
+| 화면 헤더 | 뒤로가기가 있는 32개 화면이 공용 컴포넌트 없이 각자 구현 | `screen-header-plan.md` |
+| 폰트 크기 | `fontSize` 생값 299곳 중 **164곳이 8단계 스케일 밖** (42개 파일) | `font-scale-plan.md` |
+
+셋 다 값 하나로 수렴시킬 수 없는 성격이다. radius는 요소 크기에, 폰트는 텍스트 역할에 종속되고,
+헤더는 토큰이 아니라 컴포넌트가 없는 문제다.

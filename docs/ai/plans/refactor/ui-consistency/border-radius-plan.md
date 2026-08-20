@@ -2,6 +2,7 @@
 
 > 선행 브랜치: `refactor/design-token-unification` (색·테두리·그림자·폰트 토큰화 완료)
 > 이 작업은 그 후속이며 **선행 브랜치가 main에 머지된 뒤** 시작한다.
+> 같은 폴더의 `screen-header-plan.md` · `font-scale-plan.md`와 독립적으로 진행 가능하다.
 
 ## 1) 입력 스펙
 
