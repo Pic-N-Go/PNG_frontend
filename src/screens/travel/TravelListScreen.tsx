@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, Animated, Image } from 'react
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FONT_SM, FONT_MD, FONT_LG, FONT_2XL, BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING, CARD_RADIUS, ICON_SM } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { IconPlus, IconChevronRight, IconCalendarEvent, IconMapPin, IconClock, IconRoute, IconMap, IconAlertCircle } from '@tabler/icons-react-native';
+import { IconPlus, IconChevronRight, IconCalendarEvent, IconMapPin, IconMap2, IconClock, IconRoute, IconMap, IconAlertCircle } from '@tabler/icons-react-native';
 import Skeleton from '@/components/common/Skeleton';
 import { useQuery } from '@tanstack/react-query';
 import { useFocusEffect } from '@react-navigation/native';
@@ -354,8 +354,16 @@ export default function TravelListScreen({ navigation }: any) {
                       </View>
                     ))
                   ) : (
-                    <View className="flex-1 items-center justify-center bg-card">
-                      <IconMapPin size={normalize(24)} color="rgba(0,0,0,0.1)" />
+                    // 출사 상세의 지도 빈 상태(IconMap2 + '표시할 경로가 없어요')와 같은 표현을 쓴다
+                    <View className="flex-1 items-center justify-center bg-card" style={{ gap: normalize(8) }}>
+                      <IconMap2 size={normalize(26)} color="rgba(0,0,0,0.2)" strokeWidth={1.5} />
+                      <Text
+                        allowFontScaling={false}
+                        className="font-normal tracking-tight"
+                        style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.3)' }}
+                      >
+                        표시할 경로가 없어요
+                      </Text>
                     </View>
                   )}
 
