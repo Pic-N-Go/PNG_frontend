@@ -28,6 +28,7 @@ import type {
   ReviewExifResponse,
   SpotDetailInfo,
   SpotDetailResponse,
+  RecommendedSpotResponse,
   SpotItem,
   SpotResponse,
   TimePeriodApi,
@@ -232,6 +233,30 @@ export function mapPopularSpot(dto: SpotResponse): SpotItem {
   };
 }
 
+// 관심 테마 기반 추천 스팟. SpotResponse보다 필드가 적지만(overview·photogenicScore 없음)
+// 카드가 쓰는 값은 다 있어서 인기 카드와 같은 모양으로 그린다.
+export function mapRecommendedSpot(dto: RecommendedSpotResponse): SpotItem {
+  const labels = (dto.categories ?? [])
+    .map((code) => SPOT_CATEGORY_MAP[code]?.label)
+    .filter((label): label is string => !!label)
+    .slice(0, 2);
+
+  const location = [regionLabelFrom(dto.address ?? ''), labels.join('/')]
+    .filter((part): part is string => !!part)
+    .join(' · ');
+
+  return {
+    id: String(dto.id),
+    name: dto.name,
+    location,
+    category: labels[0] ?? '',
+    rating: dto.reviewAverage ?? 0,
+    reviewCount: dto.reviewCount ?? 0,
+    isBookmarked: dto.isBookmarked ?? false,
+    imageUrl: toHttps(dto.thumbnailUrl),
+  };
+}
+
 // ponytail: dev 전용 self-check — 매핑 경계(빈 주소·null 평점) 회귀 방지 (프로덕션 no-op)
 if (__DEV__) {
   const base = { id: 7, name: '광안리', latitude: 0, longitude: 0, bookmarkCount: 0, reviewCount: 0 };
@@ -267,6 +292,22 @@ if (__DEV__) {
   console.assert(bare.rating === 0, '리뷰 없음 → 평점 0 오류');
   console.assert(bare.imageUrl === null, '사진 없음 → null 유지 오류');
   console.assert(bare.isBookmarked === false, 'isBookmarked 누락 → false 폴백 오류');
+
+  const rec = mapRecommendedSpot({
+    ...base,
+    address: '부산광역시 수영구 광안해변로',
+    categories: ['NIGHT_VIEW', 'BEACH'],
+    badge: true,
+    thumbnailUrl: 'http://tong.visitkorea.or.kr/t.jpg',
+    reviewCount: 12,
+    reviewAverage: 4.5,
+    isBookmarked: true,
+  });
+  console.assert(rec.rating === 4.5, '추천 카드도 인기 카드와 같은 별점을 써야 함');
+  console.assert(rec.reviewCount === 12, '리뷰 수는 그대로 전달돼야 함');
+  console.assert(rec.isBookmarked === true, '서버 isBookmarked를 그대로 반영해야 함');
+  console.assert(rec.location === '부산 수영구 · 야경/해변', `추천 location 조합 오류: ${rec.location}`);
+  console.assert(rec.imageUrl === 'https://tong.visitkorea.or.kr/t.jpg', '추천 썸네일 https 승격 오류');
 }
 
 export function mapSpotDetail(dto: SpotDetailResponse): { info: SpotDetailInfo; convenience: ConvenienceInfo } {

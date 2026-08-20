@@ -21,6 +21,9 @@ import { NativeStackNavigationProp, NativeStackScreenProps } from '@react-naviga
 import { HomeStackParamList } from '@/navigation/stacks/HomeStack';
 import type { RootStackParamList } from '@/navigation';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
+import Skeleton from '@/components/common/Skeleton';
+import { useSpots } from '@/hooks/useSpot';
+import { mapPopularSpot } from '@/utils/spotMappers';
 import { FONT_MD, FONT_SM, GRID_PADDING, HAIRLINE_WIDTH, SPACING_LG, SPACING_MD } from '@/constants/layout';
 import { BRAND, BRAND_TINT, CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
 
@@ -47,6 +50,18 @@ const POPULAR = [
 
 const BADGE_COLOR = { up: '#34c759', down: 'rgba(0,0,0,0.25)', new: BRAND } as const;
 
+// 결과 행에 필요한 최소 정보. 검색(목업)과 인기순(실 API) 두 소스가 같은 행을 그린다.
+interface ResultRow {
+  id: string;
+  name: string;
+  addr: string;
+  /** 포토제닉 지수. 인기순 목록에는 그리지 않는다 — 고정 컬럼 값이라 상세의 실시간 점수와 어긋난다. */
+  score?: number;
+  tags: string[];
+}
+
+const POPULAR_LIST_SIZE = 50;
+
 export default function SearchResultScreen({ route, navigation }: Props) {
   const insets = useSafeAreaInsets();
   const inputRef = useRef<TextInput>(null);
@@ -54,6 +69,23 @@ export default function SearchResultScreen({ route, navigation }: Props) {
   const [query, setQuery] = useState(route.params?.query ?? '');
   const [submitted, setSubmitted] = useState(!!route.params?.query);
   const [recent, setRecent] = useState(RECENT_INIT);
+
+  // 홈 "모두 보기"로 들어온 인기순 전체 목록 모드. 검색어를 입력하면 평소 검색으로 넘어간다.
+  const popularMode = route.params?.sort === 'popular' && !submitted;
+  const { data: popularData, isLoading: isPopularLoading } = useSpots(
+    { sort: 'popular', size: POPULAR_LIST_SIZE },
+    { enabled: popularMode },
+  );
+  const popularRows: ResultRow[] = React.useMemo(
+    () =>
+      (popularData?.content ?? []).map(mapPopularSpot).map((s) => ({
+        id: s.id,
+        name: s.name,
+        addr: s.location,
+        tags: s.category ? [s.category] : [],
+      })),
+    [popularData?.content],
+  );
 
   // 동일 인스턴스 재방문 시 새 query 파라미터를 상태에 동기화
   useEffect(() => {
@@ -82,9 +114,14 @@ export default function SearchResultScreen({ route, navigation }: Props) {
     setTimeout(() => inputRef.current?.focus(), 50);
   }
 
-  const results = submitted
-    ? MOCK_RESULTS.filter((r) => r.name.includes(query) || r.tags.some((t) => t.includes(query)))
-    : [];
+  const results: ResultRow[] = popularMode
+    ? popularRows
+    : submitted
+      ? MOCK_RESULTS.filter((r) => r.name.includes(query) || r.tags.some((t) => t.includes(query)))
+      : [];
+
+  // 인기순 모드에서도 결과 패널을 쓴다(포커스 패널의 최근·인기 검색어는 감춘다).
+  const showResults = submitted || popularMode;
 
   return (
     <KeyboardAvoidingView
@@ -125,7 +162,7 @@ export default function SearchResultScreen({ route, navigation }: Props) {
             onChangeText={setQuery}
             placeholder="장소, 테마, 키워드 검색"
             placeholderTextColor="rgba(0,0,0,0.3)"
-            autoFocus={!submitted}
+            autoFocus={!submitted && route.params?.sort !== 'popular'}
             returnKeyType="search"
             onSubmitEditing={() => submit(query)}
             style={{
@@ -167,7 +204,7 @@ export default function SearchResultScreen({ route, navigation }: Props) {
       <View style={{ height: 1, backgroundColor: 'rgba(0,0,0,0.06)' }} />
 
       {/* 포커스 패널 */}
-      {!submitted && (
+      {!showResults && (
         <ScrollView
           keyboardShouldPersistTaps="handled"
           // 탭바 높이·인셋을 더하지 않는다 — 화면 영역에서 이미 빠져 있다(HomeScreen 주석 참고).
@@ -259,7 +296,7 @@ export default function SearchResultScreen({ route, navigation }: Props) {
       )}
 
       {/* 결과 패널 */}
-      {submitted && (
+      {showResults && (
         <>
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: GRID_PADDING, paddingVertical: normalize(14) }}>
             <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: TEXT_SUB }}>
@@ -267,23 +304,33 @@ export default function SearchResultScreen({ route, navigation }: Props) {
             </Text>
             {/* TODO: 정렬 기능 미구현 — 정렬 옵션 시트 연결 필요 */}
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(4) }}>
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: 'rgba(0,0,0,0.45)' }}>관련순</Text>
+              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: 'rgba(0,0,0,0.45)' }}>
+                {popularMode ? '인기순' : '관련순'}
+              </Text>
               <IconChevronDown size={normalize(10)} color="rgba(0,0,0,0.45)" strokeWidth={1.5} />
             </View>
           </View>
           <View style={{ height: 1, backgroundColor: 'rgba(0,0,0,0.06)' }} />
 
-          {results.length === 0 ? (
+          {popularMode && isPopularLoading ? (
+            <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(14), gap: normalize(14) }}>
+              {[0, 1, 2, 3].map((i) => (
+                <Skeleton key={i} width="100%" height={normalize(80)} borderRadius={normalize(12)} />
+              ))}
+            </View>
+          ) : results.length === 0 ? (
             // paddingBottom을 두지 않는다 — 탭바가 빠진 영역 안에서 그냥 가운데 정렬하면 된다.
             // 탭바 높이를 더하면 빈 상태가 위로 치우쳐 보인다.
             <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: normalize(12) }}>
               <IconSearch size={normalize(48)} color="rgba(0,0,0,0.12)" strokeWidth={1} />
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(16), color: 'rgba(0,0,0,0.5)' }}>
-                검색 결과가 없어요
+                {popularMode ? '아직 인기 스팟이 없어요' : '검색 결과가 없어요'}
               </Text>
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_MD, color: 'rgba(0,0,0,0.3)', textAlign: 'center', lineHeight: FONT_MD * 1.5 }}>
-                {'다른 키워드로 검색하거나\n철자를 확인해보세요'}
-              </Text>
+              {!popularMode && (
+                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_MD, color: 'rgba(0,0,0,0.3)', textAlign: 'center', lineHeight: FONT_MD * 1.5 }}>
+                  {'다른 키워드로 검색하거나\n철자를 확인해보세요'}
+                </Text>
+              )}
             </View>
           ) : (
             <FlatList
@@ -311,11 +358,13 @@ export default function SearchResultScreen({ route, navigation }: Props) {
                       </Text>
                     </View>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(6), flexWrap: 'wrap' }}>
-                      <View style={{ backgroundColor: BRAND_TINT, paddingHorizontal: normalize(8), paddingVertical: normalize(2), borderRadius: normalize(8) }}>
-                        <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(12), color: BRAND }}>
-                          {item.score}점
-                        </Text>
-                      </View>
+                      {item.score !== undefined && (
+                        <View style={{ backgroundColor: BRAND_TINT, paddingHorizontal: normalize(8), paddingVertical: normalize(2), borderRadius: normalize(8) }}>
+                          <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(12), color: BRAND }}>
+                            {item.score}점
+                          </Text>
+                        </View>
+                      )}
                       {item.tags.map((tag) => (
                         <View key={tag} style={{ backgroundColor: CARD, paddingHorizontal: normalize(8), paddingVertical: normalize(2), borderRadius: normalize(8) }}>
                           <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(12), color: TEXT_SUB }}>

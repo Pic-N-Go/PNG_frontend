@@ -87,11 +87,14 @@ export function useSpots(params?: GetSpotsParams, options?: QueryToggle) {
   });
 }
 
+/** 관심 테마를 바꾸면 추천 결과도 달라진다 — 저장하는 쪽(useUpdateSpotCategories)이 무효화에 쓴다. */
+export const RECOMMENDED_SPOTS_KEY = ['spots', 'recommended'] as const;
+
 // 관심 테마 기반 추천 스팟. 서버가 userDetails.getId()를 그대로 쓰므로 로그인 필수다.
 export function useRecommendedSpots(limit = 10, options?: QueryToggle) {
   const token = useAuthStore((s) => s.accessToken);
   return useQuery({
-    queryKey: ['spots', 'recommended', limit, token ?? 'guest'],
+    queryKey: [...RECOMMENDED_SPOTS_KEY, limit, token ?? 'guest'],
     queryFn: () => spotApi.getRecommendedSpots(limit, token ?? undefined),
     enabled: !!token && (options?.enabled ?? true),
     staleTime: SPOTS_STALE_TIME,
