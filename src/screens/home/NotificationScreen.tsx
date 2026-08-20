@@ -133,10 +133,12 @@ export default function NotificationScreen({ navigation }: Props) {
       markRead(item.id);
     }
 
-    // 2. 1:1 문의 답변 알림인 경우 InquiryDetail 또는 InquiryList 로 이동
     const upperType = (item.type || '').toUpperCase();
-    if (upperType.includes('INQUIRY') || (item.deepLink && item.deepLink.includes('inquiry'))) {
-      const inquiryMatch = (item.deepLink || '').match(/(?:inquiryId=|\/mypage\/inquiry\/|\/inquiry\/)(\d+)/);
+    const deepLink = item.deepLink || '';
+
+    // 2. 1:1 문의 답변 알림인 경우 InquiryDetail 또는 InquiryList 로 이동
+    if (upperType.includes('INQUIRY') || deepLink.includes('inquiry')) {
+      const inquiryMatch = deepLink.match(/(?:inquiryId=|\/mypage\/inquiry\/|\/inquiry\/)(\d+)/);
       const inquiryId = inquiryMatch ? inquiryMatch[1] : undefined;
 
       (navigation as any).navigate('Main', {
@@ -149,7 +151,35 @@ export default function NotificationScreen({ navigation }: Props) {
       return;
     }
 
-    // 3. spotId가 포함되어 수신된 알림의 경우 해당 스팟 상세 페이지로 이동
+    // 3. 커뮤니티 팔로우 알림인 경우 유저 프로필(UserProfile) 로 이동
+    if (upperType.includes('FOLLOW') || deepLink.includes('/users/')) {
+      const userMatch = deepLink.match(/(?:userId=|\/users\/)(\d+)/);
+      const targetUserId = userMatch ? userMatch[1] : undefined;
+
+      if (targetUserId) {
+        (navigation as any).navigate('CommunityDetailStack', {
+          screen: 'UserProfile',
+          params: { userId: targetUserId },
+        });
+        return;
+      }
+    }
+
+    // 4. 커뮤니티 댓글/답글/좋아요/새글 알림인 경우 게시글 상세(PostDetail) 로 이동
+    if (upperType.startsWith('COMMUNITY') || deepLink.includes('/community/post/') || deepLink.includes('/post/')) {
+      const postMatch = deepLink.match(/(?:postId=|\/community\/post\/|\/post\/)(\d+)/);
+      const postId = postMatch ? postMatch[1] : undefined;
+
+      if (postId) {
+        (navigation as any).navigate('CommunityDetailStack', {
+          screen: 'PostDetail',
+          params: { postId },
+        });
+        return;
+      }
+    }
+
+    // 5. spotId가 포함되어 수신된 알림의 경우 해당 스팟 상세 페이지로 이동
     if (item.spotId !== undefined && item.spotId !== null) {
       (navigation as any).navigate('SpotStack', {
         screen: 'SpotDetail',
