@@ -11,10 +11,11 @@ import Toast from '@/components/common/Toast';
 import { CommunityDetailStackParamList } from '@/navigation/stacks/CommunityDetailStack';
 import type { RootStackParamList } from '@/navigation';
 import { ContestPhotoEntry } from '@/types/community';
-import { CARD_RADIUS, HEADER_HEIGHT, CONTENT_PADDING, FONT_2XS, FONT_LG, FONT_MD, FONT_SM, FONT_XL, FONT_XS } from '@/constants/layout';
+import { CARD_RADIUS, CONTENT_PADDING, FONT_2XS, FONT_LG, FONT_MD, FONT_SM, FONT_XL, FONT_XS, HAIRLINE_WIDTH, HEADER_HEIGHT } from '@/constants/layout';
 import { shareContent } from '@/utils/share';
 import { normalize, normalizeFontSize, normalizeHeight } from '@/utils/normalize';
 import { awardHaptic } from '@/utils/haptics';
+import { BRAND, BRAND_MUTED, BRAND_TINT, CARD, HAIRLINE } from '@/constants/colors';
 
 /**
  * 콘테스트 결과 — 목업 contest-result.html 1:1. 시안 10b(수상작 상세)·10d(축하)·10f(순위권 밖).
@@ -23,8 +24,8 @@ import { awardHaptic } from '@/utils/haptics';
  * "출품했지만 3위 밖"은 10f(분포 바)로 확정 — 같은 케이스를 다루던 10a(한 줄 요약)는 미채택.
  */
 
-const ACCENT = '#E31B59';
-const SURFACE = '#f5f5f7';
+const ACCENT = BRAND;
+const SURFACE = CARD;
 const SUB = '#8e8e93';
 
 // TODO(API): 지난 달 대비 순위 변화. 서버가 안 내려주는 회차(첫 출품 등)에는 넘기지 않는다.
@@ -121,7 +122,7 @@ export default function ContestResultScreen() {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: normalize(28) }}>
         {isAward ? (
-          <View style={{ margin: normalize(18), marginHorizontal: CONTENT_PADDING, padding: normalize(20), borderRadius: normalize(20), backgroundColor: 'rgba(227,27,89,0.06)' }}>
+          <View style={{ margin: normalize(18), marginHorizontal: CONTENT_PADDING, padding: normalize(20), borderRadius: normalize(20), backgroundColor: BRAND_TINT }}>
             {/* 등수 배지와 축하 문구는 같은 행 — 카드 안쪽 294px에 들어가야 해서 문구는 FONT_MD */}
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(8) }}>
               <Animated.View entering={ZoomIn.delay(120).duration(320)} style={{ height: normalize(24), paddingHorizontal: normalize(10), borderRadius: normalize(12), backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
@@ -243,7 +244,7 @@ function RankList({ entries, myRank, onPress }: { entries: ContestPhotoEntry[]; 
         <Pressable
           key={entry.id}
           onPress={() => onPress(entry)}
-          style={{ height: normalize(68), flexDirection: 'row', alignItems: 'center', gap: normalize(12), borderTopWidth: index === 0 ? 0 : 1, borderTopColor: 'rgba(0,0,0,0.06)' }}
+          style={{ height: normalize(68), flexDirection: 'row', alignItems: 'center', gap: normalize(12), borderTopWidth: index === 0 ? 0 : HAIRLINE_WIDTH, borderTopColor: HAIRLINE }}
         >
           <Text allowFontScaling={false} style={{ width: normalize(26), fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, letterSpacing: -0.3, color: entry.rank === myRank ? ACCENT : '#000' }}>
             {entry.rank}
@@ -284,7 +285,7 @@ function EntryDetailView({ entry, monthLabel, onBack, onOpenSpot }: { entry: Con
 
         <View style={{ padding: normalize(20), paddingHorizontal: CONTENT_PADDING, paddingBottom: normalize(28) }}>
           <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: normalize(8) }}>
-            <View style={{ height: normalize(24), paddingHorizontal: normalize(10), borderRadius: normalize(12), backgroundColor: 'rgba(227,27,89,0.1)', alignItems: 'center', justifyContent: 'center' }}>
+            <View style={{ height: normalize(24), paddingHorizontal: normalize(10), borderRadius: normalize(12), backgroundColor: BRAND_TINT, alignItems: 'center', justifyContent: 'center' }}>
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, letterSpacing: -0.1, color: ACCENT }}>
                 {`${monthLabel} ${entry.rank}위`}
               </Text>
@@ -367,7 +368,7 @@ function ContestResultOutrank({ rank, totalCount, votes, deltaLabel }: { rank: n
 
       {/* 왼쪽이 1위, 오른쪽이 꼴찌. 채운 구간 끝에 점을 찍어 내 위치를 정확히 가리킨다 */}
       <View style={{ position: 'relative', height: normalize(8), borderRadius: normalize(4), backgroundColor: '#e6e6ea', marginTop: normalize(16) }}>
-        <View style={{ width: `${percentile}%`, height: '100%', borderRadius: normalize(4), backgroundColor: 'rgba(227,27,89,0.28)' }} />
+        <View style={{ width: `${percentile}%`, height: '100%', borderRadius: normalize(4), backgroundColor: BRAND_MUTED }} />
         <View style={{ position: 'absolute', left: `${percentile}%`, marginLeft: -normalize(4), top: 0, width: normalize(8), height: normalize(8), borderRadius: normalize(4), backgroundColor: ACCENT }} />
       </View>
       <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: normalize(8), marginTop: normalize(10) }}>

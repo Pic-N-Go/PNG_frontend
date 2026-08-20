@@ -5,6 +5,7 @@ import BottomSheet from '@/components/common/BottomSheet';
 import { ReportReasonId } from '@/types/community';
 import { FONT_LG, FONT_MD, FONT_XS, GRID_PADDING } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
+import { TEXT_SUB } from '@/constants/colors';
 
 const REPORT_REASONS: { id: ReportReasonId; label: string }[] = [
   { id: 'spam', label: '스팸' },
@@ -28,7 +29,7 @@ export default function PostReportSheet({ visible, onClose, onSelectReason }: Pr
         <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_LG, letterSpacing: -0.4, color: '#000', marginBottom: normalize(3) }}>
           신고 사유 선택
         </Text>
-        <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, letterSpacing: -0.1, color: 'rgba(0,0,0,0.4)', marginBottom: normalize(8) }}>
+        <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, letterSpacing: -0.1, color: TEXT_SUB, marginBottom: normalize(8) }}>
           선택 즉시 접수됩니다 · 검토 결과는 알림으로 안내
         </Text>
 

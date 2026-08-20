@@ -3,6 +3,8 @@ import { Pressable, Text, View } from 'react-native';
 import { IconSearch, IconAdjustmentsHorizontal } from '@tabler/icons-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { FONT_MD, GRID_PADDING } from '@/constants/layout';
+import { BRAND } from '@/constants/colors';
+import { SHADOW_CONTROL } from '@/constants/shadow';
 
 interface Props {
   onPress: () => void;
@@ -21,11 +23,7 @@ export default function SearchBar({ onPress, onFilterPress, activeFilterCount }:
         backgroundColor: 'rgba(255,255,255,0.92)',
         borderWidth: 0.5,
         borderColor: 'rgba(255,255,255,0.6)',
-        shadowColor: '#000',
-        shadowOffset: { width: 0, height: 2 },
-        shadowOpacity: 0.06,
-        shadowRadius: 12,
-        elevation: 3,
+        ...SHADOW_CONTROL,
       }}
     >
       {/* 검색 영역 */}
@@ -72,7 +70,7 @@ export default function SearchBar({ onPress, onFilterPress, activeFilterCount }:
                 width: normalizeFontSize(14),
                 height: normalizeFontSize(14),
                 borderRadius: normalizeFontSize(7),
-                backgroundColor: '#E31B59',
+                backgroundColor: BRAND,
                 alignItems: 'center',
                 justifyContent: 'center',
               }}

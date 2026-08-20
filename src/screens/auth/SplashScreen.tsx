@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '@/navigation/AuthStack';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
+import { BRAND } from '@/constants/colors';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Splash'>;
 
@@ -64,7 +65,7 @@ export default function SplashScreen({ navigation }: Props) {
 
   return (
     <Animated.View
-      style={{ flex: 1, backgroundColor: '#E31B59', opacity: screenOpacity }}
+      style={{ flex: 1, backgroundColor: BRAND, opacity: screenOpacity }}
     >
       {/* Logo — vertically centered */}
       <View className="flex-1 items-center justify-center">

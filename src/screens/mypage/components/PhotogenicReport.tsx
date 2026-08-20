@@ -3,6 +3,7 @@ import { View, Text } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { FONT_XS } from '@/constants/layout';
+import { BRAND, BRAND_TINT, CARD, TEXT_SUB } from '@/constants/colors';
 
 const CHART_DATA = [
   { week: '1주', score: 78 },
@@ -23,28 +24,28 @@ export default function PhotogenicReport() {
       <View
         style={{
           borderRadius: normalize(16),
-          backgroundColor: '#f8f8f9', // 아주 옅은 회색 배경
+          backgroundColor: CARD, // 아주 옅은 회색 배경
           padding: normalize(20),
           position: 'relative',
           overflow: 'hidden',
         }}
       >
         <LinearGradient
-          colors={['rgba(227, 27, 89, 0.08)', 'transparent']}
+          colors={[BRAND_TINT, 'transparent']}
           start={{ x: 0, y: 0.5 }}
           end={{ x: 1, y: 0.5 }}
           style={{ position: 'absolute', inset: 0 }}
         />
         
-        <Text className="tracking-tight" style={{ fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.4)', marginBottom: normalize(6) }}>
+        <Text className="tracking-tight font-normal" style={{ fontSize: normalizeFontSize(12), color: TEXT_SUB, marginBottom: normalize(6) }}>
           이번 달 평균
         </Text>
         
         <View className="flex-row items-baseline mb-6" style={{ gap: normalize(8) }}>
-          <Text className="font-bold tracking-tight" style={{ fontSize: normalizeFontSize(36), color: '#E31B59', lineHeight: normalizeFontSize(38) }}>
+          <Text className="font-bold tracking-tight" style={{ fontSize: normalizeFontSize(36), color: BRAND, lineHeight: normalizeFontSize(38) }}>
             84.2
           </Text>
-          <Text className="tracking-tight" style={{ fontSize: normalizeFontSize(16), color: 'rgba(0,0,0,0.25)' }}>
+          <Text className="tracking-tight font-normal" style={{ fontSize: normalizeFontSize(16), color: 'rgba(0,0,0,0.25)' }}>
             /100
           </Text>
           <View
@@ -66,7 +67,7 @@ export default function PhotogenicReport() {
 
         {/* 주차별 차트 */}
         <View className="mb-6">
-          <Text className="tracking-tight" style={{ fontSize: FONT_XS, color: 'rgba(0,0,0,0.3)', marginBottom: normalize(12) }}>
+          <Text className="tracking-tight font-normal" style={{ fontSize: FONT_XS, color: 'rgba(0,0,0,0.3)', marginBottom: normalize(12) }}>
             주차별 평균 포토제닉 점수
           </Text>
           
@@ -77,8 +78,8 @@ export default function PhotogenicReport() {
                 className="flex-1 text-center tracking-tight"
                 style={{
                   fontSize: normalizeFontSize(11),
-                  color: item.isBest ? '#E31B59' : 'rgba(0,0,0,0.3)',
-                  fontWeight: item.isBest ? '700' : '500',
+                  color: item.isBest ? BRAND : 'rgba(0,0,0,0.3)',
+                  fontFamily: item.isBest ? 'Pretendard-SemiBold' : 'Pretendard-Medium',
                 }}
               >
                 {item.score}{item.isBest && '★'}
@@ -106,7 +107,7 @@ export default function PhotogenicReport() {
           
           <View className="flex-row mt-2" style={{ gap: normalize(10) }}>
             {CHART_DATA.map((item, idx) => (
-              <Text key={idx} className="flex-1 text-center tracking-tight" style={{ fontSize: normalizeFontSize(10), color: 'rgba(0,0,0,0.3)' }}>
+              <Text key={idx} className="flex-1 text-center tracking-tight font-normal" style={{ fontSize: normalizeFontSize(10), color: 'rgba(0,0,0,0.3)' }}>
                 {item.week}
               </Text>
             ))}
@@ -115,7 +116,7 @@ export default function PhotogenicReport() {
 
         {/* 베스트 스팟 */}
         <View>
-          <Text className="tracking-tight" style={{ fontSize: FONT_XS, color: 'rgba(0,0,0,0.3)', marginBottom: normalize(8) }}>
+          <Text className="tracking-tight font-normal" style={{ fontSize: FONT_XS, color: 'rgba(0,0,0,0.3)', marginBottom: normalize(8) }}>
             이달의 베스트
           </Text>
           <View
@@ -130,7 +131,7 @@ export default function PhotogenicReport() {
             <Text className="font-semibold text-black tracking-tight" style={{ fontSize: normalizeFontSize(14), marginBottom: normalize(2) }}>
               광안리
             </Text>
-            <Text className="tracking-tight" style={{ fontSize: normalizeFontSize(11), color: 'rgba(0,0,0,0.4)', marginBottom: normalize(12) }}>
+            <Text className="tracking-tight font-normal" style={{ fontSize: normalizeFontSize(11), color: TEXT_SUB, marginBottom: normalize(12) }}>
               야경 · 3회 방문
             </Text>
             <View
@@ -139,12 +140,12 @@ export default function PhotogenicReport() {
                 height: normalize(22),
                 paddingHorizontal: normalize(10),
                 borderRadius: normalize(11),
-                backgroundColor: 'rgba(227, 27, 89, 0.08)',
+                backgroundColor: BRAND_TINT,
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
             >
-              <Text className="font-bold tracking-tight" style={{ fontSize: normalizeFontSize(11), color: '#E31B59' }}>
+              <Text className="font-bold tracking-tight" style={{ fontSize: normalizeFontSize(11), color: BRAND }}>
                 91점
               </Text>
             </View>

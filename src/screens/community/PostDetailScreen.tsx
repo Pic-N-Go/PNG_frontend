@@ -29,11 +29,12 @@ import { useAuthStore } from '@/store/useAuthStore';
 import Avatar from '@/components/common/Avatar';
 import { CommunityDetailStackParamList } from '@/navigation/stacks/CommunityDetailStack';
 import { Comment, ReportReasonId } from '@/types/community';
-import { HEADER_HEIGHT, CONTENT_PADDING, FONT_LG, FONT_MD, FONT_SM, FONT_XS } from '@/constants/layout';
+import { CONTENT_PADDING, FONT_LG, FONT_MD, FONT_SM, FONT_XS, HAIRLINE_WIDTH, HEADER_HEIGHT } from '@/constants/layout';
 import { normalize, normalizeHeight } from '@/utils/normalize';
+import { BRAND, CARD, HAIRLINE, SCRIM, TEXT_SUB } from '@/constants/colors';
 
-const ACCENT = '#E31B59';
-const SURFACE = '#f5f5f7';
+const ACCENT = BRAND;
+const SURFACE = CARD;
 
 export default function PostDetailScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<CommunityDetailStackParamList>>();
@@ -281,7 +282,7 @@ export default function PostDetailScreen() {
       <SafeAreaView edges={['top']} style={{ backgroundColor: '#fff' }}>
         <View
           className="flex-row items-center"
-          style={{ height: HEADER_HEIGHT, paddingHorizontal: normalize(20), gap: normalize(8), borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)' }}
+          style={{ height: HEADER_HEIGHT, paddingHorizontal: normalize(20), gap: normalize(8), borderBottomWidth: HAIRLINE_WIDTH, borderBottomColor: HAIRLINE }}
         >
           <Pressable
             onPress={() => navigation.goBack()}
@@ -314,7 +315,7 @@ export default function PostDetailScreen() {
               <ActivityIndicator color={ACCENT} />
             ) : (
               <>
-                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: 'rgba(0,0,0,0.4)', letterSpacing: -0.2 }}>
+                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: TEXT_SUB, letterSpacing: -0.2 }}>
                   {isError ? '게시글을 불러오지 못했어요' : '게시글을 찾을 수 없어요'}
                 </Text>
                 {isError && (
@@ -346,7 +347,7 @@ export default function PostDetailScreen() {
             {photoCount > 1 && (
               <View
                 className="items-center justify-center absolute"
-                style={{ top: normalize(14), right: normalize(14), height: normalize(24), paddingHorizontal: normalize(10), borderRadius: normalize(12), backgroundColor: 'rgba(0,0,0,0.4)' }}
+                style={{ top: normalize(14), right: normalize(14), height: normalize(24), paddingHorizontal: normalize(10), borderRadius: normalize(12), backgroundColor: SCRIM }}
               >
                 <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, color: '#fff', letterSpacing: -0.1 }}>
                   {heroPhotoIndex + 1}/{photoCount}
@@ -357,7 +358,7 @@ export default function PostDetailScreen() {
             <Pressable
               onPress={toggleLike}
               className="flex-row items-center absolute"
-              style={{ right: normalize(14), bottom: normalize(14), gap: normalize(5), height: normalize(30), paddingHorizontal: normalize(12), borderRadius: normalize(15), backgroundColor: 'rgba(0,0,0,0.4)' }}
+              style={{ right: normalize(14), bottom: normalize(14), gap: normalize(5), height: normalize(30), paddingHorizontal: normalize(12), borderRadius: normalize(15), backgroundColor: SCRIM }}
             >
               <Heart size={normalize(13)} color={post.isLiked ? '#ff453a' : '#fff'} fill={post.isLiked ? '#ff453a' : 'none'} strokeWidth={1.8} />
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, color: '#fff', letterSpacing: -0.1 }}>
@@ -380,7 +381,7 @@ export default function PostDetailScreen() {
                     {post.author.handle}
                   </Text>
                 </Pressable>
-                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.4)', letterSpacing: -0.1, marginTop: normalize(1) }}>
+                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: TEXT_SUB, letterSpacing: -0.1, marginTop: normalize(1) }}>
                   {[post.createdAtLabel, post.location].filter(Boolean).join(' · ')}
                 </Text>
               </View>
@@ -450,7 +451,7 @@ export default function PostDetailScreen() {
             {/* 액션 바 */}
             <View
               className="flex-row items-center"
-              style={{ gap: normalize(16), paddingVertical: normalize(4), paddingBottom: normalize(16), borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)' }}
+              style={{ gap: normalize(16), paddingVertical: normalize(4), paddingBottom: normalize(16), borderBottomWidth: HAIRLINE_WIDTH, borderBottomColor: HAIRLINE }}
             >
               {/* 포토제닉 점수 제거 — 게시글 단위 점수가 서버에 없다(스팟 단위만 존재).
                   백엔드가 생기면 목업(community-post.html)의 핑크 칩을 되살리면 된다. */}
@@ -493,7 +494,7 @@ export default function PostDetailScreen() {
 
               {hasNextPage && (
                 <Pressable onPress={() => fetchNextPage()} disabled={isFetchingNextPage} style={{ paddingBottom: normalize(24) }}>
-                  <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: 'rgba(0,0,0,0.4)', letterSpacing: -0.15 }}>
+                  <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: TEXT_SUB, letterSpacing: -0.15 }}>
                     {isFetchingNextPage ? '불러오는 중...' : `댓글 ${remainingComments}개 더보기`}
                   </Text>
                 </Pressable>
@@ -521,7 +522,7 @@ export default function PostDetailScreen() {
               {editing ? '댓글 수정 중' : `${replyTo!.author.handle}님에게 답글 다는 중`}
             </Text>
             <Pressable onPress={clearComposerMode} hitSlop={8} accessibilityLabel={editing ? '수정 취소' : '답글 취소'}>
-              <X size={normalize(14)} color="rgba(0,0,0,0.4)" strokeWidth={2} />
+              <X size={normalize(14)} color={TEXT_SUB} strokeWidth={2} />
             </Pressable>
           </View>
         )}
@@ -535,8 +536,8 @@ export default function PostDetailScreen() {
             paddingTop: normalize(10),
             paddingBottom: keyboardOverlap > 0 ? normalize(10) : insets.bottom + normalize(10),
             backgroundColor: 'rgba(255,255,255,0.96)',
-            borderTopWidth: 0.5,
-            borderTopColor: 'rgba(0,0,0,0.06)',
+            borderTopWidth: HAIRLINE_WIDTH,
+            borderTopColor: HAIRLINE,
           }}
         >
           <Avatar userId={me?.id} nickname={me?.nickname} imageUrl={me?.profileImageUrl} size={32} />

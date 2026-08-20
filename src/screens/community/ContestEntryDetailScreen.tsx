@@ -11,9 +11,10 @@ import Toast from '@/components/common/Toast';
 import DevStateSwitch from '@/components/common/DevStateSwitch';
 import { CommunityDetailStackParamList } from '@/navigation/stacks/CommunityDetailStack';
 import type { RootStackParamList } from '@/navigation';
-import { HEADER_HEIGHT, BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING, FONT_LG, FONT_MD, FONT_SM, FONT_XS } from '@/constants/layout';
+import { BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING, FONT_LG, FONT_MD, FONT_SM, FONT_XS, HAIRLINE_WIDTH, HEADER_HEIGHT } from '@/constants/layout';
 import { shareContent } from '@/utils/share';
 import { normalize, normalizeFontSize, normalizeHeight } from '@/utils/normalize';
+import { BRAND, BRAND_TINT, CARD, HAIRLINE } from '@/constants/colors';
 
 /**
  * 콘테스트 출품작 상세 (시안 14a·14b·14d·14e·14f·14g) — 게시글 상세와 골격이 다르다.
@@ -21,8 +22,8 @@ import { normalize, normalizeFontSize, normalizeHeight } from '@/utils/normalize
  * TODO(API): route.params의 entryId 기준 실제 조회로 교체. 지금은 목업과 동일한 단일 mock.
  */
 
-const ACCENT = '#E31B59';
-const SURFACE = '#f5f5f7';
+const ACCENT = BRAND;
+const SURFACE = CARD;
 const MAX_VOTES = 3;
 
 // spotId가 있으면 스팟 DB에서 고른 경우, 없으면 자유 입력 — 자유 입력은 스팟 상세로 연결되지 않는다.
@@ -132,7 +133,7 @@ export default function ContestEntryDetailScreen() {
         </View>
 
         {/* 아바타·팔로우 버튼 없음 — 콘테스트에서 중요한 건 작품이지 작성자 관계가 아니다 */}
-        <View style={{ borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.06)', paddingTop: normalize(22), paddingHorizontal: normalize(24), paddingBottom: normalize(24) }}>
+        <View style={{ borderTopWidth: HAIRLINE_WIDTH, borderTopColor: HAIRLINE, paddingTop: normalize(22), paddingHorizontal: normalize(24), paddingBottom: normalize(24) }}>
           <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: normalize(8) }}>
             <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_LG, letterSpacing: -0.4, color: '#000' }}>
               {MOCK_ENTRY.author}
@@ -178,7 +179,7 @@ export default function ContestEntryDetailScreen() {
 
           {isEnded ? (
             /* 결과 발표 후 — 누를 수 없다. 1~3위만 핑크로 강조 */
-            <View style={{ marginTop: normalize(20), height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS, backgroundColor: isAward ? 'rgba(227,27,89,0.1)' : SURFACE, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: normalize(8) }}>
+            <View style={{ marginTop: normalize(20), height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS, backgroundColor: isAward ? BRAND_TINT : SURFACE, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: normalize(8) }}>
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, letterSpacing: -0.3, color: isAward ? ACCENT : '#000' }}>
                 {isAward ? `8월 ${rank}위` : `${rank}위`}
               </Text>
@@ -200,7 +201,7 @@ export default function ContestEntryDetailScreen() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: normalize(8),
-                backgroundColor: isMine || spent ? '#e6e6ea' : voted ? 'rgba(227,27,89,0.1)' : ACCENT,
+                backgroundColor: isMine || spent ? '#e6e6ea' : voted ? BRAND_TINT : ACCENT,
               }}
             >
               {voted ? (
@@ -237,7 +238,7 @@ export default function ContestEntryDetailScreen() {
           </Pressable>
 
           {isMine ? (
-            <Pressable onPress={() => setDeleteModalVisible(true)} style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(12), height: normalize(56), borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.06)' }}>
+            <Pressable onPress={() => setDeleteModalVisible(true)} style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(12), height: normalize(56), borderTopWidth: HAIRLINE_WIDTH, borderTopColor: HAIRLINE }}>
               <Trash2 size={normalize(19)} color={ACCENT} strokeWidth={1.8} />
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_MD, letterSpacing: -0.3, color: ACCENT }}>
                 출품 삭제
@@ -249,7 +250,7 @@ export default function ContestEntryDetailScreen() {
                 setActionSheetVisible(false);
                 showToast('신고했어요. 검토 후 처리됩니다');
               }}
-              style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(12), height: normalize(56), borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.06)' }}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(12), height: normalize(56), borderTopWidth: HAIRLINE_WIDTH, borderTopColor: HAIRLINE }}
             >
               <Flag size={normalize(19)} color={ACCENT} strokeWidth={1.8} />
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_MD, letterSpacing: -0.3, color: ACCENT }}>

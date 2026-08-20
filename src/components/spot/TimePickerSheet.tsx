@@ -4,6 +4,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import BottomSheet from '@/components/common/BottomSheet';
 import { BUTTON_RADIUS, GRID_PADDING } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
+import { BRAND } from '@/constants/colors';
 
 interface Props {
   visible: boolean;
@@ -60,7 +61,7 @@ export default function TimePickerSheet({
             onConfirm(draft);
             onClose();
           }}
-          style={{ width: '100%', height: normalize(52), borderRadius: BUTTON_RADIUS, backgroundColor: '#E31B59', alignItems: 'center', justifyContent: 'center' }}
+          style={{ width: '100%', height: normalize(52), borderRadius: BUTTON_RADIUS, backgroundColor: BRAND, alignItems: 'center', justifyContent: 'center' }}
         >
           <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(16), color: '#fff' }}>
             확인

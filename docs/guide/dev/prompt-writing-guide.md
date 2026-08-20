@@ -19,14 +19,19 @@
 - import 경로: @/ → src/ (예: @/store/useAuthStore)
 - 화면 파일 위치: src/screens/
 - API 함수 위치: src/api/
-- 디자인 토큰:
-    - 브랜드 색상: #E31B59 (핑크)
-    - 배경: #ffffff / 카드·인풋: #f5f5f7
-    - 버튼 높이: 52px, pill shape (border-radius: 26px)
+- 디자인 토큰 (색은 하드코딩 금지, 아래 토큰명 사용):
+    - 브랜드: bg-brand / BRAND (#E31B59). 연분홍 틴트는 4단계만 — bg-brand/5, /10, /30, /90
+    - 배경: 페이지 흰색 / 카드·인풋 bg-card (CARD)
+    - 보조 텍스트: text-sub (TEXT_SUB)
+    - 구분선: border-hairline + border-b-[0.5px] (HAIRLINE / HAIRLINE_WIDTH)
+    - 컨트롤 테두리: BORDER_CONTROL (1.5px) — 입력 포커스·선택 칩·아웃라인 버튼
+    - 버튼 높이: 52px, pill shape (BUTTON_RADIUS)
     - 인풋 높이: 52px
     - 콘텐츠 좌우 패딩: 28px (카드 그리드는 20px)
-    - 폰트: Pretendard Variable, 최대 weight 600, 음수 letter-spacing
-    - 카드: 테두리·그림자 없음, border-radius: 16px
+    - 폰트: Pretendard 3웨이트(Regular/Medium/SemiBold), 최대 weight 600, 음수 letter-spacing
+      fontWeight 사용 금지 — className font-normal/medium/semibold 또는 fontFamily로 지정
+    - 카드: 테두리·그림자 없음, border-radius: 16px (CARD_RADIUS)
+    - 그림자는 떠 있는 것에만 — SHADOW_CONTROL / SHADOW_OVERLAY
     - 이모지 사용 금지
 ```
 
@@ -42,7 +47,9 @@
 제약 조건:
 - 스타일: NativeWind className만 사용 (StyleSheet 사용 금지)
 - 디자인: 아래 토큰 기준으로 HTML과 동일한 레이아웃·색상·간격 유지
-    - 브랜드 색상 #E31B59, 버튼 52px pill, 인풋 52px, 카드 radius 16px
+    - 색은 토큰만 사용: bg-brand / bg-card / text-sub / border-hairline (하드코딩 금지)
+    - 버튼 52px pill, 인풋 52px, 카드 radius 16px, 카드는 무테·무그림자
+    - fontWeight 금지 — font-normal/medium/semibold 사용 (최대 600)
     - 콘텐츠 패딩 28px, 카드 그리드 20px
 - import: @/ alias 사용 (예: @/components/...)
 - API: [src/api/파일.ts 의 함수명()] 연결

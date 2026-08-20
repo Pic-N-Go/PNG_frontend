@@ -10,11 +10,12 @@ import Toast from '@/components/common/Toast';
 import { toErrorMessage } from '@/api/auth';
 import { useCommunityFeed, useDeletePost, useToggleBookmark, useToggleFollow, useToggleLike } from '@/hooks/useCommunity';
 import { shareContent } from '@/utils/share';
-import { CONTENT_PADDING, FONT_LG, FONT_SM, GRID_PADDING } from '@/constants/layout';
+import { CONTENT_PADDING, FONT_LG, FONT_SM, GRID_PADDING, HAIRLINE_WIDTH } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
 import type { Post } from '@/types/community';
+import { BRAND, CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
 
-const ACCENT = '#E31B59';
+const ACCENT = BRAND;
 
 /**
  * 마이페이지 '글' 타일에서 들어오는 내가 쓴 글 목록.
@@ -98,7 +99,7 @@ export default function MyPostsScreen() {
     <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right']}>
       <View
         className="flex-row items-center"
-        style={{ height: normalize(54), paddingHorizontal: normalize(12), borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)' }}
+        style={{ height: normalize(54), paddingHorizontal: normalize(12), borderBottomWidth: HAIRLINE_WIDTH, borderBottomColor: HAIRLINE }}
       >
         <Pressable
           onPress={() => navigation.goBack()}
@@ -119,13 +120,13 @@ export default function MyPostsScreen() {
         </View>
       ) : isError ? (
         <View className="items-center justify-center" style={{ flex: 1, gap: normalize(12) }}>
-          <Text style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: 'rgba(0,0,0,0.4)' }}>
+          <Text style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: TEXT_SUB }}>
             글을 불러오지 못했어요
           </Text>
           <Pressable
             onPress={() => refetch()}
             className="items-center justify-center"
-            style={{ height: normalize(34), paddingHorizontal: normalize(16), borderRadius: normalize(17), backgroundColor: '#f5f5f7' }}
+            style={{ height: normalize(34), paddingHorizontal: normalize(16), borderRadius: normalize(17), backgroundColor: CARD }}
           >
             <Text style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, color: '#000' }}>다시 시도</Text>
           </Pressable>
@@ -134,7 +135,7 @@ export default function MyPostsScreen() {
         <View className="items-center justify-center" style={{ flex: 1, paddingHorizontal: CONTENT_PADDING }}>
           <Text
             className="text-center"
-            style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: 'rgba(0,0,0,0.4)', lineHeight: FONT_SM * 1.6 }}
+            style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: TEXT_SUB, lineHeight: FONT_SM * 1.6 }}
           >
             아직 쓴 글이 없어요.{'\n'}커뮤니티에서 첫 글을 남겨보세요
           </Text>
@@ -183,7 +184,7 @@ export default function MyPostsScreen() {
             <Pressable onPress={() => fetchNextPage()} disabled={isFetchingNextPage} style={{ paddingTop: normalize(20) }}>
               <Text
                 className="text-center"
-                style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: 'rgba(0,0,0,0.4)' }}
+                style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: TEXT_SUB }}
               >
                 {isFetchingNextPage ? '불러오는 중...' : '더보기'}
               </Text>

@@ -34,6 +34,7 @@ import {
   SPACING_XL,
 } from '@/constants/layout';
 import { NICK_RE, NICK_MAX, nicknameError } from '@/constants/validation';
+import { BRAND } from '@/constants/colors';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Onboarding'>;
 
@@ -193,7 +194,7 @@ export default function OnboardingScreen({ navigation, route }: Props) {
                   }}
                 >
                   {isKakao ? (
-                    <Text style={{ fontSize: FONT_XS, fontWeight: '700', color: '#391B1B' }}>K</Text>
+                    <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-SemiBold', color: '#391B1B' }}>K</Text>
                   ) : (
                     <Feather name="smartphone" size={12} color="#fff" />
                   )}
@@ -226,7 +227,7 @@ export default function OnboardingScreen({ navigation, route }: Props) {
             <Text
               style={{
                 fontSize: FONT_XS,
-                color: '#E31B59',
+                color: BRAND,
                 letterSpacing: 0.5,
                 textTransform: 'uppercase',
                 marginBottom: 6,
@@ -281,7 +282,7 @@ export default function OnboardingScreen({ navigation, route }: Props) {
               }}
             >
               닉네임{' '}
-              <Text style={{ color: '#E31B59' }}>*</Text>
+              <Text className="font-normal" style={{ color: BRAND }}>*</Text>
             </Text>
             <View style={{ position: 'relative', marginBottom: 6 }}>
               <AuthInput
@@ -362,7 +363,7 @@ export default function OnboardingScreen({ navigation, route }: Props) {
               style={{
                 height: BUTTON_HEIGHT,
                 borderRadius: BUTTON_RADIUS,
-                backgroundColor: nickOk ? '#E31B59' : 'rgba(0,0,0,0.06)',
+                backgroundColor: nickOk ? BRAND : 'rgba(0,0,0,0.06)',
                 opacity: submitting ? 0.6 : 1,
               }}
             >

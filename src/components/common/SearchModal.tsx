@@ -20,6 +20,7 @@ import { SpotResponse } from '@/types/spot';
 import { normalize } from '@/utils/normalize';
 import { FONT_XS, FONT_SM, FONT_MD, GRID_PADDING } from '@/constants/layout';
 import Chip from '@/components/common/Chip';
+import { BRAND } from '@/constants/colors';
 
 export type SearchCategory = 'all' | 'post' | 'photo' | 'spot' | 'user';
 
@@ -32,7 +33,6 @@ export interface SearchModalProps {
   placeholder?: string;
 }
 
-const BRAND = '#E31B59';
 
 const POPULAR_KEYWORDS = [
   '골든아워',
@@ -138,7 +138,7 @@ export default function SearchModal({
       <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right', 'bottom']}>
         {/* ── 1. 헤더 (뒤로가기/취소 버튼 + 검색 입력창) ── */}
         <View
-          className="flex-row items-center border-b border-black/5 bg-white"
+          className="flex-row items-center border-b-[0.5px] border-hairline bg-white"
           style={{ paddingHorizontal: GRID_PADDING, paddingVertical: normalize(10), gap: normalize(10) }}
         >
           <TouchableOpacity onPress={onClose} hitSlop={8} style={{ paddingRight: normalize(2) }}>
@@ -146,7 +146,7 @@ export default function SearchModal({
           </TouchableOpacity>
 
           <View
-            className="flex-1 flex-row items-center bg-[#f5f5f7]"
+            className="flex-1 flex-row items-center bg-card"
             style={{
               height: normalize(44),
               borderRadius: normalize(22),
@@ -166,6 +166,7 @@ export default function SearchModal({
               style={{
                 flex: 1,
                 marginLeft: normalize(8),
+                fontFamily: 'Pretendard-Regular',
                 fontSize: FONT_MD,
                 color: '#111',
                 paddingVertical: 0,
@@ -221,7 +222,7 @@ export default function SearchModal({
                       최근 검색
                     </Text>
                     <TouchableOpacity onPress={clearRecentSearches} hitSlop={8}>
-                      <Text className="font-medium text-black/40" style={{ fontSize: FONT_XS }}>
+                      <Text className="font-medium text-sub" style={{ fontSize: FONT_XS }}>
                         모두 지우기
                       </Text>
                     </TouchableOpacity>
@@ -265,7 +266,7 @@ export default function SearchModal({
                         setQuery(keyword);
                         handleSearchSubmit(keyword);
                       }}
-                      className="flex-row items-center bg-[#f5f5f7]"
+                      className="flex-row items-center bg-card"
                       style={{
                         paddingHorizontal: normalize(14),
                         paddingVertical: normalize(8),
@@ -336,7 +337,7 @@ export default function SearchModal({
                           {spot.name}
                         </Text>
                         <Text
-                          className="font-medium text-black/40"
+                          className="font-medium text-sub"
                           numberOfLines={1}
                           style={{ fontSize: FONT_XS, marginTop: normalize(2) }}
                         >
@@ -361,7 +362,7 @@ export default function SearchModal({
                 </View>
               ) : searchResults.length === 0 ? (
                 <View className="items-center justify-center" style={{ paddingVertical: normalize(60) }}>
-                  <Text className="font-medium text-black/40" style={{ fontSize: FONT_MD }}>
+                  <Text className="font-medium text-sub" style={{ fontSize: FONT_MD }}>
                     검색 결과가 없어요.
                   </Text>
                 </View>
@@ -371,7 +372,7 @@ export default function SearchModal({
                     <TouchableOpacity
                       key={spot.id}
                       onPress={() => handleSelectSpot(spot)}
-                      className="flex-row items-center bg-[#f8f9fa] border border-black/5"
+                      className="flex-row items-center bg-card"
                       style={{
                         padding: normalize(12),
                         borderRadius: normalize(16),

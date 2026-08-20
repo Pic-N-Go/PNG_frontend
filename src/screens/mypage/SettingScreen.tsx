@@ -25,11 +25,11 @@ import { CATEGORY_LABELS, CODE_BY_LABEL, SPOT_CATEGORY_MAP } from '@/constants/s
 import { passwordError } from '@/constants/validation';
 import { toErrorMessage } from '@/api/auth';
 import { normalize } from '@/utils/normalize';
-import { FONT_2XS, FONT_XS, FONT_SM, FONT_MD, FONT_LG, FONT_XL, GRID_PADDING, INPUT_HEIGHT, SPACING_LG, SPACING_SM, CARD_RADIUS, BUTTON_HEIGHT, BUTTON_RADIUS, WHEEL_WIDTH, WHEEL_ITEM_HEIGHT, WHEEL_VISIBLE_HEIGHT, WHEEL_SELECTION_RADIUS } from '@/constants/layout';
+import { BUTTON_HEIGHT, BUTTON_RADIUS, CARD_RADIUS, FONT_2XS, FONT_LG, FONT_MD, FONT_SM, FONT_XL, FONT_XS, GRID_PADDING, HAIRLINE_WIDTH, INPUT_HEIGHT, SPACING_LG, SPACING_SM, WHEEL_ITEM_HEIGHT, WHEEL_SELECTION_RADIUS, WHEEL_VISIBLE_HEIGHT, WHEEL_WIDTH } from '@/constants/layout';
+import { BRAND, CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
 
 type Props = NativeStackScreenProps<MyPageStackParamList, 'Setting'>;
 
-const BRAND = '#E31B59';
 const DANGER = '#ff453a';
 const NEUTRAL_ICON_BG = '#eef0f2';
 const NEUTRAL_ICON_FG = '#615d59';
@@ -210,7 +210,7 @@ export default function SettingScreen({ navigation }: Props) {
     <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right']}>
       {/* Nav */}
       <View
-        className="flex-row items-center justify-between border-b border-black/5 bg-white"
+        className="flex-row items-center justify-between border-b-[0.5px] border-hairline bg-white"
         style={{ height: normalize(54), paddingHorizontal: normalize(16) }}
       >
         <Pressable onPress={() => navigation.goBack()} className="items-center justify-center rounded-full" style={{ width: normalize(36), height: normalize(36) }}>
@@ -303,7 +303,7 @@ export default function SettingScreen({ navigation }: Props) {
             <SettingRow
               indent
               label="시간"
-              right={<Text style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.35)', marginRight: normalize(6) }}>{settings.dnd.start} ~ {settings.dnd.end}</Text>}
+              right={<Text className="font-normal" style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.35)', marginRight: normalize(6) }}>{settings.dnd.start} ~ {settings.dnd.end}</Text>}
               chevron onPress={() => setDndTimeSheetVisible(true)}
               disabled={!settings.dnd.enabled}
             />
@@ -315,7 +315,7 @@ export default function SettingScreen({ navigation }: Props) {
               disabled={!settings.dnd.enabled}
             />
           </Card>
-          <Text style={{ fontSize: FONT_XS, color: 'rgba(0,0,0,0.35)', marginTop: normalize(8), lineHeight: normalize(18) }}>
+          <Text className="font-normal" style={{ fontSize: FONT_XS, color: 'rgba(0,0,0,0.35)', marginTop: normalize(8), lineHeight: normalize(18) }}>
             이 시간에는 출사 알림·골든아워·커뮤니티 알림이 모두 오지 않아요.
           </Text>
         </View>
@@ -329,7 +329,7 @@ export default function SettingScreen({ navigation }: Props) {
               label="위치 권한"
               desc={locationPermissionStatus === 'loading' ? '확인 중...' : locationPermissionStatus === 'granted' ? '앱 사용 중 허용' : '위치 권한 거부됨'}
               right={
-                <Text style={{ fontSize: FONT_SM, color: locationPermissionStatus === 'granted' ? '#5a9855' : 'rgba(0,0,0,0.35)', marginRight: normalize(6) }}>
+                <Text className="font-normal" style={{ fontSize: FONT_SM, color: locationPermissionStatus === 'granted' ? '#5a9855' : 'rgba(0,0,0,0.35)', marginRight: normalize(6) }}>
                   {locationPermissionStatus === 'loading' ? '확인 중' : locationPermissionStatus === 'granted' ? '허용됨' : '허용 안함'}
                 </Text>
               }
@@ -365,7 +365,7 @@ export default function SettingScreen({ navigation }: Props) {
               icon={IconMessage2Question} iconBg={NEUTRAL_ICON_BG} iconColor={NEUTRAL_ICON_FG}
               label="1:1 문의" desc="평균 응답 시간 24시간 이내"
               right={unreadCount > 0 ? (
-                <View className="items-center justify-center rounded-full bg-[#E31B59]" style={{ height: normalize(20), paddingHorizontal: normalize(8), marginRight: normalize(6) }}>
+                <View className="items-center justify-center rounded-full bg-brand" style={{ height: normalize(20), paddingHorizontal: normalize(8), marginRight: normalize(6) }}>
                   <Text className="font-semibold text-white" style={{ fontSize: FONT_2XS }}>{unreadCount}</Text>
                 </View>
               ) : undefined}
@@ -458,18 +458,18 @@ export default function SettingScreen({ navigation }: Props) {
 
 function SectionLabel({ text, actionLabel, onActionPress }: { text: string; actionLabel?: string; onActionPress?: () => void }) {
   const labelStyle = {
-    fontSize: FONT_XS, fontWeight: '600' as const,
+    fontSize: FONT_XS, fontFamily: 'Pretendard-SemiBold' as const,
     color: 'rgba(0,0,0,0.3)', letterSpacing: 0.4,
   };
   if (!actionLabel) {
-    return <Text style={{ ...labelStyle, marginBottom: normalize(8) }}>{text}</Text>;
+    return <Text className="font-normal" style={{ ...labelStyle, marginBottom: normalize(8) }}>{text}</Text>;
   }
   // 섹션 헤더 우측 "전체 보기 ›" 링크 (iOS 설정·App Store 표준 패턴)
   return (
     <View className="flex-row items-center justify-between" style={{ marginBottom: normalize(8) }}>
-      <Text style={labelStyle}>{text}</Text>
+      <Text className="font-normal" style={labelStyle}>{text}</Text>
       <Pressable onPress={onActionPress} hitSlop={8} className="flex-row items-center" style={{ paddingVertical: normalize(2), paddingLeft: normalize(8) }}>
-        <Text style={{ fontSize: FONT_SM, fontWeight: '500', color: 'rgba(0,0,0,0.48)' }}>{actionLabel}</Text>
+        <Text style={{ fontSize: FONT_SM, fontFamily: 'Pretendard-Medium', color: 'rgba(0,0,0,0.48)' }}>{actionLabel}</Text>
         <IconChevronRight size={normalize(14)} color="rgba(0,0,0,0.28)" strokeWidth={2} />
       </Pressable>
     </View>
@@ -491,9 +491,9 @@ function BetaBadge() {
 function Card({ children }: { children: React.ReactNode }) {
   const items = React.Children.toArray(children);
   return (
-    <View className="overflow-hidden bg-[#f5f5f7]" style={{ borderRadius: CARD_RADIUS, marginBottom: SPACING_SM }}>
+    <View className="overflow-hidden bg-card" style={{ borderRadius: CARD_RADIUS, marginBottom: SPACING_SM }}>
       {items.map((child, i) => (
-        <View key={i} className={i > 0 ? 'border-t border-black/5' : undefined}>
+        <View key={i} className={i > 0 ? 'border-t-[0.5px] border-hairline' : undefined}>
           {child}
         </View>
       ))}
@@ -551,7 +551,7 @@ function SettingRow({
           className="items-center justify-center"
           style={{ width: normalize(32), height: normalize(32), borderRadius: normalize(9), backgroundColor: iconBg ?? 'rgba(0,0,0,0.06)' }}
         >
-          <Icon size={normalize(16)} color={iconColor ?? 'rgba(0,0,0,0.4)'} strokeWidth={1.75} />
+          <Icon size={normalize(16)} color={iconColor ?? TEXT_SUB} strokeWidth={1.75} />
         </View>
       )}
       {indent && !Icon && <View style={{ width: normalize(32) }} />}
@@ -563,7 +563,7 @@ function SettingRow({
           </Text>
         )}
         {desc && (
-          <Text className="mt-0.5" style={{ fontSize: FONT_XS, color: 'rgba(0,0,0,0.38)' }}>
+          <Text className="mt-0.5 font-normal" style={{ fontSize: FONT_XS, color: 'rgba(0,0,0,0.38)' }}>
             {desc}
           </Text>
         )}
@@ -643,17 +643,17 @@ function DndTimeSheet({ visible, onClose, initial, onConfirm }: DndTimeSheetProp
         <Pressable
           onPress={onClose} hitSlop={8}
           className="items-center justify-center"
-          style={{ width: normalize(32), height: normalize(32), borderRadius: normalize(16), backgroundColor: '#f5f5f7' }}
+          style={{ width: normalize(32), height: normalize(32), borderRadius: normalize(16), backgroundColor: CARD }}
         >
-          <IconX size={normalize(16)} color="#8a8a8e" strokeWidth={1.75} />
+          <IconX size={normalize(16)} color={TEXT_SUB} strokeWidth={1.75} />
         </Pressable>
       </View>
 
-      <Text style={{ paddingHorizontal: normalize(20), fontSize: FONT_XS, color: '#8a8a8e' }}>
+      <Text className="font-normal" style={{ paddingHorizontal: normalize(20), fontSize: FONT_XS, color: TEXT_SUB }}>
         설정한 시간 동안 알림을 보내지 않아요
       </Text>
 
-      <View className="overflow-hidden bg-[#f5f5f7]" style={{ marginHorizontal: normalize(20), marginTop: normalize(16), borderRadius: normalize(16) }}>
+      <View className="overflow-hidden bg-card" style={{ marginHorizontal: normalize(20), marginTop: normalize(16), borderRadius: normalize(16) }}>
         <TimeRow key={`start-${openId}`} label="시작" value={start} onChange={setStart} />
         <View className="bg-black/5" style={{ height: 1, marginHorizontal: normalize(20) }} />
         <TimeRow key={`end-${openId}`} label="종료" value={end} onChange={setEnd} />
@@ -661,11 +661,11 @@ function DndTimeSheet({ visible, onClose, initial, onConfirm }: DndTimeSheetProp
 
       <View style={{ marginTop: normalize(14), paddingHorizontal: normalize(20) }}>
         {crossMidnight && (
-          <Text style={{ fontSize: FONT_SM, color: BRAND, fontWeight: '500' }}>
+          <Text style={{ fontSize: FONT_SM, color: BRAND, fontFamily: 'Pretendard-Medium' }}>
             자정을 넘어 다음 날 {end}까지
           </Text>
         )}
-        <Text style={{ fontSize: FONT_XS, color: '#8a8a8e', marginTop: crossMidnight ? normalize(4) : 0 }}>
+        <Text className="font-normal" style={{ fontSize: FONT_XS, color: TEXT_SUB, marginTop: crossMidnight ? normalize(4) : 0 }}>
           총 {formatDuration(totalMin)} 동안 알림이 꺼져요
         </Text>
       </View>
@@ -688,11 +688,11 @@ function TimeRow({ label, value, onChange }: { label: string; value: string; onC
   return (
     <View className="flex-row items-center" style={{ paddingHorizontal: normalize(20), paddingVertical: normalize(14) }}>
       <View style={{ flex: 1 }}>
-        <Text style={{ fontSize: FONT_XS, color: '#8a8a8e' }}>{label}</Text>
+        <Text className="font-normal" style={{ fontSize: FONT_XS, color: TEXT_SUB }}>{label}</Text>
       </View>
       <View className="flex-row items-center" style={{ gap: normalize(8) }}>
         <Wheel items={HOURS} value={h} onChange={(v) => onChange(`${v}:${m}`)} />
-        <Text style={{ fontSize: FONT_XL, fontWeight: '600', color: '#111111', marginTop: -normalize(2) }}>:</Text>
+        <Text style={{ fontSize: FONT_XL, fontFamily: 'Pretendard-SemiBold', color: '#111111', marginTop: -normalize(2) }}>:</Text>
         <Wheel items={MINUTES} value={m} onChange={(v) => onChange(`${h}:${v}`)} />
       </View>
     </View>
@@ -772,15 +772,15 @@ function Wheel({ items, value, onChange }: { items: string[]; value: string; onC
               className="items-center justify-center"
               style={{ height: WHEEL_ITEM_HEIGHT }}
             >
-              <Text style={{ fontSize: active ? FONT_XL : FONT_MD, fontWeight: active ? '600' : '400', color: active ? '#111111' : '#c7c7cc' }}>
+              <Text style={{ fontSize: active ? FONT_XL : FONT_MD, fontFamily: active ? 'Pretendard-SemiBold' : 'Pretendard-Regular', color: active ? '#111111' : '#c7c7cc' }}>
                 {it}
               </Text>
             </Pressable>
           );
         })}
       </ScrollView>
-      <LinearGradient pointerEvents="none" colors={['#f5f5f7', 'rgba(245,245,247,0)']} className="absolute left-0 right-0 top-0" style={{ height: WHEEL_ITEM_HEIGHT }} />
-      <LinearGradient pointerEvents="none" colors={['rgba(245,245,247,0)', '#f5f5f7']} className="absolute left-0 right-0 bottom-0" style={{ height: WHEEL_ITEM_HEIGHT }} />
+      <LinearGradient pointerEvents="none" colors={[CARD, 'rgba(245,245,247,0)']} className="absolute left-0 right-0 top-0" style={{ height: WHEEL_ITEM_HEIGHT }} />
+      <LinearGradient pointerEvents="none" colors={['rgba(245,245,247,0)', CARD]} className="absolute left-0 right-0 bottom-0" style={{ height: WHEEL_ITEM_HEIGHT }} />
     </View>
   );
 }
@@ -860,23 +860,23 @@ function DndRepeatSheet({ visible, onClose, initial, onConfirm }: DndRepeatSheet
         <Pressable
           onPress={onClose} hitSlop={8}
           className="items-center justify-center"
-          style={{ width: normalize(32), height: normalize(32), borderRadius: normalize(16), backgroundColor: '#f5f5f7' }}
+          style={{ width: normalize(32), height: normalize(32), borderRadius: normalize(16), backgroundColor: CARD }}
         >
-          <IconX size={normalize(16)} color="#8a8a8e" strokeWidth={1.75} />
+          <IconX size={normalize(16)} color={TEXT_SUB} strokeWidth={1.75} />
         </Pressable>
       </View>
 
-      <View className="overflow-hidden bg-[#f5f5f7]" style={{ marginHorizontal: normalize(20), marginTop: normalize(16), borderRadius: normalize(16) }}>
+      <View className="overflow-hidden bg-card" style={{ marginHorizontal: normalize(20), marginTop: normalize(16), borderRadius: normalize(16) }}>
         {REPEAT_PRESETS.map((p, i) => {
           const selected = preset === p.key;
           return (
             <Pressable
               key={p.key}
               onPress={() => selectPreset(p.key)}
-              className={`flex-row items-center ${i > 0 ? 'border-t border-black/5' : ''}`}
+              className={`flex-row items-center ${i > 0 ? 'border-t-[0.5px] border-hairline' : ''}`}
               style={{ paddingHorizontal: normalize(16), paddingVertical: normalize(14), minHeight: normalize(56) }}
             >
-              <Text className="flex-1" style={{ fontSize: FONT_MD, fontWeight: '500', color: '#111111' }}>{p.label}</Text>
+              <Text className="flex-1" style={{ fontSize: FONT_MD, fontFamily: 'Pretendard-Medium', color: '#111111' }}>{p.label}</Text>
               {selected && <IconCheck size={normalize(20)} color={BRAND} strokeWidth={2} />}
             </Pressable>
           );
@@ -884,8 +884,8 @@ function DndRepeatSheet({ visible, onClose, initial, onConfirm }: DndRepeatSheet
       </View>
 
       {preset === 'custom' && (
-        <View className="bg-[#f5f5f7]" style={{ marginHorizontal: normalize(20), marginTop: normalize(12), borderRadius: normalize(16), padding: normalize(16) }}>
-          <Text style={{ fontSize: FONT_XS, color: '#8a8a8e', marginBottom: normalize(12) }}>알림을 끌 요일을 선택하세요</Text>
+        <View className="bg-card" style={{ marginHorizontal: normalize(20), marginTop: normalize(12), borderRadius: normalize(16), padding: normalize(16) }}>
+          <Text className="font-normal" style={{ fontSize: FONT_XS, color: TEXT_SUB, marginBottom: normalize(12) }}>알림을 끌 요일을 선택하세요</Text>
           <View className="flex-row justify-between">
             {DOW.map((d, i) => {
               const on = days.includes(i);
@@ -896,13 +896,13 @@ function DndRepeatSheet({ visible, onClose, initial, onConfirm }: DndRepeatSheet
                   className="items-center justify-center rounded-full"
                   style={{ width: normalize(36), height: normalize(36), backgroundColor: on ? BRAND : '#fff', borderWidth: on ? 0 : 1, borderColor: 'rgba(0,0,0,0.08)' }}
                 >
-                  <Text style={{ fontSize: FONT_SM, fontWeight: '600', color: on ? '#fff' : '#111111' }}>{d}</Text>
+                  <Text style={{ fontSize: FONT_SM, fontFamily: 'Pretendard-SemiBold', color: on ? '#fff' : '#111111' }}>{d}</Text>
                 </Pressable>
               );
             })}
           </View>
           {days.length === 0 && (
-            <Text style={{ fontSize: FONT_XS, color: BRAND, marginTop: normalize(10) }}>최소 1개 요일을 선택해 주세요</Text>
+            <Text className="font-normal" style={{ fontSize: FONT_XS, color: BRAND, marginTop: normalize(10) }}>최소 1개 요일을 선택해 주세요</Text>
           )}
         </View>
       )}
@@ -911,7 +911,7 @@ function DndRepeatSheet({ visible, onClose, initial, onConfirm }: DndRepeatSheet
         <Pressable
           onPress={handleConfirm}
           className="items-center justify-center"
-          style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS, backgroundColor: canSave ? BRAND : '#f5f5f7' }}
+          style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS, backgroundColor: canSave ? BRAND : CARD }}
         >
           <Text className="font-semibold" style={{ fontSize: FONT_MD, color: canSave ? '#fff' : '#c7c7cc' }}>저장</Text>
         </Pressable>
@@ -936,7 +936,7 @@ function VersionInfoSheet({ visible, onClose, onOpenDoc }: { visible: boolean; o
         <Text className="font-semibold text-black" style={{ fontSize: FONT_XL, letterSpacing: -0.3, marginBottom: normalize(18) }}>버전 정보</Text>
 
         {/* 그룹 1: 앱 메타 */}
-        <View className="bg-[#f5f5f7]" style={{ borderRadius: normalize(14), paddingHorizontal: normalize(16) }}>
+        <View className="bg-card" style={{ borderRadius: normalize(14), paddingHorizontal: normalize(16) }}>
           <VersionRow label="앱 버전" value="v1.0.0" />
           <VersionRow label="업데이트 상태" status />
           <VersionRow label="출시일" value="2026.05.01" />
@@ -947,14 +947,14 @@ function VersionInfoSheet({ visible, onClose, onOpenDoc }: { visible: boolean; o
         <View className="items-center" style={{ paddingTop: normalize(14), paddingBottom: normalize(4) }}>
           <Pressable onPress={checkUpdate} hitSlop={8} className="flex-row items-center" style={{ gap: normalize(6), paddingVertical: normalize(6), paddingHorizontal: normalize(12) }}>
             <IconRefresh size={normalize(14)} color="rgba(0,0,0,0.5)" strokeWidth={2} />
-            <Text style={{ fontSize: FONT_SM, fontWeight: '500', color: 'rgba(0,0,0,0.55)' }}>업데이트 확인</Text>
+            <Text style={{ fontSize: FONT_SM, fontFamily: 'Pretendard-Medium', color: 'rgba(0,0,0,0.55)' }}>업데이트 확인</Text>
           </Pressable>
         </View>
 
         {/* 그룹 2: 약관 및 정책 */}
         <View style={{ marginTop: normalize(12) }}>
-          <Text style={{ fontSize: FONT_XS, fontWeight: '500', color: 'rgba(0,0,0,0.4)', paddingHorizontal: normalize(12), paddingBottom: normalize(6) }}>약관 및 정책</Text>
-          <View className="overflow-hidden bg-[#f5f5f7]" style={{ borderRadius: normalize(14) }}>
+          <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-Medium', color: TEXT_SUB, paddingHorizontal: normalize(12), paddingBottom: normalize(6) }}>약관 및 정책</Text>
+          <View className="overflow-hidden bg-card" style={{ borderRadius: normalize(14) }}>
             <DocRow label="이용약관" onPress={() => onOpenDoc('TermsOfService')} />
             <DocRow label="개인정보처리방침" onPress={() => onOpenDoc('PrivacyPolicy')} divider />
             <DocRow label="오픈소스 라이선스" onPress={() => onOpenDoc('OpenSourceLicenses')} divider />
@@ -1031,7 +1031,7 @@ function PasswordChangeSheet({ visible, onClose }: { visible: boolean; onClose: 
           <Pressable
             onPress={onClose}
             hitSlop={8}
-            className="items-center justify-center bg-[#f5f5f7]"
+            className="items-center justify-center bg-card"
             style={{ width: normalize(30), height: normalize(30), borderRadius: normalize(15) }}
             accessibilityLabel="닫기"
           >
@@ -1044,7 +1044,7 @@ function PasswordChangeSheet({ visible, onClose }: { visible: boolean; onClose: 
         <PasswordField label="새 비밀번호 확인" value={confirm} onChangeText={(t) => { setConfirm(t); setError(''); }} placeholder="새 비밀번호 재입력" />
 
         {!!error && (
-          <Text style={{ fontSize: FONT_XS, color: '#FF3B30', marginTop: normalize(2), paddingLeft: normalize(4) }}>{error}</Text>
+          <Text className="font-normal" style={{ fontSize: FONT_XS, color: '#FF3B30', marginTop: normalize(2), paddingLeft: normalize(4) }}>{error}</Text>
         )}
 
         <Pressable
@@ -1073,7 +1073,7 @@ function PasswordField({
 }: { label: string; value: string; onChangeText: (t: string) => void; placeholder: string }) {
   return (
     <View style={{ marginBottom: normalize(14) }}>
-      <Text style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.45)', marginBottom: normalize(6), paddingLeft: normalize(2) }}>{label}</Text>
+      <Text className="font-normal" style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.45)', marginBottom: normalize(6), paddingLeft: normalize(2) }}>{label}</Text>
       <TextInput
         value={value}
         onChangeText={onChangeText}
@@ -1082,8 +1082,8 @@ function PasswordField({
         secureTextEntry
         autoCapitalize="none"
         autoCorrect={false}
-        className="bg-[#f5f5f7] text-black"
-        style={{ height: INPUT_HEIGHT, borderRadius: normalize(12), paddingHorizontal: normalize(16), fontSize: FONT_MD }}
+        className="bg-card text-black"
+        style={{ height: INPUT_HEIGHT, borderRadius: normalize(12), paddingHorizontal: normalize(16), fontFamily: 'Pretendard-Regular', fontSize: FONT_MD }}
       />
     </View>
   );
@@ -1140,7 +1140,7 @@ function InterestThemeSheet({
           <Pressable
             onPress={onClose}
             hitSlop={8}
-            className="items-center justify-center bg-[#f5f5f7]"
+            className="items-center justify-center bg-card"
             style={{ width: normalize(30), height: normalize(30), borderRadius: normalize(15) }}
             accessibilityLabel="닫기"
           >
@@ -1148,7 +1148,7 @@ function InterestThemeSheet({
           </Pressable>
         </View>
 
-        <Text style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.45)', letterSpacing: -0.1, marginBottom: normalize(16) }}>
+        <Text className="font-normal" style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.45)', letterSpacing: -0.1, marginBottom: normalize(16) }}>
           홈 피드 및 스팟 추천에 반영돼요. 복수 선택 가능해요.
         </Text>
 
@@ -1183,9 +1183,9 @@ function VersionRow({ label, value, status, last }: { label: string; value?: str
   return (
     <View
       className="flex-row items-center justify-between"
-      style={{ paddingVertical: normalize(14), borderBottomWidth: last ? 0 : 1, borderBottomColor: 'rgba(0,0,0,0.06)' }}
+      style={{ paddingVertical: normalize(14), borderBottomWidth: last ? 0 : HAIRLINE_WIDTH, borderBottomColor: HAIRLINE }}
     >
-      <Text style={{ fontSize: FONT_MD, color: 'rgba(0,0,0,0.55)' }}>{label}</Text>
+      <Text className="font-normal" style={{ fontSize: FONT_MD, color: 'rgba(0,0,0,0.55)' }}>{label}</Text>
       {status ? (
         <View className="flex-row items-center" style={{ gap: normalize(6) }}>
           <View style={{ width: normalize(6), height: normalize(6), borderRadius: normalize(3), backgroundColor: '#22a05a' }} />
@@ -1203,7 +1203,7 @@ function DocRow({ label, onPress, divider }: { label: string; onPress: () => voi
     <Pressable
       onPress={onPress}
       className="flex-row items-center justify-between"
-      style={{ paddingVertical: normalize(14), paddingHorizontal: normalize(16), borderTopWidth: divider ? 1 : 0, borderTopColor: 'rgba(0,0,0,0.06)' }}
+      style={{ paddingVertical: normalize(14), paddingHorizontal: normalize(16), borderTopWidth: divider ? HAIRLINE_WIDTH : 0, borderTopColor: HAIRLINE }}
     >
       <Text className="font-medium text-black" style={{ fontSize: FONT_MD }}>{label}</Text>
       <IconChevronRight size={normalize(16)} color="rgba(0,0,0,0.35)" strokeWidth={2} />

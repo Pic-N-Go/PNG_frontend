@@ -3,8 +3,9 @@ import { Pressable, Text, View } from 'react-native';
 import Svg, { Circle, Line } from 'react-native-svg';
 import { ChevronDown, ChevronRight, ChevronUp, Clock } from 'lucide-react-native';
 import { RankHistory } from '@/types/community';
-import { CARD_RADIUS, CONTENT_PADDING, FONT_2XS, FONT_SM, FONT_XS } from '@/constants/layout';
+import { CARD_RADIUS, CONTENT_PADDING, FONT_2XS, FONT_SM, FONT_XS, HAIRLINE_WIDTH } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
+import { BRAND, BRAND_TINT, CARD, HAIRLINE } from '@/constants/colors';
 
 /**
  * 순위 변동 패널 — 투표 기간에만 노출. 매일 자정 1회 집계, 그래프는 최근 7일.
@@ -18,8 +19,8 @@ import { normalize } from '@/utils/normalize';
 
 const INK = '#000000';
 const SUB = '#8e8e93';
-const FILL = '#f5f5f7';
-const ACCENT = '#E31B59';
+const FILL = CARD;
+const ACCENT = BRAND;
 
 const VIEW_W = 306;
 /** 권외 밴드가 붙으면 높이가 커지고 좌측 거터도 20 → 44로 넓어진다(권외 라벨 자리) */
@@ -87,7 +88,7 @@ export default function ContestRankPanel({
       {open && (
         <View style={{ paddingHorizontal: normalize(14), paddingBottom: normalize(14) }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(8), marginBottom: normalize(2) }}>
-            <View style={{ height: normalize(20), paddingHorizontal: normalize(8), borderRadius: normalize(10), backgroundColor: 'rgba(227,27,89,0.1)', alignItems: 'center', justifyContent: 'center' }}>
+            <View style={{ height: normalize(20), paddingHorizontal: normalize(8), borderRadius: normalize(10), backgroundColor: BRAND_TINT, alignItems: 'center', justifyContent: 'center' }}>
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_2XS, letterSpacing: -0.1, color: ACCENT }}>
                 {history.variant === 'first' ? '집계 전' : '어제 집계'}
               </Text>
@@ -222,7 +223,7 @@ export default function ContestRankPanel({
           )}
 
           {history.legend.length > 0 && (
-            <View style={{ marginTop: normalize(14), paddingTop: normalize(14), borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.07)', gap: normalize(12) }}>
+            <View style={{ marginTop: normalize(14), paddingTop: normalize(14), borderTopWidth: HAIRLINE_WIDTH, borderTopColor: HAIRLINE, gap: normalize(12) }}>
               {history.legend.map((entry) => (
                 <Pressable key={entry.id} onPress={() => onOpenEntry(entry.id)} style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(12) }}>
                   <View style={{ width: normalize(40), height: normalize(40), borderRadius: normalize(11), backgroundColor: entry.gradient[0], flexShrink: 0 }} />
@@ -232,7 +233,7 @@ export default function ContestRankPanel({
                         {entry.author}
                       </Text>
                       {entry.isNew && (
-                        <View style={{ height: normalize(18), paddingHorizontal: normalize(6), borderRadius: normalize(9), backgroundColor: 'rgba(227,27,89,0.1)', alignItems: 'center', justifyContent: 'center' }}>
+                        <View style={{ height: normalize(18), paddingHorizontal: normalize(6), borderRadius: normalize(9), backgroundColor: BRAND_TINT, alignItems: 'center', justifyContent: 'center' }}>
                           <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_2XS, letterSpacing: -0.1, color: ACCENT }}>
                             NEW
                           </Text>

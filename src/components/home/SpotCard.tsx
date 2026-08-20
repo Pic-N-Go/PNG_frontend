@@ -5,6 +5,7 @@ import { IconBookmark } from '@tabler/icons-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { CARD_RADIUS, FONT_MD, FONT_SM } from '@/constants/layout';
 import type { SpotItem } from '@/types/spot';
+import { BRAND, BRAND_STRONG, CARD, TEXT_SUB } from '@/constants/colors';
 
 interface Props {
   item: SpotItem;
@@ -32,7 +33,7 @@ export default function SpotCard({ item, onPress, onBookmarkPress }: Props) {
   const stars = Array.from({ length: 5 }, (_, i) => i < Math.round(rating) ? '★' : '☆').join('');
 
   return (
-    <View style={{ width: normalize(220), borderRadius: CARD_RADIUS, overflow: 'hidden', backgroundColor: '#F5F5F7' }}>
+    <View style={{ width: normalize(220), borderRadius: CARD_RADIUS, overflow: 'hidden', backgroundColor: CARD }}>
     <Pressable
       onPress={onPress ?? undefined}
       style={({ pressed }) => ({
@@ -65,7 +66,7 @@ export default function SpotCard({ item, onPress, onBookmarkPress }: Props) {
               height: normalize(22),
               paddingHorizontal: normalize(10),
               borderRadius: normalize(11),
-              backgroundColor: item.badge === 'HOT' ? 'rgba(0,0,0,0.45)' : 'rgba(227,27,89,0.85)',
+              backgroundColor: item.badge === 'HOT' ? 'rgba(0,0,0,0.45)' : BRAND_STRONG,
               alignItems: 'center',
               justifyContent: 'center',
             }}
@@ -105,9 +106,9 @@ export default function SpotCard({ item, onPress, onBookmarkPress }: Props) {
           >
             <IconBookmark
               size={normalize(14)}
-              color={bookmarked ? '#E31B59' : '#fff'}
+              color={bookmarked ? BRAND : '#fff'}
               strokeWidth={1.5}
-              fill={bookmarked ? '#E31B59' : 'none'}
+              fill={bookmarked ? BRAND : 'none'}
             />
           </Pressable>
         )}
@@ -133,7 +134,7 @@ export default function SpotCard({ item, onPress, onBookmarkPress }: Props) {
           style={{
             fontFamily: 'Pretendard-Regular',
             fontSize: normalizeFontSize(12),
-            color: 'rgba(0,0,0,0.4)',
+            color: TEXT_SUB,
             marginBottom: normalize(10),
           }}
           numberOfLines={1}

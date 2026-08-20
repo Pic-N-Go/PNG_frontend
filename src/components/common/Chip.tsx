@@ -2,6 +2,7 @@ import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { FONT_SM } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
+import { BRAND, BRAND_TINT, CARD } from '@/constants/colors';
 
 export type ChipVariant = 'outline' | 'dark';
 
@@ -30,15 +31,15 @@ export default function Chip({
 
   const backgroundColor = isOutline
     ? selected
-      ? 'rgba(227,27,89,0.08)'
+      ? BRAND_TINT
       : '#fff'
     : selected
       ? '#000'
-      : '#F5F5F7';
+      : CARD;
 
   const textColor = isOutline
     ? selected
-      ? '#E31B59'
+      ? BRAND
       : '#000'
     : selected
       ? '#fff'
@@ -57,7 +58,7 @@ export default function Chip({
         borderRadius: normalize(50),
         backgroundColor,
         borderWidth: isOutline ? 1.2 : 0,
-        borderColor: isOutline ? (selected ? '#E31B59' : 'rgba(0,0,0,0.1)') : 'transparent',
+        borderColor: isOutline ? (selected ? BRAND : 'rgba(0,0,0,0.1)') : 'transparent',
       }}
     >
       {showDot && (
@@ -66,7 +67,7 @@ export default function Chip({
             width: normalize(6),
             height: normalize(6),
             borderRadius: normalize(3),
-            backgroundColor: selected ? '#E31B59' : 'rgba(0,0,0,0.15)',
+            backgroundColor: selected ? BRAND : 'rgba(0,0,0,0.15)',
           }}
         />
       )}

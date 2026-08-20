@@ -26,8 +26,9 @@ import { StatusBar } from 'expo-status-bar';
 import { useCourseStore, Spot } from '@/store/useCourseStore';
 import Toast from '@/components/common/Toast';
 
-import { BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING, FONT_MD } from '@/constants/layout';
+import { BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING, FONT_LG, FONT_MD, FONT_SM, FONT_XS } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
+import { BRAND } from '@/constants/colors';
 
 // --- Types ---
 type ChipType = '당일치기' | '1박 2일' | '2박 3일' | '3박 이상';
@@ -398,7 +399,7 @@ export default function TravelNewScreen() {
         <TouchableOpacity onPress={handleBack} className="w-9 h-9 items-center justify-center rounded-full bg-white/10">
           <IconChevronLeft size={24} color="#fff" />
         </TouchableOpacity>
-        <Text className="font-semibold text-white tracking-[-0.4px]" style={{ fontSize: normalizeFontSize(18) }}>새 출사 계획</Text>
+        <Text className="font-semibold text-white tracking-[-0.4px]" style={{ fontSize: FONT_LG }}>새 출사 계획</Text>
         <View className="w-9" />
       </View>
 
@@ -412,10 +413,10 @@ export default function TravelNewScreen() {
       >
         {/* 출사 이름 */}
         <View className="pt-7" style={{ paddingHorizontal: CONTENT_PADDING }}>
-          <Text className="font-medium text-black/40 mb-2" style={{ fontSize: normalizeFontSize(12) }}>출사 이름</Text>
+          <Text className="font-medium text-sub mb-2" style={{ fontSize: FONT_SM }}>출사 이름</Text>
           <TextInput
-            className="w-full bg-[#f5f5f7] font-medium text-black tracking-[-0.3px]"
-            style={{ height: BUTTON_HEIGHT, borderRadius: normalize(12), paddingHorizontal: normalize(20), fontSize: normalizeFontSize(16) }}
+            className="w-full bg-card font-medium text-black tracking-[-0.3px]"
+            style={{ height: BUTTON_HEIGHT, borderRadius: normalize(12), paddingHorizontal: normalize(20), fontSize: FONT_MD }}
             placeholder="예) 부산 1박 2일, 서울 야경 투어"
             placeholderTextColor="rgba(0,0,0,0.22)"
             value={tripName}
@@ -428,42 +429,42 @@ export default function TravelNewScreen() {
 
         {/* 날짜 */}
         <View className="pt-7" style={{ paddingHorizontal: CONTENT_PADDING }}>
-          <Text className="font-medium text-black/40 mb-2" style={{ fontSize: normalizeFontSize(12) }}>날짜</Text>
+          <Text className="font-medium text-sub mb-2" style={{ fontSize: FONT_SM }}>날짜</Text>
           <View className="flex-row items-center gap-2">
             <TouchableOpacity
               onPress={() => openDateSheet('start')}
-              className={`flex-1 bg-[#f5f5f7] flex-row items-center justify-between ${startDate ? '' : ''}`}
+              className={`flex-1 bg-card flex-row items-center justify-between ${startDate ? '' : ''}`}
               style={{ height: BUTTON_HEIGHT, borderRadius: normalize(12), paddingHorizontal: normalize(14) }}
             >
-              <Text className={`${startDate ? 'text-black font-medium' : 'text-black/25'}`} style={{ fontSize: normalizeFontSize(16) }}>
+              <Text className={`${startDate ? 'text-black font-medium' : 'text-black/25'}`} style={{ fontSize: FONT_MD }}>
                 {startDate ? formatDateStr(startDate) : '출발일 선택'}
               </Text>
-              <IconCalendarEvent size={20} color={startDate ? "#e31b59" : "rgba(0,0,0,0.2)"} />
+              <IconCalendarEvent size={20} color={startDate ? BRAND : "rgba(0,0,0,0.2)"} />
             </TouchableOpacity>
-            <Text className="text-black/20" style={{ fontSize: normalizeFontSize(14) }}>—</Text>
+            <Text className="text-black/20 font-normal" style={{ fontSize: normalizeFontSize(14) }}>—</Text>
             <TouchableOpacity
               onPress={() => openDateSheet('end')}
-              className="flex-1 bg-[#f5f5f7] flex-row items-center justify-between"
+              className="flex-1 bg-card flex-row items-center justify-between"
               style={{ height: BUTTON_HEIGHT, borderRadius: normalize(12), paddingHorizontal: normalize(14) }}
             >
-              <Text className={`${endDate ? 'text-black font-medium' : 'text-black/25'}`} style={{ fontSize: normalizeFontSize(16) }}>
+              <Text className={`${endDate ? 'text-black font-medium' : 'text-black/25'}`} style={{ fontSize: FONT_MD }}>
                 {endDate ? formatDateStr(endDate) : '도착일 선택'}
               </Text>
-              <IconCalendarEvent size={20} color={endDate ? "#e31b59" : "rgba(0,0,0,0.2)"} />
+              <IconCalendarEvent size={20} color={endDate ? BRAND : "rgba(0,0,0,0.2)"} />
             </TouchableOpacity>
           </View>
         </View>
 
         {/* 일정 유형 */}
         <View className="pt-7" style={{ paddingHorizontal: CONTENT_PADDING }}>
-          <Text className="font-medium text-black/40 mb-2" style={{ fontSize: normalizeFontSize(12) }}>일정 유형</Text>
+          <Text className="font-medium text-sub mb-2" style={{ fontSize: FONT_SM }}>일정 유형</Text>
           <View className="flex-row flex-wrap gap-2">
             {(['당일치기', '1박 2일', '2박 3일', '3박 이상'] as ChipType[]).map((chip) => (
               <TouchableOpacity
                 key={chip}
                 onPress={() => handleChipSelect(chip)}
                 className={`h-9 px-4 rounded-full justify-center ${
-                  selectedChip === chip ? 'bg-[#e31b59]' : 'bg-[#f5f5f7]'
+                  selectedChip === chip ? 'bg-brand' : 'bg-card'
                 }`}
               >
                 <Text className={`font-medium ${
@@ -489,7 +490,7 @@ export default function TravelNewScreen() {
                   key={dayNum}
                   onPress={() => setActiveDay(dayNum)}
                   className={`h-[38px] px-5 rounded-full justify-center mr-2 ${
-                    isActive ? 'bg-black' : 'bg-[#f5f5f7]'
+                    isActive ? 'bg-black' : 'bg-card'
                   }`}
                 >
                   <Text className={`font-medium ${isActive ? 'font-semibold text-white' : 'text-black/50'}`} style={{ fontSize: normalizeFontSize(14) }}>
@@ -501,13 +502,13 @@ export default function TravelNewScreen() {
             {daysCount < maxDays && (
               <TouchableOpacity
                 onPress={addDay}
-                className="w-[38px] h-[38px] rounded-full bg-[#f5f5f7] items-center justify-center"
+                className="w-[38px] h-[38px] rounded-full bg-card items-center justify-center"
               >
-                <Text className="text-black/25 leading-none" style={{ fontSize: normalizeFontSize(18) }}>+</Text>
+                <Text className="text-black/25 leading-none font-normal" style={{ fontSize: FONT_LG }}>+</Text>
               </TouchableOpacity>
             )}
           </ScrollView>
-          <Text className="text-black/35 mt-3 mb-2" style={{ fontSize: normalizeFontSize(14) }}>{getDayDateLabel()}</Text>
+          <Text className="text-black/35 mt-3 mb-2 font-normal" style={{ fontSize: normalizeFontSize(14) }}>{getDayDateLabel()}</Text>
 
           {/* 타임라인 */}
           <View className="relative pl-8 min-h-[150px]">
@@ -523,38 +524,38 @@ export default function TravelNewScreen() {
 
             {daySpots[activeDay]?.length === 0 ? (
               <View className="items-center py-9 ml-[-32px]">
-                <View className="w-[52px] h-[52px] rounded-2xl bg-[#f5f5f7] items-center justify-center mb-2">
+                <View className="w-[52px] h-[52px] rounded-2xl bg-card items-center justify-center mb-2">
                   <IconMapPin size={22} color="rgba(0,0,0,0.2)" />
                 </View>
-                <Text className="font-medium text-black/40 mb-1" style={{ fontSize: normalizeFontSize(16) }}>아직 추가된 스팟이 없어요</Text>
-                <Text className="text-black/20 text-center leading-relaxed" style={{ fontSize: normalizeFontSize(14) }}>아래 버튼으로 포토스팟을{'\n'}추가해보세요</Text>
+                <Text className="font-medium text-sub mb-1" style={{ fontSize: FONT_MD }}>아직 추가된 스팟이 없어요</Text>
+                <Text className="text-black/20 text-center leading-relaxed font-normal" style={{ fontSize: normalizeFontSize(14) }}>아래 버튼으로 포토스팟을{'\n'}추가해보세요</Text>
                 <TouchableOpacity onPress={() => navigation.navigate('Map', { source: 'plan' })} className="mt-6 w-full h-[54px] rounded-2xl border-[1.5px] border-dashed border-black/10 flex-row items-center justify-center">
                   <IconPlus size={15} color="rgba(0,0,0,0.25)" />
-                  <Text className="font-medium text-black/25 ml-2" style={{ fontSize: normalizeFontSize(16) }}>스팟 추가하기</Text>
+                  <Text className="font-medium text-black/25 ml-2" style={{ fontSize: FONT_MD }}>스팟 추가하기</Text>
                 </TouchableOpacity>
               </View>
             ) : (
               <View>
                 {daySpots[activeDay].map((spot, i) => (
                   <View key={spot.id} className="relative mb-[10px]">
-                    <View className="absolute -left-[32px] top-4 w-[22px] h-[22px] rounded-full bg-[#e31b59] items-center justify-center z-10">
+                    <View className="absolute -left-[32px] top-4 w-[22px] h-[22px] rounded-full bg-brand items-center justify-center z-10">
                       <Text className="font-semibold text-white" style={{ fontSize: normalizeFontSize(10) }}>{i + 1}</Text>
                     </View>
-                    <View className="bg-[#f5f5f7] rounded-2xl p-3 flex-row items-center">
+                    <View className="bg-card rounded-2xl p-3 flex-row items-center">
                       <View className="w-[60px] h-[60px] rounded-xl overflow-hidden" style={{ backgroundColor: '#2d9cdb' }} />
                       <View className="flex-1 ml-3">
-                        <Text className="font-semibold text-black mb-1" style={{ fontSize: normalizeFontSize(16) }}>{spot.name}</Text>
+                        <Text className="font-semibold text-black mb-1" style={{ fontSize: FONT_MD }}>{spot.name}</Text>
                         <View className="flex-row items-center mb-1.5">
                           <IconMapPin size={10} color="rgba(0,0,0,0.38)" />
-                          <Text className="text-black/40 ml-1" style={{ fontSize: normalizeFontSize(12) }}>{spot.loc}</Text>
+                          <Text className="text-sub ml-1 font-normal" style={{ fontSize: FONT_XS }}>{spot.loc}</Text>
                         </View>
                         <View className="flex-row flex-wrap gap-1">
                           {spot.tags.map(t => (
                             <View key={t} className="h-5 px-2 rounded-full bg-black/5 items-center justify-center">
-                              <Text className="text-black/45" style={{ fontSize: normalizeFontSize(12) }}>{t}</Text>
+                              <Text className="text-black/45 font-normal" style={{ fontSize: FONT_XS }}>{t}</Text>
                             </View>
                           ))}
-                          <Text className="font-semibold text-[#e31b59] ml-1" style={{ fontSize: normalizeFontSize(12) }}>★ {spot.score}</Text>
+                          <Text className="font-semibold text-brand ml-1" style={{ fontSize: FONT_XS }}>★ {spot.score}</Text>
                         </View>
                       </View>
                       <TouchableOpacity 
@@ -571,7 +572,7 @@ export default function TravelNewScreen() {
                 ))}
                 <TouchableOpacity onPress={() => navigation.navigate('Map', { source: 'plan' })} className="mt-6 w-full h-[54px] rounded-2xl border-[1.5px] border-dashed border-black/10 flex-row items-center justify-center">
                   <IconPlus size={15} color="rgba(0,0,0,0.25)" />
-                  <Text className="font-medium text-black/25 ml-2" style={{ fontSize: normalizeFontSize(16) }}>스팟 추가하기</Text>
+                  <Text className="font-medium text-black/25 ml-2" style={{ fontSize: FONT_MD }}>스팟 추가하기</Text>
                 </TouchableOpacity>
               </View>
             )}
@@ -584,7 +585,7 @@ export default function TravelNewScreen() {
           {!editMode && activeDay > 1 && (
             <TouchableOpacity
               onPress={deleteCurrentDay}
-              className="flex-1 rounded-full bg-[#f5f5f7] items-center justify-center mr-3"
+              className="flex-1 rounded-full bg-card items-center justify-center mr-3"
               style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}
             >
               <Text allowFontScaling={false} className="font-medium text-black" style={{ fontSize: FONT_MD }}>이 날 삭제</Text>
@@ -593,7 +594,7 @@ export default function TravelNewScreen() {
           <TouchableOpacity
             disabled={!tripName || isSaving}
             onPress={handleSave}
-            className={`flex-1 items-center justify-center ${tripName && !isSaving ? 'bg-[#e31b59]' : 'bg-[#f5f5f7]'}`}
+            className={`flex-1 items-center justify-center ${tripName && !isSaving ? 'bg-brand' : 'bg-card'}`}
             style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}
           >
             <Text allowFontScaling={false} className={`font-medium ${tripName && !isSaving ? 'text-white' : 'text-black/25'}`} style={{ fontSize: FONT_MD }}>
@@ -610,7 +611,7 @@ export default function TravelNewScreen() {
           <View className="bg-white rounded-t-[24px] pb-8 pt-2">
             <View className="w-9 h-1 rounded-full bg-black/10 mx-auto my-2" />
             <View className="flex-row items-center justify-between px-5 pt-3">
-              <Text className="font-semibold" style={{ fontSize: normalizeFontSize(18) }}>{pickPhase === 'start' ? '출발일 선택' : '도착일 선택'}</Text>
+              <Text className="font-semibold" style={{ fontSize: FONT_LG }}>{pickPhase === 'start' ? '출발일 선택' : '도착일 선택'}</Text>
               <TouchableOpacity onPress={() => setIsDateSheetOpen(false)} className="w-8 h-8 rounded-full bg-black/5 items-center justify-center">
                 <IconX size={18} color="rgba(0,0,0,0.5)" />
               </TouchableOpacity>
@@ -621,7 +622,7 @@ export default function TravelNewScreen() {
               <TouchableOpacity onPress={() => changeMonth(-1)} className="p-2">
                 <IconChevronLeft size={20} color="#000" />
               </TouchableOpacity>
-              <Text className="font-semibold" style={{ fontSize: normalizeFontSize(16) }}>{calYear}년 {calMonth + 1}월</Text>
+              <Text className="font-semibold" style={{ fontSize: FONT_MD }}>{calYear}년 {calMonth + 1}월</Text>
               <TouchableOpacity onPress={() => changeMonth(1)} className="p-2">
                 <IconChevronRight size={20} color="#000" />
               </TouchableOpacity>
@@ -630,7 +631,7 @@ export default function TravelNewScreen() {
             {/* 요일 */}
             <View className="flex-row px-5 mb-1">
               {['일','월','화','수','목','금','토'].map((w, i) => (
-                <Text key={w} className={`flex-1 text-center font-medium ${i===0 ? 'text-red-400' : i===6 ? 'text-blue-400' : 'text-black/35'}`} style={{ fontSize: normalizeFontSize(12) }}>{w}</Text>
+                <Text key={w} className={`flex-1 text-center font-medium ${i===0 ? 'text-red-400' : i===6 ? 'text-blue-400' : 'text-black/35'}`} style={{ fontSize: FONT_XS }}>{w}</Text>
               ))}
             </View>
 
@@ -649,14 +650,14 @@ export default function TravelNewScreen() {
                 let textClass = disabled ? "text-black/20" : "text-black";
                 
                 if (tempStart && tempEnd && dateObj > tempStart && dateObj < tempEnd) {
-                  bgClass = "bg-[#e31b59]/10 rounded-none";
+                  bgClass = "bg-brand/10 rounded-none";
                 }
                 if (tempStart && dateObj.getTime() === tempStart.getTime()) {
                   const isSameDay = tempEnd && tempStart.getTime() === tempEnd.getTime();
-                  bgClass = (tempEnd && !isSameDay) ? "bg-[#e31b59] rounded-l-full rounded-r-none" : "bg-[#e31b59] rounded-full";
+                  bgClass = (tempEnd && !isSameDay) ? "bg-brand rounded-l-full rounded-r-none" : "bg-brand rounded-full";
                   textClass = "text-white";
                 } else if (tempEnd && dateObj.getTime() === tempEnd.getTime()) {
-                  bgClass = "bg-[#e31b59] rounded-r-full rounded-l-none";
+                  bgClass = "bg-brand rounded-r-full rounded-l-none";
                   textClass = "text-white";
                 }
 
@@ -667,7 +668,7 @@ export default function TravelNewScreen() {
                     onPress={() => handleDaySelect(d)}
                     className={`w-[14.28%] h-10 items-center justify-center ${bgClass}`}
                   >
-                    <Text className={`font-medium ${textClass}`} style={{ fontSize: normalizeFontSize(16) }}>{d}</Text>
+                    <Text className={`font-medium ${textClass}`} style={{ fontSize: FONT_MD }}>{d}</Text>
                   </TouchableOpacity>
                 );
               })}
@@ -677,10 +678,10 @@ export default function TravelNewScreen() {
               <TouchableOpacity 
                 disabled={!(tempStart && tempEnd)}
                 onPress={confirmDate}
-                className={`items-center justify-center ${tempStart && tempEnd ? 'bg-[#e31b59]' : 'bg-[#f5f5f7]'}`}
+                className={`items-center justify-center ${tempStart && tempEnd ? 'bg-brand' : 'bg-card'}`}
                 style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}
               >
-                <Text className={`font-medium ${tempStart && tempEnd ? 'text-white' : 'text-black/25'}`} style={{ fontSize: normalizeFontSize(16) }}>확인</Text>
+                <Text className={`font-medium ${tempStart && tempEnd ? 'text-white' : 'text-black/25'}`} style={{ fontSize: FONT_MD }}>확인</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -694,13 +695,13 @@ export default function TravelNewScreen() {
           <Pressable className="absolute inset-0" onPress={() => setIsUnsavedSheetOpen(false)} />
           <View className="bg-white rounded-t-[24px] px-5 pb-10 pt-3 items-center">
             <View className="w-9 h-1 rounded-full bg-black/10 mb-5" />
-            <Text className="font-semibold text-black mb-2" style={{ fontSize: normalizeFontSize(18) }}>저장하지 않고 나갈까요?</Text>
-            <Text className="text-black/45 mb-7 text-center" style={{ fontSize: normalizeFontSize(16) }}>변경 사항이 저장되지 않아요.</Text>
-            <TouchableOpacity onPress={() => setIsUnsavedSheetOpen(false)} className="w-full bg-[#e31b59] items-center justify-center mb-2.5" style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}>
-              <Text className="font-medium text-white" style={{ fontSize: normalizeFontSize(16) }}>계속 편집</Text>
+            <Text className="font-semibold text-black mb-2" style={{ fontSize: FONT_MD }}>저장하지 않고 나갈까요?</Text>
+            <Text className="text-black/45 mb-7 text-center font-normal" style={{ fontSize: FONT_SM }}>변경 사항이 저장되지 않아요.</Text>
+            <TouchableOpacity onPress={() => setIsUnsavedSheetOpen(false)} className="w-full bg-brand items-center justify-center mb-2.5" style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}>
+              <Text className="font-medium text-white" style={{ fontSize: FONT_SM }}>계속 편집</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => navigation.goBack()} className="w-full bg-[#f5f5f7] items-center justify-center" style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}>
-              <Text className="font-medium text-black/60" style={{ fontSize: normalizeFontSize(16) }}>나가기</Text>
+            <TouchableOpacity onPress={() => navigation.goBack()} className="w-full bg-card items-center justify-center" style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}>
+              <Text className="font-medium text-black/60" style={{ fontSize: FONT_SM }}>나가기</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -712,17 +713,17 @@ export default function TravelNewScreen() {
           <Pressable className="absolute inset-0" onPress={() => setIsDelSheetOpen(false)} />
           <View className="bg-white rounded-t-[24px] px-5 pb-8 pt-3 items-center">
             <View className="w-9 h-1 rounded-full bg-black/10 mb-7" />
-            <Text className="font-semibold text-black mb-2" style={{ fontSize: normalizeFontSize(18) }}>
+            <Text className="font-semibold text-black mb-2" style={{ fontSize: FONT_MD }}>
               {pendingDelete?.type === 'day' ? '이 날을 삭제할까요?' : '스팟을 삭제할까요?'}
             </Text>
-            <Text className="text-black/45 mb-7 text-center" style={{ fontSize: normalizeFontSize(16) }}>
+            <Text className="text-black/45 mb-7 text-center font-normal" style={{ fontSize: FONT_SM }}>
               {pendingDelete?.type === 'day' ? `DAY ${pendingDelete.dayIdx}에 추가된 스팟이 모두 삭제되며\n복구할 수 없어요.` : '이 스팟이 일정에서 제거돼요.'}
             </Text>
-            <TouchableOpacity onPress={confirmDelete} className="w-full bg-[#e31b59] items-center justify-center mb-2.5" style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}>
-              <Text className="font-medium text-white" style={{ fontSize: normalizeFontSize(16) }}>삭제하기</Text>
+            <TouchableOpacity onPress={confirmDelete} className="w-full bg-brand items-center justify-center mb-2.5" style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}>
+              <Text className="font-medium text-white" style={{ fontSize: FONT_SM }}>삭제하기</Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => setIsDelSheetOpen(false)} className="w-full bg-[#f5f5f7] items-center justify-center" style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}>
-              <Text className="font-medium text-black" style={{ fontSize: normalizeFontSize(16) }}>취소</Text>
+            <TouchableOpacity onPress={() => setIsDelSheetOpen(false)} className="w-full bg-card items-center justify-center" style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}>
+              <Text className="font-medium text-black" style={{ fontSize: FONT_SM }}>취소</Text>
             </TouchableOpacity>
           </View>
         </View>

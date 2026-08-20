@@ -62,6 +62,9 @@
 | `TAB_BAR_HEIGHT` | 80px | 하단 탭바 높이 |
 | `HEADER_HEIGHT` | 52px | 상단 네비게이션 바 높이 |
 | `BOTTOM_SHEET_RADIUS` | 24px | 바텀시트 상단 border-radius |
+| `HAIRLINE_WIDTH` | 0.5px | 구분선 굵기 (색은 `HAIRLINE` — `design-tokens.md`) |
+| `BORDER_CONTROL` | 1.5px | 폼 컨트롤 테두리 — 입력 포커스·선택 칩·아웃라인 버튼 |
+| `EMPTY_CARD_HEIGHT` | 120px | 빈 상태 카드 기본 높이 |
 
 ### 사용 예시
 
@@ -70,7 +73,7 @@ import { BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING, CARD_RADIUS, FONT_LG } f
 
 // 버튼
 <TouchableOpacity
-  className="w-full items-center justify-center bg-[#E31B59]"
+  className="w-full items-center justify-center bg-brand"
   style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}
 >
   <Text style={{ fontSize: FONT_LG }} className="text-white font-medium">
@@ -84,7 +87,7 @@ import { BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING, CARD_RADIUS, FONT_LG } f
 </View>
 
 // 카드
-<View style={{ borderRadius: CARD_RADIUS }} className="bg-[#f5f5f7]">
+<View style={{ borderRadius: CARD_RADIUS }} className="bg-card">
   {/* 카드 내용 */}
 </View>
 ```

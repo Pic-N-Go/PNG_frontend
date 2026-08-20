@@ -5,6 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { IconMapPin } from '@tabler/icons-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { CARD_RADIUS, FONT_XS } from '@/constants/layout';
+import { BRAND } from '@/constants/colors';
 
 const KAKAO_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_API_KEY;
 
@@ -59,7 +60,7 @@ export default function MapBanner({ onPress, spotCount = 0, isLoading, userLocat
     }
     .user-dot {
       width: 14px; height: 14px; border-radius: 50%;
-      background: #E31B59; border: 2.5px solid #ffffff;
+      background: ${BRAND}; border: 2.5px solid #ffffff;
       box-shadow: 0 0 6px rgba(227,27,89,0.8);
       animation: pulse 2s infinite;
     }
@@ -135,7 +136,7 @@ export default function MapBanner({ onPress, spotCount = 0, isLoading, userLocat
       var spots = ${JSON.stringify(spotItems)};
       spots.forEach(function(s) {
         if (s.lat && s.lng) {
-          var pinSvg = '<div class="spot-pin"><svg width="22" height="27" viewBox="0 0 28 34"><path d="M14 0C6.3 0 0 6.3 0 14C0 23 14 34 14 34S28 23 28 14C28 6.3 21.7 0 14 0Z" fill="#E31B59"/><circle cx="14" cy="12" r="5" fill="#fff"/></svg></div>';
+          var pinSvg = '<div class="spot-pin"><svg width="22" height="27" viewBox="0 0 28 34"><path d="M14 0C6.3 0 0 6.3 0 14C0 23 14 34 14 34S28 23 28 14C28 6.3 21.7 0 14 0Z" fill="${BRAND}"/><circle cx="14" cy="12" r="5" fill="#fff"/></svg></div>';
           new kakao.maps.CustomOverlay({
             map: map,
             position: new kakao.maps.LatLng(s.lat, s.lng),

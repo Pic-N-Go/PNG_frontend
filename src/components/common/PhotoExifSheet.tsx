@@ -5,11 +5,12 @@ import { WebView } from 'react-native-webview';
 import { Aperture, Camera, MapPin, X } from 'lucide-react-native';
 import { PhotoExifData } from '@/types/photo';
 import { hasAnyExif } from '@/utils/spotMappers';
-import { BOTTOM_SHEET_RADIUS, FONT_2XS, FONT_LG, FONT_SM, FONT_XS, GRID_PADDING } from '@/constants/layout';
+import { BOTTOM_SHEET_RADIUS, FONT_2XS, FONT_LG, FONT_SM, FONT_XS, GRID_PADDING, HAIRLINE_WIDTH } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
+import { BRAND, BRAND_TINT, CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
 
-const SURFACE = '#f5f5f7';
-const ACCENT = '#E31B59';
+const SURFACE = CARD;
+const ACCENT = BRAND;
 const KAKAO_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_API_KEY;
 const MAP_PREVIEW_HEIGHT = 120;
 /** 미리보기 지도의 핀 너비(px). 높이는 SVG viewBox 24:30 비율로 따라간다.
@@ -30,12 +31,12 @@ function GearRow({ icon, label, value }: { icon: React.ReactNode; label: string;
     >
       <View
         className="items-center justify-center"
-        style={{ width: normalize(36), height: normalize(36), borderRadius: normalize(10), backgroundColor: 'rgba(227,27,89,0.08)' }}
+        style={{ width: normalize(36), height: normalize(36), borderRadius: normalize(10), backgroundColor: BRAND_TINT }}
       >
         {icon}
       </View>
       <View style={{ flex: 1, minWidth: 0 }}>
-        <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_2XS, color: 'rgba(0,0,0,0.4)', letterSpacing: 0.4 }}>
+        <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_2XS, color: TEXT_SUB, letterSpacing: 0.4 }}>
           {label}
         </Text>
         <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(14), color: '#000', letterSpacing: -0.2, marginTop: normalize(2) }}>
@@ -49,13 +50,13 @@ function GearRow({ icon, label, value }: { icon: React.ReactNode; label: string;
 function StatCell({ label, value, unit }: { label: string; value: string; unit?: string }) {
   return (
     <View style={{ flex: 1, backgroundColor: SURFACE, borderRadius: normalize(14), paddingVertical: normalize(12), paddingHorizontal: normalize(8), alignItems: 'center' }}>
-      <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_2XS, color: 'rgba(0,0,0,0.4)', letterSpacing: 0.4 }}>
+      <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_2XS, color: TEXT_SUB, letterSpacing: 0.4 }}>
         {label}
       </Text>
       <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_LG, color: '#000', letterSpacing: -0.3, marginTop: normalize(2) }}>
         {value}
         {unit && (
-          <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.4)', letterSpacing: -0.1 }}>
+          <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: TEXT_SUB, letterSpacing: -0.1 }}>
             {unit}
           </Text>
         )}
@@ -169,7 +170,7 @@ function SectionLabel({ label }: { label: string }) {
   return (
     <Text
       allowFontScaling={false}
-      style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, color: 'rgba(0,0,0,0.4)', letterSpacing: 0.4, paddingTop: normalize(20), paddingBottom: normalize(8) }}
+      style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, color: TEXT_SUB, letterSpacing: 0.4, paddingTop: normalize(20), paddingBottom: normalize(8) }}
     >
       {label}
     </Text>
@@ -180,7 +181,7 @@ function DetailRow({ label, value, isLast, valueAlignRight }: { label: string; v
   return (
     <View
       className="flex-row items-center justify-between"
-      style={{ height: normalize(44), borderBottomWidth: isLast ? 0 : 0.5, borderBottomColor: 'rgba(0,0,0,0.08)' }}
+      style={{ height: normalize(44), borderBottomWidth: isLast ? 0 : HAIRLINE_WIDTH, borderBottomColor: HAIRLINE }}
     >
       <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.45)', letterSpacing: -0.1 }}>
         {label}
@@ -414,7 +415,7 @@ export function PhotoExifLayer({
             <View style={{ paddingHorizontal: normalize(28), paddingVertical: normalize(32), alignItems: 'center' }}>
               <Text
                 allowFontScaling={false}
-                style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: 'rgba(0,0,0,0.4)', letterSpacing: -0.2 }}
+                style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: TEXT_SUB, letterSpacing: -0.2 }}
               >
                 {loading ? '사진 정보를 불러오는 중' : error ? '사진 정보를 불러올 수 없어요' : '이 사진에는 촬영 정보가 없어요'}
               </Text>

@@ -7,31 +7,34 @@ import OptionSheet from '@/components/common/OptionSheet';
 import Skeleton from '@/components/common/Skeleton';
 import TimePickerSheet from '@/components/spot/TimePickerSheet';
 import { useSpotPhotogenicScore } from '@/hooks/useSpot';
-import { GRID_PADDING } from '@/constants/layout';
+import { BORDER_CONTROL, GRID_PADDING, HAIRLINE_WIDTH } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import type { PhotogenicFactor } from '@/types/spot';
+import { BRAND, BRAND_TINT, CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
 
+// 목업 spot-detail.html의 .photogenic 블록 기준. 웜그레이 자체 팔레트에서 앱 토큰으로 편입.
+// ponytail: golden(골든아워)만 현재 값 유지 — 목업(#ff9f0a/#C77700)보다 정제돼 있어 별도 판단 대상.
 const COLORS = {
-  accent: '#E31B59',
-  card: '#F7F6F4',
-  input: '#F5F5F7',
-  text: '#1F1E1D',
-  textSub: '#37352F',
-  label: '#8B8680',
-  muted: '#A39E98',
-  chevron: '#B5B0AA',
-  track: '#E7E4E0',
+  accent: BRAND,
+  card: CARD,
+  input: CARD,
+  text: '#000',
+  textSub: '#000',
+  label: TEXT_SUB,
+  muted: TEXT_SUB,
+  chevron: 'rgba(0,0,0,0.2)',
+  track: HAIRLINE,
   golden: { bg: '#FEF3E2', icon: '#E8890B', text: '#7A5A1E', strong: '#B4700C' },
 };
 
 // 등급별 배지 색 (좋음류=핑크, 보통=주황, 그 외=회색)
 const GRADE_COLOR: Record<string, { fg: string; bg: string }> = {
-  '매우 좋음': { fg: '#E31B59', bg: '#FDEBEF' },
-  좋음: { fg: '#E31B59', bg: '#FDEBEF' },
+  '매우 좋음': { fg: BRAND, bg: BRAND_TINT },
+  좋음: { fg: BRAND, bg: BRAND_TINT },
   보통: { fg: '#E8890B', bg: '#FDF0E0' },
-  비추천: { fg: '#9A9A9A', bg: '#EFEFEF' },
+  비추천: { fg: TEXT_SUB, bg: CARD },
 };
-const gradeColor = (g: string) => GRADE_COLOR[g] ?? { fg: '#E31B59', bg: '#FDEBEF' };
+const gradeColor = (g: string) => GRADE_COLOR[g] ?? { fg: BRAND, bg: BRAND_TINT };
 
 const FACTOR_ICONS: Record<PhotogenicFactor['key'], React.ComponentType<{ size: number; color: string; strokeWidth?: number }>> = {
   weather: IconSun,
@@ -84,7 +87,7 @@ function SelectorPill({ Icon, label, active, onPress }: { Icon: React.ComponentT
         gap: normalize(8),
         backgroundColor: COLORS.input,
         borderRadius: normalize(12),
-        borderWidth: 1.5,
+        borderWidth: BORDER_CONTROL,
         borderColor: active ? COLORS.accent : 'transparent',
         paddingVertical: normalize(12),
         paddingHorizontal: normalize(13),
@@ -115,7 +118,7 @@ function PhotogenicSkeleton() {
         <Skeleton width="45%" height={normalize(16)} style={tint} />
       </View>
       <Skeleton width="100%" height={normalize(44)} borderRadius={normalize(12)} style={{ ...tint, marginTop: normalize(16) }} />
-      <View style={{ marginTop: normalize(18), paddingTop: normalize(16), borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.06)', gap: normalize(16) }}>
+      <View style={{ marginTop: normalize(18), paddingTop: normalize(16), borderTopWidth: HAIRLINE_WIDTH, borderTopColor: HAIRLINE, gap: normalize(16) }}>
         {[0, 1, 2, 3].map((i) => (
           <View key={i} style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(12) }}>
             <Skeleton width={normalize(38)} height={normalize(38)} borderRadius={normalize(10)} style={tint} />
@@ -180,7 +183,7 @@ export default function PhotogenicScoreCard({ spotId, spotName }: Props) {
         {!data ? (
           isError ? (
             <View style={{ alignItems: 'center' }}>
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(14), color: 'rgba(0,0,0,0.4)', letterSpacing: -0.2 }}>
+              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(14), color: TEXT_SUB, letterSpacing: -0.2 }}>
                 포토제닉 지수를 불러오지 못했어요.
               </Text>
             </View>
@@ -203,7 +206,7 @@ export default function PhotogenicScoreCard({ spotId, spotName }: Props) {
                 <Defs>
                   <LinearGradient id="pgGauge" x1="0" y1="1" x2="1" y2="0">
                     <Stop offset="0" stopColor="#FF7A00" />
-                    <Stop offset="1" stopColor="#E31B59" />
+                    <Stop offset="1" stopColor={BRAND} />
                   </LinearGradient>
                 </Defs>
                 <Circle cx={92} cy={92} r={GAUGE_R} fill="none" stroke={COLORS.track} strokeWidth={GAUGE_STROKE} />
@@ -228,7 +231,7 @@ export default function PhotogenicScoreCard({ spotId, spotName }: Props) {
             </View>
 
             {/* 안내 문구 (히어로 예외: 중앙 정렬) */}
-            <Text allowFontScaling={false} style={{ marginTop: normalize(14), textAlign: 'center', fontSize: normalizeFontSize(17), lineHeight: normalizeFontSize(25), color: COLORS.textSub }}>
+            <Text className="font-normal" allowFontScaling={false} style={{ marginTop: normalize(14), textAlign: 'center', fontSize: normalizeFontSize(17), lineHeight: normalizeFontSize(25), color: COLORS.textSub }}>
               지금 <Text style={{ fontFamily: 'Pretendard-SemiBold', color: COLORS.text }}>{spotName}</Text>에{'\n'}{gradeMessage(data.grade)}
             </Text>
 
@@ -253,7 +256,7 @@ export default function PhotogenicScoreCard({ spotId, spotName }: Props) {
             </View>
 
             {/* 점수 구성 */}
-            <View style={{ marginTop: normalize(18), paddingTop: normalize(16), borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.06)' }}>
+            <View style={{ marginTop: normalize(18), paddingTop: normalize(16), borderTopWidth: HAIRLINE_WIDTH, borderTopColor: HAIRLINE }}>
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(13), color: COLORS.text, marginBottom: normalize(6) }}>점수 구성</Text>
 
               {factors.map((factor, i) => {
@@ -261,7 +264,7 @@ export default function PhotogenicScoreCard({ spotId, spotName }: Props) {
                 const showBar = factor.barPercent < 100; // 만점이면 바 생략 (부분 점수만 표시)
                 const showDivider = i < factors.length - 1;
                 return (
-                  <View key={factor.key} style={{ paddingTop: normalize(11), paddingBottom: showBar ? normalize(2) : normalize(11), borderBottomWidth: showDivider ? 1 : 0, borderBottomColor: 'rgba(0,0,0,0.05)' }}>
+                  <View key={factor.key} style={{ paddingTop: normalize(11), paddingBottom: showBar ? normalize(2) : normalize(11), borderBottomWidth: showDivider ? HAIRLINE_WIDTH : 0, borderBottomColor: HAIRLINE }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(12) }}>
                       <View style={{ width: normalize(38), height: normalize(38), borderRadius: normalize(10), backgroundColor: factor.iconBg, alignItems: 'center', justifyContent: 'center' }}>
                         <Icon size={normalize(20)} color={factor.iconColor} strokeWidth={2} />
@@ -275,7 +278,7 @@ export default function PhotogenicScoreCard({ spotId, spotName }: Props) {
                     {showBar && (
                       <View style={{ height: normalize(6), borderRadius: normalize(999), backgroundColor: COLORS.track, marginTop: normalize(10), overflow: 'hidden' }}>
                         <ExpoLinearGradient
-                          colors={['#FF7A00', '#E31B59']}
+                          colors={['#FF7A00', BRAND]}
                           start={{ x: 0, y: 0 }}
                           end={{ x: 1, y: 0 }}
                           style={{ width: `${factor.barPercent}%`, height: '100%', borderRadius: normalize(999) }}

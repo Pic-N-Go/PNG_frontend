@@ -3,8 +3,9 @@ import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Home, Map, Route, MessageCircle, User } from 'lucide-react-native';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
-import { TAB_BAR_HEIGHT } from '@/constants/layout';
+import { HAIRLINE_WIDTH, TAB_BAR_HEIGHT } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
+import { BRAND, HAIRLINE } from '@/constants/colors';
 
 type TabIcon = typeof Home;
 
@@ -16,7 +17,7 @@ const TABS: { route: string; label: string; Icon: TabIcon }[] = [
   { route: 'MyPageTab',    label: 'MY',      Icon: User },
 ];
 
-const ACTIVE_COLOR = '#E31B59';
+const ACTIVE_COLOR = BRAND;
 const INACTIVE_COLOR = 'rgba(0,0,0,0.35)';
 
 export default function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
@@ -32,8 +33,8 @@ export default function TabBar({ state, descriptors, navigation }: BottomTabBarP
       style={{
         height: TAB_BAR_HEIGHT + insets.bottom,
         backgroundColor: '#fff',
-        borderTopWidth: 0.5,
-        borderTopColor: 'rgba(0,0,0,0.08)',
+        borderTopWidth: HAIRLINE_WIDTH,
+        borderTopColor: HAIRLINE,
         flexDirection: 'row',
         alignItems: 'flex-start',
         paddingTop: normalize(8),

@@ -21,17 +21,14 @@ import {
   useAddReviewPhotos, useCreateReview, useDeleteReviewPhoto, useSpotDetail, useUpdateReview,
 } from '@/hooks/useSpot';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import {
-  FONT_2XS, FONT_XS, FONT_SM, FONT_MD, FONT_LG,
-  GRID_PADDING, BUTTON_HEIGHT, BUTTON_RADIUS, CARD_RADIUS, INPUT_RADIUS,
-} from '@/constants/layout';
+import { BORDER_CONTROL, BUTTON_HEIGHT, BUTTON_RADIUS, CARD_RADIUS, FONT_2XS, FONT_LG, FONT_MD, FONT_SM, FONT_XS, GRID_PADDING, HAIRLINE_WIDTH, INPUT_RADIUS } from '@/constants/layout';
 import type { ReviewPhotoDTO, ReviewTagApi, TimePeriodApi } from '@/types/spot';
 import { MAX_REVIEW_TAGS, REVIEW_TAGS } from '@/constants/reviewTags';
+import { BRAND, BRAND_TINT_ACTIVE, CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
 
 type Props = NativeStackScreenProps<SpotStackParamList, 'ReviewWrite'>;
 
-const BRAND = '#E31B59';
-const SURFACE = '#F5F5F7';
+const SURFACE = CARD;
 const STAR_ON = '#FF9F0A';
 const ERR = '#ff453a';
 
@@ -480,7 +477,7 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
     <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right']}>
       {/* Nav */}
       <View
-        className="flex-row items-center border-b border-black/5"
+        className="flex-row items-center border-b-[0.5px] border-hairline"
         style={{ height: normalize(54), paddingHorizontal: normalize(12) }}
       >
         <Pressable
@@ -513,7 +510,7 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
         >
           {/* 스팟 정보 */}
           <View
-            className="flex-row items-center border-b border-black/5"
+            className="flex-row items-center border-b-[0.5px] border-hairline"
             style={{ gap: normalize(12), paddingHorizontal: GRID_PADDING, paddingVertical: normalize(16) }}
           >
             <LinearGradient
@@ -533,7 +530,7 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
               <Text
                 allowFontScaling={false}
                 numberOfLines={1}
-                style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.4)' }}
+                style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: TEXT_SUB }}
               >
                 {spot?.info.address ?? ''}
               </Text>
@@ -546,7 +543,7 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
               {[1, 2, 3, 4, 5].map((value) => (
                 <Pressable key={value} onPress={() => setRating(value)} hitSlop={4} accessibilityRole="button" accessibilityLabel={`별점 ${value}점`} style={{ padding: normalize(4) }}>
                   {/* 36은 폰트 스케일 토큰 밖이지만 글자가 아니라 아이콘으로 쓰는 별 글리프다(목업 36px). */}
-                  <Text
+                  <Text className="font-normal"
                     allowFontScaling={false}
                     style={{ fontSize: normalizeFontSize(36), lineHeight: normalizeFontSize(36), color: value <= rating ? STAR_ON : 'rgba(0,0,0,0.1)' }}
                   >
@@ -556,7 +553,7 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
               ))}
               <Text
                 allowFontScaling={false}
-                style={{ fontFamily: 'Pretendard-Medium', fontSize: normalizeFontSize(14), color: 'rgba(0,0,0,0.4)', letterSpacing: -0.15, marginLeft: normalize(8) }}
+                style={{ fontFamily: 'Pretendard-Medium', fontSize: normalizeFontSize(14), color: TEXT_SUB, letterSpacing: -0.15, marginLeft: normalize(8) }}
               >
                 {STAR_LABELS[rating]}
               </Text>
@@ -609,9 +606,9 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
                     style={{
                       height: normalize(48),
                       borderRadius: INPUT_RADIUS,
-                      borderWidth: 1.5,
+                      borderWidth: BORDER_CONTROL,
                       borderColor: active ? BRAND : 'transparent',
-                      backgroundColor: active ? 'rgba(227,27,89,0.06)' : SURFACE,
+                      backgroundColor: active ? BRAND_TINT_ACTIVE : SURFACE,
                       gap: normalize(2),
                     }}
                   >
@@ -649,7 +646,7 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
                 style={{
                   height: normalize(130),
                   borderRadius: INPUT_RADIUS,
-                  borderWidth: 1.5,
+                  borderWidth: BORDER_CONTROL,
                   borderColor: contentFocused ? BRAND : 'transparent',
                   backgroundColor: contentFocused ? '#fff' : SURFACE,
                   paddingHorizontal: normalize(16),
@@ -693,7 +690,7 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
                       height: normalize(30),
                       paddingHorizontal: normalize(14),
                       borderRadius: normalize(15),
-                      backgroundColor: selected ? 'rgba(227,27,89,0.1)' : SURFACE,
+                      backgroundColor: selected ? BRAND_TINT_ACTIVE : SURFACE,
                     }}
                   >
                     <Text
@@ -758,7 +755,7 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
                   className="items-center justify-center"
                   style={{
                     width: normalize(72), height: normalize(72), borderRadius: INPUT_RADIUS,
-                    backgroundColor: SURFACE, borderWidth: 1.5, borderColor: 'rgba(0,0,0,0.12)',
+                    backgroundColor: SURFACE, borderWidth: BORDER_CONTROL, borderColor: 'rgba(0,0,0,0.12)',
                     borderStyle: 'dashed', gap: normalize(4), opacity: photoBusy ? 0.4 : 1,
                   }}
                 >
@@ -803,15 +800,15 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
                       gap: normalize(12),
                       paddingHorizontal: normalize(16),
                       paddingVertical: normalize(14),
-                      borderBottomWidth: idx < EQUIPMENT.length - 1 ? 0.5 : 0,
-                      borderBottomColor: 'rgba(0,0,0,0.04)',
+                      borderBottomWidth: idx < EQUIPMENT.length - 1 ? HAIRLINE_WIDTH : 0,
+                      borderBottomColor: HAIRLINE,
                     }}
                   >
                     <View
                       className="items-center justify-center"
                       style={{
                         width: normalize(22), height: normalize(22), borderRadius: normalize(11),
-                        borderWidth: 1.5,
+                        borderWidth: BORDER_CONTROL,
                         borderColor: selected ? BRAND : 'rgba(0,0,0,0.14)',
                         backgroundColor: selected ? BRAND : 'transparent',
                       }}
@@ -893,7 +890,7 @@ function Section({ label, required, hint, children }: {
           {label}
         </Text>
         {required && (
-          <Text allowFontScaling={false} style={{ fontSize: normalizeFontSize(14), color: BRAND, lineHeight: normalizeFontSize(14) }}>
+          <Text className="font-normal" allowFontScaling={false} style={{ fontSize: normalizeFontSize(14), color: BRAND, lineHeight: normalizeFontSize(14) }}>
             *
           </Text>
         )}

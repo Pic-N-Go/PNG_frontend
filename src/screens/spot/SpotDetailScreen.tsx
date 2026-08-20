@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { useAnimatedRef, useAnimatedScrollHandler, useSharedValue, runOnJS } from 'react-native-reanimated';
-import { IconChevronLeft } from '@tabler/icons-react-native';
+import { IconBell, IconChevronLeft } from '@tabler/icons-react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { SpotStackParamList } from '@/navigation/stacks/SpotStack';
 import Toast from '@/components/common/Toast';
@@ -11,7 +11,7 @@ import SpotInfoHeader from '@/components/spot/SpotInfoHeader';
 import SpotTabBar, { type SpotTabKey } from '@/components/spot/SpotTabBar';
 import PhotogenicScoreCard from '@/components/spot/PhotogenicScoreCard';
 import ConvenienceInfoSection from '@/components/spot/ConvenienceInfoSection';
-import SpotAlertBanner from '@/components/spot/SpotAlertBanner';
+import LinkBanner from '@/components/common/LinkBanner';
 import PhotoGridTab from '@/components/spot/PhotoGridTab';
 import ReviewTab from '@/components/spot/ReviewTab';
 import ChatTab from '@/components/spot/ChatTab';
@@ -25,6 +25,7 @@ import { exifFromPhotoUrl } from '@/utils/spotMappers';
 import { BUTTON_RADIUS, GRID_PADDING, SPACING_LG } from '@/constants/layout';
 import { shareContent } from '@/utils/share';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
+import { BRAND, CARD } from '@/constants/colors';
 
 type Props = NativeStackScreenProps<SpotStackParamList, 'SpotDetail'>;
 
@@ -138,7 +139,7 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
               </Text>
               <Pressable
                 onPress={() => refetch()}
-                style={{ height: normalize(44), paddingHorizontal: normalize(24), borderRadius: BUTTON_RADIUS, backgroundColor: '#F5F5F7', alignItems: 'center', justifyContent: 'center' }}
+                style={{ height: normalize(44), paddingHorizontal: normalize(24), borderRadius: BUTTON_RADIUS, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center' }}
               >
                 <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(14), color: '#000', letterSpacing: -0.2 }}>
                   다시 시도
@@ -146,7 +147,7 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
               </Pressable>
             </View>
           ) : (
-            <ActivityIndicator color="#E31B59" />
+            <ActivityIndicator color={BRAND} />
           )}
         </View>
         <Toast message={toastMessage} visible={toastVisible} onHide={() => setToastVisible(false)} />
@@ -220,7 +221,10 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
                 <View style={{ height: 1, backgroundColor: 'rgba(0,0,0,0.06)', marginHorizontal: GRID_PADDING, marginVertical: normalize(24) }} />
                 <ConvenienceInfoSection info={convenience} />
                 <View style={{ height: normalize(24) }} />
-                <SpotAlertBanner
+                <LinkBanner
+                  icon={IconBell}
+                  title="출사 알림 조건 설정"
+                  subtitle="원하는 날씨가 되면 알려드려요"
                   onPress={() => {
                     // @ts-ignore
                     navigation.navigate('WishlistSetting', { 
@@ -237,7 +241,7 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
                 <View style={{ flexDirection: 'row', gap: normalize(12), paddingHorizontal: GRID_PADDING }}>
                   <Pressable
                     onPress={() => setSaveSheetVisible(true)}
-                    style={{ flex: 1, height: normalize(52), borderRadius: BUTTON_RADIUS, backgroundColor: '#F5F5F7', alignItems: 'center', justifyContent: 'center' }}
+                    style={{ flex: 1, height: normalize(52), borderRadius: BUTTON_RADIUS, backgroundColor: CARD, alignItems: 'center', justifyContent: 'center' }}
                   >
                     <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(16), color: '#000', letterSpacing: -0.2 }}>
                       코스에 저장
@@ -245,7 +249,7 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
                   </Pressable>
                   <Pressable
                     onPress={() => setNaviSheetVisible(true)}
-                    style={{ flex: 1, height: normalize(52), borderRadius: BUTTON_RADIUS, backgroundColor: '#E31B59', alignItems: 'center', justifyContent: 'center' }}
+                    style={{ flex: 1, height: normalize(52), borderRadius: BUTTON_RADIUS, backgroundColor: BRAND, alignItems: 'center', justifyContent: 'center' }}
                   >
                     <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(16), color: '#fff', letterSpacing: -0.2 }}>
                       바로 출발

@@ -8,10 +8,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { IconChevronLeft, IconLayoutGrid, IconList, IconX, IconChevronRight } from '@tabler/icons-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { FONT_XS, FONT_SM, FONT_MD, FONT_LG } from '@/constants/layout';
+import { FONT_LG, FONT_MD, FONT_SM, FONT_XS, HAIRLINE_WIDTH } from '@/constants/layout';
 
 import { useMyAlbums, useMyStats } from '@/hooks/useUser';
 import { categoryLabel } from '@/constants/spotCategories';
+import { BRAND, BRAND_TINT, CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
 
 // Types
 type ViewMode = 'album' | 'grid';
@@ -107,7 +108,7 @@ export default function MyPhotosScreen() {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <IconChevronLeft size={normalize(24)} color="rgba(0,0,0,0.65)" />
         </TouchableOpacity>
-        <Text style={styles.navTitle}>내 사진</Text>
+        <Text className="font-normal" style={styles.navTitle}>내 사진</Text>
         <View style={styles.viewToggleGroup}>
           <TouchableOpacity 
             style={[styles.viewToggleBtn, viewMode === 'album' && styles.viewToggleBtnActive]}
@@ -128,18 +129,18 @@ export default function MyPhotosScreen() {
         {/* Summary Card */}
         <View style={styles.summaryCard}>
           <View style={styles.summaryStat}>
-            <Text style={styles.summaryNum}>{totalPhotos}</Text>
-            <Text style={styles.summaryLabel}>전체 사진</Text>
+            <Text className="font-normal" style={styles.summaryNum}>{totalPhotos}</Text>
+            <Text className="font-normal" style={styles.summaryLabel}>전체 사진</Text>
           </View>
           <View style={styles.summaryDiv} />
           <View style={styles.summaryStat}>
-            <Text style={styles.summaryNum}>{albums.length}</Text>
-            <Text style={styles.summaryLabel}>촬영 앨범</Text>
+            <Text className="font-normal" style={styles.summaryNum}>{albums.length}</Text>
+            <Text className="font-normal" style={styles.summaryLabel}>촬영 앨범</Text>
           </View>
           <View style={styles.summaryDiv} />
           <View style={styles.summaryStat}>
-            <Text style={styles.summaryNum}>{stats?.visitedSpotCount ?? 0}</Text>
-            <Text style={styles.summaryLabel}>방문 지역</Text>
+            <Text className="font-normal" style={styles.summaryNum}>{stats?.visitedSpotCount ?? 0}</Text>
+            <Text className="font-normal" style={styles.summaryLabel}>방문 지역</Text>
           </View>
         </View>
 
@@ -152,7 +153,7 @@ export default function MyPhotosScreen() {
                 style={[styles.filterChip, activeFilter === f && styles.filterChipActive]}
                 onPress={() => setActiveFilter(f)}
               >
-                <Text style={[styles.filterText, activeFilter === f && styles.filterTextActive]}>
+                <Text className="font-normal" style={[styles.filterText, activeFilter === f && styles.filterTextActive]}>
                   {f === 'all' ? '전체' : f}
                 </Text>
               </TouchableOpacity>
@@ -165,11 +166,11 @@ export default function MyPhotosScreen() {
           <View style={{ paddingHorizontal: normalize(20) }}>
             {isAlbumsLoading ? (
               <View style={{ paddingVertical: normalize(40), alignItems: 'center' }}>
-                <Text style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.3)' }}>앨범을 불러오는 중...</Text>
+                <Text className="font-normal" style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.3)' }}>앨범을 불러오는 중...</Text>
               </View>
             ) : albums.length === 0 ? (
               <View style={{ paddingVertical: normalize(40), alignItems: 'center' }}>
-                <Text style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.3)' }}>등록된 앨범이 없어요</Text>
+                <Text className="font-normal" style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.3)' }}>등록된 앨범이 없어요</Text>
               </View>
             ) : (
               <View style={{ gap: normalize(10) }}>
@@ -186,11 +187,11 @@ export default function MyPhotosScreen() {
                         <View style={styles.albumThumbStack} />
                       </View>
                       <View style={styles.albumInfo}>
-                        <Text style={styles.albumName}>{album.name}</Text>
-                        <Text style={styles.albumLoc}>{categoryName}</Text>
+                        <Text className="font-normal" style={styles.albumName}>{album.name}</Text>
+                        <Text className="font-normal" style={styles.albumLoc}>{categoryName}</Text>
                         <View style={styles.albumMeta}>
-                          <Text style={styles.albumCount}>{album.photoCount}장</Text>
-                          <View style={styles.albumBadge}><Text style={styles.albumBadgeText}>{categoryName}</Text></View>
+                          <Text className="font-normal" style={styles.albumCount}>{album.photoCount}장</Text>
+                          <View style={styles.albumBadge}><Text className="font-normal" style={styles.albumBadgeText}>{categoryName}</Text></View>
                         </View>
                       </View>
                       <IconChevronRight size={16} color="rgba(0,0,0,0.18)" />
@@ -207,7 +208,7 @@ export default function MyPhotosScreen() {
           <View style={{ paddingHorizontal: normalize(20) }}>
             {Object.keys(groupedPhotos).map(section => (
               <View key={section} style={{ marginBottom: normalize(12) }}>
-                <Text style={styles.sectionTitle}>{section}</Text>
+                <Text className="font-normal" style={styles.sectionTitle}>{section}</Text>
                 <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: GRID_SPACING }}>
                   {groupedPhotos[section].map((photo, i) => {
                     const isVisible = activeFilter === 'all' || photo.badge === activeFilter;
@@ -223,7 +224,7 @@ export default function MyPhotosScreen() {
                         <LinearGradient colors={photo.colors as [string, string]} style={styles.photoInner} />
                         {photo.badge && (
                           <View style={styles.photoGridBadge}>
-                            <Text style={styles.photoGridBadgeText}>{photo.badge}</Text>
+                            <Text className="font-normal" style={styles.photoGridBadgeText}>{photo.badge}</Text>
                           </View>
                         )}
                       </TouchableOpacity>
@@ -245,7 +246,7 @@ export default function MyPhotosScreen() {
             <TouchableOpacity onPress={() => setLightboxVisible(false)} style={styles.lbClose}>
               <IconX size={20} color="#fff" />
             </TouchableOpacity>
-            <Text style={styles.lbCounter}>{currentPhotoIndex + 1} / {filteredPhotos.length}</Text>
+            <Text className="font-normal" style={styles.lbCounter}>{currentPhotoIndex + 1} / {filteredPhotos.length}</Text>
           </LinearGradient>
 
           {/* Current Photo Gradient (Mocking image) */}
@@ -267,12 +268,12 @@ export default function MyPhotosScreen() {
           )}
 
           <LinearGradient colors={['transparent', 'rgba(0,0,0,0.8)']} style={styles.lbFooter}>
-            <Text style={styles.lbSpot}>{filteredPhotos[currentPhotoIndex]?.spot}</Text>
+            <Text className="font-normal" style={styles.lbSpot}>{filteredPhotos[currentPhotoIndex]?.spot}</Text>
             <View style={styles.lbFooterMeta}>
-              <Text style={styles.lbDate}>{filteredPhotos[currentPhotoIndex]?.date}</Text>
+              <Text className="font-normal" style={styles.lbDate}>{filteredPhotos[currentPhotoIndex]?.date}</Text>
               {filteredPhotos[currentPhotoIndex]?.badge && (
                 <View style={styles.lbMetaBadge}>
-                  <Text style={styles.lbMetaBadgeText}>{filteredPhotos[currentPhotoIndex]?.badge}</Text>
+                  <Text className="font-normal" style={styles.lbMetaBadgeText}>{filteredPhotos[currentPhotoIndex]?.badge}</Text>
                 </View>
               )}
             </View>
@@ -291,59 +292,59 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: normalize(20),
-    borderBottomWidth: 0.5,
-    borderBottomColor: 'rgba(0,0,0,0.06)',
+    borderBottomWidth: HAIRLINE_WIDTH,
+    borderBottomColor: HAIRLINE,
   },
   backBtn: { width: normalize(36), height: normalize(36), alignItems: 'center', justifyContent: 'center', marginLeft: -normalize(8) },
-  navTitle: { fontSize: normalizeFontSize(18), fontWeight: '600', color: '#000' },
-  viewToggleGroup: { flexDirection: 'row', backgroundColor: '#f8f8f9', borderRadius: normalize(8), padding: normalize(2), gap: normalize(2) },
+  navTitle: { fontSize: normalizeFontSize(18), fontFamily: 'Pretendard-SemiBold', color: '#000' },
+  viewToggleGroup: { flexDirection: 'row', backgroundColor: CARD, borderRadius: normalize(8), padding: normalize(2), gap: normalize(2) },
   viewToggleBtn: { width: normalize(32), height: normalize(28), borderRadius: normalize(6), alignItems: 'center', justifyContent: 'center' },
   viewToggleBtnActive: { backgroundColor: '#fff', shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.08, shadowRadius: 3, elevation: 2 },
   
-  summaryCard: { flexDirection: 'row', marginHorizontal: normalize(20), marginTop: normalize(14), backgroundColor: '#f8f8f9', borderRadius: normalize(12), paddingVertical: normalize(16), alignItems: 'center' },
+  summaryCard: { flexDirection: 'row', marginHorizontal: normalize(20), marginTop: normalize(14), backgroundColor: CARD, borderRadius: normalize(12), paddingVertical: normalize(16), alignItems: 'center' },
   summaryStat: { flex: 1, alignItems: 'center', gap: normalize(4) },
-  summaryNum: { fontSize: normalizeFontSize(22), fontWeight: '600', color: '#000', lineHeight: normalizeFontSize(24) },
+  summaryNum: { fontSize: normalizeFontSize(22), fontFamily: 'Pretendard-SemiBold', color: '#000', lineHeight: normalizeFontSize(24) },
   summaryLabel: { fontSize: FONT_XS, color: 'rgba(0,0,0,0.38)' },
   summaryDiv: { width: 0.5, height: normalize(28), backgroundColor: 'rgba(0,0,0,0.08)' },
 
   filterWrapper: { paddingVertical: normalize(14) },
   filterContent: { paddingHorizontal: normalize(20), gap: normalize(8) },
-  filterChip: { height: normalize(32), paddingHorizontal: normalize(14), borderRadius: normalize(16), backgroundColor: '#f8f8f9', alignItems: 'center', justifyContent: 'center' },
-  filterChipActive: { backgroundColor: '#e31b59' },
-  filterText: { fontSize: FONT_SM, fontWeight: '500', color: 'rgba(0,0,0,0.5)' },
+  filterChip: { height: normalize(32), paddingHorizontal: normalize(14), borderRadius: normalize(16), backgroundColor: CARD, alignItems: 'center', justifyContent: 'center' },
+  filterChipActive: { backgroundColor: BRAND },
+  filterText: { fontSize: FONT_SM, fontFamily: 'Pretendard-Medium', color: 'rgba(0,0,0,0.5)' },
   filterTextActive: { color: '#fff' },
 
-  sectionTitle: { fontSize: normalizeFontSize(12), fontWeight: '600', color: 'rgba(0,0,0,0.3)', marginBottom: normalize(10), marginTop: normalize(4) },
+  sectionTitle: { fontSize: normalizeFontSize(12), fontFamily: 'Pretendard-SemiBold', color: 'rgba(0,0,0,0.3)', marginBottom: normalize(10), marginTop: normalize(4) },
   
-  albumItem: { flexDirection: 'row', alignItems: 'center', gap: normalize(14), padding: normalize(12), backgroundColor: '#f8f8f9', borderRadius: normalize(12) },
+  albumItem: { flexDirection: 'row', alignItems: 'center', gap: normalize(14), padding: normalize(12), backgroundColor: CARD, borderRadius: normalize(12) },
   albumThumbWrap: { width: normalize(72), height: normalize(72), borderRadius: normalize(10), position: 'relative' },
   albumThumb: { width: '100%', height: '100%', borderRadius: normalize(10), zIndex: 2 },
-  albumThumbStack: { position: 'absolute', bottom: -4, right: -4, width: normalize(68), height: normalize(68), borderRadius: normalize(9), borderWidth: 2, borderColor: '#f8f8f9', backgroundColor: 'rgba(0,0,0,0.1)', zIndex: 1 },
+  albumThumbStack: { position: 'absolute', bottom: -4, right: -4, width: normalize(68), height: normalize(68), borderRadius: normalize(9), borderWidth: 2, borderColor: CARD, backgroundColor: 'rgba(0,0,0,0.1)', zIndex: 1 },
   albumInfo: { flex: 1 },
-  albumName: { fontSize: FONT_MD, fontWeight: '600', color: '#000', marginBottom: normalize(3) },
+  albumName: { fontSize: FONT_MD, fontFamily: 'Pretendard-SemiBold', color: '#000', marginBottom: normalize(3) },
   albumLoc: { fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.38)', marginBottom: normalize(6) },
   albumMeta: { flexDirection: 'row', alignItems: 'center', gap: normalize(8) },
-  albumCount: { fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.4)' },
+  albumCount: { fontSize: normalizeFontSize(12), color: TEXT_SUB },
   albumBadge: { height: normalize(18), paddingHorizontal: normalize(7), borderRadius: normalize(9), backgroundColor: 'rgba(0,0,0,0.06)', justifyContent: 'center' },
-  albumBadgeText: { fontSize: normalizeFontSize(10), fontWeight: '500', color: 'rgba(0,0,0,0.4)' },
-  albumScore: { height: normalize(18), paddingHorizontal: normalize(7), borderRadius: normalize(9), backgroundColor: 'rgba(227,27,89,0.08)', justifyContent: 'center', overflow: 'hidden', color: '#e31b59', fontSize: normalizeFontSize(10), fontWeight: '600', textAlignVertical: 'center' },
+  albumBadgeText: { fontSize: normalizeFontSize(10), fontFamily: 'Pretendard-Medium', color: TEXT_SUB },
+  albumScore: { height: normalize(18), paddingHorizontal: normalize(7), borderRadius: normalize(9), backgroundColor: BRAND_TINT, justifyContent: 'center', overflow: 'hidden', color: BRAND, fontSize: normalizeFontSize(10), fontFamily: 'Pretendard-SemiBold', textAlignVertical: 'center' },
 
   photoCell: { width: CELL_SIZE, height: CELL_SIZE, position: 'relative' },
   photoInner: { flex: 1 },
   photoGridBadge: { position: 'absolute', bottom: normalize(6), left: normalize(6), height: normalize(16), paddingHorizontal: normalize(6), borderRadius: normalize(8), backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'center' },
-  photoGridBadgeText: { fontSize: normalizeFontSize(9), fontWeight: '500', color: 'rgba(255,255,255,0.85)' },
+  photoGridBadgeText: { fontSize: normalizeFontSize(9), fontFamily: 'Pretendard-Medium', color: 'rgba(255,255,255,0.85)' },
 
   lbContainer: { flex: 1, backgroundColor: '#000' },
   lbHeader: { position: 'absolute', top: 0, left: 0, right: 0, height: normalize(88), paddingTop: normalize(44), paddingHorizontal: normalize(16), flexDirection: 'row', justifyContent: 'space-between', zIndex: 10 },
   lbClose: { width: normalize(36), height: normalize(36), borderRadius: normalize(18), backgroundColor: 'rgba(255,255,255,0.14)', alignItems: 'center', justifyContent: 'center' },
-  lbCounter: { fontSize: FONT_SM, fontWeight: '500', color: 'rgba(255,255,255,0.65)' },
+  lbCounter: { fontSize: FONT_SM, fontFamily: 'Pretendard-Medium', color: 'rgba(255,255,255,0.65)' },
   lbNav: { position: 'absolute', top: '50%', width: normalize(40), height: normalize(40), borderRadius: normalize(20), backgroundColor: 'rgba(255,255,255,0.12)', alignItems: 'center', justifyContent: 'center', zIndex: 10, marginTop: -normalize(20) },
   lbNavPrev: { left: normalize(14) },
   lbNavNext: { right: normalize(14) },
   lbFooter: { position: 'absolute', bottom: 0, left: 0, right: 0, paddingHorizontal: normalize(20), paddingTop: normalize(40), paddingBottom: normalize(36) },
-  lbSpot: { fontSize: FONT_LG, fontWeight: '600', color: '#fff', marginBottom: normalize(4) },
+  lbSpot: { fontSize: FONT_LG, fontFamily: 'Pretendard-SemiBold', color: '#fff', marginBottom: normalize(4) },
   lbFooterMeta: { flexDirection: 'row', alignItems: 'center', gap: normalize(8) },
   lbDate: { fontSize: normalizeFontSize(12), color: 'rgba(255,255,255,0.5)' },
   lbMetaBadge: { height: normalize(18), paddingHorizontal: normalize(8), borderRadius: normalize(9), backgroundColor: 'rgba(255,255,255,0.15)', justifyContent: 'center' },
-  lbMetaBadgeText: { fontSize: normalizeFontSize(10), fontWeight: '500', color: 'rgba(255,255,255,0.75)' },
+  lbMetaBadgeText: { fontSize: normalizeFontSize(10), fontFamily: 'Pretendard-Medium', color: 'rgba(255,255,255,0.75)' },
 });

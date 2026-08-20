@@ -84,6 +84,27 @@ const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 
 ## Design System
 
+### 토큰 사용 (하드코딩 금지)
+
+색·테두리·그림자·폰트는 상수로만 쓴다. 단일 소스는 `src/constants/colors.json`이며
+`tailwind.config.js`와 TS가 같은 파일을 읽어 className과 style prop이 어긋나지 않는다.
+
+| 대상 | className | TS |
+|---|---|---|
+| 브랜드 (틴트 5/10/30/90) | `bg-brand` `bg-brand/5` | `BRAND` `BRAND_TINT` … |
+| 카드·인풋 배경 | `bg-card` | `CARD` |
+| 보조 텍스트 | `text-sub` | `TEXT_SUB` |
+| 구분선 | `border-hairline` + `border-b-[0.5px]` | `HAIRLINE` / `HAIRLINE_WIDTH` |
+| 컨트롤 보더 | — | `BORDER_CONTROL` |
+| 그림자 | — | `SHADOW_CONTROL` / `SHADOW_OVERLAY` |
+
+- 폰트는 Pretendard **3웨이트**(`Regular`/`Medium`/`SemiBold`)만 로드. `PretendardVariable`은 쓰지 않는다
+- **`fontWeight`를 쓰지 말 것** — RN은 웨이트별로 패밀리가 갈린다. `font-*` 유틸리티가 패밀리 지정으로 재정의돼 있다
+- 그림자는 떠 있는 것에만. 콘텐츠 카드는 테두리·그림자 없이 배경 대비로만 구분한다
+- 새 웨이트는 `App.tsx`의 `useFonts` 등록이 선행 조건이다
+
+> 토큰 전체 목록, 예외 6종, 폰트 상세, 판단 근거 → **`docs/guide/dev/design-tokens.md`**
+
 Key rules:
 
 - **Brand / Accent color**: `#E31B59` (Pink) — used for all interactive elements (CTA buttons, active states, active tabs, focus borders). Primary palette: Black · White · Pink.
@@ -93,7 +114,7 @@ Key rules:
 - **Backgrounds**: page `#ffffff`, card/input `#f5f5f7`
 - **Cards**: no border, no shadow — elevation via background color contrast only
 - **Buttons**: pill shape (`border-radius: 50%` of height), primary height 52px
-- **Typography**: Pretendard Variable font, negative letter-spacing on all sizes, max weight 600
+- **Typography**: Pretendard (Regular/Medium/SemiBold 3 weights), negative letter-spacing on all sizes, max weight 600
 - **Layout**: 28px horizontal padding for content, 20px for card grids
 - **No emojis anywhere in the UI**
 - **Text alignment**: left-align everything; center only in hero/logo areas

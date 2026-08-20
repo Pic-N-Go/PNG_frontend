@@ -21,6 +21,7 @@ import {
   GRID_PADDING,
   SPACING_LG,
 } from '@/constants/layout';
+import { BRAND, BRAND_TINT, CARD, TEXT_SUB } from '@/constants/colors';
 
 type TabKey = 'all' | 'wishlist' | 'weather' | 'community';
 
@@ -221,7 +222,7 @@ export default function NotificationScreen({ navigation }: Props) {
             style={{
               fontFamily: 'Pretendard-Regular',
               fontSize: normalizeFontSize(14),
-              color: '#E31B59',
+              color: BRAND,
               letterSpacing: -0.1,
             }}
           >
@@ -250,7 +251,7 @@ export default function NotificationScreen({ navigation }: Props) {
                 height: normalize(30),
                 paddingHorizontal: normalize(14),
                 borderRadius: normalize(15),
-                backgroundColor: isActive ? '#000' : '#F5F5F7',
+                backgroundColor: isActive ? '#000' : CARD,
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
@@ -275,20 +276,22 @@ export default function NotificationScreen({ navigation }: Props) {
         style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
+          // 빈 상태를 남은 영역 가운데에 두려면 콘텐츠가 짧아도 높이를 채워야 한다
+          flexGrow: 1,
           paddingTop: normalize(10),
           // 탭바 높이·인셋을 더하지 않는다 — 화면 영역에서 이미 빠져 있다(HomeScreen 주석 참고).
           paddingBottom: SPACING_LG,
         }}
       >
         {isLoading ? (
-          <View style={{ paddingVertical: normalize(48), alignItems: 'center' }}>
-            <ActivityIndicator color="#E31B59" size="small" />
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+            <ActivityIndicator color={BRAND} size="small" />
             <Text
               allowFontScaling={false}
               style={{
                 fontFamily: 'Pretendard-Regular',
                 fontSize: FONT_SM,
-                color: 'rgba(0,0,0,0.4)',
+                color: TEXT_SUB,
                 marginTop: normalize(10),
               }}
             >
@@ -298,8 +301,9 @@ export default function NotificationScreen({ navigation }: Props) {
         ) : isError ? (
           <View
             style={{
+              flex: 1,
               alignItems: 'center',
-              paddingVertical: normalize(48),
+              justifyContent: 'center',
               paddingHorizontal: GRID_PADDING,
               gap: normalize(10),
             }}
@@ -308,7 +312,7 @@ export default function NotificationScreen({ navigation }: Props) {
               allowFontScaling={false}
               style={{
                 fontFamily: 'Pretendard-Medium',
-                fontSize: normalizeFontSize(16),
+                fontSize: FONT_MD,
                 color: '#000',
               }}
             >
@@ -318,8 +322,9 @@ export default function NotificationScreen({ navigation }: Props) {
         ) : groups.length === 0 ? (
           <View
             style={{
+              flex: 1,
               alignItems: 'center',
-              paddingVertical: normalize(48),
+              justifyContent: 'center',
               paddingHorizontal: GRID_PADDING,
               gap: normalize(10),
             }}
@@ -329,7 +334,7 @@ export default function NotificationScreen({ navigation }: Props) {
                 width: normalize(56),
                 height: normalize(56),
                 borderRadius: normalize(16),
-                backgroundColor: '#F5F5F7',
+                backgroundColor: CARD,
                 alignItems: 'center',
                 justifyContent: 'center',
                 marginBottom: normalize(6),
@@ -341,7 +346,7 @@ export default function NotificationScreen({ navigation }: Props) {
               allowFontScaling={false}
               style={{
                 fontFamily: 'Pretendard-Medium',
-                fontSize: normalizeFontSize(16),
+                fontSize: FONT_MD,
                 color: '#000',
                 letterSpacing: -0.2,
               }}
@@ -353,7 +358,7 @@ export default function NotificationScreen({ navigation }: Props) {
               style={{
                 fontFamily: 'Pretendard-Regular',
                 fontSize: FONT_SM,
-                color: 'rgba(0,0,0,0.4)',
+                color: TEXT_SUB,
                 letterSpacing: -0.1,
               }}
             >
@@ -388,7 +393,7 @@ export default function NotificationScreen({ navigation }: Props) {
                     {/* outer: 미읽음 배경 */}
                     <View
                       style={{
-                        backgroundColor: isUnread ? 'rgba(227,27,89,0.03)' : 'transparent',
+                        backgroundColor: isUnread ? BRAND_TINT : 'transparent',
                         position: 'relative',
                       }}
                     >
@@ -401,7 +406,7 @@ export default function NotificationScreen({ navigation }: Props) {
                             width: normalize(6),
                             height: normalize(6),
                             borderRadius: normalize(3),
-                            backgroundColor: '#E31B59',
+                            backgroundColor: BRAND,
                             zIndex: 1,
                           }}
                         />
@@ -427,13 +432,13 @@ export default function NotificationScreen({ navigation }: Props) {
                               width: normalize(44),
                               height: normalize(44),
                               borderRadius: normalize(13),
-                              backgroundColor: 'rgba(227,27,89,0.08)',
+                              backgroundColor: BRAND_TINT,
                               alignItems: 'center',
                               justifyContent: 'center',
                               flexShrink: 0,
                             }}
                           >
-                            <ItemIcon size={normalize(22)} color="#E31B59" strokeWidth={1.5} />
+                            <ItemIcon size={normalize(22)} color={BRAND} strokeWidth={1.5} />
                           </View>
 
                           <View style={{ flex: 1 }}>

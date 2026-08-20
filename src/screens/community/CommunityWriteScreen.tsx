@@ -21,11 +21,12 @@ import type { PostImageUpload } from '@/api/community';
 import { CommunityDetailStackParamList } from '@/navigation/stacks/CommunityDetailStack';
 import { GearSheetKind, PostWeatherApi } from '@/types/community';
 import { THEMES } from '@/constants/themes';
-import { BUTTON_HEIGHT, BUTTON_RADIUS, INPUT_HEIGHT, HEADER_HEIGHT, CONTENT_PADDING, FONT_2XS, FONT_LG, FONT_MD, FONT_SM, FONT_XS } from '@/constants/layout';
+import { BORDER_CONTROL, BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING, FONT_2XS, FONT_LG, FONT_MD, FONT_SM, FONT_XS, HAIRLINE_WIDTH, HEADER_HEIGHT, INPUT_HEIGHT } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
+import { BRAND, BRAND_TINT, BRAND_TINT_ACTIVE, CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
 
-const ACCENT = '#E31B59';
-const SURFACE = '#f5f5f7';
+const ACCENT = BRAND;
+const SURFACE = CARD;
 const CAPTION_MAX = 500;
 const MAX_PHOTOS = 5;
 // 서버 max-file-size와 동일. 초과분은 업로드 전에 걸러 낸다.
@@ -82,7 +83,7 @@ function MetaTile({ label, value, sub, Icon, editable, placeholder, onPress }: M
         >
           {value}
         </Text>
-        <Text allowFontScaling={false} numberOfLines={1} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.4)', letterSpacing: -0.1, marginTop: normalize(1) }}>
+        <Text allowFontScaling={false} numberOfLines={1} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: TEXT_SUB, letterSpacing: -0.1, marginTop: normalize(1) }}>
           {sub}
         </Text>
       </View>
@@ -379,7 +380,7 @@ export default function CommunityWriteScreen() {
       {/* 헤더 */}
       <View
         className="flex-row items-center"
-        style={{ height: HEADER_HEIGHT, paddingHorizontal: normalize(16), borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)' }}
+        style={{ height: HEADER_HEIGHT, paddingHorizontal: normalize(16), borderBottomWidth: HAIRLINE_WIDTH, borderBottomColor: HAIRLINE }}
       >
         <Pressable onPress={() => navigation.goBack()} hitSlop={8} className="items-center justify-center" style={{ width: normalize(36), height: normalize(36) }}>
           <ChevronLeft size={normalize(22)} color="#000" strokeWidth={2} />
@@ -399,7 +400,7 @@ export default function CommunityWriteScreen() {
           {loadingPost ? (
             <ActivityIndicator color={ACCENT} />
           ) : (
-            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: 'rgba(0,0,0,0.4)', letterSpacing: -0.2 }}>
+            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: TEXT_SUB, letterSpacing: -0.2 }}>
               게시글을 불러오지 못했어요
             </Text>
           )}
@@ -451,7 +452,7 @@ export default function CommunityWriteScreen() {
                 <Pressable key={photo.id} onPress={() => setAsMain(photo.id)} style={{ width: normalize(74), height: normalize(74) }}>
                   <Image source={{ uri: photo.uri }} resizeMode="cover" style={{ width: '100%', height: '100%' }} />
                   {idx === 0 && (
-                    <View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderWidth: 1.5, borderColor: ACCENT }} />
+                    <View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderWidth: BORDER_CONTROL, borderColor: ACCENT }} />
                   )}
                   <Pressable
                     onPress={() => removePhoto(photo.id)}
@@ -470,7 +471,7 @@ export default function CommunityWriteScreen() {
           {/* 폼 */}
           <View onLayout={(e) => { formY.current = e.nativeEvent.layout.y; }} style={{ paddingHorizontal: CONTENT_PADDING }}>
             {/* 캡션 */}
-            <View style={{ paddingTop: normalize(20), paddingBottom: normalize(8), borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)' }}>
+            <View style={{ paddingTop: normalize(20), paddingBottom: normalize(8), borderBottomWidth: HAIRLINE_WIDTH, borderBottomColor: HAIRLINE }}>
               <TextInput
                 value={caption}
                 onChangeText={setCaption}
@@ -499,12 +500,12 @@ export default function CommunityWriteScreen() {
             </View>
 
             {/* 위치 */}
-            <View style={{ paddingVertical: normalize(16), borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)' }}>
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, color: 'rgba(0,0,0,0.4)', letterSpacing: 0.4, marginBottom: normalize(10) }}>
+            <View style={{ paddingVertical: normalize(16), borderBottomWidth: HAIRLINE_WIDTH, borderBottomColor: HAIRLINE }}>
+              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, color: TEXT_SUB, letterSpacing: 0.4, marginBottom: normalize(10) }}>
                 위치
               </Text>
               <Pressable onPress={() => setLocationSheetVisible(true)} className="flex-row items-center" style={{ gap: normalize(11) }}>
-                <View className="items-center justify-center" style={{ width: normalize(36), height: normalize(36), borderRadius: normalize(10), backgroundColor: 'rgba(227,27,89,0.08)' }}>
+                <View className="items-center justify-center" style={{ width: normalize(36), height: normalize(36), borderRadius: normalize(10), backgroundColor: BRAND_TINT }}>
                   <MapPin size={normalize(17)} color={ACCENT} strokeWidth={1.8} />
                 </View>
                 <View style={{ flex: 1, minWidth: 0 }}>
@@ -526,9 +527,9 @@ export default function CommunityWriteScreen() {
             </View>
 
             {/* 촬영 정보 */}
-            <View style={{ paddingVertical: normalize(16), borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)' }}>
+            <View style={{ paddingVertical: normalize(16), borderBottomWidth: HAIRLINE_WIDTH, borderBottomColor: HAIRLINE }}>
               <View className="flex-row items-baseline justify-between" style={{ marginBottom: normalize(10) }}>
-                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, color: 'rgba(0,0,0,0.4)', letterSpacing: 0.4 }}>
+                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, color: TEXT_SUB, letterSpacing: 0.4 }}>
                   촬영 정보
                 </Text>
                 <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_2XS, color: 'rgba(0,0,0,0.3)', letterSpacing: -0.1 }}>
@@ -583,7 +584,7 @@ export default function CommunityWriteScreen() {
             {/* 카테고리 */}
             <View style={{ paddingVertical: normalize(16) }}>
               <View className="flex-row items-baseline justify-between" style={{ marginBottom: normalize(10) }}>
-                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, color: 'rgba(0,0,0,0.4)', letterSpacing: 0.4 }}>
+                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, color: TEXT_SUB, letterSpacing: 0.4 }}>
                   카테고리
                 </Text>
                 <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_2XS, color: 'rgba(0,0,0,0.3)', letterSpacing: -0.1 }}>
@@ -601,7 +602,7 @@ export default function CommunityWriteScreen() {
                       onPress={() => toggleCategory(label)}
                       disabled={blocked}
                       className="flex-row items-center"
-                      style={{ height: normalize(30), paddingHorizontal: normalize(12), borderRadius: normalize(15), backgroundColor: selected ? 'rgba(227,27,89,0.08)' : SURFACE, opacity: blocked ? 0.4 : 1 }}
+                      style={{ height: normalize(30), paddingHorizontal: normalize(12), borderRadius: normalize(15), backgroundColor: selected ? BRAND_TINT_ACTIVE : SURFACE, opacity: blocked ? 0.4 : 1 }}
                     >
                       <Text allowFontScaling={false} style={{ fontFamily: selected ? 'Pretendard-SemiBold' : 'Pretendard-Regular', fontSize: FONT_SM, color: selected ? ACCENT : 'rgba(0,0,0,0.55)', letterSpacing: -0.2 }}>
                         {label}
@@ -610,7 +611,7 @@ export default function CommunityWriteScreen() {
                   );
                 })}
               </View>
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.4)', letterSpacing: -0.15, marginTop: normalize(10) }}>
+              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: TEXT_SUB, letterSpacing: -0.15, marginTop: normalize(10) }}>
                 선택한 카테고리는 스팟 검색·필터에 사용됩니다.
               </Text>
             </View>

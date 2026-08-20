@@ -36,19 +36,7 @@ import {
   IconCheck,
 } from '@tabler/icons-react-native';
 import { normalize } from '@/utils/normalize';
-import {
-  FONT_2XS,
-  FONT_XS,
-  FONT_SM,
-  FONT_MD,
-  FONT_LG,
-  FONT_2XL,
-  GRID_PADDING,
-  CARD_RADIUS,
-  BUTTON_RADIUS,
-  SPACING_SM,
-  SPACING_MD,
-} from '@/constants/layout';
+import { BORDER_CONTROL, BUTTON_RADIUS, CARD_RADIUS, FONT_2XL, FONT_2XS, FONT_LG, FONT_MD, FONT_SM, FONT_XS, GRID_PADDING, SPACING_MD, SPACING_SM } from '@/constants/layout';
 import {
   useAdminUsers,
   useUpdateUserRole,
@@ -70,6 +58,7 @@ import {
 } from '@/types/inquiry';
 import { useAuthStore } from '@/store/useAuthStore';
 import Toast from '@/components/common/Toast';
+import { BRAND, BRAND_TINT, CARD, TEXT_SUB } from '@/constants/colors';
 
 type AdminTab = 'users' | 'inquiries' | 'embeddings' | 'tour';
 
@@ -330,7 +319,7 @@ export default function AdminDashboardScreen() {
       <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right']}>
         <StatusBar barStyle="dark-content" />
         <View className="flex-1 items-center justify-center p-6">
-          <IconShield size={normalize(48)} color="#E31B59" />
+          <IconShield size={normalize(48)} color={BRAND} />
           <Text
             style={{
               fontSize: FONT_LG,
@@ -379,12 +368,12 @@ export default function AdminDashboardScreen() {
   const missingCount = embeddingStatus?.missing ?? embeddingStatus?.missingSpots ?? 0;
 
   return (
-    <SafeAreaView className="flex-1 bg-[#f5f5f7]" edges={['top', 'left', 'right']}>
+    <SafeAreaView className="flex-1 bg-card" edges={['top', 'left', 'right']}>
       <StatusBar barStyle="dark-content" />
 
       {/* Nav Header */}
       <View
-        className="flex-row items-center justify-between border-b border-black/5 bg-white"
+        className="flex-row items-center justify-between border-b-[0.5px] border-hairline bg-white"
         style={{ height: normalize(54), paddingHorizontal: normalize(16) }}
       >
         <TouchableOpacity
@@ -422,7 +411,7 @@ export default function AdminDashboardScreen() {
             <Text
               style={{
                 fontSize: FONT_2XS,
-                fontFamily: 'Pretendard-Bold',
+                fontFamily: 'Pretendard-SemiBold',
                 color: '#0284c7',
                 letterSpacing: 0.5,
               }}
@@ -436,7 +425,7 @@ export default function AdminDashboardScreen() {
       </View>
 
       {/* Top Segmented Tabs (4 Tabs) */}
-      <View className="flex-row bg-white border-b border-black/5" style={{ paddingHorizontal: GRID_PADDING }}>
+      <View className="flex-row bg-white border-b-[0.5px] border-hairline" style={{ paddingHorizontal: GRID_PADDING }}>
         <TouchableOpacity
           onPress={() => setActiveTab('users')}
           style={{
@@ -452,14 +441,14 @@ export default function AdminDashboardScreen() {
         >
           <IconUsers
             size={normalize(18)}
-            color={activeTab === 'users' ? '#111827' : 'rgba(0,0,0,0.4)'}
+            color={activeTab === 'users' ? '#111827' : TEXT_SUB}
             strokeWidth={activeTab === 'users' ? 2.2 : 1.8}
           />
           <Text
             style={{
               fontSize: FONT_SM,
-              fontFamily: activeTab === 'users' ? 'Pretendard-Bold' : 'Pretendard-Medium',
-              color: activeTab === 'users' ? '#111827' : 'rgba(0,0,0,0.4)',
+              fontFamily: activeTab === 'users' ? 'Pretendard-SemiBold' : 'Pretendard-Medium',
+              color: activeTab === 'users' ? '#111827' : TEXT_SUB,
             }}
           >
             회원
@@ -474,21 +463,21 @@ export default function AdminDashboardScreen() {
             alignItems: 'center',
             justifyContent: 'center',
             borderBottomWidth: 2,
-            borderBottomColor: activeTab === 'inquiries' ? '#E31B59' : 'transparent',
+            borderBottomColor: activeTab === 'inquiries' ? BRAND : 'transparent',
             flexDirection: 'row',
             gap: normalize(5),
           }}
         >
           <IconMessage2Question
             size={normalize(18)}
-            color={activeTab === 'inquiries' ? '#E31B59' : 'rgba(0,0,0,0.4)'}
+            color={activeTab === 'inquiries' ? BRAND : TEXT_SUB}
             strokeWidth={activeTab === 'inquiries' ? 2.2 : 1.8}
           />
           <Text
             style={{
               fontSize: FONT_SM,
-              fontFamily: activeTab === 'inquiries' ? 'Pretendard-Bold' : 'Pretendard-Medium',
-              color: activeTab === 'inquiries' ? '#E31B59' : 'rgba(0,0,0,0.4)',
+              fontFamily: activeTab === 'inquiries' ? 'Pretendard-SemiBold' : 'Pretendard-Medium',
+              color: activeTab === 'inquiries' ? BRAND : TEXT_SUB,
             }}
           >
             1:1 문의
@@ -510,14 +499,14 @@ export default function AdminDashboardScreen() {
         >
           <IconBrain
             size={normalize(18)}
-            color={activeTab === 'embeddings' ? '#4f46e5' : 'rgba(0,0,0,0.4)'}
+            color={activeTab === 'embeddings' ? '#4f46e5' : TEXT_SUB}
             strokeWidth={activeTab === 'embeddings' ? 2.2 : 1.8}
           />
           <Text
             style={{
               fontSize: FONT_SM,
-              fontFamily: activeTab === 'embeddings' ? 'Pretendard-Bold' : 'Pretendard-Medium',
-              color: activeTab === 'embeddings' ? '#4f46e5' : 'rgba(0,0,0,0.4)',
+              fontFamily: activeTab === 'embeddings' ? 'Pretendard-SemiBold' : 'Pretendard-Medium',
+              color: activeTab === 'embeddings' ? '#4f46e5' : TEXT_SUB,
             }}
           >
             의미 검색
@@ -539,14 +528,14 @@ export default function AdminDashboardScreen() {
         >
           <IconWorld
             size={normalize(18)}
-            color={activeTab === 'tour' ? '#0284c7' : 'rgba(0,0,0,0.4)'}
+            color={activeTab === 'tour' ? '#0284c7' : TEXT_SUB}
             strokeWidth={activeTab === 'tour' ? 2.2 : 1.8}
           />
           <Text
             style={{
               fontSize: FONT_SM,
-              fontFamily: activeTab === 'tour' ? 'Pretendard-Bold' : 'Pretendard-Medium',
-              color: activeTab === 'tour' ? '#0284c7' : 'rgba(0,0,0,0.4)',
+              fontFamily: activeTab === 'tour' ? 'Pretendard-SemiBold' : 'Pretendard-Medium',
+              color: activeTab === 'tour' ? '#0284c7' : TEXT_SUB,
             }}
           >
             관광 동기화
@@ -570,14 +559,14 @@ export default function AdminDashboardScreen() {
             {/* 검색창 & 새로고침 버튼 */}
             <View className="flex-row items-center" style={{ gap: normalize(8), marginBottom: normalize(12) }}>
               <View
-                className="flex-row items-center bg-white border border-black/5 flex-1"
+                className="flex-row items-center bg-white border-[1.5px] border-black/5 flex-1"
                 style={{
                   borderRadius: normalize(12),
                   paddingHorizontal: normalize(14),
                   height: normalize(46),
                 }}
               >
-                <IconSearch size={normalize(20)} color="rgba(0,0,0,0.4)" strokeWidth={2} />
+                <IconSearch size={normalize(20)} color={TEXT_SUB} strokeWidth={2} />
                 <TextInput
                   value={userKeyword}
                   onChangeText={setUserKeyword}
@@ -605,7 +594,7 @@ export default function AdminDashboardScreen() {
                     }}
                     style={{ padding: normalize(6) }}
                   >
-                    <IconX size={normalize(18)} color="rgba(0,0,0,0.4)" />
+                    <IconX size={normalize(18)} color={TEXT_SUB} />
                   </TouchableOpacity>
                 )}
                 <TouchableOpacity
@@ -639,7 +628,7 @@ export default function AdminDashboardScreen() {
                   justifyContent: 'center',
                   borderRadius: normalize(12),
                   backgroundColor: '#fff',
-                  borderWidth: 0.5,
+                  borderWidth: BORDER_CONTROL,
                   borderColor: 'rgba(0,0,0,0.08)',
                 }}
               >
@@ -663,7 +652,7 @@ export default function AdminDashboardScreen() {
                   paddingVertical: normalize(8),
                   borderRadius: normalize(9999),
                   backgroundColor: userRoleFilter === undefined ? '#111827' : '#fff',
-                  borderWidth: 0.5,
+                  borderWidth: BORDER_CONTROL,
                   borderColor: userRoleFilter === undefined ? '#111827' : 'rgba(0,0,0,0.08)',
                 }}
               >
@@ -688,7 +677,7 @@ export default function AdminDashboardScreen() {
                   paddingVertical: normalize(8),
                   borderRadius: normalize(9999),
                   backgroundColor: userRoleFilter === 'USER' ? '#111827' : '#fff',
-                  borderWidth: 0.5,
+                  borderWidth: BORDER_CONTROL,
                   borderColor: userRoleFilter === 'USER' ? '#111827' : 'rgba(0,0,0,0.08)',
                 }}
               >
@@ -713,7 +702,7 @@ export default function AdminDashboardScreen() {
                   paddingVertical: normalize(8),
                   borderRadius: normalize(9999),
                   backgroundColor: userRoleFilter === 'ADMIN' ? '#0284c7' : '#fff',
-                  borderWidth: 0.5,
+                  borderWidth: BORDER_CONTROL,
                   borderColor: userRoleFilter === 'ADMIN' ? '#0284c7' : 'rgba(0,0,0,0.08)',
                 }}
               >
@@ -732,7 +721,7 @@ export default function AdminDashboardScreen() {
             {/* 총 회원 수 안내 */}
             <View style={{ marginBottom: normalize(10) }}>
               <Text style={{ fontSize: FONT_SM, fontFamily: 'Pretendard-Medium', color: 'rgba(0,0,0,0.5)' }}>
-                총 <Text style={{ fontFamily: 'Pretendard-Bold', color: '#111' }}>{userPageData?.totalElements ?? 0}</Text>명의 회원이 등록되어 있습니다.
+                총 <Text style={{ fontFamily: 'Pretendard-SemiBold', color: '#111' }}>{userPageData?.totalElements ?? 0}</Text>명의 회원이 등록되어 있습니다.
               </Text>
             </View>
 
@@ -740,7 +729,7 @@ export default function AdminDashboardScreen() {
             {isUsersLoading ? (
               <View style={{ paddingVertical: normalize(40), alignItems: 'center' }}>
                 <ActivityIndicator size="large" color="#111827" />
-                <Text style={{ fontSize: FONT_SM, fontFamily: 'Pretendard-Regular', color: 'rgba(0,0,0,0.4)', marginTop: normalize(8) }}>
+                <Text style={{ fontSize: FONT_SM, fontFamily: 'Pretendard-Regular', color: TEXT_SUB, marginTop: normalize(8) }}>
                   회원 목록을 불러오는 중...
                 </Text>
               </View>
@@ -759,7 +748,7 @@ export default function AdminDashboardScreen() {
                   style={{
                     fontSize: FONT_SM,
                     fontFamily: 'Pretendard-Medium',
-                    color: 'rgba(0,0,0,0.4)',
+                    color: TEXT_SUB,
                     marginTop: normalize(10),
                   }}
                 >
@@ -809,7 +798,7 @@ export default function AdminDashboardScreen() {
                               <Text
                                 style={{
                                   fontSize: FONT_MD,
-                                  fontFamily: 'Pretendard-Bold',
+                                  fontFamily: 'Pretendard-SemiBold',
                                   color: isUserAdmin ? '#0284c7' : '#6b7280',
                                 }}
                               >
@@ -824,7 +813,7 @@ export default function AdminDashboardScreen() {
                                 numberOfLines={1}
                                 style={{
                                   fontSize: FONT_MD,
-                                  fontFamily: 'Pretendard-Bold',
+                                  fontFamily: 'Pretendard-SemiBold',
                                   color: '#111827',
                                   maxWidth: normalize(140),
                                 }}
@@ -890,7 +879,7 @@ export default function AdminDashboardScreen() {
                             <Text
                               style={{
                                 fontSize: FONT_2XS,
-                                fontFamily: 'Pretendard-Bold',
+                                fontFamily: 'Pretendard-SemiBold',
                                 color: isUserAdmin ? '#0284c7' : '#4b5563',
                               }}
                             >
@@ -907,7 +896,7 @@ export default function AdminDashboardScreen() {
                                 paddingHorizontal: normalize(12),
                                 borderRadius: normalize(8),
                                 backgroundColor: isUserAdmin ? '#fee2e2' : '#f0fdf4',
-                                borderWidth: 0.5,
+                                borderWidth: BORDER_CONTROL,
                                 borderColor: isUserAdmin ? '#fecaca' : '#bbf7d0',
                                 flexDirection: 'row',
                                 alignItems: 'center',
@@ -951,7 +940,7 @@ export default function AdminDashboardScreen() {
                     paddingHorizontal: normalize(16),
                     borderRadius: normalize(8),
                     backgroundColor: userPageData.first ? '#f3f4f6' : '#fff',
-                    borderWidth: 0.5,
+                    borderWidth: BORDER_CONTROL,
                     borderColor: 'rgba(0,0,0,0.08)',
                     flexDirection: 'row',
                     alignItems: 'center',
@@ -985,7 +974,7 @@ export default function AdminDashboardScreen() {
                     paddingHorizontal: normalize(16),
                     borderRadius: normalize(8),
                     backgroundColor: userPageData.last ? '#f3f4f6' : '#fff',
-                    borderWidth: 0.5,
+                    borderWidth: BORDER_CONTROL,
                     borderColor: 'rgba(0,0,0,0.08)',
                     flexDirection: 'row',
                     alignItems: 'center',
@@ -1019,14 +1008,14 @@ export default function AdminDashboardScreen() {
             {/* 검색창 & 새로고침 버튼 */}
             <View className="flex-row items-center" style={{ gap: normalize(8), marginBottom: normalize(12) }}>
               <View
-                className="flex-row items-center bg-white border border-black/5 flex-1"
+                className="flex-row items-center bg-white border-[1.5px] border-black/5 flex-1"
                 style={{
                   borderRadius: normalize(12),
                   paddingHorizontal: normalize(14),
                   height: normalize(46),
                 }}
               >
-                <IconSearch size={normalize(20)} color="rgba(0,0,0,0.4)" strokeWidth={2} />
+                <IconSearch size={normalize(20)} color={TEXT_SUB} strokeWidth={2} />
                 <TextInput
                   value={inquiryKeyword}
                   onChangeText={setInquiryKeyword}
@@ -1054,7 +1043,7 @@ export default function AdminDashboardScreen() {
                     }}
                     style={{ padding: normalize(6) }}
                   >
-                    <IconX size={normalize(18)} color="rgba(0,0,0,0.4)" />
+                    <IconX size={normalize(18)} color={TEXT_SUB} />
                   </TouchableOpacity>
                 )}
                 <TouchableOpacity
@@ -1066,7 +1055,7 @@ export default function AdminDashboardScreen() {
                     height: normalize(34),
                     paddingHorizontal: normalize(14),
                     borderRadius: normalize(8),
-                    backgroundColor: '#E31B59',
+                    backgroundColor: BRAND,
                     marginLeft: normalize(4),
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -1088,12 +1077,12 @@ export default function AdminDashboardScreen() {
                   justifyContent: 'center',
                   borderRadius: normalize(12),
                   backgroundColor: '#fff',
-                  borderWidth: 0.5,
+                  borderWidth: BORDER_CONTROL,
                   borderColor: 'rgba(0,0,0,0.08)',
                 }}
               >
                 {isInquiriesRefetching ? (
-                  <ActivityIndicator size="small" color="#E31B59" />
+                  <ActivityIndicator size="small" color={BRAND} />
                 ) : (
                   <IconRefresh size={normalize(20)} color="#374151" strokeWidth={1.8} />
                 )}
@@ -1117,7 +1106,7 @@ export default function AdminDashboardScreen() {
                     paddingVertical: normalize(8),
                     borderRadius: normalize(9999),
                     backgroundColor: inquiryTypeFilter === undefined ? '#374151' : '#fff',
-                    borderWidth: 0.5,
+                    borderWidth: BORDER_CONTROL,
                     borderColor: inquiryTypeFilter === undefined ? '#374151' : 'rgba(0,0,0,0.08)',
                   }}
                 >
@@ -1146,7 +1135,7 @@ export default function AdminDashboardScreen() {
                         paddingVertical: normalize(8),
                         borderRadius: normalize(9999),
                         backgroundColor: isSelected ? '#374151' : '#fff',
-                        borderWidth: 0.5,
+                        borderWidth: BORDER_CONTROL,
                         borderColor: isSelected ? '#374151' : 'rgba(0,0,0,0.08)',
                       }}
                     >
@@ -1182,7 +1171,7 @@ export default function AdminDashboardScreen() {
                     paddingVertical: normalize(8),
                     borderRadius: normalize(9999),
                     backgroundColor: inquiryStatusFilter === undefined ? '#111827' : '#fff',
-                    borderWidth: 0.5,
+                    borderWidth: BORDER_CONTROL,
                     borderColor: inquiryStatusFilter === undefined ? '#111827' : 'rgba(0,0,0,0.08)',
                   }}
                 >
@@ -1207,7 +1196,7 @@ export default function AdminDashboardScreen() {
                     paddingVertical: normalize(8),
                     borderRadius: normalize(9999),
                     backgroundColor: inquiryStatusFilter === 'PENDING' ? '#f59e0b' : '#fff',
-                    borderWidth: 0.5,
+                    borderWidth: BORDER_CONTROL,
                     borderColor: inquiryStatusFilter === 'PENDING' ? '#f59e0b' : 'rgba(0,0,0,0.08)',
                   }}
                 >
@@ -1232,7 +1221,7 @@ export default function AdminDashboardScreen() {
                     paddingVertical: normalize(8),
                     borderRadius: normalize(9999),
                     backgroundColor: inquiryStatusFilter === 'ANSWERED' ? '#0284c7' : '#fff',
-                    borderWidth: 0.5,
+                    borderWidth: BORDER_CONTROL,
                     borderColor: inquiryStatusFilter === 'ANSWERED' ? '#0284c7' : 'rgba(0,0,0,0.08)',
                   }}
                 >
@@ -1257,7 +1246,7 @@ export default function AdminDashboardScreen() {
                     paddingVertical: normalize(8),
                     borderRadius: normalize(9999),
                     backgroundColor: inquiryStatusFilter === 'RESOLVED' ? '#16a34a' : '#fff',
-                    borderWidth: 0.5,
+                    borderWidth: BORDER_CONTROL,
                     borderColor: inquiryStatusFilter === 'RESOLVED' ? '#16a34a' : 'rgba(0,0,0,0.08)',
                   }}
                 >
@@ -1290,22 +1279,22 @@ export default function AdminDashboardScreen() {
             >
               <IconClock size={normalize(16)} color="#d97706" style={{ marginTop: normalize(2) }} />
               <Text style={{ flex: 1, fontSize: FONT_2XS, fontFamily: 'Pretendard-Regular', color: '#92400e', lineHeight: normalize(16) }}>
-                <Text style={{ fontFamily: 'Pretendard-Bold' }}>7일 미응답 자동 해결 정책</Text>: 관리자가 답변(ANSWERED) 등록 후 사용자가 7일간 해결 버튼을 누르지 않은 건은 새벽 배치에 의해 자동으로 &apos;해결됨(RESOLVED)&apos; 상태로 전환됩니다.
+                <Text style={{ fontFamily: 'Pretendard-SemiBold' }}>7일 미응답 자동 해결 정책</Text>: 관리자가 답변(ANSWERED) 등록 후 사용자가 7일간 해결 버튼을 누르지 않은 건은 새벽 배치에 의해 자동으로 &apos;해결됨(RESOLVED)&apos; 상태로 전환됩니다.
               </Text>
             </View>
 
             {/* 총 문의 수 안내 */}
             <View style={{ marginBottom: normalize(10) }}>
               <Text style={{ fontSize: FONT_SM, fontFamily: 'Pretendard-Medium', color: 'rgba(0,0,0,0.5)' }}>
-                총 <Text style={{ fontFamily: 'Pretendard-Bold', color: '#111' }}>{adminInquiryData?.totalElements ?? 0}</Text>건의 문의가 있습니다.
+                총 <Text style={{ fontFamily: 'Pretendard-SemiBold', color: '#111' }}>{adminInquiryData?.totalElements ?? 0}</Text>건의 문의가 있습니다.
               </Text>
             </View>
 
             {/* 문의 목록 */}
             {isInquiriesLoading ? (
               <View style={{ paddingVertical: normalize(40), alignItems: 'center' }}>
-                <ActivityIndicator size="large" color="#E31B59" />
-                <Text style={{ fontSize: FONT_SM, fontFamily: 'Pretendard-Regular', color: 'rgba(0,0,0,0.4)', marginTop: normalize(8) }}>
+                <ActivityIndicator size="large" color={BRAND} />
+                <Text style={{ fontSize: FONT_SM, fontFamily: 'Pretendard-Regular', color: TEXT_SUB, marginTop: normalize(8) }}>
                   문의 목록을 불러오는 중...
                 </Text>
               </View>
@@ -1324,7 +1313,7 @@ export default function AdminDashboardScreen() {
                   style={{
                     fontSize: FONT_SM,
                     fontFamily: 'Pretendard-Medium',
-                    color: 'rgba(0,0,0,0.4)',
+                    color: TEXT_SUB,
                     marginTop: normalize(10),
                   }}
                 >
@@ -1352,11 +1341,11 @@ export default function AdminDashboardScreen() {
                       {/* 카드 헤더: 작성자 및 상태 */}
                       <View className="flex-row items-center justify-between" style={{ marginBottom: normalize(8) }}>
                         <View className="flex-row items-center" style={{ gap: normalize(6) }}>
-                          <Text style={{ fontSize: FONT_SM, fontFamily: 'Pretendard-Bold', color: '#111' }}>
+                          <Text style={{ fontSize: FONT_SM, fontFamily: 'Pretendard-SemiBold', color: '#111' }}>
                             {item.userNickname || '회원'}
                           </Text>
                           {item.userEmail && (
-                            <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Regular', color: 'rgba(0,0,0,0.4)' }}>
+                            <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Regular', color: TEXT_SUB }}>
                               ({item.userEmail})
                             </Text>
                           )}
@@ -1381,19 +1370,19 @@ export default function AdminDashboardScreen() {
 
                           {isResolved ? (
                             <View style={{ paddingHorizontal: normalize(7), paddingVertical: normalize(2), borderRadius: normalize(4), backgroundColor: '#dcfce7' }}>
-                              <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Bold', color: '#15803d' }}>
+                              <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-SemiBold', color: '#15803d' }}>
                                 해결됨
                               </Text>
                             </View>
                           ) : isAnswered ? (
                             <View style={{ paddingHorizontal: normalize(7), paddingVertical: normalize(2), borderRadius: normalize(4), backgroundColor: '#e0f2fe' }}>
-                              <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Bold', color: '#0369a1' }}>
+                              <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-SemiBold', color: '#0369a1' }}>
                                 답변완료
                               </Text>
                             </View>
                           ) : (
                             <View style={{ paddingHorizontal: normalize(7), paddingVertical: normalize(2), borderRadius: normalize(4), backgroundColor: '#fef3c7' }}>
-                              <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Bold', color: '#b45309' }}>
+                              <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-SemiBold', color: '#b45309' }}>
                                 답변대기
                               </Text>
                             </View>
@@ -1405,7 +1394,7 @@ export default function AdminDashboardScreen() {
                       <Text
                         style={{
                           fontSize: FONT_MD,
-                          fontFamily: 'Pretendard-Bold',
+                          fontFamily: 'Pretendard-SemiBold',
                           color: '#111',
                           marginBottom: normalize(6),
                         }}
@@ -1447,7 +1436,7 @@ export default function AdminDashboardScreen() {
                           }}
                         >
                           <View className="flex-row items-center justify-between" style={{ marginBottom: normalize(4) }}>
-                            <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Bold', color: '#0369a1' }}>
+                            <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-SemiBold', color: '#0369a1' }}>
                               [관리자 답변] {item.answeredByNickname || '운영팀'}
                             </Text>
                             {item.answeredAt && (
@@ -1471,8 +1460,8 @@ export default function AdminDashboardScreen() {
                       ) : null}
 
                       {/* 카드 푸터: 작성 일시 + 답변 액션 버튼 */}
-                      <View className="flex-row items-center justify-between pt-3 border-t border-black/5">
-                        <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Regular', color: 'rgba(0,0,0,0.4)' }}>
+                      <View className="flex-row items-center justify-between pt-3 border-t-[0.5px] border-hairline">
+                        <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Regular', color: TEXT_SUB }}>
                           문의 ID: #{item.id} · {createdDate}
                         </Text>
 
@@ -1482,7 +1471,7 @@ export default function AdminDashboardScreen() {
                             height: normalize(36),
                             paddingHorizontal: normalize(14),
                             borderRadius: normalize(8),
-                            backgroundColor: isPending ? '#E31B59' : '#111827',
+                            backgroundColor: isPending ? BRAND : '#111827',
                             flexDirection: 'row',
                             alignItems: 'center',
                             gap: normalize(5),
@@ -1514,7 +1503,7 @@ export default function AdminDashboardScreen() {
                     paddingHorizontal: normalize(16),
                     borderRadius: normalize(8),
                     backgroundColor: adminInquiryData.first ? '#f3f4f6' : '#fff',
-                    borderWidth: 0.5,
+                    borderWidth: BORDER_CONTROL,
                     borderColor: 'rgba(0,0,0,0.08)',
                     flexDirection: 'row',
                     alignItems: 'center',
@@ -1548,7 +1537,7 @@ export default function AdminDashboardScreen() {
                     paddingHorizontal: normalize(16),
                     borderRadius: normalize(8),
                     backgroundColor: adminInquiryData.last ? '#f3f4f6' : '#fff',
-                    borderWidth: 0.5,
+                    borderWidth: BORDER_CONTROL,
                     borderColor: 'rgba(0,0,0,0.08)',
                     flexDirection: 'row',
                     alignItems: 'center',
@@ -1595,7 +1584,7 @@ export default function AdminDashboardScreen() {
                 <Text
                   style={{
                     fontSize: FONT_MD,
-                    fontFamily: 'Pretendard-Bold',
+                    fontFamily: 'Pretendard-SemiBold',
                     color: '#3730a3',
                   }}
                 >
@@ -1610,8 +1599,8 @@ export default function AdminDashboardScreen() {
                   lineHeight: normalize(21),
                 }}
               >
-                스팟의 이름·개요·분위기·태그 등의 텍스트를 <Text style={{ fontFamily: 'Pretendard-Bold' }}>AI 언어 모델</Text>을 통해 고차원 의미 벡터(Vector) 데이터로 변환하여 저장하는 기술입니다.{'\n'}
-                단순 키워드 일치 검색뿐만 아니라, 사용자가 <Text style={{ fontFamily: 'Pretendard-Bold' }}>&quot;노을이 예쁘고 조용한 해변&quot;</Text>과 같이 자연어로 질문해도 AI가 문맥과 의미를 이해하여 가장 적합한 명소를 찾아냅니다.
+                스팟의 이름·개요·분위기·태그 등의 텍스트를 <Text style={{ fontFamily: 'Pretendard-SemiBold' }}>AI 언어 모델</Text>을 통해 고차원 의미 벡터(Vector) 데이터로 변환하여 저장하는 기술입니다.{'\n'}
+                단순 키워드 일치 검색뿐만 아니라, 사용자가 <Text style={{ fontFamily: 'Pretendard-SemiBold' }}>&quot;노을이 예쁘고 조용한 해변&quot;</Text>과 같이 자연어로 질문해도 AI가 문맥과 의미를 이해하여 가장 적합한 명소를 찾아냅니다.
               </Text>
             </View>
 
@@ -1668,7 +1657,7 @@ export default function AdminDashboardScreen() {
                     <Text
                       style={{
                         fontSize: FONT_2XL,
-                        fontFamily: 'Pretendard-Bold',
+                        fontFamily: 'Pretendard-SemiBold',
                         color: '#4f46e5',
                         letterSpacing: -0.5,
                       }}
@@ -1707,7 +1696,7 @@ export default function AdminDashboardScreen() {
                   </View>
 
                   {/* 세부 수치 라벨 */}
-                  <View className="flex-row items-center justify-between pt-2 border-t border-black/5">
+                  <View className="flex-row items-center justify-between pt-2 border-t-[0.5px] border-hairline">
                     <View className="flex-row items-center" style={{ gap: normalize(4) }}>
                       <Text style={{ fontSize: FONT_SM, fontFamily: 'Pretendard-Regular', color: 'rgba(0,0,0,0.5)' }}>
                         임베딩 완료:
@@ -1826,7 +1815,7 @@ export default function AdminDashboardScreen() {
                   placeholder="스팟 ID (예: 1)"
                   placeholderTextColor="rgba(0,0,0,0.3)"
                   keyboardType="numeric"
-                  className="flex-1 bg-[#f5f5f7] text-black"
+                  className="flex-1 bg-card text-black"
                   style={{
                     height: normalize(46),
                     borderRadius: normalize(10),
@@ -1972,7 +1961,7 @@ export default function AdminDashboardScreen() {
                         paddingVertical: normalize(9),
                         borderRadius: normalize(10),
                         backgroundColor: isSelected ? '#0284c7' : '#f3f4f6',
-                        borderWidth: 0.5,
+                        borderWidth: BORDER_CONTROL,
                         borderColor: isSelected ? '#0284c7' : 'rgba(0,0,0,0.08)',
                       }}
                     >
@@ -2052,12 +2041,12 @@ export default function AdminDashboardScreen() {
             }}
           >
             {/* 모달 헤더 */}
-            <View className="flex-row items-center justify-between border-b border-black/5 pb-3">
+            <View className="flex-row items-center justify-between border-b-[0.5px] border-hairline pb-3">
               <View>
-                <Text style={{ fontSize: FONT_LG, fontFamily: 'Pretendard-Bold', color: '#111' }}>
+                <Text style={{ fontSize: FONT_LG, fontFamily: 'Pretendard-SemiBold', color: '#111' }}>
                   1:1 문의 답변 등록
                 </Text>
-                <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-Regular', color: 'rgba(0,0,0,0.4)', marginTop: normalize(2) }}>
+                <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-Regular', color: TEXT_SUB, marginTop: normalize(2) }}>
                   문의 ID: #{selectedInquiry?.id} · 작성자: {selectedInquiry?.userNickname}
                 </Text>
               </View>
@@ -2084,7 +2073,7 @@ export default function AdminDashboardScreen() {
                 }}
               >
                 <View className="flex-row items-center justify-between" style={{ marginBottom: normalize(4) }}>
-                  <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Bold', color: '#6b7280' }}>
+                  <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-SemiBold', color: '#6b7280' }}>
                     문의 제목
                   </Text>
                   {selectedInquiry?.type && (
@@ -2106,7 +2095,7 @@ export default function AdminDashboardScreen() {
                   {selectedInquiry?.title}
                 </Text>
 
-                <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Bold', color: '#6b7280', marginBottom: normalize(4) }}>
+                <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-SemiBold', color: '#6b7280', marginBottom: normalize(4) }}>
                   문의 내용
                 </Text>
                 <Text style={{ fontSize: FONT_SM, fontFamily: 'Pretendard-Regular', color: '#374151', lineHeight: normalize(20) }}>
@@ -2118,12 +2107,12 @@ export default function AdminDashboardScreen() {
               <View style={{ marginBottom: normalize(12) }}>
                 <View className="flex-row items-center justify-between" style={{ marginBottom: normalize(6) }}>
                   <View className="flex-row items-center" style={{ gap: normalize(4) }}>
-                    <IconSparkles size={normalize(14)} color="#E31B59" />
-                    <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-Bold', color: '#E31B59' }}>
+                    <IconSparkles size={normalize(14)} color={BRAND} />
+                    <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-SemiBold', color: BRAND }}>
                       빠른 답변 템플릿
                     </Text>
                   </View>
-                  <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Regular', color: 'rgba(0,0,0,0.4)' }}>
+                  <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Regular', color: TEXT_SUB }}>
                     버튼 탭 시 자동 입력
                   </Text>
                 </View>
@@ -2166,9 +2155,9 @@ export default function AdminDashboardScreen() {
                           paddingHorizontal: normalize(11),
                           paddingVertical: normalize(6),
                           borderRadius: normalize(8),
-                          backgroundColor: isSelected ? '#E31B59' : '#ffffff',
-                          borderWidth: 1,
-                          borderColor: isSelected ? '#E31B59' : 'rgba(0,0,0,0.12)',
+                          backgroundColor: isSelected ? BRAND : '#ffffff',
+                          borderWidth: BORDER_CONTROL,
+                          borderColor: isSelected ? BRAND : 'rgba(0,0,0,0.12)',
                           flexDirection: 'row',
                           alignItems: 'center',
                           gap: normalize(4),
@@ -2178,7 +2167,7 @@ export default function AdminDashboardScreen() {
                         <Text
                           style={{
                             fontSize: FONT_XS,
-                            fontFamily: isSelected ? 'Pretendard-Bold' : 'Pretendard-Medium',
+                            fontFamily: isSelected ? 'Pretendard-SemiBold' : 'Pretendard-Medium',
                             color: isSelected ? '#ffffff' : '#374151',
                           }}
                         >
@@ -2190,10 +2179,10 @@ export default function AdminDashboardScreen() {
                               paddingHorizontal: normalize(5),
                               paddingVertical: normalize(1.5),
                               borderRadius: normalize(4),
-                              backgroundColor: 'rgba(227, 27, 89, 0.08)',
+                              backgroundColor: BRAND_TINT,
                             }}
                           >
-                            <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Bold', color: '#E31B59' }}>
+                            <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-SemiBold', color: BRAND }}>
                               추천
                             </Text>
                           </View>
@@ -2205,12 +2194,12 @@ export default function AdminDashboardScreen() {
               </View>
 
               {/* 답변 작성 영역 */}
-              <Text style={{ fontSize: FONT_SM, fontFamily: 'Pretendard-Bold', color: '#111', marginBottom: normalize(8) }}>
+              <Text style={{ fontSize: FONT_SM, fontFamily: 'Pretendard-SemiBold', color: '#111', marginBottom: normalize(8) }}>
                 관리자 답변 내용
               </Text>
               <View
                 style={{
-                  backgroundColor: '#f5f5f7',
+                  backgroundColor: CARD,
                   borderRadius: normalize(12),
                   padding: normalize(14),
                   marginBottom: normalize(12),
@@ -2270,7 +2259,7 @@ export default function AdminDashboardScreen() {
               style={{
                 height: normalize(48),
                 borderRadius: BUTTON_RADIUS,
-                backgroundColor: !answerInput.trim() || answerMutation.isPending ? '#e5e7eb' : '#E31B59',
+                backgroundColor: !answerInput.trim() || answerMutation.isPending ? '#e5e7eb' : BRAND,
                 alignItems: 'center',
                 justifyContent: 'center',
                 flexDirection: 'row',
@@ -2286,7 +2275,7 @@ export default function AdminDashboardScreen() {
                   <Text
                     style={{
                       fontSize: FONT_MD,
-                      fontFamily: 'Pretendard-Bold',
+                      fontFamily: 'Pretendard-SemiBold',
                       color: !answerInput.trim() ? '#9ca3af' : '#fff',
                     }}
                   >

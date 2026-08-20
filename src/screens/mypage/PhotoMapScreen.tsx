@@ -6,8 +6,9 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import BottomSheet from '@/components/common/BottomSheet';
 import { StatusBar } from 'expo-status-bar';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { FONT_SM, FONT_MD } from '@/constants/layout';
+import { FONT_MD, FONT_SM, HAIRLINE_WIDTH } from '@/constants/layout';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { BRAND, HAIRLINE } from '@/constants/colors';
 
 const KAKAO_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_API_KEY;
 
@@ -163,7 +164,7 @@ export default function PhotoMapScreen() {
       z-index: 5;
     }
     .map-pin--visit svg path { fill: #1c1c1e; }
-    .map-pin--fav svg path { fill: #E31B59; }
+    .map-pin--fav svg path { fill: ${BRAND}; }
     .map-pin--visit { filter: drop-shadow(0 2px 4px rgba(0,0,0,0.25)); }
     .map-pin--fav { filter: drop-shadow(0 2px 6px rgba(227,27,89,0.45)); }
   </style>
@@ -189,7 +190,7 @@ export default function PhotoMapScreen() {
 
         function createPinHtml(isFav) {
           var cls = isFav ? 'map-pin map-pin--fav' : 'map-pin map-pin--visit';
-          var svgColor = isFav ? '#E31B59' : '#1c1c1e';
+          var svgColor = isFav ? '${BRAND}' : '#1c1c1e';
           var size = isFav ? 26 : 24;
           var viewBoxHeight = isFav ? 33 : 30;
           return \`
@@ -258,7 +259,7 @@ export default function PhotoMapScreen() {
       <StatusBar style="dark" />
 
       <View 
-        className="absolute top-0 left-0 right-0 z-50 bg-[rgba(255,255,255,0.92)] border-b border-[rgba(0,0,0,0.06)]"
+        className="absolute top-0 left-0 right-0 z-50 bg-[rgba(255,255,255,0.92)] border-b-[0.5px] border-hairline"
         style={{ paddingTop: insets.top }}
       >
         <View className="flex-row items-center justify-between" style={{ height: normalize(54), paddingHorizontal: normalize(20) }}>
@@ -280,7 +281,7 @@ export default function PhotoMapScreen() {
               <TouchableOpacity
                 key={f}
                 onPress={() => setFilter(f)}
-                className={`justify-center ${isActive ? (f === 'fav' ? 'bg-[#E31B59]' : 'bg-[#1c1c1e]') : 'bg-[rgba(0,0,0,0.04)]'}`}
+                className={`justify-center ${isActive ? (f === 'fav' ? 'bg-brand' : 'bg-[#1c1c1e]') : 'bg-[rgba(0,0,0,0.04)]'}`}
                 style={{
                   height: normalize(30),
                   paddingHorizontal: normalize(14),
@@ -313,11 +314,11 @@ export default function PhotoMapScreen() {
       <View className="absolute z-30" style={{ right: normalize(14), top: insets.top + normalize(120), gap: normalize(8) }}>
         <View className="bg-white overflow-hidden" style={{ borderRadius: normalize(12) }}>
           <TouchableOpacity onPress={handleZoomIn} className="items-center justify-center" style={{ width: normalize(40), height: normalize(40) }}>
-            <Text className="text-[rgba(0,0,0,0.55)]" style={{ fontSize: normalizeFontSize(20) }}>+</Text>
+            <Text className="text-[rgba(0,0,0,0.55)] font-normal" style={{ fontSize: normalizeFontSize(20) }}>+</Text>
           </TouchableOpacity>
           <View className="bg-[rgba(0,0,0,0.07)]" style={{ height: 0.5 }} />
           <TouchableOpacity onPress={handleZoomOut} className="items-center justify-center" style={{ width: normalize(40), height: normalize(40) }}>
-            <Text className="text-[rgba(0,0,0,0.55)]" style={{ fontSize: normalizeFontSize(20) }}>−</Text>
+            <Text className="text-[rgba(0,0,0,0.55)] font-normal" style={{ fontSize: normalizeFontSize(20) }}>−</Text>
           </TouchableOpacity>
         </View>
         <TouchableOpacity onPress={handleMyLocation} className="bg-white items-center justify-center" style={{ width: normalize(40), height: normalize(40), borderRadius: normalize(12) }}>
@@ -328,11 +329,11 @@ export default function PhotoMapScreen() {
       <View className="absolute z-30 bg-[rgba(255,255,255,0.88)]" style={{ left: normalize(14), top: insets.top + normalize(120), borderRadius: normalize(10), paddingHorizontal: normalize(12), paddingVertical: normalize(8), gap: normalize(6) }}>
         <View className="flex-row items-center" style={{ gap: normalize(6) }}>
           <View className="bg-[#1c1c1e]" style={{ width: normalize(10), height: normalize(10), borderRadius: normalize(5) }} />
-          <Text className="text-[rgba(0,0,0,0.55)]" style={{ fontSize: normalizeFontSize(12) }}>방문</Text>
+          <Text className="text-[rgba(0,0,0,0.55)] font-normal" style={{ fontSize: normalizeFontSize(12) }}>방문</Text>
         </View>
         <View className="flex-row items-center" style={{ gap: normalize(6) }}>
-          <View className="bg-[#E31B59]" style={{ width: normalize(10), height: normalize(10), borderRadius: normalize(5) }} />
-          <Text className="text-[rgba(0,0,0,0.55)]" style={{ fontSize: normalizeFontSize(12) }}>즐겨찾기</Text>
+          <View className="bg-brand" style={{ width: normalize(10), height: normalize(10), borderRadius: normalize(5) }} />
+          <Text className="text-[rgba(0,0,0,0.55)] font-normal" style={{ fontSize: normalizeFontSize(12) }}>즐겨찾기</Text>
         </View>
       </View>
 
@@ -355,18 +356,18 @@ export default function PhotoMapScreen() {
             <Text className="font-semibold text-black" style={{ fontSize: normalizeFontSize(18), letterSpacing: -0.3, marginBottom: normalize(3) }}>
               {activeSpot.name}
             </Text>
-            <Text className="text-[rgba(0,0,0,0.4)]" style={{ fontSize: FONT_SM, marginBottom: normalize(14), letterSpacing: -0.1 }}>
+            <Text className="text-sub font-normal" style={{ fontSize: FONT_SM, marginBottom: normalize(14), letterSpacing: -0.1 }}>
               {activeSpot.loc}
             </Text>
 
             <View className="flex-row" style={{ gap: normalize(8), marginBottom: normalize(16) }}>
-              <View className="flex-1 bg-[#f5f5f7]" style={{ borderRadius: normalize(10), padding: normalize(10) }}>
-                <Text className="text-[rgba(0,0,0,0.35)]" style={{ fontSize: normalizeFontSize(10), marginBottom: normalize(3) }}>최근 방문일</Text>
+              <View className="flex-1 bg-card" style={{ borderRadius: normalize(10), padding: normalize(10) }}>
+                <Text className="text-[rgba(0,0,0,0.35)] font-normal" style={{ fontSize: normalizeFontSize(10), marginBottom: normalize(3) }}>최근 방문일</Text>
                 <Text className="font-semibold text-black" style={{ fontSize: FONT_MD }}>{activeSpot.date}</Text>
               </View>
-              <View className="flex-1 bg-[#f5f5f7]" style={{ borderRadius: normalize(10), padding: normalize(10) }}>
-                <Text className="text-[rgba(0,0,0,0.35)]" style={{ fontSize: normalizeFontSize(10), marginBottom: normalize(3) }}>사진 점수</Text>
-                <Text className="font-semibold text-[#E31B59]" style={{ fontSize: FONT_MD }}>{activeSpot.score}점</Text>
+              <View className="flex-1 bg-card" style={{ borderRadius: normalize(10), padding: normalize(10) }}>
+                <Text className="text-[rgba(0,0,0,0.35)] font-normal" style={{ fontSize: normalizeFontSize(10), marginBottom: normalize(3) }}>사진 점수</Text>
+                <Text className="font-semibold text-brand" style={{ fontSize: FONT_MD }}>{activeSpot.score}점</Text>
               </View>
             </View>
 
@@ -461,11 +462,11 @@ function SpotListSheet({ spots, activeSpot, onSpotPress, filterName }: { spots: 
         <View className="items-center" style={{ paddingTop: normalize(12), paddingBottom: normalize(8) }}>
           <View className="bg-[rgba(0,0,0,0.1)]" style={{ width: normalize(36), height: normalize(5), borderRadius: normalize(2.5) }} />
         </View>
-        <View className="flex-row items-baseline border-b border-[rgba(0,0,0,0.06)]" style={{ paddingHorizontal: normalize(20), paddingBottom: normalize(12) }}>
+        <View className="flex-row items-baseline border-b-[0.5px] border-hairline" style={{ paddingHorizontal: normalize(20), paddingBottom: normalize(12) }}>
           <Text className="font-semibold text-black" style={{ fontSize: normalizeFontSize(18), letterSpacing: -0.3, marginRight: normalize(8) }}>
             {filterName}
           </Text>
-          <Text className="text-[rgba(0,0,0,0.35)]" style={{ fontSize: FONT_SM }}>{spots.length}곳</Text>
+          <Text className="text-[rgba(0,0,0,0.35)] font-normal" style={{ fontSize: FONT_SM }}>{spots.length}곳</Text>
         </View>
       </View>
 
@@ -475,14 +476,14 @@ function SpotListSheet({ spots, activeSpot, onSpotPress, filterName }: { spots: 
             key={spot.id}
             onPress={() => onSpotPress(spot)}
             className="flex-row items-center"
-            style={{ paddingVertical: normalize(12), borderBottomWidth: idx < spots.length - 1 ? 0.5 : 0, borderBottomColor: 'rgba(0,0,0,0.05)' }}
+            style={{ paddingVertical: normalize(12), borderBottomWidth: idx < spots.length - 1 ? HAIRLINE_WIDTH : 0, borderBottomColor: HAIRLINE }}
           >
             <View className="bg-[#eee] overflow-hidden" style={{ width: normalize(52), height: normalize(52), borderRadius: normalize(10), marginRight: normalize(12) }}>
               <Image source={{ uri: spot.photo }} className="w-full h-full" />
               <View className="absolute" style={{ bottom: normalize(4), left: normalize(4) }}>
                 {spot.isFav ? (
                   <View>
-                    <IconMapPin size={normalize(14)} color="#E31B59" fill="#E31B59" />
+                    <IconMapPin size={normalize(14)} color={BRAND} fill={BRAND} />
                   </View>
                 ) : (
                   <View>
@@ -493,17 +494,17 @@ function SpotListSheet({ spots, activeSpot, onSpotPress, filterName }: { spots: 
             </View>
             <View className="flex-1" style={{ marginRight: normalize(8) }}>
               <Text className="font-semibold text-black" style={{ fontSize: FONT_MD, letterSpacing: -0.2, marginBottom: normalize(2) }} numberOfLines={1}>{spot.name}</Text>
-              <Text className="text-[rgba(0,0,0,0.38)]" style={{ fontSize: normalizeFontSize(12), letterSpacing: -0.1, marginBottom: normalize(4) }} numberOfLines={1}>{spot.loc}</Text>
+              <Text className="text-[rgba(0,0,0,0.38)] font-normal" style={{ fontSize: normalizeFontSize(12), letterSpacing: -0.1, marginBottom: normalize(4) }} numberOfLines={1}>{spot.loc}</Text>
               <View className="flex-row" style={{ gap: normalize(5) }}>
                 <View className="bg-[rgba(0,0,0,0.06)] justify-center" style={{ height: normalize(18), paddingHorizontal: normalize(7), borderRadius: normalize(9) }}>
-                  <Text className="font-medium text-[rgba(0,0,0,0.4)]" style={{ fontSize: normalizeFontSize(10) }}>{spot.date}</Text>
+                  <Text className="font-medium text-sub" style={{ fontSize: normalizeFontSize(10) }}>{spot.date}</Text>
                 </View>
-                <View className="bg-[rgba(227,27,89,0.08)] justify-center" style={{ height: normalize(18), paddingHorizontal: normalize(7), borderRadius: normalize(9) }}>
-                  <Text className="font-semibold text-[#E31B59]" style={{ fontSize: normalizeFontSize(10) }}>{spot.score}점</Text>
+                <View className="bg-brand/5 justify-center" style={{ height: normalize(18), paddingHorizontal: normalize(7), borderRadius: normalize(9) }}>
+                  <Text className="font-semibold text-brand" style={{ fontSize: normalizeFontSize(10) }}>{spot.score}점</Text>
                 </View>
                 {spot.isFav && (
-                  <View className="bg-[rgba(227,27,89,0.08)] justify-center" style={{ height: normalize(18), paddingHorizontal: normalize(7), borderRadius: normalize(9) }}>
-                    <Text className="font-medium text-[#E31B59]" style={{ fontSize: normalizeFontSize(10) }}>즐겨찾기</Text>
+                  <View className="bg-brand/5 justify-center" style={{ height: normalize(18), paddingHorizontal: normalize(7), borderRadius: normalize(9) }}>
+                    <Text className="font-medium text-brand" style={{ fontSize: normalizeFontSize(10) }}>즐겨찾기</Text>
                   </View>
                 )}
               </View>

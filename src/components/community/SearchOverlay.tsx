@@ -9,14 +9,15 @@ import ProfilePostsTab from '@/components/community/ProfilePostsTab';
 import { useSearchUsers } from '@/hooks/useUser';
 import { useRecommendedSpots, useSearchSpots } from '@/hooks/useSpot';
 import { useCommunityFeed } from '@/hooks/useCommunity';
-import { GRID_PADDING, FONT_SM, FONT_XS } from '@/constants/layout';
+import { FONT_SM, FONT_XS, GRID_PADDING, HAIRLINE_WIDTH } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import type { FollowUserResponse } from '@/types/user';
 import type { SpotResponse } from '@/types/spot';
 import type { Post, ProfilePostItem } from '@/types/community';
+import { BRAND, CARD, HAIRLINE } from '@/constants/colors';
 
-const ACCENT = '#E31B59';
-const SURFACE = '#f5f5f7';
+const ACCENT = BRAND;
+const SURFACE = CARD;
 
 /** 최근 검색 저장 키. 서버 API가 없어 기기에만 둔다. */
 const RECENT_KEY = 'community.recentSearches';
@@ -316,7 +317,7 @@ function SpotRow({ spot, onPress }: { spot: SpotResponse; onPress: () => void })
       accessibilityRole="button"
       accessibilityLabel={`${spot.name} 스팟 보기`}
       className="flex-row items-center"
-      style={{ gap: normalize(12), paddingVertical: normalize(12), borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.04)' }}
+      style={{ gap: normalize(12), paddingVertical: normalize(12), borderBottomWidth: HAIRLINE_WIDTH, borderBottomColor: HAIRLINE }}
     >
       <View className="items-center justify-center overflow-hidden" style={{ width: normalize(44), height: normalize(44), borderRadius: normalize(12), backgroundColor: SURFACE }}>
         {spot.thumbnailUrl ? (

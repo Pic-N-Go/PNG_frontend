@@ -20,12 +20,14 @@ import BottomSheet from '@/components/common/BottomSheet';
 import { toErrorMessage } from '@/api/auth';
 import { useBookmarkCollections, useCreateBookmarkCollection, useSyncSpotBookmarks } from '@/hooks/useSpot';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
+import { BRAND, CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
+import { BORDER_CONTROL, HAIRLINE_WIDTH } from '@/constants/layout';
 
-const ACCENT = '#E31B59';
+const ACCENT = BRAND;
 
 type ColorKey = 'pink' | 'blue' | 'purple' | 'green' | 'orange';
 const PAL: Record<ColorKey, { s: string; t: string }> = {
-  pink: { s: '#E31B59', t: '#FDE8EF' },
+  pink: { s: BRAND, t: '#FDE8EF' },
   blue: { s: '#2E7BF6', t: '#E4EEFD' },
   purple: { s: '#7C4DFF', t: '#EEE9FE' },
   green: { s: '#16A34A', t: '#E7F6EC' },
@@ -80,7 +82,7 @@ function CollectionRow({ name, count, color, icon, selected, onToggle }: { name:
         paddingHorizontal: normalize(14),
         borderRadius: normalize(16),
         backgroundColor: selected ? p.t : '#fff',
-        borderWidth: 1,
+        borderWidth: BORDER_CONTROL,
         borderColor: selected ? `${p.s}33` : 'transparent',
       }}
     >
@@ -209,7 +211,7 @@ export default function BookmarkSheet({ visible, spotId, onClose, onSaved }: Pro
           {isLoading || !collections ? (
             <View style={{ height: normalize(200), alignItems: 'center', justifyContent: 'center' }}>
               {isError ? (
-                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(14), color: 'rgba(0,0,0,0.4)' }}>컬렉션을 불러오지 못했어요.</Text>
+                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(14), color: TEXT_SUB }}>컬렉션을 불러오지 못했어요.</Text>
               ) : (
                 <ActivityIndicator color={ACCENT} />
               )}
@@ -222,7 +224,7 @@ export default function BookmarkSheet({ visible, spotId, onClose, onSaved }: Pro
 
               {canCreateMore ? (
                 <Pressable onPress={() => setView('create')} style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(14), paddingVertical: normalize(13), paddingHorizontal: normalize(14), borderRadius: normalize(16) }}>
-                  <View style={{ width: normalize(46), height: normalize(46), borderRadius: normalize(13), borderWidth: 1.5, borderColor: '#C9C4BE', borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center' }}>
+                  <View style={{ width: normalize(46), height: normalize(46), borderRadius: normalize(13), borderWidth: BORDER_CONTROL, borderColor: '#C9C4BE', borderStyle: 'dashed', alignItems: 'center', justifyContent: 'center' }}>
                     <IconPlus size={normalize(22)} color="#8B8680" strokeWidth={2} />
                   </View>
                   <Text allowFontScaling={false} style={{ flex: 1, fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(14), color: '#37352F' }}>새 컬렉션 만들기</Text>
@@ -236,7 +238,7 @@ export default function BookmarkSheet({ visible, spotId, onClose, onSaved }: Pro
             </ScrollView>
           )}
 
-          <View style={{ paddingHorizontal: normalize(20), paddingTop: normalize(12), paddingBottom: normalize(12), borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.05)' }}>
+          <View style={{ paddingHorizontal: normalize(20), paddingTop: normalize(12), paddingBottom: normalize(12), borderTopWidth: HAIRLINE_WIDTH, borderTopColor: HAIRLINE }}>
             <Pressable onPress={handleAdd} disabled={!canAdd} style={{ height: normalize(54), borderRadius: normalize(27), alignItems: 'center', justifyContent: 'center', backgroundColor: pillBg(canAdd) }}>
               {syncBookmarks.isPending ? (
                 <ActivityIndicator color="#fff" />
@@ -265,7 +267,7 @@ export default function BookmarkSheet({ visible, spotId, onClose, onSaved }: Pro
           </View>
 
           <ScrollView style={{ maxHeight: SCROLL_MAX }} contentContainerStyle={{ paddingHorizontal: normalize(24), paddingTop: normalize(8), paddingBottom: normalize(8) }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(12), backgroundColor: '#F5F5F7', borderRadius: normalize(14), paddingVertical: normalize(10), paddingRight: normalize(14), paddingLeft: normalize(10), marginTop: normalize(4) }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(12), backgroundColor: CARD, borderRadius: normalize(14), paddingVertical: normalize(10), paddingRight: normalize(14), paddingLeft: normalize(10), marginTop: normalize(4) }}>
               <View style={{ width: normalize(48), height: normalize(48), borderRadius: normalize(13), backgroundColor: cur.t, alignItems: 'center', justifyContent: 'center' }}>
                 <CollectionIcon name={iconKey} size={normalize(24)} color={cur.s} />
               </View>
@@ -294,7 +296,7 @@ export default function BookmarkSheet({ visible, spotId, onClose, onSaved }: Pro
                   <Pressable
                     key={k}
                     onPress={() => setColorKey(k)}
-                    style={{ width: normalize(54), height: normalize(54), borderRadius: normalize(27), backgroundColor: p.t, alignItems: 'center', justifyContent: 'center', borderWidth: 2.5, borderColor: sel ? p.s : 'transparent' }}
+                    style={{ width: normalize(54), height: normalize(54), borderRadius: normalize(27), backgroundColor: p.t, alignItems: 'center', justifyContent: 'center', borderWidth: BORDER_CONTROL, borderColor: sel ? p.s : 'transparent' }}
                   >
                     {sel && <IconCheck size={normalize(20)} color={p.s} strokeWidth={3} />}
                   </Pressable>
@@ -310,7 +312,7 @@ export default function BookmarkSheet({ visible, spotId, onClose, onSaved }: Pro
                   <Pressable
                     key={nm}
                     onPress={() => setIconKey(nm)}
-                    style={{ width: '22%', height: normalize(56), borderRadius: normalize(15), alignItems: 'center', justifyContent: 'center', backgroundColor: sel ? cur.t : '#F3F1EF', borderWidth: 1.5, borderColor: sel ? cur.s : 'transparent' }}
+                    style={{ width: '22%', height: normalize(56), borderRadius: normalize(15), alignItems: 'center', justifyContent: 'center', backgroundColor: sel ? cur.t : '#F3F1EF', borderWidth: BORDER_CONTROL, borderColor: sel ? cur.s : 'transparent' }}
                   >
                     <CollectionIcon name={nm} size={normalize(24)} color={sel ? cur.s : '#A39E98'} />
                   </Pressable>
@@ -319,7 +321,7 @@ export default function BookmarkSheet({ visible, spotId, onClose, onSaved }: Pro
             </View>
           </ScrollView>
 
-          <View style={{ paddingHorizontal: normalize(20), paddingTop: normalize(12), paddingBottom: normalize(12), borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.05)' }}>
+          <View style={{ paddingHorizontal: normalize(20), paddingTop: normalize(12), paddingBottom: normalize(12), borderTopWidth: HAIRLINE_WIDTH, borderTopColor: HAIRLINE }}>
             <Pressable onPress={handleCreate} disabled={!canCreate} style={{ height: normalize(54), borderRadius: normalize(27), alignItems: 'center', justifyContent: 'center', backgroundColor: pillBg(canCreate) }}>
               {createCollection.isPending ? (
                 <ActivityIndicator color="#fff" />

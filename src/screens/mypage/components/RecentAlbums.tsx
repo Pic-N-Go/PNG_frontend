@@ -3,9 +3,10 @@ import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { FONT_SM } from '@/constants/layout';
+import { CARD_RADIUS, EMPTY_CARD_HEIGHT, FONT_SM, GRID_PADDING } from '@/constants/layout';
 import { useMyAlbums } from '@/hooks/useUser';
 import { categoryLabel } from '@/constants/spotCategories';
+import { BRAND, CARD } from '@/constants/colors';
 
 const GRADIENT_PALETTES: [string, string, ...string[]][] = [
   ['#0f2027', '#203a43', '#e8a87c'],
@@ -22,22 +23,20 @@ export default function RecentAlbums() {
 
   if (!isLoading && albums.length === 0) {
     return (
-      <View className="mb-10" style={{ paddingHorizontal: normalize(20) }}>
+      <View className="mb-10" style={{ paddingHorizontal: GRID_PADDING }}>
         <Text className="font-semibold tracking-tight text-black mb-3" style={{ fontSize: normalizeFontSize(20) }}>
           지난 촬영
         </Text>
         <View
           style={{
-            height: normalize(120),
-            backgroundColor: '#ffffff',
-            borderRadius: normalize(14),
+            height: EMPTY_CARD_HEIGHT,
+            backgroundColor: CARD,
+            borderRadius: CARD_RADIUS,
             alignItems: 'center',
             justifyContent: 'center',
-            borderWidth: 0.5,
-            borderColor: 'rgba(0,0,0,0.06)',
           }}
         >
-          <Text style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.3)', fontFamily: 'Pretendard-Regular' }}>
+          <Text className="tracking-tight font-normal" style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.3)' }}>
             등록된 앨범이 없어요
           </Text>
         </View>
@@ -47,12 +46,12 @@ export default function RecentAlbums() {
 
   return (
     <View className="mb-10">
-      <View className="flex-row justify-between items-baseline mb-3" style={{ paddingHorizontal: normalize(20) }}>
+      <View className="flex-row justify-between items-center mb-3" style={{ paddingHorizontal: GRID_PADDING }}>
         <Text className="font-semibold tracking-tight text-black" style={{ fontSize: normalizeFontSize(20) }}>
           지난 촬영
         </Text>
         <TouchableOpacity onPress={() => navigation.navigate('MyPhotos' as never)}>
-          <Text className="tracking-tight" style={{ fontSize: FONT_SM, color: '#e31b59' }}>
+          <Text className="tracking-tight font-normal" style={{ fontSize: FONT_SM, color: BRAND }}>
             전체보기
           </Text>
         </TouchableOpacity>
@@ -61,7 +60,7 @@ export default function RecentAlbums() {
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        style={{ marginHorizontal: normalize(20) }}
+        style={{ marginHorizontal: GRID_PADDING }}
         contentContainerStyle={{ gap: normalize(10) }}
       >
         {albums.map((album, index) => {
@@ -73,7 +72,7 @@ export default function RecentAlbums() {
               style={{
                 width: normalize(160),
                 height: normalize(200),
-                borderRadius: normalize(14),
+                borderRadius: CARD_RADIUS,
                 overflow: 'hidden',
                 position: 'relative',
               }}
@@ -92,7 +91,7 @@ export default function RecentAlbums() {
                 <Text className="font-semibold text-white tracking-tight" style={{ fontSize: normalizeFontSize(16), marginBottom: normalize(2) }}>
                   {album.name}
                 </Text>
-                <Text className="tracking-tight" style={{ fontSize: normalizeFontSize(12), color: 'rgba(255,255,255,0.7)' }}>
+                <Text className="tracking-tight font-normal" style={{ fontSize: normalizeFontSize(12), color: 'rgba(255,255,255,0.7)' }}>
                   {categoryLabel(album.category)} · {album.photoCount}장
                 </Text>
               </LinearGradient>

@@ -39,7 +39,8 @@ import {
   SOCIAL_BUTTON_RADIUS,
   SPACING_LG,
   SPACING_MD,
-} from "@/constants/layout";
+ BORDER_CONTROL } from "@/constants/layout";
+import { BRAND, CARD, SCRIM, TEXT_SUB } from '@/constants/colors';
 
 type Props = NativeStackScreenProps<AuthStackParamList, "Login">;
 
@@ -337,7 +338,6 @@ export default function LoginScreen({ navigation }: Props) {
                 style={{
                   fontFamily: "FugazOne_400Regular",
                   fontSize: normalizeFontSize(40),
-                  fontWeight: "400",
                   color: "#fff",
                   letterSpacing: -1,
                   lineHeight: 48,
@@ -350,7 +350,6 @@ export default function LoginScreen({ navigation }: Props) {
                 style={{
                   fontFamily: "Pretendard-Regular",
                   fontSize: FONT_XS,
-                  fontWeight: "400",
                   color: "rgba(255,255,255,0.6)",
                   letterSpacing: 3.5,
                   marginTop: 4,
@@ -443,7 +442,7 @@ export default function LoginScreen({ navigation }: Props) {
               <Text
                 style={{
                   fontSize: FONT_SM,
-                  color: "#E31B59",
+                  color: BRAND,
                   letterSpacing: -0.1,
                   fontFamily: "Pretendard-Regular",
                 }}
@@ -459,7 +458,7 @@ export default function LoginScreen({ navigation }: Props) {
               style={{
                 height: BUTTON_HEIGHT,
                 borderRadius: BUTTON_RADIUS,
-                backgroundColor: canLogin ? "#E31B59" : "rgba(0,0,0,0.06)",
+                backgroundColor: canLogin ? BRAND : "rgba(0,0,0,0.06)",
                 alignItems: "center",
                 justifyContent: "center",
                 opacity: loginMutation.isPending ? 0.6 : 1,
@@ -532,7 +531,7 @@ export default function LoginScreen({ navigation }: Props) {
                 <Text
                   style={{
                     fontSize: normalizeFontSize(14),
-                    fontWeight: "700",
+                    fontFamily: 'Pretendard-SemiBold',
                     color: "#391B1B",
                   }}
                 >
@@ -591,7 +590,7 @@ export default function LoginScreen({ navigation }: Props) {
               <Text
                 style={{
                   fontSize: FONT_MD,
-                  color: "rgba(0,0,0,0.4)",
+                  color: TEXT_SUB,
                   letterSpacing: -0.15,
                   fontFamily: "Pretendard-Regular",
                 }}
@@ -602,7 +601,7 @@ export default function LoginScreen({ navigation }: Props) {
                 <Text
                   style={{
                     fontSize: FONT_MD,
-                    color: "#E31B59",
+                    color: BRAND,
                     letterSpacing: -0.15,
                     marginLeft: 4,
                     fontFamily: "Pretendard-SemiBold",
@@ -636,7 +635,7 @@ export default function LoginScreen({ navigation }: Props) {
           <Pressable
             style={{
               flex: 1,
-              backgroundColor: "rgba(0,0,0,0.4)",
+              backgroundColor: SCRIM,
               justifyContent: "flex-end",
             }}
             onPress={closeSheet}
@@ -701,12 +700,12 @@ export default function LoginScreen({ navigation }: Props) {
                     width: 32,
                     height: 32,
                     borderRadius: 16,
-                    backgroundColor: "#F5F5F7",
+                    backgroundColor: CARD,
                     alignItems: "center",
                     justifyContent: "center",
                   }}
                 >
-                  <Feather name="x" size={14} color="rgba(0,0,0,0.4)" />
+                  <Feather name="x" size={14} color={TEXT_SUB} />
                 </Pressable>
               </View>
 
@@ -730,7 +729,7 @@ export default function LoginScreen({ navigation }: Props) {
                     <Text
                       style={{
                         fontSize: normalizeFontSize(12),
-                        color: "rgba(0,0,0,0.4)",
+                        color: TEXT_SUB,
                         marginBottom: 6,
                         fontFamily: "Pretendard-Medium",
                       }}
@@ -749,9 +748,9 @@ export default function LoginScreen({ navigation }: Props) {
                       style={{
                         height: INPUT_HEIGHT,
                         borderRadius: INPUT_RADIUS,
-                        borderWidth: 1.5,
+                        borderWidth: BORDER_CONTROL,
                         borderColor: "transparent",
-                        backgroundColor: "#F5F5F7",
+                        backgroundColor: CARD,
                         paddingHorizontal: SPACING_MD,
                         fontSize: FONT_MD,
                         color: "#000",
@@ -770,7 +769,7 @@ export default function LoginScreen({ navigation }: Props) {
                         height: BUTTON_HEIGHT,
                         borderRadius: BUTTON_RADIUS,
                         backgroundColor: sheetEmailOk
-                          ? "#E31B59"
+                          ? BRAND
                           : "rgba(0,0,0,0.06)",
                         alignItems: "center",
                         justifyContent: "center",
@@ -815,7 +814,7 @@ export default function LoginScreen({ navigation }: Props) {
                     <Text
                       style={{
                         fontSize: normalizeFontSize(12),
-                        color: "rgba(0,0,0,0.4)",
+                        color: TEXT_SUB,
                         marginBottom: 6,
                         fontFamily: "Pretendard-Medium",
                       }}
@@ -836,9 +835,9 @@ export default function LoginScreen({ navigation }: Props) {
                       style={{
                         height: INPUT_HEIGHT,
                         borderRadius: INPUT_RADIUS,
-                        borderWidth: 1.5,
+                        borderWidth: BORDER_CONTROL,
                         borderColor: "transparent",
-                        backgroundColor: "#F5F5F7",
+                        backgroundColor: CARD,
                         paddingHorizontal: SPACING_MD,
                         fontSize: FONT_XL,
                         color: "#000",
@@ -862,7 +861,7 @@ export default function LoginScreen({ navigation }: Props) {
                         <Text
                           style={{
                             fontSize: normalizeFontSize(12),
-                            color: "#E31B59",
+                            color: BRAND,
                             fontFamily: "Pretendard-Medium",
                           }}
                         >
@@ -886,7 +885,7 @@ export default function LoginScreen({ navigation }: Props) {
                         height: BUTTON_HEIGHT,
                         borderRadius: BUTTON_RADIUS,
                         backgroundColor: sheetCodeOk
-                          ? "#E31B59"
+                          ? BRAND
                           : "rgba(0,0,0,0.06)",
                         alignItems: "center",
                         justifyContent: "center",
@@ -928,7 +927,7 @@ export default function LoginScreen({ navigation }: Props) {
                     <Text
                       style={{
                         fontSize: normalizeFontSize(12),
-                        color: "rgba(0,0,0,0.4)",
+                        color: TEXT_SUB,
                         marginBottom: 6,
                         fontFamily: "Pretendard-Medium",
                       }}
@@ -939,7 +938,7 @@ export default function LoginScreen({ navigation }: Props) {
                       style={{
                         flexDirection: "row",
                         alignItems: "center",
-                        backgroundColor: "#F5F5F7",
+                        backgroundColor: CARD,
                         borderRadius: INPUT_RADIUS,
                         marginBottom: 10,
                         paddingRight: SPACING_MD,
@@ -984,7 +983,7 @@ export default function LoginScreen({ navigation }: Props) {
                       style={{
                         height: INPUT_HEIGHT,
                         borderRadius: INPUT_RADIUS,
-                        backgroundColor: "#F5F5F7",
+                        backgroundColor: CARD,
                         paddingHorizontal: SPACING_MD,
                         fontSize: FONT_MD,
                         color: "#000",
@@ -1003,7 +1002,7 @@ export default function LoginScreen({ navigation }: Props) {
                         height: BUTTON_HEIGHT,
                         borderRadius: BUTTON_RADIUS,
                         backgroundColor: newPwOk
-                          ? "#E31B59"
+                          ? BRAND
                           : "rgba(0,0,0,0.06)",
                         alignItems: "center",
                         justifyContent: "center",

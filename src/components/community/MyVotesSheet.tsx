@@ -3,17 +3,18 @@ import { Pressable, Text, View } from 'react-native';
 import { ThumbsUp } from 'lucide-react-native';
 import BottomSheet from '@/components/common/BottomSheet';
 import { MyVoteEntry } from '@/types/community';
-import { BUTTON_HEIGHT, BUTTON_RADIUS, FONT_LG, FONT_MD, FONT_SM, FONT_XS, GRID_PADDING } from '@/constants/layout';
+import { BUTTON_HEIGHT, BUTTON_RADIUS, FONT_LG, FONT_MD, FONT_SM, FONT_XS, GRID_PADDING, HAIRLINE_WIDTH } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
+import { BRAND, CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
 
 /**
  * 내가 투표한 작품 시트 (시안 6a·6b) — 진행중 탭·전체 출품작 목록의 "남은 표" pill,
  * 둘 다 이 시트 하나로 연다. 취소는 다이얼로그 없이 즉시 반영, 토스트는 호출부 책임.
  */
 
-const ACCENT = '#E31B59';
-const SURFACE = '#f5f5f7';
-const SUB = 'rgba(0,0,0,0.4)';
+const ACCENT = BRAND;
+const SURFACE = CARD;
+const SUB = TEXT_SUB;
 
 interface Props {
   visible: boolean;
@@ -76,8 +77,8 @@ export default function MyVotesSheet({ visible, onClose, entries, votesLeft, max
               </View>
             ))}
 
-            <View style={{ marginTop: normalize(6), paddingTop: normalize(16), borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.07)', flexDirection: 'row', alignItems: 'center', gap: normalize(8) }}>
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, letterSpacing: -0.2, color: 'rgba(0,0,0,0.4)' }}>
+            <View style={{ marginTop: normalize(6), paddingTop: normalize(16), borderTopWidth: HAIRLINE_WIDTH, borderTopColor: HAIRLINE, flexDirection: 'row', alignItems: 'center', gap: normalize(8) }}>
+              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, letterSpacing: -0.2, color: TEXT_SUB }}>
                 남은 표
               </Text>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(4) }}>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Pressable, Text } from 'react-native';
-import { FONT_SM } from '@/constants/layout';
+import { BORDER_CONTROL, FONT_SM } from '@/constants/layout';
+import { BRAND, BRAND_TINT_ACTIVE, CARD } from '@/constants/colors';
 
 type Props = {
   label: string;
@@ -16,9 +17,9 @@ export default function ThemePill({ label, selected, onPress }: Props) {
         height: 36,
         paddingHorizontal: 14,
         borderRadius: 18,
-        backgroundColor: selected ? 'rgba(227,27,89,0.08)' : '#F5F5F7',
-        borderWidth: 1,
-        borderColor: selected ? '#E31B59' : 'transparent',
+        backgroundColor: selected ? BRAND_TINT_ACTIVE : CARD,
+        borderWidth: BORDER_CONTROL,
+        borderColor: selected ? BRAND : 'transparent',
         alignItems: 'center',
         justifyContent: 'center',
       }}
@@ -27,7 +28,7 @@ export default function ThemePill({ label, selected, onPress }: Props) {
         style={{
           fontSize: FONT_SM,
           fontFamily: selected ? 'Pretendard-Medium' : 'Pretendard-Regular',
-          color: selected ? '#E31B59' : 'rgba(0,0,0,0.5)',
+          color: selected ? BRAND : 'rgba(0,0,0,0.5)',
           letterSpacing: -0.2,
         }}
       >

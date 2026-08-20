@@ -12,8 +12,9 @@ import {
   ContestSortKey,
   RankHistory,
 } from '@/types/community';
-import { BUTTON_HEIGHT, BUTTON_RADIUS, CARD_RADIUS, CONTENT_PADDING, FONT_2XL, FONT_2XS, FONT_LG, FONT_MD, FONT_SM, FONT_XL, FONT_XS } from '@/constants/layout';
+import { BUTTON_HEIGHT, BUTTON_RADIUS, CARD_RADIUS, CONTENT_PADDING, FONT_2XL, FONT_2XS, FONT_LG, FONT_MD, FONT_SM, FONT_XL, FONT_XS, HAIRLINE_WIDTH } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
+import { BRAND, BRAND_TINT, CARD, HAIRLINE } from '@/constants/colors';
 
 /**
  * 콘테스트 > 진행중 — 월간 주기 최종안 (핸드오프 contest-final-mockup.html 02~03 섹션,
@@ -22,13 +23,12 @@ import { normalize } from '@/utils/normalize';
  * 분기만 하고 판정 로직은 갖지 않는다. 세그먼트/서브탭은 상위(ContestSegment) 담당.
  */
 
-const PINK = '#E31B59';
+const PINK = BRAND;
 const INK = '#000000';
 const GRAY_DISABLED = '#c7c7cc';
 
 const SUB = '#8e8e93';
-const FILL = '#f5f5f7';
-const HAIRLINE = 'rgba(0,0,0,0.07)';
+const FILL = CARD;
 
 /**
  * 진행중 탭의 출품작 그리드는 전부 미리보기다 — 전체 목록과 무한 스크롤은 ContestAllEntries가 맡는다.
@@ -144,7 +144,7 @@ function SidePill({ label, value, dots, onPress }: { label: string; value: strin
 function Footbar({ topic, state, ctaLabel, ctaIcon, onPressCta, ctaDisabled }: { topic: string; state: string; ctaLabel: string; ctaIcon?: React.ReactNode; onPressCta: () => void; ctaDisabled?: boolean }) {
   return (
     // 아래 여백은 ScrollView의 contentContainer paddingBottom이 담당한다 — 여기서 또 주면 CTA 밑에 빈 흰 영역이 남는다
-    <View style={{ margin: normalize(28), marginTop: normalize(24), marginBottom: 0, paddingTop: normalize(24), borderTopWidth: 1, borderTopColor: HAIRLINE, flexDirection: 'row', alignItems: 'center', gap: normalize(12) }}>
+    <View style={{ margin: normalize(28), marginTop: normalize(24), marginBottom: 0, paddingTop: normalize(24), borderTopWidth: HAIRLINE_WIDTH, borderTopColor: HAIRLINE, flexDirection: 'row', alignItems: 'center', gap: normalize(12) }}>
       <View style={{ flex: 1, minWidth: 0 }}>
         <Text allowFontScaling={false} numberOfLines={1} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, letterSpacing: -0.1, color: SUB }}>
           {topic}
@@ -209,7 +209,7 @@ function VoteEntryCard({ entry, votesLeft, onVote, onPress }: { entry: ContestEn
           hitSlop={8}
           accessibilityRole="button"
           accessibilityLabel={entry.voted ? '투표함' : '투표'}
-          style={{ width: normalize(28), height: normalize(28), borderRadius: normalize(14), alignItems: 'center', justifyContent: 'center', flexShrink: 0, backgroundColor: entry.voted ? 'rgba(227,27,89,0.1)' : spent ? '#e6e6ea' : PINK }}
+          style={{ width: normalize(28), height: normalize(28), borderRadius: normalize(14), alignItems: 'center', justifyContent: 'center', flexShrink: 0, backgroundColor: entry.voted ? BRAND_TINT : spent ? '#e6e6ea' : PINK }}
         >
           {entry.voted ? (
             <Check size={normalize(14)} color={PINK} strokeWidth={2.6} />
@@ -391,7 +391,7 @@ export default function ContestActiveTab({
 
           <ContestRankPanel history={rankHistory} open={rankPanelOpen} onToggle={() => setRankPanelOpen((v) => !v)} onOpenEntry={onOpenEntry} />
 
-          <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: normalize(14), borderBottomWidth: 1, borderBottomColor: HAIRLINE }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: normalize(14), borderBottomWidth: HAIRLINE_WIDTH, borderBottomColor: HAIRLINE }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', height: normalize(34), paddingLeft: CONTENT_PADDING, gap: normalize(14) }}>
               {/* 정렬은 "무엇을 보는가"라 활성색이 블랙 — CLAUDE.md 색상 규칙.
                   목업(.vote-sort.is-active)은 accent를 쓰지만 그건 목업 쪽 오류다. */}
@@ -484,7 +484,7 @@ export default function ContestActiveTab({
       {phase === 'RESULT' && (
         <>
           <View style={{ marginHorizontal: CONTENT_PADDING, marginTop: normalize(16) }}>
-            <Pressable onPress={openAward} style={{ width: '100%', padding: normalize(18), paddingHorizontal: normalize(20), borderRadius: normalize(20), backgroundColor: 'rgba(227,27,89,0.06)', flexDirection: 'row', alignItems: 'center', gap: normalize(14) }}>
+            <Pressable onPress={openAward} style={{ width: '100%', padding: normalize(18), paddingHorizontal: normalize(20), borderRadius: normalize(20), backgroundColor: BRAND_TINT, flexDirection: 'row', alignItems: 'center', gap: normalize(14) }}>
               <View style={{ width: normalize(56), height: normalize(56), borderRadius: normalize(14), backgroundColor: '#5a3355', flexShrink: 0 }} />
               <View style={{ flex: 1, minWidth: 0 }}>
                 <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, letterSpacing: -0.1, color: PINK }}>

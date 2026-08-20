@@ -2,6 +2,7 @@ import React from 'react';
 import { Modal, Pressable, Text, View } from 'react-native';
 import { FONT_MD, FONT_SM } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
+import { BRAND, CARD, SCRIM } from '@/constants/colors';
 
 interface BaseProps {
   visible: boolean;
@@ -24,7 +25,7 @@ export default function ConfirmModal({ visible, title, body, confirmLabel, onCon
   return (
     <Modal visible={visible} transparent animationType="fade" statusBarTranslucent onRequestClose={handleDismiss}>
       <Pressable
-        style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: normalize(40) }}
+        style={{ flex: 1, backgroundColor: SCRIM, alignItems: 'center', justifyContent: 'center', paddingHorizontal: normalize(40) }}
         onPress={handleDismiss}
       >
         <Pressable
@@ -41,7 +42,7 @@ export default function ConfirmModal({ visible, title, body, confirmLabel, onCon
             {cancelLabel && (
               <Pressable
                 onPress={onCancel}
-                style={{ flex: 1, height: normalize(44), borderRadius: normalize(22), backgroundColor: '#f5f5f7', alignItems: 'center', justifyContent: 'center' }}
+                style={{ flex: 1, height: normalize(44), borderRadius: normalize(22), backgroundColor: CARD, alignItems: 'center', justifyContent: 'center' }}
               >
                 <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, color: 'rgba(0,0,0,0.55)', letterSpacing: -0.2 }}>
                   {cancelLabel}
@@ -50,7 +51,7 @@ export default function ConfirmModal({ visible, title, body, confirmLabel, onCon
             )}
             <Pressable
               onPress={onConfirm}
-              style={{ flex: 1, height: normalize(44), borderRadius: normalize(22), backgroundColor: '#E31B59', alignItems: 'center', justifyContent: 'center' }}
+              style={{ flex: 1, height: normalize(44), borderRadius: normalize(22), backgroundColor: BRAND, alignItems: 'center', justifyContent: 'center' }}
             >
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, color: '#fff', letterSpacing: -0.2 }}>
                 {confirmLabel}

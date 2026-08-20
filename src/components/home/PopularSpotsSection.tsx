@@ -8,6 +8,7 @@ import BookmarkSheet from '@/components/spot/BookmarkSheet';
 import { useSpots } from '@/hooks/useSpot';
 import { useAuthStore } from '@/store/useAuthStore';
 import { mapPopularSpot } from '@/utils/spotMappers';
+import { BRAND, TEXT_SUB } from '@/constants/colors';
 
 interface Props {
   onSpotPress?: (id: string) => void;
@@ -59,7 +60,7 @@ export default function PopularSpotsSection({ onSpotPress, onViewAll }: Props) {
         <Pressable onPress={onViewAll} hitSlop={8}>
           <Text
             allowFontScaling={false}
-            style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_MD, color: '#E31B59' }}
+            style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_MD, color: BRAND }}
           >
             모두 보기
           </Text>
@@ -78,14 +79,14 @@ export default function PopularSpotsSection({ onSpotPress, onViewAll }: Props) {
         <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(14) }}>
           <Text
             allowFontScaling={false}
-            style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_MD, color: 'rgba(0,0,0,0.4)' }}
+            style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_MD, color: TEXT_SUB }}
           >
             인기 스팟을 불러오지 못했어요.
           </Text>
           <Pressable onPress={() => refetch()} hitSlop={8} style={{ marginTop: normalize(6) }}>
             <Text
               allowFontScaling={false}
-              style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, color: '#E31B59' }}
+              style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, color: BRAND }}
             >
               다시 시도
             </Text>
@@ -95,7 +96,7 @@ export default function PopularSpotsSection({ onSpotPress, onViewAll }: Props) {
         <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(14) }}>
           <Text
             allowFontScaling={false}
-            style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_MD, color: 'rgba(0,0,0,0.4)' }}
+            style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_MD, color: TEXT_SUB }}
           >
             아직 인기 스팟이 없어요.
           </Text>

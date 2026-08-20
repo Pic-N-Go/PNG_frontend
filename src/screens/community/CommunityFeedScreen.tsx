@@ -15,6 +15,7 @@ import { ContestPastMonthItem, ContestSubmitTarget, Post, PostSortApi } from '@/
 import { CONTENT_PADDING, FONT_LG, FONT_SM, FONT_2XL, FONT_2XS, GRID_PADDING } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
 import { layoutGalleryGrid } from '@/utils/galleryGrid';
+import { BRAND, CARD, TEXT_SUB } from '@/constants/colors';
 
 const GALLERY_POPULAR_COUNT = 2;
 const GALLERY_GAP = normalize(3);
@@ -33,8 +34,8 @@ const SORT_TO_API: Record<FeedSortOption, PostSortApi> = {
   저장: 'BOOKMARKED',
 };
 
-const ACCENT = '#E31B59';
-const SURFACE = '#f5f5f7';
+const ACCENT = BRAND;
+const SURFACE = CARD;
 
 type SegmentKey = 'posts' | 'gallery' | 'contest';
 
@@ -249,14 +250,14 @@ export default function CommunityFeedScreen() {
             postsState ? (
               <View className="items-center justify-center" style={{ flex: 1, gap: normalize(12), paddingHorizontal: GRID_PADDING }}>
                 {postsState === 'login' && (
-                  <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: 'rgba(0,0,0,0.4)', letterSpacing: -0.2 }}>
+                  <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: TEXT_SUB, letterSpacing: -0.2 }}>
                     로그인이 필요해요
                   </Text>
                 )}
                 {postsState === 'loading' && <ActivityIndicator color={ACCENT} />}
                 {postsState === 'error' && (
                   <>
-                    <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: 'rgba(0,0,0,0.4)', letterSpacing: -0.2 }}>
+                    <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: TEXT_SUB, letterSpacing: -0.2 }}>
                       게시글을 불러오지 못했어요
                     </Text>
                     <Pressable onPress={() => refetch()} style={{ height: normalize(34), paddingHorizontal: normalize(16), borderRadius: normalize(17), backgroundColor: SURFACE, alignItems: 'center', justifyContent: 'center' }}>
@@ -267,7 +268,7 @@ export default function CommunityFeedScreen() {
                   </>
                 )}
                 {postsState === 'empty' && (
-                  <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: 'rgba(0,0,0,0.4)', letterSpacing: -0.2 }}>
+                  <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: TEXT_SUB, letterSpacing: -0.2 }}>
                     {keyword
                       ? '검색 결과가 없어요'
                       : feedSort === '팔로잉'
@@ -301,7 +302,7 @@ export default function CommunityFeedScreen() {
                       style={{ height: normalize(44), borderRadius: normalize(22), backgroundColor: SURFACE }}
                     >
                       {isFetchingNextPage ? (
-                        <ActivityIndicator color="rgba(0,0,0,0.4)" size="small" />
+                        <ActivityIndicator color={TEXT_SUB} size="small" />
                       ) : (
                         <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, color: 'rgba(0,0,0,0.55)', letterSpacing: -0.2 }}>
                           게시글 더 보기
@@ -315,7 +316,7 @@ export default function CommunityFeedScreen() {
           )}
           {segment === 'gallery' && galleryCells.length === 0 && !isLoading && (
             <View style={{ paddingVertical: normalize(48), alignItems: 'center' }}>
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: 'rgba(0,0,0,0.4)', letterSpacing: -0.2 }}>
+              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: TEXT_SUB, letterSpacing: -0.2 }}>
                 표시할 사진이 없어요
               </Text>
             </View>

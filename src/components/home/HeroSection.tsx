@@ -6,6 +6,7 @@ import { IconBell } from '@tabler/icons-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { FONT_LG, FONT_MD, GRID_PADDING, ICON_MD } from '@/constants/layout';
+import { BRAND } from '@/constants/colors';
 
 const HERO_COLORS = ['#1a1530', '#2d1b4e', '#8b4a6b', '#d4856a', '#e8a87c', '#f0c89a'] as const;
 const HERO_LOCS = [0, 0.2, 0.45, 0.65, 0.82, 1.0] as const;
@@ -123,7 +124,7 @@ export default function HeroSection({ onNotificationPress, hasUnread }: Props) {
                 width: normalize(7),
                 height: normalize(7),
                 borderRadius: normalize(3.5),
-                backgroundColor: '#E31B59',
+                backgroundColor: BRAND,
                 borderWidth: 1.5,
                 borderColor: 'rgba(45,27,78,0.9)',
               }}

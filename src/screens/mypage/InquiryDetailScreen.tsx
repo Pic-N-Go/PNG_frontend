@@ -10,14 +10,13 @@ import Toast from '@/components/common/Toast';
 import { normalize } from '@/utils/normalize';
 import { FONT_2XS, FONT_XS, FONT_SM, FONT_MD, FONT_LG } from '@/constants/layout';
 import type { InquiryStatus } from '@/types/inquiry';
+import { BRAND, CARD, TEXT_SUB } from '@/constants/colors';
 
 type Props = NativeStackScreenProps<MyPageStackParamList, 'InquiryDetail'>;
 
-const BRAND = '#E31B59';
 const BRAND_SOFT = '#fdecf1';
-const CARD = '#f5f5f7';
-const SUB = '#8a8a8e';
-const TEXT = '#111111';
+const SUB = TEXT_SUB;
+const TEXT = '#000';
 
 export default function InquiryDetailScreen({ navigation, route }: Props) {
   const parsedId = Number(route.params?.id);
@@ -129,7 +128,7 @@ export default function InquiryDetailScreen({ navigation, route }: Props) {
                     backgroundColor: 'rgba(0,0,0,0.06)',
                   }}
                 >
-                  <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-SemiBold', color: '#4b5563' }}>
+                  <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-SemiBold', color: TEXT_SUB }}>
                     {typeLabel}
                   </Text>
                 </View>
@@ -147,7 +146,7 @@ export default function InquiryDetailScreen({ navigation, route }: Props) {
             <Text
               style={{
                 fontSize: FONT_LG,
-                fontFamily: 'Pretendard-Bold',
+                fontFamily: 'Pretendard-SemiBold',
                 color: TEXT,
                 lineHeight: normalize(26),
               }}
@@ -213,8 +212,6 @@ export default function InquiryDetailScreen({ navigation, route }: Props) {
                   backgroundColor: CARD,
                   padding: normalize(14),
                   borderRadius: normalize(14),
-                  borderWidth: 0.5,
-                  borderColor: 'rgba(0,0,0,0.05)',
                 }}
               >
                 <Text
@@ -259,7 +256,7 @@ export default function InquiryDetailScreen({ navigation, route }: Props) {
             </View>
           ) : isAnswered ? (
             <View
-              className="bg-[#f5f5f7]"
+              className="bg-card"
               style={{
                 margin: normalize(20),
                 marginTop: normalize(24),
@@ -270,7 +267,7 @@ export default function InquiryDetailScreen({ navigation, route }: Props) {
               <Text
                 style={{
                   fontSize: FONT_SM,
-                  color: '#555555',
+                  color: TEXT_SUB,
                   marginBottom: normalize(10),
                   fontFamily: 'Pretendard-Medium',
                 }}
@@ -281,7 +278,7 @@ export default function InquiryDetailScreen({ navigation, route }: Props) {
                 <Pressable
                   onPress={handleResolved}
                   disabled={resolveMutation.isPending}
-                  className="flex-1 items-center justify-center bg-white rounded-lg border border-black/5"
+                  className="flex-1 items-center justify-center bg-white rounded-lg border-[1.5px] border-black/5"
                   style={{ height: normalize(44) }}
                 >
                   {resolveMutation.isPending ? (
@@ -300,7 +297,7 @@ export default function InquiryDetailScreen({ navigation, route }: Props) {
                 </Pressable>
                 <Pressable
                   onPress={handleFollowUp}
-                  className="flex-1 items-center justify-center bg-white rounded-lg border border-black/5"
+                  className="flex-1 items-center justify-center bg-white rounded-lg border-[1.5px] border-black/5"
                   style={{ height: normalize(44) }}
                 >
                   <Text
@@ -314,7 +311,7 @@ export default function InquiryDetailScreen({ navigation, route }: Props) {
             </View>
           ) : (
             <View
-              className="bg-[#f5f5f7]"
+              className="bg-card"
               style={{
                 margin: normalize(20),
                 marginTop: normalize(24),
@@ -365,9 +362,9 @@ function StatusBadge({ status, isResolved }: { status: InquiryStatus; isResolved
   return (
     <View
       className="rounded-md"
-      style={{ paddingHorizontal: normalize(8), paddingVertical: normalize(4), backgroundColor: '#f3f4f6' }}
+      style={{ paddingHorizontal: normalize(8), paddingVertical: normalize(4), backgroundColor: CARD }}
     >
-      <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-SemiBold', color: '#8a8a8e' }}>
+      <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-SemiBold', color: TEXT_SUB }}>
         답변 대기
       </Text>
     </View>

@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { IconPhoto, IconSend } from '@tabler/icons-react-native';
 import InitialAvatar from '@/components/common/InitialAvatar';
+import { BRAND, BRAND_TINT, CARD, HAIRLINE } from '@/constants/colors';
 import {
   COMPACT_CONTROL_HEIGHT,
   COMPACT_CONTROL_RADIUS,
@@ -17,6 +18,7 @@ import {
   FONT_SM,
   FONT_XS,
   GRID_PADDING,
+  HAIRLINE_WIDTH,
 } from '@/constants/layout';
 import { useChat } from '@/hooks/useChat';
 import type { ChatConnectionStatus, ChatMessageResponse } from '@/types/chat';
@@ -75,7 +77,7 @@ function DateDivider({ label }: { label: string }) {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(10), marginVertical: normalize(4) }}>
       <View style={{ flex: 1, height: 0.5, backgroundColor: 'rgba(0,0,0,0.08)' }} />
-      <Text allowFontScaling={false} style={{ fontSize: FONT_XS, color: 'rgba(0,0,0,0.3)', letterSpacing: -0.1 }}>
+      <Text className="font-normal" allowFontScaling={false} style={{ fontSize: FONT_XS, color: 'rgba(0,0,0,0.3)', letterSpacing: -0.1 }}>
         {label}
       </Text>
       <View style={{ flex: 1, height: 0.5, backgroundColor: 'rgba(0,0,0,0.08)' }} />
@@ -102,7 +104,7 @@ function MessageBubble({
       )}
       <View style={{ maxWidth: normalize(240), alignItems: isMe ? 'flex-end' : 'flex-start', gap: normalize(4) }}>
         {!isMe && (
-          <Text allowFontScaling={false} style={{ fontSize: FONT_XS, color: 'rgba(0,0,0,0.35)', paddingHorizontal: normalize(4) }}>
+          <Text className="font-normal" allowFontScaling={false} style={{ fontSize: FONT_XS, color: 'rgba(0,0,0,0.35)', paddingHorizontal: normalize(4) }}>
             {message.senderNickname}
           </Text>
         )}
@@ -111,16 +113,16 @@ function MessageBubble({
             paddingHorizontal: normalize(14),
             paddingVertical: normalize(10),
             borderRadius: normalize(18),
-            backgroundColor: isMe ? '#E31B59' : '#F5F5F7',
+            backgroundColor: isMe ? BRAND : CARD,
             borderBottomRightRadius: isMe ? normalize(6) : normalize(18),
             borderBottomLeftRadius: isMe ? normalize(18) : normalize(6),
           }}
         >
-          <Text allowFontScaling={false} style={{ fontSize: normalizeFontSize(14), lineHeight: normalizeFontSize(14) * 1.45, letterSpacing: -0.15, color: isMe ? '#fff' : '#000' }}>
+          <Text className="font-normal" allowFontScaling={false} style={{ fontSize: normalizeFontSize(14), lineHeight: normalizeFontSize(14) * 1.45, letterSpacing: -0.15, color: isMe ? '#fff' : '#000' }}>
             {message.content}
           </Text>
         </View>
-        <Text allowFontScaling={false} style={{ fontSize: FONT_2XS, color: 'rgba(0,0,0,0.25)', paddingHorizontal: normalize(4) }}>
+        <Text className="font-normal" allowFontScaling={false} style={{ fontSize: FONT_2XS, color: 'rgba(0,0,0,0.25)', paddingHorizontal: normalize(4) }}>
           {formatTime(message.createdAt)}
         </Text>
       </View>
@@ -157,6 +159,7 @@ export default function ChatTab({ spotId, spotName, onFocusChange }: Props) {
           {showDate && <DateDivider label={formatDate(message.createdAt)} />}
           {index === 0 && (
             <Text
+              className="font-normal"
               allowFontScaling={false}
               style={{ alignSelf: 'center', fontSize: FONT_XS, color: 'rgba(0,0,0,0.3)', backgroundColor: 'rgba(0,0,0,0.04)', borderRadius: normalize(10), paddingHorizontal: normalize(14), paddingVertical: normalize(6) }}
             >
@@ -183,7 +186,7 @@ export default function ChatTab({ spotId, spotName, onFocusChange }: Props) {
 
   return (
     <View style={{ flex: 1 }}>
-      <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(14), paddingBottom: normalize(12), borderBottomWidth: 0.5, borderBottomColor: 'rgba(0,0,0,0.06)' }}>
+      <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(14), paddingBottom: normalize(12), borderBottomWidth: HAIRLINE_WIDTH, borderBottomColor: HAIRLINE }}>
         <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, color: '#000', letterSpacing: -0.2 }}>
           {spotName} 채팅방
         </Text>
@@ -196,7 +199,7 @@ export default function ChatTab({ spotId, spotName, onFocusChange }: Props) {
               backgroundColor: connectionStatus === 'connected' ? '#34c759' : '#B3B3B3',
             }}
           />
-          <Text allowFontScaling={false} style={{ fontSize: FONT_XS, color: 'rgba(0,0,0,0.35)' }}>
+          <Text className="font-normal" allowFontScaling={false} style={{ fontSize: FONT_XS, color: 'rgba(0,0,0,0.35)' }}>
             {connectionMeta(connectionStatus, participantCount)}
           </Text>
         </View>
@@ -210,16 +213,16 @@ export default function ChatTab({ spotId, spotName, onFocusChange }: Props) {
       >
         {isLoading && messages.length === 0 ? (
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-            <ActivityIndicator color="#E31B59" />
+            <ActivityIndicator color={BRAND} />
           </View>
         ) : messages.length === 0 ? (
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: normalize(10) }}>
-            <Text allowFontScaling={false} style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.35)' }}>
+            <Text className="font-normal" allowFontScaling={false} style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.35)' }}>
               아직 등록된 메시지가 없어요.
             </Text>
             {isHistoryError && (
               <Pressable onPress={() => void refetch()} hitSlop={8}>
-                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, color: '#E31B59' }}>
+                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, color: BRAND }}>
                   다시 불러오기
                 </Text>
               </Pressable>
@@ -237,11 +240,12 @@ export default function ChatTab({ spotId, spotName, onFocusChange }: Props) {
               gap: normalize(10),
               paddingHorizontal: normalize(12),
               paddingVertical: normalize(10),
-              backgroundColor: 'rgba(227,27,89,0.06)',
+              backgroundColor: BRAND_TINT,
               borderRadius: normalize(10),
             }}
           >
             <Text
+              className="font-normal"
               allowFontScaling={false}
               style={{ flex: 1, fontSize: FONT_XS, color: 'rgba(0,0,0,0.5)' }}
             >
@@ -250,7 +254,7 @@ export default function ChatTab({ spotId, spotName, onFocusChange }: Props) {
             <Pressable onPress={() => void refetch()} hitSlop={8}>
               <Text
                 allowFontScaling={false}
-                style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, color: '#E31B59' }}
+                style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, color: BRAND }}
               >
                 다시 시도
               </Text>
@@ -259,14 +263,14 @@ export default function ChatTab({ spotId, spotName, onFocusChange }: Props) {
         )}
 
         {!!connectionError && (
-          <Text allowFontScaling={false} style={{ alignSelf: 'center', fontSize: FONT_XS, color: '#E31B59', textAlign: 'center' }}>
+          <Text className="font-normal" allowFontScaling={false} style={{ alignSelf: 'center', fontSize: FONT_XS, color: BRAND, textAlign: 'center' }}>
             {connectionError}
           </Text>
         )}
       </ScrollView>
 
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(10), paddingHorizontal: normalize(16), paddingTop: normalize(10), paddingBottom: normalize(16), borderTopWidth: 0.5, borderTopColor: 'rgba(0,0,0,0.06)' }}>
-        <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: normalize(8), backgroundColor: '#F5F5F7', borderRadius: COMPACT_CONTROL_RADIUS, paddingHorizontal: normalize(14), height: COMPACT_CONTROL_HEIGHT }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(10), paddingHorizontal: normalize(16), paddingTop: normalize(10), paddingBottom: normalize(16), borderTopWidth: HAIRLINE_WIDTH, borderTopColor: HAIRLINE }}>
+        <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: normalize(8), backgroundColor: CARD, borderRadius: COMPACT_CONTROL_RADIUS, paddingHorizontal: normalize(14), height: COMPACT_CONTROL_HEIGHT }}>
           <IconPhoto size={normalize(20)} color="#B3B3B3" strokeWidth={2} opacity={0.55} />
           <TextInput
             value={input}
@@ -280,7 +284,7 @@ export default function ChatTab({ spotId, spotName, onFocusChange }: Props) {
             onSubmitEditing={handleSend}
             onFocus={() => onFocusChange?.(true)}
             onBlur={() => onFocusChange?.(false)}
-            style={{ flex: 1, fontSize: normalizeFontSize(14), color: '#000', letterSpacing: -0.15 }}
+            style={{ flex: 1, fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(14), color: '#000', letterSpacing: -0.15 }}
           />
         </View>
         <Pressable
@@ -288,7 +292,7 @@ export default function ChatTab({ spotId, spotName, onFocusChange }: Props) {
           accessibilityLabel="메시지 전송"
           disabled={!canSend}
           onPress={handleSend}
-          style={{ width: COMPACT_CONTROL_HEIGHT, height: COMPACT_CONTROL_HEIGHT, borderRadius: COMPACT_CONTROL_RADIUS, backgroundColor: '#E31B59', opacity: canSend ? 1 : 0.4, alignItems: 'center', justifyContent: 'center' }}
+          style={{ width: COMPACT_CONTROL_HEIGHT, height: COMPACT_CONTROL_HEIGHT, borderRadius: COMPACT_CONTROL_RADIUS, backgroundColor: BRAND, opacity: canSend ? 1 : 0.4, alignItems: 'center', justifyContent: 'center' }}
         >
           <IconSend size={normalize(18)} color="#fff" strokeWidth={2} />
         </Pressable>

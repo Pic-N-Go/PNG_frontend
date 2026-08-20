@@ -2,10 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Modal, Animated, Pressable, PanResponder, TextInput, Platform, Keyboard, Alert, ActivityIndicator } from 'react-native';
 import { IconCamera, IconAperture, IconChevronRight, IconX, IconTrash } from '@tabler/icons-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { FONT_SM, FONT_XS } from '@/constants/layout';
+import { BORDER_CONTROL, CARD_RADIUS, EMPTY_CARD_HEIGHT, FONT_SM, FONT_XS, GRID_PADDING, HAIRLINE_WIDTH } from '@/constants/layout';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCreateEquipment, useDeleteEquipment, useMyEquipments } from '@/hooks/useEquipment';
 import { toErrorMessage } from '@/api/auth';
+import { BRAND, BRAND_TINT, CARD, HAIRLINE, SCRIM, TEXT_SUB } from '@/constants/colors';
 
 // 서버 EquipmentType은 CAMERA·LENS 둘뿐이다. 목업에 있던 "드론"은 저장할 곳이 없어 뺐다.
 const CATEGORIES = [
@@ -113,6 +114,14 @@ export default function EquipmentSection() {
     }).start();
   };
 
+  // 빈 상태 카드 탭은 '탭하여 추가' 문구대로 추가 폼까지 바로 연다.
+  // 관리 버튼(목록 모드)과 역할을 나누기 위한 것이므로 openSheet를 그대로 쓰지 않는다.
+  // 인자 있는 형태로 만들면 onPress가 이벤트 객체를 넘겨 오작동하므로 핸들러를 분리한다.
+  const openSheetForAdd = () => {
+    setIsAdding(true);
+    openSheet();
+  };
+
   const closeSheet = () => {
     Keyboard.dismiss();
     Animated.timing(translateY, {
@@ -155,23 +164,13 @@ export default function EquipmentSection() {
   );
 
   return (
-    <View className="mb-10 px-5">
-      <View className="flex-row justify-between items-baseline mb-3">
+    <View className="mb-10" style={{ paddingHorizontal: GRID_PADDING }}>
+      <View className="flex-row justify-between items-center mb-3">
         <Text className="font-semibold tracking-tight text-black" style={{ fontSize: normalizeFontSize(20) }}>
           내 장비
         </Text>
-        <TouchableOpacity
-          style={{
-            height: normalize(26),
-            paddingHorizontal: normalize(14),
-            borderRadius: normalize(13),
-            backgroundColor: 'rgba(227, 27, 89, 0.08)',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-          onPress={openSheet}
-        >
-          <Text className="font-medium tracking-tight" style={{ fontSize: normalizeFontSize(12), color: '#e31b59' }}>
+        <TouchableOpacity onPress={openSheet}>
+          <Text className="tracking-tight font-normal" style={{ fontSize: FONT_SM, color: BRAND }}>
             관리
           </Text>
         </TouchableOpacity>
@@ -179,20 +178,20 @@ export default function EquipmentSection() {
 
       <View
         style={{
-          borderRadius: normalize(16),
-          backgroundColor: '#f8f8f9',
+          borderRadius: CARD_RADIUS,
+          backgroundColor: CARD,
           overflow: 'hidden',
         }}
       >
         {isLoading && (
           <View style={{ paddingVertical: normalize(28) }}>
-            <ActivityIndicator color="#e31b59" />
+            <ActivityIndicator color={BRAND} />
           </View>
         )}
 
         {!isLoading && isError && (
           <Text
-            className="text-center tracking-tight"
+            className="text-center tracking-tight font-normal"
             style={{ paddingVertical: normalize(24), fontSize: FONT_SM, color: 'rgba(0,0,0,0.35)' }}
           >
             장비를 불러오지 못했어요
@@ -200,8 +199,11 @@ export default function EquipmentSection() {
         )}
 
         {!isLoading && !isError && items.length === 0 && (
-          <TouchableOpacity onPress={openSheet} style={{ paddingVertical: normalize(24), alignItems: 'center' }}>
-            <Text className="tracking-tight" style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.3)' }}>
+          <TouchableOpacity
+            onPress={openSheetForAdd}
+            style={{ height: EMPTY_CARD_HEIGHT, alignItems: 'center', justifyContent: 'center' }}
+          >
+            <Text className="tracking-tight font-normal" style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.3)' }}>
               등록한 장비가 없어요 · 탭하여 추가
             </Text>
           </TouchableOpacity>
@@ -216,8 +218,8 @@ export default function EquipmentSection() {
               alignItems: 'center',
               paddingHorizontal: normalize(16),
               paddingVertical: normalize(14),
-              borderTopWidth: index > 0 ? 0.5 : 0,
-              borderTopColor: 'rgba(0,0,0,0.04)',
+              borderTopWidth: index > 0 ? HAIRLINE_WIDTH : 0,
+              borderTopColor: HAIRLINE,
               gap: normalize(12),
             }}
           >
@@ -232,16 +234,16 @@ export default function EquipmentSection() {
               }}
             >
               {item.isCamera ? (
-                <IconCamera size={normalize(18)} color="rgba(0,0,0,0.4)" strokeWidth={1.5} />
+                <IconCamera size={normalize(18)} color={TEXT_SUB} strokeWidth={1.5} />
               ) : (
-                <IconAperture size={normalize(18)} color="rgba(0,0,0,0.4)" strokeWidth={1.5} />
+                <IconAperture size={normalize(18)} color={TEXT_SUB} strokeWidth={1.5} />
               )}
             </View>
             <View style={{ flex: 1 }}>
               <Text className="font-medium text-black tracking-tight" style={{ fontSize: normalizeFontSize(15), marginBottom: normalize(1) }}>
                 {item.name}
               </Text>
-              <Text className="tracking-tight" style={{ fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.35)' }}>
+              <Text className="tracking-tight font-normal" style={{ fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.35)' }}>
                 {item.type}{item.desc ? ` · ${item.desc}` : ''}
               </Text>
             </View>
@@ -260,7 +262,7 @@ export default function EquipmentSection() {
 
       <Modal transparent visible={sheetVisible} animationType="none" onRequestClose={handleOverlayPress}>
         <View style={{ flex: 1 }}>
-          <Pressable style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(0,0,0,0.4)' }} onPress={handleOverlayPress} />
+          <Pressable style={{ position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, backgroundColor: SCRIM }} onPress={handleOverlayPress} />
           <Animated.View
             {...panResponder.panHandlers}
             style={{
@@ -280,7 +282,7 @@ export default function EquipmentSection() {
               <View style={{ width: normalize(36), height: normalize(5), borderRadius: normalize(2.5), backgroundColor: 'rgba(0,0,0,0.1)' }} />
             </View>
             
-            <View className="flex-row items-center justify-between px-5 pb-3">
+            <View className="flex-row items-center justify-between pb-3" style={{ paddingHorizontal: GRID_PADDING }}>
               <Text className="font-semibold tracking-tight text-black" style={{ fontSize: normalizeFontSize(20) }}>
                 내 장비
               </Text>
@@ -290,7 +292,7 @@ export default function EquipmentSection() {
                   width: normalize(32),
                   height: normalize(32),
                   borderRadius: normalize(16),
-                  backgroundColor: '#f5f5f7',
+                  backgroundColor: CARD,
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
@@ -299,7 +301,7 @@ export default function EquipmentSection() {
               </TouchableOpacity>
             </View>
 
-            <View style={{ paddingHorizontal: normalize(20) }}>
+            <View style={{ paddingHorizontal: GRID_PADDING }}>
               {items.map((item, index) => (
                 <View
                   key={item.id}
@@ -307,8 +309,8 @@ export default function EquipmentSection() {
                     flexDirection: 'row',
                     alignItems: 'center',
                     paddingVertical: normalize(12),
-                    borderBottomWidth: index < items.length - 1 ? 0.5 : 0,
-                    borderBottomColor: 'rgba(0,0,0,0.05)',
+                    borderBottomWidth: index < items.length - 1 ? HAIRLINE_WIDTH : 0,
+                    borderBottomColor: HAIRLINE,
                     gap: normalize(12),
                   }}
                 >
@@ -317,7 +319,7 @@ export default function EquipmentSection() {
                       width: normalize(36),
                       height: normalize(36),
                       borderRadius: normalize(10),
-                      backgroundColor: '#f5f5f7',
+                      backgroundColor: CARD,
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
@@ -339,7 +341,7 @@ export default function EquipmentSection() {
                           paddingHorizontal: normalize(8),
                           borderRadius: normalize(9),
                           marginLeft: normalize(6),
-                          backgroundColor: item.isCamera ? 'rgba(0,0,0,0.06)' : 'rgba(227, 27, 89, 0.08)',
+                          backgroundColor: item.isCamera ? 'rgba(0,0,0,0.06)' : BRAND_TINT,
                           alignItems: 'center',
                           justifyContent: 'center',
                         }}
@@ -348,14 +350,14 @@ export default function EquipmentSection() {
                           className="font-medium tracking-tight"
                           style={{
                             fontSize: normalizeFontSize(10),
-                            color: item.isCamera ? 'rgba(0,0,0,0.4)' : '#e31b59',
+                            color: item.isCamera ? TEXT_SUB : BRAND,
                           }}
                         >
                           {item.type}
                         </Text>
                       </View>
                     </View>
-                    <Text className="tracking-tight" style={{ fontSize: FONT_XS, color: 'rgba(0,0,0,0.35)' }}>
+                    <Text className="tracking-tight font-normal" style={{ fontSize: FONT_XS, color: 'rgba(0,0,0,0.35)' }}>
                       {item.desc}
                     </Text>
                   </View>
@@ -366,18 +368,21 @@ export default function EquipmentSection() {
                       width: normalize(32),
                       height: normalize(32),
                       borderRadius: normalize(16),
-                      backgroundColor: 'rgba(227, 27, 89, 0.08)',
+                      backgroundColor: BRAND_TINT,
                       alignItems: 'center',
                       justifyContent: 'center',
                       opacity: deleteEquipment.isPending && deleteEquipment.variables === item.id ? 0.4 : 1,
                     }}
                   >
-                    <IconTrash size={normalize(18)} color="#e31b59" strokeWidth={1.5} />
+                    <IconTrash size={normalize(18)} color={BRAND} strokeWidth={1.5} />
                   </TouchableOpacity>
                 </View>
               ))}
               
-              <View style={{ marginTop: normalize(20) }}>
+              {/* 추가 폼과 '+ 장비 추가하기' 버튼이 번갈아 들어가는 자리.
+                  높이를 고정하지 않으면 상태를 바꿀 때 시트 높이가 튄다.
+                  ponytail: 폼 실측값(칩 33 + 간격 12 + 입력 44). 폼 구성이 바뀌면 같이 고칠 것 */}
+              <View style={{ marginTop: normalize(20), minHeight: normalize(89), justifyContent: 'center' }}>
                 {isAdding ? (
                   <>
                     <View style={{ flexDirection: 'row', gap: normalize(8), marginBottom: normalize(12) }}>
@@ -389,14 +394,14 @@ export default function EquipmentSection() {
                             paddingHorizontal: normalize(16),
                             paddingVertical: normalize(8),
                             borderRadius: normalize(16),
-                            backgroundColor: selectedCategory === cat.type ? '#000' : '#f5f5f7',
+                            backgroundColor: selectedCategory === cat.type ? '#000' : CARD,
                           }}
                         >
                           <Text
                             className="font-medium tracking-tight"
                             style={{
                               fontSize: normalizeFontSize(13),
-                              color: selectedCategory === cat.type ? '#fff' : 'rgba(0,0,0,0.4)',
+                              color: selectedCategory === cat.type ? '#fff' : TEXT_SUB,
                             }}
                           >
                             {cat.label}
@@ -416,10 +421,11 @@ export default function EquipmentSection() {
                         style={{
                           flex: 1,
                           height: normalize(44),
-                          borderWidth: 1,
-                          borderColor: isFocused || newEquipmentName ? '#e31b59' : 'rgba(0,0,0,0.1)',
+                          borderWidth: BORDER_CONTROL,
+                          borderColor: isFocused || newEquipmentName ? BRAND : 'rgba(0,0,0,0.1)',
                           borderRadius: normalize(12),
                           paddingHorizontal: normalize(14),
+                          fontFamily: 'Pretendard-Regular',
                           fontSize: normalizeFontSize(14),
                           color: '#000',
                         }}
@@ -431,7 +437,7 @@ export default function EquipmentSection() {
                           height: normalize(44),
                           paddingHorizontal: normalize(20),
                           borderRadius: normalize(12),
-                          backgroundColor: '#e31b59',
+                          backgroundColor: BRAND,
                           alignItems: 'center',
                           justifyContent: 'center',
                           opacity: !newEquipmentName.trim() || createEquipment.isPending ? 0.35 : 1,
@@ -450,7 +456,7 @@ export default function EquipmentSection() {
                     style={{
                       height: normalize(44),
                       borderRadius: normalize(22),
-                      borderWidth: 1,
+                      borderWidth: BORDER_CONTROL,
                       borderColor: 'rgba(0,0,0,0.1)',
                       borderStyle: 'dashed',
                       alignItems: 'center',

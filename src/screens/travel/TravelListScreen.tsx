@@ -3,11 +3,12 @@ import { View, Text, TouchableOpacity, ScrollView, Animated, Image } from 'react
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FONT_SM, FONT_MD, FONT_LG, FONT_2XL, BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING, CARD_RADIUS, ICON_SM } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { IconPlus, IconChevronRight, IconCalendarEvent, IconMapPin, IconClock, IconRoute, IconMap, IconAlertCircle } from '@tabler/icons-react-native';
+import { IconPlus, IconChevronRight, IconCalendarEvent, IconMapPin, IconClock, IconRoute, IconAlertCircle } from '@tabler/icons-react-native';
 import Skeleton from '@/components/common/Skeleton';
 import { useQuery } from '@tanstack/react-query';
 import { useFocusEffect } from '@react-navigation/native';
 import { coursesApi } from '@/api/courses';
+import { BRAND, BRAND_TINT } from '@/constants/colors';
 
 const TABS = [
   { id: 'all', label: '전체' },
@@ -138,7 +139,7 @@ export default function TravelListScreen({ navigation }: any) {
           style={{ opacity: compactTitleOpacity }}
           className="font-semibold text-black tracking-tight"
         >
-          <Text style={{ fontSize: normalizeFontSize(18) }}>출사 계획</Text>
+          <Text className="font-normal" style={{ fontSize: normalizeFontSize(18) }}>출사 계획</Text>
         </Animated.Text>
       </View>
 
@@ -176,7 +177,7 @@ export default function TravelListScreen({ navigation }: any) {
               className="items-center justify-center"
               style={{ width: normalize(32), height: normalize(32) }}
             >
-              <IconPlus size={normalize(22)} color="#E31B59" />
+              <IconPlus size={normalize(22)} color={BRAND} />
             </TouchableOpacity>
           )}
         </Animated.View>
@@ -198,14 +199,14 @@ export default function TravelListScreen({ navigation }: any) {
                     key={tab.id}
                     onPress={() => handleTabPress(tab.id)}
                     className={`flex-row items-center rounded-full ${
-                      isActive ? 'bg-[#E31B59]' : 'bg-[#f5f5f7]'
+                      isActive ? 'bg-brand' : 'bg-card'
                     }`}
                     style={{ height: normalize(32), paddingHorizontal: normalize(14) }}
                   >
-                    <Text className={`font-medium ${isActive ? 'text-white' : 'text-black/40'}`} style={{ fontSize: FONT_SM }}>
+                    <Text className={`font-medium ${isActive ? 'text-white' : 'text-sub'}`} style={{ fontSize: FONT_SM }}>
                       {tab.label}
                     </Text>
-                    <Text className={`font-semibold ml-1 ${isActive ? 'text-white' : 'text-black/40'}`} style={{ fontSize: normalizeFontSize(12) }}>
+                    <Text className={`font-semibold ml-1 ${isActive ? 'text-white' : 'text-sub'}`} style={{ fontSize: normalizeFontSize(12) }}>
                       {count}
                     </Text>
                   </TouchableOpacity>
@@ -244,12 +245,12 @@ export default function TravelListScreen({ navigation }: any) {
                 width: normalize(72),
                 height: normalize(72),
                 borderRadius: normalize(20),
-                backgroundColor: 'rgba(227,27,89,0.07)',
+                backgroundColor: BRAND_TINT,
               }}
             >
               {isLoadingError
-                ? <IconAlertCircle size={normalize(34)} color="#E31B59" strokeWidth={1.5} />
-                : <IconMap size={normalize(34)} color="#E31B59" strokeWidth={1.5} />}
+                ? <IconAlertCircle size={normalize(34)} color={BRAND} strokeWidth={1.5} />
+                : <IconRoute size={normalize(34)} color={BRAND} strokeWidth={1.5} />}
             </View>
 
             <Text
@@ -287,7 +288,7 @@ export default function TravelListScreen({ navigation }: any) {
                 marginTop: normalize(24),
                 height: BUTTON_HEIGHT,
                 borderRadius: BUTTON_RADIUS,
-                backgroundColor: '#E31B59',
+                backgroundColor: BRAND,
                 gap: normalize(6),
               }}
             >
@@ -322,7 +323,7 @@ export default function TravelListScreen({ navigation }: any) {
             >
               <Text
                 allowFontScaling={false}
-                style={{ fontSize: FONT_MD, fontFamily: 'Pretendard-SemiBold', color: '#E31B59', letterSpacing: -0.2 }}
+                style={{ fontSize: FONT_MD, fontFamily: 'Pretendard-SemiBold', color: BRAND, letterSpacing: -0.2 }}
               >
                 전체 보기
               </Text>
@@ -337,7 +338,7 @@ export default function TravelListScreen({ navigation }: any) {
                 key={plan.id}
                 activeOpacity={0.9}
                 onPress={() => handlePlanDetail(plan.id)}
-                className="bg-[#f5f5f7] overflow-hidden mb-5"
+                className="bg-card overflow-hidden mb-5"
                 style={{ borderRadius: CARD_RADIUS }}
               >
                 {/* 썸네일 영역 */}
@@ -353,8 +354,16 @@ export default function TravelListScreen({ navigation }: any) {
                       </View>
                     ))
                   ) : (
-                    <View className="flex-1 items-center justify-center bg-[#f5f5f7]">
-                      <IconMapPin size={normalize(24)} color="rgba(0,0,0,0.1)" />
+                    // 출사 상세의 지도 빈 상태와 같은 표현을 쓴다
+                    <View className="flex-1 items-center justify-center bg-card" style={{ gap: normalize(8) }}>
+                      <IconRoute size={normalize(26)} color="rgba(0,0,0,0.2)" strokeWidth={1.5} />
+                      <Text
+                        allowFontScaling={false}
+                        className="font-normal tracking-tight"
+                        style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.3)' }}
+                      >
+                        표시할 경로가 없어요
+                      </Text>
                     </View>
                   )}
 
@@ -364,7 +373,7 @@ export default function TravelListScreen({ navigation }: any) {
                       plan.status === 'active'
                         ? 'bg-[#34C759]'
                         : plan.status === 'upcoming'
-                        ? 'bg-[#E31B59]'
+                        ? 'bg-brand'
                         : 'bg-black/30'
                     }`}
                     style={{ height: normalize(22), paddingHorizontal: normalize(10) }}
@@ -389,7 +398,7 @@ export default function TravelListScreen({ navigation }: any) {
                   
                   <View className="flex-row items-center mb-3">
                     <IconCalendarEvent size={normalize(12)} color="rgba(0,0,0,0.3)" />
-                    <Text className="text-black/40 ml-1" style={{ fontSize: normalizeFontSize(12) }}>
+                    <Text className="text-sub ml-1 font-normal" style={{ fontSize: normalizeFontSize(12) }}>
                       {plan.date} · {plan.duration}
                     </Text>
                   </View>
@@ -397,15 +406,15 @@ export default function TravelListScreen({ navigation }: any) {
                   <View className="flex-row items-center gap-x-3">
                     <View className="flex-row items-center">
                       <IconMapPin size={normalize(12)} color="rgba(0,0,0,0.3)" />
-                      <Text className="text-black/40 ml-1" style={{ fontSize: normalizeFontSize(12) }}>포토스팟 {plan.spots}곳</Text>
+                      <Text className="text-sub ml-1 font-normal" style={{ fontSize: normalizeFontSize(12) }}>포토스팟 {plan.spots}곳</Text>
                     </View>
                     <View className="flex-row items-center">
                       <IconClock size={normalize(12)} color="rgba(0,0,0,0.3)" />
-                      <Text className="text-black/40 ml-1" style={{ fontSize: normalizeFontSize(12) }}>{plan.estimatedTime}</Text>
+                      <Text className="text-sub ml-1 font-normal" style={{ fontSize: normalizeFontSize(12) }}>{plan.estimatedTime}</Text>
                     </View>
                     <View className="flex-row items-center">
                       <IconRoute size={normalize(12)} color="rgba(0,0,0,0.3)" />
-                      <Text className="text-black/40 ml-1" style={{ fontSize: normalizeFontSize(12) }}>{plan.distance}</Text>
+                      <Text className="text-sub ml-1 font-normal" style={{ fontSize: normalizeFontSize(12) }}>{plan.distance}</Text>
                     </View>
                   </View>
                 </View>

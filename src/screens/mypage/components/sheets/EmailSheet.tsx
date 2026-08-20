@@ -4,6 +4,7 @@ import BottomSheet from '@/components/common/BottomSheet';
 import { IconX } from '@tabler/icons-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { FONT_MD, BUTTON_HEIGHT, BUTTON_RADIUS } from '@/constants/layout';
+import { CARD, TEXT_SUB } from '@/constants/colors';
 
 interface EmailSheetProps {
   visible: boolean;
@@ -22,12 +23,12 @@ export default function EmailSheet({ visible, onClose, onSendAuth }: EmailSheetP
             이메일 변경
           </Text>
           <TouchableOpacity onPress={onClose} style={{ padding: normalize(4) }}>
-            <IconX size={normalize(24)} color="rgba(0,0,0,0.4)" strokeWidth={2} />
+            <IconX size={normalize(24)} color={TEXT_SUB} strokeWidth={2} />
           </TouchableOpacity>
         </View>
 
         <View style={{ marginBottom: normalize(14) }}>
-          <Text className="font-medium tracking-tight mb-1.5" style={{ fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.4)' }}>
+          <Text className="font-medium tracking-tight mb-1.5" style={{ fontSize: normalizeFontSize(12), color: TEXT_SUB }}>
             새 이메일
           </Text>
           <TextInput
@@ -38,8 +39,9 @@ export default function EmailSheet({ visible, onClose, onSendAuth }: EmailSheetP
             style={{
               height: BUTTON_HEIGHT,
               borderRadius: normalize(12),
-              backgroundColor: '#f8f8f9',
+              backgroundColor: CARD,
               paddingHorizontal: normalize(14),
+              fontFamily: 'Pretendard-Regular',
               fontSize: FONT_MD,
               color: '#000',
             }}
@@ -47,7 +49,7 @@ export default function EmailSheet({ visible, onClose, onSendAuth }: EmailSheetP
         </View>
 
         <View style={{ marginBottom: normalize(14) }}>
-          <Text className="font-medium tracking-tight mb-1.5" style={{ fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.4)' }}>
+          <Text className="font-medium tracking-tight mb-1.5" style={{ fontSize: normalizeFontSize(12), color: TEXT_SUB }}>
             비밀번호 확인
           </Text>
           <TextInput
@@ -59,21 +61,22 @@ export default function EmailSheet({ visible, onClose, onSendAuth }: EmailSheetP
             style={{
               height: BUTTON_HEIGHT,
               borderRadius: normalize(12),
-              backgroundColor: '#f8f8f9',
+              backgroundColor: CARD,
               paddingHorizontal: normalize(14),
+              fontFamily: 'Pretendard-Regular',
               fontSize: FONT_MD,
               color: '#000',
             }}
           />
         </View>
 
-        <Text className="tracking-tight mt-1" style={{ fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.35)', lineHeight: normalize(18) }}>
+        <Text className="tracking-tight mt-1 font-normal" style={{ fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.35)', lineHeight: normalize(18) }}>
           변경 후 새 이메일로 인증 메일이 발송돼요.
         </Text>
 
         <TouchableOpacity
           onPress={() => onSendAuth(email, password)}
-          className="w-full items-center justify-center bg-[#E31B59] mt-3"
+          className="w-full items-center justify-center bg-brand mt-3"
           style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}
         >
           <Text className="font-medium text-white tracking-tight" style={{ fontSize: FONT_MD }}>

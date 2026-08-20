@@ -2,16 +2,17 @@ import React from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import Svg, { Circle, Polyline } from 'react-native-svg';
 import { ContestInfo, ContestPhase } from '@/types/community';
-import { CONTENT_PADDING, FONT_2XS, FONT_MD, FONT_SM, FONT_XL, FONT_XS } from '@/constants/layout';
+import { CONTENT_PADDING, FONT_2XS, FONT_MD, FONT_SM, FONT_XL, FONT_XS, HAIRLINE_WIDTH } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
+import { BRAND, BRAND_TINT, CARD, HAIRLINE } from '@/constants/colors';
 
 /**
  * 콘테스트 > 내 출품 — 시안 8a(기록 있음)·8b(기록 없음). 캡션 수정·출품 취소는 폐기됐고
  * (사진·설명 수정 불가, 삭제는 진행중 탭 "내 출품작" 시트에서 처리), 이 탭은 순수 통계 화면이다.
  */
 
-const ACCENT = '#E31B59';
-const SURFACE = '#f5f5f7';
+const ACCENT = BRAND;
+const SURFACE = CARD;
 
 interface HistoryItem {
   id: string;
@@ -76,7 +77,7 @@ function HistoryRow({ item, onPress }: { item: HistoryItem; onPress: () => void 
           alignItems: 'center',
           justifyContent: 'center',
           flexShrink: 0,
-          backgroundColor: item.kind === 'award' ? 'rgba(227,27,89,0.1)' : SURFACE,
+          backgroundColor: item.kind === 'award' ? BRAND_TINT : SURFACE,
         }}
       >
         <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, letterSpacing: -0.1, color: item.kind === 'award' ? ACCENT : item.kind === 'pending' ? '#8e8e93' : '#000' }}>
@@ -165,7 +166,7 @@ export default function ContestMyEntryTab({ phase, contest, entryCount, maxEntri
           </View>
         </View>
 
-        <View style={{ marginTop: normalize(18), paddingTop: normalize(18), borderTopWidth: 1, borderTopColor: 'rgba(0,0,0,0.07)' }}>
+        <View style={{ marginTop: normalize(18), paddingTop: normalize(18), borderTopWidth: HAIRLINE_WIDTH, borderTopColor: HAIRLINE }}>
           {/* 배지가 그래프 위로 12 올라오므로 제목과 부딪히지 않게 여백을 그만큼 더 준다 */}
           <View style={{ flexDirection: 'row', alignItems: 'baseline', marginBottom: normalize(20) }}>
             <Text allowFontScaling={false} style={{ flex: 1, fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, letterSpacing: -0.2, color: '#000' }}>
@@ -209,7 +210,7 @@ export default function ContestMyEntryTab({ phase, contest, entryCount, maxEntri
                 height: normalize(22),
                 paddingHorizontal: normalize(8),
                 borderRadius: normalize(11),
-                backgroundColor: 'rgba(227,27,89,0.1)',
+                backgroundColor: BRAND_TINT,
                 alignItems: 'center',
                 justifyContent: 'center',
               }}

@@ -29,6 +29,8 @@
 
 - NativeWind `className` 사용
 - `StyleSheet.create()` 사용 금지
+- **색·테두리·그림자는 하드코딩 금지, 토큰만 사용** (`bg-brand` `bg-card` `text-sub` `border-hairline` / `BRAND` `CARD` `TEXT_SUB` `HAIRLINE`)
+  - 단일 소스: `src/constants/colors.json` → 상세는 `docs/guide/dev/design-tokens.md`
 - 디자인 기준:
   - 브랜드 색상: `#E31B59`
     - 핑크: 화면 전환·데이터 변경 (CTA, 하단 탭바 활성, 언더라인 탭 활성, 포커스 보더, 좋아요·팔로우)
@@ -40,7 +42,9 @@
   - 인풋 높이: 52px
   - 카드 radius: 16px
   - 콘텐츠 좌우 패딩: 28px (그리드 20px)
-- 폰트: Pretendard Variable, 최대 600 weight
+- 폰트: Pretendard 3웨이트(`Regular`/`Medium`/`SemiBold`), 최대 600 weight
+  - `PretendardVariable`은 쓰지 않음 (로드되지 않으며 파일도 없음)
+  - `fontWeight` 사용 금지 — RN은 웨이트별로 패밀리가 갈린다. `font-*` 유틸리티가 패밀리 지정으로 재정의돼 있음
 - 이모지 금지
 
 ---

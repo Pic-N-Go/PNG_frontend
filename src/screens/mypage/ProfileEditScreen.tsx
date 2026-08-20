@@ -14,11 +14,11 @@ import * as ImagePicker from 'expo-image-picker';
 import type { ProfileImageUpload } from '@/types/user';
 import Avatar from '@/components/common/Avatar';
 import { NICK_MAX, NICK_HELP as NICK_HELP_TEXT, nicknameError } from '@/constants/validation';
+import { BRAND, CARD, TEXT_SUB } from '@/constants/colors';
 
 type Props = NativeStackScreenProps<MyPageStackParamList, 'ProfileEdit'>;
 
-const BRAND = '#E31B59';
-const SUB = '#8a8a8e';
+const SUB = TEXT_SUB;
 const OK = '#5a9855';
 const ERR = '#ff453a';
 const BIO_MAX = 100;
@@ -249,7 +249,7 @@ export default function ProfileEditScreen({ navigation }: Props) {
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right']}>
       {/* Nav */}
-      <View className="flex-row items-center border-b border-black/5" style={{ height: normalize(54), paddingHorizontal: normalize(12) }}>
+      <View className="flex-row items-center border-b-[0.5px] border-hairline" style={{ height: normalize(54), paddingHorizontal: normalize(12) }}>
         <Pressable onPress={() => navigation.goBack()} hitSlop={8} className="items-center justify-center" style={{ width: normalize(40), height: normalize(40) }}>
           <IconChevronLeft size={normalize(22)} color="#000" strokeWidth={2} />
         </Pressable>
@@ -293,8 +293,8 @@ export default function ProfileEditScreen({ navigation }: Props) {
                   value={nick}
                   onChangeText={(t) => { touched.current = true; setNick(t); setNickStatus('idle'); }}
                   maxLength={NICK_MAX}
-                  className="flex-1 bg-[#f5f5f7] text-black"
-                  style={{ height: INPUT_HEIGHT, borderRadius: normalize(12), paddingHorizontal: normalize(16), fontSize: FONT_MD }}
+                  className="flex-1 bg-card text-black"
+                  style={{ height: INPUT_HEIGHT, borderRadius: normalize(12), paddingHorizontal: normalize(16), fontFamily: 'Pretendard-Regular', fontSize: FONT_MD }}
                 />
                 <CheckButton onPress={checkNickname} disabled={nickStatus === 'checking'} />
               </View>
@@ -314,10 +314,10 @@ export default function ProfileEditScreen({ navigation }: Props) {
                 multiline
                 placeholder="안녕하세요! 사진과 일상을 기록하는 것을 좋아합니다!"
                 placeholderTextColor="rgba(0,0,0,0.25)"
-                className="bg-[#f5f5f7] text-black"
-                style={{ height: normalize(96), borderRadius: normalize(12), padding: normalize(14), fontSize: normalizeFontSize(14), lineHeight: normalize(22), textAlignVertical: 'top' }}
+                className="bg-card text-black"
+                style={{ height: normalize(96), borderRadius: normalize(12), padding: normalize(14), fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(14), lineHeight: normalize(22), textAlignVertical: 'top' }}
               />
-              <Text className="text-right" style={{ fontSize: FONT_XS, color: 'rgba(0,0,0,0.25)', marginTop: normalize(4) }}>
+              <Text className="text-right font-normal" style={{ fontSize: FONT_XS, color: 'rgba(0,0,0,0.25)', marginTop: normalize(4) }}>
                 {bio.length}/{BIO_MAX}
               </Text>
             </View>
@@ -332,7 +332,7 @@ export default function ProfileEditScreen({ navigation }: Props) {
             onPress={onSave}
             disabled={!canSave}
             className="items-center justify-center"
-            style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS, backgroundColor: canSave ? BRAND : '#f5f5f7' }}
+            style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS, backgroundColor: canSave ? BRAND : CARD }}
           >
             <Text className="font-semibold" style={{ fontSize: FONT_MD, color: canSave ? '#fff' : '#c7c7cc' }}>
               {saving ? '저장 중...' : '저장'}
@@ -353,7 +353,7 @@ function CheckButton({ onPress, disabled }: { onPress: () => void; disabled?: bo
     <Pressable
       onPress={onPress}
       disabled={disabled}
-      className="items-center justify-center bg-[#f5f5f7]"
+      className="items-center justify-center bg-card"
       style={{ paddingHorizontal: normalize(16), borderRadius: normalize(12), opacity: disabled ? 0.5 : 1 }}
     >
       <Text className="font-medium" style={{ fontSize: FONT_SM, color: '#111' }}>중복 확인</Text>
@@ -369,7 +369,7 @@ function FieldHelper({ status, reason }: { status: Status; reason: string }) {
   return (
     <View className="flex-row items-center" style={{ gap: normalize(4), marginTop: normalize(8) }}>
       {ok && <IconCheck size={normalize(14)} color={OK} strokeWidth={2} />}
-      <Text style={{ fontSize: FONT_XS, color }}>{text}</Text>
+      <Text className="font-normal" style={{ fontSize: FONT_XS, color }}>{text}</Text>
     </View>
   );
 }

@@ -14,6 +14,7 @@ import { useSpotAlert } from '@/hooks/useSpotAlert';
 import { useSpots, useSearchSpots } from '@/hooks/useSpot';
 import { WEATHER_API_TO_UI, TIME_API_TO_UI, DUST_API_TO_UI } from '@/utils/wishlistMapper';
 import type { WeatherCondition, TimeCondition, AirQualityCondition } from '@/api/spotAlert';
+import { BRAND, BRAND_TINT_ACTIVE, TEXT_SUB } from '@/constants/colors';
 
 // 칩은 API enum을 그대로 id로 쓴다. 라벨은 *_API_TO_UI 한 곳에서만 정의한다 —
 // 예전처럼 화면 상수가 별도 한글 id를 들면 매퍼 키와 어긋나 조용히 다른 값으로 저장된다.
@@ -30,7 +31,7 @@ const uniq = <T,>(arr: T[]): T[] => Array.from(new Set(arr));
 
 const getWeatherIcon = (id: WeatherCondition, selected: boolean) => {
   let IconComponent = IconSun;
-  let activeColor = '#E31B59';
+  let activeColor = BRAND;
   switch (id) {
     case 'CLEAR':
       IconComponent = IconSun;
@@ -269,8 +270,8 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
   if (!selectedSpot && isLoading) {
     return (
       <SafeAreaView className="flex-1 bg-white items-center justify-center" edges={['top', 'left', 'right', 'bottom']}>
-        <ActivityIndicator size="large" color="#E31B59" />
-        <Text className="text-black/40 mt-3" style={{ fontSize: normalizeFontSize(14) }}>설정을 불러오는 중입니다...</Text>
+        <ActivityIndicator size="large" color={BRAND} />
+        <Text className="text-sub mt-3 font-normal" style={{ fontSize: normalizeFontSize(14) }}>설정을 불러오는 중입니다...</Text>
       </SafeAreaView>
     );
   }
@@ -280,7 +281,7 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right']}>
       {/* Navigation */}
-      <View className="flex-row items-center justify-between border-b border-black/5 bg-white z-20" style={{ height: normalize(54), paddingHorizontal: normalize(12) }}>
+      <View className="flex-row items-center justify-between border-b-[0.5px] border-hairline bg-white z-20" style={{ height: normalize(54), paddingHorizontal: normalize(12) }}>
         <TouchableOpacity onPress={handleBack} className="items-center justify-center rounded-full" style={{ width: normalize(36), height: normalize(36) }}>
           <IconChevronLeft size={normalize(24)} color="rgba(0,0,0,0.5)" />
         </TouchableOpacity>
@@ -309,13 +310,13 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
           style={{ backgroundColor: selectedSpot?.bg || '#2b2a29', marginTop: normalize(16), marginBottom: normalize(28), borderRadius: normalize(16), padding: normalize(18), paddingBottom: normalize(14) }}
         >
           <Text className="font-semibold text-white tracking-tight mb-1" style={{ fontSize: normalizeFontSize(18) }}>{selectedSpot?.name || '스팟을 선택해 주세요'}</Text>
-          <Text className="text-white/50 mb-2.5" style={{ fontSize: normalizeFontSize(12) }}>
+          <Text className="text-white/50 mb-2.5 font-normal" style={{ fontSize: normalizeFontSize(12) }}>
             {selectedSpot ? `${selectedSpot.loc} · 포토제닉 ${selectedSpot.score}점` : '아래 버튼으로 알림을 받을 스팟을 고르세요'}
           </Text>
           <View className="flex-row gap-1.5 z-0">
             {(selectedSpot?.tags || []).map((tag: string) => (
               <View key={tag} className="bg-white/10 items-center justify-center rounded-full" style={{ paddingVertical: normalize(2), paddingHorizontal: normalize(12) }}>
-                <Text className="text-white/75" style={{ fontSize: normalizeFontSize(10) }}>{tag}</Text>
+                <Text className="text-white/75 font-normal" style={{ fontSize: normalizeFontSize(10) }}>{tag}</Text>
               </View>
             ))}
           </View>
@@ -327,7 +328,7 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
         {/* Section 1: Weather */}
         <View className="mb-7">
           <Text className="font-semibold text-black tracking-tight mb-1" style={{ fontSize: normalizeFontSize(16) }}>선호 날씨</Text>
-          <Text className="text-black/40 mb-3" style={{ fontSize: normalizeFontSize(12) }}>중복 선택 가능 · 아무것도 안 고르면 날씨 조건 없음</Text>
+          <Text className="text-sub mb-3 font-normal" style={{ fontSize: normalizeFontSize(12) }}>중복 선택 가능 · 아무것도 안 고르면 날씨 조건 없음</Text>
           <View className="flex-row gap-2">
             {WEATHER_CHIPS.map((w) => {
               const selected = selectedWeathers.includes(w);
@@ -335,11 +336,11 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
                 <TouchableOpacity
                   key={w}
                   onPress={() => toggleWeather(w)}
-                  className={`flex-1 items-center justify-center rounded-2xl border ${selected ? 'bg-[#E31B59]/5 border-[#E31B59]' : 'bg-[#f5f5f7] border-transparent'}`}
+                  className={`flex-1 items-center justify-center rounded-2xl border ${selected ? 'bg-brand/5 border-brand' : 'bg-card border-transparent'}`}
                   style={{ paddingVertical: normalize(12), paddingHorizontal: normalize(4) }}
                 >
                   {getWeatherIcon(w, selected)}
-                  <Text className={`font-medium ${selected ? 'text-[#E31B59]' : 'text-black/40'}`} style={{ fontSize: normalizeFontSize(11) }}>{WEATHER_API_TO_UI[w]}</Text>
+                  <Text className={`font-medium ${selected ? 'text-brand' : 'text-sub'}`} style={{ fontSize: normalizeFontSize(11) }}>{WEATHER_API_TO_UI[w]}</Text>
                 </TouchableOpacity>
               );
             })}
@@ -349,7 +350,7 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
         {/* Section 2: Time */}
         <View className="mb-7">
           <Text className="font-semibold text-black tracking-tight mb-1" style={{ fontSize: normalizeFontSize(16) }}>선호 시간대</Text>
-          <Text className="text-black/40 mb-3" style={{ fontSize: normalizeFontSize(12) }}>골든아워 또는 특정 촬영 시간대</Text>
+          <Text className="text-sub mb-3 font-normal" style={{ fontSize: normalizeFontSize(12) }}>골든아워 또는 특정 촬영 시간대</Text>
           <View className="flex-row gap-2">
             {TIME_CHIPS.map((t) => {
               const selected = selectedTimes.includes(t);
@@ -357,10 +358,10 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
                 <TouchableOpacity
                   key={t}
                   onPress={() => toggleTime(t)}
-                  className={`flex-1 items-center justify-center rounded-2xl border ${selected ? 'bg-[#E31B59]/5 border-[#E31B59]' : 'bg-[#f5f5f7] border-transparent'}`}
+                  className={`flex-1 items-center justify-center rounded-2xl border ${selected ? 'bg-brand/5 border-brand' : 'bg-card border-transparent'}`}
                   style={{ paddingVertical: normalize(12), paddingHorizontal: normalize(4) }}
                 >
-                  <Text className={`font-medium ${selected ? 'text-[#E31B59]' : 'text-black/40'}`} style={{ fontSize: normalizeFontSize(11) }}>{TIME_API_TO_UI[t]}</Text>
+                  <Text className={`font-medium ${selected ? 'text-brand' : 'text-sub'}`} style={{ fontSize: normalizeFontSize(11) }}>{TIME_API_TO_UI[t]}</Text>
                 </TouchableOpacity>
               );
             })}
@@ -370,7 +371,7 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
         {/* Section 3: Dust */}
         <View className="mb-7">
           <Text className="font-semibold text-black tracking-tight mb-1" style={{ fontSize: normalizeFontSize(16) }}>미세먼지 조건</Text>
-          <Text className="text-black/40 mb-3" style={{ fontSize: normalizeFontSize(12) }}>시야 확보를 위한 공기질 조건</Text>
+          <Text className="text-sub mb-3 font-normal" style={{ fontSize: normalizeFontSize(12) }}>시야 확보를 위한 공기질 조건</Text>
           <View className="flex-row gap-2">
             {DUST_CHIPS.map((d) => {
               const selected = selectedDust === d;
@@ -378,10 +379,10 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
                 <TouchableOpacity
                   key={d}
                   onPress={() => { setSelectedDust(d); markDirty(); }}
-                  className={`flex-1 items-center justify-center rounded-2xl border ${selected ? 'bg-[#E31B59]/5 border-[#E31B59]' : 'bg-[#f5f5f7] border-transparent'}`}
+                  className={`flex-1 items-center justify-center rounded-2xl border ${selected ? 'bg-brand/5 border-brand' : 'bg-card border-transparent'}`}
                   style={{ paddingVertical: normalize(12), paddingHorizontal: normalize(4) }}
                 >
-                  <Text className={`font-medium ${selected ? 'text-[#E31B59]' : 'text-black/40'}`} style={{ fontSize: normalizeFontSize(11) }}>{DUST_API_TO_UI[d]}</Text>
+                  <Text className={`font-medium ${selected ? 'text-brand' : 'text-sub'}`} style={{ fontSize: normalizeFontSize(11) }}>{DUST_API_TO_UI[d]}</Text>
                 </TouchableOpacity>
               );
             })}
@@ -392,15 +393,15 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
         <View className="mb-7">
           <Text className="font-semibold text-black tracking-tight mb-3" style={{ fontSize: normalizeFontSize(16) }}>알림 설정</Text>
           
-          <View className="flex-row items-center justify-between bg-[#f5f5f7] rounded-2xl mb-2" style={{ padding: normalize(16) }}>
+          <View className="flex-row items-center justify-between bg-card rounded-2xl mb-2" style={{ padding: normalize(16) }}>
             <View>
               <Text className="font-medium text-black mb-0.5" style={{ fontSize: normalizeFontSize(14) }}>조건 충족 시 알림 받기</Text>
-              <Text className="text-black/40" style={{ fontSize: normalizeFontSize(12) }}>푸시 알림으로 알려드려요</Text>
+              <Text className="text-sub font-normal" style={{ fontSize: normalizeFontSize(12) }}>푸시 알림으로 알려드려요</Text>
             </View>
             <Switch 
               value={notifEnabled} 
               onValueChange={handleToggleNotif} 
-              trackColor={{ false: '#e9e9ea', true: '#E31B59' }} 
+              trackColor={{ false: '#e9e9ea', true: BRAND }} 
               thumbColor="#fff"
             />
           </View>
@@ -409,15 +410,15 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
         {/* Section 5: Memo */}
         <View className="mb-7">
           <Text className="font-semibold text-black tracking-tight mb-1" style={{ fontSize: normalizeFontSize(16) }}>촬영 메모</Text>
-          <Text className="text-black/40 mb-3" style={{ fontSize: normalizeFontSize(12) }}>구도, 렌즈 선택 등 나만의 팁을 적어두세요</Text>
+          <Text className="text-sub mb-3 font-normal" style={{ fontSize: normalizeFontSize(12) }}>구도, 렌즈 선택 등 나만의 팁을 적어두세요</Text>
           <TextInput 
             value={memo} 
             onChangeText={(t) => { setMemo(t); markDirty(); }} 
             placeholder="예: 삼각대 필수! 일몰 20분 전 레인보우 브릿지 구도 잡기" 
             placeholderTextColor="rgba(0,0,0,0.25)" 
             multiline 
-            className="bg-[#f5f5f7] rounded-2xl p-4 text-black leading-relaxed" 
-            style={{ fontSize: normalizeFontSize(14), height: normalize(100), textAlignVertical: 'top' }} 
+            className="bg-card rounded-2xl p-4 text-black leading-relaxed" 
+            style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(14), height: normalize(100), textAlignVertical: 'top' }} 
             onFocus={() => {
               setTimeout(() => {
                 scrollViewRef.current?.scrollToEnd({ animated: true });
@@ -431,13 +432,13 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
         {/* Floating Save Button
             키보드가 올라와 있으면 내비바 자리는 이미 키보드가 덮고 있으므로 insets.bottom을 더하지 않는다. */}
         <View
-          className="px-5 border-t border-black/5 bg-white"
+          className="px-5 border-t-[0.5px] border-hairline bg-white"
           style={{ paddingTop: normalize(12), paddingBottom: normalize(12) + (keyboardOverlap > 0 ? 0 : insets.bottom) }}
         >
           <TouchableOpacity
             onPress={handleSave}
             disabled={updateMutation.isPending}
-            className="bg-[#E31B59] items-center justify-center"
+            className="bg-brand items-center justify-center"
             style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}
           >
             {updateMutation.isPending ? (
@@ -454,12 +455,12 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
         <View className="flex-row items-center justify-between px-5 pb-3">
           <Text className="font-semibold text-black" style={{ fontSize: normalizeFontSize(20) }}>스팟 변경</Text>
           <TouchableOpacity onPress={() => setSpotSheetVisible(false)} className="bg-black/5 items-center justify-center rounded-full" style={{ width: normalize(32), height: normalize(32) }}>
-            <IconX size={normalize(14)} color="rgba(0,0,0,0.4)" />
+            <IconX size={normalize(14)} color={TEXT_SUB} />
           </TouchableOpacity>
         </View>
 
         <View className="px-5 mb-4">
-          <View className="flex-row items-center bg-[#f5f5f7] rounded-xl px-3" style={{ height: normalize(44) }}>
+          <View className="flex-row items-center bg-card rounded-xl px-3" style={{ height: normalize(44) }}>
             <IconSearch size={normalize(18)} color="rgba(0,0,0,0.3)" />
             <TextInput 
               value={searchText}
@@ -467,11 +468,11 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
               placeholder="스팟 이름으로 검색" 
               placeholderTextColor="rgba(0,0,0,0.3)"
               className="flex-1 ml-2 text-black"
-              style={{ fontSize: normalizeFontSize(14), padding: 0 }}
+              style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(14), padding: 0 }}
             />
             {searchText.length > 0 && (
               <TouchableOpacity onPress={() => setSearchText('')} hitSlop={8}>
-                <IconX size={normalize(16)} color="rgba(0,0,0,0.4)" />
+                <IconX size={normalize(16)} color={TEXT_SUB} />
               </TouchableOpacity>
             )}
           </View>
@@ -481,18 +482,18 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
             ScrollView가 키보드 닫는 데 써버려 아래 항목의 onPress가 실행되지 않는다.
             시트는 안 닫힌 채 키보드만 내려가며 높이가 재계산돼 깜빡이는 것처럼 보인다. */}
         <ScrollView className="px-5" style={{ height: normalize(360) }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-          <Text className="text-black/30 mb-2" style={{ fontSize: normalizeFontSize(12) }}>
+          <Text className="text-black/30 mb-2 font-normal" style={{ fontSize: normalizeFontSize(12) }}>
             {isSearching ? '검색 결과' : '최신순'}
           </Text>
 
           {isSpotsLoading ? (
             <View className="py-8 items-center">
-              <ActivityIndicator color="#E31B59" size="small" />
-              <Text className="text-black/40 text-xs mt-2">스팟을 불러오는 중...</Text>
+              <ActivityIndicator color={BRAND} size="small" />
+              <Text className="text-sub text-xs mt-2 font-normal">스팟을 불러오는 중...</Text>
             </View>
           ) : spotsList.length === 0 ? (
             <View className="py-8 items-center">
-              <Text className="text-black/40 text-sm">검색 결과가 없습니다.</Text>
+              <Text className="text-sub text-sm font-normal">검색 결과가 없습니다.</Text>
             </View>
           ) : (
             spotsList.map((s: any) => {
@@ -501,19 +502,19 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
                 <TouchableOpacity 
                   key={s.id} 
                   onPress={() => { Keyboard.dismiss(); setSelectedSpot(s); setSpotSheetVisible(false); markDirty(); }}
-                  className={`flex-row items-center rounded-2xl mb-2 ${isSelected ? 'bg-white border border-[#E31B59]' : 'bg-[#f5f5f7]'}`} 
+                  className={`flex-row items-center rounded-2xl mb-2 ${isSelected ? 'bg-white border border-brand' : 'bg-card'}`} 
                   style={{ padding: normalize(14) }}
                 >
                   <View className="rounded-xl mr-3" style={{ width: normalize(48), height: normalize(48), backgroundColor: s.bg }} />
                   <View className="flex-1">
                     <Text className="font-semibold text-black mb-1" style={{ fontSize: normalizeFontSize(16) }}>{s.name}</Text>
-                    <Text className="text-black/40 mb-1" style={{ fontSize: normalizeFontSize(12) }}>{s.loc}</Text>
-                    <View className="self-start rounded-full items-center justify-center" style={{ backgroundColor: isSelected ? 'rgba(227,27,89,0.1)' : 'rgba(0,0,0,0.05)', paddingHorizontal: normalize(6), paddingVertical: normalize(2) }}>
-                      <Text style={{ fontSize: normalizeFontSize(9), color: isSelected ? '#E31B59' : 'rgba(0,0,0,0.3)', fontWeight: '600' }}>포토제닉 {s.score}점</Text>
+                    <Text className="text-sub mb-1 font-normal" style={{ fontSize: normalizeFontSize(12) }}>{s.loc}</Text>
+                    <View className="self-start rounded-full items-center justify-center" style={{ backgroundColor: isSelected ? BRAND_TINT_ACTIVE : 'rgba(0,0,0,0.05)', paddingHorizontal: normalize(6), paddingVertical: normalize(2) }}>
+                      <Text style={{ fontSize: normalizeFontSize(9), color: isSelected ? BRAND : 'rgba(0,0,0,0.3)', fontFamily: 'Pretendard-SemiBold' }}>포토제닉 {s.score}점</Text>
                     </View>
                   </View>
                   {isSelected && (
-                    <View className="items-center justify-center bg-[#E31B59] rounded-full" style={{ width: normalize(22), height: normalize(22) }}>
+                    <View className="items-center justify-center bg-brand rounded-full" style={{ width: normalize(22), height: normalize(22) }}>
                       <IconCheck size={normalize(14)} color="#fff" strokeWidth={3} />
                     </View>
                   )}
@@ -528,7 +529,7 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
             setSpotSheetVisible(false);
             navigation.push('Map', { source: 'wishlist-change' });
           }} className="items-center py-2">
-            <Text className="font-medium text-[#E31B59]" style={{ fontSize: normalizeFontSize(14) }}>전체 스팟 지도에서 검색 →</Text>
+            <Text className="font-medium text-brand" style={{ fontSize: normalizeFontSize(14) }}>전체 스팟 지도에서 검색 →</Text>
           </TouchableOpacity>
         </View>
       </BottomSheet>

@@ -4,8 +4,9 @@ import { Camera, ChevronDown, ChevronRight, MapPin } from 'lucide-react-native';
 import { ProfileSpotItem } from '@/types/community';
 import { GRID_PADDING, FONT_2XS, FONT_MD, FONT_SM, FONT_XS } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
+import { CARD, TEXT_SUB } from '@/constants/colors';
 
-const SURFACE = '#f5f5f7';
+const SURFACE = CARD;
 
 const REGIONS = ['전체', '부산', '서울'];
 
@@ -70,17 +71,17 @@ export default function ProfileSpotsTab({ items, totalCount, onSelectSpot }: Pro
                 {item.name}
               </Text>
               <View className="flex-row items-center" style={{ gap: normalize(5), marginTop: normalize(3) }}>
-                <MapPin size={normalize(10)} color="rgba(0,0,0,0.4)" strokeWidth={1.8} />
-                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.4)', letterSpacing: -0.1 }}>
+                <MapPin size={normalize(10)} color={TEXT_SUB} strokeWidth={1.8} />
+                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: TEXT_SUB, letterSpacing: -0.1 }}>
                   {item.address}
                 </Text>
               </View>
               <View className="flex-row items-center" style={{ gap: normalize(5), marginTop: normalize(6) }}>
-                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.4)', letterSpacing: -0.1 }}>
+                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: TEXT_SUB, letterSpacing: -0.1 }}>
                   {item.lastVisitLabel}
                 </Text>
                 <View style={{ width: normalize(2), height: normalize(2), borderRadius: normalize(1), backgroundColor: 'rgba(0,0,0,0.15)' }} />
-                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.4)', letterSpacing: -0.1 }}>
+                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: TEXT_SUB, letterSpacing: -0.1 }}>
                   총 {item.visitCount}회 방문
                 </Text>
               </View>
