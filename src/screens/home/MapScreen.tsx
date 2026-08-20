@@ -22,6 +22,7 @@ import { FONT_SM, FONT_MD, FONT_XL, BUTTON_HEIGHT, BUTTON_RADIUS, HEADER_HEIGHT,
 import Chip from '@/components/common/Chip';
 import { BRAND, TEXT_SUB } from '@/constants/colors';
 import { SHADOW_CONTROL, SHADOW_OVERLAY } from '@/constants/shadow';
+import { MAP_FONT_FACE } from '@/constants/mapFont';
 
 const KAKAO_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_API_KEY;
 
@@ -560,7 +561,7 @@ export default function MapScreen() {
        단 Referer가 붙으면 미등록 도메인이라 401이 되므로 no-referrer로 억제한다. -->
   <meta name="referrer" content="no-referrer">
   <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_KEY}&libraries=clusterer&autoload=false"></script>
-  <style>
+  <style>${MAP_FONT_FACE}
     body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #e8e8ed; }
     #map { width: 100%; height: 100%; -webkit-transform: translateZ(0); transform: translateZ(0); will-change: transform; }
     .marker-touch-wrap {
@@ -621,7 +622,8 @@ export default function MapScreen() {
                 color: '#FFFFFF',
                 textAlign: 'center',
                 lineHeight: '34px',
-                fontWeight: '700',
+                fontFamily: 'Pretendard',
+                fontWeight: '600',
                 fontSize: '11px',
                 boxShadow: '0 2px 8px rgba(227, 27, 89, 0.4)',
                 border: '2px solid #FFFFFF'
@@ -704,7 +706,7 @@ export default function MapScreen() {
               content.style.background = spot.__dayColor;
               content.style.boxShadow = '0 2px 6px rgba(0,0,0,0.25)';
             }
-            content.innerHTML = '<span style="color:white; font-size:11px; font-weight:bold;">' + (spot.__label || (index + 1)) + '</span>';
+            content.innerHTML = '<span style="color:white; font-family:Pretendard; font-size:11px; font-weight:600;">' + (spot.__label || (index + 1)) + '</span>';
           } else {
             content.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>';
           }

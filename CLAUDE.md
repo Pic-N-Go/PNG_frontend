@@ -106,7 +106,24 @@ const apiUrl = process.env.EXPO_PUBLIC_API_URL;
 - `BORDER_CONTROL` (1.5) — 입력 포커스, 선택 상태 칩/체크박스, 아웃라인 버튼
 - `SHADOW_CONTROL` / `SHADOW_OVERLAY` — 그림자는 **떠 있는 것에만**. 콘텐츠 카드는 배경 대비로만 구분(보더·그림자 없음)
 
-**토큰을 쓰지 않는 예외** (의도된 것이므로 통일 대상 아님):
+### 폰트
+
+Pretendard **3웨이트만** 로드한다 (`Regular` / `Medium` / `SemiBold`). 로고는 `FugazOne_400Regular`.
+디자인 규칙이 `max weight 600`이므로 Bold 이상은 쓰지 않는다 — `font-bold`도 SemiBold로 매핑된다.
+
+- **새 웨이트가 필요하면 `App.tsx`의 `useFonts`에 등록부터 할 것.** 등록 없이 `fontFamily`만 쓰면
+  iOS는 조용히 시스템 폰트로 폴백하고 안드로이드는 폴백하거나 죽는다
+- `font-normal` `font-medium` `font-semibold` `font-bold` 유틸리티는 `global.css`에서
+  **패밀리 지정으로 재정의**돼 있다. `tailwind.config.js`에서 `fontWeight` 코어 플러그인을 꺼서
+  정의가 하나만 남게 했으므로 캐스케이드 순서에 의존하지 않는다
+- **`fontWeight`를 쓰지 말 것.** RN은 웨이트별로 패밀리가 갈리므로 `fontFamily` 단독으로 지정한다.
+  named-weight 패밀리에 `fontWeight`를 병용하면 안드로이드에서 폴백이 난다
+- React 19에서 함수 컴포넌트의 `defaultProps`가 제거돼 `Text.defaultProps`로 전역 기본값을
+  까는 방식은 쓸 수 없다. 모든 `<Text>`에 패밀리를 명시한다
+- 지도 WebView는 번들 폰트 스코프 밖이라 숫자 서브셋(`src/constants/mapFont.ts`)을
+  base64로 인라인한다. 재생성 방법은 그 파일 주석에 있다
+
+**토큰을 쓰지 않는 예외** (의도된 것으로 통일 대상 아님):
 
 - 의미 색 — 상태 배지 초록·노랑·파랑, 에러/성공
 - 히어로·어두운 배경 위 반투명 흰 보더
