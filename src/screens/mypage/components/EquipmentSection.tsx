@@ -161,18 +161,8 @@ export default function EquipmentSection() {
         <Text className="font-semibold tracking-tight text-black" style={{ fontSize: normalizeFontSize(20) }}>
           내 장비
         </Text>
-        <TouchableOpacity
-          style={{
-            height: normalize(26),
-            paddingHorizontal: normalize(14),
-            borderRadius: normalize(13),
-            backgroundColor: BRAND_TINT,
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-          onPress={openSheet}
-        >
-          <Text className="font-medium tracking-tight" style={{ fontSize: normalizeFontSize(12), color: BRAND }}>
+        <TouchableOpacity onPress={openSheet}>
+          <Text className="tracking-tight font-normal" style={{ fontSize: FONT_SM, color: BRAND }}>
             관리
           </Text>
         </TouchableOpacity>

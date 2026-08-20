@@ -34,9 +34,8 @@ export default function SpotAlertPreview() {
           <TouchableOpacity 
             onPress={() => navigation.navigate('Wishlist')}
             hitSlop={{ top: 12, bottom: 12, left: 16, right: 16 }}
-            style={{ paddingVertical: normalize(4), paddingHorizontal: normalize(6) }}
           >
-            <Text className="tracking-tight font-medium" style={{ fontSize: FONT_SM, color: BRAND }}>
+            <Text className="tracking-tight font-normal" style={{ fontSize: FONT_SM, color: BRAND }}>
               설정
             </Text>
           </TouchableOpacity>
