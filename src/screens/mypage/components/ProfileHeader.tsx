@@ -5,7 +5,7 @@ import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { IconSettings } from '@tabler/icons-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { FONT_XS, FONT_XL } from '@/constants/layout';
+import { FONT_XL, FONT_XS, GRID_PADDING } from '@/constants/layout';
 import Avatar from '@/components/common/Avatar';
 import { useMyProfile, useMyStats, useMyAlbums } from '@/hooks/useUser';
 import { categoryLabel } from '@/constants/spotCategories';
@@ -41,7 +41,7 @@ export default function ProfileHeader() {
       colors={['#000000', '#1d1d1f']}
       style={{
         paddingTop: insets.top + normalize(32),
-        paddingHorizontal: normalize(20),
+        paddingHorizontal: GRID_PADDING,
         paddingBottom: normalize(20),
         borderBottomLeftRadius: normalize(20),
         borderBottomRightRadius: normalize(20),

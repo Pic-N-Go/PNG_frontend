@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from 'rea
 import { useNavigation } from '@react-navigation/native';
 import { IconBellFilled, IconBellOff, IconBookmark } from '@tabler/icons-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { FONT_SM, FONT_MD, FONT_XS } from '@/constants/layout';
+import { FONT_MD, FONT_SM, FONT_XS, GRID_PADDING } from '@/constants/layout';
 import { useSpotAlert } from '@/hooks/useSpotAlert';
 import { mapSpotAlertToUI } from '@/utils/spotAlertMapper';
 import { BRAND, BRAND_STRONG, CARD, TEXT_SUB } from '@/constants/colors';
@@ -26,7 +26,7 @@ export default function SpotAlertPreview() {
 
   return (
     <View className="mb-10">
-      <View className="mb-3" style={{ paddingHorizontal: normalize(20) }}>
+      <View className="mb-3" style={{ paddingHorizontal: GRID_PADDING }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: normalize(4) }}>
           <Text className="font-semibold tracking-tight text-black" style={{ fontSize: normalizeFontSize(20) }}>
             출사 알림 스팟
@@ -50,7 +50,7 @@ export default function SpotAlertPreview() {
           <ActivityIndicator color={BRAND} size="small" />
         </View>
       ) : uiItems.length === 0 ? (
-        <View className="mx-5 p-5 bg-card rounded-2xl items-center justify-center">
+        <View className="p-5 bg-card rounded-2xl items-center justify-center" style={{ marginHorizontal: GRID_PADDING }}>
           <IconBookmark size={normalize(24)} color="rgba(0,0,0,0.2)" style={{ marginBottom: normalize(6) }} />
           <Text className="text-sub text-xs font-medium">설정한 출사 조건이 없어요.</Text>
         </View>
@@ -58,7 +58,7 @@ export default function SpotAlertPreview() {
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          style={{ marginHorizontal: normalize(20) }}
+          style={{ marginHorizontal: GRID_PADDING }}
           contentContainerStyle={{ gap: normalize(10) }}
         >
           {uiItems.map((item) => (

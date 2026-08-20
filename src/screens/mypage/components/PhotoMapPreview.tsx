@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import Svg, { Line, Circle, Path } from 'react-native-svg';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { FONT_SM } from '@/constants/layout';
+import { FONT_SM, GRID_PADDING } from '@/constants/layout';
 
 import { useNavigation } from '@react-navigation/native';
 import { BRAND, CARD, TEXT_SUB } from '@/constants/colors';
@@ -11,7 +11,7 @@ export default function PhotoMapPreview() {
   const navigation = useNavigation();
 
   return (
-    <View className="mb-10" style={{ paddingHorizontal: normalize(20) }}>
+    <View className="mb-10" style={{ paddingHorizontal: GRID_PADDING }}>
       <View className="flex-row justify-between items-baseline mb-3">
         <Text className="font-semibold tracking-tight text-black" style={{ fontSize: normalizeFontSize(20) }}>
           PIC MAP

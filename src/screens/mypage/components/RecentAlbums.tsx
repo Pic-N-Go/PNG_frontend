@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { FONT_SM } from '@/constants/layout';
+import { FONT_SM, GRID_PADDING } from '@/constants/layout';
 import { useMyAlbums } from '@/hooks/useUser';
 import { categoryLabel } from '@/constants/spotCategories';
 import { BRAND, CARD } from '@/constants/colors';
@@ -23,7 +23,7 @@ export default function RecentAlbums() {
 
   if (!isLoading && albums.length === 0) {
     return (
-      <View className="mb-10" style={{ paddingHorizontal: normalize(20) }}>
+      <View className="mb-10" style={{ paddingHorizontal: GRID_PADDING }}>
         <Text className="font-semibold tracking-tight text-black mb-3" style={{ fontSize: normalizeFontSize(20) }}>
           지난 촬영
         </Text>
@@ -46,7 +46,7 @@ export default function RecentAlbums() {
 
   return (
     <View className="mb-10">
-      <View className="flex-row justify-between items-baseline mb-3" style={{ paddingHorizontal: normalize(20) }}>
+      <View className="flex-row justify-between items-baseline mb-3" style={{ paddingHorizontal: GRID_PADDING }}>
         <Text className="font-semibold tracking-tight text-black" style={{ fontSize: normalizeFontSize(20) }}>
           지난 촬영
         </Text>
@@ -60,7 +60,7 @@ export default function RecentAlbums() {
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        style={{ marginHorizontal: normalize(20) }}
+        style={{ marginHorizontal: GRID_PADDING }}
         contentContainerStyle={{ gap: normalize(10) }}
       >
         {albums.map((album, index) => {

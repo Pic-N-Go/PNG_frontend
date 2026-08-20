@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Modal, Animated, Pressable, PanResponder, TextInput, Platform, Keyboard, Alert, ActivityIndicator } from 'react-native';
 import { IconCamera, IconAperture, IconChevronRight, IconX, IconTrash } from '@tabler/icons-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { BORDER_CONTROL, FONT_SM, FONT_XS, HAIRLINE_WIDTH } from '@/constants/layout';
+import { BORDER_CONTROL, FONT_SM, FONT_XS, GRID_PADDING, HAIRLINE_WIDTH } from '@/constants/layout';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCreateEquipment, useDeleteEquipment, useMyEquipments } from '@/hooks/useEquipment';
 import { toErrorMessage } from '@/api/auth';
@@ -156,7 +156,7 @@ export default function EquipmentSection() {
   );
 
   return (
-    <View className="mb-10 px-5">
+    <View className="mb-10" style={{ paddingHorizontal: GRID_PADDING }}>
       <View className="flex-row justify-between items-baseline mb-3">
         <Text className="font-semibold tracking-tight text-black" style={{ fontSize: normalizeFontSize(20) }}>
           내 장비
@@ -271,7 +271,7 @@ export default function EquipmentSection() {
               <View style={{ width: normalize(36), height: normalize(5), borderRadius: normalize(2.5), backgroundColor: 'rgba(0,0,0,0.1)' }} />
             </View>
             
-            <View className="flex-row items-center justify-between px-5 pb-3">
+            <View className="flex-row items-center justify-between pb-3" style={{ paddingHorizontal: GRID_PADDING }}>
               <Text className="font-semibold tracking-tight text-black" style={{ fontSize: normalizeFontSize(20) }}>
                 내 장비
               </Text>
@@ -290,7 +290,7 @@ export default function EquipmentSection() {
               </TouchableOpacity>
             </View>
 
-            <View style={{ paddingHorizontal: normalize(20) }}>
+            <View style={{ paddingHorizontal: GRID_PADDING }}>
               {items.map((item, index) => (
                 <View
                   key={item.id}
