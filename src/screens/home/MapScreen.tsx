@@ -890,7 +890,7 @@ export default function MapScreen() {
   if (!KAKAO_KEY) {
     return (
       <View className="flex-1 items-center justify-center bg-white">
-        <Text className="text-black/50" style={{ fontSize: normalizeFontSize(16) }}>카카오 맵 API 키가 설정되지 않았습니다.</Text>
+        <Text className="text-black/50 font-normal" style={{ fontSize: normalizeFontSize(16) }}>카카오 맵 API 키가 설정되지 않았습니다.</Text>
       </View>
     );
   }
@@ -1315,7 +1315,7 @@ export default function MapScreen() {
                   <Image source={{ uri: activeSpot.photo }} className="rounded-xl mr-3" style={{ width: normalize(64), height: normalize(64) }} />
                   <View className="flex-1 justify-center">
                     <Text className="font-semibold text-black mb-1" style={{ fontSize: normalizeFontSize(20) }}>{activeSpot.name}</Text>
-                    <Text className="text-sub mb-2.5" style={{ fontSize: normalizeFontSize(14) }}>{activeSpot.loc}</Text>
+                    <Text className="text-sub mb-2.5 font-normal" style={{ fontSize: normalizeFontSize(14) }}>{activeSpot.loc}</Text>
                     {/* 포토제닉 칩 없음 — 여기 뜨던 값은 고정 컬럼이라 상세의 실시간 지수와 어긋난다.
                         score는 아래 필터(detailFilter.score)에서 계속 쓰므로 필드 자체는 남긴다. */}
                     <View className="flex-row items-center gap-2 flex-wrap">

@@ -102,14 +102,14 @@ export default function NaviSheet({ visible, onClose, spotName, address, spots, 
         <View style={{ borderRadius: normalize(14), backgroundColor: CARD, padding: normalize(16), marginBottom: normalize(12) }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(10) }}>
             <View style={{ width: normalize(10), height: normalize(10), borderRadius: normalize(5), backgroundColor: '#34C759' }} />
-            <Text allowFontScaling={false} style={{ fontSize: normalizeFontSize(14), color: TEXT_SUB }}>현재 위치</Text>
+            <Text className="font-normal" allowFontScaling={false} style={{ fontSize: normalizeFontSize(14), color: TEXT_SUB }}>현재 위치</Text>
           </View>
           <View style={{ marginLeft: normalize(4), width: 1, height: normalize(18), backgroundColor: 'rgba(0,0,0,0.12)' }} />
           <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: normalize(10) }}>
             <View style={{ width: normalize(10), height: normalize(10), borderRadius: normalize(5), backgroundColor: BRAND, marginTop: normalize(3) }} />
             <View style={{ flex: 1 }}>
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: normalizeFontSize(14), color: '#000' }}>{displayName}</Text>
-              <Text allowFontScaling={false} style={{ fontSize: normalizeFontSize(12), color: TEXT_SUB, marginTop: normalize(2) }}>{address}</Text>
+              <Text className="font-normal" allowFontScaling={false} style={{ fontSize: normalizeFontSize(12), color: TEXT_SUB, marginTop: normalize(2) }}>{address}</Text>
               {navStatus === 'CORRECTED' && targetNav && (
                 <View
                   className="mt-1.5 px-2 py-1 self-start bg-[#FFF5E5]"
@@ -138,7 +138,7 @@ export default function NaviSheet({ visible, onClose, spotName, address, spots, 
           <IconClock size={normalize(20)} color="rgba(0,0,0,0.5)" strokeWidth={2} />
           <View>
             <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: normalizeFontSize(14), color: '#000' }}>현재 위치에서 차로 18분</Text>
-            <Text allowFontScaling={false} style={{ fontSize: normalizeFontSize(12), color: TEXT_SUB, marginTop: normalize(2) }}>약 12.4km · 실시간 교통 기준</Text>
+            <Text className="font-normal" allowFontScaling={false} style={{ fontSize: normalizeFontSize(12), color: TEXT_SUB, marginTop: normalize(2) }}>약 12.4km · 실시간 교통 기준</Text>
           </View>
         </View>
 
@@ -164,7 +164,7 @@ export default function NaviSheet({ visible, onClose, spotName, address, spots, 
               <View style={{ width: normalize(48), height: normalize(48), borderRadius: normalize(24), backgroundColor: app.bg, alignItems: 'center', justifyContent: 'center' }}>
                 <NaviAppIcon id={app.id} />
               </View>
-              <Text allowFontScaling={false} style={{ fontSize: normalizeFontSize(12), color: '#000', letterSpacing: -0.1 }}>{app.label}</Text>
+              <Text className="font-normal" allowFontScaling={false} style={{ fontSize: normalizeFontSize(12), color: '#000', letterSpacing: -0.1 }}>{app.label}</Text>
             </Pressable>
           ))}
         </View>

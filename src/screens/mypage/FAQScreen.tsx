@@ -139,14 +139,14 @@ export default function FAQScreen({ navigation }: Props) {
         {/* 리스트 헤더 */}
         <View className="flex-row items-baseline justify-between" style={{ marginBottom: normalize(12) }}>
           <Text className="font-semibold text-black" style={{ fontSize: FONT_MD }}>{headTitle}</Text>
-          <Text style={{ fontSize: FONT_XS, color: TEXT2 }}>총 {filtered.length}개</Text>
+          <Text className="font-normal" style={{ fontSize: FONT_XS, color: TEXT2 }}>총 {filtered.length}개</Text>
         </View>
 
         {/* FAQ 아코디언 */}
         {filtered.length === 0 ? (
           <View className="items-center" style={{ paddingVertical: normalize(60), gap: normalize(6) }}>
             <Text className="font-semibold text-black" style={{ fontSize: FONT_MD }}>검색 결과가 없어요</Text>
-            <Text style={{ fontSize: FONT_SM, color: TEXT2 }}>다른 키워드로 다시 검색해 보세요.</Text>
+            <Text className="font-normal" style={{ fontSize: FONT_SM, color: TEXT2 }}>다른 키워드로 다시 검색해 보세요.</Text>
           </View>
         ) : (
           <View style={{ gap: normalize(10) }}>
@@ -169,7 +169,7 @@ export default function FAQScreen({ navigation }: Props) {
             <IconHeadset size={normalize(20)} color={BRAND} strokeWidth={2} />
             <View>
               <Text className="font-semibold text-black" style={{ fontSize: FONT_SM }}>원하는 답을 찾지 못했나요?</Text>
-              <Text style={{ fontSize: FONT_XS, color: TEXT2, marginTop: normalize(2) }}>1:1 문의로 알려드릴게요</Text>
+              <Text className="font-normal" style={{ fontSize: FONT_XS, color: TEXT2, marginTop: normalize(2) }}>1:1 문의로 알려드릴게요</Text>
             </View>
           </View>
           <View className="items-center justify-center" style={{ height: normalize(36), paddingHorizontal: normalize(16), borderRadius: normalize(9999), backgroundColor: BRAND }}>
@@ -196,7 +196,7 @@ function FaqItem({ item, open, onToggle }: { item: Faq; open: boolean; onToggle:
         >
           <Text className="font-semibold" style={{ fontSize: FONT_2XS, color: open ? '#fff' : TEXT2 }}>Q</Text>
         </View>
-        <Text className="flex-1 text-black" style={{ fontSize: normalizeFontSize(14), fontWeight: open ? '600' : '500', lineHeight: normalize(20) }}>
+        <Text className="flex-1 text-black" style={{ fontSize: normalizeFontSize(14), fontFamily: open ? 'Pretendard-SemiBold' : 'Pretendard-Medium', lineHeight: normalize(20) }}>
           {item.q}
         </Text>
         {open
@@ -215,7 +215,7 @@ function FaqItem({ item, open, onToggle }: { item: Faq; open: boolean; onToggle:
           >
             <Text className="font-semibold" style={{ fontSize: FONT_2XS, color: TEXT2 }}>A</Text>
           </View>
-          <Text className="flex-1" style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.68)', lineHeight: normalize(20) }}>
+          <Text className="flex-1 font-normal" style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.68)', lineHeight: normalize(20) }}>
             {item.a}
           </Text>
         </View>

@@ -543,7 +543,7 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
               {[1, 2, 3, 4, 5].map((value) => (
                 <Pressable key={value} onPress={() => setRating(value)} hitSlop={4} accessibilityRole="button" accessibilityLabel={`별점 ${value}점`} style={{ padding: normalize(4) }}>
                   {/* 36은 폰트 스케일 토큰 밖이지만 글자가 아니라 아이콘으로 쓰는 별 글리프다(목업 36px). */}
-                  <Text
+                  <Text className="font-normal"
                     allowFontScaling={false}
                     style={{ fontSize: normalizeFontSize(36), lineHeight: normalizeFontSize(36), color: value <= rating ? STAR_ON : 'rgba(0,0,0,0.1)' }}
                   >
@@ -890,7 +890,7 @@ function Section({ label, required, hint, children }: {
           {label}
         </Text>
         {required && (
-          <Text allowFontScaling={false} style={{ fontSize: normalizeFontSize(14), color: BRAND, lineHeight: normalizeFontSize(14) }}>
+          <Text className="font-normal" allowFontScaling={false} style={{ fontSize: normalizeFontSize(14), color: BRAND, lineHeight: normalizeFontSize(14) }}>
             *
           </Text>
         )}

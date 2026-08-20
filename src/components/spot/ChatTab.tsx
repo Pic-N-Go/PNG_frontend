@@ -58,7 +58,7 @@ export default function ChatTab({ onFocusChange }: Props) {
         </Text>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(6), marginTop: normalize(2) }}>
           <View style={{ width: normalize(6), height: normalize(6), borderRadius: normalize(3), backgroundColor: '#34c759' }} />
-          <Text allowFontScaling={false} style={{ fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.35)' }}>현재 12명 참여 중</Text>
+          <Text className="font-normal" allowFontScaling={false} style={{ fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.35)' }}>현재 12명 참여 중</Text>
         </View>
       </View>
 
@@ -72,14 +72,14 @@ export default function ChatTab({ onFocusChange }: Props) {
             return (
               <View key={entry.id} style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(10), marginVertical: normalize(4) }}>
                 <View style={{ flex: 1, height: 0.5, backgroundColor: 'rgba(0,0,0,0.08)' }} />
-                <Text allowFontScaling={false} style={{ fontSize: normalizeFontSize(11), color: 'rgba(0,0,0,0.3)', letterSpacing: -0.1 }}>{entry.text}</Text>
+                <Text className="font-normal" allowFontScaling={false} style={{ fontSize: normalizeFontSize(11), color: 'rgba(0,0,0,0.3)', letterSpacing: -0.1 }}>{entry.text}</Text>
                 <View style={{ flex: 1, height: 0.5, backgroundColor: 'rgba(0,0,0,0.08)' }} />
               </View>
             );
           }
           if (entry.type === 'system') {
             return (
-              <Text
+              <Text className="font-normal"
                 key={entry.id}
                 allowFontScaling={false}
                 style={{ alignSelf: 'center', fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.3)', backgroundColor: 'rgba(0,0,0,0.04)', borderRadius: normalize(10), paddingHorizontal: normalize(14), paddingVertical: normalize(6) }}
@@ -94,7 +94,7 @@ export default function ChatTab({ onFocusChange }: Props) {
               {!isMe && <InitialAvatar initial={entry.avatarInitial ?? ''} backgroundColor={entry.avatarColor ?? '#999'} size={normalize(30)} fontSize={normalizeFontSize(11)} />}
               <View style={{ maxWidth: normalize(240), alignItems: isMe ? 'flex-end' : 'flex-start', gap: normalize(4) }}>
                 {!isMe && (
-                  <Text allowFontScaling={false} style={{ fontSize: normalizeFontSize(11), color: 'rgba(0,0,0,0.35)', paddingHorizontal: normalize(4) }}>
+                  <Text className="font-normal" allowFontScaling={false} style={{ fontSize: normalizeFontSize(11), color: 'rgba(0,0,0,0.35)', paddingHorizontal: normalize(4) }}>
                     {entry.senderName}
                   </Text>
                 )}
@@ -113,12 +113,12 @@ export default function ChatTab({ onFocusChange }: Props) {
                       borderBottomLeftRadius: isMe ? normalize(18) : normalize(6),
                     }}
                   >
-                    <Text allowFontScaling={false} style={{ fontSize: normalizeFontSize(14), lineHeight: normalizeFontSize(14) * 1.45, letterSpacing: -0.15, color: isMe ? '#fff' : '#000' }}>
+                    <Text className="font-normal" allowFontScaling={false} style={{ fontSize: normalizeFontSize(14), lineHeight: normalizeFontSize(14) * 1.45, letterSpacing: -0.15, color: isMe ? '#fff' : '#000' }}>
                       {entry.text}
                     </Text>
                   </View>
                 )}
-                <Text allowFontScaling={false} style={{ fontSize: normalizeFontSize(10), color: 'rgba(0,0,0,0.25)', paddingHorizontal: normalize(4) }}>
+                <Text className="font-normal" allowFontScaling={false} style={{ fontSize: normalizeFontSize(10), color: 'rgba(0,0,0,0.25)', paddingHorizontal: normalize(4) }}>
                   {entry.time}
                 </Text>
               </View>

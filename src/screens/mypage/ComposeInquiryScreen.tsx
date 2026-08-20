@@ -159,7 +159,7 @@ export default function ComposeInquiryScreen({ navigation }: Props) {
                 padding: 0,
               }}
             />
-            <Text style={{ fontSize: FONT_XS, color: TEXT_SUB }}>
+            <Text className="font-normal" style={{ fontSize: FONT_XS, color: TEXT_SUB }}>
               {title.length}/{TITLE_MAX_LEN}
             </Text>
           </View>
@@ -192,7 +192,7 @@ export default function ComposeInquiryScreen({ navigation }: Props) {
                 padding: 0,
               }}
             />
-            <Text className="text-right" style={{ fontSize: FONT_XS, color: TEXT_SUB, marginTop: normalize(8) }}>
+            <Text className="text-right font-normal" style={{ fontSize: FONT_XS, color: TEXT_SUB, marginTop: normalize(8) }}>
               {message.length}/{MAX_LEN}
             </Text>
           </View>
@@ -252,7 +252,7 @@ function FieldLabel({ text, required }: { text: string; required?: boolean }) {
       }}
     >
       <Text style={{ fontSize: FONT_SM, color: TEXT_SUB, fontFamily: 'Pretendard-Medium' }}>{text}</Text>
-      {required && <Text style={{ fontSize: FONT_SM, color: BRAND }}>*</Text>}
+      {required && <Text className="font-normal" style={{ fontSize: FONT_SM, color: BRAND }}>*</Text>}
     </View>
   );
 }

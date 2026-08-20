@@ -51,7 +51,7 @@ export default function RecentAlbums() {
           지난 촬영
         </Text>
         <TouchableOpacity onPress={() => navigation.navigate('MyPhotos' as never)}>
-          <Text className="tracking-tight" style={{ fontSize: FONT_SM, color: BRAND }}>
+          <Text className="tracking-tight font-normal" style={{ fontSize: FONT_SM, color: BRAND }}>
             전체보기
           </Text>
         </TouchableOpacity>
@@ -91,7 +91,7 @@ export default function RecentAlbums() {
                 <Text className="font-semibold text-white tracking-tight" style={{ fontSize: normalizeFontSize(16), marginBottom: normalize(2) }}>
                   {album.name}
                 </Text>
-                <Text className="tracking-tight" style={{ fontSize: normalizeFontSize(12), color: 'rgba(255,255,255,0.7)' }}>
+                <Text className="tracking-tight font-normal" style={{ fontSize: normalizeFontSize(12), color: 'rgba(255,255,255,0.7)' }}>
                   {categoryLabel(album.category)} · {album.photoCount}장
                 </Text>
               </LinearGradient>

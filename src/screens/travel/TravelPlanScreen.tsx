@@ -81,9 +81,9 @@ const getWeatherIcon = (status: string | undefined) => {
 
 const WeatherCell = ({ period, data }: { period: string; data: { weatherStatus: string; temperature: number | null } }) => (
   <View className="flex-1 py-3 px-[14px] bg-card rounded-xl relative">
-    <Text className="text-black/35 mb-1.5" style={{ fontSize: normalizeFontSize(11) }}>{period}</Text>
+    <Text className="text-black/35 mb-1.5 font-normal" style={{ fontSize: normalizeFontSize(11) }}>{period}</Text>
     <Text className="font-semibold text-black mb-0.5" style={{ fontSize: normalizeFontSize(20) }}>{data.temperature ?? '-'}°</Text>
-    <Text className="text-sub" style={{ fontSize: normalizeFontSize(11) }}>{data.weatherStatus}</Text>
+    <Text className="text-sub font-normal" style={{ fontSize: normalizeFontSize(11) }}>{data.weatherStatus}</Text>
     <View className="absolute right-3 top-1/2 -translate-y-1/2 opacity-80" style={{ transform: [{ translateY: -10 }] }}>
       <SvgUri width="20" height="20" uri={getWeatherIcon(data.weatherStatus)} />
     </View>
@@ -809,7 +809,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
             style={{ height: normalize(210), gap: 8 }}
           >
             <IconMap2 size={normalize(26)} color="rgba(0,0,0,0.2)" strokeWidth={1.5} />
-            <Text allowFontScaling={false} style={{ fontSize: FONT_SM, color: "rgba(0,0,0,0.3)", letterSpacing: -0.2 }}>
+            <Text className="font-normal" allowFontScaling={false} style={{ fontSize: FONT_SM, color: "rgba(0,0,0,0.3)", letterSpacing: -0.2 }}>
               표시할 경로가 없어요
             </Text>
           </View>
@@ -916,7 +916,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
             <Text allowFontScaling={false} className="font-semibold text-black" style={{ fontSize: FONT_MD, marginBottom: normalize(4) }}>
               날씨 요정도 아직 모른대요
             </Text>
-            <Text allowFontScaling={false} className="text-center" style={{ fontSize: FONT_SM, color: "rgba(0,0,0,0.5)" }}>
+            <Text allowFontScaling={false} className="text-center font-normal" style={{ fontSize: FONT_SM, color: "rgba(0,0,0,0.5)" }}>
               어떤 날씨든 완벽한 여행이 될 거예요!
             </Text>
           </View>
@@ -962,7 +962,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
         </View>
         <Text
           allowFontScaling={false}
-          style={{ marginTop: normalize(14), fontFamily: "Pretendard-SemiBold", fontSize: FONT_MD, fontWeight: "600", letterSpacing: -0.2, color: "#000", textAlign: "center" }}
+          style={{ marginTop: normalize(14), fontFamily: "Pretendard-SemiBold", fontSize: FONT_MD, letterSpacing: -0.2, color: "#000", textAlign: "center" }}
         >
           {isError ? "일정을 불러오지 못했어요" : "자유로운 셔터 찬스"}
         </Text>
@@ -993,7 +993,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
           {!isError && <IconPlus size={ICON_SM} color="#fff" strokeWidth={2} />}
           <Text
             allowFontScaling={false}
-            style={{ fontFamily: "Pretendard-SemiBold", fontSize: FONT_MD, fontWeight: "600", color: "#fff", letterSpacing: -0.2 }}
+            style={{ fontFamily: "Pretendard-SemiBold", fontSize: FONT_MD, color: "#fff", letterSpacing: -0.2 }}
           >
             {isError ? "다시 시도" : "스팟 추가하기"}
           </Text>
@@ -1036,7 +1036,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
             <Text allowFontScaling={false} className="font-semibold text-black tracking-[-0.15px] mb-0.5" style={{ fontSize: normalizeFontSize(14) }}>
               오늘의 촬영 팁
             </Text>
-            <Text allowFontScaling={false} className="text-black/50 leading-relaxed" style={{ fontSize: FONT_XS }}>
+            <Text allowFontScaling={false} className="text-black/50 leading-relaxed font-normal" style={{ fontSize: FONT_XS }}>
               {(() => {
                 const { sunset, golden } = getSunsetAndGoldenHour(currentWeather.sunsetTime);
                 const fineDust = currentWeather.fineDustStatus ? `미세먼지 ${currentWeather.fineDustStatus} · ` : '';
@@ -1184,7 +1184,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
               {Boolean(item.loc) && (
                 // 한 줄로 자르면 장소를 특정하는 도로명·번지가 잘려나가고 광역 단위만 남는다 → 2줄 허용
                 <Text allowFontScaling={false}
-                  className="text-sub"
+                  className="text-sub font-normal"
                   style={{ fontSize: FONT_XS, lineHeight: normalize(16) }}
                   numberOfLines={2}
                 >
@@ -1194,8 +1194,8 @@ export default function TravelPlanScreen({ navigation, route }: any) {
               {/* TODO: 추후 스팟별 방문 시간/체류 시간 기능 추가 시 활성화 */}
               {/* <View className="flex-row items-center gap-1.5 mt-1">
                 <IconClock size={12} color="rgba(0,0,0,0.3)" />
-                <Text className="text-black/50" style={{ fontSize: normalizeFontSize(12) }}>
-                  {item.time} <Text className="text-black/25">{item.dur}</Text>
+                <Text className="text-black/50 font-normal" style={{ fontSize: normalizeFontSize(12) }}>
+                  {item.time} <Text className="text-black/25 font-normal">{item.dur}</Text>
                 </Text>
               </View> */}
             </View>
@@ -1226,7 +1226,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
               ) : (
                 <IconWalk size={14} color="rgba(0,0,0,0.3)" />
               )}
-              <Text className="text-black/45" style={{ fontSize: normalizeFontSize(12) }}>
+              <Text className="text-black/45 font-normal" style={{ fontSize: normalizeFontSize(12) }}>
                 {transport.label}
               </Text>
             </View>
@@ -1257,7 +1257,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
           >
             {course?.title || "출사 계획"}
           </Text>
-          <Text className="text-sub tracking-[-0.1px] mt-[1px]" style={{ fontSize: normalizeFontSize(11) }}>
+          <Text className="text-sub tracking-[-0.1px] mt-[1px] font-normal" style={{ fontSize: normalizeFontSize(11) }}>
             {course ? `${course.startDate.replace(/-/g, '.')} ~ ${course.endDate.replace(/-/g, '.')}` : "날짜 미정"}
           </Text>
         </View>
@@ -1295,7 +1295,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
                   타임라인
                 </Text>
                 {/* 탭 아래에 떠 있으면 소속이 애매해 제목 서브라인으로. 네비의 기간 표기와는 요일 유무로 구분 */}
-                <Text allowFontScaling={false} className="text-sub tracking-[-0.1px] mt-1" style={{ fontSize: normalizeFontSize(14) }}>
+                <Text allowFontScaling={false} className="text-sub tracking-[-0.1px] mt-1 font-normal" style={{ fontSize: normalizeFontSize(14) }}>
                   {currentData.date}
                 </Text>
               </View>

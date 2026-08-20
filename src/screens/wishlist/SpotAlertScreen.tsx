@@ -60,7 +60,7 @@ export default function SpotAlertScreen({ navigation, route }: any) {
           <IconBell size={normalize(20)} color={BRAND} />
           <View className="flex-1 ml-2.5">
             <Text className="font-medium text-brand mb-1" style={{ fontSize: FONT_SM }}>조건 충족 시 알림을 드려요</Text>
-            <Text className="text-sub leading-snug" style={{ fontSize: normalizeFontSize(12) }}>
+            <Text className="text-sub leading-snug font-normal" style={{ fontSize: normalizeFontSize(12) }}>
               날씨·시간대·미세먼지 조건이 맞으면 하루 전에 알려드려요. 스팟별로 다른 조건을 설정할 수 있어요.
             </Text>
           </View>
@@ -68,7 +68,7 @@ export default function SpotAlertScreen({ navigation, route }: any) {
 
         {isLoading ? (
           <View className="flex-1 items-center justify-center" style={{ marginTop: normalize(40) }}>
-            <Text className="text-sub" style={{ fontSize: FONT_SM }}>목록을 불러오는 중입니다...</Text>
+            <Text className="text-sub font-normal" style={{ fontSize: FONT_SM }}>목록을 불러오는 중입니다...</Text>
           </View>
         ) : wishlists.length === 0 ? (
           /* Empty State */
@@ -77,7 +77,7 @@ export default function SpotAlertScreen({ navigation, route }: any) {
               <IconBell size={normalize(28)} color="rgba(0,0,0,0.2)" />
             </View>
             <Text className="font-semibold text-black tracking-tight mb-2" style={{ fontSize: normalizeFontSize(18) }}>설정한 출사 조건이 없어요</Text>
-            <Text className="text-sub text-center leading-relaxed mb-4" style={{ fontSize: normalizeFontSize(14) }}>
+            <Text className="text-sub text-center leading-relaxed mb-4 font-normal" style={{ fontSize: normalizeFontSize(14) }}>
               스팟마다 날씨·골든아워·미세먼지 조건을{'\n'}설정하면 딱 맞는 날 알림을 받을 수 있어요.
             </Text>
             <TouchableOpacity onPress={handleAdd} className="bg-brand items-center justify-center" style={{ height: BUTTON_HEIGHT, paddingHorizontal: CONTENT_PADDING, borderRadius: BUTTON_RADIUS }}>
@@ -92,7 +92,7 @@ export default function SpotAlertScreen({ navigation, route }: any) {
                 내 출사 알림 <Text className="font-normal">({wishlists.length}개)</Text>
               </Text>
               <TouchableOpacity onPress={() => setSortModalVisible(true)} className="flex-row items-center py-1">
-                <Text className="text-sub" style={{ fontSize: normalizeFontSize(12), letterSpacing: -0.1 }}>{sortType}</Text>
+                <Text className="text-sub font-normal" style={{ fontSize: normalizeFontSize(12), letterSpacing: -0.1 }}>{sortType}</Text>
                 <IconChevronDown size={normalize(14)} color={TEXT_SUB} style={{ transform: [{ rotate: sortModalVisible ? '180deg' : '0deg' }], marginLeft: 2 }} />
               </TouchableOpacity>
             </View>
@@ -134,7 +134,7 @@ export default function SpotAlertScreen({ navigation, route }: any) {
                   </View>
                   <View className="flex-row items-center mb-2.5">
                     <IconMapPin size={normalize(12)} color="rgba(0,0,0,0.3)" />
-                    <Text className="text-sub ml-1" style={{ fontSize: normalizeFontSize(12) }}>{item.loc}</Text>
+                    <Text className="text-sub ml-1 font-normal" style={{ fontSize: normalizeFontSize(12) }}>{item.loc}</Text>
                   </View>
 
                   {/* Conditions */}
@@ -150,7 +150,7 @@ export default function SpotAlertScreen({ navigation, route }: any) {
                   <View className="flex-row border-t-[0.5px] border-hairline" style={{ paddingTop: normalize(10), gap: normalize(4) }}>
                     {item.forecast.map((f, i) => (
                       <View key={i} className="flex-1 items-center gap-1">
-                        <Text style={{ fontSize: normalizeFontSize(9), color: 'rgba(0,0,0,0.28)' }}>{f.day}</Text>
+                        <Text className="font-normal" style={{ fontSize: normalizeFontSize(9), color: 'rgba(0,0,0,0.28)' }}>{f.day}</Text>
                         <View className="items-center justify-center rounded-full bg-white border border-black/5" style={{ width: normalize(28), height: normalize(28), borderColor: f.hit ? BRAND : 'rgba(0,0,0,0.08)', backgroundColor: f.hit ? BRAND_TINT : '#fff' }}>
                           <IconCircleCheck size={normalize(16)} color={f.hit ? BRAND : 'rgba(0,0,0,0.15)'} />
                         </View>

@@ -148,7 +148,7 @@ export default function CalendarSection({ onEventPress }: Props) {
                 >
                   포토제닉 지수
                 </Text>
-                <Text allowFontScaling={false}>
+                <Text className="font-normal" allowFontScaling={false}>
                   <Text style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, color: BRAND }}>
                     {event.photoScore}
                   </Text>

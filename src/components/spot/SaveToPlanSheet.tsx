@@ -183,13 +183,13 @@ export default function SaveToPlanSheet({ visible, onClose, spot, onSaved }: Pro
               {isLoading ? (
                 <View style={{ paddingVertical: normalize(36), alignItems: 'center', justifyContent: 'center' }}>
                   <ActivityIndicator size="small" color={BRAND} />
-                  <Text allowFontScaling={false} style={{ fontSize: normalizeFontSize(13), color: TEXT_SUB, marginTop: normalize(8) }}>
+                  <Text className="font-normal" allowFontScaling={false} style={{ fontSize: normalizeFontSize(13), color: TEXT_SUB, marginTop: normalize(8) }}>
                     코스 목록을 불러오는 중...
                   </Text>
                 </View>
               ) : activeCourses.length === 0 ? (
                 <View style={{ paddingVertical: normalize(20), alignItems: 'center', justifyContent: 'center' }}>
-                  <Text allowFontScaling={false} style={{ fontSize: normalizeFontSize(14), color: 'rgba(0,0,0,0.45)', textAlign: 'center', lineHeight: normalize(20) }}>
+                  <Text className="font-normal" allowFontScaling={false} style={{ fontSize: normalizeFontSize(14), color: 'rgba(0,0,0,0.45)', textAlign: 'center', lineHeight: normalize(20) }}>
                     진행 중이거나 예정된 코스가 없습니다.{'\n'}새로운 코스를 만들어보세요!
                   </Text>
                 </View>
@@ -221,7 +221,7 @@ export default function SaveToPlanSheet({ visible, onClose, spot, onSaved }: Pro
                         <Text allowFontScaling={false} numberOfLines={1} style={{ fontFamily: 'Pretendard-Medium', fontSize: normalizeFontSize(15), color: '#000', letterSpacing: -0.2 }}>
                           {course.title}
                         </Text>
-                        <Text allowFontScaling={false} style={{ fontSize: normalizeFontSize(12), color: TEXT_SUB, marginTop: normalize(2) }}>
+                        <Text className="font-normal" allowFontScaling={false} style={{ fontSize: normalizeFontSize(12), color: TEXT_SUB, marginTop: normalize(2) }}>
                           {dateFormatted} · 스팟 {spotsCount}개
                         </Text>
                       </View>
@@ -305,7 +305,7 @@ export default function SaveToPlanSheet({ visible, onClose, spot, onSaved }: Pro
           </View>
 
           <View style={{ paddingHorizontal: GRID_PADDING }}>
-            <Text allowFontScaling={false} style={{ fontSize: normalizeFontSize(13), color: 'rgba(0,0,0,0.45)', letterSpacing: -0.15, lineHeight: normalizeFontSize(13) * 1.5, marginBottom: normalize(16) }}>
+            <Text className="font-normal" allowFontScaling={false} style={{ fontSize: normalizeFontSize(13), color: 'rgba(0,0,0,0.45)', letterSpacing: -0.15, lineHeight: normalizeFontSize(13) * 1.5, marginBottom: normalize(16) }}>
               <Text style={{ fontFamily: 'Pretendard-SemiBold', color: '#000' }}>{selectedCourse?.title}</Text>에서{'\n'}이 스팟을 추가할 날을 선택해 주세요
             </Text>
 

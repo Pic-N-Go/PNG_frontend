@@ -41,7 +41,7 @@ export default function ThemeSheet({ visible, onClose, onSave }: ThemeSheetProps
           </TouchableOpacity>
         </View>
 
-        <Text className="tracking-tight mb-4" style={{ fontSize: FONT_SM, color: TEXT_SUB, letterSpacing: -0.1 }}>
+        <Text className="tracking-tight mb-4 font-normal" style={{ fontSize: FONT_SM, color: TEXT_SUB, letterSpacing: -0.1 }}>
           홈 피드 및 스팟 추천에 반영돼요. 복수 선택 가능해요.
         </Text>
 

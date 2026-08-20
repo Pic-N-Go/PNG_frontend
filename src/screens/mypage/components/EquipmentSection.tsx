@@ -193,7 +193,7 @@ export default function EquipmentSection() {
 
         {!isLoading && isError && (
           <Text
-            className="text-center tracking-tight"
+            className="text-center tracking-tight font-normal"
             style={{ paddingVertical: normalize(24), fontSize: FONT_SM, color: 'rgba(0,0,0,0.35)' }}
           >
             장비를 불러오지 못했어요
@@ -202,7 +202,7 @@ export default function EquipmentSection() {
 
         {!isLoading && !isError && items.length === 0 && (
           <TouchableOpacity onPress={openSheet} style={{ paddingVertical: normalize(24), alignItems: 'center' }}>
-            <Text className="tracking-tight" style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.3)' }}>
+            <Text className="tracking-tight font-normal" style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.3)' }}>
               등록한 장비가 없어요 · 탭하여 추가
             </Text>
           </TouchableOpacity>
@@ -242,7 +242,7 @@ export default function EquipmentSection() {
               <Text className="font-medium text-black tracking-tight" style={{ fontSize: normalizeFontSize(15), marginBottom: normalize(1) }}>
                 {item.name}
               </Text>
-              <Text className="tracking-tight" style={{ fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.35)' }}>
+              <Text className="tracking-tight font-normal" style={{ fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.35)' }}>
                 {item.type}{item.desc ? ` · ${item.desc}` : ''}
               </Text>
             </View>
@@ -356,7 +356,7 @@ export default function EquipmentSection() {
                         </Text>
                       </View>
                     </View>
-                    <Text className="tracking-tight" style={{ fontSize: FONT_XS, color: 'rgba(0,0,0,0.35)' }}>
+                    <Text className="tracking-tight font-normal" style={{ fontSize: FONT_XS, color: 'rgba(0,0,0,0.35)' }}>
                       {item.desc}
                     </Text>
                   </View>

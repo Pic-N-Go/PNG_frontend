@@ -194,7 +194,7 @@ export default function OnboardingScreen({ navigation, route }: Props) {
                   }}
                 >
                   {isKakao ? (
-                    <Text style={{ fontSize: FONT_XS, fontWeight: '700', color: '#391B1B' }}>K</Text>
+                    <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-SemiBold', color: '#391B1B' }}>K</Text>
                   ) : (
                     <Feather name="smartphone" size={12} color="#fff" />
                   )}
@@ -282,7 +282,7 @@ export default function OnboardingScreen({ navigation, route }: Props) {
               }}
             >
               닉네임{' '}
-              <Text style={{ color: BRAND }}>*</Text>
+              <Text className="font-normal" style={{ color: BRAND }}>*</Text>
             </Text>
             <View style={{ position: 'relative', marginBottom: 6 }}>
               <AuthInput

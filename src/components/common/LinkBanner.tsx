@@ -50,7 +50,7 @@ export default function LinkBanner({ icon: Icon, title, subtitle, onPress, margi
             >
               {title}
             </Text>
-            <Text allowFontScaling={false} className="text-sub" style={{ fontSize: FONT_XS, marginTop: normalize(1) }}>
+            <Text allowFontScaling={false} className="text-sub font-normal" style={{ fontSize: FONT_XS, marginTop: normalize(1) }}>
               {subtitle}
             </Text>
           </View>

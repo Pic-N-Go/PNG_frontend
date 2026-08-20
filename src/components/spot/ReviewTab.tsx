@@ -125,13 +125,13 @@ export default function ReviewTab({ spotId, onWriteReview, onEditReview }: Props
         <View style={{ flex: 1, justifyContent: 'center', gap: normalize(6) }}>
           {summary.distribution.map((row) => (
             <View key={row.star} style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(6) }}>
-              <Text allowFontScaling={false} style={{ width: normalize(14), textAlign: 'right', fontSize: FONT_XS, color: TEXT_SUB }}>
+              <Text className="font-normal" allowFontScaling={false} style={{ width: normalize(14), textAlign: 'right', fontSize: FONT_XS, color: TEXT_SUB }}>
                 {row.star}
               </Text>
               <View style={{ flex: 1, height: normalize(4), borderRadius: normalize(2), backgroundColor: 'rgba(0,0,0,0.07)', overflow: 'hidden' }}>
                 <View style={{ width: `${row.percent}%`, height: '100%', borderRadius: normalize(2), backgroundColor: '#FF9F0A' }} />
               </View>
-              <Text allowFontScaling={false} style={{ width: normalize(26), textAlign: 'right', fontSize: FONT_2XS, color: 'rgba(0,0,0,0.3)' }}>
+              <Text className="font-normal" allowFontScaling={false} style={{ width: normalize(26), textAlign: 'right', fontSize: FONT_2XS, color: 'rgba(0,0,0,0.3)' }}>
                 {`${row.percent}%`}
               </Text>
             </View>
@@ -190,7 +190,7 @@ export default function ReviewTab({ spotId, onWriteReview, onEditReview }: Props
                         </Text>
                       </View>
                     )}
-                    <Text allowFontScaling={false} style={{ fontSize: FONT_XS, color: 'rgba(0,0,0,0.35)' }}>{review.date}</Text>
+                    <Text className="font-normal" allowFontScaling={false} style={{ fontSize: FONT_XS, color: 'rgba(0,0,0,0.35)' }}>{review.date}</Text>
                   </View>
                 </View>
                 {/* 본인 리뷰에만 노출. 서버도 소유자를 검증하므로 이건 진입점 숨김이지 보안 장치가 아니다. */}
@@ -235,7 +235,7 @@ export default function ReviewTab({ spotId, onWriteReview, onEditReview }: Props
               {review.equipment && (
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(4) }}>
                   <IconCamera size={normalize(14)} color={ICON_WEAK} strokeWidth={2} />
-                  <Text allowFontScaling={false} style={{ fontSize: FONT_XS, color: 'rgba(0,0,0,0.3)', letterSpacing: -0.1 }}>
+                  <Text className="font-normal" allowFontScaling={false} style={{ fontSize: FONT_XS, color: 'rgba(0,0,0,0.3)', letterSpacing: -0.1 }}>
                     {review.equipment}
                   </Text>
                 </View>

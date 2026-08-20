@@ -163,7 +163,7 @@ function InquiryCard({ item, onPress }: { item: InquiryItem; onPress: () => void
 
       <Text
         className="font-semibold text-black tracking-tight"
-        style={{ fontSize: FONT_MD, marginTop: normalize(10), fontFamily: 'Pretendard-Bold' }}
+        style={{ fontSize: FONT_MD, marginTop: normalize(10), fontFamily: 'Pretendard-SemiBold' }}
       >
         {item.title}
       </Text>

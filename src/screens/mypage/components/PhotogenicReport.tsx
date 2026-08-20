@@ -37,7 +37,7 @@ export default function PhotogenicReport() {
           style={{ position: 'absolute', inset: 0 }}
         />
         
-        <Text className="tracking-tight" style={{ fontSize: normalizeFontSize(12), color: TEXT_SUB, marginBottom: normalize(6) }}>
+        <Text className="tracking-tight font-normal" style={{ fontSize: normalizeFontSize(12), color: TEXT_SUB, marginBottom: normalize(6) }}>
           이번 달 평균
         </Text>
         
@@ -45,7 +45,7 @@ export default function PhotogenicReport() {
           <Text className="font-bold tracking-tight" style={{ fontSize: normalizeFontSize(36), color: BRAND, lineHeight: normalizeFontSize(38) }}>
             84.2
           </Text>
-          <Text className="tracking-tight" style={{ fontSize: normalizeFontSize(16), color: 'rgba(0,0,0,0.25)' }}>
+          <Text className="tracking-tight font-normal" style={{ fontSize: normalizeFontSize(16), color: 'rgba(0,0,0,0.25)' }}>
             /100
           </Text>
           <View
@@ -67,7 +67,7 @@ export default function PhotogenicReport() {
 
         {/* 주차별 차트 */}
         <View className="mb-6">
-          <Text className="tracking-tight" style={{ fontSize: FONT_XS, color: 'rgba(0,0,0,0.3)', marginBottom: normalize(12) }}>
+          <Text className="tracking-tight font-normal" style={{ fontSize: FONT_XS, color: 'rgba(0,0,0,0.3)', marginBottom: normalize(12) }}>
             주차별 평균 포토제닉 점수
           </Text>
           
@@ -79,7 +79,7 @@ export default function PhotogenicReport() {
                 style={{
                   fontSize: normalizeFontSize(11),
                   color: item.isBest ? BRAND : 'rgba(0,0,0,0.3)',
-                  fontWeight: item.isBest ? '700' : '500',
+                  fontFamily: item.isBest ? 'Pretendard-SemiBold' : 'Pretendard-Medium',
                 }}
               >
                 {item.score}{item.isBest && '★'}
@@ -107,7 +107,7 @@ export default function PhotogenicReport() {
           
           <View className="flex-row mt-2" style={{ gap: normalize(10) }}>
             {CHART_DATA.map((item, idx) => (
-              <Text key={idx} className="flex-1 text-center tracking-tight" style={{ fontSize: normalizeFontSize(10), color: 'rgba(0,0,0,0.3)' }}>
+              <Text key={idx} className="flex-1 text-center tracking-tight font-normal" style={{ fontSize: normalizeFontSize(10), color: 'rgba(0,0,0,0.3)' }}>
                 {item.week}
               </Text>
             ))}
@@ -116,7 +116,7 @@ export default function PhotogenicReport() {
 
         {/* 베스트 스팟 */}
         <View>
-          <Text className="tracking-tight" style={{ fontSize: FONT_XS, color: 'rgba(0,0,0,0.3)', marginBottom: normalize(8) }}>
+          <Text className="tracking-tight font-normal" style={{ fontSize: FONT_XS, color: 'rgba(0,0,0,0.3)', marginBottom: normalize(8) }}>
             이달의 베스트
           </Text>
           <View
@@ -131,7 +131,7 @@ export default function PhotogenicReport() {
             <Text className="font-semibold text-black tracking-tight" style={{ fontSize: normalizeFontSize(14), marginBottom: normalize(2) }}>
               광안리
             </Text>
-            <Text className="tracking-tight" style={{ fontSize: normalizeFontSize(11), color: TEXT_SUB, marginBottom: normalize(12) }}>
+            <Text className="tracking-tight font-normal" style={{ fontSize: normalizeFontSize(11), color: TEXT_SUB, marginBottom: normalize(12) }}>
               야경 · 3회 방문
             </Text>
             <View

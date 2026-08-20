@@ -178,7 +178,7 @@ export default function SpotPopup({ activeSpot, onClose, renderButtons }: Props)
                       {rating > 0 ? rating.toFixed(1) : '0.0'}
                     </Text>
                     {summary?.bookmarkCount !== undefined && summary.bookmarkCount > 0 && (
-                      <Text className="text-sub ml-1" style={{ fontSize: FONT_SM }}>
+                      <Text className="text-sub ml-1 font-normal" style={{ fontSize: FONT_SM }}>
                         {` · 저장 ${summary.bookmarkCount.toLocaleString()}`}
                       </Text>
                     )}
@@ -186,7 +186,7 @@ export default function SpotPopup({ activeSpot, onClose, renderButtons }: Props)
 
                   <View className="flex-row items-center mt-2.5 mb-1">
                     <IconMapPin size={14} color={TEXT_SUB} />
-                    <Text className="text-black/50 ml-1 flex-1" style={{ fontSize: FONT_SM }} numberOfLines={1}>
+                    <Text className="text-black/50 ml-1 flex-1 font-normal" style={{ fontSize: FONT_SM }} numberOfLines={1}>
                       {currentSpot.loc || '주소 정보 없음'}
                     </Text>
                   </View>
@@ -200,7 +200,7 @@ export default function SpotPopup({ activeSpot, onClose, renderButtons }: Props)
               <View className="flex-row flex-wrap gap-1.5 mt-3 mb-1">
                 {(currentSpot.tags || []).map((tag: string) => (
                   <View key={tag} className="px-2.5 py-1 bg-card rounded-full">
-                    <Text className="text-black/50" style={{ fontSize: normalizeFontSize(12) }}>{tag}</Text>
+                    <Text className="text-black/50 font-normal" style={{ fontSize: normalizeFontSize(12) }}>{tag}</Text>
                   </View>
                 ))}
               </View>

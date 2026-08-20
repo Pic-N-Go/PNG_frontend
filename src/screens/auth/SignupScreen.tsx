@@ -234,7 +234,7 @@ export default function SignupScreen({ navigation }: Props) {
             </Text>
 
             {/* ── Email ── */}
-            <Text style={labelStyle}>이메일</Text>
+            <Text className="font-normal" style={labelStyle}>이메일</Text>
             <View style={{ flexDirection: 'row', gap: 10, marginBottom: 4 }}>
               <View style={{ flex: 1 }}>
                 <AuthInput
@@ -352,7 +352,7 @@ export default function SignupScreen({ navigation }: Props) {
             )}
 
             {/* ── Password ── */}
-            <Text style={[labelStyle, { marginTop: 14 }]}>비밀번호</Text>
+            <Text className="font-normal" style={[labelStyle, { marginTop: 14 }]}>비밀번호</Text>
             <AuthInput
               icon="lock"
               value={pw1}
@@ -384,7 +384,7 @@ export default function SignupScreen({ navigation }: Props) {
             {showPwErr && <ErrorText>비밀번호는 8자 이상이며 영문과 숫자를 포함해야 해요.</ErrorText>}
 
             {/* ── Password Confirm ── */}
-            <Text style={[labelStyle, { marginTop: 14 }]}>비밀번호 확인</Text>
+            <Text className="font-normal" style={[labelStyle, { marginTop: 14 }]}>비밀번호 확인</Text>
             <AuthInput
               icon="lock"
               value={pw2}
@@ -396,7 +396,7 @@ export default function SignupScreen({ navigation }: Props) {
             {showMatchErr && <ErrorText style={{ marginTop: 4 }}>비밀번호가 일치하지 않아요.</ErrorText>}
 
             {/* ── Nickname ── */}
-            <Text style={[labelStyle, { marginTop: 14 }]}>닉네임</Text>
+            <Text className="font-normal" style={[labelStyle, { marginTop: 14 }]}>닉네임</Text>
             <View style={{ position: 'relative' }}>
               <AuthInput
                 icon="user"
@@ -427,7 +427,7 @@ export default function SignupScreen({ navigation }: Props) {
             <View style={{ height: 0.5, backgroundColor: 'rgba(0,0,0,0.08)', marginVertical: SPACING_LG }} />
 
             {/* ── Interest Themes ── */}
-            <Text style={labelStyle}>
+            <Text className="font-normal" style={labelStyle}>
               관심 테마{' '}
               <Text style={{ color: 'rgba(0,0,0,0.35)', fontFamily: 'Pretendard-Regular' }}>(선택, 복수가능)</Text>
             </Text>

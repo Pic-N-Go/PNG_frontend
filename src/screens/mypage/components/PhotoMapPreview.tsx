@@ -17,7 +17,7 @@ export default function PhotoMapPreview() {
           PIC MAP
         </Text>
         <TouchableOpacity onPress={() => navigation.navigate('PhotoMap' as never)}>
-          <Text className="tracking-tight" style={{ fontSize: FONT_SM, color: BRAND }}>
+          <Text className="tracking-tight font-normal" style={{ fontSize: FONT_SM, color: BRAND }}>
             전체보기
           </Text>
         </TouchableOpacity>
@@ -61,13 +61,13 @@ export default function PhotoMapPreview() {
         >
           <View className="flex-row items-center" style={{ gap: normalize(4) }}>
             <View style={{ width: normalize(8), height: normalize(8), borderRadius: normalize(4), backgroundColor: '#1c1c1e' }} />
-            <Text className="tracking-tight" style={{ fontSize: normalizeFontSize(10), color: TEXT_SUB }}>
+            <Text className="tracking-tight font-normal" style={{ fontSize: normalizeFontSize(10), color: TEXT_SUB }}>
               방문
             </Text>
           </View>
           <View className="flex-row items-center" style={{ gap: normalize(4) }}>
             <View style={{ width: normalize(8), height: normalize(8), borderRadius: normalize(4), backgroundColor: BRAND }} />
-            <Text className="tracking-tight" style={{ fontSize: normalizeFontSize(10), color: TEXT_SUB }}>
+            <Text className="tracking-tight font-normal" style={{ fontSize: normalizeFontSize(10), color: TEXT_SUB }}>
               즐겨찾기
             </Text>
           </View>

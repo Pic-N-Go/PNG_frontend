@@ -1,3 +1,13 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* RN은 웨이트별로 폰트 패밀리가 갈리므로 font-* 유틸리티를 패밀리 지정으로 재정의한다.
+   fontWeight는 같이 주지 않는다 — 안드로이드에서 named-weight 패밀리와 충돌해 폴백이 난다.
+   tailwind.config.js에서 fontWeight 코어 플러그인을 꺼 두어 정의가 하나만 남는다. */
+@layer utilities {
+  .font-normal   { font-family: 'Pretendard-Regular'; }
+  .font-medium   { font-family: 'Pretendard-Medium'; }
+  .font-semibold { font-family: 'Pretendard-SemiBold'; }
+  .font-bold     { font-family: 'Pretendard-SemiBold'; }
+}

@@ -317,7 +317,7 @@ export default function ProfileEditScreen({ navigation }: Props) {
                 className="bg-card text-black"
                 style={{ height: normalize(96), borderRadius: normalize(12), padding: normalize(14), fontSize: normalizeFontSize(14), lineHeight: normalize(22), textAlignVertical: 'top' }}
               />
-              <Text className="text-right" style={{ fontSize: FONT_XS, color: 'rgba(0,0,0,0.25)', marginTop: normalize(4) }}>
+              <Text className="text-right font-normal" style={{ fontSize: FONT_XS, color: 'rgba(0,0,0,0.25)', marginTop: normalize(4) }}>
                 {bio.length}/{BIO_MAX}
               </Text>
             </View>
@@ -369,7 +369,7 @@ function FieldHelper({ status, reason }: { status: Status; reason: string }) {
   return (
     <View className="flex-row items-center" style={{ gap: normalize(4), marginTop: normalize(8) }}>
       {ok && <IconCheck size={normalize(14)} color={OK} strokeWidth={2} />}
-      <Text style={{ fontSize: FONT_XS, color }}>{text}</Text>
+      <Text className="font-normal" style={{ fontSize: FONT_XS, color }}>{text}</Text>
     </View>
   );
 }

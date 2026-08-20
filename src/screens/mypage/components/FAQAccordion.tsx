@@ -62,7 +62,7 @@ export default function FAQAccordion({ question, answer, isFirst = false }: FAQA
       <Animated.View style={{ maxHeight: contentMaxHeight, overflow: 'hidden' }}>
         <View style={{ paddingHorizontal: normalize(16), paddingBottom: normalize(14) }}>
           <Text
-            className="leading-relaxed tracking-tight"
+            className="leading-relaxed tracking-tight font-normal"
             style={{ fontSize: FONT_SM, color: 'rgba(0, 0, 0, 0.5)' }}
           >
             {answer}

@@ -38,7 +38,7 @@ export default function ReviewActionSheet({ visible, onClose, onEdit, onDelete }
           style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(12), paddingVertical: normalize(14) }}
         >
           <IconEdit size={normalize(20)} color={ICON_GRAY} strokeWidth={2} />
-          <Text allowFontScaling={false} style={{ flex: 1, fontSize: normalizeFontSize(14), color: '#000', letterSpacing: -0.15 }}>
+          <Text className="font-normal" allowFontScaling={false} style={{ flex: 1, fontSize: normalizeFontSize(14), color: '#000', letterSpacing: -0.15 }}>
             수정하기
           </Text>
         </Pressable>
@@ -49,7 +49,7 @@ export default function ReviewActionSheet({ visible, onClose, onEdit, onDelete }
           style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(12), paddingVertical: normalize(14) }}
         >
           <IconTrash size={normalize(20)} color={DESTRUCTIVE} strokeWidth={2} />
-          <Text allowFontScaling={false} style={{ flex: 1, fontSize: normalizeFontSize(14), color: DESTRUCTIVE, letterSpacing: -0.15 }}>
+          <Text className="font-normal" allowFontScaling={false} style={{ flex: 1, fontSize: normalizeFontSize(14), color: DESTRUCTIVE, letterSpacing: -0.15 }}>
             삭제하기
           </Text>
         </Pressable>

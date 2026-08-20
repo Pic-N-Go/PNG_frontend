@@ -207,7 +207,7 @@ export default function ContestSubmitScreen() {
                 )}
                 <Text allowFontScaling={false} style={{ marginLeft: 'auto', fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, letterSpacing: -0.2, color: '#8e8e93' }}>
                   {`${current + 1}`}
-                  <Text style={{ color: '#c7c7cc' }}>{`/${photos.length}`}</Text>
+                  <Text className="font-normal" style={{ color: '#c7c7cc' }}>{`/${photos.length}`}</Text>
                 </Text>
               </View>
             )}

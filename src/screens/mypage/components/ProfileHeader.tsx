@@ -78,7 +78,7 @@ export default function ProfileHeader() {
             </View>
           )}
           {/* CLAUDE.md는 12px을 금지하고 11 또는 13을 쓰라고 명시한다 — 자기소개는 보조 정보라 11 */}
-          <Text className="leading-relaxed tracking-tight" style={{ fontSize: FONT_XS, color: 'rgba(255, 255, 255, 0.5)' }}>
+          <Text className="leading-relaxed tracking-tight font-normal" style={{ fontSize: FONT_XS, color: 'rgba(255, 255, 255, 0.5)' }}>
             {bio || '자기소개를 입력해 보세요'}
           </Text>
         </View>
@@ -175,7 +175,7 @@ function StatTile({
       <Text className="font-semibold text-white tracking-tight" style={{ fontSize: FONT_XL, marginBottom: normalize(2) }}>
         {loading ? '-' : value.toLocaleString()}
       </Text>
-      <Text className="tracking-tight" style={{ fontSize: FONT_XS, color: 'rgba(255, 255, 255, 0.35)' }}>
+      <Text className="tracking-tight font-normal" style={{ fontSize: FONT_XS, color: 'rgba(255, 255, 255, 0.35)' }}>
         {label}
       </Text>
     </TouchableOpacity>

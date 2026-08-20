@@ -146,7 +146,7 @@ export default function InquiryDetailScreen({ navigation, route }: Props) {
             <Text
               style={{
                 fontSize: FONT_LG,
-                fontFamily: 'Pretendard-Bold',
+                fontFamily: 'Pretendard-SemiBold',
                 color: TEXT,
                 lineHeight: normalize(26),
               }}

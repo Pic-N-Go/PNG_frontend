@@ -13,7 +13,7 @@ export default function StarRating({ rating, size = FONT_SM, color = '#FF9F0A' }
   const stars = '★'.repeat(filled) + '☆'.repeat(5 - filled);
 
   return (
-    <Text allowFontScaling={false} style={{ fontSize: size, color, letterSpacing: 1 }}>
+    <Text className="font-normal" allowFontScaling={false} style={{ fontSize: size, color, letterSpacing: 1 }}>
       {stars}
     </Text>
   );

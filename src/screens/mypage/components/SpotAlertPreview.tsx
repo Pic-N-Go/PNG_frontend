@@ -41,7 +41,7 @@ export default function SpotAlertPreview() {
             </Text>
           </TouchableOpacity>
         </View>
-        <Text className="tracking-tight" style={{ fontSize: FONT_SM, color: TEXT_SUB }}>
+        <Text className="tracking-tight font-normal" style={{ fontSize: FONT_SM, color: TEXT_SUB }}>
           날씨 알림이 설정된 스팟
         </Text>
       </View>
@@ -114,7 +114,7 @@ export default function SpotAlertPreview() {
                 <Text className="font-semibold text-black tracking-tight" style={{ fontSize: FONT_MD, marginBottom: normalize(2) }}>
                   {item.title}
                 </Text>
-                <Text className="tracking-tight" style={{ fontSize: normalizeFontSize(12), color: TEXT_SUB, marginBottom: normalize(6) }}>
+                <Text className="tracking-tight font-normal" style={{ fontSize: normalizeFontSize(12), color: TEXT_SUB, marginBottom: normalize(6) }}>
                   {item.loc}
                 </Text>
                 <Text className="font-medium tracking-tight" style={{ fontSize: FONT_XS, color: BRAND }}>

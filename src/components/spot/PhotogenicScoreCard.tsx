@@ -231,7 +231,7 @@ export default function PhotogenicScoreCard({ spotId, spotName }: Props) {
             </View>
 
             {/* 안내 문구 (히어로 예외: 중앙 정렬) */}
-            <Text allowFontScaling={false} style={{ marginTop: normalize(14), textAlign: 'center', fontSize: normalizeFontSize(17), lineHeight: normalizeFontSize(25), color: COLORS.textSub }}>
+            <Text className="font-normal" allowFontScaling={false} style={{ marginTop: normalize(14), textAlign: 'center', fontSize: normalizeFontSize(17), lineHeight: normalizeFontSize(25), color: COLORS.textSub }}>
               지금 <Text style={{ fontFamily: 'Pretendard-SemiBold', color: COLORS.text }}>{spotName}</Text>에{'\n'}{gradeMessage(data.grade)}
             </Text>
 

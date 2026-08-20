@@ -51,11 +51,11 @@ export default function PrivacyPolicyScreen({ navigation }: Props) {
       {/* Meta */}
       <View className="flex-row items-center justify-between border-b-[0.5px] border-hairline" style={{ paddingHorizontal: normalize(24), paddingVertical: normalize(14), backgroundColor: CARD }}>
         <View>
-          <Text style={{ fontSize: FONT_XS, color: TEXT2 }}>시행일</Text>
+          <Text className="font-normal" style={{ fontSize: FONT_XS, color: TEXT2 }}>시행일</Text>
           <Text className="font-semibold text-black" style={{ fontSize: FONT_SM, marginTop: normalize(2) }}>{META.effectiveDate}</Text>
         </View>
         <View className="items-end">
-          <Text style={{ fontSize: FONT_XS, color: TEXT2 }}>버전</Text>
+          <Text className="font-normal" style={{ fontSize: FONT_XS, color: TEXT2 }}>버전</Text>
           <Text className="font-semibold text-black" style={{ fontSize: FONT_SM, marginTop: normalize(2) }}>{META.version}</Text>
         </View>
       </View>
@@ -70,8 +70,8 @@ export default function PrivacyPolicyScreen({ navigation }: Props) {
             </View>
             {SUMMARY.map((s) => (
               <View key={s} className="flex-row" style={{ gap: normalize(6), marginTop: normalize(2) }}>
-                <Text style={{ fontSize: FONT_SM, color: BODY }}>·</Text>
-                <Text className="flex-1" style={{ fontSize: FONT_SM, color: BODY, lineHeight: normalize(21) }}>{s}</Text>
+                <Text className="font-normal" style={{ fontSize: FONT_SM, color: BODY }}>·</Text>
+                <Text className="flex-1 font-normal" style={{ fontSize: FONT_SM, color: BODY, lineHeight: normalize(21) }}>{s}</Text>
               </View>
             ))}
           </View>
@@ -82,10 +82,10 @@ export default function PrivacyPolicyScreen({ navigation }: Props) {
           {SECTIONS.map((sec) => (
             <View key={sec.title} style={{ marginBottom: normalize(16) }}>
               <Text className="font-semibold text-black" style={{ fontSize: FONT_MD, marginBottom: normalize(6) }}>{sec.title}</Text>
-              <Text style={{ fontSize: FONT_SM, color: BODY, lineHeight: normalize(22) }}>{sec.body}</Text>
+              <Text className="font-normal" style={{ fontSize: FONT_SM, color: BODY, lineHeight: normalize(22) }}>{sec.body}</Text>
             </View>
           ))}
-          <Text className="text-center" style={{ fontSize: FONT_XS, color: TEXT_SUB, paddingTop: normalize(12) }}>
+          <Text className="text-center font-normal" style={{ fontSize: FONT_XS, color: TEXT_SUB, paddingTop: normalize(12) }}>
             — 이하 생략 · 총 {META.totalItems}개 항목 —
           </Text>
         </View>

@@ -54,11 +54,11 @@ export default function TermsOfServiceScreen({ navigation }: Props) {
       {/* Meta */}
       <View className="flex-row items-center justify-between border-b-[0.5px] border-hairline" style={{ paddingHorizontal: normalize(24), paddingVertical: normalize(14), backgroundColor: CARD }}>
         <View>
-          <Text style={{ fontSize: FONT_XS, color: TEXT2 }}>최종 개정일</Text>
+          <Text className="font-normal" style={{ fontSize: FONT_XS, color: TEXT2 }}>최종 개정일</Text>
           <Text className="font-semibold text-black" style={{ fontSize: FONT_SM, marginTop: normalize(2) }}>{META.lastRevision}</Text>
         </View>
         <View className="items-end">
-          <Text style={{ fontSize: FONT_XS, color: TEXT2 }}>버전</Text>
+          <Text className="font-normal" style={{ fontSize: FONT_XS, color: TEXT2 }}>버전</Text>
           <Text className="font-semibold text-black" style={{ fontSize: FONT_SM, marginTop: normalize(2) }}>{META.version}</Text>
         </View>
       </View>
@@ -68,10 +68,10 @@ export default function TermsOfServiceScreen({ navigation }: Props) {
         {ARTICLES.map((a) => (
           <View key={a.title} style={{ marginBottom: normalize(16) }}>
             <Text className="font-semibold text-black" style={{ fontSize: FONT_MD, marginBottom: normalize(6) }}>{a.title}</Text>
-            <Text style={{ fontSize: FONT_SM, color: BODY, lineHeight: normalize(22) }}>{a.body}</Text>
+            <Text className="font-normal" style={{ fontSize: FONT_SM, color: BODY, lineHeight: normalize(22) }}>{a.body}</Text>
           </View>
         ))}
-        <Text className="text-center" style={{ fontSize: FONT_XS, color: TEXT_SUB, paddingTop: normalize(12) }}>
+        <Text className="text-center font-normal" style={{ fontSize: FONT_XS, color: TEXT_SUB, paddingTop: normalize(12) }}>
           — 이하 생략 · 총 {META.totalArticles}조 —
         </Text>
       </ScrollView>

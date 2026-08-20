@@ -441,7 +441,7 @@ export default function TravelNewScreen() {
               </Text>
               <IconCalendarEvent size={20} color={startDate ? BRAND : "rgba(0,0,0,0.2)"} />
             </TouchableOpacity>
-            <Text className="text-black/20" style={{ fontSize: normalizeFontSize(14) }}>—</Text>
+            <Text className="text-black/20 font-normal" style={{ fontSize: normalizeFontSize(14) }}>—</Text>
             <TouchableOpacity
               onPress={() => openDateSheet('end')}
               className="flex-1 bg-card flex-row items-center justify-between"
@@ -504,11 +504,11 @@ export default function TravelNewScreen() {
                 onPress={addDay}
                 className="w-[38px] h-[38px] rounded-full bg-card items-center justify-center"
               >
-                <Text className="text-black/25 leading-none" style={{ fontSize: normalizeFontSize(18) }}>+</Text>
+                <Text className="text-black/25 leading-none font-normal" style={{ fontSize: normalizeFontSize(18) }}>+</Text>
               </TouchableOpacity>
             )}
           </ScrollView>
-          <Text className="text-black/35 mt-3 mb-2" style={{ fontSize: normalizeFontSize(14) }}>{getDayDateLabel()}</Text>
+          <Text className="text-black/35 mt-3 mb-2 font-normal" style={{ fontSize: normalizeFontSize(14) }}>{getDayDateLabel()}</Text>
 
           {/* 타임라인 */}
           <View className="relative pl-8 min-h-[150px]">
@@ -528,7 +528,7 @@ export default function TravelNewScreen() {
                   <IconMapPin size={22} color="rgba(0,0,0,0.2)" />
                 </View>
                 <Text className="font-medium text-sub mb-1" style={{ fontSize: normalizeFontSize(16) }}>아직 추가된 스팟이 없어요</Text>
-                <Text className="text-black/20 text-center leading-relaxed" style={{ fontSize: normalizeFontSize(14) }}>아래 버튼으로 포토스팟을{'\n'}추가해보세요</Text>
+                <Text className="text-black/20 text-center leading-relaxed font-normal" style={{ fontSize: normalizeFontSize(14) }}>아래 버튼으로 포토스팟을{'\n'}추가해보세요</Text>
                 <TouchableOpacity onPress={() => navigation.navigate('Map', { source: 'plan' })} className="mt-6 w-full h-[54px] rounded-2xl border-[1.5px] border-dashed border-black/10 flex-row items-center justify-center">
                   <IconPlus size={15} color="rgba(0,0,0,0.25)" />
                   <Text className="font-medium text-black/25 ml-2" style={{ fontSize: normalizeFontSize(16) }}>스팟 추가하기</Text>
@@ -547,12 +547,12 @@ export default function TravelNewScreen() {
                         <Text className="font-semibold text-black mb-1" style={{ fontSize: normalizeFontSize(16) }}>{spot.name}</Text>
                         <View className="flex-row items-center mb-1.5">
                           <IconMapPin size={10} color="rgba(0,0,0,0.38)" />
-                          <Text className="text-sub ml-1" style={{ fontSize: normalizeFontSize(12) }}>{spot.loc}</Text>
+                          <Text className="text-sub ml-1 font-normal" style={{ fontSize: normalizeFontSize(12) }}>{spot.loc}</Text>
                         </View>
                         <View className="flex-row flex-wrap gap-1">
                           {spot.tags.map(t => (
                             <View key={t} className="h-5 px-2 rounded-full bg-black/5 items-center justify-center">
-                              <Text className="text-black/45" style={{ fontSize: normalizeFontSize(12) }}>{t}</Text>
+                              <Text className="text-black/45 font-normal" style={{ fontSize: normalizeFontSize(12) }}>{t}</Text>
                             </View>
                           ))}
                           <Text className="font-semibold text-brand ml-1" style={{ fontSize: normalizeFontSize(12) }}>★ {spot.score}</Text>
@@ -696,7 +696,7 @@ export default function TravelNewScreen() {
           <View className="bg-white rounded-t-[24px] px-5 pb-10 pt-3 items-center">
             <View className="w-9 h-1 rounded-full bg-black/10 mb-5" />
             <Text className="font-semibold text-black mb-2" style={{ fontSize: normalizeFontSize(18) }}>저장하지 않고 나갈까요?</Text>
-            <Text className="text-black/45 mb-7 text-center" style={{ fontSize: normalizeFontSize(16) }}>변경 사항이 저장되지 않아요.</Text>
+            <Text className="text-black/45 mb-7 text-center font-normal" style={{ fontSize: normalizeFontSize(16) }}>변경 사항이 저장되지 않아요.</Text>
             <TouchableOpacity onPress={() => setIsUnsavedSheetOpen(false)} className="w-full bg-brand items-center justify-center mb-2.5" style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}>
               <Text className="font-medium text-white" style={{ fontSize: normalizeFontSize(16) }}>계속 편집</Text>
             </TouchableOpacity>
@@ -716,7 +716,7 @@ export default function TravelNewScreen() {
             <Text className="font-semibold text-black mb-2" style={{ fontSize: normalizeFontSize(18) }}>
               {pendingDelete?.type === 'day' ? '이 날을 삭제할까요?' : '스팟을 삭제할까요?'}
             </Text>
-            <Text className="text-black/45 mb-7 text-center" style={{ fontSize: normalizeFontSize(16) }}>
+            <Text className="text-black/45 mb-7 text-center font-normal" style={{ fontSize: normalizeFontSize(16) }}>
               {pendingDelete?.type === 'day' ? `DAY ${pendingDelete.dayIdx}에 추가된 스팟이 모두 삭제되며\n복구할 수 없어요.` : '이 스팟이 일정에서 제거돼요.'}
             </Text>
             <TouchableOpacity onPress={confirmDelete} className="w-full bg-brand items-center justify-center mb-2.5" style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}>

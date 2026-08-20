@@ -338,7 +338,6 @@ export default function LoginScreen({ navigation }: Props) {
                 style={{
                   fontFamily: "FugazOne_400Regular",
                   fontSize: normalizeFontSize(40),
-                  fontWeight: "400",
                   color: "#fff",
                   letterSpacing: -1,
                   lineHeight: 48,
@@ -351,7 +350,6 @@ export default function LoginScreen({ navigation }: Props) {
                 style={{
                   fontFamily: "Pretendard-Regular",
                   fontSize: FONT_XS,
-                  fontWeight: "400",
                   color: "rgba(255,255,255,0.6)",
                   letterSpacing: 3.5,
                   marginTop: 4,
@@ -533,7 +531,7 @@ export default function LoginScreen({ navigation }: Props) {
                 <Text
                   style={{
                     fontSize: normalizeFontSize(14),
-                    fontWeight: "700",
+                    fontFamily: 'Pretendard-SemiBold',
                     color: "#391B1B",
                   }}
                 >

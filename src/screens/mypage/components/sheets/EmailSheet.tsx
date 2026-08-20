@@ -68,7 +68,7 @@ export default function EmailSheet({ visible, onClose, onSendAuth }: EmailSheetP
           />
         </View>
 
-        <Text className="tracking-tight mt-1" style={{ fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.35)', lineHeight: normalize(18) }}>
+        <Text className="tracking-tight mt-1 font-normal" style={{ fontSize: normalizeFontSize(12), color: 'rgba(0,0,0,0.35)', lineHeight: normalize(18) }}>
           변경 후 새 이메일로 인증 메일이 발송돼요.
         </Text>
 

@@ -139,7 +139,7 @@ export default function TravelListScreen({ navigation }: any) {
           style={{ opacity: compactTitleOpacity }}
           className="font-semibold text-black tracking-tight"
         >
-          <Text style={{ fontSize: normalizeFontSize(18) }}>출사 계획</Text>
+          <Text className="font-normal" style={{ fontSize: normalizeFontSize(18) }}>출사 계획</Text>
         </Animated.Text>
       </View>
 
@@ -390,7 +390,7 @@ export default function TravelListScreen({ navigation }: any) {
                   
                   <View className="flex-row items-center mb-3">
                     <IconCalendarEvent size={normalize(12)} color="rgba(0,0,0,0.3)" />
-                    <Text className="text-sub ml-1" style={{ fontSize: normalizeFontSize(12) }}>
+                    <Text className="text-sub ml-1 font-normal" style={{ fontSize: normalizeFontSize(12) }}>
                       {plan.date} · {plan.duration}
                     </Text>
                   </View>
@@ -398,15 +398,15 @@ export default function TravelListScreen({ navigation }: any) {
                   <View className="flex-row items-center gap-x-3">
                     <View className="flex-row items-center">
                       <IconMapPin size={normalize(12)} color="rgba(0,0,0,0.3)" />
-                      <Text className="text-sub ml-1" style={{ fontSize: normalizeFontSize(12) }}>포토스팟 {plan.spots}곳</Text>
+                      <Text className="text-sub ml-1 font-normal" style={{ fontSize: normalizeFontSize(12) }}>포토스팟 {plan.spots}곳</Text>
                     </View>
                     <View className="flex-row items-center">
                       <IconClock size={normalize(12)} color="rgba(0,0,0,0.3)" />
-                      <Text className="text-sub ml-1" style={{ fontSize: normalizeFontSize(12) }}>{plan.estimatedTime}</Text>
+                      <Text className="text-sub ml-1 font-normal" style={{ fontSize: normalizeFontSize(12) }}>{plan.estimatedTime}</Text>
                     </View>
                     <View className="flex-row items-center">
                       <IconRoute size={normalize(12)} color="rgba(0,0,0,0.3)" />
-                      <Text className="text-sub ml-1" style={{ fontSize: normalizeFontSize(12) }}>{plan.distance}</Text>
+                      <Text className="text-sub ml-1 font-normal" style={{ fontSize: normalizeFontSize(12) }}>{plan.distance}</Text>
                     </View>
                   </View>
                 </View>

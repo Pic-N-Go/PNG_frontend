@@ -17,5 +17,7 @@ module.exports = {
       },
     },
   },
+  // font-weight 유틸리티는 global.css에서 Pretendard 패밀리로 재정의한다.
+  corePlugins: { fontWeight: false },
   plugins: [],
 };

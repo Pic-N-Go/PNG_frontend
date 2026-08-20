@@ -20,7 +20,7 @@ export function LogoutModal({ visible, onClose, onConfirm }: ModalProps) {
           <Text className="font-semibold text-black tracking-tight" style={{ fontSize: normalizeFontSize(20), marginBottom: normalize(8) }}>
             로그아웃할까요?
           </Text>
-          <Text className="tracking-tight" style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.45)', lineHeight: normalize(22), marginBottom: normalize(24) }}>
+          <Text className="tracking-tight font-normal" style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.45)', lineHeight: normalize(22), marginBottom: normalize(24) }}>
             다음에 다시 로그인하면 모든 기능을 이용할 수 있어요.
           </Text>
 
@@ -47,7 +47,7 @@ export function WithdrawModal({ visible, onClose, onConfirm, pending }: ModalPro
           </Text>
           {/* 서버는 소프트 삭제 후 30일 뒤에 개인정보를 파기한다 —
               "복구할 수 없어요"로 두면 실제 동작과 다른 안내가 된다. */}
-          <Text className="tracking-tight" style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.45)', lineHeight: normalize(22), marginBottom: normalize(24) }}>
+          <Text className="tracking-tight font-normal" style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.45)', lineHeight: normalize(22), marginBottom: normalize(24) }}>
             탈퇴하면 바로 로그아웃되고, 프로필과 작성자 이름이 &apos;탈퇴한 사용자&apos;로 바뀌어요.
             작성한 게시글·댓글은 그대로 남습니다.{'\n'}
             30일 안에 같은 계정으로 다시 로그인하면 되돌릴 수 있고, 30일이 지나면 개인정보가 영구 삭제돼요.

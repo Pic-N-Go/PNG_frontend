@@ -63,7 +63,7 @@ export default function MyReviewsScreen() {
     const stars = [];
     for (let i = 0; i < 5; i++) {
       stars.push(
-        <Text key={i} style={{ fontSize: FONT_XS, color: '#f59e0b', letterSpacing: 1 }}>
+        <Text className="font-normal" key={i} style={{ fontSize: FONT_XS, color: '#f59e0b', letterSpacing: 1 }}>
           {i < count ? '★' : '☆'}
         </Text>
       );
