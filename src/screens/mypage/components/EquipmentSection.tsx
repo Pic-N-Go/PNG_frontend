@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Modal, Animated, Pressable, PanResponder, TextInput, Platform, Keyboard, Alert, ActivityIndicator } from 'react-native';
 import { IconCamera, IconAperture, IconChevronRight, IconX, IconTrash } from '@tabler/icons-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { BORDER_CONTROL, EMPTY_CARD_HEIGHT, FONT_SM, FONT_XS, GRID_PADDING, HAIRLINE_WIDTH } from '@/constants/layout';
+import { BORDER_CONTROL, CARD_RADIUS, EMPTY_CARD_HEIGHT, FONT_SM, FONT_XS, GRID_PADDING, HAIRLINE_WIDTH } from '@/constants/layout';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCreateEquipment, useDeleteEquipment, useMyEquipments } from '@/hooks/useEquipment';
 import { toErrorMessage } from '@/api/auth';
@@ -170,7 +170,7 @@ export default function EquipmentSection() {
 
       <View
         style={{
-          borderRadius: normalize(16),
+          borderRadius: CARD_RADIUS,
           backgroundColor: CARD,
           overflow: 'hidden',
         }}

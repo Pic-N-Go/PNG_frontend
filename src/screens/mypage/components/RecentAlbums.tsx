@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { EMPTY_CARD_HEIGHT, FONT_SM, GRID_PADDING } from '@/constants/layout';
+import { CARD_RADIUS, EMPTY_CARD_HEIGHT, FONT_SM, GRID_PADDING } from '@/constants/layout';
 import { useMyAlbums } from '@/hooks/useUser';
 import { categoryLabel } from '@/constants/spotCategories';
 import { BRAND, CARD } from '@/constants/colors';
@@ -31,7 +31,7 @@ export default function RecentAlbums() {
           style={{
             height: EMPTY_CARD_HEIGHT,
             backgroundColor: CARD,
-            borderRadius: normalize(14),
+            borderRadius: CARD_RADIUS,
             alignItems: 'center',
             justifyContent: 'center',
           }}
@@ -72,7 +72,7 @@ export default function RecentAlbums() {
               style={{
                 width: normalize(160),
                 height: normalize(200),
-                borderRadius: normalize(14),
+                borderRadius: CARD_RADIUS,
                 overflow: 'hidden',
                 position: 'relative',
               }}

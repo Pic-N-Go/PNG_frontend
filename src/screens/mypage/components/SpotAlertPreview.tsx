@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from 'rea
 import { useNavigation } from '@react-navigation/native';
 import { IconBellFilled, IconBellOff } from '@tabler/icons-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { EMPTY_CARD_HEIGHT, FONT_MD, FONT_SM, FONT_XS, GRID_PADDING } from '@/constants/layout';
+import { CARD_RADIUS, EMPTY_CARD_HEIGHT, FONT_MD, FONT_SM, FONT_XS, GRID_PADDING } from '@/constants/layout';
 import { useSpotAlert } from '@/hooks/useSpotAlert';
 import { mapSpotAlertToUI } from '@/utils/spotAlertMapper';
 import { BRAND, BRAND_STRONG, CARD, TEXT_SUB } from '@/constants/colors';
@@ -59,8 +59,8 @@ export default function SpotAlertPreview() {
         </View>
       ) : uiItems.length === 0 ? (
         <View
-          className="bg-card rounded-2xl items-center justify-center"
-          style={{ marginHorizontal: GRID_PADDING, height: EMPTY_CARD_HEIGHT }}
+          className="bg-card items-center justify-center"
+          style={{ marginHorizontal: GRID_PADDING, height: EMPTY_CARD_HEIGHT, borderRadius: CARD_RADIUS }}
         >
           <Text className="tracking-tight font-normal" style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.3)' }}>
             설정한 출사 조건이 없어요.
@@ -80,7 +80,7 @@ export default function SpotAlertPreview() {
               onPress={() => navigation.navigate('WishlistSetting', { id: item.id })}
               style={{
                 width: normalize(200),
-                borderRadius: normalize(16),
+                borderRadius: CARD_RADIUS,
                 backgroundColor: CARD,
                 overflow: 'hidden',
               }}
@@ -106,7 +106,7 @@ export default function SpotAlertPreview() {
                     style={{
                       width: normalize(28),
                       height: normalize(28),
-                      borderRadius: normalize(14),
+                      borderRadius: normalize(14), // 원형 = height / 2. 카드 radius 아님
                       backgroundColor: item.isAlertEnabled ? BRAND_STRONG : 'rgba(0,0,0,0.3)',
                       alignItems: 'center',
                       justifyContent: 'center',

@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import Svg, { Line, Circle, Path } from 'react-native-svg';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { FONT_SM, GRID_PADDING } from '@/constants/layout';
+import { CARD_RADIUS, FONT_SM, GRID_PADDING } from '@/constants/layout';
 
 import { useNavigation } from '@react-navigation/native';
 import { BRAND, CARD, TEXT_SUB } from '@/constants/colors';
@@ -26,7 +26,7 @@ export default function PhotoMapPreview() {
       <View
         style={{
           height: normalize(200),
-          borderRadius: normalize(16),
+          borderRadius: CARD_RADIUS,
           backgroundColor: CARD,
           position: 'relative',
           overflow: 'hidden',
