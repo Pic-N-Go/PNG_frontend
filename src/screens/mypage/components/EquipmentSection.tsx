@@ -425,6 +425,7 @@ export default function EquipmentSection() {
                           borderColor: isFocused || newEquipmentName ? BRAND : 'rgba(0,0,0,0.1)',
                           borderRadius: normalize(12),
                           paddingHorizontal: normalize(14),
+                          fontFamily: 'Pretendard-Regular',
                           fontSize: normalizeFontSize(14),
                           color: '#000',
                         }}

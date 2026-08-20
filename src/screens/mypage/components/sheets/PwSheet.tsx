@@ -70,6 +70,7 @@ export default function PwSheet({ visible, onClose, onChangePw }: PwSheetProps) 
               borderRadius: normalize(12),
               backgroundColor: CARD,
               paddingHorizontal: normalize(14),
+              fontFamily: 'Pretendard-Regular',
               fontSize: FONT_MD,
               color: '#000',
             }}
@@ -91,6 +92,7 @@ export default function PwSheet({ visible, onClose, onChangePw }: PwSheetProps) 
               borderRadius: normalize(12),
               backgroundColor: CARD,
               paddingHorizontal: normalize(14),
+              fontFamily: 'Pretendard-Regular',
               fontSize: FONT_MD,
               color: '#000',
             }}
@@ -112,6 +114,7 @@ export default function PwSheet({ visible, onClose, onChangePw }: PwSheetProps) 
               borderRadius: normalize(12),
               backgroundColor: CARD,
               paddingHorizontal: normalize(14),
+              fontFamily: 'Pretendard-Regular',
               fontSize: FONT_MD,
               color: '#000',
             }}

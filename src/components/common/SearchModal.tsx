@@ -166,6 +166,7 @@ export default function SearchModal({
               style={{
                 flex: 1,
                 marginLeft: normalize(8),
+                fontFamily: 'Pretendard-Regular',
                 fontSize: FONT_MD,
                 color: '#111',
                 paddingVertical: 0,

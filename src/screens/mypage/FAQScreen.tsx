@@ -113,7 +113,7 @@ export default function FAQScreen({ navigation }: Props) {
             placeholderTextColor={TEXT2}
             returnKeyType="search"
             className="flex-1 p-0 text-black"
-            style={{ fontSize: normalizeFontSize(14) }}
+            style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(14) }}
           />
         </View>
 

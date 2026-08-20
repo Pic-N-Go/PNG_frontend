@@ -418,7 +418,7 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
             placeholderTextColor="rgba(0,0,0,0.25)" 
             multiline 
             className="bg-card rounded-2xl p-4 text-black leading-relaxed" 
-            style={{ fontSize: normalizeFontSize(14), height: normalize(100), textAlignVertical: 'top' }} 
+            style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(14), height: normalize(100), textAlignVertical: 'top' }} 
             onFocus={() => {
               setTimeout(() => {
                 scrollViewRef.current?.scrollToEnd({ animated: true });
@@ -468,7 +468,7 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
               placeholder="스팟 이름으로 검색" 
               placeholderTextColor="rgba(0,0,0,0.3)"
               className="flex-1 ml-2 text-black"
-              style={{ fontSize: normalizeFontSize(14), padding: 0 }}
+              style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(14), padding: 0 }}
             />
             {searchText.length > 0 && (
               <TouchableOpacity onPress={() => setSearchText('')} hitSlop={8}>

@@ -1083,7 +1083,7 @@ function PasswordField({
         autoCapitalize="none"
         autoCorrect={false}
         className="bg-card text-black"
-        style={{ height: INPUT_HEIGHT, borderRadius: normalize(12), paddingHorizontal: normalize(16), fontSize: FONT_MD }}
+        style={{ height: INPUT_HEIGHT, borderRadius: normalize(12), paddingHorizontal: normalize(16), fontFamily: 'Pretendard-Regular', fontSize: FONT_MD }}
       />
     </View>
   );

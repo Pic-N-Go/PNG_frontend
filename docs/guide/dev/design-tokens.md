@@ -77,6 +77,9 @@ Pretendard **3웨이트만** 로드한다 — `Regular` / `Medium` / `SemiBold`.
   named-weight 패밀리에 `fontWeight`를 병용하면 안드로이드에서 폴백이 난다.
 - React 19에서 함수 컴포넌트의 `defaultProps`가 제거돼 `Text.defaultProps`로 전역 기본값을
   까는 방식은 쓸 수 없다. **모든 `<Text>`에 패밀리를 명시한다.**
+- **`<TextInput>`도 마찬가지다.** 부모의 `fontFamily`를 상속하지 않아서, 빠뜨리면 입력한
+  글자만 OS 기본 서체(iOS SF, Android Roboto)로 렌더된다. `placeholderTextColor`는 있는데
+  패밀리가 없는 경우가 많아 눈에 띄지 않는다. 입력 텍스트는 `Pretendard-Regular`를 쓴다.
 - 지도 WebView는 번들 폰트 스코프 밖이라 숫자 서브셋(`src/constants/mapFont.ts`)을
   base64로 인라인한다. 재생성 방법은 그 파일 주석에 있다.
 

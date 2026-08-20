@@ -39,7 +39,7 @@ export default function OpenSourceLicensesScreen({ navigation }: Props) {
             placeholder="라이브러리 검색"
             placeholderTextColor="rgba(0,0,0,0.48)"
             className="flex-1 p-0 text-black"
-            style={{ fontSize: FONT_SM }}
+            style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM }}
           />
         </View>
       </View>

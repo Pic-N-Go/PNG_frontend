@@ -294,7 +294,7 @@ export default function ProfileEditScreen({ navigation }: Props) {
                   onChangeText={(t) => { touched.current = true; setNick(t); setNickStatus('idle'); }}
                   maxLength={NICK_MAX}
                   className="flex-1 bg-card text-black"
-                  style={{ height: INPUT_HEIGHT, borderRadius: normalize(12), paddingHorizontal: normalize(16), fontSize: FONT_MD }}
+                  style={{ height: INPUT_HEIGHT, borderRadius: normalize(12), paddingHorizontal: normalize(16), fontFamily: 'Pretendard-Regular', fontSize: FONT_MD }}
                 />
                 <CheckButton onPress={checkNickname} disabled={nickStatus === 'checking'} />
               </View>
@@ -315,7 +315,7 @@ export default function ProfileEditScreen({ navigation }: Props) {
                 placeholder="안녕하세요! 사진과 일상을 기록하는 것을 좋아합니다!"
                 placeholderTextColor="rgba(0,0,0,0.25)"
                 className="bg-card text-black"
-                style={{ height: normalize(96), borderRadius: normalize(12), padding: normalize(14), fontSize: normalizeFontSize(14), lineHeight: normalize(22), textAlignVertical: 'top' }}
+                style={{ height: normalize(96), borderRadius: normalize(12), padding: normalize(14), fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(14), lineHeight: normalize(22), textAlignVertical: 'top' }}
               />
               <Text className="text-right font-normal" style={{ fontSize: FONT_XS, color: 'rgba(0,0,0,0.25)', marginTop: normalize(4) }}>
                 {bio.length}/{BIO_MAX}

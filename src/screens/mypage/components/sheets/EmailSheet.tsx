@@ -41,6 +41,7 @@ export default function EmailSheet({ visible, onClose, onSendAuth }: EmailSheetP
               borderRadius: normalize(12),
               backgroundColor: CARD,
               paddingHorizontal: normalize(14),
+              fontFamily: 'Pretendard-Regular',
               fontSize: FONT_MD,
               color: '#000',
             }}
@@ -62,6 +63,7 @@ export default function EmailSheet({ visible, onClose, onSendAuth }: EmailSheetP
               borderRadius: normalize(12),
               backgroundColor: CARD,
               paddingHorizontal: normalize(14),
+              fontFamily: 'Pretendard-Regular',
               fontSize: FONT_MD,
               color: '#000',
             }}

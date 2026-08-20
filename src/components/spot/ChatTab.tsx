@@ -284,7 +284,7 @@ export default function ChatTab({ spotId, spotName, onFocusChange }: Props) {
             onSubmitEditing={handleSend}
             onFocus={() => onFocusChange?.(true)}
             onBlur={() => onFocusChange?.(false)}
-            style={{ flex: 1, fontSize: normalizeFontSize(14), color: '#000', letterSpacing: -0.15 }}
+            style={{ flex: 1, fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(14), color: '#000', letterSpacing: -0.15 }}
           />
         </View>
         <Pressable
