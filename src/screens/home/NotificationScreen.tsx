@@ -246,13 +246,15 @@ export default function NotificationScreen({ navigation }: Props) {
         style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{
+          // 빈 상태를 남은 영역 가운데에 두려면 콘텐츠가 짧아도 높이를 채워야 한다
+          flexGrow: 1,
           paddingTop: normalize(10),
           // 탭바 높이·인셋을 더하지 않는다 — 화면 영역에서 이미 빠져 있다(HomeScreen 주석 참고).
           paddingBottom: SPACING_LG,
         }}
       >
         {isLoading ? (
-          <View style={{ paddingVertical: normalize(48), alignItems: 'center' }}>
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
             <ActivityIndicator color={BRAND} size="small" />
             <Text
               allowFontScaling={false}
@@ -269,8 +271,9 @@ export default function NotificationScreen({ navigation }: Props) {
         ) : isError ? (
           <View
             style={{
+              flex: 1,
               alignItems: 'center',
-              paddingVertical: normalize(48),
+              justifyContent: 'center',
               paddingHorizontal: GRID_PADDING,
               gap: normalize(10),
             }}
@@ -279,7 +282,7 @@ export default function NotificationScreen({ navigation }: Props) {
               allowFontScaling={false}
               style={{
                 fontFamily: 'Pretendard-Medium',
-                fontSize: normalizeFontSize(16),
+                fontSize: FONT_MD,
                 color: '#000',
               }}
             >
@@ -289,8 +292,9 @@ export default function NotificationScreen({ navigation }: Props) {
         ) : groups.length === 0 ? (
           <View
             style={{
+              flex: 1,
               alignItems: 'center',
-              paddingVertical: normalize(48),
+              justifyContent: 'center',
               paddingHorizontal: GRID_PADDING,
               gap: normalize(10),
             }}
@@ -312,7 +316,7 @@ export default function NotificationScreen({ navigation }: Props) {
               allowFontScaling={false}
               style={{
                 fontFamily: 'Pretendard-Medium',
-                fontSize: normalizeFontSize(16),
+                fontSize: FONT_MD,
                 color: '#000',
                 letterSpacing: -0.2,
               }}
