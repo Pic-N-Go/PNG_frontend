@@ -20,6 +20,7 @@ import { ApiError } from '@/api/auth';
 import {
   useAddReviewPhotos, useCreateReview, useDeleteReviewPhoto, useSpotDetail, useUpdateReview,
 } from '@/hooks/useSpot';
+import { useMyEquipments } from '@/hooks/useEquipment';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { BORDER_CONTROL, BUTTON_HEIGHT, BUTTON_RADIUS, CARD_RADIUS, FONT_2XS, FONT_LG, FONT_MD, FONT_SM, FONT_XS, GRID_PADDING, HAIRLINE_WIDTH, INPUT_RADIUS } from '@/constants/layout';
 import type { ReviewPhotoDTO, ReviewTagApi, TimePeriodApi } from '@/types/spot';
@@ -52,6 +53,8 @@ const CONTENT_MIN = 20;
 const CONTENT_MAX = 500;
 const MAX_PHOTOS = 5;
 const MAX_EQUIPMENT = 5;
+// 서버는 장비를 ", "로 합쳐 100자 컬럼에 넣는다. 초과 시 400 REVIEW_EQUIPMENT_INFO_TOO_LONG.
+const MAX_EQUIPMENT_CHARS = 100;
 // 서버 max-file-size와 동일. 초과분은 업로드 전에 걸러 낸다.
 const MAX_PHOTO_BYTES = 20 * 1024 * 1024;
 // 서버 max-request-size는 100MB인데 5장 × 20MB면 정확히 100MB라 여유가 0이다. 같은 요청에
@@ -68,15 +71,8 @@ const PERIODS: { value: TimePeriodApi; label: string; Icon: typeof IconSun }[] =
   { value: 'NIGHT', label: '야간', Icon: IconMoon },
 ];
 
-// 목업 설계는 "마이페이지에서 내 장비 등록 → 리뷰에서 선택"인데(mypage.html의 내 장비 섹션·장비 시트),
-// 백엔드에 장비 엔티티·엔드포인트가 없어 마이페이지 쪽이 미구현이다.
-// ponytail: 그 CRUD가 생기기 전엔 이 화면 혼자 고칠 수 없으므로 목업 목록을 그대로 둔다. 생기면 조회로 교체.
-const EQUIPMENT = [
-  { name: 'Sony A7IV', type: '카메라 바디', Icon: Camera },
-  { name: '16-35mm f/2.8 GM', type: '렌즈 · 풍경/야경', Icon: CircleDot },
-  { name: '50mm f/1.4 GM', type: '렌즈 · 인물/스냅', Icon: CircleDot },
-  { name: '70-200mm f/2.8 GM', type: '렌즈 · 망원', Icon: CircleDot },
-];
+// 목업 설계 그대로 "마이페이지에서 내 장비 등록 → 리뷰에서 선택"이다(GET /users/me/equipments).
+// 서버 EquipmentType은 CAMERA·LENS 둘뿐이라 목업의 "렌즈 · 풍경/야경" 같은 세부 용도는 줄 수 없다.
 
 /**
  * 피커는 고를 때마다 UUID로 새 캐시 경로를 만들어 파일을 쓴다(expo-modules-core의
@@ -123,16 +119,16 @@ const fromISODate = (iso: string) => {
 };
 
 /**
- * 서버는 장비를 ", "로 합쳐 보관한다. 칩으로 표현 가능한 항목만 되살린다.
- * 주의: 걸러진 값은 화면에서 사라지는 데 그치지 않고 저장 시 삭제된다 — PUT이 equipmentInfo를
- * 무조건 덮어쓰기 때문이다. EQUIPMENT가 하드코딩이라 지금은 닿지 않지만, 항목 이름을 바꾸거나
- * "내 장비" 조회로 교체하면 그 순간 조용한 데이터 유실이 된다. 그때는 미지의 값을 보존해야 한다.
+ * 서버는 장비를 ", "로 합쳐 보관한다. 되살릴 때 내 장비 목록으로 걸러내지 않는다 —
+ * PUT이 equipmentInfo를 무조건 덮어쓰므로 목록에 없는 값을 버리면 저장하는 순간 조용히
+ * 삭제된다(장비를 지우거나 이름을 바꾼 뒤 옛 리뷰를 수정하는 경우). 그런 값도 선택된 칩으로
+ * 띄워, 사용자가 직접 해제할 때만 사라지게 한다.
  */
-const seedEquipmentOf = (joined: string | null) => {
-  if (!joined) return [];
-  const known = new Set(EQUIPMENT.map((e) => e.name));
-  return joined.split(',').map((s) => s.trim()).filter((s) => known.has(s));
-};
+const seedEquipmentOf = (joined: string | null) =>
+  joined ? joined.split(',').map((s) => s.trim()).filter(Boolean) : [];
+
+/** 서버 저장 형식과 같은 방식으로 합친 길이. 100자 상한 판정에 쓴다. */
+const joinedLengthOf = (names: string[]) => names.join(', ').length;
 
 export default function ReviewWriteScreen({ route, navigation }: Props) {
   const { spotId, edit } = route.params;
@@ -159,7 +155,26 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
   // 아니라 서버가 준 목록을 그대로 들고 있는다. 작성 모드에서는 항상 빈 배열.
   const [serverPhotos, setServerPhotos] = React.useState<ReviewPhotoDTO[]>(edit?.photos ?? []);
   const [tags, setTags] = React.useState<ReviewTagApi[]>(edit?.tags ?? []);
-  const [equipment, setEquipment] = React.useState<string[]>(seedEquipmentOf(edit?.equipmentInfo ?? null));
+  // 저장돼 있던 값은 처음 한 번만 읽어 고정한다. 아래 목록을 equipment에서 파생하면 해제하는
+  // 순간 행이 사라져 다시 고를 수 없다 — 오탭 한 번이 복구 불가능한 삭제가 된다.
+  const seeded = React.useRef(seedEquipmentOf(edit?.equipmentInfo ?? null)).current;
+  const [equipment, setEquipment] = React.useState<string[]>(seeded);
+  const { data: myEquipments = [], isLoading: equipmentLoading, isError: equipmentError } = useMyEquipments();
+  // 내 장비 + 이 리뷰에 저장돼 있지만 지금 목록엔 없는 값. 후자를 빼면 저장 시 유실된다.
+  const equipmentOptions = React.useMemo(() => {
+    // 유니크 제약이 (user, type, name)이라 타입만 다른 동명 장비가 둘 올 수 있다. 선택은
+    // 이름 문자열로만 표현되므로 행이 둘이면 한 번 탭에 둘 다 켜진 것처럼 보인다.
+    const byName = new Map(myEquipments.map((e) => [e.equipmentName, e]));
+    const mine = [...byName.values()].map((e) => ({
+      name: e.equipmentName,
+      type: e.equipmentType === 'CAMERA' ? '카메라' : '렌즈',
+      isCamera: e.equipmentType === 'CAMERA',
+    }));
+    const orphans = [...new Set(seeded)]
+      .filter((name) => !byName.has(name))
+      .map((name) => ({ name, type: '내 장비에 없는 항목', isCamera: false }));
+    return [...mine, ...orphans];
+  }, [myEquipments, seeded]);
 
   const trimmed = content.trim();
   const canSubmit = rating > 0 && period !== null && trimmed.length >= CONTENT_MIN;
@@ -187,7 +202,7 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
     period: edit?.timePeriod ?? null,
     content: (edit?.content ?? '').trim(),
     visitedAt: toISODate(edit?.visitedAt ? fromISODate(edit.visitedAt) : today),
-    equipment: seedEquipmentOf(edit?.equipmentInfo ?? null).join('|'),
+    equipment: seeded.join('|'),
     // 선택 순서가 달라도 같은 조합이면 변경으로 보지 않는다.
     tags: [...(edit?.tags ?? [])].sort().join('|'),
   }).current;
@@ -227,13 +242,16 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
       return prev.length >= MAX_REVIEW_TAGS ? prev : [...prev, tag];
     });
 
-  const toggleEquipment = (name: string) =>
-    setEquipment((prev) => {
-      if (prev.includes(name)) return prev.filter((e) => e !== name);
-      // 서버 @Size(max = 5) + 합쳐서 100자 제한(초과 시 400 REVIEW_EQUIPMENT_INFO_TOO_LONG).
-      // 지금은 목록이 4개·합계 61자라 둘 다 닿지 않지만, 내 장비 조회로 바뀌면 길이도 막아야 한다.
-      return prev.length >= MAX_EQUIPMENT ? prev : [...prev, name];
-    });
+  // 개수·길이 상한 둘 다 서버에서 400이라 프론트에서 막는다. 장비명은 개당 100자까지 등록되므로
+  // 두 개만 골라도 길이 쪽에 먼저 닿을 수 있다. 해제는 항상 허용해야 상한에서 갇히지 않는다.
+  const equipmentBlocked = (name: string) =>
+    !equipment.includes(name) &&
+    (equipment.length >= MAX_EQUIPMENT || joinedLengthOf([...equipment, name]) > MAX_EQUIPMENT_CHARS);
+
+  const toggleEquipment = (name: string) => {
+    if (equipmentBlocked(name)) return;
+    setEquipment((prev) => (prev.includes(name) ? prev.filter((e) => e !== name) : [...prev, name]));
+  };
 
   // ponytail: EXIF를 지우지 않는다. 서버가 EXIF에서 촬영 위치(위도·경도)를 읽어 사진 정보 화면에
   // 표시할 예정이라 GPS 태그가 유지되어야 한다.
@@ -435,7 +453,8 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
       visitedAt: toISODate(visitedAt),
       // 미선택이어도 빈 배열로 보낸다. 수정은 전체 교체라 []가 곧 "태그 전부 해제"다.
       tags,
-      ...(equipment.length > 0 && { equipmentInfo: equipment }),
+      // tags와 같은 이유로 빈 배열도 보낸다. 수정은 전체 교체라 []가 곧 "장비 전부 해제"다.
+      equipmentInfo: equipment,
     };
     const handlers = {
       onSuccess: () => setLeaving(true),
@@ -787,21 +806,54 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
           {/* 사용 장비 */}
           <Section label="사용 장비" hint="선택">
             <View style={{ borderRadius: CARD_RADIUS, backgroundColor: SURFACE, overflow: 'hidden' }}>
-              {EQUIPMENT.map(({ name, type, Icon }, idx) => {
+              {equipmentLoading && (
+                <View style={{ paddingVertical: normalize(28) }}>
+                  <ActivityIndicator color={BRAND} />
+                </View>
+              )}
+
+              {!equipmentLoading && equipmentError && (
+                <Text
+                  allowFontScaling={false}
+                  className="text-center"
+                  style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: 'rgba(0,0,0,0.35)', paddingVertical: normalize(24) }}
+                >
+                  장비를 불러오지 못했어요
+                </Text>
+              )}
+
+              {/* 여기서 마이페이지로 보내면 작성 중인 내용 이탈 확인창이 먼저 뜬다. 안내만 한다. */}
+              {!equipmentLoading && !equipmentError && equipmentOptions.length === 0 && (
+                <Text
+                  allowFontScaling={false}
+                  className="text-center"
+                  style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: 'rgba(0,0,0,0.3)', paddingVertical: normalize(24) }}
+                >
+                  등록한 장비가 없어요 · 마이페이지에서 추가할 수 있어요
+                </Text>
+              )}
+
+              {/* 로딩 중에는 myEquipments가 비어 저장된 선택이 전부 "내 장비에 없는 항목"으로
+                  찍힌다. 토큰 회전으로 쿼리 키가 바뀌면 편집 중에도 이 상태가 온다. */}
+              {!equipmentLoading && equipmentOptions.map(({ name, type, isCamera }, idx) => {
                 const selected = equipment.includes(name);
+                const blocked = equipmentBlocked(name);
+                const Icon = isCamera ? Camera : CircleDot;
                 return (
                   <Pressable
                     key={name}
                     onPress={() => toggleEquipment(name)}
+                    disabled={blocked}
                     accessibilityRole="checkbox"
-                    accessibilityState={{ checked: selected }}
+                    accessibilityState={{ checked: selected, disabled: blocked }}
                     className="flex-row items-center"
                     style={{
                       gap: normalize(12),
                       paddingHorizontal: normalize(16),
                       paddingVertical: normalize(14),
-                      borderBottomWidth: idx < EQUIPMENT.length - 1 ? HAIRLINE_WIDTH : 0,
+                      borderBottomWidth: idx < equipmentOptions.length - 1 ? HAIRLINE_WIDTH : 0,
                       borderBottomColor: HAIRLINE,
+                      opacity: blocked ? 0.4 : 1,
                     }}
                   >
                     <View
@@ -839,6 +891,14 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
                 );
               })}
             </View>
+            {!equipmentLoading && equipmentOptions.some((o) => equipmentBlocked(o.name)) && (
+              <Text
+                allowFontScaling={false}
+                style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.28)', letterSpacing: -0.1, marginTop: normalize(8) }}
+              >
+                장비는 최대 {MAX_EQUIPMENT}개 · 이름 합계 {MAX_EQUIPMENT_CHARS}자까지 선택할 수 있어요
+              </Text>
+            )}
           </Section>
 
         </ScrollView>
