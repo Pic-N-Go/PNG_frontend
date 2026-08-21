@@ -1,14 +1,57 @@
-import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
-import Svg, { Line, Circle, Path } from 'react-native-svg';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Animated, View, Text, TouchableOpacity } from 'react-native';
+import { WebView } from 'react-native-webview';
+import { IconMapPin } from '@tabler/icons-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { CARD_RADIUS, FONT_SM, GRID_PADDING } from '@/constants/layout';
 
-import { useNavigation } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { BRAND, CARD, TEXT_SUB } from '@/constants/colors';
+import { useBookmarkedSpots, useReviewedSpots } from '@/hooks/useSpot';
+import { mergeMapSpots } from '@/utils/spotMappers';
+import Skeleton from '@/components/common/Skeleton';
 
+const KAKAO_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_API_KEY;
+
+// 전체보기(PhotoMapScreen)와 같은 카카오맵을 쓴다. 목업은 추상 격자였지만(mypage.html:1011)
+// 실데이터 핀만 얹으면 배경 없는 흰 카드에 점만 뜬 꼴이 되어 미완성으로 읽힌다.
+// 조작은 막고(드래그·줌 없음, pointerEvents none) 카드 전체를 전체보기 진입으로 쓴다.
 export default function PhotoMapPreview() {
   const navigation = useNavigation();
+  // PIC MAP 전체 화면으로 들어가면 카카오맵 WebView가 두 개 동시에 살아 있게 된다.
+  // iOS 콘텐츠 프로세스가 그 부담으로 죽으면 두 지도가 다 흰 화면이 된다 — 안 보일 때는 내린다.
+  const isFocused = useIsFocused();
+
+  const reviewed = useReviewedSpots();
+  const bookmarked = useBookmarkedSpots();
+  const spots = useMemo(
+    () => mergeMapSpots(reviewed.data, bookmarked.data),
+    [reviewed.data, bookmarked.data],
+  );
+  const isLoading = reviewed.isLoading || bookmarked.isLoading;
+
+  // 카카오 SDK 내려받기 + 타일 요청은 클라이언트에서 줄일 방법이 없다(스태틱 맵은 REST 키가 필요해 불가).
+  // 대신 준비되기 전까지 스켈레톤을 덮고, 지도가 실제로 그려진 뒤 페이드로 바꿔 끊김을 안 보이게 한다.
+  // onLoadEnd는 문서 로드 시점이라 아직 회색 판이다 — 페이지가 핀까지 그린 뒤 READY를 보낸다.
+  const [ready, setReady] = useState(false);
+  const fade = useRef(new Animated.Value(0)).current;
+  // 포커스를 잃으면 WebView가 사라지므로 다음 진입 때 다시 로딩된다. 스켈레톤도 같이 되돌린다.
+  useEffect(() => {
+    if (!isFocused) {
+      setReady(false);
+      fade.setValue(0);
+    }
+  }, [isFocused, fade]);
+  const handleReady = useCallback(() => {
+    setReady(true);
+    Animated.timing(fade, { toValue: 1, duration: 220, useNativeDriver: true }).start();
+  }, [fade]);
+
+  // 핀 목록이 실제로 바뀔 때만 HTML을 새로 만든다 — 매 렌더 새 문자열이면 WebView가 계속 리로드된다.
+  const spotsKey = spots.map((s) => `${s.id}:${s.reviewed ? 1 : 0}`).join(',');
+  const html = useMemo(() => buildPreviewHtml(spots), [spotsKey]); // eslint-disable-line react-hooks/exhaustive-deps
+  // baseUrl을 https로 주면 카카오 SDK가 내부 라이브러리를 https로 받는다(iOS ATS 통과).
+  const mapSource = useMemo(() => ({ html, baseUrl: 'https://localhost' }), [html]);
 
   return (
     <View className="mb-10" style={{ paddingHorizontal: GRID_PADDING }}>
@@ -23,7 +66,9 @@ export default function PhotoMapPreview() {
         </TouchableOpacity>
       </View>
 
-      <View
+      <TouchableOpacity
+        activeOpacity={0.9}
+        onPress={() => navigation.navigate('PhotoMap' as never)}
         style={{
           height: normalize(200),
           borderRadius: CARD_RADIUS,
@@ -32,76 +77,159 @@ export default function PhotoMapPreview() {
           overflow: 'hidden',
         }}
       >
-        <Svg width="100%" height="100%" style={{ position: 'absolute' }}>
-          {/* 가로선 */}
-          <Line x1="0" y1="33%" x2="100%" y2="33%" stroke="rgba(0,0,0,0.03)" strokeWidth="0.5" />
-          <Line x1="0" y1="66%" x2="100%" y2="66%" stroke="rgba(0,0,0,0.03)" strokeWidth="0.5" />
-          {/* 세로선 */}
-          <Line x1="33%" y1="0" x2="33%" y2="100%" stroke="rgba(0,0,0,0.03)" strokeWidth="0.5" />
-          <Line x1="66%" y1="0" x2="66%" y2="100%" stroke="rgba(0,0,0,0.03)" strokeWidth="0.5" />
-        </Svg>
+        {/* pointerEvents none — 지도가 탭을 먹으면 카드를 눌러도 전체보기로 못 간다 */}
+        {Boolean(KAKAO_KEY) && spots.length > 0 && isFocused && (
+          <Animated.View
+            pointerEvents="none"
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, opacity: fade }}
+          >
+            <WebView
+              source={mapSource}
+              originWhitelist={['*']}
+              javaScriptEnabled
+              // SDK·타일을 HTTP 캐시에 남겨 두 번째 진입부터 즉시 뜨게 한다.
+              cacheEnabled
+              androidLayerType="hardware"
+              onMessage={handleReady}
+              scrollEnabled={false}
+              bounces={false}
+              showsVerticalScrollIndicator={false}
+              showsHorizontalScrollIndicator={false}
+              // NativeWind는 WebView에 className을 적용하지 못한다 — style로 줘야 높이가 잡힌다.
+              style={{ flex: 1, backgroundColor: 'transparent' }}
+            />
+          </Animated.View>
+        )}
 
-        {/* 핀 렌더링 (모의 위치) */}
-        {renderPin('23%', '34%', 'visit')}
-        {renderPin('57%', '46%', 'visit')}
-        {renderPin('40%', '66%', 'visit')}
-        {renderPin('80%', '29%', 'featured')}
-        {renderPin('29%', '83%', 'featured')}
+        {/* 지도가 그려질 때까지 카드 자리를 지킨다 — 회색 판이 드러나는 순간이 "느리다"로 읽힌다. */}
+        {spots.length > 0 && !ready && (
+          <View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
+            <Skeleton width="100%" height={normalize(200)} borderRadius={CARD_RADIUS} />
+          </View>
+        )}
 
-        {/* 범례 */}
+        {!isLoading && spots.length === 0 && (
+          <View className="absolute inset-0 items-center justify-center" style={{ paddingHorizontal: normalize(24) }}>
+            <Text
+              className="font-normal text-center"
+              style={{ fontSize: FONT_SM, color: TEXT_SUB, lineHeight: normalize(20) }}
+            >
+              리뷰를 쓰거나 스팟을 즐겨찾기하면{'\n'}여기에 핀이 표시돼요
+            </Text>
+          </View>
+        )}
+
+        {/* 범례 — 지도 위에 얹히므로 흰 배경을 깔아 가독성을 지킨다.
+            좌하단은 카카오 축척 바·로고 자리라 오른쪽에 둔다(가리면 안 되는 표기다). */}
         <View
           style={{
             position: 'absolute',
             bottom: normalize(10),
-            left: normalize(12),
+            right: normalize(10),
             flexDirection: 'row',
-            gap: normalize(14),
+            gap: normalize(12),
             alignItems: 'center',
+            backgroundColor: 'rgba(255,255,255,0.88)',
+            borderRadius: normalize(8),
+            paddingHorizontal: normalize(10),
+            paddingVertical: normalize(6),
           }}
         >
-          <View className="flex-row items-center" style={{ gap: normalize(4) }}>
-            <View style={{ width: normalize(8), height: normalize(8), borderRadius: normalize(4), backgroundColor: '#1c1c1e' }} />
+          <View className="flex-row items-center" style={{ gap: normalize(3) }}>
+            <IconMapPin size={normalize(12)} color={BRAND} fill={BRAND} />
             <Text className="tracking-tight font-normal" style={{ fontSize: normalizeFontSize(10), color: TEXT_SUB }}>
-              방문
+              리뷰
             </Text>
           </View>
-          <View className="flex-row items-center" style={{ gap: normalize(4) }}>
-            <View style={{ width: normalize(8), height: normalize(8), borderRadius: normalize(4), backgroundColor: BRAND }} />
+          <View className="flex-row items-center" style={{ gap: normalize(3) }}>
+            <IconMapPin size={normalize(12)} color="#1c1c1e" fill="#1c1c1e" />
             <Text className="tracking-tight font-normal" style={{ fontSize: normalizeFontSize(10), color: TEXT_SUB }}>
               즐겨찾기
             </Text>
           </View>
         </View>
-      </View>
+      </TouchableOpacity>
     </View>
   );
 }
 
-function renderPin(left: string, top: string, type: 'visit' | 'featured') {
-  const isVisit = type === 'visit';
-  const color = isVisit ? '#1c1c1e' : BRAND;
-  const shadowColor = isVisit ? 'rgba(0,0,0,0.22)' : 'rgba(227,27,89,0.4)';
-  const size = isVisit ? normalize(16) : normalize(20);
-  const viewBoxHeight = isVisit ? 20 : 25;
+// 프리뷰는 조작·클릭이 없어 전체보기 화면의 HTML보다 훨씬 작다 —
+// updateMarkers·MAP_READY·이벤트 핸들러 없이 로드 시 한 번 그리고 끝낸다.
+function buildPreviewHtml(spots: { lat: number; lng: number; reviewed: boolean }[]) {
+  // r = 리뷰 있음. 겸용 스팟은 리뷰(핑크)를 우선한다 — 지도 화면과 같은 규칙.
+  const pins = JSON.stringify(spots.map((s) => ({ lat: s.lat, lng: s.lng, r: s.reviewed })));
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+  <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_KEY}&autoload=false"></script>
+  <style>
+    body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: ${CARD}; }
+    #map { width: 100%; height: 100%; }
+    .pin { position: absolute; transform: translate(-50%, -100%); line-height: 0; }
+    .pin--review { filter: drop-shadow(0 1px 3px rgba(227,27,89,0.45)); }
+    .pin--fav { filter: drop-shadow(0 1px 3px rgba(0,0,0,0.25)); }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <script>
+    var PINS = ${pins};
+    kakao.maps.load(function () {
+      function initMap() {
+        var el = document.getElementById('map');
+        // 카드가 레이아웃되기 전에는 크기가 0이라 지도가 회색으로 남는다. 크기가 잡힐 때까지 기다린다.
+        if (el.clientHeight === 0 || el.clientWidth === 0) { setTimeout(initMap, 50); return; }
 
-  return (
-    <View
-      style={{
-        position: 'absolute',
-        left: left as any,
-        top: top as any,
-        transform: [{ translateX: -size / 2 }, { translateY: -viewBoxHeight }],
-        shadowColor,
-        shadowOffset: { width: 0, height: 1 },
-        shadowOpacity: 1,
-        shadowRadius: 3,
-        elevation: 3,
-      }}
-    >
-      <Svg width={size} height={viewBoxHeight} viewBox="0 0 24 30" fill="none">
-        <Path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill={color} />
-        <Circle cx="12" cy="10.5" r="4.5" fill="#fff" />
-      </Svg>
-    </View>
-  );
+        var map = new kakao.maps.Map(el, {
+          center: new kakao.maps.LatLng(36.5, 127.5),
+          level: 13,
+          draggable: false,
+          zoomable: false,
+          disableDoubleClickZoom: true
+        });
+
+        var bounds = new kakao.maps.LatLngBounds();
+        PINS.forEach(function (p) {
+          var pos = new kakao.maps.LatLng(p.lat, p.lng);
+          bounds.extend(pos);
+          var size = p.r ? 20 : 17;
+          var h = p.r ? 25 : 21;
+          var color = p.r ? '${BRAND}' : '#1c1c1e';
+          var el2 = document.createElement('div');
+          el2.className = p.r ? 'pin pin--review' : 'pin pin--fav';
+          el2.innerHTML =
+            '<svg width="' + size + '" height="' + h + '" viewBox="0 0 24 30" fill="none">' +
+            '<path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill="' + color + '"/>' +
+            '<circle cx="12" cy="10.5" r="4.5" fill="#fff"/></svg>';
+          new kakao.maps.CustomOverlay({
+            position: pos, content: el2, yAnchor: 1, zIndex: p.r ? 2 : 1
+          }).setMap(map);
+        });
+
+        // 핀이 1개면 setBounds가 최대 줌까지 당겨 거리 단위로 보인다. 그때는 레벨을 고정한다.
+        if (PINS.length > 1) {
+          map.setBounds(bounds, 24, 24, 24, 24);
+        } else if (PINS.length === 1) {
+          map.setCenter(new kakao.maps.LatLng(PINS[0].lat, PINS[0].lng));
+          map.setLevel(7);
+        }
+
+        // 타일이 한 번 그려진 뒤 알린다. tilesloaded가 안 오는 환경도 있어 타임아웃으로 보정한다.
+        var told = false;
+        function tellReady() {
+          if (told) return;
+          told = true;
+          window.ReactNativeWebView.postMessage('READY');
+        }
+        kakao.maps.event.addListener(map, 'tilesloaded', tellReady);
+        setTimeout(tellReady, 1500);
+      }
+      initMap();
+    });
+  </script>
+</body>
+</html>
+`;
 }

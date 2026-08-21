@@ -493,6 +493,47 @@ export interface SpotResponse {
   isBookmarked?: boolean;
 }
 
+/**
+ * `GET /users/me/reviewed-spots` — PIC MAP의 리뷰 핀. 내가 리뷰를 남긴 스팟이다.
+ *
+ * MyReviewDTO와 별개인 이유: 지도는 핀을 한 번에 다 받아야 해 페이징이 없고,
+ * 리뷰 본문·태그·사진을 쓰지 않는다. 특히 photos는 presigned URL이라 사진 수만큼
+ * 서버 서명이 헛돌고 URL 하나가 700~1000자다.
+ */
+export interface ReviewedSpotResponse {
+  spotId: number;
+  name: string;
+  address: string;
+  latitude: number;
+  longitude: number;
+  /** 서버가 thumbnailUrl → imageUrl 순으로 채운다. 빈 문자열은 서버에서 null로 걸러져 온다. */
+  imageUrl: string | null;
+  /** 리뷰 작성 시각. 사용자가 입력한 방문일(visitedAt)이 아니다 — 지도는 리뷰 기준으로 표기한다. */
+  reviewedAt: string;
+  /** 내가 준 별점 1~5. 스팟의 photogenicScore가 아니다. */
+  rating: number;
+}
+
+/**
+ * PIC MAP의 핀 하나. 리뷰 핀(ReviewedSpotResponse)과 즐겨찾기 핀(SpotResponse)을
+ * spotId 기준으로 합친 결과라, 한 핀이 두 속성을 동시에 가질 수 있다.
+ */
+export interface MapSpot {
+  id: string;
+  name: string;
+  lat: number;
+  lng: number;
+  /** "부산 수영구" 형태의 축약 지역명 */
+  loc: string;
+  photo: string | null;
+  reviewed: boolean;
+  bookmarked: boolean;
+  /** 리뷰 작성일 "YYYY.MM.DD". 즐겨찾기만 한 스팟은 리뷰가 없어 null이다. */
+  date: string | null;
+  /** 내가 준 별점 1~5. 즐겨찾기만 한 스팟은 null이다. */
+  rating: number | null;
+}
+
 export interface PageSpotResponse {
   content: SpotResponse[];
   totalElements: number;

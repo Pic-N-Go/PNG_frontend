@@ -76,7 +76,7 @@ export default function BookmarkedSpotListScreen({ navigation, route }: Props) {
           className="font-semibold text-black"
           style={{ fontSize: FONT_LG, letterSpacing: -0.3 }}
         >
-          북마크한 스팟
+          즐겨찾기 스팟
         </Text>
         <View style={{ width: normalize(36) }} />
       </View>

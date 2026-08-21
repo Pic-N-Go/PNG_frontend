@@ -10,7 +10,7 @@ import { BRAND, CARD, TEXT_SUB } from '@/constants/colors';
 import BookmarkCollectionRow from '@/screens/mypage/components/BookmarkCollectionRow';
 
 /**
- * MY 탭 "북마크한 스팟" — 스팟 목록이 아니라 컬렉션 목록이다.
+ * MY 탭 "즐겨찾기 스팟" — 스팟 목록이 아니라 컬렉션 목록이다.
  * 저장 시트에서 컬렉션을 골라 담은 게 여기서 그 컬렉션 단위로 다시 보여야 저장한 값이 드러난다.
  */
 export default function BookmarkedSpots() {
@@ -114,7 +114,7 @@ function SectionTitle({ count }: { count?: number }) {
   return (
     <View className="flex-row items-baseline" style={{ gap: normalize(6) }}>
       <Text className="font-semibold tracking-tight text-black" style={{ fontSize: normalizeFontSize(20) }}>
-        북마크한 스팟
+        즐겨찾기 스팟
       </Text>
       {/* 0은 그리지 않는다 — 빈 상태 카드가 이미 같은 말을 한다. */}
       {!!count && (
