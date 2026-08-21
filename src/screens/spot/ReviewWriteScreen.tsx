@@ -155,21 +155,26 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
   // 아니라 서버가 준 목록을 그대로 들고 있는다. 작성 모드에서는 항상 빈 배열.
   const [serverPhotos, setServerPhotos] = React.useState<ReviewPhotoDTO[]>(edit?.photos ?? []);
   const [tags, setTags] = React.useState<ReviewTagApi[]>(edit?.tags ?? []);
-  const [equipment, setEquipment] = React.useState<string[]>(seedEquipmentOf(edit?.equipmentInfo ?? null));
+  // 저장돼 있던 값은 처음 한 번만 읽어 고정한다. 아래 목록을 equipment에서 파생하면 해제하는
+  // 순간 행이 사라져 다시 고를 수 없다 — 오탭 한 번이 복구 불가능한 삭제가 된다.
+  const seeded = React.useRef(seedEquipmentOf(edit?.equipmentInfo ?? null)).current;
+  const [equipment, setEquipment] = React.useState<string[]>(seeded);
   const { data: myEquipments = [], isLoading: equipmentLoading, isError: equipmentError } = useMyEquipments();
   // 내 장비 + 이 리뷰에 저장돼 있지만 지금 목록엔 없는 값. 후자를 빼면 저장 시 유실된다.
   const equipmentOptions = React.useMemo(() => {
-    const mine = myEquipments.map((e) => ({
+    // 유니크 제약이 (user, type, name)이라 타입만 다른 동명 장비가 둘 올 수 있다. 선택은
+    // 이름 문자열로만 표현되므로 행이 둘이면 한 번 탭에 둘 다 켜진 것처럼 보인다.
+    const byName = new Map(myEquipments.map((e) => [e.equipmentName, e]));
+    const mine = [...byName.values()].map((e) => ({
       name: e.equipmentName,
       type: e.equipmentType === 'CAMERA' ? '카메라' : '렌즈',
       isCamera: e.equipmentType === 'CAMERA',
     }));
-    const known = new Set(mine.map((e) => e.name));
-    return [
-      ...mine,
-      ...equipment.filter((name) => !known.has(name)).map((name) => ({ name, type: '내 장비에 없는 항목', isCamera: false })),
-    ];
-  }, [myEquipments, equipment]);
+    const orphans = [...new Set(seeded)]
+      .filter((name) => !byName.has(name))
+      .map((name) => ({ name, type: '내 장비에 없는 항목', isCamera: false }));
+    return [...mine, ...orphans];
+  }, [myEquipments, seeded]);
 
   const trimmed = content.trim();
   const canSubmit = rating > 0 && period !== null && trimmed.length >= CONTENT_MIN;
@@ -197,7 +202,7 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
     period: edit?.timePeriod ?? null,
     content: (edit?.content ?? '').trim(),
     visitedAt: toISODate(edit?.visitedAt ? fromISODate(edit.visitedAt) : today),
-    equipment: seedEquipmentOf(edit?.equipmentInfo ?? null).join('|'),
+    equipment: seeded.join('|'),
     // 선택 순서가 달라도 같은 조합이면 변경으로 보지 않는다.
     tags: [...(edit?.tags ?? [])].sort().join('|'),
   }).current;
@@ -448,7 +453,8 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
       visitedAt: toISODate(visitedAt),
       // 미선택이어도 빈 배열로 보낸다. 수정은 전체 교체라 []가 곧 "태그 전부 해제"다.
       tags,
-      ...(equipment.length > 0 && { equipmentInfo: equipment }),
+      // tags와 같은 이유로 빈 배열도 보낸다. 수정은 전체 교체라 []가 곧 "장비 전부 해제"다.
+      equipmentInfo: equipment,
     };
     const handlers = {
       onSuccess: () => setLeaving(true),
@@ -827,13 +833,15 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
                 </Text>
               )}
 
-              {equipmentOptions.map(({ name, type, isCamera }, idx) => {
+              {/* 로딩 중에는 myEquipments가 비어 저장된 선택이 전부 "내 장비에 없는 항목"으로
+                  찍힌다. 토큰 회전으로 쿼리 키가 바뀌면 편집 중에도 이 상태가 온다. */}
+              {!equipmentLoading && equipmentOptions.map(({ name, type, isCamera }, idx) => {
                 const selected = equipment.includes(name);
                 const blocked = equipmentBlocked(name);
                 const Icon = isCamera ? Camera : CircleDot;
                 return (
                   <Pressable
-                    key={`${name}-${idx}`}
+                    key={name}
                     onPress={() => toggleEquipment(name)}
                     disabled={blocked}
                     accessibilityRole="checkbox"
@@ -883,7 +891,7 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
                 );
               })}
             </View>
-            {equipmentOptions.some((o) => equipmentBlocked(o.name)) && (
+            {!equipmentLoading && equipmentOptions.some((o) => equipmentBlocked(o.name)) && (
               <Text
                 allowFontScaling={false}
                 style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.28)', letterSpacing: -0.1, marginTop: normalize(8) }}
