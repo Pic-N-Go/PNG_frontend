@@ -1,4 +1,7 @@
 # dependencies
+# 슬래시 없는 항목도 둔다 — 'node_modules/'는 디렉터리만 매칭해서
+# worktree에서 만든 node_modules 심볼릭 링크가 걸러지지 않고 커밋된 적이 있다.
+node_modules
 node_modules/
 package-lock.json
 
