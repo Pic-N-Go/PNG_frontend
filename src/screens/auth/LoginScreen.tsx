@@ -21,6 +21,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { authApi, isErrorCode, toErrorMessage } from "@/api/auth";
 import AuthInput from "@/components/auth/AuthInput";
 import Toast from "@/components/common/Toast";
+import { useKeyboardOverlap } from "@/hooks/useKeyboardHeight";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { normalizeFontSize } from "@/utils/normalize";
 import {
@@ -67,6 +68,16 @@ export default function LoginScreen({ navigation }: Props) {
   const setAuth = useAuthStore((s) => s.setAuth);
   const insets = useSafeAreaInsets();
 
+  const keyboardOverlap = useKeyboardOverlap();
+  const scrollRef = useRef<ScrollView>(null);
+  // 스크롤 콘텐츠 기준 비밀번호 입력창 위치 = 폼 컨테이너의 y + 입력창의 y.
+  // (measureLayout은 Fabric에서 native ref가 아니라며 거부한다 — onLayout만으로 충분하다.)
+  const formYRef = useRef(0);
+  const pwBoxRef = useRef({ y: 0, height: 0 });
+  // 키보드가 없을 때의 스크롤 영역 높이 — paddingBottom이 걸린 뒤의 onLayout을 기다리지 않고
+  // 이 값에서 겹침만 빼서 가시 영역을 구한다.
+  const scrollHeightRef = useRef(0);
+
   const { height: SCREEN_H } = useWindowDimensions();
   const initialHeroHeightRef = useRef<number | null>(null);
   const computedHeroHeight = Math.min(
@@ -77,6 +88,7 @@ export default function LoginScreen({ navigation }: Props) {
     initialHeroHeightRef.current = computedHeroHeight;
   }
   const heroHeight = initialHeroHeightRef.current;
+
 
   // Main form state
   const [email, setEmail] = useState("");
@@ -101,6 +113,21 @@ export default function LoginScreen({ navigation }: Props) {
   const [toastVisible, setToastVisible] = useState(false);
 
   const canLogin = email.trim().length > 0 && password.length > 0;
+
+  // 스크롤 영역만 줄이면 비밀번호 입력창은 폼 하단이라 여전히 키보드 뒤에 남는다.
+  // 키보드가 열리면 어느 입력창을 눌렀든 비밀번호 입력창 아래쪽이 키보드 바로 위에 오는
+  // 위치까지만 스크롤한다 — 이메일을 눌러도 두 입력창이 함께 보인다.
+  // (시트가 떠 있을 때는 뒤쪽 폼을 건드리지 않는다.)
+  useEffect(() => {
+    if (keyboardOverlap === 0 || sheetVisible) return;
+    const visible = scrollHeightRef.current - keyboardOverlap;
+    const target =
+      formYRef.current + pwBoxRef.current.y + pwBoxRef.current.height +
+      SPACING_MD - visible;
+    if (target > 0) {
+      scrollRef.current?.scrollTo({ y: target, animated: true });
+    }
+  }, [keyboardOverlap, sheetVisible]);
 
   // 탈퇴 대기 계정 복구. 탈퇴 계정은 토큰을 못 받으므로 로그인과 같은 자격증명으로 되돌린다.
   const restoreMutation = useMutation({
@@ -262,11 +289,18 @@ export default function LoginScreen({ navigation }: Props) {
 
   return (
     <View className="flex-1 bg-white">
-      <KeyboardAvoidingView
-        className="flex-1"
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-      >
+      {/* 엣지투엣지라 Android는 adjustResize가 창을 줄이지 않는다 — KeyboardAvoidingView
+          대신 useKeyboardOverlap으로 직접 피한다(이유는 BottomSheet.tsx 주석 참고).
+          스크롤 영역을 키보드만큼 줄인 뒤, 비밀번호 입력창이 키보드 위로 오도록
+          필요한 만큼만 스크롤한다. */}
+      <View className="flex-1" style={{ paddingBottom: keyboardOverlap }}>
         <ScrollView
+          ref={scrollRef}
+          onLayout={(e) => {
+            if (keyboardOverlap === 0) {
+              scrollHeightRef.current = e.nativeEvent.layout.height;
+            }
+          }}
           bounces={false}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ flexGrow: 1 }}
@@ -368,6 +402,9 @@ export default function LoginScreen({ navigation }: Props) {
 
           {/* ── Content ── */}
           <View
+            onLayout={(e) => {
+              formYRef.current = e.nativeEvent.layout.y;
+            }}
             style={{
               paddingHorizontal: CONTENT_PADDING,
               paddingTop: SPACING_MD,
@@ -411,7 +448,13 @@ export default function LoginScreen({ navigation }: Props) {
             </View>
 
             {/* Password */}
-            <View style={{ marginBottom: 6 }}>
+            <View
+              onLayout={(e) => {
+                const { y, height } = e.nativeEvent.layout;
+                pwBoxRef.current = { y, height };
+              }}
+              style={{ marginBottom: 6 }}
+            >
               <AuthInput
                 icon="lock"
                 value={password}
@@ -613,7 +656,7 @@ export default function LoginScreen({ navigation }: Props) {
             </View>
           </View>
         </ScrollView>
-      </KeyboardAvoidingView>
+      </View>
 
       {/* ── Forgot Password Bottom Sheet ── */}
       <Modal
