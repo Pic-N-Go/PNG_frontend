@@ -6,7 +6,7 @@ import { IconBookmark } from '@tabler/icons-react-native';
 import { normalize } from '@/utils/normalize';
 import { CARD_RADIUS, FONT_MD, FONT_SM, FONT_XS } from '@/constants/layout';
 import { BRAND, CARD, TEXT_SUB } from '@/constants/colors';
-import { CollectionIcon, palOf } from '@/components/spot/collectionStyle';
+import { CollectionIcon, palOf } from '@/components/common/collectionStyle';
 import type { BookmarkCollectionDTO, SpotItem } from '@/types/spot';
 
 /** 사진 없는 스팟용 폴백 — SpotCard와 같은 색을 쓴다. */

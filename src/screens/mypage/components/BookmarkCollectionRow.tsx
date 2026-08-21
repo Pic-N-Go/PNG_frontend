@@ -5,7 +5,7 @@ import { IconChevronRight } from '@tabler/icons-react-native';
 import { normalize } from '@/utils/normalize';
 import { CARD_RADIUS, FONT_MD, FONT_SM } from '@/constants/layout';
 import { CARD, TEXT_SUB } from '@/constants/colors';
-import { CollectionIcon, palOf } from '@/components/spot/collectionStyle';
+import { CollectionIcon, palOf } from '@/components/common/collectionStyle';
 import { toHttps } from '@/utils/spotMappers';
 import type { BookmarkCollectionDTO, SpotResponse } from '@/types/spot';
 import { FALLBACK_GRADIENT } from './BookmarkedSpotRow';
@@ -112,7 +112,7 @@ export default function BookmarkCollectionRow({ collection, spots, isLoading, on
               ))}
           </View>
 
-          <IconChevronRight size={normalize(18)} color="rgba(0,0,0,0.25)" strokeWidth={2} />
+          <IconChevronRight size={normalize(18)} color={TEXT_SUB} strokeWidth={2} />
         </View>
       </Pressable>
     </View>

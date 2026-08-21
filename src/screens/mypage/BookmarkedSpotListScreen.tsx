@@ -11,7 +11,7 @@ import Chip from '@/components/common/Chip';
 import Skeleton from '@/components/common/Skeleton';
 import BookmarkSheet from '@/components/spot/BookmarkSheet';
 import { useBookmarkCollectionsWithSpots, useBookmarkedSpots } from '@/hooks/useSpot';
-import { palOf } from '@/components/spot/collectionStyle';
+import { palOf } from '@/components/common/collectionStyle';
 import { mapPopularSpot } from '@/utils/spotMappers';
 import BookmarkedSpotRow from './components/BookmarkedSpotRow';
 
@@ -47,6 +47,9 @@ export default function BookmarkedSpotListScreen({ navigation, route }: Props) {
   const refetch = collectionId === null ? all.refetch : refetchGroups;
 
   const spots = React.useMemo(() => (data ?? []).map(mapPopularSpot), [data]);
+
+  const totalCount = all.data?.length ?? (groupsLoading ? null : distinctSpotCount);
+  const totalLabel = totalCount === null ? '전체' : `전체 ${totalCount}`;
 
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
@@ -95,8 +98,9 @@ export default function BookmarkedSpotListScreen({ navigation, route }: Props) {
             }}
           >
             <Chip
-              // 숫자는 컬렉션별 스팟을 다 받은 뒤에만 — 로딩 중엔 0이 목록과 어긋나 보인다.
-            label={groupsLoading ? '전체' : `전체 ${distinctSpotCount}`}
+              // 이 칩이 보여주는 목록(all)에서 센다. 아직 못 받았으면 컬렉션 합집합으로 대신하고,
+            // 그것도 오는 중이면 숫자를 감춘다 — 로딩 중 0이 목록과 어긋나 보인다.
+            label={totalLabel}
               selected={collectionId === null}
               onPress={() => setCollectionId(null)}
               height={normalize(34)}

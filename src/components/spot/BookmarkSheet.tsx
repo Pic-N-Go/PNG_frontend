@@ -15,16 +15,12 @@ import {
   palOf,
   type CollectionColorKey,
   type CollectionIconKey,
-} from './collectionStyle';
+} from '@/components/common/collectionStyle';
 
 type ColorKey = CollectionColorKey;
 type IconKey = CollectionIconKey;
 
 const ACCENT = BRAND;
-
-const PAL = COLLECTION_PAL;
-const COLOR_KEYS = COLLECTION_COLOR_KEYS;
-const ICON_SET = COLLECTION_ICON_SET;
 
 const MAX_CONTENT_LEN = 20;
 const MAX_COLLECTIONS = 5;
@@ -114,7 +110,7 @@ export default function BookmarkSheet({ visible, spotId, onClose, onSaved }: Pro
     }
   }, [visible, collections]);
 
-  const cur = PAL[colorKey];
+  const cur = COLLECTION_PAL[colorKey];
   const trimmedName = name.trim();
   const isDuplicateName = (collections ?? []).some((c) => c.name === trimmedName);
   // 선택이 서버 소속과 달라졌을 때만 저장 가능(빈 집합=전체 해제 포함)
@@ -259,8 +255,8 @@ export default function BookmarkSheet({ visible, spotId, onClose, onSaved }: Pro
             )}
             <Text allowFontScaling={false} style={{ marginTop: normalize(22), fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(13), color: '#8B8680' }}>색상 선택</Text>
             <View style={{ flexDirection: 'row', gap: normalize(14), marginTop: normalize(12) }}>
-              {COLOR_KEYS.map((k) => {
-                const p = PAL[k];
+              {COLLECTION_COLOR_KEYS.map((k) => {
+                const p = COLLECTION_PAL[k];
                 const sel = k === colorKey;
                 return (
                   <Pressable
@@ -276,7 +272,7 @@ export default function BookmarkSheet({ visible, spotId, onClose, onSaved }: Pro
 
             <Text allowFontScaling={false} style={{ marginTop: normalize(24), fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(13), color: '#8B8680' }}>아이콘 선택</Text>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: normalize(12), marginTop: normalize(12) }}>
-              {ICON_SET.map((nm) => {
+              {COLLECTION_ICON_SET.map((nm) => {
                 const sel = nm === iconKey;
                 return (
                   <Pressable

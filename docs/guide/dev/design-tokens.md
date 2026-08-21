@@ -90,6 +90,7 @@ Pretendard **3웨이트만** 로드한다 — `Regular` / `Medium` / `SemiBold`.
 | 어두운 배경 위 반투명 흰 보더 | 히어로 검색바, 지도 버튼, 프로필 헤더 |
 | 배경과 맞춰 파내는 장식 링 | 아바타 흰 링, 썸네일 겹침 |
 | 골든아워 계열 | `PhotogenicScoreCard`의 `COLORS.golden`, 히어로 그라디언트 |
+| 북마크 컬렉션 팔레트 | `components/common/collectionStyle.tsx`의 `COLLECTION_PAL` — 사용자가 컬렉션마다 고르는 5색(진한색/틴트 쌍). 브랜드 4단계와 무관한 식별 색이라 예외. 시트·MY 탭 컬렉션 행·목록 배지가 이 파일만 읽는다 |
 | 핑크 글로우 | 지도 핀 그림자·펄스 애니메이션. 배경 틴트가 아니라 발광 효과라 4단계 밖 |
 | `AdminDashboardScreen` | 내부 관리자 도구라 앱 디자인 시스템 미적용 |
 
@@ -107,6 +108,7 @@ Pretendard **3웨이트만** 로드한다 — `Regular` / `Medium` / `SemiBold`.
 | `border-radius` | 상수 7개가 있으나 생값이 3.7배(432곳), 값 종류 30가지 | `border-radius-plan.md` |
 | 화면 헤더 | 뒤로가기가 있는 32개 화면이 공용 컴포넌트 없이 각자 구현 | `screen-header-plan.md` |
 | 폰트 크기 | `fontSize` 생값 299곳 중 **164곳이 8단계 스케일 밖** (42개 파일) | `font-scale-plan.md` |
+| chevron·보조 아이콘 회색 | 같은 용도에 `#c7c7cc`(9곳) · `rgba(0,0,0,0.25)`(6곳) · `0.2`(4곳) · `0.18`(3곳)이 섞여 있다. 토큰은 `TEXT_SUB`(`#8A8A8E`)로 이미 있고 4곳이 쓴다 — 나머지를 옮기면 chevron이 지금보다 진해지므로 디자인 확인이 선행 조건 | — |
 
 셋 다 값 하나로 수렴시킬 수 없는 성격이다. radius는 요소 크기에, 폰트는 텍스트 역할에 종속되고,
 헤더는 토큰이 아니라 컴포넌트가 없는 문제다.
