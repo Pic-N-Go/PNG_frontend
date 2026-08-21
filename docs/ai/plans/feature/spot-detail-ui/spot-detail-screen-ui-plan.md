@@ -122,7 +122,7 @@
 - 대상 파일:
   - `src/components/spot/TimePickerSheet.tsx` (신규) — 포토제닉 시간대 선택용 네이티브 타임피커 시트
   - `src/components/spot/PhotogenicScoreCard.tsx` — 날짜(3일 리스트)/시간(네이티브 피커) 선택 연결
-  - `src/components/spot/BookmarkSheet.tsx` — 새 컬렉션 만들기(이름+색상 5종, 최대 10개) 실제 기능 추가
+  - `src/components/spot/BookmarkSheet.tsx` — 새 컬렉션 만들기(이름+색상 5종, 최대 5개 = 백엔드 `MAX_COLLECTIONS`) 실제 기능 추가
   - `src/components/spot/ConvenienceInfoSection.tsx`, `src/components/common/Skeleton.tsx` — 스켈레톤 로딩
   - `src/components/spot/ChatTab.tsx` — 메시지 전송/탭 진입 시 자동 스크롤 (원래 AC7에 있었으나 최초 구현에서 누락, 코드리뷰로 발견 후 수정)
   - `src/navigation/index.tsx`, `src/screens/home/HomeScreen.tsx` — `SpotStack` 네비게이션 타입 안전성 수정 + 인기 스팟 카드 연동
