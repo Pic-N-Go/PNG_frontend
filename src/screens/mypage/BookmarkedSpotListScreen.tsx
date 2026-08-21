@@ -26,17 +26,25 @@ export default function BookmarkedSpotListScreen({ navigation, route }: Props) {
   const [collectionId, setCollectionId] = React.useState<number | null>(route.params?.collectionId ?? null);
 
   // 컬렉션별 스팟을 한 번에 받아 둔다 — 칩 필터와 행 우측 소속 배지가 같은 데이터를 쓴다.
-  const { groups, badgesOf, distinctSpotCount, isLoading: groupsLoading, isError: groupsError } =
-    useBookmarkCollectionsWithSpots();
+  const {
+    groups,
+    badgesOf,
+    distinctSpotCount,
+    isLoading: groupsLoading,
+    isError: groupsError,
+    refetch: refetchGroups,
+  } = useBookmarkCollectionsWithSpots();
   const collections = groups.map((g) => g.collection);
 
   const all = useBookmarkedSpots({ enabled: collectionId === null });
 
   // 컬렉션 탭은 위에서 이미 받은 목록을 고르기만 한다 — 같은 것을 또 요청하지 않는다.
-  const data = collectionId === null ? all.data : groups.find((g) => g.collection.id === collectionId)?.spots;
-  const isLoading = collectionId === null ? all.isLoading : groupsLoading;
+  const selected = collectionId === null ? null : groups.find((g) => g.collection.id === collectionId);
+  const data = selected ? selected.spots : collectionId === null ? all.data : undefined;
+  const isLoading = collectionId === null ? all.isLoading : (selected?.isLoading ?? groupsLoading);
   const isError = collectionId === null ? all.isError : groupsError;
-  const refetch = collectionId === null ? all.refetch : () => {};
+  // 에러 화면의 "다시 시도"가 실제로 다시 받아야 한다 — 컬렉션 탭에서 no-op이면 빠져나갈 길이 없다.
+  const refetch = collectionId === null ? all.refetch : refetchGroups;
 
   const spots = React.useMemo(() => (data ?? []).map(mapPopularSpot), [data]);
 
@@ -73,7 +81,7 @@ export default function BookmarkedSpotListScreen({ navigation, route }: Props) {
       {/* 컬렉션 필터 — 홈 CategoryFilter와 같은 공용 Chip을 쓴다.
           활성색은 블랙: 같은 화면 안에서 목록만 거르는 중립 컨트롤이다.
           컬렉션이 하나뿐이면 고를 게 없어 그리지 않는다(기본 "내 즐겨찾기"만 있는 상태). */}
-      {collections.length > 1 && (
+      {(collections.length > 1 || collectionId !== null) && (
         // 가로 ScrollView는 flex 컬럼에서 남은 높이를 다 먹는다(그러면 칩이 화면 중앙에 뜬다).
         // View로 감싸 콘텐츠 높이로 고정한다 — MapScreen 카테고리 필터와 같은 구조.
         <View style={{ paddingBottom: normalize(4) }}>
@@ -87,7 +95,8 @@ export default function BookmarkedSpotListScreen({ navigation, route }: Props) {
             }}
           >
             <Chip
-              label={`전체 ${distinctSpotCount}`}
+              // 숫자는 컬렉션별 스팟을 다 받은 뒤에만 — 로딩 중엔 0이 목록과 어긋나 보인다.
+            label={groupsLoading ? '전체' : `전체 ${distinctSpotCount}`}
               selected={collectionId === null}
               onPress={() => setCollectionId(null)}
               height={normalize(34)}

@@ -28,6 +28,8 @@ interface Props {
 
 /** 배지가 이보다 많으면 행이 눌린다 — 넘치는 건 상세/시트에서 본다. */
 const MAX_BADGES = 3;
+/** 배지 한 칸. 360dp에서 이름 칼럼을 3자 정도 더 벌기 위해 26에서 줄였다. */
+const BADGE_SIZE = normalize(22);
 
 /**
  * 북마크 목록의 한 줄. 왼쪽에 [썸네일 · 이름/지역/평점], 오른쪽에 북마크 아이콘만 둔다.
@@ -137,9 +139,11 @@ export default function BookmarkedSpotRow({ item, onBookmarkPress, badges }: Pro
               onPress={onBookmarkPress}
               hitSlop={10}
               accessibilityRole="button"
-              accessibilityLabel="즐겨찾기 관리"
+              accessibilityLabel={
+                badges?.length ? `즐겨찾기 관리, ${badges.map((c) => c.name).join(', ')}` : '즐겨찾기 관리'
+              }
               className="flex-row shrink-0"
-              style={{ gap: normalize(4) }}
+              style={{ gap: normalize(3) }}
             >
               {badges?.length ? (
                 badges.slice(0, MAX_BADGES).map((c) => {
@@ -149,13 +153,13 @@ export default function BookmarkedSpotRow({ item, onBookmarkPress, badges }: Pro
                       key={c.id}
                       className="items-center justify-center"
                       style={{
-                        width: normalize(26),
-                        height: normalize(26),
-                        borderRadius: normalize(8),
+                        width: BADGE_SIZE,
+                        height: BADGE_SIZE,
+                        borderRadius: normalize(7),
                         backgroundColor: p.t,
                       }}
                     >
-                      <CollectionIcon name={c.icon} size={normalize(14)} color={p.s} />
+                      <CollectionIcon name={c.icon} size={normalize(13)} color={p.s} />
                     </View>
                   );
                 })

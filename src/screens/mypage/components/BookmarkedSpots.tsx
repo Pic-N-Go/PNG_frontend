@@ -76,11 +76,12 @@ export default function BookmarkedSpots() {
       </View>
 
       <View style={{ paddingHorizontal: GRID_PADDING, gap: normalize(8) }}>
-        {groups.map(({ collection, spots }) => (
+        {groups.map(({ collection, spots, isLoading: spotsLoading }) => (
           <BookmarkCollectionRow
             key={collection.id}
             collection={collection}
             spots={spots}
+            isLoading={spotsLoading}
             onPress={() => navigation.navigate('BookmarkedSpotList', { collectionId: collection.id })}
           />
         ))}

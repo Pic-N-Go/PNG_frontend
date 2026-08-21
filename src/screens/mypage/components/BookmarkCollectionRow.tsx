@@ -12,14 +12,17 @@ import { FALLBACK_GRADIENT } from './BookmarkedSpotRow';
 
 /** 겹쳐 보여줄 썸네일 장수. 넘치는 장수는 왼쪽 "외 N곳"이 이미 말해줘서 +n 배지를 두지 않는다. */
 const THUMB_COUNT = 3;
-const THUMB = normalize(38);
+// 38→34, 겹침 11→15. 360dp에서 이름 칼럼이 127px(≈9자)뿐이라 스택에서 폭을 20px 돌려받는다.
+const THUMB = normalize(34);
 /** 겹침 폭. 뒷장이 앞장을 이만큼 덮는다. */
-const THUMB_OVERLAP = normalize(11);
+const THUMB_OVERLAP = normalize(15);
 
 interface Props {
   collection: BookmarkCollectionDTO;
   /** 이 컬렉션에 담긴 스팟 (최근 담은 순). 이름 미리보기와 썸네일에 쓴다. */
   spots: SpotResponse[];
+  /** spots가 아직 오는 중인지. 서버 spotCount만 믿고 이름 없는 "외 N곳"을 그리지 않기 위해 필요하다. */
+  isLoading?: boolean;
   onPress: () => void;
 }
 
@@ -27,10 +30,11 @@ interface Props {
  * MY 탭 "북마크한 스팟"의 한 줄 = 컬렉션 하나.
  * 시트에서 만든 색·아이콘을 그대로 써서, 저장할 때 고른 컬렉션이 여기서 다시 보이게 한다.
  */
-export default function BookmarkCollectionRow({ collection, spots, onPress }: Props) {
+export default function BookmarkCollectionRow({ collection, spots, isLoading, onPress }: Props) {
   const p = palOf(collection.color);
-  // spotCount는 서버 값이지만 목록을 이미 받았으면 그쪽이 더 최신이다(북마크 해제 직후).
-  const count = spots.length || collection.spotCount;
+  // 스팟 목록이 오기 전에는 서버 spotCount로 개수만 말한다. spots.length로 갈아타면 이름이 빈
+  // "외 4곳"이 한 프레임 스쳐 보인다(컬렉션 목록이 먼저 오고 스팟이 나중에 오는 구조).
+  const count = isLoading ? collection.spotCount : spots.length;
   // 이름은 하나만 — 두 개를 나열하면 폭이 어떻든 두 번째가 잘린다("대구경북디자인진흥원, 강…").
   const firstName = spots[0]?.name ?? '';
   const restCount = Math.max(count - 1, 0);
@@ -63,6 +67,10 @@ export default function BookmarkCollectionRow({ collection, spots, onPress }: Pr
             {count === 0 ? (
               <Text allowFontScaling={false} className="font-normal" style={{ fontSize: FONT_SM, color: TEXT_SUB }}>
                 아직 담은 스팟이 없어요
+              </Text>
+            ) : isLoading || !firstName ? (
+              <Text allowFontScaling={false} className="font-normal" style={{ fontSize: FONT_SM, color: TEXT_SUB }}>
+                {`${count}곳`}
               </Text>
             ) : (
               // 개수를 이름과 같은 Text에 넣으면 이름이 길 때 개수까지 밀려 나간다 — 따로 둬서 개수는 항상 보인다.

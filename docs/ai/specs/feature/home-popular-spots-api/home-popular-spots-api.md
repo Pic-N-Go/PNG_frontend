@@ -85,7 +85,8 @@
     - `reviewAverage`는 리뷰 0건 스팟에서 서버 `AVG()`가 null로 떨어져 `number | null`이다
 - 실패 처리 방식: `useQuery`의 `isError`로 섹션 내 인라인 에러 + `refetch()`. 토스트/모달 없음.
 - 캐싱/무효화 전략: `useSpots`의 기존 `staleTime: 60s` 사용. 추가로 즐겨찾기 저장 성공 시
-  `useSyncSpotBookmarks.onSuccess`가 `['bookmark-collections', spotId]`와 `['spots','list']`를 무효화한다 —
+  `useSyncSpotBookmarks.onSuccess`가 `['bookmark-collections']`(시트의 스팟별 목록 + MY 탭 'mine' 목록의
+  `spotCount`)와 `['spots']`를 무효화한다 —
   카드의 채워짐 상태가 목록 응답의 `isBookmarked`에서 오므로, 홈·상세 어느 쪽에서 바꾸든 목록 재조회가 있어야 반영된다.
   무효화를 화면이 아니라 mutation에 둔 이유: 홈은 상세 진입 중에도 마운트를 유지해 자체 refetch 트리거가 없다.
 

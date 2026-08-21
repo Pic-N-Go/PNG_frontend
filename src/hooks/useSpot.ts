@@ -125,17 +125,9 @@ export function useMyBookmarkCollections(options?: QueryToggle) {
   });
 }
 
-/** 한 컬렉션에 담긴 스팟. collectionId가 null이면 조회하지 않는다(= "전체" 탭). */
-export function useCollectionSpots(collectionId: number | null) {
-  const token = useAuthStore((s) => s.accessToken);
-  return useQuery({
-    // ['spots', ...] 아래 두면 북마크 해제 시 무효화(useSyncSpotBookmarks)에 같이 걸린다.
-    queryKey: ['spots', 'collection', collectionId, token ?? 'guest'],
-    queryFn: () => spotApi.getCollectionSpots(collectionId!, token!),
-    enabled: !!token && collectionId !== null,
-    staleTime: SPOTS_STALE_TIME,
-  });
-}
+/** 한 컬렉션에 담긴 스팟의 쿼리 키. ['spots', ...] 아래 둬서 북마크 해제 시 무효화에 같이 걸린다. */
+const collectionSpotsKey = (collectionId: number, token: string | null) =>
+  ['spots', 'collection', collectionId, token ?? 'guest'] as const;
 
 /**
  * 컬렉션 + 각 컬렉션에 담긴 스팟.
@@ -146,21 +138,28 @@ export function useCollectionSpots(collectionId: number | null) {
  */
 export function useBookmarkCollectionsWithSpots() {
   const token = useAuthStore((s) => s.accessToken);
-  const { data: collections = [], isLoading: collectionsLoading } = useMyBookmarkCollections();
+  const {
+    data: collections = [],
+    isLoading: collectionsLoading,
+    isError: collectionsError,
+    refetch: refetchCollections,
+  } = useMyBookmarkCollections();
 
   const results = useQueries({
-    // useCollectionSpots와 같은 키다 — 목록 화면에서 컬렉션 칩을 눌러도 다시 받지 않는다.
     queries: collections.map((c) => ({
-      queryKey: ['spots', 'collection', c.id, token ?? 'guest'],
+      queryKey: collectionSpotsKey(c.id, token),
       queryFn: () => spotApi.getCollectionSpots(c.id, token as string),
       enabled: !!token,
       staleTime: SPOTS_STALE_TIME,
     })),
   });
 
+  // 컬렉션 목록이 먼저 오고 스팟은 그 다음이라, 스팟을 기다리는 중인지 행이 알아야 한다.
+  // 안 그러면 spotCount(5)만 있고 이름·썸네일이 없는 상태가 한 프레임 그려진다.
   const groups = collections.map((collection, i) => ({
     collection,
     spots: results[i]?.data ?? [],
+    isLoading: results[i]?.isLoading ?? true,
   }));
 
   const bySpot = invertCollectionSpots(groups);
@@ -172,7 +171,13 @@ export function useBookmarkCollectionsWithSpots() {
     /** 컬렉션 중복을 뺀 실제 저장 스팟 수 */
     distinctSpotCount: bySpot.size,
     isLoading: collectionsLoading || results.some((r) => r.isLoading),
-    isError: results.some((r) => r.isError),
+    // 컬렉션 목록 실패도 포함해야 한다 — 빠뜨리면 목록이 안 와서 빈 배열이 된 것을
+    // "저장한 게 없음"으로 그린다.
+    isError: collectionsError || results.some((r) => r.isError),
+    refetch: () => {
+      refetchCollections();
+      results.forEach((r) => r.refetch());
+    },
   };
 }
 
