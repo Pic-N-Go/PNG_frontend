@@ -6,8 +6,8 @@ import type { MyPageStackParamList } from '@/navigation/stacks/MyPageStack';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { CARD_RADIUS, EMPTY_CARD_HEIGHT, FONT_SM, GRID_PADDING } from '@/constants/layout';
 import { useBookmarkCollectionsWithSpots } from '@/hooks/useSpot';
-import { BRAND, CARD } from '@/constants/colors';
-import BookmarkCollectionRow from './BookmarkCollectionRow';
+import { BRAND, CARD, TEXT_SUB } from '@/constants/colors';
+import BookmarkCollectionRow from '@/screens/mypage/components/BookmarkCollectionRow';
 
 /**
  * MY 탭 "북마크한 스팟" — 스팟 목록이 아니라 컬렉션 목록이다.
@@ -17,7 +17,27 @@ export default function BookmarkedSpots() {
   const navigation = useNavigation<NativeStackNavigationProp<MyPageStackParamList>>();
   // 컬렉션은 최대 5개(서버 MAX_COLLECTIONS)라 자르지 않고 다 그린다. 서버 순서(생성순)를 그대로 —
   // 개수순으로 정렬하고 3개만 잘랐더니 새로 만든 컬렉션이 뒤로 밀려 MY 탭에 안 나타났다.
-  const { groups, distinctSpotCount, isLoading } = useBookmarkCollectionsWithSpots();
+  const { groups, distinctSpotCount, isLoading, isError, refetch } = useBookmarkCollectionsWithSpots();
+
+  // 조회 실패를 빈 상태로 그리면 저장한 게 있는데도 "없어요"가 보이고 빠져나갈 길도 없다.
+  // 목록 화면(BookmarkedSpotListScreen)과 같은 인라인 에러 + 다시 시도로 맞춘다.
+  if (!isLoading && isError && distinctSpotCount === 0) {
+    return (
+      <View className="mb-10" style={{ paddingHorizontal: GRID_PADDING }}>
+        <View className="flex-row justify-between items-center mb-3">
+          <SectionTitle />
+        </View>
+        <Text className="tracking-tight font-normal" style={{ fontSize: FONT_SM, color: TEXT_SUB }}>
+          북마크를 불러오지 못했어요.
+        </Text>
+        <TouchableOpacity onPress={() => refetch()} hitSlop={8} style={{ marginTop: normalize(6) }}>
+          <Text className="tracking-tight font-semibold" style={{ fontSize: FONT_SM, color: BRAND }}>
+            다시 시도
+          </Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   // 로딩 중에는 빈 상태를 먼저 그리지 않는다 — 저장한 게 있는데도 "없어요"가 스쳐 보인다.
   if (!isLoading && distinctSpotCount === 0) {

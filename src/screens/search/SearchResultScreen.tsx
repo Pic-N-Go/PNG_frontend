@@ -72,10 +72,12 @@ export default function SearchResultScreen({ route, navigation }: Props) {
 
   // 홈 "모두 보기"로 들어온 인기순 전체 목록 모드. 검색어를 입력하면 평소 검색으로 넘어간다.
   const popularMode = route.params?.sort === 'popular' && !submitted;
-  const { data: popularData, isLoading: isPopularLoading } = useSpots(
-    { sort: 'popular', size: POPULAR_LIST_SIZE },
-    { enabled: popularMode },
-  );
+  const {
+    data: popularData,
+    isLoading: isPopularLoading,
+    isError: isPopularError,
+    refetch: refetchPopular,
+  } = useSpots({ sort: 'popular', size: POPULAR_LIST_SIZE }, { enabled: popularMode });
   const popularRows: ResultRow[] = React.useMemo(
     () =>
       (popularData?.content ?? []).map(mapPopularSpot).map((s) => ({
@@ -317,6 +319,19 @@ export default function SearchResultScreen({ route, navigation }: Props) {
               {[0, 1, 2, 3].map((i) => (
                 <Skeleton key={i} width="100%" height={normalize(80)} borderRadius={normalize(12)} />
               ))}
+            </View>
+          ) : popularMode && isPopularError && popularRows.length === 0 ? (
+            // 실패를 "아직 인기 스팟이 없어요"로 그리면 서버에 데이터가 없는 것처럼 읽힌다.
+            // 홈 캐러셀·북마크 목록과 같은 인라인 에러 + 다시 시도.
+            <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(14) }}>
+              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_MD, color: TEXT_SUB }}>
+                인기 스팟을 불러오지 못했어요.
+              </Text>
+              <Pressable onPress={() => refetchPopular()} hitSlop={8} style={{ marginTop: normalize(6) }}>
+                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, color: BRAND }}>
+                  다시 시도
+                </Text>
+              </Pressable>
             </View>
           ) : results.length === 0 ? (
             // paddingBottom을 두지 않는다 — 탭바가 빠진 영역 안에서 그냥 가운데 정렬하면 된다.

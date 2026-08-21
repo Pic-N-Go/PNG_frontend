@@ -1,6 +1,8 @@
 import React from 'react';
 import { Image, Pressable, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '@/navigation';
 import { LinearGradient } from 'expo-linear-gradient';
 import { IconBookmark } from '@tabler/icons-react-native';
 import { normalize } from '@/utils/normalize';
@@ -36,7 +38,7 @@ const BADGE_SIZE = normalize(22);
  * 별 표기는 홈 SpotCard와 같다 — 목업의 거리·추천 시기는 서버에 없어 넣지 않았다.
  */
 export default function BookmarkedSpotRow({ item, onBookmarkPress, badges }: Props) {
-  const navigation = useNavigation<any>();
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
   const [imageFailed, setImageFailed] = React.useState(false);
   React.useEffect(() => setImageFailed(false), [item.imageUrl]);
 

@@ -13,7 +13,7 @@ import BookmarkSheet from '@/components/spot/BookmarkSheet';
 import { useBookmarkCollectionsWithSpots, useBookmarkedSpots } from '@/hooks/useSpot';
 import { palOf } from '@/components/common/collectionStyle';
 import { mapPopularSpot } from '@/utils/spotMappers';
-import BookmarkedSpotRow from './components/BookmarkedSpotRow';
+import BookmarkedSpotRow from '@/screens/mypage/components/BookmarkedSpotRow';
 
 type Props = NativeStackScreenProps<MyPageStackParamList, 'BookmarkedSpotList'>;
 

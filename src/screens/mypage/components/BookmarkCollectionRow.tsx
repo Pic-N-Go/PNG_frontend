@@ -8,7 +8,7 @@ import { CARD, TEXT_SUB } from '@/constants/colors';
 import { CollectionIcon, palOf } from '@/components/common/collectionStyle';
 import { toHttps } from '@/utils/spotMappers';
 import type { BookmarkCollectionDTO, SpotResponse } from '@/types/spot';
-import { FALLBACK_GRADIENT } from './BookmarkedSpotRow';
+import { FALLBACK_GRADIENT } from '@/screens/mypage/components/BookmarkedSpotRow';
 
 /** 겹쳐 보여줄 썸네일 장수. 넘치는 장수는 왼쪽 "외 N곳"이 이미 말해줘서 +n 배지를 두지 않는다. */
 const THUMB_COUNT = 3;
