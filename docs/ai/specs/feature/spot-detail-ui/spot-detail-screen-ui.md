@@ -34,7 +34,7 @@
     - 기존 `src/components/home/`의 유사 코드(`FilterBottomSheet`, `CategoryFilter` 등)는 이번 스코프에서 리팩터링하지 않음 (범위 밖 파일 변경 승인 절차 필요 — 오픈 이슈에 기재)
   - **포토제닉 날짜/시간 선택** (당초 오픈 이슈 → 세션 중 API팀 확인 후 확정·구현): 날짜는 당일 포함 3일(오늘/내일/모레) 리스트를 공통 `OptionSheet`로 선택. 시간은 24시간 임의 시각 조회가 가능하다는 API 제약에 따라 신규 의존성 `@react-native-community/datetimepicker`(네이티브 스피너, `minuteInterval=5`)로 자유 선택. 선택해도 포토제닉 점수 자체는 mock 고정값이라 변하지 않음(API 연동 시 교체 예정, 코드에 TODO 표시)
   - **편의정보 스켈레톤 로딩**: 공통 `Skeleton`(펄스 애니메이션 블록) 컴포넌트 추가, `ConvenienceInfoSection`에 `loading` prop으로 아이콘/라벨은 고정 노출하고 값만 스켈레톤 처리. `SpotDetailScreen`엔 미리보기용 5초 타이머가 TEMP로 남아있음(API 연동 시 `isLoading`으로 교체 필요, TODO 표시)
-  - **즐겨찾기 컬렉션 생성**: `BookmarkSheet`의 "새 컬렉션 만들기"가 원래 목업엔 토스트만 띄우는 placeholder였는데, 이름 입력 + 색상 5종(핑크/블루/퍼플/그린/오렌지) 선택으로 실제 컬렉션을 만들 수 있도록 확장(세션 내 화면 상태로만 유지, 최대 10개 제한, 목업에 없던 기능)
+  - **즐겨찾기 컬렉션 생성**: `BookmarkSheet`의 "새 컬렉션 만들기"가 원래 목업엔 토스트만 띄우는 placeholder였는데, 이름 입력 + 색상 5종(핑크/블루/퍼플/그린/오렌지) 선택으로 실제 컬렉션을 만들 수 있도록 확장(목업에 없던 기능). 이후 서버 연동됨 — `POST /bookmark-collections`로 생성하고 상한은 백엔드 `MAX_COLLECTIONS`와 같은 **5개**(최초 구현의 세션 state·10개 제한은 더 이상 유효하지 않음)
   - **홈 화면 인기 스팟 카드 → 스팟 상세 진입 연동**: `PopularSpotsSection`의 기존 `onSpotPress` 훅에 `HomeScreen`에서 실제 네비게이션(`SpotStack`/`SpotDetail`, `spotId` 파라미터 전달)을 연결함
 - 제외(Out of Scope):
   - 스팟 상세 조회/리뷰/사진/채팅/체크리스트/위시리스트/코스저장 등 실제 API 연동 (`src/api/spot.ts` 등은 후속 이슈)
@@ -134,7 +134,7 @@
 - 별도 QA 체크리스트는 구현 완료 후 `png-test-case` 스킬로 산출 예정 (Phase 4~5 사이)
 - `src/components/home/FilterBottomSheet.tsx`, `CategoryFilter.tsx` 등 기존 파일도 신규 공통 컴포넌트(`BottomSheet`, `Chip`)로 교체하면 중복이 줄지만, 이번 이슈 범위 밖이므로 리팩토링하지 않음 — 필요 시 별도 이슈로 제안
 - ~~포토제닉 날짜/시간 선택 UI 형태 미정~~ → **해결됨**: API팀 확인 결과대로 날짜는 3일 리스트, 시간은 네이티브 타임피커로 구현 완료 (3장 참고)
-- `BookmarkSheet`의 즐겨찾기 컬렉션 생성은 세션 내 로컬 state로만 유지됨 — 새로고침/재진입 시 초기화됨. 영속화(AsyncStorage 등)는 API 연동 시 함께 처리 필요
+- ~~`BookmarkSheet`의 즐겨찾기 컬렉션 생성은 세션 내 로컬 state로만 유지됨~~ → **해결됨**: 컬렉션은 `POST /bookmark-collections`, 스팟 소속은 `PUT /spots/{spotId}/bookmark-collections`로 서버에 영속된다. 색·아이콘 키는 프론트 소유(`components/common/collectionStyle.tsx`)이고 서버는 문자열 키만 저장한다
 - `MyPageStack`의 즐겨찾기(PIC MAP) 화면이 아직 없어 `BookmarkSheet`의 "즐겨찾기 보기" 버튼은 TODO로 비활성 상태 — 해당 화면 구현 후 연결 필요
 
 ---

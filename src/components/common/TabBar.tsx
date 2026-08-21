@@ -2,6 +2,7 @@ import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Home, Map, Route, MessageCircle, User } from 'lucide-react-native';
+import { StackActions } from '@react-navigation/native';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { HAIRLINE_WIDTH, TAB_BAR_HEIGHT } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
@@ -56,8 +57,19 @@ export default function TabBar({ state, descriptors, navigation }: BottomTabBarP
                 target: tab.route,
                 canPreventDefault: true,
               });
-              if (!isFocused && !event.defaultPrevented) {
+              if (event.defaultPrevented) return;
+
+              if (!isFocused) {
+                // 탭 전환 시 스택은 그대로 둔다 — 탭마다 보던 화면을 기억하는 게 iOS 기본 동작이다.
                 navigation.navigate(tab.route);
+                return;
+              }
+
+              // 이미 이 탭이면 그 탭 스택을 루트로 되돌린다(iOS 표준: 활성 탭 재탭 = 처음 화면).
+              // popToTop은 탭 네비게이터가 아니라 중첩된 스택에 보내야 해서 그 스택 key를 target으로 준다.
+              const nested = state.routes[index].state;
+              if (nested?.key && (nested.index ?? 0) > 0) {
+                navigation.dispatch({ ...StackActions.popToTop(), target: nested.key });
               }
             }}
             style={{ flex: 1, alignItems: 'center', gap: 4 }}

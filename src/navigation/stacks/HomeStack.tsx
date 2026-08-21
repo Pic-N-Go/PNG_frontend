@@ -6,7 +6,8 @@ import NotificationScreen from '@/screens/home/NotificationScreen';
 
 export type HomeStackParamList = {
   Home: undefined;
-  SearchResult: { query: string };
+  // sort: 'popular'이면 키워드 없이 인기순 스팟 전체 목록으로 진입한다 (홈 "모두 보기").
+  SearchResult: { query?: string; sort?: 'popular' };
   Notification: undefined;
 };
 

@@ -34,7 +34,7 @@ const DANGER = '#ff453a';
 const NEUTRAL_ICON_BG = '#eef0f2';
 const NEUTRAL_ICON_FG = '#615d59';
 
-export default function SettingScreen({ navigation }: Props) {
+export default function SettingScreen({ route, navigation }: Props) {
   const { settings, setWishlist, setGolden, setCommunity, setDndEnabled, setDndTime, setDndRepeat } = useNotificationSettings();
   const { unreadCount } = useInquiries();
   const user = useAuthStore((s) => s.user);
@@ -56,6 +56,15 @@ export default function SettingScreen({ navigation }: Props) {
   const [withdrawModalVisible, setWithdrawModalVisible] = React.useState(false);
   const withdraw = useWithdraw();
   const [themeSheetVisible, setThemeSheetVisible] = React.useState(false);
+
+  // 홈 "관심 스팟" 안내에서 진입하면 시트를 바로 열어준다 (설정 목록을 한 번 더 훑게 하지 않는다).
+  // useState 초기값으로는 안 된다 — 이미 마운트된 화면으로 navigate하면 params만 갱신되고
+  // 초기값은 다시 계산되지 않는다. 열고 나서 params를 비워야 다음 진입도 변화로 감지된다.
+  React.useEffect(() => {
+    if (!route.params?.openThemeSheet) return;
+    setThemeSheetVisible(true);
+    navigation.setParams({ openThemeSheet: undefined });
+  }, [route.params?.openThemeSheet, navigation]);
   const [passwordSheetVisible, setPasswordSheetVisible] = React.useState(false);
 
   const [hasSystemPermission, setHasSystemPermission] = React.useState<boolean>(true);

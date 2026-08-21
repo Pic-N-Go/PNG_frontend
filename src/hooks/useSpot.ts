@@ -1,11 +1,11 @@
 // 스팟 상세 화면 서버 상태 훅 (TanStack Query)
 // 스펙: docs/ai/specs/feature/spot-detail-screen/spot-detail-api.md
-import { keepPreviousData, useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useInfiniteQuery, useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ApiError } from '@/api/auth';
 import { spotApi } from '@/api/spot';
 import type { ReviewPhotoUpload, MapSpotsParams, GetSpotsParams, SearchSpotsParams } from '@/api/spot';
 import { useAuthStore } from '@/store/useAuthStore';
-import { mapMyReviewPages, mapPhotogenicScore, mapReviewExif, mapReviewPages, mapSpotDetail, toHttps } from '@/utils/spotMappers';
+import { invertCollectionSpots, mapMyReviewPages, mapPhotogenicScore, mapReviewExif, mapReviewPages, mapSpotDetail, toHttps } from '@/utils/spotMappers';
 import type { ReviewCreateRequest, ReviewSortApi } from '@/types/spot';
 
 
@@ -87,15 +87,98 @@ export function useSpots(params?: GetSpotsParams, options?: QueryToggle) {
   });
 }
 
+/** 관심 테마를 바꾸면 추천 결과도 달라진다 — 저장하는 쪽(useUpdateSpotCategories)이 무효화에 쓴다. */
+export const RECOMMENDED_SPOTS_KEY = ['spots', 'recommended'] as const;
+
 // 관심 테마 기반 추천 스팟. 서버가 userDetails.getId()를 그대로 쓰므로 로그인 필수다.
 export function useRecommendedSpots(limit = 10, options?: QueryToggle) {
   const token = useAuthStore((s) => s.accessToken);
   return useQuery({
-    queryKey: ['spots', 'recommended', limit, token ?? 'guest'],
+    queryKey: [...RECOMMENDED_SPOTS_KEY, limit, token ?? 'guest'],
     queryFn: () => spotApi.getRecommendedSpots(limit, token ?? undefined),
     enabled: !!token && (options?.enabled ?? true),
     staleTime: SPOTS_STALE_TIME,
   });
+}
+
+/** MY 탭 "북마크한 스팟". 북마크 저장 시 무효화 대상이라 키를 내보낸다. */
+export const BOOKMARKED_SPOTS_KEY = ['spots', 'bookmarked'] as const;
+
+export function useBookmarkedSpots(options?: QueryToggle) {
+  const token = useAuthStore((s) => s.accessToken);
+  return useQuery({
+    queryKey: [...BOOKMARKED_SPOTS_KEY, token ?? 'guest'],
+    queryFn: () => spotApi.getBookmarkedSpots(token!),
+    enabled: !!token && (options?.enabled ?? true),
+    staleTime: SPOTS_STALE_TIME,
+  });
+}
+
+/** 컬렉션 목록(이름·개수). 스팟별 contains가 필요 없는 자리 — MY 탭 컬렉션 필터용. */
+export function useMyBookmarkCollections(options?: QueryToggle) {
+  const token = useAuthStore((s) => s.accessToken);
+  return useQuery({
+    queryKey: ['bookmark-collections', 'mine', token ?? 'guest'],
+    queryFn: () => spotApi.getMyBookmarkCollections(token!),
+    enabled: !!token && (options?.enabled ?? true),
+    staleTime: SPOTS_STALE_TIME,
+  });
+}
+
+/** 한 컬렉션에 담긴 스팟의 쿼리 키. ['spots', ...] 아래 둬서 북마크 해제 시 무효화에 같이 걸린다. */
+const collectionSpotsKey = (collectionId: number, token: string | null) =>
+  ['spots', 'collection', collectionId, token ?? 'guest'] as const;
+
+/**
+ * 컬렉션 + 각 컬렉션에 담긴 스팟.
+ *
+ * 서버는 "이 스팟이 어느 컬렉션에 있나"를 안 내려준다(스팟 응답에 isBookmarked만 있다).
+ * 그래서 컬렉션별 목록을 받아 뒤집어 쓴다 — MY 탭 컬렉션 미리보기와 목록 화면의 소속 배지가 이걸 쓴다.
+ * 컬렉션은 최대 5개(BookmarkSheet MAX_COLLECTIONS)라 병렬 조회로 충분하다.
+ */
+export function useBookmarkCollectionsWithSpots() {
+  const token = useAuthStore((s) => s.accessToken);
+  const {
+    data: collections = [],
+    isLoading: collectionsLoading,
+    isError: collectionsError,
+    refetch: refetchCollections,
+  } = useMyBookmarkCollections();
+
+  const results = useQueries({
+    queries: collections.map((c) => ({
+      queryKey: collectionSpotsKey(c.id, token),
+      queryFn: () => spotApi.getCollectionSpots(c.id, token as string),
+      enabled: !!token,
+      staleTime: SPOTS_STALE_TIME,
+    })),
+  });
+
+  // 컬렉션 목록이 먼저 오고 스팟은 그 다음이라, 스팟을 기다리는 중인지 행이 알아야 한다.
+  // 안 그러면 spotCount(5)만 있고 이름·썸네일이 없는 상태가 한 프레임 그려진다.
+  const groups = collections.map((collection, i) => ({
+    collection,
+    spots: results[i]?.data ?? [],
+    isLoading: results[i]?.isLoading ?? true,
+  }));
+
+  const bySpot = invertCollectionSpots(groups);
+
+  return {
+    groups,
+    /** 이 스팟이 담긴 컬렉션들. 아직 안 받았으면 빈 배열. */
+    badgesOf: (spotId: string) => bySpot.get(spotId) ?? [],
+    /** 컬렉션 중복을 뺀 실제 저장 스팟 수 */
+    distinctSpotCount: bySpot.size,
+    isLoading: collectionsLoading || results.some((r) => r.isLoading),
+    // 컬렉션 목록 실패도 포함해야 한다 — 빠뜨리면 목록이 안 와서 빈 배열이 된 것을
+    // "저장한 게 없음"으로 그린다.
+    isError: collectionsError || results.some((r) => r.isError),
+    refetch: () => {
+      refetchCollections();
+      results.forEach((r) => r.refetch());
+    },
+  };
 }
 
 export function useSearchSpots(params: SearchSpotsParams, options?: QueryToggle) {
@@ -320,10 +403,13 @@ export function useSyncSpotBookmarks(id: string) {
       return spotApi.syncSpotBookmarks(id, collectionIds, token);
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: bookmarkKey(id) });
+      // ['bookmark-collections'] 접두사 — 이 스팟용 시트 목록과 MY 탭 'mine' 목록(spotCount)을 함께 지운다.
+      qc.invalidateQueries({ queryKey: ['bookmark-collections'] });
       // 카드의 채워짐 상태는 목록 응답의 isBookmarked에서 온다. 화면이 아니라 여기서 무효화해야
       // 상세에서 해제한 게 스택 아래 홈 카드에도 반영된다 (홈은 refetch 트리거가 없다).
-      qc.invalidateQueries({ queryKey: ['spots', 'list'] });
+      // 'spots' 접두사로 목록 전체(list·recommended·bookmarked·search·nearby·map)를 한 번에 지운다 —
+      // 하나씩 열거하면 목록이 늘 때마다 여기 추가하는 걸 잊는다. 상세는 ['spot', ...]이라 안 걸린다.
+      qc.invalidateQueries({ queryKey: ['spots'] });
     },
   });
 }

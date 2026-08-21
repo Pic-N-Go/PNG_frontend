@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import MyPageScreen from '@/screens/mypage/MyPageScreen';
 import UserProfileScreen from '@/screens/mypage/UserProfileScreen';
 import SettingScreen from '@/screens/mypage/SettingScreen';
+import BookmarkedSpotListScreen from '@/screens/mypage/BookmarkedSpotListScreen';
 import NotificationScreen from '@/screens/mypage/NotificationScreen';
 import InquiryListScreen from '@/screens/mypage/InquiryListScreen';
 import InquiryDetailScreen from '@/screens/mypage/InquiryDetailScreen';
@@ -21,8 +22,11 @@ import AdminDashboardScreen from '@/screens/admin/AdminDashboardScreen';
 
 export type MyPageStackParamList = {
   MyPage: undefined;
+  // collectionId: MY 탭 컬렉션 줄에서 그 컬렉션만 선택된 상태로 진입한다.
+  BookmarkedSpotList: { collectionId?: number } | undefined;
   UserProfile: { userId: string };
-  Setting: undefined;
+  // openThemeSheet: 홈 "관심 스팟" 안내에서 바로 관심 테마 시트를 열며 진입한다.
+  Setting: { openThemeSheet?: boolean } | undefined;
   ProfileEdit: undefined;
   Notification: undefined;
   Inquiry: undefined;
@@ -46,6 +50,7 @@ export default function MyPageStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="MyPage" component={MyPageScreen} />
+      <Stack.Screen name="BookmarkedSpotList" component={BookmarkedSpotListScreen} />
       <Stack.Screen name="UserProfile" component={UserProfileScreen} />
       <Stack.Screen name="Setting" component={SettingScreen} />
       <Stack.Screen name="Notification" component={NotificationScreen} />

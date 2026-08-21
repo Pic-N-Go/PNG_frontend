@@ -464,6 +464,8 @@ export interface RecommendedSpotResponse {
   longitude: number;
   reviewCount: number;
   bookmarkCount: number;
+  reviewAverage: number;
+  isBookmarked: boolean;
 }
 
 export interface SpotResponse {

@@ -14,6 +14,7 @@ import type {
   SpotDetailResponse,
   SpotPhotosResponse,
   PageSpotResponse,
+  SpotResponse,
   SpotMapResponse,
   SpotSummaryResponse,
   NearbySpotResponse,
@@ -274,6 +275,18 @@ export const spotApi = {
 
   createBookmarkCollection: (body: { name: string; color: string; icon: string }, token: string) =>
     request<BookmarkCollectionDTO>('/bookmark-collections', { method: 'POST', body, token }),
+
+  // 내 컬렉션 전부 (spotId 없이 호출 → contains는 항상 false).
+  getMyBookmarkCollections: (token: string) =>
+    request<BookmarkCollectionDTO[]>('/bookmark-collections', { token }),
+
+  // 한 컬렉션에 담긴 스팟, 최근 담은 순. isBookmarked는 항상 true.
+  getCollectionSpots: (collectionId: number, token: string) =>
+    request<SpotResponse[]>(`/bookmark-collections/${collectionId}/spots`, { token }),
+
+  // MY 탭 "북마크한 스팟" — 컬렉션 구분 없이 전부, 최근 담은 순. isBookmarked는 항상 true.
+  getBookmarkedSpots: (token: string) =>
+    request<SpotResponse[]>('/users/me/bookmarked-spots', { token }),
 
   // 스팟 소속 통째 동기화 (체크된 집합 → 추가+제거, 빈 배열=전체 제거). 204.
   syncSpotBookmarks: (spotId: string | number, collectionIds: number[], token: string) =>

@@ -13,6 +13,7 @@ import SearchBar from '@/components/home/SearchBar';
 import CategoryFilter from '@/components/home/CategoryFilter';
 import MapBanner from '@/components/home/MapBanner';
 import PopularSpotsSection from '@/components/home/PopularSpotsSection';
+import RecommendedSpotsSection from '@/components/home/RecommendedSpotsSection';
 import CalendarSection from '@/components/home/CalendarSection';
 import { IconBell } from '@tabler/icons-react-native';
 import LinkBanner from '@/components/common/LinkBanner';
@@ -71,6 +72,16 @@ export default function HomeScreen({ navigation }: Props) {
   });
 
   const [userAddress, setUserAddress] = useState<string>('내 위치');
+
+  // SpotStack은 HomeStack의 조상 네비게이터(RootStack)에 등록돼 있음 —
+  // React Navigation이 자동으로 상위로 액션을 전파(bubbling)하므로 getParent() 체이닝 불필요
+  const goToSpotDetail = useCallback(
+    (spotId: string) => {
+      const rootNavigation = navigation as unknown as NativeStackNavigationProp<RootStackParamList>;
+      rootNavigation.navigate('SpotStack', { screen: 'SpotDetail', params: { spotId } });
+    },
+    [navigation],
+  );
 
   const syncUserCoords = useCallback(async () => {
     try {
@@ -225,12 +236,18 @@ export default function HomeScreen({ navigation }: Props) {
         </View>
 
         <PopularSpotsSection
-          onSpotPress={(id) => {
-            // SpotStack은 HomeStack의 조상 네비게이터(RootStack)에 등록돼 있음 —
-            // React Navigation이 자동으로 상위로 액션을 전파(bubbling)하므로 getParent() 체이닝 불필요
-            const rootNavigation = navigation as unknown as NativeStackNavigationProp<RootStackParamList>;
-            rootNavigation.navigate('SpotStack', { screen: 'SpotDetail', params: { spotId: id } });
-          }}
+          onSpotPress={goToSpotDetail}
+          onViewAll={() => navigation.navigate('SearchResult', { sort: 'popular' })}
+        />
+
+        <RecommendedSpotsSection
+          onSpotPress={goToSpotDetail}
+          onSetThemes={() =>
+            (navigation as any).navigate('Main', {
+              screen: 'MyPageTab',
+              params: { screen: 'Setting', params: { openThemeSheet: true } },
+            })
+          }
         />
 
         <CalendarSection />

@@ -3,7 +3,7 @@ import { Image, Pressable, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { IconBookmark } from '@tabler/icons-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { CARD_RADIUS, FONT_MD, FONT_SM } from '@/constants/layout';
+import { CARD_RADIUS, FONT_MD, FONT_SM, FONT_XS } from '@/constants/layout';
 import type { SpotItem } from '@/types/spot';
 import { BRAND, BRAND_STRONG, CARD, TEXT_SUB } from '@/constants/colors';
 
@@ -133,7 +133,7 @@ export default function SpotCard({ item, onPress, onBookmarkPress }: Props) {
           allowFontScaling={false}
           style={{
             fontFamily: 'Pretendard-Regular',
-            fontSize: normalizeFontSize(12),
+            fontSize: FONT_XS,
             color: TEXT_SUB,
             marginBottom: normalize(10),
           }}
@@ -141,27 +141,38 @@ export default function SpotCard({ item, onPress, onBookmarkPress }: Props) {
         >
           {item.location}
         </Text>
-        {/* 별점·평점·리뷰 수 한 줄. 흰 박스를 없앤 자리라 아래 여백은 컨테이너 paddingBottom이 맡는다. */}
+        {/* 별점·평점·리뷰 수 한 줄. 흰 박스를 없앤 자리라 아래 여백은 컨테이너 paddingBottom이 맡는다.
+            리뷰가 없으면 별점 대신 "리뷰 없음" — ☆☆☆☆☆ 0.0은 평점 0점(혹평)으로 읽힌다.
+            보조 텍스트(지역·별·리뷰 수·"리뷰 없음")는 모두 FONT_XS로 맞춘다. 평점 숫자만 FONT_SM으로 남긴다.
+            줄을 비우지 않는 이유는 카드 높이를 일정하게 두기 위해서다. */}
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(6) }}>
-          <Text
-            allowFontScaling={false}
-            style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(12), color: '#ff9f0a' }}
-          >
-            {stars}
-          </Text>
-          <Text
-            allowFontScaling={false}
-            style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, color: '#000' }}
-          >
-            {rating.toFixed(1)}
-          </Text>
-          {/* 0건이면 "(0)"이 리뷰가 있는 카드처럼 읽혀서 아예 그리지 않는다 */}
-          {!!item.reviewCount && (
+          {item.reviewCount ? (
+            <>
+              <Text
+                allowFontScaling={false}
+                style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: '#ff9f0a' }}
+              >
+                {stars}
+              </Text>
+              <Text
+                allowFontScaling={false}
+                style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, color: '#000' }}
+              >
+                {rating.toFixed(1)}
+              </Text>
+              <Text
+                allowFontScaling={false}
+                style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: '#8e8e93' }}
+              >
+                ({item.reviewCount})
+              </Text>
+            </>
+          ) : (
             <Text
               allowFontScaling={false}
-              style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: '#8e8e93' }}
+              style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: '#8e8e93' }}
             >
-              ({item.reviewCount})
+              리뷰 없음
             </Text>
           )}
         </View>

@@ -1,0 +1,178 @@
+import React from 'react';
+import { Image, Pressable, Text, View } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '@/navigation';
+import { LinearGradient } from 'expo-linear-gradient';
+import { IconBookmark } from '@tabler/icons-react-native';
+import { normalize } from '@/utils/normalize';
+import { CARD_RADIUS, FONT_MD, FONT_SM, FONT_XS } from '@/constants/layout';
+import { BRAND, CARD, TEXT_SUB } from '@/constants/colors';
+import { CollectionIcon, palOf } from '@/components/common/collectionStyle';
+import type { BookmarkCollectionDTO, SpotItem } from '@/types/spot';
+
+/** 사진 없는 스팟용 폴백 — SpotCard와 같은 색을 쓴다. */
+export const FALLBACK_GRADIENT: [string, string, string] = ['#2C3E50', '#4A6572', '#8B9DA8'];
+
+interface Props {
+  item: SpotItem;
+  /**
+   * 북마크 아이콘 탭. 홈 카드와 같이 컬렉션 시트를 여는 용도 —
+   * 한 번 탭으로 바로 지우지 않는다(되돌릴 방법이 없다). 넘기지 않으면 아이콘을 그리지 않는다.
+   */
+  onBookmarkPress?: () => void;
+  /**
+   * 이 스팟이 담긴 컬렉션. 넘기면 북마크 아이콘 대신 소속 컬렉션 배지를 그린다 —
+   * 아이콘 하나는 "저장됨"만 말하는데, 배지는 어느 컬렉션에 넣었는지까지 말한다.
+   */
+  badges?: BookmarkCollectionDTO[];
+}
+
+/** 배지가 이보다 많으면 행이 눌린다 — 넘치는 건 상세/시트에서 본다. */
+const MAX_BADGES = 3;
+/** 배지 한 칸. 360dp에서 이름 칼럼을 3자 정도 더 벌기 위해 26에서 줄였다. */
+const BADGE_SIZE = normalize(22);
+
+/**
+ * 북마크 목록의 한 줄. 왼쪽에 [썸네일 · 이름/지역/평점], 오른쪽에 북마크 아이콘만 둔다.
+ * 별 표기는 홈 SpotCard와 같다 — 목업의 거리·추천 시기는 서버에 없어 넣지 않았다.
+ */
+export default function BookmarkedSpotRow({ item, onBookmarkPress, badges }: Props) {
+  const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
+  const [imageFailed, setImageFailed] = React.useState(false);
+  React.useEffect(() => setImageFailed(false), [item.imageUrl]);
+
+  const rating = item.rating ?? 0;
+  const stars = Array.from({ length: 5 }, (_, i) => (i < Math.round(rating) ? '★' : '☆')).join('');
+
+  return (
+    // 레이아웃은 바깥 View가 갖는다 — Pressable의 함수형 style에 넣으면 NativeWind가 먹는다.
+    <View style={{ borderRadius: CARD_RADIUS, backgroundColor: CARD, overflow: 'hidden' }}>
+      <Pressable
+        onPress={() =>
+          navigation.navigate('SpotStack', { screen: 'SpotDetail', params: { spotId: item.id } })
+        }
+        style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}
+      >
+        <View className="flex-row items-center" style={{ padding: normalize(10), gap: normalize(12) }}>
+          <View
+            style={{
+              width: normalize(56),
+              height: normalize(56),
+              borderRadius: normalize(10),
+              overflow: 'hidden',
+              flexShrink: 0,
+            }}
+          >
+            {item.imageUrl && !imageFailed ? (
+              <Image
+                source={{ uri: item.imageUrl }}
+                resizeMode="cover"
+                onError={() => setImageFailed(true)}
+                style={{ width: '100%', height: '100%' }}
+              />
+            ) : (
+              <LinearGradient colors={FALLBACK_GRADIENT} style={{ flex: 1 }} />
+            )}
+          </View>
+
+          <View className="flex-1">
+            <Text
+              allowFontScaling={false}
+              numberOfLines={1}
+              className="font-semibold text-black tracking-tight"
+              style={{ fontSize: FONT_MD, marginBottom: normalize(3) }}
+            >
+              {item.name}
+            </Text>
+            <Text
+              allowFontScaling={false}
+              numberOfLines={1}
+              className="font-normal"
+              style={{ fontSize: FONT_XS, color: TEXT_SUB }}
+            >
+              {item.location}
+            </Text>
+
+            {/* 별·평점·리뷰 수 조합은 홈 SpotCard와 동일하다 (리뷰 0건이면 "리뷰 없음"까지).
+                크기도 같이 맞춘다 — 보조 텍스트는 FONT_XS, 평점 숫자만 FONT_SM. */}
+            <View
+              className="flex-row items-center"
+              style={{ gap: normalize(4), marginTop: normalize(4) }}
+            >
+              {item.reviewCount ? (
+                <>
+                  <Text
+                    allowFontScaling={false}
+                    className="font-normal"
+                    style={{ fontSize: FONT_XS, color: '#ff9f0a' }}
+                  >
+                    {stars}
+                  </Text>
+                  <Text
+                    allowFontScaling={false}
+                    className="font-semibold text-black"
+                    style={{ fontSize: FONT_SM }}
+                  >
+                    {rating.toFixed(1)}
+                  </Text>
+                  <Text
+                    allowFontScaling={false}
+                    className="font-normal"
+                    style={{ fontSize: FONT_XS, color: '#8e8e93' }}
+                  >
+                    ({item.reviewCount})
+                  </Text>
+                </>
+              ) : (
+                <Text
+                  allowFontScaling={false}
+                  className="font-normal"
+                  style={{ fontSize: FONT_XS, color: '#8e8e93' }}
+                >
+                  리뷰 없음
+                </Text>
+              )}
+            </View>
+          </View>
+
+          {onBookmarkPress && (
+            <Pressable
+              onPress={onBookmarkPress}
+              hitSlop={10}
+              accessibilityRole="button"
+              accessibilityLabel={
+                badges?.length ? `즐겨찾기 관리, ${badges.map((c) => c.name).join(', ')}` : '즐겨찾기 관리'
+              }
+              className="flex-row shrink-0"
+              style={{ gap: normalize(3) }}
+            >
+              {badges?.length ? (
+                badges.slice(0, MAX_BADGES).map((c) => {
+                  const p = palOf(c.color);
+                  return (
+                    <View
+                      key={c.id}
+                      className="items-center justify-center"
+                      style={{
+                        width: BADGE_SIZE,
+                        height: BADGE_SIZE,
+                        borderRadius: normalize(7),
+                        backgroundColor: p.t,
+                      }}
+                    >
+                      <CollectionIcon name={c.icon} size={normalize(13)} color={p.s} />
+                    </View>
+                  );
+                })
+              ) : (
+                // 아직 컬렉션을 못 받았거나(로딩) 소속이 안 잡힌 경우의 폴백.
+                <IconBookmark size={normalize(16)} color={BRAND} strokeWidth={1.5} fill={BRAND} />
+              )}
+            </Pressable>
+          )}
+        </View>
+      </Pressable>
+    </View>
+  );
+}

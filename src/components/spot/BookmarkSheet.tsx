@@ -1,60 +1,26 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Dimensions, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
-import {
-  IconArchive,
-  IconBookmark,
-  IconCamera,
-  IconCheck,
-  IconChevronLeft,
-  IconChevronRight,
-  IconClock,
-  IconFlag,
-  IconHeart,
-  IconMapPin,
-  IconMountain,
-  IconPlus,
-  IconSparkles,
-  IconStar,
-} from '@tabler/icons-react-native';
+import { IconCheck, IconChevronLeft, IconChevronRight, IconPlus } from '@tabler/icons-react-native';
 import BottomSheet from '@/components/common/BottomSheet';
 import { toErrorMessage } from '@/api/auth';
 import { useBookmarkCollections, useCreateBookmarkCollection, useSyncSpotBookmarks } from '@/hooks/useSpot';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { BRAND, CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
 import { BORDER_CONTROL, HAIRLINE_WIDTH } from '@/constants/layout';
+import {
+  COLLECTION_COLOR_KEYS,
+  COLLECTION_ICON_SET,
+  COLLECTION_PAL,
+  CollectionIcon,
+  palOf,
+  type CollectionColorKey,
+  type CollectionIconKey,
+} from '@/components/common/collectionStyle';
+
+type ColorKey = CollectionColorKey;
+type IconKey = CollectionIconKey;
 
 const ACCENT = BRAND;
-
-type ColorKey = 'pink' | 'blue' | 'purple' | 'green' | 'orange';
-const PAL: Record<ColorKey, { s: string; t: string }> = {
-  pink: { s: BRAND, t: '#FDE8EF' },
-  blue: { s: '#2E7BF6', t: '#E4EEFD' },
-  purple: { s: '#7C4DFF', t: '#EEE9FE' },
-  green: { s: '#16A34A', t: '#E7F6EC' },
-  orange: { s: '#E8890B', t: '#FCEBD5' },
-};
-const COLOR_KEYS: ColorKey[] = ['pink', 'blue', 'purple', 'green', 'orange'];
-const palOf = (key: string) => PAL[key as ColorKey] ?? PAL.pink;
-
-type IconKey = 'star' | 'heart' | 'bookmark' | 'map-pin' | 'camera' | 'flag' | 'sparkles' | 'mountain' | 'clock' | 'archive';
-const ICON_MAP: Record<IconKey, React.ComponentType<{ size: number; color: string; strokeWidth?: number }>> = {
-  star: IconStar,
-  heart: IconHeart,
-  bookmark: IconBookmark,
-  'map-pin': IconMapPin,
-  camera: IconCamera,
-  flag: IconFlag,
-  sparkles: IconSparkles,
-  mountain: IconMountain,
-  clock: IconClock,
-  archive: IconArchive,
-};
-const ICON_SET: IconKey[] = ['star', 'heart', 'bookmark', 'map-pin', 'camera', 'flag', 'sparkles', 'mountain'];
-
-function CollectionIcon({ name, size, color }: { name: string; size: number; color: string }) {
-  const Cmp = ICON_MAP[name as IconKey] ?? IconBookmark;
-  return <Cmp size={size} color={color} strokeWidth={2} />;
-}
 
 const MAX_CONTENT_LEN = 20;
 const MAX_COLLECTIONS = 5;
@@ -144,7 +110,7 @@ export default function BookmarkSheet({ visible, spotId, onClose, onSaved }: Pro
     }
   }, [visible, collections]);
 
-  const cur = PAL[colorKey];
+  const cur = COLLECTION_PAL[colorKey];
   const trimmedName = name.trim();
   const isDuplicateName = (collections ?? []).some((c) => c.name === trimmedName);
   // 선택이 서버 소속과 달라졌을 때만 저장 가능(빈 집합=전체 해제 포함)
@@ -289,8 +255,8 @@ export default function BookmarkSheet({ visible, spotId, onClose, onSaved }: Pro
             )}
             <Text allowFontScaling={false} style={{ marginTop: normalize(22), fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(13), color: '#8B8680' }}>색상 선택</Text>
             <View style={{ flexDirection: 'row', gap: normalize(14), marginTop: normalize(12) }}>
-              {COLOR_KEYS.map((k) => {
-                const p = PAL[k];
+              {COLLECTION_COLOR_KEYS.map((k) => {
+                const p = COLLECTION_PAL[k];
                 const sel = k === colorKey;
                 return (
                   <Pressable
@@ -306,7 +272,7 @@ export default function BookmarkSheet({ visible, spotId, onClose, onSaved }: Pro
 
             <Text allowFontScaling={false} style={{ marginTop: normalize(24), fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(13), color: '#8B8680' }}>아이콘 선택</Text>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: normalize(12), marginTop: normalize(12) }}>
-              {ICON_SET.map((nm) => {
+              {COLLECTION_ICON_SET.map((nm) => {
                 const sel = nm === iconKey;
                 return (
                   <Pressable

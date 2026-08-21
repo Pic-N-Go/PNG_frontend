@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { userApi } from '@/api/user';
 import { useAuthStore } from '@/store/useAuthStore';
+import { RECOMMENDED_SPOTS_KEY } from '@/hooks/useSpot';
 import type {
   UserResponse,
   UserStatsResponse,
@@ -127,6 +128,8 @@ export function useUpdateSpotCategories() {
       // 여기서 안 맞춰주면 시트를 다시 열었을 때 저장 전 선택이 그대로 보인다.
       setUser(updatedUser);
       queryClient.invalidateQueries({ queryKey: USER_KEYS.profile() });
+      // 관심 테마가 추천 쿼리의 입력이다 — 안 지우면 staleTime(60초) 동안 홈이 이전 결과를 보여준다.
+      queryClient.invalidateQueries({ queryKey: RECOMMENDED_SPOTS_KEY });
     },
   });
 }
