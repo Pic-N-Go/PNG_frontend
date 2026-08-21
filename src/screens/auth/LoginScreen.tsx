@@ -74,8 +74,8 @@ export default function LoginScreen({ navigation }: Props) {
   // (measureLayout은 Fabric에서 native ref가 아니라며 거부한다 — onLayout만으로 충분하다.)
   const formYRef = useRef(0);
   const pwBoxRef = useRef({ y: 0, height: 0 });
-  // 키보드가 없을 때의 스크롤 영역 높이 — paddingBottom이 걸린 뒤의 onLayout을 기다리지 않고
-  // 이 값에서 겹침만 빼서 가시 영역을 구한다.
+  // 스크롤 영역(뷰)의 높이. 키보드가 열려도 뷰는 그대로이므로 이 값에서 겹침만 빼면
+  // 키보드에 가려지지 않은 가시 영역이 된다.
   const scrollHeightRef = useRef(0);
 
   const { height: SCREEN_H } = useWindowDimensions();
@@ -88,7 +88,6 @@ export default function LoginScreen({ navigation }: Props) {
     initialHeroHeightRef.current = computedHeroHeight;
   }
   const heroHeight = initialHeroHeightRef.current;
-
 
   // Main form state
   const [email, setEmail] = useState("");
@@ -120,6 +119,7 @@ export default function LoginScreen({ navigation }: Props) {
   // (시트가 떠 있을 때는 뒤쪽 폼을 건드리지 않는다.)
   useEffect(() => {
     if (keyboardOverlap === 0 || sheetVisible) return;
+    if (scrollHeightRef.current === 0) return;
     const visible = scrollHeightRef.current - keyboardOverlap;
     const target =
       formYRef.current + pwBoxRef.current.y + pwBoxRef.current.height +
@@ -291,19 +291,22 @@ export default function LoginScreen({ navigation }: Props) {
     <View className="flex-1 bg-white">
       {/* 엣지투엣지라 Android는 adjustResize가 창을 줄이지 않는다 — KeyboardAvoidingView
           대신 useKeyboardOverlap으로 직접 피한다(이유는 BottomSheet.tsx 주석 참고).
-          스크롤 영역을 키보드만큼 줄인 뒤, 비밀번호 입력창이 키보드 위로 오도록
-          필요한 만큼만 스크롤한다. */}
-      <View className="flex-1" style={{ paddingBottom: keyboardOverlap }}>
+          키보드 높이를 콘텐츠 아래 padding으로 넣어 스크롤 여백을 만들고(뷰 높이를 줄이면
+          iOS는 축소 애니메이션이 끝나기 전에 scrollTo가 들어와 0으로 클램프된다),
+          비밀번호 입력창이 키보드 위로 오도록 필요한 만큼만 스크롤한다. */}
+      <View className="flex-1">
         <ScrollView
           ref={scrollRef}
           onLayout={(e) => {
-            if (keyboardOverlap === 0) {
-              scrollHeightRef.current = e.nativeEvent.layout.height;
-            }
+            scrollHeightRef.current = e.nativeEvent.layout.height;
           }}
           bounces={false}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ flexGrow: 1 }}
+          keyboardShouldPersistTaps="handled"
+          contentContainerStyle={{
+            flexGrow: 1,
+            paddingBottom: keyboardOverlap,
+          }}
         >
           {/* ── Hero ── */}
           <View style={{ height: heroHeight }}>
@@ -668,9 +671,9 @@ export default function LoginScreen({ navigation }: Props) {
       >
         {/* Android도 behavior가 필요하다 — 이유는 BottomSheet.tsx의 주석 참고(엣지투엣지라
             adjustResize가 창을 줄이지 않는다). flex-end로 붙인 시트라 height가 맞다.
-            주의: 이 앱의 다른 화면 다수가 아직 Android에서 undefined다(ReviewWriteScreen·
-            SpotDetailScreen 채팅·ProfileEditScreen·ComposeInquiryScreen). 그건 옳아서가 아니라
-            아직 안 고친 것이다 — 복사하지 말 것. */}
+            폼 쪽(위)은 스크롤이 있어 useKeyboardOverlap으로 옮겼고, 이 시트는 flex-end
+            고정 레이아웃이라 KAV를 그대로 둔다. 남은 KAV 화면: ReviewWriteScreen·
+            ComposeInquiryScreen(둘 다 Android는 height). */}
         <KeyboardAvoidingView
           style={{ flex: 1 }}
           behavior={Platform.OS === "ios" ? "padding" : "height"}
