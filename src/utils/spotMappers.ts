@@ -198,6 +198,16 @@ if (__DEV__) {
   console.assert(regionLabelFrom('') === null, '빈 주소 → null 오류');
 }
 
+// 서버 enum 코드 → 표시용 라벨. ETC는 버린다(라벨이 "기타"라 칩으로 달 의미가 없다).
+// mapPopularSpot과 같은 규칙으로 최대 2개만 남긴다 — 바텀시트 한 줄에 들어가는 개수다.
+function categoryLabels(codes: string[] | undefined): string[] {
+  return (codes ?? [])
+    .filter((code) => code !== 'ETC')
+    .map((code) => SPOT_CATEGORY_MAP[code]?.label)
+    .filter((label): label is string => !!label)
+    .slice(0, 2);
+}
+
 /**
  * PIC MAP의 두 핀 목록을 하나로 합친다.
  * 같은 스팟을 리뷰도 쓰고 즐겨찾기도 했으면 핀은 하나이고 두 플래그가 함께 선다 —
@@ -224,6 +234,7 @@ export function mergeMapSpots(
       bookmarked: false,
       date: dto.reviewedAt.slice(0, 10).replace(/-/g, '.'),
       rating: dto.rating,
+      categories: categoryLabels(dto.categories),
     });
   }
 
@@ -245,6 +256,7 @@ export function mergeMapSpots(
       // 즐겨찾기만 한 스팟은 리뷰가 없다. 바텀시트에서 통계 카드를 렌더하지 않는 근거가 이 null이다.
       date: null,
       rating: null,
+      categories: categoryLabels(dto.categories),
     });
   }
 
@@ -257,6 +269,8 @@ if (__DEV__) {
     spotId: 1, name: '광안리', address: '부산광역시 수영구 광안해변로',
     latitude: 35.1, longitude: 129.1, imageUrl: null,
     reviewedAt: '2026-06-16T10:30:00.123456', rating: 4,
+    // ETC는 걸러지고 최대 2개만 남아야 한다 (NIGHT_VIEW=야경, BEACH=해변, PARK는 잘림)
+    categories: ['NIGHT_VIEW', 'BEACH', 'PARK', 'ETC'],
   };
   const bmk = {
     id: 1, name: '광안리', address: '부산광역시 수영구', latitude: 35.1, longitude: 129.1,
@@ -265,6 +279,7 @@ if (__DEV__) {
   } as SpotResponse;
 
   const onlyReview = mergeMapSpots([rev], []);
+  console.assert(onlyReview[0].categories.join() === '야경,해변', `카테고리 라벨 변환 오류: ${onlyReview[0].categories}`);
   console.assert(onlyReview.length === 1 && onlyReview[0].reviewed && !onlyReview[0].bookmarked, '리뷰 전용 핀 오류');
   console.assert(onlyReview[0].date === '2026.06.16', '리뷰 작성일 포맷 오류');
   console.assert(onlyReview[0].loc === '부산 수영구', '지역명 축약 오류');

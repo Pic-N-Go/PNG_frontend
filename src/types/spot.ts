@@ -512,6 +512,8 @@ export interface ReviewedSpotResponse {
   reviewedAt: string;
   /** 내가 준 별점 1~5. 스팟의 photogenicScore가 아니다. */
   rating: number;
+  /** SpotCategory enum 이름. 라벨은 프론트가 갖는다. 비어 있으면 서버가 ["ETC"]로 채운다. */
+  categories: string[];
 }
 
 /**
@@ -532,6 +534,11 @@ export interface MapSpot {
   date: string | null;
   /** 내가 준 별점 1~5. 즐겨찾기만 한 스팟은 null이다. */
   rating: number | null;
+  /**
+   * 표시용 한글 라벨, 최대 2개. 서버가 주는 enum 코드를 SPOT_CATEGORY_MAP으로 바꾼 값이다.
+   * ETC는 제외한다 — 라벨이 "기타"라 칩으로 달 의미가 없다(constants/spotCategories.ts 주석).
+   */
+  categories: string[];
 }
 
 export interface PageSpotResponse {

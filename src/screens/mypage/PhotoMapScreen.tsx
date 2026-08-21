@@ -14,10 +14,16 @@ import { mergeMapSpots } from '@/utils/spotMappers';
 import type { MapSpot } from '@/types/spot';
 import SaveToPlanSheet from '@/components/spot/SaveToPlanSheet';
 import Toast from '@/components/common/Toast';
+import Skeleton from '@/components/common/Skeleton';
 
 const KAKAO_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_API_KEY;
 
 type FilterType = 'all' | 'review' | 'fav';
+
+// 지도 영역의 위 경계. 헤더 = 내비 행 + 필터 행(위아래 패딩 10 + 칩 높이 30).
+// MapNotice·지도 컨트롤·범례가 모두 이 값을 기준으로 놓여야 헤더를 고칠 때 같이 따라온다.
+const NAV_ROW_HEIGHT = normalize(54);
+const HEADER_HEIGHT = NAV_ROW_HEIGHT + normalize(10) * 2 + normalize(30);
 
 export default function PhotoMapScreen() {
   const navigation = useNavigation<any>();
@@ -31,6 +37,19 @@ export default function PhotoMapScreen() {
   // initMap이 컨테이너 크기를 기다리며 재시도하므로 onLoadEnd로도 이르다 — 페이지가 직접 알려준다.
   const mapReadyRef = useRef(false);
   const spotsRef = useRef<MapSpot[]>([]);
+  // 오버레이 렌더용. ref는 주입 타이밍 판단에만 쓰고 리렌더를 유발하지 않는다.
+  const [mapReady, setMapReady] = useState(false);
+  // 페이지 안 타임아웃으로는 부족하다 — 카카오 SDK 스크립트가 실패하면 kakao.maps.load가 없어
+  // 인라인 스크립트가 즉시 throw하고, 그 안에 등록하려던 setTimeout이 아예 걸리지 않는다.
+  // 그러면 오버레이가 영구히 남는다. 포기 시점은 RN이 쥔다.
+  const [mapGaveUp, setMapGaveUp] = useState(false);
+  const showMapLoading = !mapReady && !mapGaveUp;
+  const mapAreaBottom = mapAreaBottomOf(insets.bottom);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setMapGaveUp(true), 6000);
+    return () => clearTimeout(timer);
+  }, []);
 
   // 코스 저장 시트. BottomSheet가 RN Modal이라 스팟 시트 위에 겹쳐 띄우면 iOS에서 불안정하다 —
   // 스팟 시트를 닫고 코스 시트를 연다. 저장할 스팟은 시트가 닫힌 뒤에도 필요해 따로 들고 있는다.
@@ -93,6 +112,7 @@ export default function PhotoMapScreen() {
       const parsed = JSON.parse(event.nativeEvent.data);
       if (parsed.type === 'MAP_READY') {
         mapReadyRef.current = true;
+        setMapReady(true);
         pushMarkers(spotsRef.current);
       } else if (parsed.type === 'SPOT_CLICK') {
         setActiveSpot(parsed.data);
@@ -270,7 +290,16 @@ export default function PhotoMapScreen() {
           window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'MAP_CLICK' }));
         });
 
-        window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'MAP_READY' }));
+        // 지도 객체 생성 직후는 아직 타일이 회색이다. 실제로 그려진 뒤 알려야 오버레이를
+        // 걷는 시점이 맞는다. tilesloaded가 오지 않는 환경도 있어 타임아웃으로 보정한다.
+        var told = false;
+        function tellReady() {
+          if (told) return;
+          told = true;
+          window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'MAP_READY' }));
+        }
+        kakao.maps.event.addListener(map, 'tilesloaded', tellReady);
+        setTimeout(tellReady, 2000);
       }
       initMap();
     });
@@ -291,7 +320,7 @@ export default function PhotoMapScreen() {
         className="absolute top-0 left-0 right-0 z-50 bg-[rgba(255,255,255,0.92)] border-b-[0.5px] border-hairline"
         style={{ paddingTop: insets.top }}
       >
-        <View className="flex-row items-center justify-between" style={{ height: normalize(54), paddingHorizontal: normalize(20) }}>
+        <View className="flex-row items-center justify-between" style={{ height: NAV_ROW_HEIGHT, paddingHorizontal: normalize(20) }}>
           <TouchableOpacity onPress={handleBackNavigation} className="items-center justify-center" style={{ width: normalize(36), height: normalize(36), marginLeft: -normalize(8) }}>
             <IconChevronLeft size={normalize(24)} color="rgba(0,0,0,0.65)" />
           </TouchableOpacity>
@@ -304,7 +333,10 @@ export default function PhotoMapScreen() {
         <View className="flex-row" style={{ paddingHorizontal: normalize(16), paddingVertical: normalize(10), gap: normalize(7) }}>
           {(['all', 'review', 'fav'] as FilterType[]).map((f) => {
             const isActive = filter === f;
-            const labels = { all: `전체 ${counts.all}`, review: `리뷰 ${counts.review}`, fav: `즐겨찾기 ${counts.fav}` };
+            // 로딩 중에는 개수를 붙이지 않는다 — "전체 0"은 핀이 없다는 뜻으로 읽힌다.
+            const labels = isLoading
+              ? { all: '전체', review: '리뷰', fav: '즐겨찾기' }
+              : { all: `전체 ${counts.all}`, review: `리뷰 ${counts.review}`, fav: `즐겨찾기 ${counts.fav}` };
             
             return (
               <TouchableOpacity
@@ -337,12 +369,16 @@ export default function PhotoMapScreen() {
         bounces={false}
         showsVerticalScrollIndicator={false}
         showsHorizontalScrollIndicator={false}
-        onError={(e: any) => console.error('[PIC MAP WebView Error]', e.nativeEvent)}
+        onError={(e: any) => {
+          console.error('[PIC MAP WebView Error]', e.nativeEvent);
+          setMapGaveUp(true);
+        }}
         onHttpError={(e: any) => console.error('[PIC MAP WebView HTTP]', e.nativeEvent)}
         // iOS 콘텐츠 프로세스가 죽으면 에러 없이 흰 화면만 남는다. 알아서 되살린다.
         onContentProcessDidTerminate={() => {
           console.warn('[PIC MAP] WebView 콘텐츠 프로세스 종료 — 재로딩');
           mapReadyRef.current = false;
+          setMapReady(false);
           webViewRef.current?.reload();
         }}
         // NativeWind는 WebView에 className을 적용하지 못한다(cssInterop 대상이 아니다).
@@ -350,7 +386,8 @@ export default function PhotoMapScreen() {
         style={{ flex: 1 }}
       />
 
-      <View className="absolute z-30" style={{ right: normalize(14), top: insets.top + normalize(120), gap: normalize(8) }}>
+      {!showMapLoading && (
+      <View className="absolute z-30" style={{ right: normalize(14), top: insets.top + HEADER_HEIGHT + normalize(16), gap: normalize(8) }}>
         <View className="bg-white overflow-hidden" style={{ borderRadius: normalize(12) }}>
           <TouchableOpacity onPress={handleZoomIn} className="items-center justify-center" style={{ width: normalize(40), height: normalize(40) }}>
             <Text className="text-[rgba(0,0,0,0.55)] font-normal" style={{ fontSize: normalizeFontSize(20) }}>+</Text>
@@ -364,8 +401,10 @@ export default function PhotoMapScreen() {
           <IconFocus2 size={normalize(20)} color="rgba(0,0,0,0.45)" />
         </TouchableOpacity>
       </View>
+      )}
 
-      <View className="absolute z-30 bg-[rgba(255,255,255,0.88)]" style={{ left: normalize(14), top: insets.top + normalize(120), borderRadius: normalize(10), paddingHorizontal: normalize(12), paddingVertical: normalize(8), gap: normalize(6) }}>
+      {!showMapLoading && (
+      <View className="absolute z-30 bg-[rgba(255,255,255,0.88)]" style={{ left: normalize(14), top: insets.top + HEADER_HEIGHT + normalize(16), borderRadius: normalize(10), paddingHorizontal: normalize(12), paddingVertical: normalize(8), gap: normalize(6) }}>
         {/* 범례 표식은 지도 핀·리스트와 같은 모양이어야 한다 — 동그라미면 무엇을 가리키는지 한 번 더 번역해야 한다 */}
         <View className="flex-row items-center" style={{ gap: normalize(4) }}>
           <IconMapPin size={normalize(13)} color={BRAND} fill={BRAND} />
@@ -376,12 +415,23 @@ export default function PhotoMapScreen() {
           <Text className="text-[rgba(0,0,0,0.55)] font-normal" style={{ fontSize: normalizeFontSize(12) }}>즐겨찾기</Text>
         </View>
       </View>
+      )}
 
       {/* 지도는 데이터가 0이어도 전국 지도만 덩그러니 뜬다 — 왜 비었는지는 말로 알려줘야 한다.
           리스트 시트(z-40)와 겹치지 않게 지도 상단 영역에 둔다. */}
-      {isLoading ? (
-        <MapNotice text="핀을 불러오는 중" />
-      ) : isError && spots.length === 0 ? (
+      {/* 카카오 SDK·타일을 받는 동안은 지도가 실제로 비어 있다. 그 구간만 덮는다 —
+          핀 데이터 로딩과 다르다(그건 하단 스켈레톤이 말한다). */}
+      {showMapLoading && (
+        <View
+          pointerEvents="none"
+          className="absolute left-0 right-0 items-center justify-center bg-[rgba(255,255,255,0.9)]"
+          style={{ top: insets.top + HEADER_HEIGHT, bottom: mapAreaBottom, zIndex: 25 }}
+        >
+          <Text className="text-sub font-normal" style={{ fontSize: FONT_SM }}>지도 불러오는 중...</Text>
+        </View>
+      )}
+
+      {isError && spots.length === 0 ? (
         // 캐시가 남아 있으면(백그라운드 refetch 실패) 있던 핀을 뺏지 않는다 — SpotCarouselSection과 같은 규칙.
         <MapNotice
           text="핀을 불러오지 못했어요"
@@ -390,11 +440,11 @@ export default function PhotoMapScreen() {
             bookmarked.refetch();
           }}
         />
-      ) : spots.length === 0 ? (
+      ) : !isLoading && spots.length === 0 ? (
         <MapNotice text={'리뷰를 쓰거나 스팟을 즐겨찾기하면\n여기에 핀이 표시돼요'} />
       ) : null}
 
-      <SpotListSheet spots={filteredSpots} activeSpot={activeSpot} onSpotPress={handleSpotPress} filterName={filter === 'all' ? '전체 스팟' : filter === 'review' ? '리뷰한 스팟' : '즐겨찾기 스팟'} />
+      <SpotListSheet spots={filteredSpots} isLoading={isLoading} activeSpot={activeSpot} onSpotPress={handleSpotPress} filterName={filter === 'all' ? '전체 스팟' : filter === 'review' ? '리뷰한 스팟' : '즐겨찾기 스팟'} />
 
       <BottomSheet visible={!!activeSpot} onClose={() => setActiveSpot(null)}>
         {activeSpot && (
@@ -409,9 +459,26 @@ export default function PhotoMapScreen() {
             <Text className="font-semibold text-black" style={{ fontSize: normalizeFontSize(18), letterSpacing: -0.3, marginBottom: normalize(3) }}>
               {activeSpot.name}
             </Text>
-            <Text className="text-sub font-normal" style={{ fontSize: FONT_SM, marginBottom: normalize(14), letterSpacing: -0.1 }}>
+            <Text className="text-sub font-normal" style={{ fontSize: FONT_SM, marginBottom: normalize(10), letterSpacing: -0.1 }}>
               {activeSpot.loc}
             </Text>
+
+            {/* 스팟 카테고리. "코스에 저장"을 누를지 정할 때 이름·주소보다 이게 판단 재료가 된다.
+                지도 탭 스팟 팝업과 같은 칩 스타일. 사진 위에 얹지 않는다 — 이미지가 없는 스팟에선
+                흰 칩이 밝은 배경에 묻힌다. ETC만 달린 스팟은 매퍼가 걸러 배열이 비고, 줄 자체가 사라진다. */}
+            {activeSpot.categories.length > 0 && (
+              <View className="flex-row" style={{ gap: normalize(5), marginBottom: normalize(14) }}>
+                {activeSpot.categories.map((label) => (
+                  <View
+                    key={label}
+                    className="bg-[rgba(0,0,0,0.06)] justify-center"
+                    style={{ height: normalize(22), paddingHorizontal: normalize(9), borderRadius: normalize(11) }}
+                  >
+                    <Text className="font-medium text-sub" style={{ fontSize: normalizeFontSize(11) }}>{label}</Text>
+                  </View>
+                ))}
+              </View>
+            )}
 
             {/* 즐겨찾기만 한 스팟은 리뷰가 없어 작성일·별점이 존재하지 않는다. 카드를 비워 두지 않고 아예 걷는다. */}
             {activeSpot.reviewed && (
@@ -476,10 +543,15 @@ export default function PhotoMapScreen() {
     </View>
   );}
 
+// 지도 영역(헤더 아래 ~ 리스트 시트 위) 전체를 차지하고 그 안에서 중앙 정렬한다.
+// 고정 top 오프셋으로 두면 기기 높이에 따라 위쪽에 치우친다.
 function MapNotice({ text, onRetry }: { text: string; onRetry?: () => void }) {
   const insets = useSafeAreaInsets();
   return (
-    <View className="absolute left-0 right-0 z-30 items-center" style={{ top: insets.top + normalize(200) }}>
+    <View
+      className="absolute left-0 right-0 items-center justify-center"
+      style={{ top: insets.top + HEADER_HEIGHT, bottom: mapAreaBottomOf(insets.bottom), zIndex: 30 }}
+    >
       <View
         className="bg-[rgba(255,255,255,0.92)] items-center"
         style={{ borderRadius: normalize(14), paddingHorizontal: normalize(20), paddingVertical: normalize(14), maxWidth: '80%' }}
@@ -497,9 +569,30 @@ function MapNotice({ text, onRetry }: { text: string; onRetry?: () => void }) {
   );
 }
 
+// 실제 행과 같은 골격(52px 썸네일 + 2줄)이라야 데이터가 도착할 때 높이가 튀지 않는다.
+function SkeletonRow({ last }: { last: boolean }) {
+  return (
+    <View
+      className="flex-row items-center"
+      style={{ paddingVertical: normalize(12), borderBottomWidth: last ? 0 : HAIRLINE_WIDTH, borderBottomColor: HAIRLINE }}
+    >
+      <Skeleton width={normalize(52)} height={normalize(52)} borderRadius={normalize(10)} style={{ marginRight: normalize(12) }} />
+      <View className="flex-1" style={{ gap: normalize(6) }}>
+        <Skeleton width="55%" height={normalize(14)} borderRadius={normalize(7)} />
+        <Skeleton width="35%" height={normalize(11)} borderRadius={normalize(6)} />
+      </View>
+    </View>
+  );
+}
+
 const LIST_PEEK_HEIGHT = normalize(160);
 
-function SpotListSheet({ spots, activeSpot, onSpotPress, filterName }: { spots: MapSpot[], activeSpot: MapSpot | null, onSpotPress: (s: MapSpot) => void, filterName: string }) {
+// 지도 영역의 아래 경계 = 리스트 시트가 peek으로 걸쳐 있는 높이. SpotListSheet의 peekY와 같은 식이다.
+function mapAreaBottomOf(insetBottom: number) {
+  return LIST_PEEK_HEIGHT + Math.max(insetBottom, normalize(10));
+}
+
+function SpotListSheet({ spots, isLoading, activeSpot, onSpotPress, filterName }: { spots: MapSpot[], isLoading: boolean, activeSpot: MapSpot | null, onSpotPress: (s: MapSpot) => void, filterName: string }) {
   const insets = useSafeAreaInsets();
   const { height: SCREEN_HEIGHT } = useWindowDimensions();
   const LIST_EXPANDED_HEIGHT = SCREEN_HEIGHT * 0.7;
@@ -577,12 +670,17 @@ function SpotListSheet({ spots, activeSpot, onSpotPress, filterName }: { spots: 
           <Text className="font-semibold text-black" style={{ fontSize: normalizeFontSize(18), letterSpacing: -0.3, marginRight: normalize(8) }}>
             {filterName}
           </Text>
-          <Text className="text-[rgba(0,0,0,0.35)] font-normal" style={{ fontSize: FONT_SM }}>{spots.length}곳</Text>
+          {isLoading ? (
+            <Skeleton width={normalize(30)} height={normalize(12)} borderRadius={normalize(6)} />
+          ) : (
+            <Text className="text-[rgba(0,0,0,0.35)] font-normal" style={{ fontSize: FONT_SM }}>{spots.length}곳</Text>
+          )}
         </View>
       </View>
 
       <ScrollView keyboardShouldPersistTaps="always" className="flex-1" style={{ paddingHorizontal: normalize(20) }} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, normalize(20)) + normalize(20) }}>
-        {spots.map((spot, idx) => (
+        {isLoading && Array.from({ length: 3 }).map((_, i) => <SkeletonRow key={`sk-${i}`} last={i === 2} />)}
+        {!isLoading && spots.map((spot, idx) => (
           <TouchableOpacity
             key={spot.id}
             onPress={() => onSpotPress(spot)}
