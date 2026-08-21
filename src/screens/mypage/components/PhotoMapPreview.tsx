@@ -29,16 +29,34 @@ export default function PhotoMapPreview() {
     [reviewed.data, bookmarked.data],
   );
   const isLoading = reviewed.isLoading || bookmarked.isLoading;
+  const isError = reviewed.isError || bookmarked.isError;
 
   // 카카오 SDK 내려받기 + 타일 요청은 클라이언트에서 줄일 방법이 없다(스태틱 맵은 REST 키가 필요해 불가).
   // 대신 준비되기 전까지 스켈레톤을 덮고, 지도가 실제로 그려진 뒤 페이드로 바꿔 끊김을 안 보이게 한다.
   // onLoadEnd는 문서 로드 시점이라 아직 회색 판이다 — 페이지가 핀까지 그린 뒤 READY를 보낸다.
   const [ready, setReady] = useState(false);
+  const [gaveUp, setGaveUp] = useState(false);
   const fade = useRef(new Animated.Value(0)).current;
-  // 포커스를 잃으면 WebView가 사라지므로 다음 진입 때 다시 로딩된다. 스켈레톤도 같이 되돌린다.
+
+  const showMap = Boolean(KAKAO_KEY) && spots.length > 0 && isFocused;
+  // 로딩 구간을 실제로 덮는다. spots가 도착한 뒤부터 세면 "빈 카드 → 스켈레톤 → 지도" 순서가 되어
+  // 스켈레톤이 로딩이 끝난 뒤에 나타난다.
+  const showSkeleton = isLoading || (showMap && !ready && !gaveUp);
+
+  // READY만 기다리면 영구 스켈레톤이 된다. 카카오 SDK 스크립트가 실패하면 페이지의 인라인
+  // 스크립트가 kakao 미정의로 즉시 throw해서 그 안의 백스톱 타임아웃조차 등록되지 않는다.
+  // KAKAO_KEY가 비어 WebView 자체가 안 뜨는 경우도 같다. 포기 시점은 RN이 쥔다.
+  useEffect(() => {
+    if (!showMap || ready) return;
+    const timer = setTimeout(() => setGaveUp(true), 6000);
+    return () => clearTimeout(timer);
+  }, [showMap, ready]);
+
+  // 포커스를 잃으면 WebView가 사라지므로 다음 진입 때 다시 로딩된다. 상태도 같이 되돌린다.
   useEffect(() => {
     if (!isFocused) {
       setReady(false);
+      setGaveUp(false);
       fade.setValue(0);
     }
   }, [isFocused, fade]);
@@ -78,7 +96,7 @@ export default function PhotoMapPreview() {
         }}
       >
         {/* pointerEvents none — 지도가 탭을 먹으면 카드를 눌러도 전체보기로 못 간다 */}
-        {Boolean(KAKAO_KEY) && spots.length > 0 && isFocused && (
+        {showMap && (
           <Animated.View
             pointerEvents="none"
             style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, opacity: fade }}
@@ -102,19 +120,27 @@ export default function PhotoMapPreview() {
         )}
 
         {/* 지도가 그려질 때까지 카드 자리를 지킨다 — 회색 판이 드러나는 순간이 "느리다"로 읽힌다. */}
-        {spots.length > 0 && !ready && (
+        {showSkeleton && (
           <View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
             <Skeleton width="100%" height={normalize(200)} borderRadius={CARD_RADIUS} />
           </View>
         )}
 
+        {/* 조회 실패를 빈 상태로 표시하면 "당신은 핀이 없다"는 거짓말이 된다. 재시도 버튼은 두지 않는다 —
+            카드 전체가 전체보기 진입이고, 그쪽에 재시도가 있다. */}
         {!isLoading && spots.length === 0 && (
-          <View className="absolute inset-0 items-center justify-center" style={{ paddingHorizontal: normalize(24) }}>
+          <View
+            pointerEvents="none"
+            className="absolute left-0 right-0 top-0 bottom-0 items-center justify-center"
+            style={{ paddingHorizontal: normalize(24) }}
+          >
             <Text
               className="font-normal text-center"
               style={{ fontSize: FONT_SM, color: TEXT_SUB, lineHeight: normalize(20) }}
             >
-              리뷰를 쓰거나 스팟을 즐겨찾기하면{'\n'}여기에 핀이 표시돼요
+              {isError
+                ? '핀을 불러오지 못했어요'
+                : '리뷰를 쓰거나 스팟을 즐겨찾기하면\n여기에 핀이 표시돼요'}
             </Text>
           </View>
         )}

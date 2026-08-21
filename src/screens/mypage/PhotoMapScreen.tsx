@@ -43,13 +43,25 @@ export default function PhotoMapScreen() {
   // 인라인 스크립트가 즉시 throw하고, 그 안에 등록하려던 setTimeout이 아예 걸리지 않는다.
   // 그러면 오버레이가 영구히 남는다. 포기 시점은 RN이 쥔다.
   const [mapGaveUp, setMapGaveUp] = useState(false);
+  // html source로 띄운 WebView는 reload()가 HTML을 다시 렌더하지 않고 baseUrl(https://localhost)을
+  // 네트워크로 가져오려 해서 복구가 안 된다. key를 올려 강제 리마운트하는 것만 확실하다.
+  const [webViewKey, setWebViewKey] = useState(0);
   const showMapLoading = !mapReady && !mapGaveUp;
   const mapAreaBottom = mapAreaBottomOf(insets.bottom);
 
+  const remountMap = useCallback(() => {
+    mapReadyRef.current = false;
+    setMapReady(false);
+    setMapGaveUp(false);
+    setWebViewKey((k) => k + 1);
+  }, []);
+
+  // 리마운트할 때마다 포기 타이머를 다시 건다. 한 번 포기하면 되돌아오지 않는 구조였다.
   useEffect(() => {
+    if (mapReady) return;
     const timer = setTimeout(() => setMapGaveUp(true), 6000);
     return () => clearTimeout(timer);
-  }, []);
+  }, [webViewKey, mapReady]);
 
   // 코스 저장 시트. BottomSheet가 RN Modal이라 스팟 시트 위에 겹쳐 띄우면 iOS에서 불안정하다 —
   // 스팟 시트를 닫고 코스 시트를 연다. 저장할 스팟은 시트가 닫힌 뒤에도 필요해 따로 들고 있는다.
@@ -359,6 +371,7 @@ export default function PhotoMapScreen() {
       </View>
 
       <WebView
+        key={webViewKey}
         ref={webViewRef}
         source={mapSource}
         geolocationEnabled={true}
@@ -377,9 +390,7 @@ export default function PhotoMapScreen() {
         // iOS 콘텐츠 프로세스가 죽으면 에러 없이 흰 화면만 남는다. 알아서 되살린다.
         onContentProcessDidTerminate={() => {
           console.warn('[PIC MAP] WebView 콘텐츠 프로세스 종료 — 재로딩');
-          mapReadyRef.current = false;
-          setMapReady(false);
-          webViewRef.current?.reload();
+          remountMap();
         }}
         // NativeWind는 WebView에 className을 적용하지 못한다(cssInterop 대상이 아니다).
         // className="flex-1"을 주면 조용히 무시돼 높이가 0이 되고, 지도가 흰 화면으로 남는다.
@@ -431,13 +442,15 @@ export default function PhotoMapScreen() {
         </View>
       )}
 
-      {isError && spots.length === 0 ? (
+      {showMapLoading ? null : isError && spots.length === 0 ? (
         // 캐시가 남아 있으면(백그라운드 refetch 실패) 있던 핀을 뺏지 않는다 — SpotCarouselSection과 같은 규칙.
         <MapNotice
           text="핀을 불러오지 못했어요"
           onRetry={() => {
             reviewed.refetch();
             bookmarked.refetch();
+            // 오프라인에서 들어왔으면 지도도 같이 죽어 있다. 데이터만 되살리면 흰 지도가 남는다.
+            if (!mapReady) remountMap();
           }}
         />
       ) : !isLoading && spots.length === 0 ? (
@@ -548,7 +561,10 @@ export default function PhotoMapScreen() {
 function MapNotice({ text, onRetry }: { text: string; onRetry?: () => void }) {
   const insets = useSafeAreaInsets();
   return (
+    // box-none: 이 뷰가 지도 영역 전체를 덮으므로 auto면 배경이 투명해도 지도 드래그·줌·내 위치
+    // 버튼이 전부 죽는다(RN은 투명 뷰도 히트테스트 대상이다). 자식(재시도 버튼)은 계속 눌린다.
     <View
+      pointerEvents="box-none"
       className="absolute left-0 right-0 items-center justify-center"
       style={{ top: insets.top + HEADER_HEIGHT, bottom: mapAreaBottomOf(insets.bottom), zIndex: 30 }}
     >

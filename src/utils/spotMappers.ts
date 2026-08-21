@@ -242,6 +242,9 @@ export function mergeMapSpots(
     const existing = byId.get(dto.id);
     if (existing) {
       existing.bookmarked = true;
+      // 두 응답의 이미지 폴백 규칙이 달라(리뷰는 TRIM된 한 필드, 북마크는 thumbnail/image 두 필드)
+      // 리뷰 쪽만 null인 스팟이 생긴다. 플래그만 갱신하고 넘기면 썸네일이 빈 채로 남는다.
+      existing.photo = existing.photo ?? toHttps(dto.thumbnailUrl ?? dto.imageUrl);
       continue;
     }
     byId.set(dto.id, {
@@ -293,6 +296,11 @@ if (__DEV__) {
   console.assert(both.length === 1, '같은 스팟이 핀 2개로 갈라졌다');
   console.assert(both[0].reviewed && both[0].bookmarked, '두 플래그가 함께 서지 않았다');
   console.assert(both[0].rating === 4, '머지 후 리뷰 별점이 사라졌다');
+
+  // 리뷰 응답에 이미지가 없고 북마크 응답에는 있는 경우 — 있는 쪽을 살려야 한다.
+  const bmkWithPhoto = { ...bmk, thumbnailUrl: 'http://example.com/t.jpg' } as SpotResponse;
+  const merged = mergeMapSpots([rev], [bmkWithPhoto]);
+  console.assert(merged[0].photo === 'https://example.com/t.jpg', `겸용 스팟 썸네일 폴백 오류: ${merged[0].photo}`);
 
   console.assert(mergeMapSpots(undefined, undefined).length === 0, '로딩 중 undefined 처리 오류');
 }
