@@ -405,6 +405,8 @@ export function useSyncSpotBookmarks(id: string) {
     onSuccess: () => {
       // ['bookmark-collections'] 접두사 — 이 스팟용 시트 목록과 MY 탭 'mine' 목록(spotCount)을 함께 지운다.
       qc.invalidateQueries({ queryKey: ['bookmark-collections'] });
+      // 스팟 상세 및 요약 정보의 북마크 수와 상태를 갱신
+      qc.invalidateQueries({ queryKey: ['spot', String(id)] });
       // 카드의 채워짐 상태는 목록 응답의 isBookmarked에서 온다. 화면이 아니라 여기서 무효화해야
       // 상세에서 해제한 게 스택 아래 홈 카드에도 반영된다 (홈은 refetch 트리거가 없다).
       // 'spots' 접두사로 목록 전체(list·recommended·bookmarked·search·nearby·map)를 한 번에 지운다 —

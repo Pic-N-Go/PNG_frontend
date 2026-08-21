@@ -1,12 +1,15 @@
-import React, { useEffect, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, Image, Animated, Easing, PanResponder, Dimensions } from 'react-native';
 import { FONT_SM, BOTTOM_SHEET_RADIUS } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { IconMapPin, IconX, IconHeart, IconBookmark } from '@tabler/icons-react-native';
 import StarRating from '@/components/common/StarRating';
 import { Spot } from '@/store/useCourseStore';
-import { useSpotSummary } from '@/hooks/useSpot';
-import { TEXT_SUB } from '@/constants/colors';
+import { useBookmarkCollections, useSpotDetail, useSpotPhotos, useSpotSummary } from '@/hooks/useSpot';
+import { useAuthStore } from '@/store/useAuthStore';
+import BookmarkSheet from '@/components/spot/BookmarkSheet';
+import Toast from '@/components/common/Toast';
+import { BRAND, TEXT_SUB } from '@/constants/colors';
 
 interface Props {
   activeSpot: Spot | null;
@@ -32,15 +35,47 @@ export default function SpotPopup({ activeSpot, onClose, renderButtons }: Props)
   }
 
   const displaySpot = activeSpot || lastSpot.current;
-  const { data: summary } = useSpotSummary(displaySpot?.id);
+  const spotId = displaySpot?.id ? String(displaySpot.id) : '';
+
+  // 실시간 스팟 상세 통계(별점, 리뷰수, 사진수), 요약(북마크수, 실시간 점수), 사진 목록, 북마크 상태 조회
+  const { data: detail } = useSpotDetail(spotId);
+  const { data: summary } = useSpotSummary(spotId || null);
+  const { data: photos } = useSpotPhotos(spotId);
+  const { data: bookmarkCollections } = useBookmarkCollections(spotId);
+
+  const isBookmarked = bookmarkCollections?.some((c) => c.contains) ?? false;
+
+  const [bookmarkSheetVisible, setBookmarkSheetVisible] = useState(false);
+  const [toastVisible, setToastVisible] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+
+  const showToast = (message: string) => {
+    setToastMessage(message);
+    setToastVisible(true);
+  };
+
+  const handleBookmarkPress = () => {
+    const token = useAuthStore.getState().accessToken;
+    if (!token) {
+      showToast('로그인이 필요한 기능이에요.');
+      return;
+    }
+    setBookmarkSheetVisible(true);
+  };
 
   const effectiveSpot: Spot | null = useMemo(() => {
     if (!displaySpot) return null;
-    const name = summary?.name || displaySpot.name;
-    const loc = summary?.address || displaySpot.loc || '';
-    const score = summary?.photogenicScore !== undefined ? String(summary.photogenicScore) : displaySpot.score;
-    const photo = summary?.thumbnailUrl || displaySpot.photo;
-    const tags = displaySpot.tags?.length ? displaySpot.tags : (summary?.category ? [summary.category] : []);
+    const name = detail?.info?.name || summary?.name || displaySpot.name;
+    const loc = detail?.info?.address || summary?.address || displaySpot.loc || '';
+    const score = summary?.photogenicScore !== undefined
+      ? String(summary.photogenicScore)
+      : (displaySpot.score ?? '0');
+    const photo = detail?.info?.imageUrl || summary?.thumbnailUrl || displaySpot.photo;
+    const tags = detail?.info?.tags?.length
+      ? detail.info.tags
+      : (displaySpot.tags?.length
+          ? displaySpot.tags
+          : (summary?.category ? [summary.category] : []));
     return {
       ...displaySpot,
       name,
@@ -49,7 +84,18 @@ export default function SpotPopup({ activeSpot, onClose, renderButtons }: Props)
       photo,
       tags,
     };
-  }, [displaySpot, summary]);
+  }, [displaySpot, detail, summary]);
+
+  const displayPhotos = useMemo(() => {
+    const list: string[] = [];
+    if (effectiveSpot?.photo) list.push(effectiveSpot.photo);
+    if (photos && Array.isArray(photos)) {
+      photos.forEach((p) => {
+        if (p && !list.includes(p)) list.push(p);
+      });
+    }
+    return list.slice(0, 3);
+  }, [effectiveSpot?.photo, photos]);
 
   useEffect(() => {
     if (activeSpot) {
@@ -113,106 +159,145 @@ export default function SpotPopup({ activeSpot, onClose, renderButtons }: Props)
   }
 
   const currentSpot = effectiveSpot || displaySpot;
-  const rating = summary?.reviewAverage ?? 0;
+  const rating = detail?.info?.rating ?? summary?.reviewAverage ?? 0;
+  const reviewCount = detail?.info?.reviewCount ?? 0;
+  const bookmarkCount = summary?.bookmarkCount ?? 0;
+  const photoCount = detail?.info?.photoCount ?? 0;
 
   return (
-    <Animated.View
-      style={{
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        zIndex: 50,
-        elevation: 5,
-        transform: [{ translateY }],
-      }}
-      pointerEvents={activeSpot ? 'auto' : 'none'}
-    >
-      <View className="w-full relative overflow-hidden bg-white shadow-lg" style={{ borderTopLeftRadius: BOTTOM_SHEET_RADIUS, borderTopRightRadius: BOTTOM_SHEET_RADIUS, shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.1, shadowRadius: 16 }}>
-        
-        {/* Handle Bar floating over the image */}
-        <View
-          {...panResponder.current.panHandlers}
-          className="absolute top-0 left-12 right-12 h-12 z-40 items-center pt-2.5"
-        >
+    <>
+      <Animated.View
+        style={{
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          zIndex: 50,
+          elevation: 5,
+          transform: [{ translateY }],
+        }}
+        pointerEvents={activeSpot ? 'auto' : 'none'}
+      >
+        <View className="w-full relative overflow-hidden bg-white shadow-lg" style={{ borderTopLeftRadius: BOTTOM_SHEET_RADIUS, borderTopRightRadius: BOTTOM_SHEET_RADIUS, shadowColor: '#000', shadowOffset: { width: 0, height: -4 }, shadowOpacity: 0.1, shadowRadius: 16 }}>
+          
+          {/* Handle Bar floating over the image */}
           <View
-            className="w-10 h-1.5 bg-white/95 rounded-full"
-            style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.3, shadowRadius: 2, elevation: 3 }}
-          />
-        </View>
+            {...panResponder.current.panHandlers}
+            className="absolute top-0 left-12 right-12 h-12 z-40 items-center pt-2.5"
+          >
+            <View
+              className="w-10 h-1.5 bg-white/95 rounded-full"
+              style={{ shadowColor: '#000', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.3, shadowRadius: 2, elevation: 3 }}
+            />
+          </View>
 
-        {currentSpot && (
-          <>
-            {/* Photos */}
-            <View className="w-full relative bg-gray-200" style={{ height: normalize(140) }}>
-              {currentSpot.photo ? (
-                <View className="flex-row w-full h-full gap-[2px] bg-white">
-                  <Image source={{ uri: currentSpot.photo }} className="flex-1 h-full bg-gray-200" resizeMode="cover" />
-                  <Image source={{ uri: currentSpot.photo }} className="flex-1 h-full bg-gray-200" resizeMode="cover" />
-                  <Image source={{ uri: currentSpot.photo }} className="flex-1 h-full bg-gray-200" resizeMode="cover" />
-                </View>
-              ) : (
-                <View className="w-full h-full items-center justify-center">
-                  <IconHeart size={40} color="#ccc" />
-                </View>
-              )}
-
-              <TouchableOpacity onPress={handleClose} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/40 items-center justify-center z-10">
-                <IconX size={18} color="#fff" />
-              </TouchableOpacity>
-
-              <View className="absolute top-3 left-3 h-7 px-3 rounded-full bg-brand items-center justify-center z-10 shadow-sm shadow-brand/30">
-                <Text className="font-semibold text-white" style={{ fontSize: FONT_SM }}>{currentSpot.score}점</Text>
-              </View>
-            </View>
-
-            {/* Body */}
-            <View className="px-4 pt-5 pb-6">
-              <View className="flex-row justify-between items-start">
-                <View className="flex-1 mr-2">
-                  <Text className="font-semibold text-black" style={{ fontSize: normalizeFontSize(20) }}>{currentSpot.name}</Text>
-
-                  <View className="flex-row items-center mt-1.5">
-                    <StarRating rating={rating} size={normalizeFontSize(14)} />
-                    <Text className="font-semibold text-black ml-1.5" style={{ fontSize: FONT_SM }}>
-                      {rating > 0 ? rating.toFixed(1) : '0.0'}
-                    </Text>
-                    {summary?.bookmarkCount !== undefined && summary.bookmarkCount > 0 && (
-                      <Text className="text-sub ml-1 font-normal" style={{ fontSize: FONT_SM }}>
-                        {` · 저장 ${summary.bookmarkCount.toLocaleString()}`}
-                      </Text>
-                    )}
+          {currentSpot && (
+            <>
+              {/* Photos */}
+              <View className="w-full relative bg-gray-200" style={{ height: normalize(140) }}>
+                {displayPhotos.length > 0 ? (
+                  <View className="flex-row w-full h-full gap-[2px] bg-white">
+                    {displayPhotos.map((url, idx) => (
+                      <Image
+                        key={`${url}-${idx}`}
+                        source={{ uri: url }}
+                        className="flex-1 h-full bg-gray-200"
+                        resizeMode="cover"
+                      />
+                    ))}
                   </View>
-
-                  <View className="flex-row items-center mt-2.5 mb-1">
-                    <IconMapPin size={14} color={TEXT_SUB} />
-                    <Text className="text-black/50 ml-1 flex-1 font-normal" style={{ fontSize: FONT_SM }} numberOfLines={1}>
-                      {currentSpot.loc || '주소 정보 없음'}
-                    </Text>
+                ) : (
+                  <View className="w-full h-full items-center justify-center bg-gray-100">
+                    <IconHeart size={40} color="#ccc" />
                   </View>
-                </View>
+                )}
 
-                <TouchableOpacity className="p-1">
-                  <IconBookmark size={26} color="#ccc" />
+                <TouchableOpacity onPress={handleClose} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/40 items-center justify-center z-10">
+                  <IconX size={18} color="#fff" />
                 </TouchableOpacity>
+
+                <View className="absolute top-3 left-3 h-7 px-3 rounded-full bg-brand items-center justify-center z-10 shadow-sm shadow-brand/30">
+                  <Text className="font-semibold text-white" style={{ fontSize: FONT_SM }}>{currentSpot.score}점</Text>
+                </View>
               </View>
 
-              <View className="flex-row flex-wrap gap-1.5 mt-3 mb-1">
-                {(currentSpot.tags || []).map((tag: string) => (
-                  <View key={tag} className="px-2.5 py-1 bg-card rounded-full">
-                    <Text className="text-black/50 font-normal" style={{ fontSize: normalizeFontSize(12) }}>{tag}</Text>
+              {/* Body */}
+              <View className="px-4 pt-5 pb-6">
+                <View className="flex-row justify-between items-start">
+                  <View className="flex-1 mr-2">
+                    <Text className="font-semibold text-black" style={{ fontSize: normalizeFontSize(20) }}>{currentSpot.name}</Text>
+
+                    <View className="flex-row items-center mt-1.5 flex-wrap">
+                      <StarRating rating={rating} size={normalizeFontSize(14)} />
+                      <Text className="font-semibold text-black ml-1.5" style={{ fontSize: FONT_SM }}>
+                        {rating > 0 ? rating.toFixed(1) : '0.0'}
+                      </Text>
+                      <Text className="text-sub ml-1 font-normal" style={{ fontSize: FONT_SM }}>
+                        {` · 리뷰 ${reviewCount}건`}
+                      </Text>
+                      <Text className="text-sub ml-1 font-normal" style={{ fontSize: FONT_SM }}>
+                        {` · 저장 ${bookmarkCount.toLocaleString()}`}
+                      </Text>
+                      <Text className="text-sub ml-1 font-normal" style={{ fontSize: FONT_SM }}>
+                        {` · 사진 ${photoCount.toLocaleString()}장`}
+                      </Text>
+                    </View>
+
+                    <View className="flex-row items-center mt-2.5 mb-1">
+                      <IconMapPin size={14} color={TEXT_SUB} />
+                      <Text className="text-black/50 ml-1 flex-1 font-normal" style={{ fontSize: FONT_SM }} numberOfLines={1}>
+                        {currentSpot.loc || '주소 정보 없음'}
+                      </Text>
+                    </View>
                   </View>
-                ))}
-              </View>
 
-              {renderButtons && renderButtons(currentSpot)}
-            </View>
-          </>
-        )}
-      </View>
-      
-      {/* 스프링 애니메이션 바운스(오버슈팅) 시 밑바닥에 지도가 비어보이는 현상을 막기 위한 여유 배경 */}
-      <View className="absolute top-full left-0 right-0 bg-white" style={{ height: normalize(200) }} />
-    </Animated.View>
+                  <TouchableOpacity
+                    onPress={handleBookmarkPress}
+                    className="p-1"
+                    activeOpacity={0.7}
+                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  >
+                    <IconBookmark
+                      size={26}
+                      color={isBookmarked ? BRAND : '#ccc'}
+                      fill={isBookmarked ? BRAND : 'none'}
+                    />
+                  </TouchableOpacity>
+                </View>
+
+                <View className="flex-row flex-wrap gap-1.5 mt-3 mb-1">
+                  {(currentSpot.tags || []).map((tag: string) => (
+                    <View key={tag} className="px-2.5 py-1 bg-card rounded-full">
+                      <Text className="text-black/50 font-normal" style={{ fontSize: normalizeFontSize(12) }}>{tag}</Text>
+                    </View>
+                  ))}
+                </View>
+
+                {renderButtons && renderButtons(currentSpot)}
+              </View>
+            </>
+          )}
+        </View>
+        
+        {/* 스프링 애니메이션 바운스(오버슈팅) 시 밑바닥에 지도가 비어보이는 현상을 막기 위한 여유 배경 */}
+        <View className="absolute top-full left-0 right-0 bg-white" style={{ height: normalize(200) }} />
+      </Animated.View>
+
+      <BookmarkSheet
+        visible={bookmarkSheetVisible}
+        spotId={spotId}
+        onClose={() => setBookmarkSheetVisible(false)}
+        onSaved={(count) => {
+          setBookmarkSheetVisible(false);
+          showToast(count > 0 ? `${count}개 컬렉션에 저장됐어요` : '즐겨찾기에서 제거됐어요');
+        }}
+      />
+
+      <Toast
+        message={toastMessage}
+        visible={toastVisible}
+        onHide={() => setToastVisible(false)}
+      />
+    </>
   );
 }

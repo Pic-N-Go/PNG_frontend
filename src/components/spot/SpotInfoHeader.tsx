@@ -9,9 +9,10 @@ import { BRAND, BRAND_TINT, CARD } from '@/constants/colors';
 
 interface Props {
   spot: SpotDetailInfo;
+  bookmarkCount?: number;
 }
 
-export default function SpotInfoHeader({ spot }: Props) {
+export default function SpotInfoHeader({ spot, bookmarkCount }: Props) {
   return (
     <View style={{ paddingHorizontal: GRID_PADDING, paddingVertical: normalize(20) }}>
       {spot.badge && (
@@ -47,13 +48,19 @@ export default function SpotInfoHeader({ spot }: Props) {
         </Text>
       </View>
 
-      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: normalize(14) }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: normalize(14), flexWrap: 'wrap' }}>
         <StarRating rating={spot.rating} size={normalizeFontSize(14)} />
         <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(14), color: '#000', marginLeft: normalize(4) }}>
           {spot.rating.toFixed(1)}
         </Text>
         <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(14), color: 'rgba(0,0,0,0.35)', marginLeft: normalize(2) }}>
-          {` · 리뷰 ${spot.reviewCount}건 · 사진 ${spot.photoCount.toLocaleString()}장`}
+          {` · 리뷰 ${spot.reviewCount}건`}
+        </Text>
+        <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(14), color: 'rgba(0,0,0,0.35)', marginLeft: normalize(2) }}>
+          {` · 저장 ${(bookmarkCount ?? 0).toLocaleString()}`}
+        </Text>
+        <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(14), color: 'rgba(0,0,0,0.35)', marginLeft: normalize(2) }}>
+          {` · 사진 ${(spot.photoCount ?? 0).toLocaleString()}장`}
         </Text>
       </View>
 
