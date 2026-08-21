@@ -3,13 +3,14 @@ import { Image, Pressable, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { IconBookmark } from '@tabler/icons-react-native';
-import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { CARD_RADIUS, FONT_MD, FONT_SM } from '@/constants/layout';
+import { normalize } from '@/utils/normalize';
+import { CARD_RADIUS, FONT_MD, FONT_SM, FONT_XS } from '@/constants/layout';
 import { BRAND, CARD, TEXT_SUB } from '@/constants/colors';
-import type { SpotItem } from '@/types/spot';
+import { CollectionIcon, palOf } from '@/components/spot/collectionStyle';
+import type { BookmarkCollectionDTO, SpotItem } from '@/types/spot';
 
 /** 사진 없는 스팟용 폴백 — SpotCard와 같은 색을 쓴다. */
-const FALLBACK_GRADIENT: [string, string, string] = ['#2C3E50', '#4A6572', '#8B9DA8'];
+export const FALLBACK_GRADIENT: [string, string, string] = ['#2C3E50', '#4A6572', '#8B9DA8'];
 
 interface Props {
   item: SpotItem;
@@ -18,13 +19,21 @@ interface Props {
    * 한 번 탭으로 바로 지우지 않는다(되돌릴 방법이 없다). 넘기지 않으면 아이콘을 그리지 않는다.
    */
   onBookmarkPress?: () => void;
+  /**
+   * 이 스팟이 담긴 컬렉션. 넘기면 북마크 아이콘 대신 소속 컬렉션 배지를 그린다 —
+   * 아이콘 하나는 "저장됨"만 말하는데, 배지는 어느 컬렉션에 넣었는지까지 말한다.
+   */
+  badges?: BookmarkCollectionDTO[];
 }
+
+/** 배지가 이보다 많으면 행이 눌린다 — 넘치는 건 상세/시트에서 본다. */
+const MAX_BADGES = 3;
 
 /**
  * 북마크 목록의 한 줄. 왼쪽에 [썸네일 · 이름/지역/평점], 오른쪽에 북마크 아이콘만 둔다.
  * 별 표기는 홈 SpotCard와 같다 — 목업의 거리·추천 시기는 서버에 없어 넣지 않았다.
  */
-export default function BookmarkedSpotRow({ item, onBookmarkPress }: Props) {
+export default function BookmarkedSpotRow({ item, onBookmarkPress, badges }: Props) {
   const navigation = useNavigation<any>();
   const [imageFailed, setImageFailed] = React.useState(false);
   React.useEffect(() => setImageFailed(false), [item.imageUrl]);
@@ -76,12 +85,13 @@ export default function BookmarkedSpotRow({ item, onBookmarkPress }: Props) {
               allowFontScaling={false}
               numberOfLines={1}
               className="font-normal"
-              style={{ fontSize: normalizeFontSize(12), color: TEXT_SUB }}
+              style={{ fontSize: FONT_XS, color: TEXT_SUB }}
             >
               {item.location}
             </Text>
 
-            {/* 별·평점·리뷰 수 조합은 홈 SpotCard와 동일하다 (리뷰 0건이면 "리뷰 없음"까지). */}
+            {/* 별·평점·리뷰 수 조합은 홈 SpotCard와 동일하다 (리뷰 0건이면 "리뷰 없음"까지).
+                크기도 같이 맞춘다 — 보조 텍스트는 FONT_XS, 평점 숫자만 FONT_SM. */}
             <View
               className="flex-row items-center"
               style={{ gap: normalize(4), marginTop: normalize(4) }}
@@ -91,7 +101,7 @@ export default function BookmarkedSpotRow({ item, onBookmarkPress }: Props) {
                   <Text
                     allowFontScaling={false}
                     className="font-normal"
-                    style={{ fontSize: normalizeFontSize(12), color: '#ff9f0a' }}
+                    style={{ fontSize: FONT_XS, color: '#ff9f0a' }}
                   >
                     {stars}
                   </Text>
@@ -105,7 +115,7 @@ export default function BookmarkedSpotRow({ item, onBookmarkPress }: Props) {
                   <Text
                     allowFontScaling={false}
                     className="font-normal"
-                    style={{ fontSize: FONT_SM, color: '#8e8e93' }}
+                    style={{ fontSize: FONT_XS, color: '#8e8e93' }}
                   >
                     ({item.reviewCount})
                   </Text>
@@ -114,7 +124,7 @@ export default function BookmarkedSpotRow({ item, onBookmarkPress }: Props) {
                 <Text
                   allowFontScaling={false}
                   className="font-normal"
-                  style={{ fontSize: FONT_SM, color: '#8e8e93' }}
+                  style={{ fontSize: FONT_XS, color: '#8e8e93' }}
                 >
                   리뷰 없음
                 </Text>
@@ -128,9 +138,31 @@ export default function BookmarkedSpotRow({ item, onBookmarkPress }: Props) {
               hitSlop={10}
               accessibilityRole="button"
               accessibilityLabel="즐겨찾기 관리"
-              className="shrink-0"
+              className="flex-row shrink-0"
+              style={{ gap: normalize(4) }}
             >
-              <IconBookmark size={normalize(16)} color={BRAND} strokeWidth={1.5} fill={BRAND} />
+              {badges?.length ? (
+                badges.slice(0, MAX_BADGES).map((c) => {
+                  const p = palOf(c.color);
+                  return (
+                    <View
+                      key={c.id}
+                      className="items-center justify-center"
+                      style={{
+                        width: normalize(26),
+                        height: normalize(26),
+                        borderRadius: normalize(8),
+                        backgroundColor: p.t,
+                      }}
+                    >
+                      <CollectionIcon name={c.icon} size={normalize(14)} color={p.s} />
+                    </View>
+                  );
+                })
+              ) : (
+                // 아직 컬렉션을 못 받았거나(로딩) 소속이 안 잡힌 경우의 폴백.
+                <IconBookmark size={normalize(16)} color={BRAND} strokeWidth={1.5} fill={BRAND} />
+              )}
             </Pressable>
           )}
         </View>

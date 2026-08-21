@@ -1,11 +1,11 @@
 // 스팟 상세 화면 서버 상태 훅 (TanStack Query)
 // 스펙: docs/ai/specs/feature/spot-detail-screen/spot-detail-api.md
-import { keepPreviousData, useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { keepPreviousData, useInfiniteQuery, useMutation, useQueries, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ApiError } from '@/api/auth';
 import { spotApi } from '@/api/spot';
 import type { ReviewPhotoUpload, MapSpotsParams, GetSpotsParams, SearchSpotsParams } from '@/api/spot';
 import { useAuthStore } from '@/store/useAuthStore';
-import { mapMyReviewPages, mapPhotogenicScore, mapReviewExif, mapReviewPages, mapSpotDetail, toHttps } from '@/utils/spotMappers';
+import { invertCollectionSpots, mapMyReviewPages, mapPhotogenicScore, mapReviewExif, mapReviewPages, mapSpotDetail, toHttps } from '@/utils/spotMappers';
 import type { ReviewCreateRequest, ReviewSortApi } from '@/types/spot';
 
 
@@ -135,6 +135,45 @@ export function useCollectionSpots(collectionId: number | null) {
     enabled: !!token && collectionId !== null,
     staleTime: SPOTS_STALE_TIME,
   });
+}
+
+/**
+ * 컬렉션 + 각 컬렉션에 담긴 스팟.
+ *
+ * 서버는 "이 스팟이 어느 컬렉션에 있나"를 안 내려준다(스팟 응답에 isBookmarked만 있다).
+ * 그래서 컬렉션별 목록을 받아 뒤집어 쓴다 — MY 탭 컬렉션 미리보기와 목록 화면의 소속 배지가 이걸 쓴다.
+ * 컬렉션은 최대 5개(BookmarkSheet MAX_COLLECTIONS)라 병렬 조회로 충분하다.
+ */
+export function useBookmarkCollectionsWithSpots() {
+  const token = useAuthStore((s) => s.accessToken);
+  const { data: collections = [], isLoading: collectionsLoading } = useMyBookmarkCollections();
+
+  const results = useQueries({
+    // useCollectionSpots와 같은 키다 — 목록 화면에서 컬렉션 칩을 눌러도 다시 받지 않는다.
+    queries: collections.map((c) => ({
+      queryKey: ['spots', 'collection', c.id, token ?? 'guest'],
+      queryFn: () => spotApi.getCollectionSpots(c.id, token as string),
+      enabled: !!token,
+      staleTime: SPOTS_STALE_TIME,
+    })),
+  });
+
+  const groups = collections.map((collection, i) => ({
+    collection,
+    spots: results[i]?.data ?? [],
+  }));
+
+  const bySpot = invertCollectionSpots(groups);
+
+  return {
+    groups,
+    /** 이 스팟이 담긴 컬렉션들. 아직 안 받았으면 빈 배열. */
+    badgesOf: (spotId: string) => bySpot.get(spotId) ?? [],
+    /** 컬렉션 중복을 뺀 실제 저장 스팟 수 */
+    distinctSpotCount: bySpot.size,
+    isLoading: collectionsLoading || results.some((r) => r.isLoading),
+    isError: results.some((r) => r.isError),
+  };
 }
 
 export function useSearchSpots(params: SearchSpotsParams, options?: QueryToggle) {
@@ -359,7 +398,8 @@ export function useSyncSpotBookmarks(id: string) {
       return spotApi.syncSpotBookmarks(id, collectionIds, token);
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: bookmarkKey(id) });
+      // ['bookmark-collections'] 접두사 — 이 스팟용 시트 목록과 MY 탭 'mine' 목록(spotCount)을 함께 지운다.
+      qc.invalidateQueries({ queryKey: ['bookmark-collections'] });
       // 카드의 채워짐 상태는 목록 응답의 isBookmarked에서 온다. 화면이 아니라 여기서 무효화해야
       // 상세에서 해제한 게 스택 아래 홈 카드에도 반영된다 (홈은 refetch 트리거가 없다).
       // 'spots' 접두사로 목록 전체(list·recommended·bookmarked·search·nearby·map)를 한 번에 지운다 —

@@ -22,7 +22,8 @@ import AdminDashboardScreen from '@/screens/admin/AdminDashboardScreen';
 
 export type MyPageStackParamList = {
   MyPage: undefined;
-  BookmarkedSpotList: undefined;
+  // collectionId: MY 탭 컬렉션 줄에서 그 컬렉션만 선택된 상태로 진입한다.
+  BookmarkedSpotList: { collectionId?: number } | undefined;
   UserProfile: { userId: string };
   // openThemeSheet: 홈 "관심 스팟" 안내에서 바로 관심 테마 시트를 열며 진입한다.
   Setting: { openThemeSheet?: boolean } | undefined;

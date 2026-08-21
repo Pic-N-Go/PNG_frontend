@@ -197,6 +197,42 @@ if (__DEV__) {
 }
 
 /**
+ * 컬렉션별 스팟 목록 → 스팟별 소속 컬렉션 맵.
+ * 서버가 스팟 응답에 소속 컬렉션을 안 실어줘서(isBookmarked만 있다) 프론트에서 뒤집는다.
+ * 한 스팟이 여러 컬렉션에 담길 수 있어 값은 배열이고, 순서는 컬렉션 목록 순서를 따른다.
+ */
+export function invertCollectionSpots<C extends { id: number }, S extends { id: number | string }>(
+  groups: { collection: C; spots: S[] }[],
+): Map<string, C[]> {
+  const bySpot = new Map<string, C[]>();
+  for (const { collection, spots } of groups) {
+    for (const spot of spots) {
+      const key = String(spot.id);
+      const list = bySpot.get(key);
+      if (list) list.push(collection);
+      else bySpot.set(key, [collection]);
+    }
+  }
+  return bySpot;
+}
+
+// ponytail: dev 전용 self-check — 중복 소속·빈 컬렉션 회귀 방지 (프로덕션 no-op)
+if (__DEV__) {
+  const fav = { id: 1 };
+  const night = { id: 2 };
+  const empty = { id: 3 };
+  const inverted = invertCollectionSpots([
+    { collection: fav, spots: [{ id: 10 }, { id: 11 }] },
+    { collection: night, spots: [{ id: 11 }] },
+    { collection: empty, spots: [] },
+  ]);
+  console.assert(inverted.size === 2, '중복 스팟은 한 키로 합쳐져야 함');
+  console.assert(inverted.get('11')?.length === 2, '두 컬렉션에 담긴 스팟은 배지 2개여야 함');
+  console.assert(inverted.get('10')?.[0] === fav, '소속 컬렉션 객체가 그대로 유지돼야 함');
+  console.assert(!inverted.has('99'), '없는 스팟은 키가 없어야 함');
+}
+
+/**
  * TourAPI 이미지가 평문 http로 내려온다(tong.visitkorea.or.kr). iOS는 ATS 예외가 있고 Android도
  * debug 매니페스트는 cleartext를 허용하지만, **release 빌드는 차단돼 이미지만 조용히 안 뜬다.**
  * 해당 호스트가 https로도 200을 주므로 승격해서 쓴다 — 플랫폼 설정을 열어주는 것보다 안전하다.

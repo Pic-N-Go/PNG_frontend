@@ -1,60 +1,30 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Dimensions, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
-import {
-  IconArchive,
-  IconBookmark,
-  IconCamera,
-  IconCheck,
-  IconChevronLeft,
-  IconChevronRight,
-  IconClock,
-  IconFlag,
-  IconHeart,
-  IconMapPin,
-  IconMountain,
-  IconPlus,
-  IconSparkles,
-  IconStar,
-} from '@tabler/icons-react-native';
+import { IconCheck, IconChevronLeft, IconChevronRight, IconPlus } from '@tabler/icons-react-native';
 import BottomSheet from '@/components/common/BottomSheet';
 import { toErrorMessage } from '@/api/auth';
 import { useBookmarkCollections, useCreateBookmarkCollection, useSyncSpotBookmarks } from '@/hooks/useSpot';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { BRAND, CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
 import { BORDER_CONTROL, HAIRLINE_WIDTH } from '@/constants/layout';
+import {
+  COLLECTION_COLOR_KEYS,
+  COLLECTION_ICON_SET,
+  COLLECTION_PAL,
+  CollectionIcon,
+  palOf,
+  type CollectionColorKey,
+  type CollectionIconKey,
+} from './collectionStyle';
+
+type ColorKey = CollectionColorKey;
+type IconKey = CollectionIconKey;
 
 const ACCENT = BRAND;
 
-type ColorKey = 'pink' | 'blue' | 'purple' | 'green' | 'orange';
-const PAL: Record<ColorKey, { s: string; t: string }> = {
-  pink: { s: BRAND, t: '#FDE8EF' },
-  blue: { s: '#2E7BF6', t: '#E4EEFD' },
-  purple: { s: '#7C4DFF', t: '#EEE9FE' },
-  green: { s: '#16A34A', t: '#E7F6EC' },
-  orange: { s: '#E8890B', t: '#FCEBD5' },
-};
-const COLOR_KEYS: ColorKey[] = ['pink', 'blue', 'purple', 'green', 'orange'];
-const palOf = (key: string) => PAL[key as ColorKey] ?? PAL.pink;
-
-type IconKey = 'star' | 'heart' | 'bookmark' | 'map-pin' | 'camera' | 'flag' | 'sparkles' | 'mountain' | 'clock' | 'archive';
-const ICON_MAP: Record<IconKey, React.ComponentType<{ size: number; color: string; strokeWidth?: number }>> = {
-  star: IconStar,
-  heart: IconHeart,
-  bookmark: IconBookmark,
-  'map-pin': IconMapPin,
-  camera: IconCamera,
-  flag: IconFlag,
-  sparkles: IconSparkles,
-  mountain: IconMountain,
-  clock: IconClock,
-  archive: IconArchive,
-};
-const ICON_SET: IconKey[] = ['star', 'heart', 'bookmark', 'map-pin', 'camera', 'flag', 'sparkles', 'mountain'];
-
-function CollectionIcon({ name, size, color }: { name: string; size: number; color: string }) {
-  const Cmp = ICON_MAP[name as IconKey] ?? IconBookmark;
-  return <Cmp size={size} color={color} strokeWidth={2} />;
-}
+const PAL = COLLECTION_PAL;
+const COLOR_KEYS = COLLECTION_COLOR_KEYS;
+const ICON_SET = COLLECTION_ICON_SET;
 
 const MAX_CONTENT_LEN = 20;
 const MAX_COLLECTIONS = 5;

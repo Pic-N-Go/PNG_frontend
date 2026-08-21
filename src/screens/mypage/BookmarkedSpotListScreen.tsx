@@ -10,7 +10,8 @@ import { TEXT_SUB } from '@/constants/colors';
 import Chip from '@/components/common/Chip';
 import Skeleton from '@/components/common/Skeleton';
 import BookmarkSheet from '@/components/spot/BookmarkSheet';
-import { useBookmarkedSpots, useCollectionSpots, useMyBookmarkCollections } from '@/hooks/useSpot';
+import { useBookmarkCollectionsWithSpots, useBookmarkedSpots } from '@/hooks/useSpot';
+import { palOf } from '@/components/spot/collectionStyle';
 import { mapPopularSpot } from '@/utils/spotMappers';
 import BookmarkedSpotRow from './components/BookmarkedSpotRow';
 
@@ -18,18 +19,24 @@ type Props = NativeStackScreenProps<MyPageStackParamList, 'BookmarkedSpotList'>;
 
 const ROW_HEIGHT = normalize(88);
 
-export default function BookmarkedSpotListScreen({ navigation }: Props) {
+export default function BookmarkedSpotListScreen({ navigation, route }: Props) {
   const insets = useSafeAreaInsets();
   const [sheetSpotId, setSheetSpotId] = React.useState<string | null>(null);
-  /** null = "전체" 탭. 컬렉션을 고르면 그 컬렉션만 조회한다. */
-  const [collectionId, setCollectionId] = React.useState<number | null>(null);
+  /** null = "전체" 탭. MY 탭 컬렉션 줄에서 오면 그 컬렉션이 선택된 채로 시작한다. */
+  const [collectionId, setCollectionId] = React.useState<number | null>(route.params?.collectionId ?? null);
 
-  const { data: collections = [] } = useMyBookmarkCollections();
+  // 컬렉션별 스팟을 한 번에 받아 둔다 — 칩 필터와 행 우측 소속 배지가 같은 데이터를 쓴다.
+  const { groups, badgesOf, distinctSpotCount, isLoading: groupsLoading, isError: groupsError } =
+    useBookmarkCollectionsWithSpots();
+  const collections = groups.map((g) => g.collection);
 
-  // 두 쿼리 중 선택된 쪽만 활성이다 — enabled로 갈리므로 동시에 요청하지 않는다.
   const all = useBookmarkedSpots({ enabled: collectionId === null });
-  const one = useCollectionSpots(collectionId);
-  const { data, isLoading, isError, refetch } = collectionId === null ? all : one;
+
+  // 컬렉션 탭은 위에서 이미 받은 목록을 고르기만 한다 — 같은 것을 또 요청하지 않는다.
+  const data = collectionId === null ? all.data : groups.find((g) => g.collection.id === collectionId)?.spots;
+  const isLoading = collectionId === null ? all.isLoading : groupsLoading;
+  const isError = collectionId === null ? all.isError : groupsError;
+  const refetch = collectionId === null ? all.refetch : () => {};
 
   const spots = React.useMemo(() => (data ?? []).map(mapPopularSpot), [data]);
 
@@ -67,36 +74,41 @@ export default function BookmarkedSpotListScreen({ navigation }: Props) {
           활성색은 블랙: 같은 화면 안에서 목록만 거르는 중립 컨트롤이다.
           컬렉션이 하나뿐이면 고를 게 없어 그리지 않는다(기본 "내 즐겨찾기"만 있는 상태). */}
       {collections.length > 1 && (
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{
-            paddingHorizontal: GRID_PADDING,
-            // 목록의 paddingTop(8)과 합쳐서 12가 된다 — 여기서 12를 더 주면 칩이 떠 보인다.
-            paddingBottom: normalize(4),
-            gap: normalize(6),
-            // 가로 ScrollView의 자식은 기본으로 높이가 늘어난다 — 안 잡으면 칩이 세로로 길어진다.
-            alignItems: 'center',
-          }}
-        >
-          <Chip
-            label="전체"
-            selected={collectionId === null}
-            onPress={() => setCollectionId(null)}
-            height={normalize(34)}
-            paddingHorizontal={normalize(16)}
-          />
-          {collections.map((c) => (
+        // 가로 ScrollView는 flex 컬럼에서 남은 높이를 다 먹는다(그러면 칩이 화면 중앙에 뜬다).
+        // View로 감싸 콘텐츠 높이로 고정한다 — MapScreen 카테고리 필터와 같은 구조.
+        <View style={{ paddingBottom: normalize(4) }}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{
+              paddingHorizontal: GRID_PADDING,
+              gap: normalize(6),
+              alignItems: 'center',
+            }}
+          >
             <Chip
-              key={c.id}
-              label={`${c.name} ${c.spotCount}`}
-              selected={collectionId === c.id}
-              onPress={() => setCollectionId(c.id)}
+              label={`전체 ${distinctSpotCount}`}
+              selected={collectionId === null}
+              onPress={() => setCollectionId(null)}
               height={normalize(34)}
               paddingHorizontal={normalize(16)}
             />
-          ))}
-        </ScrollView>
+            {/* 컬렉션 색 점을 달아 어떤 컬렉션인지 배지와 같은 색으로 잇는다.
+                개수는 칩에서 뺐다 — 색 점이 붙으면서 한 줄에 정보가 너무 많아진다. */}
+            {collections.map((c) => (
+              <Chip
+                key={c.id}
+                label={c.name}
+                selected={collectionId === c.id}
+                onPress={() => setCollectionId(c.id)}
+                showDot
+                dotColor={palOf(c.color).s}
+                height={normalize(34)}
+                paddingHorizontal={normalize(16)}
+              />
+            ))}
+          </ScrollView>
+        </View>
       )}
 
       {isLoading ? (
@@ -127,7 +139,11 @@ export default function BookmarkedSpotListScreen({ navigation }: Props) {
             gap: normalize(8),
           }}
           renderItem={({ item }) => (
-            <BookmarkedSpotRow item={item} onBookmarkPress={() => setSheetSpotId(item.id)} />
+            <BookmarkedSpotRow
+              item={item}
+              badges={badgesOf(item.id)}
+              onBookmarkPress={() => setSheetSpotId(item.id)}
+            />
           )}
           ListEmptyComponent={
             <Text

@@ -12,6 +12,8 @@ interface Props {
   onPress: () => void;
   variant?: ChipVariant;
   showDot?: boolean;
+  /** 점 색 고정 — 컬렉션 색처럼 선택 여부와 무관한 색이 있을 때 쓴다. */
+  dotColor?: string;
   height?: number;
   fontSize?: number;
   paddingHorizontal?: number;
@@ -23,6 +25,7 @@ export default function Chip({
   onPress,
   variant = 'dark',
   showDot = false,
+  dotColor,
   height,
   fontSize = FONT_SM,
   paddingHorizontal = normalize(14),
@@ -67,7 +70,7 @@ export default function Chip({
             width: normalize(6),
             height: normalize(6),
             borderRadius: normalize(3),
-            backgroundColor: selected ? BRAND : 'rgba(0,0,0,0.15)',
+            backgroundColor: dotColor ?? (selected ? BRAND : 'rgba(0,0,0,0.15)'),
           }}
         />
       )}
