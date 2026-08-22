@@ -42,7 +42,8 @@ React Native(Expo, bare) 앱. **모바일 전용**(iOS/Android), 태블릿 미�
 - **스타일**: NativeWind `className`(Tailwind v3) 또는 **인라인 `style` 객체**. `StyleSheet.create()` **금지**
 - **함수형 `style` 금지**: `style={({pressed}) => ...}` 형태는 이 프로젝트(NativeWind)에서 적용 안 됨 → **객체 style**로 줄 것
 - **폰트 크기·높이에 raw 픽셀 금지**: `src/constants/layout.ts` 상수(`FONT_2XS`~`FONT_2XL`, `BUTTON_HEIGHT` 등) 사용. 스케일 필요한 고정값은 `normalize(n)` (`src/utils/normalize.ts`)
-  - **폰트 크기는 8개 토큰만**: `10 · 11 · 13 · 14 · 15 · 17 · 22 · 28px` → `FONT_2XS / FONT_XS / FONT_SM / FONT_MD / FONT_LG / FONT_XL / FONT_2XL`. 그 사이값(`9 · 12 · 16 · 18 · 20px` 등)은 **금지**(`12`는 `11` 또는 `13`으로). `14px`만 상수가 없어 `normalizeFontSize(14)` 사용
+  - **폰트 크기는 9개 토큰만**: `10 · 11 · 13 · 14 · 15 · 17 · 20 · 22 · 28px` → `FONT_2XS / FONT_XS / FONT_SM / FONT_MD / FONT_LG / FONT_TITLE / FONT_XL / FONT_2XL`. 그 사이값(`9 · 12 · 16 · 18px` 등)은 **금지**(`12`는 `11` 또는 `13`으로). `14px`만 상수가 없어 `normalizeFontSize(14)` 사용
+  - **제목 역할**: 섹션·시트 제목 `FONT_TITLE`(20, Apple Title3) / 더 큰 표제 `FONT_XL`(22) / 화면 타이틀(네비) `FONT_LG`(17)
   - **역할별 토큰**: 배지 10 / 캡션·행 설명 11 / 우측 값·링크·칩·버튼 13 / 본문·토스트 14 / 행 제목 15 / 네비·화면 타이틀 17 / 섹션 타이틀 22 / 대제목 28 (상세: `docs/guide/dev/ui-publishing.md`)
   - **`.native.jsx`에 `fontWeight`를 아예 쓰지 말 것** — RN은 웨이트별로 폰트 패밀리가 갈려서
     `fontWeight`를 주면 안드로이드에서 시스템 폰트로 폴백합니다. `fontFamily: 'Pretendard-SemiBold'`
@@ -73,6 +74,6 @@ React Native(Expo, bare) 앱. **모바일 전용**(iOS/Android), 태블릿 미�
 - [ ] 아이콘 세트 지정(tabler/lucide)
 - [ ] 카드에 테두리/그림자 쓸지 여부
 - [ ] 각 상태(정상/없음/미제공/로딩/에러)의 표현 규칙
-- [ ] 폰트 8개 크기만 사용(사이값 12/16/18/20 금지 · 14px은 상수 없이 `normalizeFontSize(14)`) · 역할별 토큰 매핑 준수 · weight ≤600
+- [ ] 폰트 9개 크기만 사용(사이값 12/16/18 금지 · 14px은 상수 없이 `normalizeFontSize(14)`) · 역할별 토큰 매핑 준수 · weight ≤600
 - [ ] 활성 상태 색이 역할 기준인지 확인 — 세그먼트·필터·**정렬**은 블랙, 이동·데이터 변경은 핑크
 - [ ] 기준 폭 390dp, 라이트 모드

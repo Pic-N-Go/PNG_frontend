@@ -6,6 +6,7 @@ import type {
   PhotogenicScoreResponse,
   ReviewCreateRequest,
   MyReviewListResponse,
+  ReviewedSpotResponse,
   ReviewListResponse,
   ReviewExifResponse,
   ReviewPhotoDTO,
@@ -284,9 +285,13 @@ export const spotApi = {
   getCollectionSpots: (collectionId: number, token: string) =>
     request<SpotResponse[]>(`/bookmark-collections/${collectionId}/spots`, { token }),
 
-  // MY 탭 "북마크한 스팟" — 컬렉션 구분 없이 전부, 최근 담은 순. isBookmarked는 항상 true.
+  // MY 탭 "즐겨찾기 스팟" — 컬렉션 구분 없이 전부, 최근 담은 순. isBookmarked는 항상 true.
   getBookmarkedSpots: (token: string) =>
     request<SpotResponse[]>('/users/me/bookmarked-spots', { token }),
+
+  // PIC MAP "리뷰" 핀 — 내가 리뷰를 남긴 스팟 전부, 리뷰 작성일 최신순. 페이징 없다(지도는 전체 핀이 필요).
+  getReviewedSpots: (token: string) =>
+    request<ReviewedSpotResponse[]>('/users/me/reviewed-spots', { token }),
 
   // 스팟 소속 통째 동기화 (체크된 집합 → 추가+제거, 빈 배열=전체 제거). 204.
   syncSpotBookmarks: (spotId: string | number, collectionIds: number[], token: string) =>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { FlatList, Pressable, Text, View } from 'react-native';
 import { normalize } from '@/utils/normalize';
-import { CARD_RADIUS, FONT_MD, FONT_SM, FONT_XL, GRID_PADDING, SPACING_XS } from '@/constants/layout';
+import { CARD_RADIUS, FONT_MD, FONT_SM, FONT_TITLE, GRID_PADDING, SPACING_XS } from '@/constants/layout';
 import Skeleton from '@/components/common/Skeleton';
 import SpotCard from '@/components/home/SpotCard';
 import BookmarkSheet from '@/components/spot/BookmarkSheet';
@@ -67,7 +67,7 @@ export default function SpotCarouselSection({
       >
         <Text
           allowFontScaling={false}
-          style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XL, color: '#000', letterSpacing: -0.4 }}
+          style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_TITLE, color: '#000', letterSpacing: -0.4 }}
         >
           {title}
         </Text>

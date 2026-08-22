@@ -18,7 +18,7 @@ import { getCourseStats } from '@/utils/distance';
 import { parseValidCoordinate } from '@/utils/geo';
 import { getDayColor, DAY_COLOR_PALETTE } from '@/constants/dayColors';
 import { CATEGORY_LABELS, CODE_BY_LABEL } from '@/constants/spotCategories';
-import { FONT_SM, FONT_MD, FONT_XL, BUTTON_HEIGHT, BUTTON_RADIUS, HEADER_HEIGHT, ICON_SM, CONTROL_SIZE } from '@/constants/layout';
+import { BUTTON_HEIGHT, BUTTON_RADIUS, CONTROL_SIZE, FONT_MD, FONT_SM, FONT_TITLE, FONT_XL, HEADER_HEIGHT, ICON_SM } from '@/constants/layout';
 import Chip from '@/components/common/Chip';
 import { BRAND, TEXT_SUB } from '@/constants/colors';
 import { SHADOW_CONTROL, SHADOW_OVERLAY } from '@/constants/shadow';
@@ -70,6 +70,9 @@ export default function MapScreen() {
              : route.params?.source === 'plan-view' ? 'plan-view'
              : route.params?.source === 'wishlist-change' ? 'wishlist-change'
              : 'view';
+  // 코스·스팟 목록을 들고 들어온 화면은 자기 카메라 의도가 있다(drawMarkers의 setBounds).
+  // HTML useMemo 안에만 두면 아래 위치 효과가 못 보고 그 카메라를 덮어쓴다.
+  const isCourseView = mode === 'plan-view' || !!route.params?.spots;
 
   const webViewRef = useRef<any>(null);
   const [mapReady, setMapReady] = useState(false);
@@ -113,8 +116,14 @@ export default function MapScreen() {
           if (lastKnown) {
             latestLocationRef.current = lastKnown.coords;
             if (webViewRef.current) {
+              // 진입 카메라를 내 위치로 잡는다. 위치를 못 받으면 이 블록을 건너뛰므로
+              // 기존대로 전체 스팟 setBounds(한반도 전체)로 남는다 — 폴백이 곧 이전 동작이다.
+              // 단 코스 보기는 예외다. drawMarkers가 코스에 맞춘 bounds를 먼저 잡는데,
+              // 여기서 내 위치로 setCenter하면 코스가 한 프레임 보이고 튄다 — 마커만 갱신한다.
               webViewRef.current.injectJavaScript(`
-                if (window.updateUserLocation) {
+                if (${!isCourseView} && window.focusUserLocation) {
+                  window.focusUserLocation(${lastKnown.coords.latitude}, ${lastKnown.coords.longitude});
+                } else if (window.updateUserLocation) {
                   window.updateUserLocation(${lastKnown.coords.latitude}, ${lastKnown.coords.longitude});
                 }
                 true;
@@ -166,7 +175,7 @@ export default function MapScreen() {
         subscription.remove();
       }
     };
-  }, [mapReady]);
+  }, [mapReady, isCourseView]);
 
   const showToast = (message: string) => {
     setToastMessage(message);
@@ -550,7 +559,6 @@ export default function MapScreen() {
     const initialSpots = (mode === 'plan-view' && route.params?.planData)
       ? withDayMeta(route.params.planData[initialDay]?.spots || [], initialDay)
       : (route.params?.spots || []);
-    const isCourseView = mode === 'plan-view' || !!route.params?.spots;
 
     return `
 <!DOCTYPE html>
@@ -802,6 +810,25 @@ export default function MapScreen() {
         }
       };
 
+      // 진입 시 1회. moveToUserLocation과 달리 축척까지 잡는다 —
+      // panTo만 하면 전체 스팟 setBounds가 만든 한반도 축척이 남아 내 위치가 점 하나로 보인다.
+      // initialBoundsSet을 세워 뒤늦게 도착한 마커의 setBounds가 카메라를 도로 뺏지 못하게 막는다.
+      // 명시적 fitBounds=true(검색·Day 전환)는 이 플래그를 무시하고 카메라를 옮긴다 — 의도된 비대칭이다.
+      window.focusUserLocation = function(lat, lng) {
+        try {
+          if (lat == null || lng == null) return false;
+          initialBoundsSet = true;
+          window.updateUserLocation(lat, lng);
+          map.setCenter(new kakao.maps.LatLng(lat, lng));
+          // 홈 배너 문구("반경 5km 기준")와 같은 범위를 보여준다. 레벨 8 = 축척 2km.
+          map.setLevel(8);
+          return true;
+        } catch (err) {
+          console.error("focusUserLocation Error: ", err);
+          return false;
+        }
+      };
+
       window.moveToUserLocation = function(lat, lng) {
         try {
           if (lat != null && lng != null) {
@@ -852,7 +879,7 @@ export default function MapScreen() {
 </body>
 </html>
   `;
-  }, [route.params?.spots, route.params?.planData, route.params?.initialDay, mode]);
+  }, [route.params?.spots, route.params?.planData, route.params?.initialDay, mode, isCourseView]);
 
   // source 객체도 HTML 문자열이 바뀔 때만 새로 만들어 WebView가 재로딩되지 않게 한다.
   const mapSource = useMemo(() => ({ html: HTML, baseUrl: 'https://localhost' }), [HTML]);
@@ -1316,7 +1343,7 @@ export default function MapScreen() {
                 <View className="flex-row items-center mb-6">
                   <Image source={{ uri: activeSpot.photo }} className="rounded-xl mr-3" style={{ width: normalize(64), height: normalize(64) }} />
                   <View className="flex-1 justify-center">
-                    <Text className="font-semibold text-black mb-1" style={{ fontSize: normalizeFontSize(20) }}>{activeSpot.name}</Text>
+                    <Text className="font-semibold text-black mb-1" style={{ fontSize: FONT_TITLE }}>{activeSpot.name}</Text>
                     <Text className="text-sub mb-2.5 font-normal" style={{ fontSize: normalizeFontSize(14) }}>{activeSpot.loc}</Text>
                     {/* 포토제닉 칩 없음 — 여기 뜨던 값은 고정 컬럼이라 상세의 실시간 지수와 어긋난다.
                         score는 아래 필터(detailFilter.score)에서 계속 쓰므로 필드 자체는 남긴다. */}

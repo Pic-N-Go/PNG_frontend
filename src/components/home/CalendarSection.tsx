@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { CARD_RADIUS, FONT_MD, FONT_SM, FONT_XL, GRID_PADDING, SPACING_XS } from '@/constants/layout';
+import { CARD_RADIUS, FONT_MD, FONT_SM, FONT_TITLE, GRID_PADDING, SPACING_XS } from '@/constants/layout';
 import type { CalendarEvent } from '@/types/spot';
 import { BRAND, CARD, TEXT_SUB } from '@/constants/colors';
 
@@ -47,7 +47,7 @@ export default function CalendarSection({ onEventPress }: Props) {
       >
         <Text
           allowFontScaling={false}
-          style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XL, color: '#000', letterSpacing: -0.4 }}
+          style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_TITLE, color: '#000', letterSpacing: -0.4 }}
         >
           이달의 출사 캘린더
         </Text>

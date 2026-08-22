@@ -7,7 +7,7 @@ import OptionSheet from '@/components/common/OptionSheet';
 import Skeleton from '@/components/common/Skeleton';
 import TimePickerSheet from '@/components/spot/TimePickerSheet';
 import { useSpotPhotogenicScore } from '@/hooks/useSpot';
-import { BORDER_CONTROL, GRID_PADDING, HAIRLINE_WIDTH } from '@/constants/layout';
+import { BORDER_CONTROL, FONT_TITLE, GRID_PADDING, HAIRLINE_WIDTH } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import type { PhotogenicFactor } from '@/types/spot';
 import { BRAND, BRAND_TINT, CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
@@ -168,7 +168,7 @@ export default function PhotogenicScoreCard({ spotId, spotName }: Props) {
 
   return (
     <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(24) }}>
-      <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(20), color: COLORS.text, letterSpacing: -0.4, marginBottom: normalize(16) }}>
+      <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_TITLE, color: COLORS.text, letterSpacing: -0.4, marginBottom: normalize(16) }}>
         포토제닉 지수
       </Text>
 

@@ -68,6 +68,17 @@ Pretendard **3웨이트만** 로드한다 — `Regular` / `Medium` / `SemiBold`.
 
 디자인 규칙이 `max weight 600`이라 Bold 이상은 없다. `font-bold`도 SemiBold로 매핑된다.
 
+크기는 9개 토큰(`10 · 11 · 13 · 14 · 15 · 17 · 20 · 22 · 28`)만 쓴다. `14`만 상수가 없다.
+
+| 역할 | 토큰 |
+|---|---|
+| 섹션 제목 · 시트 제목 | `FONT_TITLE` (20) |
+| 더 큰 표제 (콘테스트 표시 텍스트 등) | `FONT_XL` (22) |
+| 화면 타이틀 (네비) | `FONT_LG` (17) |
+
+`FONT_TITLE`은 Apple Title3(20pt)이다. 크기명 래더에 17과 22 사이 자리가 없어 역할명으로 뒀다.
+편입 경위와 나머지 역할 배정은 `docs/ai/plans/refactor/ui-consistency/font-scale-plan.md`.
+
 - **새 웨이트가 필요하면 `App.tsx`의 `useFonts` 등록이 선행 조건이다.**
   등록 없이 `fontFamily`만 쓰면 iOS는 조용히 시스템 폰트로 폴백하고 안드로이드는 폴백하거나 죽는다.
 - `font-normal` `font-medium` `font-semibold` `font-bold` 유틸리티는 `global.css`에서
@@ -110,7 +121,7 @@ Pretendard **3웨이트만** 로드한다 — `Regular` / `Medium` / `SemiBold`.
 |---|---|---|
 | `border-radius` | 상수 7개가 있으나 생값이 3.7배(432곳), 값 종류 30가지 | `border-radius-plan.md` |
 | 화면 헤더 | 뒤로가기가 있는 32개 화면이 공용 컴포넌트 없이 각자 구현 | `screen-header-plan.md` |
-| 폰트 크기 | `fontSize` 생값 299곳 중 **164곳이 8단계 스케일 밖** (42개 파일) | `font-scale-plan.md` |
+| 폰트 크기 | `fontSize` 생값 중 **상당수가 스케일 밖** (12·16·18px 등) | `font-scale-plan.md` |
 | chevron·보조 아이콘 회색 | 같은 용도에 `#c7c7cc`(9곳) · `rgba(0,0,0,0.25)`(6곳) · `0.2`(4곳) · `0.18`(3곳)이 섞여 있다. 토큰은 `TEXT_SUB`(`#8A8A8E`)로 이미 있고 4곳이 쓴다 — 나머지를 옮기면 chevron이 지금보다 진해지므로 디자인 확인이 선행 조건 | — |
 
 셋 다 값 하나로 수렴시킬 수 없는 성격이다. radius는 요소 크기에, 폰트는 텍스트 역할에 종속되고,

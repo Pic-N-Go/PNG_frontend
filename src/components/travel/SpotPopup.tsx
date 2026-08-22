@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import { View, Text, TouchableOpacity, Image, Animated, Easing, PanResponder, Dimensions } from 'react-native';
-import { FONT_SM, BOTTOM_SHEET_RADIUS } from '@/constants/layout';
+import { BOTTOM_SHEET_RADIUS, FONT_SM, FONT_TITLE } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { IconMapPin, IconX, IconHeart, IconBookmark } from '@tabler/icons-react-native';
 import StarRating from '@/components/common/StarRating';
@@ -170,7 +170,7 @@ export default function SpotPopup({ activeSpot, onClose, renderButtons }: Props)
             <View className="px-4 pt-5 pb-6">
               <View className="flex-row justify-between items-start">
                 <View className="flex-1 mr-2">
-                  <Text className="font-semibold text-black" style={{ fontSize: normalizeFontSize(20) }}>{currentSpot.name}</Text>
+                  <Text className="font-semibold text-black" style={{ fontSize: FONT_TITLE }}>{currentSpot.name}</Text>
 
                   <View className="flex-row items-center mt-1.5">
                     <StarRating rating={rating} size={normalizeFontSize(14)} />
