@@ -6,7 +6,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import BottomSheet from '@/components/common/BottomSheet';
 import { StatusBar } from 'expo-status-bar';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { BUTTON_HEIGHT, BUTTON_RADIUS, FONT_MD, FONT_SM, HAIRLINE_WIDTH } from '@/constants/layout';
+import { BUTTON_HEIGHT, BUTTON_RADIUS, FONT_LG, FONT_MD, FONT_SM, FONT_XS, HAIRLINE_WIDTH } from '@/constants/layout';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BRAND, HAIRLINE } from '@/constants/colors';
 import { useBookmarkedSpots, useReviewedSpots } from '@/hooks/useSpot';
@@ -336,7 +336,7 @@ export default function PhotoMapScreen() {
           <TouchableOpacity onPress={handleBackNavigation} className="items-center justify-center" style={{ width: normalize(36), height: normalize(36), marginLeft: -normalize(8) }}>
             <IconChevronLeft size={normalize(24)} color="rgba(0,0,0,0.65)" />
           </TouchableOpacity>
-          <Text className="font-semibold text-black" style={{ fontSize: normalizeFontSize(18), letterSpacing: -0.3 }}>
+          <Text className="font-semibold text-black" style={{ fontSize: FONT_LG, letterSpacing: -0.3 }}>
             PIC MAP
           </Text>
           <View style={{ width: normalize(36) }} />
@@ -354,7 +354,7 @@ export default function PhotoMapScreen() {
               <TouchableOpacity
                 key={f}
                 onPress={() => setFilter(f)}
-                className={`justify-center ${isActive ? (f === 'review' ? 'bg-brand' : 'bg-[#1c1c1e]') : 'bg-[rgba(0,0,0,0.04)]'}`}
+                className={`justify-center ${isActive ? 'bg-[#1c1c1e]' : 'bg-[rgba(0,0,0,0.04)]'}`}
                 style={{
                   height: normalize(30),
                   paddingHorizontal: normalize(14),
@@ -419,11 +419,11 @@ export default function PhotoMapScreen() {
         {/* 범례 표식은 지도 핀·리스트와 같은 모양이어야 한다 — 동그라미면 무엇을 가리키는지 한 번 더 번역해야 한다 */}
         <View className="flex-row items-center" style={{ gap: normalize(4) }}>
           <IconMapPin size={normalize(13)} color={BRAND} fill={BRAND} />
-          <Text className="text-[rgba(0,0,0,0.55)] font-normal" style={{ fontSize: normalizeFontSize(12) }}>리뷰</Text>
+          <Text className="text-[rgba(0,0,0,0.55)] font-normal" style={{ fontSize: FONT_XS }}>리뷰</Text>
         </View>
         <View className="flex-row items-center" style={{ gap: normalize(4) }}>
           <IconMapPin size={normalize(13)} color="#1c1c1e" fill="#1c1c1e" />
-          <Text className="text-[rgba(0,0,0,0.55)] font-normal" style={{ fontSize: normalizeFontSize(12) }}>즐겨찾기</Text>
+          <Text className="text-[rgba(0,0,0,0.55)] font-normal" style={{ fontSize: FONT_XS }}>즐겨찾기</Text>
         </View>
       </View>
       )}
@@ -469,7 +469,7 @@ export default function PhotoMapScreen() {
               )}
             </View>
 
-            <Text className="font-semibold text-black" style={{ fontSize: normalizeFontSize(18), letterSpacing: -0.3, marginBottom: normalize(3) }}>
+            <Text className="font-semibold text-black" style={{ fontSize: FONT_LG, letterSpacing: -0.3, marginBottom: normalize(3) }}>
               {activeSpot.name}
             </Text>
             <Text className="text-sub font-normal" style={{ fontSize: FONT_SM, marginBottom: normalize(10), letterSpacing: -0.1 }}>
@@ -683,7 +683,7 @@ function SpotListSheet({ spots, isLoading, activeSpot, onSpotPress, filterName }
           <View className="bg-[rgba(0,0,0,0.1)]" style={{ width: normalize(36), height: normalize(5), borderRadius: normalize(2.5) }} />
         </View>
         <View className="flex-row items-baseline border-b-[0.5px] border-hairline" style={{ paddingHorizontal: normalize(20), paddingBottom: normalize(12) }}>
-          <Text className="font-semibold text-black" style={{ fontSize: normalizeFontSize(18), letterSpacing: -0.3, marginRight: normalize(8) }}>
+          <Text className="font-semibold text-black" style={{ fontSize: FONT_LG, letterSpacing: -0.3, marginRight: normalize(8) }}>
             {filterName}
           </Text>
           {isLoading ? (
@@ -716,7 +716,7 @@ function SpotListSheet({ spots, isLoading, activeSpot, onSpotPress, filterName }
                 />
                 <Text className="font-semibold text-black flex-1" style={{ fontSize: FONT_MD, letterSpacing: -0.2 }} numberOfLines={1}>{spot.name}</Text>
               </View>
-              <Text className="text-[rgba(0,0,0,0.38)] font-normal" style={{ fontSize: normalizeFontSize(12), letterSpacing: -0.1, marginBottom: normalize(4) }} numberOfLines={1}>{spot.loc}</Text>
+              <Text className="text-[rgba(0,0,0,0.38)] font-normal" style={{ fontSize: FONT_XS, letterSpacing: -0.1, marginBottom: normalize(4) }} numberOfLines={1}>{spot.loc}</Text>
               {/* 즐겨찾기만 한 스팟은 리뷰 작성일이 없다 — 칩 줄을 비워 두지 않고 행을 2줄로 둔다. */}
               {spot.date && (
                 <View className="flex-row" style={{ gap: normalize(5) }}>
