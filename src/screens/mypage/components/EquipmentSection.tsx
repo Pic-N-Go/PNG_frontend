@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, Modal, Animated, Pressable, PanResponder, TextInput, Platform, Keyboard, Alert, ActivityIndicator } from 'react-native';
 import { IconCamera, IconAperture, IconChevronRight, IconX, IconTrash } from '@tabler/icons-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { BORDER_CONTROL, CARD_RADIUS, EMPTY_CARD_HEIGHT, FONT_SM, FONT_XS, GRID_PADDING, HAIRLINE_WIDTH } from '@/constants/layout';
+import { BORDER_CONTROL, CARD_RADIUS, EMPTY_CARD_HEIGHT, FONT_SM, FONT_TITLE, FONT_XS, GRID_PADDING, HAIRLINE_WIDTH } from '@/constants/layout';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCreateEquipment, useDeleteEquipment, useMyEquipments } from '@/hooks/useEquipment';
 import { toErrorMessage } from '@/api/auth';
@@ -27,6 +27,9 @@ export default function EquipmentSection() {
     desc: '',
     isCamera: e.equipmentType === 'CAMERA',
   }));
+
+  // 빈 상태에서는 헤더 '관리'를 감춘다 — 관리할 게 없고, 빈 카드의 링크가 추가 폼까지 바로 연다.
+  const isEmpty = !isLoading && !isError && items.length === 0;
 
   const [sheetVisible, setSheetVisible] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<'CAMERA' | 'LENS'>('CAMERA');
@@ -114,7 +117,7 @@ export default function EquipmentSection() {
     }).start();
   };
 
-  // 빈 상태 카드 탭은 '탭하여 추가' 문구대로 추가 폼까지 바로 연다.
+  // 빈 상태의 '장비 추가하기' 링크는 시트를 열면서 추가 폼까지 펼친다.
   // 관리 버튼(목록 모드)과 역할을 나누기 위한 것이므로 openSheet를 그대로 쓰지 않는다.
   // 인자 있는 형태로 만들면 onPress가 이벤트 객체를 넘겨 오작동하므로 핸들러를 분리한다.
   const openSheetForAdd = () => {
@@ -166,14 +169,16 @@ export default function EquipmentSection() {
   return (
     <View className="mb-10" style={{ paddingHorizontal: GRID_PADDING }}>
       <View className="flex-row justify-between items-center mb-3">
-        <Text className="font-semibold tracking-tight text-black" style={{ fontSize: normalizeFontSize(20) }}>
+        <Text className="font-semibold tracking-tight text-black" style={{ fontSize: FONT_TITLE }}>
           내 장비
         </Text>
-        <TouchableOpacity onPress={openSheet}>
-          <Text className="tracking-tight font-normal" style={{ fontSize: FONT_SM, color: BRAND }}>
-            관리
-          </Text>
-        </TouchableOpacity>
+        {!isEmpty && (
+          <TouchableOpacity onPress={openSheet}>
+            <Text className="tracking-tight font-normal" style={{ fontSize: FONT_SM, color: BRAND }}>
+              관리
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       <View
@@ -183,30 +188,43 @@ export default function EquipmentSection() {
           overflow: 'hidden',
         }}
       >
+        {/* 로딩·에러·빈 상태 높이를 EMPTY_CARD_HEIGHT로 묶는다 — 다르면 상태가 바뀔 때 아래가 밀린다. */}
         {isLoading && (
-          <View style={{ paddingVertical: normalize(28) }}>
+          <View style={{ height: EMPTY_CARD_HEIGHT, alignItems: 'center', justifyContent: 'center' }}>
             <ActivityIndicator color={BRAND} />
           </View>
         )}
 
         {!isLoading && isError && (
-          <Text
-            className="text-center tracking-tight font-normal"
-            style={{ paddingVertical: normalize(24), fontSize: FONT_SM, color: 'rgba(0,0,0,0.35)' }}
-          >
-            장비를 불러오지 못했어요
-          </Text>
+          <View style={{ height: EMPTY_CARD_HEIGHT, alignItems: 'center', justifyContent: 'center' }}>
+            <Text
+              className="text-center tracking-tight font-normal"
+              style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.35)' }}
+            >
+              장비를 불러오지 못했어요
+            </Text>
+          </View>
         )}
 
-        {!isLoading && !isError && items.length === 0 && (
-          <TouchableOpacity
-            onPress={openSheetForAdd}
-            style={{ height: EMPTY_CARD_HEIGHT, alignItems: 'center', justifyContent: 'center' }}
+        {isEmpty && (
+          <View
+            style={{ height: EMPTY_CARD_HEIGHT, alignItems: 'center', justifyContent: 'center', gap: normalize(12) }}
           >
-            <Text className="tracking-tight font-normal" style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.3)' }}>
-              등록한 장비가 없어요 · 탭하여 추가
+            <Text
+              className="tracking-tight font-normal text-center"
+              style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.3)', lineHeight: FONT_SM * 1.5 }}
+            >
+              {'쓰는 카메라·렌즈를 등록해 두면\n리뷰에서 장비를 골라 넣을 수 있어요'}
             </Text>
-          </TouchableOpacity>
+            <TouchableOpacity onPress={openSheetForAdd} hitSlop={12}>
+              <Text
+                className="font-semibold tracking-tight"
+                style={{ fontSize: FONT_SM, color: BRAND, textDecorationLine: 'underline', textDecorationColor: BRAND }}
+              >
+                장비 추가하기
+              </Text>
+            </TouchableOpacity>
+          </View>
         )}
 
         {items.slice(0, 2).map((item, index) => (
@@ -283,7 +301,7 @@ export default function EquipmentSection() {
             </View>
             
             <View className="flex-row items-center justify-between pb-3" style={{ paddingHorizontal: GRID_PADDING }}>
-              <Text className="font-semibold tracking-tight text-black" style={{ fontSize: normalizeFontSize(20) }}>
+              <Text className="font-semibold tracking-tight text-black" style={{ fontSize: FONT_TITLE }}>
                 내 장비
               </Text>
               <TouchableOpacity

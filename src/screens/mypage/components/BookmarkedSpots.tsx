@@ -1,10 +1,10 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { MyPageStackParamList } from '@/navigation/stacks/MyPageStack';
-import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { CARD_RADIUS, EMPTY_CARD_HEIGHT, FONT_SM, GRID_PADDING } from '@/constants/layout';
+import { normalize } from '@/utils/normalize';
+import { CARD_RADIUS, EMPTY_CARD_HEIGHT, FONT_SM, FONT_TITLE, GRID_PADDING } from '@/constants/layout';
 import { useBookmarkCollectionsWithSpots } from '@/hooks/useSpot';
 import { BRAND, CARD, TEXT_SUB } from '@/constants/colors';
 import BookmarkCollectionRow from '@/screens/mypage/components/BookmarkCollectionRow';
@@ -39,6 +39,29 @@ export default function BookmarkedSpots() {
     );
   }
 
+  // 컬렉션 목록조차 안 왔을 때는 카드 자리가 비어 높이가 0이 된다 — 로딩이 끝나는 순간
+  // 카드가 생기며 아래 섹션이 밀린다. 빈 카드와 같은 높이로 자리를 먼저 잡는다.
+  if (isLoading && groups.length === 0) {
+    return (
+      <View className="mb-10" style={{ paddingHorizontal: GRID_PADDING }}>
+        <View className="flex-row justify-between items-center mb-3">
+          <SectionTitle />
+        </View>
+        <View
+          style={{
+            height: EMPTY_CARD_HEIGHT,
+            backgroundColor: CARD,
+            borderRadius: CARD_RADIUS,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <ActivityIndicator color={BRAND} size="small" />
+        </View>
+      </View>
+    );
+  }
+
   // 로딩 중에는 빈 상태를 먼저 그리지 않는다 — 저장한 게 있는데도 "없어요"가 스쳐 보인다.
   if (!isLoading && distinctSpotCount === 0) {
     return (
@@ -63,17 +86,12 @@ export default function BookmarkedSpots() {
           >
             {'가고 싶은 스팟을 저장해 두면\n컬렉션별로 모아 볼 수 있어요'}
           </Text>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('MapTab' as never)}
-            className="items-center justify-center"
-            style={{
-              height: normalize(38),
-              paddingHorizontal: normalize(20),
-              borderRadius: normalize(19),
-              backgroundColor: '#1d1d1f',
-            }}
-          >
-            <Text className="font-semibold text-white tracking-tight" style={{ fontSize: FONT_SM }}>
+          {/* 알약 버튼이 아니라 텍스트 링크 — 빈 카드 안에서 버튼은 무게가 과하다. hitSlop으로 터치 영역만 확보한다. */}
+          <TouchableOpacity onPress={() => navigation.navigate('MapTab' as never)} hitSlop={12}>
+            <Text
+              className="font-semibold tracking-tight"
+              style={{ fontSize: FONT_SM, color: BRAND, textDecorationLine: 'underline', textDecorationColor: BRAND }}
+            >
               스팟 둘러보기
             </Text>
           </TouchableOpacity>
@@ -113,7 +131,7 @@ export default function BookmarkedSpots() {
 function SectionTitle({ count }: { count?: number }) {
   return (
     <View className="flex-row items-baseline" style={{ gap: normalize(6) }}>
-      <Text className="font-semibold tracking-tight text-black" style={{ fontSize: normalizeFontSize(20) }}>
+      <Text className="font-semibold tracking-tight text-black" style={{ fontSize: FONT_TITLE }}>
         즐겨찾기 스팟
       </Text>
       {/* 0은 그리지 않는다 — 빈 상태 카드가 이미 같은 말을 한다. */}
