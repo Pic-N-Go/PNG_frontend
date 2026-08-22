@@ -1,11 +1,10 @@
 import React, { useMemo, useState } from 'react';
 import { Pressable, Text, View, Image } from 'react-native';
 import { WebView } from 'react-native-webview';
-import { LinearGradient } from 'expo-linear-gradient';
 import { IconMapPin } from '@tabler/icons-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { CARD_RADIUS, FONT_XS } from '@/constants/layout';
-import { BRAND } from '@/constants/colors';
+import { CARD_RADIUS } from '@/constants/layout';
+import { BRAND, TEXT_SUB } from '@/constants/colors';
 
 const KAKAO_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_API_KEY;
 
@@ -205,40 +204,34 @@ export default function MapBanner({ onPress, spotCount = 0, isLoading, userLocat
         </View>
       )}
 
-      {/* 3. 하단 페이드 오버레이 */}
-      <LinearGradient
-        colors={['transparent', 'rgba(0,0,0,0.3)']}
-        style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: normalize(80), zIndex: 2 }}
-        pointerEvents="none"
-      />
-
-      {/* 4. 좌상단 주변 스팟 개수 배지 */}
+      {/* 3. 우하단 주변 스팟 개수 배지 — MY 탭 PIC MAP 범례와 같은 형태로 둔다.
+             좌하단은 카카오 축척 바·로고 자리라 비워야 한다(가리면 안 되는 표기다). */}
       <View
         style={{
           position: 'absolute',
-          top: normalize(12),
-          left: normalize(12),
-          height: normalize(24),
+          bottom: normalize(10),
+          right: normalize(10),
+          backgroundColor: 'rgba(255,255,255,0.88)',
+          borderRadius: normalize(8),
           paddingHorizontal: normalize(10),
-          borderRadius: normalize(12),
-          backgroundColor: 'rgba(0,0,0,0.5)',
+          paddingVertical: normalize(6),
           flexDirection: 'row',
           alignItems: 'center',
-          gap: normalize(4),
+          gap: normalize(3),
           zIndex: 3,
         }}
         pointerEvents="none"
       >
-        <IconMapPin size={normalizeFontSize(10)} color="#fff" strokeWidth={1.5} />
+        <IconMapPin size={normalize(12)} color={BRAND} fill={BRAND} />
         <Text
           allowFontScaling={false}
-          style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_XS, color: '#fff' }}
+          style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(10), color: TEXT_SUB, letterSpacing: -0.1 }}
         >
           {isLoading ? '주변 스팟 탐색 중...' : `주변 스팟 ${spotCount}개`}
         </Text>
       </View>
 
-      {/* 5. 배너 전체 터치 오버레이 (탭 시 전체 지도로 이동) */}
+      {/* 4. 배너 전체 터치 오버레이 (탭 시 전체 지도로 이동) */}
       <Pressable
         onPress={onPress}
         style={({ pressed }) => ({
