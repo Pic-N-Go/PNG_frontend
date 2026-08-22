@@ -113,8 +113,12 @@ export default function MapScreen() {
           if (lastKnown) {
             latestLocationRef.current = lastKnown.coords;
             if (webViewRef.current) {
+              // 진입 카메라를 내 위치로 잡는다. 위치를 못 받으면 이 블록을 건너뛰므로
+              // 기존대로 전체 스팟 setBounds(한반도 전체)로 남는다 — 폴백이 곧 이전 동작이다.
               webViewRef.current.injectJavaScript(`
-                if (window.updateUserLocation) {
+                if (window.focusUserLocation) {
+                  window.focusUserLocation(${lastKnown.coords.latitude}, ${lastKnown.coords.longitude});
+                } else if (window.updateUserLocation) {
                   window.updateUserLocation(${lastKnown.coords.latitude}, ${lastKnown.coords.longitude});
                 }
                 true;
@@ -799,6 +803,24 @@ export default function MapScreen() {
           }
         } catch (err) {
           console.error("updateUserLocation Error: ", err);
+        }
+      };
+
+      // 진입 시 1회. moveToUserLocation과 달리 축척까지 잡는다 —
+      // panTo만 하면 전체 스팟 setBounds가 만든 한반도 축척이 남아 내 위치가 점 하나로 보인다.
+      // initialBoundsSet을 세워 뒤늦게 도착한 마커의 setBounds가 카메라를 도로 뺏지 못하게 막는다.
+      window.focusUserLocation = function(lat, lng) {
+        try {
+          if (lat == null || lng == null) return false;
+          initialBoundsSet = true;
+          window.updateUserLocation(lat, lng);
+          map.setCenter(new kakao.maps.LatLng(lat, lng));
+          // 홈 배너 문구("반경 5km 기준")와 같은 범위를 보여준다. 레벨 8 = 축척 2km.
+          map.setLevel(8);
+          return true;
+        } catch (err) {
+          console.error("focusUserLocation Error: ", err);
+          return false;
         }
       };
 
