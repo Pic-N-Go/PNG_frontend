@@ -41,7 +41,7 @@ export function initialsOf(nickname?: string | null): string {
   return (isHangul ? trimmed.slice(0, 1) : trimmed.slice(0, 2)).toUpperCase();
 }
 
-/** 원 지름에 맞는 폰트 토큰. 8단계 스케일 밖의 크기를 만들지 않도록 매핑으로 둔다. */
+/** 원 지름에 맞는 폰트 토큰. 스케일 밖의 크기를 만들지 않도록 매핑으로 둔다. */
 function fontFor(size: number): number {
   if (size <= 34) return FONT_2XS;
   if (size <= 48) return FONT_MD;

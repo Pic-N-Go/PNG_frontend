@@ -1,4 +1,4 @@
-# 구현 계획 — 폰트 크기 8단계 스케일 정리
+# 구현 계획 — 폰트 크기 스케일 정리
 
 > 선행 브랜치: `refactor/design-token-unification`
 > `border-radius-plan.md` · `screen-header-plan.md`와 독립적으로 진행 가능하다.
@@ -117,7 +117,7 @@ FONT_2XS · FONT_XS · FONT_SM · (없음) · FONT_MD · FONT_LG · FONT_TITLE �
 
 ### Task 6 — className `text-*` 2곳
 
-`text-xs`(12) 등 Tailwind 기본 스케일은 8단계와 무관하다. `FONT_*`로 옮긴다.
+`text-xs`(12) 등 Tailwind 기본 스케일은 이 스케일과 무관하다. `FONT_*`로 옮긴다.
 
 ## 4) 검증 체크포인트
 
@@ -128,6 +128,7 @@ FONT_2XS · FONT_XS · FONT_SM · (없음) · FONT_MD · FONT_LG · FONT_TITLE �
 grep -rhoE "fontSize: normalizeFontSize\([0-9.]+\)" src --include="*.tsx" \
   | grep -oE "[0-9.]+" | sort -n | uniq -c \
   | awk '{ok=($2==10||$2==11||$2==13||$2==14||$2==15||$2==17||$2==22||$2==28); if(!ok) print}'
+# 20은 의도적으로 빠져 있다 — FONT_TITLE 토큰으로만 쓰고 생값 normalizeFontSize(20)은 계속 잡아낸다.
 ```
 
 - [ ] 위반이 많던 화면 육안 확인 — 출사 알림 설정, 출사 코스 더보기 시트, 로그인, MY 사진 지도, 소셜 연동 시트, 북마크·길찾기 시트

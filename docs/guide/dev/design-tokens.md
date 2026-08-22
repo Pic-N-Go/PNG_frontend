@@ -121,7 +121,7 @@ Pretendard **3웨이트만** 로드한다 — `Regular` / `Medium` / `SemiBold`.
 |---|---|---|
 | `border-radius` | 상수 7개가 있으나 생값이 3.7배(432곳), 값 종류 30가지 | `border-radius-plan.md` |
 | 화면 헤더 | 뒤로가기가 있는 32개 화면이 공용 컴포넌트 없이 각자 구현 | `screen-header-plan.md` |
-| 폰트 크기 | `fontSize` 생값 299곳 중 **164곳이 8단계 스케일 밖** (42개 파일) | `font-scale-plan.md` |
+| 폰트 크기 | `fontSize` 생값 중 **상당수가 스케일 밖** (12·16·18px 등) | `font-scale-plan.md` |
 | chevron·보조 아이콘 회색 | 같은 용도에 `#c7c7cc`(9곳) · `rgba(0,0,0,0.25)`(6곳) · `0.2`(4곳) · `0.18`(3곳)이 섞여 있다. 토큰은 `TEXT_SUB`(`#8A8A8E`)로 이미 있고 4곳이 쓴다 — 나머지를 옮기면 chevron이 지금보다 진해지므로 디자인 확인이 선행 조건 | — |
 
 셋 다 값 하나로 수렴시킬 수 없는 성격이다. radius는 요소 크기에, 폰트는 텍스트 역할에 종속되고,

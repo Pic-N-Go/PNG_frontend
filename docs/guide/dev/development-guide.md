@@ -140,7 +140,8 @@ src/
 > **`FONT_*` 상수 전체 목록** (토큰 px → 상수명):  
 > `10px → FONT_2XS` / `11px → FONT_XS` / `13px → FONT_SM` / `15px → FONT_MD` / `17px → FONT_LG` / `22px → FONT_XL` / `28px → FONT_2XL`  
 > `14px`(`--font-base`)만 상수가 없어 `normalizeFontSize(14)` 인라인으로 처리합니다.  
-> **폰트는 8개 토큰(`10 · 11 · 13 · 14 · 15 · 17 · 22 · 28px`) 안에서만 사용합니다. 사이값(`9 · 12 · 16 · 18 · 20px` 등)은 금지** — `12px`는 `11` 또는 `13`으로 맞추세요.
+> **폰트는 9개 토큰(`10 · 11 · 13 · 14 · 15 · 17 · 20 · 22 · 28px`) 안에서만 사용합니다. 사이값(`9 · 12 · 16 · 18px` 등)은 금지** — `12px`는 `11` 또는 `13`으로 맞추세요.
+> 섹션·시트 제목은 `FONT_TITLE`(20), 더 큰 표제는 `FONT_XL`(22).
 
 > **raw 픽셀 사용 금지**: `fontSize: 12`, `height: 52` 등 raw 숫자를 직접 쓰지 않습니다.
 
@@ -148,7 +149,7 @@ src/
 
 - **`FONT_*` 상수로 커버되는 크기** (10·11·13·15·17·22·28px): 반드시 상수 사용
 - **`14px`(`--font-base`)**: 상수 미정의 → `normalizeFontSize(14)` 인라인
-- **사이값(9·12·16·18·20px 등)**: 사용 금지 — 8개 토큰 안에서만 고름 (`12` → `11` 또는 `13`)
+- **사이값(9·12·16·18px 등)**: 사용 금지 — 9개 토큰 안에서만 고름 (`12` → `11` 또는 `13`)
 - **폰트 외 레이아웃 크기** (높이, radius, 아이콘 등): `normalize(n)` 사용 (`normalizeFontSize` 아님)
 - **로고·히어로 타이틀 등 핵심 브랜드 요소**: `normalizeFontSize` 또는 `normalize` 적용 권장
 
@@ -354,7 +355,7 @@ HTML 목업 파일을 보면서 아래 순서로 구현합니다.
 |---|---|---|
 | `padding: 28px` / `gap: 16px` | `className="px-7 gap-4"` | Tailwind flex 레이아웃이 남은 공간을 자동으로 분배 |
 | `font-size: 17px` (스케일 내) | `FONT_LG` | 기기 너비에 따라 폰트 크기 비례 조정 필요 |
-| `font-size: 14px` (상수 없음) | `normalizeFontSize(14)` | `--font-base`, 상수 미정의 (12·16·20px 등 사이값은 금지) |
+| `font-size: 14px` (상수 없음) | `normalizeFontSize(14)` | `--font-base`, 상수 미정의 (12·16·18px 등 사이값은 금지) |
 | `height: 52px` (버튼·인풋) | `BUTTON_HEIGHT` / `INPUT_HEIGHT` | 360dp에서 비율 유지 |
 | `border-radius: 26px` | `BUTTON_RADIUS` | 높이 상수와 함께 비례 유지 |
 | `width: 100%` / `flex: 1` | `className="w-full"` / `className="flex-1"` | 비율 기반, 스케일링 불필요 |

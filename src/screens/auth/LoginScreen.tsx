@@ -23,23 +23,7 @@ import AuthInput from "@/components/auth/AuthInput";
 import Toast from "@/components/common/Toast";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { normalizeFontSize } from "@/utils/normalize";
-import {
-  BUTTON_HEIGHT,
-  BUTTON_RADIUS,
-  CONTENT_PADDING,
-  FONT_LG,
-  FONT_MD,
-  FONT_SM,
-  FONT_XS,
-  FONT_2XL,
-  FONT_XL,
-  INPUT_HEIGHT,
-  INPUT_RADIUS,
-  SOCIAL_BUTTON_HEIGHT,
-  SOCIAL_BUTTON_RADIUS,
-  SPACING_LG,
-  SPACING_MD,
- BORDER_CONTROL } from "@/constants/layout";
+import { BORDER_CONTROL, BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING, FONT_2XL, FONT_LG, FONT_MD, FONT_SM, FONT_TITLE, FONT_XL, FONT_XS, INPUT_HEIGHT, INPUT_RADIUS, SOCIAL_BUTTON_HEIGHT, SOCIAL_BUTTON_RADIUS, SPACING_LG, SPACING_MD } from "@/constants/layout";
 import { BRAND, CARD, SCRIM, TEXT_SUB } from '@/constants/colors';
 
 type Props = NativeStackScreenProps<AuthStackParamList, "Login">;
@@ -681,7 +665,7 @@ export default function LoginScreen({ navigation }: Props) {
               >
                 <Text
                   style={{
-                    fontSize: normalizeFontSize(20),
+                    fontSize: FONT_TITLE,
                     letterSpacing: -0.4,
                     color: "#000",
                     fontFamily: "Pretendard-SemiBold",

@@ -54,7 +54,7 @@ export default function BookmarkedSpotListScreen({ navigation, route }: Props) {
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
       {/* PIC MAP(PhotoMapScreen) 헤더와 같은 배치 — 제목 중앙, 좌우 36 대칭, 행 높이 54.
-          크기는 18px 대신 FONT_LG(17px)다. 8단계 스케일에 18이 없고 1px 차이는 보이지 않는다. */}
+          크기는 18px 대신 FONT_LG(17px)다. 스케일에 18이 없고 1px 차이는 보이지 않는다. */}
       <View
         className="flex-row items-center justify-between"
         style={{
