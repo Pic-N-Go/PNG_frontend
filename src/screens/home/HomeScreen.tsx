@@ -245,7 +245,9 @@ export default function HomeScreen({ navigation }: Props) {
           onSetThemes={() =>
             (navigation as any).navigate('Main', {
               screen: 'MyPageTab',
-              params: { screen: 'Setting', params: { openThemeSheet: true } },
+              // initial: false — 없으면 MY 탭 스택이 [Setting] 하나로 시작해
+              // 뒤로가기가 홈으로 튀고, MY 탭을 다시 눌러도 설정 화면이 남는다.
+              params: { screen: 'Setting', params: { openThemeSheet: true }, initial: false },
             })
           }
         />

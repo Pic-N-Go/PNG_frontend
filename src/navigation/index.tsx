@@ -51,6 +51,8 @@ function navigateToInquiryDetail(inquiryId: string) {
     params: {
       screen: 'InquiryDetail',
       params: { id: inquiryId },
+      // initial: false — MY 탭 스택 밑에 MyPage를 깔아 둔다. 없으면 뒤로가기가 홈으로 튄다.
+      initial: false,
     },
   });
 }
