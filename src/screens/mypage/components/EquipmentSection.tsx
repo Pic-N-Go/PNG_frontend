@@ -15,7 +15,7 @@ const CATEGORIES = [
 ];
 
 export default function EquipmentSection() {
-  const { data: equipments = [], isLoading, isError } = useMyEquipments();
+  const { data: equipments = [], isLoading, isError, refetch } = useMyEquipments();
   const createEquipment = useCreateEquipment();
   const deleteEquipment = useDeleteEquipment();
 
@@ -196,13 +196,21 @@ export default function EquipmentSection() {
         )}
 
         {!isLoading && isError && (
-          <View style={{ height: EMPTY_CARD_HEIGHT, alignItems: 'center', justifyContent: 'center' }}>
+          <View style={{ height: EMPTY_CARD_HEIGHT, alignItems: 'center', justifyContent: 'center', gap: normalize(12) }}>
             <Text
               className="text-center tracking-tight font-normal"
-              style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.35)' }}
+              style={{ fontSize: FONT_SM, color: TEXT_SUB }}
             >
               장비를 불러오지 못했어요
             </Text>
+            <TouchableOpacity onPress={() => refetch()} hitSlop={12}>
+              <Text
+                className="font-semibold tracking-tight"
+                style={{ fontSize: FONT_SM, color: BRAND, textDecorationLine: 'underline', textDecorationColor: BRAND }}
+              >
+                다시 시도
+              </Text>
+            </TouchableOpacity>
           </View>
         )}
 

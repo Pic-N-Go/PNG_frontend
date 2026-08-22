@@ -27,14 +27,28 @@ export default function BookmarkedSpots() {
         <View className="flex-row justify-between items-center mb-3">
           <SectionTitle />
         </View>
-        <Text className="tracking-tight font-normal" style={{ fontSize: FONT_SM, color: TEXT_SUB }}>
-          북마크를 불러오지 못했어요.
-        </Text>
-        <TouchableOpacity onPress={() => refetch()} hitSlop={8} style={{ marginTop: normalize(6) }}>
-          <Text className="tracking-tight font-semibold" style={{ fontSize: FONT_SM, color: BRAND }}>
-            다시 시도
+        <View
+          style={{
+            height: EMPTY_CARD_HEIGHT,
+            backgroundColor: CARD,
+            borderRadius: CARD_RADIUS,
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: normalize(12),
+          }}
+        >
+          <Text className="tracking-tight font-normal" style={{ fontSize: FONT_SM, color: TEXT_SUB }}>
+            북마크를 불러오지 못했어요
           </Text>
-        </TouchableOpacity>
+          <TouchableOpacity onPress={() => refetch()} hitSlop={12}>
+            <Text
+              className="font-semibold tracking-tight"
+              style={{ fontSize: FONT_SM, color: BRAND, textDecorationLine: 'underline', textDecorationColor: BRAND }}
+            >
+              다시 시도
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
     );
   }

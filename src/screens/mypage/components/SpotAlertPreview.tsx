@@ -11,7 +11,7 @@ import { BRAND, BRAND_STRONG, CARD, TEXT_SUB } from '@/constants/colors';
 export default function SpotAlertPreview() {
   const navigation = useNavigation<any>();
   const { useSpotAlertsQuery, useToggleSpotAlertActiveMutation } = useSpotAlert();
-  const { data: spotAlerts, isLoading } = useSpotAlertsQuery();
+  const { data: spotAlerts, isLoading, isError, refetch } = useSpotAlertsQuery();
   const toggleMutation = useToggleSpotAlertActiveMutation();
 
   const toggleAlarm = (item: any) => {
@@ -23,8 +23,9 @@ export default function SpotAlertPreview() {
   };
 
   const uiItems = (spotAlerts || []).map(mapSpotAlertToUI);
+  // 조회 실패를 빈 상태로 그리면 걸어 둔 알림이 있는데도 "없어요"가 된다. isError를 빼야 한다.
   // 빈 상태에서는 헤더 '설정'을 감춘다 — 빈 카드의 링크가 같은 곳으로 가는 CTA라 둘이 겹친다.
-  const isEmpty = !isLoading && uiItems.length === 0;
+  const isEmpty = !isLoading && !isError && uiItems.length === 0;
 
   return (
     <View className="mb-10">
@@ -56,6 +57,23 @@ export default function SpotAlertPreview() {
           style={{ marginHorizontal: GRID_PADDING, height: EMPTY_CARD_HEIGHT, borderRadius: CARD_RADIUS }}
         >
           <ActivityIndicator color={BRAND} size="small" />
+        </View>
+      ) : isError ? (
+        <View
+          className="bg-card items-center justify-center"
+          style={{ marginHorizontal: GRID_PADDING, height: EMPTY_CARD_HEIGHT, borderRadius: CARD_RADIUS, gap: normalize(12) }}
+        >
+          <Text className="tracking-tight font-normal" style={{ fontSize: FONT_SM, color: TEXT_SUB }}>
+            출사 알림을 불러오지 못했어요
+          </Text>
+          <TouchableOpacity onPress={() => refetch()} hitSlop={12}>
+            <Text
+              className="font-semibold tracking-tight"
+              style={{ fontSize: FONT_SM, color: BRAND, textDecorationLine: 'underline', textDecorationColor: BRAND }}
+            >
+              다시 시도
+            </Text>
+          </TouchableOpacity>
         </View>
       ) : isEmpty ? (
         <View
