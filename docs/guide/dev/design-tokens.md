@@ -68,6 +68,17 @@ Pretendard **3웨이트만** 로드한다 — `Regular` / `Medium` / `SemiBold`.
 
 디자인 규칙이 `max weight 600`이라 Bold 이상은 없다. `font-bold`도 SemiBold로 매핑된다.
 
+크기는 9개 토큰(`10 · 11 · 13 · 14 · 15 · 17 · 20 · 22 · 28`)만 쓴다. `14`만 상수가 없다.
+
+| 역할 | 토큰 |
+|---|---|
+| 섹션 제목 · 시트 제목 | `FONT_TITLE` (20) |
+| 더 큰 표제 (콘테스트 표시 텍스트 등) | `FONT_XL` (22) |
+| 화면 타이틀 (네비) | `FONT_LG` (17) |
+
+`FONT_TITLE`은 Apple Title3(20pt)이다. 크기명 래더에 17과 22 사이 자리가 없어 역할명으로 뒀다.
+편입 경위와 나머지 역할 배정은 `docs/ai/plans/refactor/ui-consistency/font-scale-plan.md`.
+
 - **새 웨이트가 필요하면 `App.tsx`의 `useFonts` 등록이 선행 조건이다.**
   등록 없이 `fontFamily`만 쓰면 iOS는 조용히 시스템 폰트로 폴백하고 안드로이드는 폴백하거나 죽는다.
 - `font-normal` `font-medium` `font-semibold` `font-bold` 유틸리티는 `global.css`에서

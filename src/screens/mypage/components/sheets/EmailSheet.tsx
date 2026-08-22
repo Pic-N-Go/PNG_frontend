@@ -3,7 +3,7 @@ import { View, Text, TextInput, TouchableOpacity } from 'react-native';
 import BottomSheet from '@/components/common/BottomSheet';
 import { IconX } from '@tabler/icons-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { FONT_MD, BUTTON_HEIGHT, BUTTON_RADIUS } from '@/constants/layout';
+import { BUTTON_HEIGHT, BUTTON_RADIUS, FONT_MD, FONT_TITLE } from '@/constants/layout';
 import { CARD, TEXT_SUB } from '@/constants/colors';
 
 interface EmailSheetProps {
@@ -19,7 +19,7 @@ export default function EmailSheet({ visible, onClose, onSendAuth }: EmailSheetP
     <BottomSheet visible={visible} onClose={onClose}>
       <View style={{ paddingHorizontal: normalize(20) }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: normalize(16) }}>
-          <Text className="font-semibold text-black tracking-tight" style={{ fontSize: normalizeFontSize(20) }}>
+          <Text className="font-semibold text-black tracking-tight" style={{ fontSize: FONT_TITLE }}>
             이메일 변경
           </Text>
           <TouchableOpacity onPress={onClose} style={{ padding: normalize(4) }}>

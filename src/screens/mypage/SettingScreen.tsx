@@ -25,7 +25,7 @@ import { CATEGORY_LABELS, CODE_BY_LABEL, SPOT_CATEGORY_MAP } from '@/constants/s
 import { passwordError } from '@/constants/validation';
 import { toErrorMessage } from '@/api/auth';
 import { normalize } from '@/utils/normalize';
-import { BUTTON_HEIGHT, BUTTON_RADIUS, CARD_RADIUS, FONT_2XS, FONT_LG, FONT_MD, FONT_SM, FONT_XL, FONT_XS, GRID_PADDING, HAIRLINE_WIDTH, INPUT_HEIGHT, SPACING_LG, SPACING_SM, WHEEL_ITEM_HEIGHT, WHEEL_SELECTION_RADIUS, WHEEL_VISIBLE_HEIGHT, WHEEL_WIDTH } from '@/constants/layout';
+import { BUTTON_HEIGHT, BUTTON_RADIUS, CARD_RADIUS, FONT_2XS, FONT_LG, FONT_MD, FONT_SM, FONT_TITLE, FONT_XL, FONT_XS, GRID_PADDING, HAIRLINE_WIDTH, INPUT_HEIGHT, SPACING_LG, SPACING_SM, WHEEL_ITEM_HEIGHT, WHEEL_SELECTION_RADIUS, WHEEL_VISIBLE_HEIGHT, WHEEL_WIDTH } from '@/constants/layout';
 import { BRAND, CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
 
 type Props = NativeStackScreenProps<MyPageStackParamList, 'Setting'>;
@@ -942,7 +942,7 @@ function VersionInfoSheet({ visible, onClose, onOpenDoc }: { visible: boolean; o
   return (
     <BottomSheet visible={visible} onClose={onClose}>
       <View style={{ paddingHorizontal: normalize(20), paddingBottom: normalize(8) }}>
-        <Text className="font-semibold text-black" style={{ fontSize: FONT_XL, letterSpacing: -0.3, marginBottom: normalize(18) }}>버전 정보</Text>
+        <Text className="font-semibold text-black" style={{ fontSize: FONT_TITLE, letterSpacing: -0.3, marginBottom: normalize(18) }}>버전 정보</Text>
 
         {/* 그룹 1: 앱 메타 */}
         <View className="bg-card" style={{ borderRadius: normalize(14), paddingHorizontal: normalize(16) }}>
@@ -1036,7 +1036,7 @@ function PasswordChangeSheet({ visible, onClose }: { visible: boolean; onClose: 
     <BottomSheet visible={visible} onClose={onClose}>
       <View style={{ paddingHorizontal: normalize(20), paddingBottom: normalize(8) }}>
         <View className="flex-row items-center justify-between" style={{ marginBottom: normalize(18) }}>
-          <Text className="font-semibold text-black" style={{ fontSize: FONT_XL, letterSpacing: -0.3 }}>비밀번호 변경</Text>
+          <Text className="font-semibold text-black" style={{ fontSize: FONT_TITLE, letterSpacing: -0.3 }}>비밀번호 변경</Text>
           <Pressable
             onPress={onClose}
             hitSlop={8}
@@ -1145,7 +1145,7 @@ function InterestThemeSheet({
     <BottomSheet visible={visible} onClose={onClose}>
       <View style={{ paddingHorizontal: normalize(20), paddingBottom: normalize(8) }}>
         <View className="flex-row items-center justify-between" style={{ marginBottom: normalize(14) }}>
-          <Text className="font-semibold text-black" style={{ fontSize: FONT_XL, letterSpacing: -0.3 }}>관심 테마</Text>
+          <Text className="font-semibold text-black" style={{ fontSize: FONT_TITLE, letterSpacing: -0.3 }}>관심 테마</Text>
           <Pressable
             onPress={onClose}
             hitSlop={8}

@@ -3,7 +3,7 @@ import { Animated, View, Text, TouchableOpacity } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { IconMapPin } from '@tabler/icons-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { CARD_RADIUS, FONT_SM, GRID_PADDING } from '@/constants/layout';
+import { CARD_RADIUS, FONT_SM, FONT_TITLE, GRID_PADDING } from '@/constants/layout';
 
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { BRAND, CARD, TEXT_SUB } from '@/constants/colors';
@@ -74,7 +74,7 @@ export default function PhotoMapPreview() {
   return (
     <View className="mb-10" style={{ paddingHorizontal: GRID_PADDING }}>
       <View className="flex-row justify-between items-center mb-3">
-        <Text className="font-semibold tracking-tight text-black" style={{ fontSize: normalizeFontSize(20) }}>
+        <Text className="font-semibold tracking-tight text-black" style={{ fontSize: FONT_TITLE }}>
           PIC MAP
         </Text>
         <TouchableOpacity onPress={() => navigation.navigate('PhotoMap' as never)}>

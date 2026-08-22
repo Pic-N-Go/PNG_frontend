@@ -6,7 +6,7 @@ import * as Location from 'expo-location';
 import { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
 import { HomeStackParamList } from '@/navigation/stacks/HomeStack';
 import type { RootStackParamList } from '@/navigation';
-import { CONTENT_PADDING, FONT_SM, FONT_XL, SPACING_LG } from '@/constants/layout';
+import { CONTENT_PADDING, FONT_SM, FONT_TITLE, SPACING_LG } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
 import HeroSection from '@/components/home/HeroSection';
 import SearchBar from '@/components/home/SearchBar';
@@ -209,7 +209,7 @@ export default function HomeScreen({ navigation }: Props) {
         <View style={{ paddingHorizontal: CONTENT_PADDING, marginTop: normalize(28) }}>
           <Text
             allowFontScaling={false}
-            style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XL, color: '#000', letterSpacing: -0.4 }}
+            style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_TITLE, color: '#000', letterSpacing: -0.4 }}
           >
             내 주변 포토스팟
           </Text>
