@@ -2,8 +2,8 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Animated, View, Text, TouchableOpacity } from 'react-native';
 import { WebView } from 'react-native-webview';
 import { IconMapPin } from '@tabler/icons-react-native';
-import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { CARD_RADIUS, FONT_SM, FONT_TITLE, GRID_PADDING } from '@/constants/layout';
+import { normalize } from '@/utils/normalize';
+import { CARD_RADIUS, FONT_2XS, FONT_SM, FONT_TITLE, GRID_PADDING } from '@/constants/layout';
 
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { BRAND, CARD, TEXT_SUB } from '@/constants/colors';
@@ -163,13 +163,13 @@ export default function PhotoMapPreview() {
         >
           <View className="flex-row items-center" style={{ gap: normalize(3) }}>
             <IconMapPin size={normalize(12)} color={BRAND} fill={BRAND} />
-            <Text className="tracking-tight font-normal" style={{ fontSize: normalizeFontSize(10), color: TEXT_SUB }}>
+            <Text className="tracking-tight font-normal" style={{ fontSize: FONT_2XS, color: TEXT_SUB }}>
               리뷰
             </Text>
           </View>
           <View className="flex-row items-center" style={{ gap: normalize(3) }}>
             <IconMapPin size={normalize(12)} color="#1c1c1e" fill="#1c1c1e" />
-            <Text className="tracking-tight font-normal" style={{ fontSize: normalizeFontSize(10), color: TEXT_SUB }}>
+            <Text className="tracking-tight font-normal" style={{ fontSize: FONT_2XS, color: TEXT_SUB }}>
               즐겨찾기
             </Text>
           </View>
