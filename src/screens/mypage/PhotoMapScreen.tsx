@@ -208,6 +208,9 @@ export default function PhotoMapScreen() {
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
   <!-- baseUrl을 https로 주면 카카오 SDK가 내부 라이브러리를 https로 받는다(iOS ATS 통과).
        baseUrl 없이 html만 넘기면 origin이 about:blank가 되어 지도가 흰 화면으로 남는다. -->
+  <!-- 그 baseUrl(https://localhost)이 카카오에 등록된 도메인이 아니라, Referer를 보내면
+       sdk.js가 401 AccessDeniedError를 돌려준다. kakao가 미정의가 되어 지도가 안 뜬다. -->
+  <meta name="referrer" content="no-referrer">
   <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_KEY}&autoload=false"></script>
   <style>
     body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #ffffff; }

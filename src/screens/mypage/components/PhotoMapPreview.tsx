@@ -189,6 +189,10 @@ function buildPreviewHtml(spots: { lat: number; lng: number; reviewed: boolean }
 <html>
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+  <!-- Referer를 보내면 카카오가 baseUrl(https://localhost)을 등록되지 않은 도메인으로 보고
+       sdk.js에 401 AccessDeniedError를 준다. 스크립트 자리에 JSON이 오므로 kakao가 미정의가 되고
+       아래 인라인 스크립트가 즉시 throw해 지도가 통째로 안 그려진다(회색 카드만 남는다). -->
+  <meta name="referrer" content="no-referrer">
   <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_KEY}&autoload=false"></script>
   <style>
     body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: ${CARD}; }
