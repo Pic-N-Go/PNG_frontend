@@ -7,10 +7,25 @@ import {
   Text,
   View,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import BottomSheet from '@/components/common/BottomSheet';
-import { BUTTON_RADIUS, GRID_PADDING } from '@/constants/layout';
-import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { BRAND, TEXT_SUB } from '@/constants/colors';
+import {
+  BUTTON_HEIGHT,
+  BUTTON_RADIUS,
+  CARD_RADIUS,
+  FONT_LG,
+  FONT_MD,
+  FONT_SM,
+  FONT_TITLE,
+  FONT_XL,
+  FONT_XS,
+  GRID_PADDING,
+  WHEEL_ITEM_HEIGHT,
+  WHEEL_SELECTION_RADIUS,
+  WHEEL_VISIBLE_HEIGHT,
+} from '@/constants/layout';
+import { normalize } from '@/utils/normalize';
+import { BRAND, CARD, TEXT_SUB } from '@/constants/colors';
 
 interface Props {
   visible: boolean;
@@ -24,101 +39,121 @@ interface Props {
 }
 
 const MINUTE_INTERVAL = 5;
-const ITEM_HEIGHT = normalize(40);
-const VISIBLE_ITEMS = 3; // 3개 (위 1개 + 중앙 선택 1개 + 아래 1개)
-const CONTAINER_HEIGHT = ITEM_HEIGHT * VISIBLE_ITEMS;
-
 const PERIODS = ['오전', '오후'];
 const HOURS = Array.from({ length: 12 }, (_, i) => String(i + 1));
 
-interface WheelColumnProps {
+interface WheelProps {
   items: string[];
-  selectedIndex: number;
-  onSelect: (index: number) => void;
+  value: string;
+  onChange: (v: string) => void;
   unit?: string;
-  width?: number | string;
 }
 
-function WheelColumn({ items, selectedIndex, onSelect, unit, width = '32%' }: WheelColumnProps) {
+function Wheel({ items, value, onChange, unit }: WheelProps) {
   const scrollRef = useRef<ScrollView>(null);
-  const isScrollingRef = useRef(false);
+  const isMomentumRef = useRef(false);
+  const dragTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const idx = Math.max(0, items.indexOf(value));
 
-  // 선택된 인덱스로 스크롤 위치 이동
+  // 선택된 항목으로 스크롤 위치 동기화
   useEffect(() => {
-    if (!isScrollingRef.current) {
-      scrollRef.current?.scrollTo({
-        y: selectedIndex * ITEM_HEIGHT,
-        animated: false,
-      });
-    }
-  }, [selectedIndex]);
+    scrollRef.current?.scrollTo({
+      y: idx * WHEEL_ITEM_HEIGHT,
+      animated: false,
+    });
+  }, [idx]);
 
   const handleScrollEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-    isScrollingRef.current = false;
-    const offsetY = e.nativeEvent.contentOffset.y;
-    const nextIndex = Math.max(0, Math.min(items.length - 1, Math.round(offsetY / ITEM_HEIGHT)));
-    if (nextIndex !== selectedIndex) {
-      onSelect(nextIndex);
+    const y = e.nativeEvent.contentOffset.y;
+    const i = Math.round(y / WHEEL_ITEM_HEIGHT);
+    const validIndex = Math.max(0, Math.min(items.length - 1, i));
+    const nextVal = items[validIndex];
+    if (nextVal && nextVal !== value) {
+      onChange(nextVal);
     }
   };
 
-  const handleItemPress = (index: number) => {
-    scrollRef.current?.scrollTo({
-      y: index * ITEM_HEIGHT,
-      animated: true,
-    });
-    onSelect(index);
+  const handleMomentumScrollBegin = () => {
+    isMomentumRef.current = true;
+    if (dragTimerRef.current) {
+      clearTimeout(dragTimerRef.current);
+      dragTimerRef.current = null;
+    }
+  };
+
+  const handleMomentumScrollEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    isMomentumRef.current = false;
+    if (dragTimerRef.current) {
+      clearTimeout(dragTimerRef.current);
+      dragTimerRef.current = null;
+    }
+    handleScrollEnd(e);
+  };
+
+  const handleScrollEndDrag = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    if (dragTimerRef.current) clearTimeout(dragTimerRef.current);
+    const nativeEvent = e.nativeEvent;
+    dragTimerRef.current = setTimeout(() => {
+      if (!isMomentumRef.current) {
+        handleScrollEnd({ nativeEvent } as any);
+      }
+    }, 100);
   };
 
   return (
-    <View style={{ width: width as any, height: CONTAINER_HEIGHT, position: 'relative' }}>
+    <View className="relative overflow-hidden flex-1" style={{ height: WHEEL_VISIBLE_HEIGHT }}>
+      {/* 중앙 선택 영역 하이라이트 */}
+      <View
+        pointerEvents="none"
+        className="absolute left-0 right-0 bg-black/5"
+        style={{
+          top: WHEEL_ITEM_HEIGHT,
+          height: WHEEL_ITEM_HEIGHT,
+          borderRadius: WHEEL_SELECTION_RADIUS,
+        }}
+      />
       <ScrollView
         ref={scrollRef}
         showsVerticalScrollIndicator={false}
-        snapToInterval={ITEM_HEIGHT}
+        snapToInterval={WHEEL_ITEM_HEIGHT}
         decelerationRate="fast"
         bounces={false}
-        nestedScrollEnabled={true}
-        onScrollBeginDrag={() => {
-          isScrollingRef.current = true;
-        }}
-        onMomentumScrollEnd={handleScrollEnd}
-        onScrollEndDrag={handleScrollEnd}
-        contentContainerStyle={{
-          paddingVertical: ITEM_HEIGHT, // 상하 1칸씩 여백을 주어 중앙 슬롯에 항목이 위치하도록 함
-        }}
+        contentOffset={{ x: 0, y: idx * WHEEL_ITEM_HEIGHT }}
+        onMomentumScrollBegin={handleMomentumScrollBegin}
+        onMomentumScrollEnd={handleMomentumScrollEnd}
+        onScrollEndDrag={handleScrollEndDrag}
+        contentContainerStyle={{ paddingVertical: WHEEL_ITEM_HEIGHT }}
       >
-        {items.map((item, i) => {
-          const isSelected = i === selectedIndex;
+        {items.map((it, itemIdx) => {
+          const active = it === value;
           return (
             <Pressable
-              key={`${item}-${i}`}
-              onPress={() => handleItemPress(i)}
-              style={{
-                height: ITEM_HEIGHT,
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexDirection: 'row',
+              key={it}
+              onPress={() => {
+                onChange(it);
+                scrollRef.current?.scrollTo({ y: itemIdx * WHEEL_ITEM_HEIGHT, animated: true });
               }}
+              className="flex-row items-center justify-center"
+              style={{ height: WHEEL_ITEM_HEIGHT }}
             >
               <Text
                 allowFontScaling={false}
                 style={{
-                  fontFamily: isSelected ? 'Pretendard-Bold' : 'Pretendard-Regular',
-                  fontSize: isSelected ? normalizeFontSize(19) : normalizeFontSize(15),
-                  color: isSelected ? '#000' : 'rgba(0,0,0,0.28)',
+                  fontSize: active ? FONT_XL : FONT_MD,
+                  fontFamily: active ? 'Pretendard-SemiBold' : 'Pretendard-Regular',
+                  color: active ? '#111111' : '#c7c7cc',
                   letterSpacing: -0.2,
                 }}
               >
-                {item}
+                {it}
               </Text>
-              {unit && isSelected && (
+              {unit && active && (
                 <Text
                   allowFontScaling={false}
                   style={{
+                    fontSize: FONT_SM,
                     fontFamily: 'Pretendard-SemiBold',
-                    fontSize: normalizeFontSize(13),
-                    color: '#000',
+                    color: '#111111',
                     marginLeft: normalize(2),
                   }}
                 >
@@ -129,12 +164,25 @@ function WheelColumn({ items, selectedIndex, onSelect, unit, width = '32%' }: Wh
           );
         })}
       </ScrollView>
+      {/* 상하단 페이드 그라디언트 */}
+      <LinearGradient
+        pointerEvents="none"
+        colors={[CARD, 'rgba(245,245,247,0)']}
+        className="absolute left-0 right-0 top-0"
+        style={{ height: WHEEL_ITEM_HEIGHT }}
+      />
+      <LinearGradient
+        pointerEvents="none"
+        colors={['rgba(245,245,247,0)', CARD]}
+        className="absolute left-0 right-0 bottom-0"
+        style={{ height: WHEEL_ITEM_HEIGHT }}
+      />
     </View>
   );
 }
 
 /**
- * iOS와 Android 모두 동일하고 세련된 디자인으로 작동하는 커스텀 바텀시트 휠 타임피커
+ * development.md 가이드 및 design-tokens.md 기준에 100% 맞춘 커스텀 바텀시트 시간 선택기
  */
 export default function TimePickerSheet({
   visible,
@@ -144,24 +192,20 @@ export default function TimePickerSheet({
   title = '시간대 선택',
   minuteInterval = MINUTE_INTERVAL,
 }: Props) {
-  // 1. 전달받은 Date 객체에서 오전/오후, 12시간제 시, 분 추출
+  // 1. 초기값 계산
   const initialValues = useMemo(() => {
     const hours24 = value.getHours();
     const isPM = hours24 >= 12;
-    const periodIdx = isPM ? 1 : 0;
+    const period = isPM ? '오후' : '오전';
     const hour12 = hours24 % 12 === 0 ? 12 : hours24 % 12;
-    const hourIdx = hour12 - 1; // 1~12 -> 0~11
+    const hour = String(hour12);
 
     const rawMinutes = value.getMinutes();
-    // minuteInterval 단위로 가장 가까운 분 계산
     const roundedMinutes = Math.round(rawMinutes / minuteInterval) * minuteInterval;
     const safeMinutes = roundedMinutes >= 60 ? 60 - minuteInterval : roundedMinutes;
+    const minute = safeMinutes < 10 ? `0${safeMinutes}` : String(safeMinutes);
 
-    return {
-      periodIdx,
-      hourIdx,
-      minute: safeMinutes,
-    };
+    return { period, hour, minute };
   }, [value, minuteInterval]);
 
   const minuteOptions = useMemo(() => {
@@ -172,40 +216,34 @@ export default function TimePickerSheet({
     return list;
   }, [minuteInterval]);
 
-  const [periodIndex, setPeriodIndex] = useState(initialValues.periodIdx);
-  const [hourIndex, setHourIndex] = useState(initialValues.hourIdx);
-  const [minuteIndex, setMinuteIndex] = useState(() => {
-    const formatted = initialValues.minute < 10 ? `0${initialValues.minute}` : String(initialValues.minute);
-    const idx = minuteOptions.indexOf(formatted);
-    return idx >= 0 ? idx : 0;
-  });
+  const [selectedPeriod, setSelectedPeriod] = useState(initialValues.period);
+  const [selectedHour, setSelectedHour] = useState(initialValues.hour);
+  const [selectedMinute, setSelectedMinute] = useState(initialValues.minute);
 
-  // 열릴 때마다 넘겨받은 value로 휠 상태 동기화
+  // 시트가 열릴 때마다 넘겨받은 value로 상태 동기화
   useEffect(() => {
     if (visible) {
-      setPeriodIndex(initialValues.periodIdx);
-      setHourIndex(initialValues.hourIdx);
-      const formatted = initialValues.minute < 10 ? `0${initialValues.minute}` : String(initialValues.minute);
-      const idx = minuteOptions.indexOf(formatted);
-      setMinuteIndex(idx >= 0 ? idx : 0);
+      setSelectedPeriod(initialValues.period);
+      setSelectedHour(initialValues.hour);
+      setSelectedMinute(initialValues.minute);
     }
-  }, [visible, initialValues, minuteOptions]);
+  }, [visible, initialValues]);
 
   const handleConfirm = () => {
-    const isPM = periodIndex === 1;
-    const selectedHour12 = hourIndex + 1; // 1~12
+    const isPM = selectedPeriod === '오후';
+    const hourNum = parseInt(selectedHour, 10);
     let hours24: number;
 
     if (isPM) {
-      hours24 = selectedHour12 === 12 ? 12 : selectedHour12 + 12;
+      hours24 = hourNum === 12 ? 12 : hourNum + 12;
     } else {
-      hours24 = selectedHour12 === 12 ? 0 : selectedHour12;
+      hours24 = hourNum === 12 ? 0 : hourNum;
     }
 
-    const selectedMinute = Number(minuteOptions[minuteIndex] ?? '0');
+    const minNum = parseInt(selectedMinute, 10);
 
     const nextDate = new Date(value);
-    nextDate.setHours(hours24, selectedMinute, 0, 0);
+    nextDate.setHours(hours24, minNum, 0, 0);
 
     onConfirm(nextDate);
     onClose();
@@ -213,109 +251,73 @@ export default function TimePickerSheet({
 
   return (
     <BottomSheet visible={visible} onClose={onClose}>
-      <View style={{ width: '100%' }}>
-        {/* 헤더 */}
-        <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(8), paddingBottom: normalize(4) }}>
-          <Text
-            allowFontScaling={false}
-            style={{
-              fontFamily: 'Pretendard-SemiBold',
-              fontSize: normalizeFontSize(18),
-              color: '#000',
-              letterSpacing: -0.35,
-            }}
-          >
-            {title}
-          </Text>
-          <Text
-            allowFontScaling={false}
-            style={{
-              fontFamily: 'Pretendard-Regular',
-              fontSize: normalizeFontSize(13),
-              color: TEXT_SUB,
-              marginTop: normalize(2),
-            }}
-          >
-            원하는 시간을 스크롤하여 선택해 주세요
-          </Text>
-        </View>
-
-        {/* 휠 피커 컨테이너 */}
-        <View
+      {/* 헤더 */}
+      <View style={{ paddingHorizontal: GRID_PADDING, paddingBottom: normalize(4) }}>
+        <Text
+          allowFontScaling={false}
+          className="font-semibold"
           style={{
-            height: CONTAINER_HEIGHT,
-            marginHorizontal: GRID_PADDING,
-            marginVertical: normalize(10),
-            alignItems: 'center',
-            justifyContent: 'center',
-            position: 'relative',
+            fontSize: FONT_TITLE,
+            color: '#111111',
+            letterSpacing: -0.35,
           }}
         >
-          {/* 중앙 선택 영역 하이라이트 바 */}
-          <View
-            style={{
-              position: 'absolute',
-              top: ITEM_HEIGHT,
-              left: 0,
-              right: 0,
-              height: ITEM_HEIGHT,
-              backgroundColor: 'rgba(0,0,0,0.05)',
-              borderRadius: normalize(10),
-              zIndex: 0,
-            }}
-            pointerEvents="none"
-          />
+          {title}
+        </Text>
+        <Text
+          allowFontScaling={false}
+          className="font-normal"
+          style={{
+            fontSize: FONT_XS,
+            color: TEXT_SUB,
+            marginTop: normalize(2),
+          }}
+        >
+          원하는 시간을 스크롤하여 선택해 주세요
+        </Text>
+      </View>
 
-          {/* 3열 휠 스피너 (오전/오후 · 시 · 분) */}
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', width: '100%', zIndex: 1 }}>
-            <WheelColumn
-              items={PERIODS}
-              selectedIndex={periodIndex}
-              onSelect={setPeriodIndex}
-              width="28%"
-            />
-            <WheelColumn
-              items={HOURS}
-              selectedIndex={hourIndex}
-              onSelect={setHourIndex}
-              unit="시"
-              width="32%"
-            />
-            <WheelColumn
-              items={minuteOptions}
-              selectedIndex={minuteIndex}
-              onSelect={setMinuteIndex}
-              unit="분"
-              width="32%"
-            />
-          </View>
+      {/* 휠 피커 카드 컨테이너 (SettingScreen의 bg-card 스타일 규격 준수) */}
+      <View
+        className="overflow-hidden bg-card"
+        style={{
+          marginHorizontal: GRID_PADDING,
+          marginTop: normalize(14),
+          borderRadius: CARD_RADIUS,
+        }}
+      >
+        <View
+          className="flex-row items-center justify-around"
+          style={{
+            paddingHorizontal: normalize(12),
+            paddingVertical: normalize(6),
+          }}
+        >
+          <Wheel items={PERIODS} value={selectedPeriod} onChange={setSelectedPeriod} />
+          <Wheel items={HOURS} value={selectedHour} onChange={setSelectedHour} unit="시" />
+          <Wheel items={minuteOptions} value={selectedMinute} onChange={setSelectedMinute} unit="분" />
         </View>
+      </View>
 
-        {/* 하단 확인 버튼 */}
-        <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(6), paddingBottom: normalize(12) }}>
-          <Pressable
-            onPress={handleConfirm}
-            style={({ pressed }) => ({
-              width: '100%',
-              height: normalize(50),
-              borderRadius: BUTTON_RADIUS,
-              backgroundColor: pressed ? '#d11550' : BRAND,
-              alignItems: 'center',
-              justifyContent: 'center',
-            })}
+      {/* 하단 확인 버튼 */}
+      <View style={{ paddingHorizontal: GRID_PADDING, marginTop: normalize(16), paddingBottom: normalize(4) }}>
+        <Pressable
+          onPress={handleConfirm}
+          className="items-center justify-center"
+          style={({ pressed }) => ({
+            height: BUTTON_HEIGHT,
+            borderRadius: BUTTON_RADIUS,
+            backgroundColor: pressed ? '#d11550' : BRAND,
+          })}
+        >
+          <Text
+            allowFontScaling={false}
+            className="font-semibold text-white"
+            style={{ fontSize: FONT_MD }}
           >
-            <Text
-              allowFontScaling={false}
-              style={{
-                fontFamily: 'Pretendard-SemiBold',
-                fontSize: normalizeFontSize(16),
-                color: '#fff',
-              }}
-            >
-              확인
-            </Text>
-          </Pressable>
-        </View>
+            확인
+          </Text>
+        </Pressable>
       </View>
     </BottomSheet>
   );
