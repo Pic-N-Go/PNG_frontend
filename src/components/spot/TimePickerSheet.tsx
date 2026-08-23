@@ -250,73 +250,76 @@ export default function TimePickerSheet({
 
   return (
     <BottomSheet visible={visible} onClose={onClose}>
-      {/* 헤더 */}
-      <View style={{ paddingHorizontal: GRID_PADDING, paddingBottom: normalize(4) }}>
-        <Text
-          allowFontScaling={false}
-          className="font-semibold"
-          style={{
-            fontSize: FONT_TITLE,
-            color: '#111111',
-            letterSpacing: -0.35,
-          }}
-        >
-          {title}
-        </Text>
-        <Text
-          allowFontScaling={false}
-          className="font-normal"
-          style={{
-            fontSize: FONT_XS,
-            color: TEXT_SUB,
-            marginTop: normalize(2),
-          }}
-        >
-          원하는 시간을 스크롤하여 선택해 주세요
-        </Text>
-      </View>
-
-      {/* 휠 피커 카드 컨테이너 (SettingScreen의 bg-card 스타일 규격 준수) */}
-      <View
-        className="overflow-hidden bg-card"
-        style={{
-          marginHorizontal: GRID_PADDING,
-          marginTop: normalize(14),
-          borderRadius: CARD_RADIUS,
-        }}
-      >
-        <View
-          className="flex-row items-center justify-around"
-          style={{
-            paddingHorizontal: normalize(12),
-            paddingVertical: normalize(6),
-          }}
-        >
-          <Wheel items={PERIODS} value={selectedPeriod} onChange={setSelectedPeriod} />
-          <Wheel items={HOURS} value={selectedHour} onChange={setSelectedHour} unit="시" />
-          <Wheel items={minuteOptions} value={selectedMinute} onChange={setSelectedMinute} unit="분" />
-        </View>
-      </View>
-
-      {/* 하단 확인 버튼 */}
-      <View style={{ paddingHorizontal: GRID_PADDING, marginTop: normalize(16), paddingBottom: normalize(4) }}>
-        <Pressable
-          onPress={handleConfirm}
-          className="items-center justify-center"
-          style={({ pressed }) => ({
-            height: BUTTON_HEIGHT,
-            borderRadius: BUTTON_RADIUS,
-            backgroundColor: pressed ? '#d11550' : BRAND,
-          })}
-        >
+      <View style={{ paddingBottom: normalize(8) }}>
+        {/* 헤더 */}
+        <View style={{ paddingHorizontal: GRID_PADDING, paddingBottom: normalize(4) }}>
           <Text
             allowFontScaling={false}
-            className="font-semibold text-white"
-            style={{ fontSize: FONT_MD }}
+            className="font-semibold"
+            style={{
+              fontSize: FONT_TITLE,
+              color: '#111111',
+              letterSpacing: -0.35,
+            }}
           >
-            확인
+            {title}
           </Text>
-        </Pressable>
+          <Text
+            allowFontScaling={false}
+            className="font-normal"
+            style={{
+              fontSize: FONT_XS,
+              color: TEXT_SUB,
+              marginTop: normalize(2),
+            }}
+          >
+            원하는 시간을 스크롤하여 선택해 주세요
+          </Text>
+        </View>
+
+        {/* 휠 피커 카드 컨테이너 (SettingScreen의 bg-card 스타일 규격 준수) */}
+        <View
+          className="overflow-hidden bg-card"
+          style={{
+            marginHorizontal: GRID_PADDING,
+            marginTop: normalize(12),
+            marginBottom: normalize(16),
+            borderRadius: CARD_RADIUS,
+          }}
+        >
+          <View
+            className="flex-row items-center justify-around"
+            style={{
+              paddingHorizontal: normalize(12),
+              paddingVertical: normalize(4),
+            }}
+          >
+            <Wheel items={PERIODS} value={selectedPeriod} onChange={setSelectedPeriod} />
+            <Wheel items={HOURS} value={selectedHour} onChange={setSelectedHour} unit="시" />
+            <Wheel items={minuteOptions} value={selectedMinute} onChange={setSelectedMinute} unit="분" />
+          </View>
+        </View>
+
+        {/* 하단 확인 버튼 */}
+        <View style={{ paddingHorizontal: GRID_PADDING }}>
+          <Pressable
+            onPress={handleConfirm}
+            className="items-center justify-center"
+            style={({ pressed }) => ({
+              height: BUTTON_HEIGHT,
+              borderRadius: BUTTON_RADIUS,
+              backgroundColor: pressed ? '#d11550' : BRAND,
+            })}
+          >
+            <Text
+              allowFontScaling={false}
+              className="font-semibold text-white"
+              style={{ fontSize: FONT_MD }}
+            >
+              확인
+            </Text>
+          </Pressable>
+        </View>
       </View>
     </BottomSheet>
   );
