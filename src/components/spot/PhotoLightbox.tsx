@@ -61,6 +61,13 @@ const SWIPE_DISTANCE = 50;
 export default function PhotoLightbox({ photos, initialIndex, visible, onClose, reviewId, photoIds, exifs }: Props) {
   const [index, setIndex] = useState(initialIndex);
   const [exifOpen, setExifOpen] = useState(false);
+  const [exifRequestedFor, setExifRequestedFor] = useState<number | null>(null);
+
+  const exifRequested = exifRequestedFor != null && reviewId != null && exifRequestedFor === Number(reviewId);
+  const { data: exifByPhotoId, isLoading: exifLoading, isError: exifError } = useReviewExif(
+    reviewId ?? null,
+    exifRequested,
+  );
 
   // 확대 배율과 이동량.
   const scale = useSharedValue(1);
@@ -209,12 +216,6 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose, 
   const uri = photos[safeIndex];
 
   // EXIF 데이터 처리
-  const [exifRequestedFor, setExifRequestedFor] = useState<number | null>(null);
-  const exifRequested = exifRequestedFor != null && reviewId != null && exifRequestedFor === Number(reviewId);
-  const { data: exifByPhotoId, isLoading: exifLoading, isError: exifError } = useReviewExif(
-    reviewId ?? null,
-    exifRequested,
-  );
 
   const currentPhotoId = photoIds?.[safeIndex];
   const fetchedExif = currentPhotoId != null ? exifByPhotoId?.[currentPhotoId] : undefined;
