@@ -533,33 +533,30 @@ export function useDeleteComment(postId: string) {
       qc.removeQueries({ queryKey: ['community', 'replies', postId, commentId] });
 
       // 2. 답글 캐시 확인 및 갱신 (만약 삭제 대상이 답글인 경우)
-      qc.setQueriesData<{ pages: CommentPageResponseDTO[]; pageParams: unknown[] }>(
-        { queryKey: ['community', 'replies', postId] },
-        (old, query) => {
-          if (!old) return old;
-          let found = false;
-          const pages = old.pages.map((page) => {
-            const hasTarget = page.comments.some((c) => String(c.id) === commentId);
-            if (!hasTarget) return page;
-            found = true;
-            return {
-              ...page,
-              comments: page.comments.filter((c) => String(c.id) !== commentId),
-              totalElements: Math.max(0, (page.totalElements ?? 1) - 1),
-            };
-          });
+      const replyQueries = qc.getQueryCache().findAll({ queryKey: ['community', 'replies', postId] });
+      replyQueries.forEach((q) => {
+        const old = q.state.data as { pages: CommentPageResponseDTO[]; pageParams: unknown[] } | undefined;
+        if (!old) return;
+        let found = false;
+        const pages = old.pages.map((page) => {
+          const hasTarget = page.comments.some((c) => String(c.id) === commentId);
+          if (!hasTarget) return page;
+          found = true;
+          return {
+            ...page,
+            comments: page.comments.filter((c) => String(c.id) !== commentId),
+            totalElements: Math.max(0, (page.totalElements ?? 1) - 1),
+          };
+        });
 
-          if (found && Array.isArray(query?.queryKey)) {
-            // queryKey: ['community', 'replies', postId, parentId]
-            const parentKey = query.queryKey[3];
-            if (parentKey != null) {
-              parentCommentId = String(parentKey);
-            }
+        if (found) {
+          qc.setQueryData(q.queryKey, { ...old, pages });
+          const parentKey = q.queryKey[3];
+          if (parentKey != null) {
+            parentCommentId = String(parentKey);
           }
-
-          return found ? { ...old, pages } : old;
-        },
-      );
+        }
+      });
 
       // 3. 삭제된 대상이 답글이었다면, 부모 댓글의 replyCount -1
       if (parentCommentId) {
