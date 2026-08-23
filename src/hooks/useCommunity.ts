@@ -504,61 +504,51 @@ export function useDeleteComment(postId: string) {
       let deletedCount = 1;
       let parentCommentId: string | null = null;
 
-      // 1. 최상위 댓글 목록 캐시 확인 및 갱신
-      qc.setQueriesData<{ pages: CommentPageResponseDTO[]; pageParams: unknown[] }>(
-        { queryKey: commentsKey(postId) },
-        (old) => {
-          if (!old) return old;
-          let found = false;
-          const pages = old.pages.map((page) => {
-            const hasTarget = page.comments.some((c) => String(c.id) === commentId);
-            if (!hasTarget) return page;
-            found = true;
-            const target = page.comments.find((c) => String(c.id) === commentId);
-            if (target?.replyCount) {
+      // 1. 공통 remove 콜백: 대상 commentId가 존재하는 캐시만 수정하고, totalElements를 안전하게 차감
+      const remove = (old: { pages: CommentPageResponseDTO[]; pageParams: unknown[] } | undefined) => {
+        if (!old) return old;
+        const hasTarget = old.pages.some((page) =>
+          page.comments.some((c) => String(c.id) === commentId),
+        );
+        if (!hasTarget) return old;
+
+        for (const page of old.pages) {
+          const target = page.comments.find((c) => String(c.id) === commentId);
+          if (target) {
+            if (target.replyCount) {
               deletedCount += target.replyCount;
             }
-            return {
-              ...page,
-              comments: page.comments.filter((c) => String(c.id) !== commentId),
-              totalElements: Math.max(0, (page.totalElements ?? 1) - 1),
-            };
-          });
+            if (target.parentId != null) {
+              parentCommentId = String(target.parentId);
+            }
+          }
+        }
 
-          return found ? { ...old, pages } : old;
-        },
+        const pages = old.pages.map((page) => {
+          const pageHasTarget = page.comments.some((c) => String(c.id) === commentId);
+          return {
+            ...page,
+            comments: page.comments.filter((c) => String(c.id) !== commentId),
+            totalElements: pageHasTarget ? Math.max(0, (page.totalElements ?? 1) - 1) : page.totalElements,
+          };
+        });
+
+        return { ...old, pages };
+      };
+
+      qc.setQueriesData<{ pages: CommentPageResponseDTO[]; pageParams: unknown[] }>(
+        { queryKey: commentsKey(postId) },
+        remove,
+      );
+      qc.setQueriesData<{ pages: CommentPageResponseDTO[]; pageParams: unknown[] }>(
+        { queryKey: ['community', 'replies', postId] },
+        remove,
       );
 
       // 만약 최상위 댓글이었다면 해당 댓글의 답글 쿼리 캐시도 제거
       qc.removeQueries({ queryKey: ['community', 'replies', postId, commentId] });
 
-      // 2. 답글 캐시 확인 및 갱신 (만약 삭제 대상이 답글인 경우)
-      const replyQueries = qc.getQueryCache().findAll({ queryKey: ['community', 'replies', postId] });
-      replyQueries.forEach((q) => {
-        const old = q.state.data as { pages: CommentPageResponseDTO[]; pageParams: unknown[] } | undefined;
-        if (!old) return;
-        let found = false;
-        const pages = old.pages.map((page) => {
-          const hasTarget = page.comments.some((c) => String(c.id) === commentId);
-          if (!hasTarget) return page;
-          found = true;
-          return {
-            ...page,
-            comments: page.comments.filter((c) => String(c.id) !== commentId),
-            totalElements: Math.max(0, (page.totalElements ?? 1) - 1),
-          };
-        });
-
-        if (found) {
-          qc.setQueryData(q.queryKey, { ...old, pages });
-          const parentKey = q.queryKey[3];
-          if (parentKey != null) {
-            parentCommentId = String(parentKey);
-          }
-        }
-      });
-
-      // 3. 삭제된 대상이 답글이었다면, 부모 댓글의 replyCount -1
+      // 삭제된 대상이 답글이었다면, 부모 댓글의 replyCount -1
       if (parentCommentId) {
         qc.setQueriesData<{ pages: CommentPageResponseDTO[]; pageParams: unknown[] }>(
           { queryKey: commentsKey(postId) },
@@ -577,7 +567,7 @@ export function useDeleteComment(postId: string) {
         );
       }
 
-      // 4. 게시글 상세 및 목록 캐시의 commentCount를 실제 제거된 개수만큼 차감
+      // 게시글 상세 및 목록 캐시의 commentCount를 실제 제거된 개수만큼 차감
       patchPostCaches(qc, postId, (dto) => ({
         ...dto,
         commentCount: Math.max(0, dto.commentCount - deletedCount),
