@@ -103,12 +103,32 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose, 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visible, initialIndex]);
 
+  function applyNextPhoto(nextIndex: number, enterOffset: number) {
+    setIndex(nextIndex);
+    scale.value = 1;
+    savedScale.value = 1;
+    ty.value = 0;
+    savedTx.value = 0;
+    savedTy.value = 0;
+    isHorizontal.value = false;
+    isVertical.value = false;
+    tx.value = enterOffset;
+    tx.value = withTiming(0, { duration: 180 });
+  }
+
   function goBy(delta: 1 | -1) {
-    setIndex((prev) => {
-      const next = prev + delta;
-      if (next < 0 || next >= photos.length) return prev;
-      resetTransform();
-      return next;
+    const next = index + delta;
+    if (next < 0 || next >= photos.length) {
+      tx.value = withTiming(0, { duration: 180 });
+      return;
+    }
+    const exitTarget = delta > 0 ? -SCREEN_WIDTH : SCREEN_WIDTH;
+    const enterOffset = delta > 0 ? SCREEN_WIDTH * 0.45 : -SCREEN_WIDTH * 0.45;
+
+    tx.value = withTiming(exitTarget, { duration: 120 }, (finished) => {
+      if (finished) {
+        runOnJS(applyNextPhoto)(next, enterOffset);
+      }
     });
   }
 
@@ -185,8 +205,6 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose, 
       // 가로 스와이프 판정
       if (isHorizontal.value && (Math.abs(e.translationX) > SWIPE_DISTANCE || Math.abs(e.velocityX) > 400)) {
         runOnJS(goBy)(e.translationX < 0 ? 1 : -1);
-        tx.value = withTiming(0, { duration: 150 });
-        ty.value = withTiming(0, { duration: 150 });
         return;
       }
 
@@ -314,8 +332,9 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose, 
                 <Pressable
                   key={`${thumbUri}-${i}`}
                   onPress={() => {
-                    setIndex(i);
-                    resetTransform();
+                    if (i === safeIndex) return;
+                    const delta = i > safeIndex ? 1 : -1;
+                    applyNextPhoto(i, delta * SCREEN_WIDTH * 0.45);
                   }}
                   hitSlop={4}
                 >
