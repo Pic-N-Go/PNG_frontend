@@ -337,7 +337,21 @@ export function useCreateComment(postId: string) {
         qc.setQueriesData<{ pages: CommentPageResponseDTO[]; pageParams: unknown[] }>(
           { queryKey: ['community', 'replies', postId, parentId] },
           (old) => {
-            if (!old) return old;
+            if (!old) {
+              return {
+                pages: [
+                  {
+                    comments: [newCommentDTO],
+                    totalElements: 1,
+                    totalPages: 1,
+                    page: 0,
+                    size: COMMENTS_PAGE_SIZE,
+                    hasNext: false,
+                  },
+                ],
+                pageParams: [0],
+              };
+            }
             const pages = [...old.pages];
             if (pages[0]) {
               pages[0] = {
@@ -377,7 +391,21 @@ export function useCreateComment(postId: string) {
         qc.setQueriesData<{ pages: CommentPageResponseDTO[]; pageParams: unknown[] }>(
           { queryKey: commentsKey(postId) },
           (old) => {
-            if (!old) return old;
+            if (!old) {
+              return {
+                pages: [
+                  {
+                    comments: [newCommentDTO],
+                    totalElements: 1,
+                    totalPages: 1,
+                    page: 0,
+                    size: COMMENTS_PAGE_SIZE,
+                    hasNext: false,
+                  },
+                ],
+                pageParams: [0],
+              };
+            }
             const pages = [...old.pages];
             if (pages[0]) {
               pages[0] = {

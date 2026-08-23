@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, Image, Animated, Easing, PanResponder, Dimensions } from 'react-native';
-import { BOTTOM_SHEET_RADIUS, FONT_SM } from '@/constants/layout';
+import { BOTTOM_SHEET_RADIUS, FONT_SM, FONT_TITLE, FONT_XS } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { IconMapPin, IconX, IconHeart, IconBookmark } from '@tabler/icons-react-native';
 import StarRating from '@/components/common/StarRating';
@@ -225,7 +225,7 @@ export default function SpotPopup({ activeSpot, onClose, renderButtons }: Props)
               <View className="px-4 pt-5 pb-6">
                 <View className="flex-row justify-between items-start">
                   <View className="flex-1 mr-2">
-                    <Text className="font-semibold text-black" style={{ fontSize: normalizeFontSize(20) }}>{currentSpot.name}</Text>
+                    <Text className="font-semibold text-black" style={{ fontSize: FONT_TITLE }}>{currentSpot.name}</Text>
 
                     <View className="flex-row items-center mt-1.5 flex-wrap">
                       <StarRating rating={rating} size={normalizeFontSize(14)} />
@@ -268,7 +268,7 @@ export default function SpotPopup({ activeSpot, onClose, renderButtons }: Props)
                 <View className="flex-row flex-wrap gap-1.5 mt-3 mb-1">
                   {(currentSpot.tags || []).map((tag: string) => (
                     <View key={tag} className="px-2.5 py-1 bg-card rounded-full">
-                      <Text className="text-black/50 font-normal" style={{ fontSize: normalizeFontSize(12) }}>{tag}</Text>
+                      <Text className="text-black/50 font-normal" style={{ fontSize: FONT_XS }}>{tag}</Text>
                     </View>
                   ))}
                 </View>

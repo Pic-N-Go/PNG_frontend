@@ -13,9 +13,9 @@ import {
   BUTTON_HEIGHT,
   BUTTON_RADIUS,
   CARD_RADIUS,
+  FONT_LG,
   FONT_MD,
   FONT_SM,
-  FONT_TITLE,
   FONT_XL,
   FONT_XS,
   GRID_PADDING,
@@ -263,7 +263,7 @@ export default function TimePickerSheet({
             allowFontScaling={false}
             className="font-semibold"
             style={{
-              fontSize: FONT_TITLE,
+              fontSize: FONT_LG,
               color: '#111111',
               letterSpacing: -0.35,
             }}
