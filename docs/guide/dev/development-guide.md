@@ -138,7 +138,7 @@ src/
 | `width: 100%` / `flex: 1` | `className` | `className="w-full flex-1"` |
 
 > **`FONT_*` 상수 전체 목록** (토큰 px → 상수명):  
-> `10px → FONT_2XS` / `11px → FONT_XS` / `13px → FONT_SM` / `15px → FONT_MD` / `17px → FONT_LG` / `22px → FONT_XL` / `28px → FONT_2XL`  
+> `10px → FONT_2XS` / `11px → FONT_XS` / `13px → FONT_SM` / `15px → FONT_MD` / `17px → FONT_LG` / `20px → FONT_TITLE` / `22px → FONT_XL` / `28px → FONT_2XL`  
 > `14px`(`--font-base`)만 상수가 없어 `normalizeFontSize(14)` 인라인으로 처리합니다.  
 > **폰트는 9개 토큰(`10 · 11 · 13 · 14 · 15 · 17 · 20 · 22 · 28px`) 안에서만 사용합니다. 사이값(`9 · 12 · 16 · 18px` 등)은 금지** — `12px`는 `11` 또는 `13`으로 맞추세요.
 > 섹션·시트 제목은 `FONT_TITLE`(20), 더 큰 표제는 `FONT_XL`(22).
@@ -147,7 +147,7 @@ src/
 
 #### normalizeFontSize 사용 기준
 
-- **`FONT_*` 상수로 커버되는 크기** (10·11·13·15·17·22·28px): 반드시 상수 사용
+- **`FONT_*` 상수로 커버되는 크기** (10·11·13·15·17·20·22·28px): 반드시 상수 사용
 - **`14px`(`--font-base`)**: 상수 미정의 → `normalizeFontSize(14)` 인라인
 - **사이값(9·12·16·18px 등)**: 사용 금지 — 9개 토큰 안에서만 고름 (`12` → `11` 또는 `13`)
 - **폰트 외 레이아웃 크기** (높이, radius, 아이콘 등): `normalize(n)` 사용 (`normalizeFontSize` 아님)
