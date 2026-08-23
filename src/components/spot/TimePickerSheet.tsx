@@ -24,8 +24,8 @@ interface Props {
 }
 
 const MINUTE_INTERVAL = 5;
-const ITEM_HEIGHT = normalize(44);
-const VISIBLE_ITEMS = 3; // 3개 (위 1개 + 중앙 선택 1개 + 아래 1개) - 컴팩트하게 구성하여 확인 버튼이 항상 잘 보이도록 함
+const ITEM_HEIGHT = normalize(40);
+const VISIBLE_ITEMS = 3; // 3개 (위 1개 + 중앙 선택 1개 + 아래 1개)
 const CONTAINER_HEIGHT = ITEM_HEIGHT * VISIBLE_ITEMS;
 
 const PERIODS = ['오전', '오후'];
@@ -105,7 +105,7 @@ function WheelColumn({ items, selectedIndex, onSelect, unit, width = '32%' }: Wh
                 allowFontScaling={false}
                 style={{
                   fontFamily: isSelected ? 'Pretendard-Bold' : 'Pretendard-Regular',
-                  fontSize: isSelected ? normalizeFontSize(20) : normalizeFontSize(15),
+                  fontSize: isSelected ? normalizeFontSize(19) : normalizeFontSize(15),
                   color: isSelected ? '#000' : 'rgba(0,0,0,0.28)',
                   letterSpacing: -0.2,
                 }}
@@ -117,7 +117,7 @@ function WheelColumn({ items, selectedIndex, onSelect, unit, width = '32%' }: Wh
                   allowFontScaling={false}
                   style={{
                     fontFamily: 'Pretendard-SemiBold',
-                    fontSize: normalizeFontSize(14),
+                    fontSize: normalizeFontSize(13),
                     color: '#000',
                     marginLeft: normalize(2),
                   }}
@@ -213,106 +213,109 @@ export default function TimePickerSheet({
 
   return (
     <BottomSheet visible={visible} onClose={onClose}>
-      <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(12), paddingBottom: normalize(6) }}>
-        <Text
-          allowFontScaling={false}
-          style={{
-            fontFamily: 'Pretendard-SemiBold',
-            fontSize: normalizeFontSize(18),
-            color: '#000',
-            letterSpacing: -0.35,
-          }}
-        >
-          {title}
-        </Text>
-        <Text
-          allowFontScaling={false}
-          style={{
-            fontFamily: 'Pretendard-Regular',
-            fontSize: normalizeFontSize(13),
-            color: TEXT_SUB,
-            marginTop: normalize(2),
-          }}
-        >
-          원하는 시간을 스크롤하여 선택해 주세요
-        </Text>
-      </View>
-
-      {/* 휠 피커 컨테이너 */}
-      <View
-        style={{
-          height: CONTAINER_HEIGHT,
-          marginHorizontal: GRID_PADDING,
-          marginVertical: normalize(10),
-          alignItems: 'center',
-          justifyContent: 'center',
-          position: 'relative',
-        }}
-      >
-        {/* 중앙 선택 영역 하이라이트 바 */}
-        <View
-          style={{
-            position: 'absolute',
-            top: ITEM_HEIGHT,
-            left: 0,
-            right: 0,
-            height: ITEM_HEIGHT,
-            backgroundColor: 'rgba(0,0,0,0.05)',
-            borderRadius: normalize(10),
-            zIndex: 0,
-          }}
-          pointerEvents="none"
-        />
-
-        {/* 3열 휠 스피너 (오전/오후 · 시 · 분) */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', width: '100%', zIndex: 1 }}>
-          <WheelColumn
-            items={PERIODS}
-            selectedIndex={periodIndex}
-            onSelect={setPeriodIndex}
-            width="28%"
-          />
-          <WheelColumn
-            items={HOURS}
-            selectedIndex={hourIndex}
-            onSelect={setHourIndex}
-            unit="시"
-            width="32%"
-          />
-          <WheelColumn
-            items={minuteOptions}
-            selectedIndex={minuteIndex}
-            onSelect={setMinuteIndex}
-            unit="분"
-            width="32%"
-          />
-        </View>
-      </View>
-
-      {/* 하단 확인 버튼 (항상 화면 내에 선명하게 노출) */}
-      <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(6), paddingBottom: normalize(8) }}>
-        <Pressable
-          onPress={handleConfirm}
-          style={({ pressed }) => ({
-            width: '100%',
-            height: normalize(52),
-            borderRadius: BUTTON_RADIUS,
-            backgroundColor: pressed ? '#d11550' : BRAND,
-            alignItems: 'center',
-            justifyContent: 'center',
-          })}
-        >
+      <View style={{ width: '100%' }}>
+        {/* 헤더 */}
+        <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(8), paddingBottom: normalize(4) }}>
           <Text
             allowFontScaling={false}
             style={{
               fontFamily: 'Pretendard-SemiBold',
-              fontSize: normalizeFontSize(16),
-              color: '#fff',
+              fontSize: normalizeFontSize(18),
+              color: '#000',
+              letterSpacing: -0.35,
             }}
           >
-            확인
+            {title}
           </Text>
-        </Pressable>
+          <Text
+            allowFontScaling={false}
+            style={{
+              fontFamily: 'Pretendard-Regular',
+              fontSize: normalizeFontSize(13),
+              color: TEXT_SUB,
+              marginTop: normalize(2),
+            }}
+          >
+            원하는 시간을 스크롤하여 선택해 주세요
+          </Text>
+        </View>
+
+        {/* 휠 피커 컨테이너 */}
+        <View
+          style={{
+            height: CONTAINER_HEIGHT,
+            marginHorizontal: GRID_PADDING,
+            marginVertical: normalize(10),
+            alignItems: 'center',
+            justifyContent: 'center',
+            position: 'relative',
+          }}
+        >
+          {/* 중앙 선택 영역 하이라이트 바 */}
+          <View
+            style={{
+              position: 'absolute',
+              top: ITEM_HEIGHT,
+              left: 0,
+              right: 0,
+              height: ITEM_HEIGHT,
+              backgroundColor: 'rgba(0,0,0,0.05)',
+              borderRadius: normalize(10),
+              zIndex: 0,
+            }}
+            pointerEvents="none"
+          />
+
+          {/* 3열 휠 스피너 (오전/오후 · 시 · 분) */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-around', width: '100%', zIndex: 1 }}>
+            <WheelColumn
+              items={PERIODS}
+              selectedIndex={periodIndex}
+              onSelect={setPeriodIndex}
+              width="28%"
+            />
+            <WheelColumn
+              items={HOURS}
+              selectedIndex={hourIndex}
+              onSelect={setHourIndex}
+              unit="시"
+              width="32%"
+            />
+            <WheelColumn
+              items={minuteOptions}
+              selectedIndex={minuteIndex}
+              onSelect={setMinuteIndex}
+              unit="분"
+              width="32%"
+            />
+          </View>
+        </View>
+
+        {/* 하단 확인 버튼 */}
+        <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(6), paddingBottom: normalize(12) }}>
+          <Pressable
+            onPress={handleConfirm}
+            style={({ pressed }) => ({
+              width: '100%',
+              height: normalize(50),
+              borderRadius: BUTTON_RADIUS,
+              backgroundColor: pressed ? '#d11550' : BRAND,
+              alignItems: 'center',
+              justifyContent: 'center',
+            })}
+          >
+            <Text
+              allowFontScaling={false}
+              style={{
+                fontFamily: 'Pretendard-SemiBold',
+                fontSize: normalizeFontSize(16),
+                color: '#fff',
+              }}
+            >
+              확인
+            </Text>
+          </Pressable>
+        </View>
       </View>
     </BottomSheet>
   );
