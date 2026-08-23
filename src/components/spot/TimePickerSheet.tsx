@@ -195,18 +195,20 @@ export default function TimePickerSheet({
   title = '시간대 선택',
   minuteInterval = MINUTE_INTERVAL,
 }: Props) {
-  // 1. 초기값 계산
+  // 1. 초기값 계산 (분 반올림 시 60분 도달 시 시간 올림 carry 처리)
   const initialValues = useMemo(() => {
-    const hours24 = value.getHours();
+    const d = new Date(value);
+    const ms = 1000 * 60 * minuteInterval;
+    const roundedDate = new Date(Math.round(d.getTime() / ms) * ms);
+
+    const hours24 = roundedDate.getHours();
     const isPM = hours24 >= 12;
     const period = isPM ? '오후' : '오전';
     const hour12 = hours24 % 12 === 0 ? 12 : hours24 % 12;
     const hour = String(hour12);
 
-    const rawMinutes = value.getMinutes();
-    const roundedMinutes = Math.round(rawMinutes / minuteInterval) * minuteInterval;
-    const safeMinutes = roundedMinutes >= 60 ? 60 - minuteInterval : roundedMinutes;
-    const minute = safeMinutes < 10 ? `0${safeMinutes}` : String(safeMinutes);
+    const roundedMinutes = roundedDate.getMinutes();
+    const minute = roundedMinutes < 10 ? `0${roundedMinutes}` : String(roundedMinutes);
 
     return { period, hour, minute };
   }, [value, minuteInterval]);

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Dimensions,
   Image,
@@ -62,6 +62,7 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose, 
   const [index, setIndex] = useState(initialIndex);
   const [exifOpen, setExifOpen] = useState(false);
   const [exifRequestedFor, setExifRequestedFor] = useState<number | null>(null);
+  const isNavigatingRef = useRef(false);
 
   const exifRequested = exifRequestedFor != null && reviewId != null && exifRequestedFor === Number(reviewId);
   const { data: exifByPhotoId, isLoading: exifLoading, isError: exifError } = useReviewExif(
@@ -97,6 +98,7 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose, 
 
   useEffect(() => {
     if (visible) {
+      isNavigatingRef.current = false;
       setIndex(initialIndex);
       resetTransform();
     } else {
@@ -115,16 +117,20 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose, 
     isHorizontal.value = false;
     isVertical.value = false;
     tx.value = enterOffset;
-    tx.value = withTiming(0, { duration: 180 });
+    tx.value = withTiming(0, { duration: 180 }, () => {
+      isNavigatingRef.current = false;
+    });
     opacity.value = withTiming(1, { duration: 180 });
   }
 
   function goBy(delta: 1 | -1) {
+    if (isNavigatingRef.current) return;
     const next = index + delta;
     if (next < 0 || next >= photos.length) {
       tx.value = withTiming(0, { duration: 180 });
       return;
     }
+    isNavigatingRef.current = true;
     const exitTarget = delta > 0 ? -SCREEN_WIDTH * 0.6 : SCREEN_WIDTH * 0.6;
     const enterOffset = delta > 0 ? SCREEN_WIDTH * 0.4 : -SCREEN_WIDTH * 0.4;
 
@@ -132,6 +138,8 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose, 
     opacity.value = withTiming(0, { duration: 100 }, (finished) => {
       if (finished) {
         runOnJS(applyNextPhoto)(next, enterOffset);
+      } else {
+        isNavigatingRef.current = false;
       }
     });
   }
@@ -150,6 +158,17 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose, 
         ty.value = withTiming(0, { duration: 150 });
         savedTx.value = 0;
         savedTy.value = 0;
+      } else {
+        const maxTx = (SCREEN_WIDTH * (scale.value - 1)) / 2;
+        const maxTy = (IMAGE_HEIGHT * (scale.value - 1)) / 2;
+        const boundedTx = Math.min(Math.max(savedTx.value, -maxTx), maxTx);
+        const boundedTy = Math.min(Math.max(savedTy.value, -maxTy), maxTy);
+        if (savedTx.value !== boundedTx || savedTy.value !== boundedTy) {
+          tx.value = withTiming(boundedTx, { duration: 150 });
+          ty.value = withTiming(boundedTy, { duration: 150 });
+          savedTx.value = boundedTx;
+          savedTy.value = boundedTy;
+        }
       }
     });
 
@@ -165,10 +184,14 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose, 
         usedMultiTouch.value = true;
       }
 
-      // 확대 상태: 사진 자유 이동
+      // 확대 상태: 사진 자유 이동 (화면 밖 이탈 방지 clamp)
       if (scale.value > 1) {
-        tx.value = savedTx.value + e.translationX;
-        ty.value = savedTy.value + e.translationY;
+        const maxTx = (SCREEN_WIDTH * (scale.value - 1)) / 2;
+        const maxTy = (IMAGE_HEIGHT * (scale.value - 1)) / 2;
+        const rawTx = savedTx.value + e.translationX;
+        const rawTy = savedTy.value + e.translationY;
+        tx.value = Math.min(Math.max(rawTx, -maxTx), maxTx);
+        ty.value = Math.min(Math.max(rawTy, -maxTy), maxTy);
         return;
       }
 
@@ -195,8 +218,14 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose, 
     })
     .onEnd((e, success) => {
       if (panStartedZoomed.value || scale.value > 1) {
-        savedTx.value = tx.value;
-        savedTy.value = ty.value;
+        const maxTx = (SCREEN_WIDTH * (scale.value - 1)) / 2;
+        const maxTy = (IMAGE_HEIGHT * (scale.value - 1)) / 2;
+        const boundedTx = Math.min(Math.max(tx.value, -maxTx), maxTx);
+        const boundedTy = Math.min(Math.max(ty.value, -maxTy), maxTy);
+        tx.value = withTiming(boundedTx, { duration: 100 });
+        ty.value = withTiming(boundedTy, { duration: 100 });
+        savedTx.value = boundedTx;
+        savedTy.value = boundedTy;
         return;
       }
 
@@ -337,7 +366,8 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose, 
                 <Pressable
                   key={`${thumbUri}-${i}`}
                   onPress={() => {
-                    if (i === safeIndex) return;
+                    if (isNavigatingRef.current || i === safeIndex) return;
+                    isNavigatingRef.current = true;
                     const delta = i > safeIndex ? 1 : -1;
                     opacity.value = 0.2;
                     applyNextPhoto(i, delta * SCREEN_WIDTH * 0.4);
