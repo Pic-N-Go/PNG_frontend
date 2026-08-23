@@ -501,24 +501,90 @@ export function useDeleteComment(postId: string) {
       return communityApi.deleteComment(postId, commentId, token);
     },
     onSuccess: (_res, commentId) => {
-      // 1. 게시글 상세 및 목록 캐시의 commentCount만 -1 (게시글/사진 전체 재조회 제거)
+      let deletedCount = 1;
+      let parentCommentId: string | null = null;
+
+      // 1. 최상위 댓글 목록 캐시 확인 및 갱신
+      qc.setQueriesData<{ pages: CommentPageResponseDTO[]; pageParams: unknown[] }>(
+        { queryKey: commentsKey(postId) },
+        (old) => {
+          if (!old) return old;
+          let found = false;
+          const pages = old.pages.map((page) => {
+            const hasTarget = page.comments.some((c) => String(c.id) === commentId);
+            if (!hasTarget) return page;
+            found = true;
+            const target = page.comments.find((c) => String(c.id) === commentId);
+            if (target?.replyCount) {
+              deletedCount += target.replyCount;
+            }
+            return {
+              ...page,
+              comments: page.comments.filter((c) => String(c.id) !== commentId),
+              totalElements: Math.max(0, (page.totalElements ?? 1) - 1),
+            };
+          });
+
+          return found ? { ...old, pages } : old;
+        },
+      );
+
+      // 만약 최상위 댓글이었다면 해당 댓글의 답글 쿼리 캐시도 제거
+      qc.removeQueries({ queryKey: ['community', 'replies', postId, commentId] });
+
+      // 2. 답글 캐시 확인 및 갱신 (만약 삭제 대상이 답글인 경우)
+      qc.setQueriesData<{ pages: CommentPageResponseDTO[]; pageParams: unknown[] }>(
+        { queryKey: ['community', 'replies', postId] },
+        (old, query) => {
+          if (!old) return old;
+          let found = false;
+          const pages = old.pages.map((page) => {
+            const hasTarget = page.comments.some((c) => String(c.id) === commentId);
+            if (!hasTarget) return page;
+            found = true;
+            return {
+              ...page,
+              comments: page.comments.filter((c) => String(c.id) !== commentId),
+              totalElements: Math.max(0, (page.totalElements ?? 1) - 1),
+            };
+          });
+
+          if (found && Array.isArray(query?.queryKey)) {
+            // queryKey: ['community', 'replies', postId, parentId]
+            const parentKey = query.queryKey[3];
+            if (parentKey != null) {
+              parentCommentId = String(parentKey);
+            }
+          }
+
+          return found ? { ...old, pages } : old;
+        },
+      );
+
+      // 3. 삭제된 대상이 답글이었다면, 부모 댓글의 replyCount -1
+      if (parentCommentId) {
+        qc.setQueriesData<{ pages: CommentPageResponseDTO[]; pageParams: unknown[] }>(
+          { queryKey: commentsKey(postId) },
+          (old) =>
+            old && {
+              ...old,
+              pages: old.pages.map((page) => ({
+                ...page,
+                comments: page.comments.map((c) =>
+                  String(c.id) === parentCommentId
+                    ? { ...c, replyCount: Math.max(0, (c.replyCount ?? 1) - 1) }
+                    : c,
+                ),
+              })),
+            },
+        );
+      }
+
+      // 4. 게시글 상세 및 목록 캐시의 commentCount를 실제 제거된 개수만큼 차감
       patchPostCaches(qc, postId, (dto) => ({
         ...dto,
-        commentCount: Math.max(0, dto.commentCount - 1),
+        commentCount: Math.max(0, dto.commentCount - deletedCount),
       }));
-
-      // 2. 댓글 및 답글 캐시에서 삭제된 댓글 제거
-      const remove = (old: { pages: CommentPageResponseDTO[]; pageParams: unknown[] } | undefined) =>
-        old && {
-          ...old,
-          pages: old.pages.map((page) => ({
-            ...page,
-            comments: page.comments.filter((c) => String(c.id) !== commentId),
-            totalElements: Math.max(0, (page.totalElements ?? 1) - 1),
-          })),
-        };
-      qc.setQueriesData({ queryKey: commentsKey(postId) }, remove);
-      qc.setQueriesData({ queryKey: ['community', 'replies', postId] }, remove);
     },
   });
 }

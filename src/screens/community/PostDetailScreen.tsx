@@ -30,7 +30,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import Avatar from '@/components/common/Avatar';
 import { CommunityDetailStackParamList } from '@/navigation/stacks/CommunityDetailStack';
 import { Comment, ReportReasonId } from '@/types/community';
-import { CONTENT_PADDING, FONT_LG, FONT_MD, FONT_SM, FONT_XS, HAIRLINE_WIDTH, HEADER_HEIGHT } from '@/constants/layout';
+import { CONTENT_PADDING, FONT_LG, FONT_MD, FONT_SM, FONT_XS, HAIRLINE_WIDTH, HEADER_HEIGHT, SPACING_LG } from '@/constants/layout';
 import { normalize, normalizeHeight } from '@/utils/normalize';
 import { BRAND, CARD, HAIRLINE, SCRIM, TEXT_SUB } from '@/constants/colors';
 
@@ -346,7 +346,7 @@ export default function PostDetailScreen() {
           <>
         <ScrollView
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: normalize(24) }}
+          contentContainerStyle={{ paddingBottom: SPACING_LG }}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}
