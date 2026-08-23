@@ -5,7 +5,7 @@ import { IconMapPin } from '@tabler/icons-react-native';
 import { normalize } from '@/utils/normalize';
 import { CARD_RADIUS, FONT_2XS } from '@/constants/layout';
 import { BRAND, TEXT_SUB } from '@/constants/colors';
-import { DEFAULT_SEOUL_LOCATION, isLocationInKorea, sanitizeKoreaLocation } from '@/utils/location';
+import { isLocationInKorea, sanitizeKoreaLocation } from '@/utils/location';
 
 const KAKAO_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_API_KEY;
 

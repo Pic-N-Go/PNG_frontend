@@ -21,7 +21,7 @@ import FilterBottomSheet from '@/components/home/FilterBottomSheet';
 import { useNotification } from '@/hooks/useNotification';
 import { useNearbySpots } from '@/hooks/useSpot';
 import { TEXT_SUB } from '@/constants/colors';
-import { DEFAULT_SEOUL_LOCATION, isLocationInKorea, sanitizeKoreaLocation } from '@/utils/location';
+import { isLocationInKorea, sanitizeKoreaLocation } from '@/utils/location';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'Home'>;
 
