@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import { Platform, Pressable, Text, View } from 'react-native';
+import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker';
 import BottomSheet from '@/components/common/BottomSheet';
 import { BUTTON_RADIUS, GRID_PADDING } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
@@ -30,10 +30,39 @@ export default function TimePickerSheet({
 }: Props) {
   const [draft, setDraft] = useState(value);
 
+  // iOS용: 시트가 열릴 때마다 넘겨받은 value로 draft 초기화
   useEffect(() => {
     if (visible) setDraft(value);
   }, [visible, value]);
 
+  // Android: 중첩 바텀시트 모달 없이 Android OS 네이티브 TimePickerDialog를 직접 호출
+  useEffect(() => {
+    if (Platform.OS === 'android') {
+      if (visible) {
+        DateTimePickerAndroid.open({
+          value,
+          mode: 'time',
+          is24Hour: false,
+          minuteInterval,
+          onChange: (event, selectedDate) => {
+            if (event.type === 'set' && selectedDate) {
+              onConfirm(selectedDate);
+            }
+            onClose();
+          },
+        });
+      } else {
+        DateTimePickerAndroid.dismiss('time');
+      }
+    }
+  }, [visible, value, minuteInterval, onConfirm, onClose]);
+
+  // Android에서는 네이티브 다이얼로그 팝업만 단독으로 뜨므로 추가적인 React Native BottomSheet는 렌더링하지 않는다.
+  if (Platform.OS === 'android') {
+    return null;
+  }
+
+  // iOS: 바텀시트 + 인라인 휠 스피너 피커
   return (
     <BottomSheet visible={visible} onClose={onClose}>
       <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(16), paddingBottom: normalize(12) }}>
