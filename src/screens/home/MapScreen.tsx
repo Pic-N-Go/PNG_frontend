@@ -23,6 +23,7 @@ import Chip from '@/components/common/Chip';
 import { BRAND, TEXT_SUB } from '@/constants/colors';
 import { SHADOW_CONTROL, SHADOW_OVERLAY } from '@/constants/shadow';
 import { MAP_FONT_FACE } from '@/constants/mapFont';
+import { sanitizeKoreaLocation } from '@/utils/location';
 
 const KAKAO_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_API_KEY;
 
@@ -410,10 +411,10 @@ export default function MapScreen() {
 
       // 2. 이미 캐시된 최신 좌표가 있다면 0ms 즉시 panTo 이동
       if (latestLocationRef.current && webViewRef.current) {
-        const { latitude, longitude } = latestLocationRef.current;
+        const sanitized = sanitizeKoreaLocation(latestLocationRef.current.latitude, latestLocationRef.current.longitude);
         webViewRef.current.injectJavaScript(`
           if (window.moveToUserLocation) {
-            window.moveToUserLocation(${latitude}, ${longitude});
+            window.moveToUserLocation(${sanitized.lat}, ${sanitized.lng});
           }
           true;
         `);
@@ -421,11 +422,12 @@ export default function MapScreen() {
         // 캐시가 아직 없으면 빠른 OS 캐시(lastKnown)로 즉시 이동
         const lastKnown = await Location.getLastKnownPositionAsync();
         if (lastKnown) {
-          latestLocationRef.current = lastKnown.coords;
+          const sanitized = sanitizeKoreaLocation(lastKnown.coords.latitude, lastKnown.coords.longitude);
+          latestLocationRef.current = { latitude: sanitized.lat, longitude: sanitized.lng } as any;
           if (webViewRef.current) {
             webViewRef.current.injectJavaScript(`
               if (window.moveToUserLocation) {
-                window.moveToUserLocation(${lastKnown.coords.latitude}, ${lastKnown.coords.longitude});
+                window.moveToUserLocation(${sanitized.lat}, ${sanitized.lng});
               }
               true;
             `);
@@ -436,14 +438,15 @@ export default function MapScreen() {
       // 3. 백그라운드에서 정확한 최신 GPS 좌표를 한 번 더 갱신하여 미세 보정
       Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced })
         .then((location) => {
-          latestLocationRef.current = location.coords;
+          const sanitized = sanitizeKoreaLocation(location.coords.latitude, location.coords.longitude);
+          latestLocationRef.current = { latitude: sanitized.lat, longitude: sanitized.lng } as any;
           if (webViewRef.current) {
             webViewRef.current.injectJavaScript(`
               if (window.updateUserLocation) {
-                window.updateUserLocation(${location.coords.latitude}, ${location.coords.longitude});
+                window.updateUserLocation(${sanitized.lat}, ${sanitized.lng});
               }
               if (window.moveToUserLocation) {
-                window.moveToUserLocation(${location.coords.latitude}, ${location.coords.longitude});
+                window.moveToUserLocation(${sanitized.lat}, ${sanitized.lng});
               }
               true;
             `);

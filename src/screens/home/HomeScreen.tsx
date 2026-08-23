@@ -21,6 +21,7 @@ import FilterBottomSheet from '@/components/home/FilterBottomSheet';
 import { useNotification } from '@/hooks/useNotification';
 import { useNearbySpots } from '@/hooks/useSpot';
 import { TEXT_SUB } from '@/constants/colors';
+import { DEFAULT_SEOUL_LOCATION, isLocationInKorea, sanitizeKoreaLocation } from '@/utils/location';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'Home'>;
 
@@ -94,17 +95,19 @@ export default function HomeScreen({ navigation }: Props) {
       if (status === Location.PermissionStatus.GRANTED) {
         const lastKnown = await Location.getLastKnownPositionAsync();
         if (lastKnown) {
+          const sanitized = sanitizeKoreaLocation(lastKnown.coords.latitude, lastKnown.coords.longitude);
           setUserLocation({
-            lat: lastKnown.coords.latitude,
-            lng: lastKnown.coords.longitude,
+            lat: sanitized.lat,
+            lng: sanitized.lng,
             isReal: true,
           });
         }
         const current = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
         if (current) {
+          const sanitized = sanitizeKoreaLocation(current.coords.latitude, current.coords.longitude);
           setUserLocation({
-            lat: current.coords.latitude,
-            lng: current.coords.longitude,
+            lat: sanitized.lat,
+            lng: sanitized.lng,
             isReal: true,
           });
         }
@@ -136,6 +139,10 @@ export default function HomeScreen({ navigation }: Props) {
     const fetchAddress = async () => {
       try {
         if (userLocation.isReal && userLocation.lat && userLocation.lng) {
+          if (!isLocationInKorea(userLocation.lat, userLocation.lng)) {
+            if (!ignore) setUserAddress('서울시청');
+            return;
+          }
           const [geo] = await Location.reverseGeocodeAsync({
             latitude: userLocation.lat,
             longitude: userLocation.lng,

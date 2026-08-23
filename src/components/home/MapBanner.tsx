@@ -5,6 +5,7 @@ import { IconMapPin } from '@tabler/icons-react-native';
 import { normalize } from '@/utils/normalize';
 import { CARD_RADIUS, FONT_2XS } from '@/constants/layout';
 import { BRAND, TEXT_SUB } from '@/constants/colors';
+import { DEFAULT_SEOUL_LOCATION, isLocationInKorea, sanitizeKoreaLocation } from '@/utils/location';
 
 const KAKAO_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_API_KEY;
 
@@ -23,8 +24,9 @@ interface Props {
 }
 
 export default function MapBanner({ onPress, spotCount = 0, isLoading, userLocation, spots }: Props) {
-  const centerLat = userLocation?.lat ?? 37.5665;
-  const centerLng = userLocation?.lng ?? 126.9780;
+  const sanitized = sanitizeKoreaLocation(userLocation?.lat, userLocation?.lng);
+  const centerLat = sanitized.lat;
+  const centerLng = sanitized.lng;
 
   // 좌표 및 스팟 ID 기반의 안정적인 spotsKey 생성 (배열 참조 변경으로 인한 불필요한 웹뷰 재로드 방지)
   const spotsKey = useMemo(() => {
@@ -35,10 +37,12 @@ export default function MapBanner({ onPress, spotCount = 0, isLoading, userLocat
   const mapHtml = useMemo(() => {
     if (!KAKAO_KEY) return '';
 
-    const spotItems = (spots || []).map((s) => ({
-      lat: s.latitude,
-      lng: s.longitude,
-    }));
+    const spotItems = (spots || [])
+      .filter((s) => isLocationInKorea(s.latitude, s.longitude))
+      .map((s) => ({
+        lat: s.latitude,
+        lng: s.longitude,
+      }));
 
     return `
 <!DOCTYPE html>
