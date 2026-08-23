@@ -5,6 +5,7 @@ import {
   Modal,
   Pressable,
   StatusBar,
+  StyleSheet,
   Text,
   View,
 } from 'react-native';
