@@ -11,7 +11,6 @@ import {
 } from 'react-native';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
 import Reanimated, {
-  interpolate,
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
@@ -48,21 +47,22 @@ interface Props {
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const IMAGE_HEIGHT = SCREEN_HEIGHT * 0.7;
-const DISMISS_DRAG_DISTANCE = 110;
+const CLOSE_DRAG_DISTANCE = 120;
 const MAX_ZOOM = 4;
+const SWIPE_DISTANCE = 50;
 
 /**
- * 삼성/애플 갤러리 앱 수준의 커스텀 라이트박스.
+ * 사진 확대 오버레이 (안정적인 제스처 + 축 고정 스와이프).
  *
- * 1. 1:1 손가락 트래킹 수평 슬라이드: 좌우 스와이프 시 현재 사진과 이전/다음 사진이 나란히 배치되어 부드럽게 1:1로 넘어가며, 손을 떼면 슬라이드 끝까지 완성된 후 자연스럽게 교체됩니다.
- * 2. 방향 락 (Strict Axis Locking): 스와이프 시작 시 가로/세로 방향을 결정하여 대각선 쏠림 현상을 100% 방지합니다.
- * 3. 아래로 끌어 닫기: 수직 아래 방향으로 내리면 뷰어 전체의 투명도와 스케일이 축소되며 자연스럽게 닫힙니다.
+ * 1. 좌우 스와이프: 손가락으로 가로로 밀면 이전/다음 사진으로 즉시 전환
+ * 2. 축 고정 (Axis Locking): 가로 이동 중에는 세로 이동을 0으로 잠그고, 아래로 당길 때만 닫기 동작 수행 (대각선 쏠림 방지)
+ * 3. 핀치 줌: 두 손가락 확대/축소 및 확대 상태에서 사진 이동 지원
  */
 export default function PhotoLightbox({ photos, initialIndex, visible, onClose, reviewId, photoIds, exifs }: Props) {
   const [index, setIndex] = useState(initialIndex);
   const [exifOpen, setExifOpen] = useState(false);
 
-  // 제스처 애니메이션 Shared Values
+  // 확대 배율과 이동량.
   const scale = useSharedValue(1);
   const savedScale = useSharedValue(1);
   const tx = useSharedValue(0);
@@ -70,7 +70,6 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose, 
   const savedTx = useSharedValue(0);
   const savedTy = useSharedValue(0);
 
-  // 방향 고정 (Axis Locking)
   const isHorizontal = useSharedValue(false);
   const isVertical = useSharedValue(false);
   const panStartedZoomed = useSharedValue(false);
@@ -89,31 +88,22 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose, 
 
   useEffect(() => {
     if (visible) {
-      const targetIndex = Math.min(Math.max(initialIndex, 0), Math.max(photos.length - 1, 0));
-      setIndex(targetIndex);
+      setIndex(initialIndex);
       resetTransform();
     } else {
       setExifOpen(false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [visible, initialIndex, photos.length]);
+  }, [visible, initialIndex]);
 
-  const changeIndex = (nextIdx: number) => {
-    setIndex(nextIdx);
-    tx.value = 0;
-    savedTx.value = 0;
-    isHorizontal.value = false;
-  };
-
-  const handleSelectThumbnail = (targetIdx: number) => {
-    if (targetIdx === index) return;
-    const direction = targetIdx > index ? -1 : 1;
-    tx.value = withTiming(direction * SCREEN_WIDTH, { duration: 200 }, (finished) => {
-      if (finished) {
-        runOnJS(changeIndex)(targetIdx);
-      }
+  function goBy(delta: 1 | -1) {
+    setIndex((prev) => {
+      const next = prev + delta;
+      if (next < 0 || next >= photos.length) return prev;
+      resetTransform();
+      return next;
     });
-  };
+  }
 
   const pinch = Gesture.Pinch()
     .onBegin(() => {
@@ -125,8 +115,6 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose, 
     .onEnd(() => {
       savedScale.value = scale.value;
       if (scale.value <= 1) {
-        scale.value = withTiming(1, { duration: 150 });
-        savedScale.value = 1;
         tx.value = withTiming(0, { duration: 150 });
         ty.value = withTiming(0, { duration: 150 });
         savedTx.value = 0;
@@ -136,29 +124,28 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose, 
 
   const pan = Gesture.Pan()
     .onBegin(() => {
-      isHorizontal.value = false;
-      isVertical.value = false;
       panStartedZoomed.value = scale.value > 1;
       usedMultiTouch.value = false;
+      isHorizontal.value = false;
+      isVertical.value = false;
     })
     .onUpdate((e) => {
       if (e.numberOfPointers > 1) {
         usedMultiTouch.value = true;
-        return;
       }
 
-      // 1. 확대 상태일 때는 사진 자유 이동
+      // 확대 상태: 사진 자유 이동
       if (scale.value > 1) {
         tx.value = savedTx.value + e.translationX;
         ty.value = savedTy.value + e.translationY;
         return;
       }
 
-      // 2. 방향 미정 상태: 8px 이상 움직였을 때 가로/세로 축 결정
+      // 축 결정 (Axis Locking)
       if (!isHorizontal.value && !isVertical.value) {
         const absX = Math.abs(e.translationX);
         const absY = Math.abs(e.translationY);
-        if (absX > 8 || absY > 8) {
+        if (absX > 6 || absY > 6) {
           if (absX >= absY) {
             isHorizontal.value = true;
           } else if (e.translationY > 0) {
@@ -167,18 +154,10 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose, 
         }
       }
 
-      // 3. 수평 스와이프 처리
       if (isHorizontal.value) {
-        let x = e.translationX;
-        // 양 끝 경계 고무줄 저항 처리
-        if ((index === 0 && x > 0) || (index === photos.length - 1 && x < 0)) {
-          x = x * 0.35;
-        }
-        tx.value = x;
+        tx.value = photos.length > 1 ? e.translationX : e.translationX * 0.3;
         ty.value = 0;
-      }
-      // 4. 수직 아래로 끌어 닫기 처리
-      else if (isVertical.value) {
+      } else if (isVertical.value) {
         tx.value = 0;
         ty.value = Math.max(0, e.translationY);
       }
@@ -191,93 +170,43 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose, 
       }
 
       if (!success || usedMultiTouch.value) {
-        tx.value = withTiming(0, { duration: 180 });
-        ty.value = withTiming(0, { duration: 180 });
+        tx.value = withTiming(0, { duration: 150 });
+        ty.value = withTiming(0, { duration: 150 });
         return;
       }
 
-      if (isHorizontal.value) {
-        const threshold = SCREEN_WIDTH * 0.22;
-        const velocity = e.velocityX;
-
-        // 왼쪽으로 넘어감 (다음 사진)
-        if ((e.translationX < -threshold || velocity < -500) && index < photos.length - 1) {
-          tx.value = withTiming(-SCREEN_WIDTH, { duration: 200 }, (finished) => {
-            if (finished) {
-              runOnJS(changeIndex)(index + 1);
-            }
-          });
-        }
-        // 오른쪽으로 넘어감 (이전 사진)
-        else if ((e.translationX > threshold || velocity > 500) && index > 0) {
-          tx.value = withTiming(SCREEN_WIDTH, { duration: 200 }, (finished) => {
-            if (finished) {
-              runOnJS(changeIndex)(index - 1);
-            }
-          });
-        }
-        // 임계값 미달 시 제자리 복귀
-        else {
-          tx.value = withTiming(0, { duration: 180 });
-        }
-      } else if (isVertical.value) {
-        if (e.translationY > DISMISS_DRAG_DISTANCE || e.velocityY > 500) {
-          ty.value = withTiming(SCREEN_HEIGHT, { duration: 200 }, (finished) => {
-            if (finished) {
-              runOnJS(onClose)();
-            }
-          });
-        } else {
-          ty.value = withTiming(0, { duration: 180 });
-        }
-      } else {
-        tx.value = withTiming(0, { duration: 180 });
-        ty.value = withTiming(0, { duration: 180 });
+      // 가로 스와이프 판정
+      if (isHorizontal.value && (Math.abs(e.translationX) > SWIPE_DISTANCE || Math.abs(e.velocityX) > 400)) {
+        runOnJS(goBy)(e.translationX < 0 ? 1 : -1);
+        tx.value = withTiming(0, { duration: 150 });
+        ty.value = withTiming(0, { duration: 150 });
+        return;
       }
+
+      // 세로 아래 드래그 닫기 판정
+      if (isVertical.value && (e.translationY > CLOSE_DRAG_DISTANCE || e.velocityY > 500)) {
+        runOnJS(onClose)();
+        return;
+      }
+
+      tx.value = withTiming(0, { duration: 150 });
+      ty.value = withTiming(0, { duration: 150 });
     });
 
   const photoGesture = Gesture.Simultaneous(pinch, pan);
 
-  // 세로 드래그 시 배경 투명도 & 스케일 애니메이션
-  const containerAnimatedStyle = useAnimatedStyle(() => {
-    const opacity = interpolate(ty.value, [0, 250], [1, 0.4]);
-    const scaleVal = interpolate(ty.value, [0, 250], [1, 0.88]);
-    return {
-      flex: 1,
-      opacity,
-      transform: [{ translateY: ty.value }, { scale: scaleVal }],
-    };
-  });
-
-  // 현재 중심 사진 스타일
-  const currPhotoStyle = useAnimatedStyle(() => ({
-    position: 'absolute',
+  const photoStyle = useAnimatedStyle(() => ({
     width: SCREEN_WIDTH,
     height: IMAGE_HEIGHT,
     alignItems: 'center',
     justifyContent: 'center',
-    transform: [{ translateX: tx.value }, { scale: scale.value }],
+    transform: [{ translateX: tx.value }, { translateY: ty.value }, { scale: scale.value }],
   }));
 
-  // 이전 사진 스타일 (왼쪽에 나란히 배치)
-  const prevPhotoStyle = useAnimatedStyle(() => ({
-    position: 'absolute',
-    width: SCREEN_WIDTH,
-    height: IMAGE_HEIGHT,
-    alignItems: 'center',
-    justifyContent: 'center',
-    transform: [{ translateX: tx.value - SCREEN_WIDTH }],
-  }));
-
-  // 다음 사진 스타일 (오른쪽에 나란히 배치)
-  const nextPhotoStyle = useAnimatedStyle(() => ({
-    position: 'absolute',
-    width: SCREEN_WIDTH,
-    height: IMAGE_HEIGHT,
-    alignItems: 'center',
-    justifyContent: 'center',
-    transform: [{ translateX: tx.value + SCREEN_WIDTH }],
-  }));
+  // visible로만 판정한다. photos가 비는 순간 Modal을 언마운트하면 fade 종료 애니메이션이 생략된다.
+  if (!visible && photos.length === 0) return null;
+  const safeIndex = Math.min(Math.max(index, 0), Math.max(photos.length - 1, 0));
+  const uri = photos[safeIndex];
 
   // EXIF 데이터 처리
   const [exifRequestedFor, setExifRequestedFor] = useState<number | null>(null);
@@ -286,13 +215,6 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose, 
     reviewId ?? null,
     exifRequested,
   );
-
-  if (!visible && photos.length === 0) return null;
-  const safeIndex = Math.min(index, Math.max(photos.length - 1, 0));
-
-  const currUri = photos[safeIndex];
-  const prevUri = safeIndex > 0 ? photos[safeIndex - 1] : null;
-  const nextUri = safeIndex < photos.length - 1 ? photos[safeIndex + 1] : null;
 
   const currentPhotoId = photoIds?.[safeIndex];
   const fetchedExif = currentPhotoId != null ? exifByPhotoId?.[currentPhotoId] : undefined;
@@ -315,48 +237,20 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose, 
     >
       <StatusBar barStyle="light-content" />
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.94)', justifyContent: 'center' }}>
-          {/* 배경 누르면 닫기 */}
+        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.94)', alignItems: 'center', justifyContent: 'center' }}>
+          {/* 배경을 눌러도 닫히게 */}
           <Pressable style={StyleSheet.absoluteFillObject} onPress={onClose} />
 
-          {/* 메인 뷰어 영역 (제스처 감지) */}
           <GestureDetector gesture={photoGesture}>
-            <Reanimated.View style={containerAnimatedStyle}>
-              <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                {/* 이전 사진 (왼쪽) */}
-                {prevUri && (
-                  <Reanimated.View style={prevPhotoStyle}>
-                    <Image
-                      source={{ uri: prevUri }}
-                      resizeMode="contain"
-                      style={{ width: SCREEN_WIDTH, height: IMAGE_HEIGHT }}
-                    />
-                  </Reanimated.View>
-                )}
-
-                {/* 현재 사진 (중앙) */}
-                {currUri && (
-                  <Reanimated.View style={currPhotoStyle}>
-                    <Image
-                      source={{ uri: currUri }}
-                      resizeMode="contain"
-                      onError={(e) => __DEV__ && console.warn('[lightbox] 이미지 로드 실패:', e.nativeEvent, currUri?.slice(0, 90))}
-                      style={{ width: SCREEN_WIDTH, height: IMAGE_HEIGHT }}
-                    />
-                  </Reanimated.View>
-                )}
-
-                {/* 다음 사진 (오른쪽) */}
-                {nextUri && (
-                  <Reanimated.View style={nextPhotoStyle}>
-                    <Image
-                      source={{ uri: nextUri }}
-                      resizeMode="contain"
-                      style={{ width: SCREEN_WIDTH, height: IMAGE_HEIGHT }}
-                    />
-                  </Reanimated.View>
-                )}
-              </View>
+            <Reanimated.View style={photoStyle}>
+              {uri ? (
+                <Image
+                  source={{ uri }}
+                  resizeMode="contain"
+                  onError={(e) => __DEV__ && console.warn('[lightbox] 이미지 로드 실패:', e.nativeEvent, uri?.slice(0, 90))}
+                  style={{ width: SCREEN_WIDTH, height: IMAGE_HEIGHT }}
+                />
+              ) : null}
             </Reanimated.View>
           </GestureDetector>
 
@@ -417,8 +311,11 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose, 
             >
               {photos.map((thumbUri, i) => (
                 <Pressable
-                  key={thumbUri}
-                  onPress={() => handleSelectThumbnail(i)}
+                  key={`${thumbUri}-${i}`}
+                  onPress={() => {
+                    setIndex(i);
+                    resetTransform();
+                  }}
                   hitSlop={4}
                 >
                   <Image
