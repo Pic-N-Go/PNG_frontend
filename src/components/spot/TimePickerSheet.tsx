@@ -322,16 +322,23 @@ export default function TimePickerSheet({
         </View>
 
         {/* 하단 확인 버튼 */}
+        {/* 높이·배경·radius는 반드시 일반 객체 style로 준다.
+            Pressable의 함수형 style(({pressed}) => ...)은 NativeWind가 통째로 버려서
+            버튼이 배경 없이 글자 높이로 찌그러진다 — 흰 시트 위 흰 글씨라 안 보였다.
+            (같은 함정 주석: mypage/components/BookmarkedSpotRow.tsx) */}
         <View style={{ paddingHorizontal: GRID_PADDING, paddingBottom: normalize(8) }}>
           <Pressable
             onPress={handleConfirm}
-            className="items-center justify-center"
-            style={({ pressed }) => ({
+            android_ripple={{ color: 'rgba(255,255,255,0.18)' }}
+            style={{
               width: '100%',
               height: BUTTON_HEIGHT,
               borderRadius: BUTTON_RADIUS,
-              backgroundColor: pressed ? '#d11550' : BRAND,
-            })}
+              backgroundColor: BRAND,
+              alignItems: 'center',
+              justifyContent: 'center',
+              overflow: 'hidden',
+            }}
           >
             <Text
               allowFontScaling={false}
