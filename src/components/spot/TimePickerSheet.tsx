@@ -25,7 +25,7 @@ interface Props {
 
 const MINUTE_INTERVAL = 5;
 const ITEM_HEIGHT = normalize(44);
-const VISIBLE_ITEMS = 5; // 홀수 개 (중앙 1개 + 위 2개 + 아래 2개)
+const VISIBLE_ITEMS = 3; // 3개 (위 1개 + 중앙 선택 1개 + 아래 1개) - 컴팩트하게 구성하여 확인 버튼이 항상 잘 보이도록 함
 const CONTAINER_HEIGHT = ITEM_HEIGHT * VISIBLE_ITEMS;
 
 const PERIODS = ['오전', '오후'];
@@ -39,7 +39,7 @@ interface WheelColumnProps {
   width?: number | string;
 }
 
-function WheelColumn({ items, selectedIndex, onSelect, unit, width = '30%' }: WheelColumnProps) {
+function WheelColumn({ items, selectedIndex, onSelect, unit, width = '32%' }: WheelColumnProps) {
   const scrollRef = useRef<ScrollView>(null);
   const isScrollingRef = useRef(false);
 
@@ -85,7 +85,7 @@ function WheelColumn({ items, selectedIndex, onSelect, unit, width = '30%' }: Wh
         onMomentumScrollEnd={handleScrollEnd}
         onScrollEndDrag={handleScrollEnd}
         contentContainerStyle={{
-          paddingVertical: ITEM_HEIGHT * 2, // 상하 2칸씩 여백을 주어 첫/끝 항목이 중앙에 오게 함
+          paddingVertical: ITEM_HEIGHT, // 상하 1칸씩 여백을 주어 중앙 슬롯에 항목이 위치하도록 함
         }}
       >
         {items.map((item, i) => {
@@ -105,8 +105,8 @@ function WheelColumn({ items, selectedIndex, onSelect, unit, width = '30%' }: Wh
                 allowFontScaling={false}
                 style={{
                   fontFamily: isSelected ? 'Pretendard-Bold' : 'Pretendard-Regular',
-                  fontSize: isSelected ? normalizeFontSize(19) : normalizeFontSize(15),
-                  color: isSelected ? '#000' : 'rgba(0,0,0,0.3)',
+                  fontSize: isSelected ? normalizeFontSize(20) : normalizeFontSize(15),
+                  color: isSelected ? '#000' : 'rgba(0,0,0,0.28)',
                   letterSpacing: -0.2,
                 }}
               >
@@ -116,7 +116,7 @@ function WheelColumn({ items, selectedIndex, onSelect, unit, width = '30%' }: Wh
                 <Text
                   allowFontScaling={false}
                   style={{
-                    fontFamily: 'Pretendard-Medium',
+                    fontFamily: 'Pretendard-SemiBold',
                     fontSize: normalizeFontSize(14),
                     color: '#000',
                     marginLeft: normalize(2),
@@ -213,7 +213,7 @@ export default function TimePickerSheet({
 
   return (
     <BottomSheet visible={visible} onClose={onClose}>
-      <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(16), paddingBottom: normalize(12) }}>
+      <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(12), paddingBottom: normalize(6) }}>
         <Text
           allowFontScaling={false}
           style={{
@@ -243,7 +243,7 @@ export default function TimePickerSheet({
         style={{
           height: CONTAINER_HEIGHT,
           marginHorizontal: GRID_PADDING,
-          marginBottom: normalize(16),
+          marginVertical: normalize(10),
           alignItems: 'center',
           justifyContent: 'center',
           position: 'relative',
@@ -253,11 +253,11 @@ export default function TimePickerSheet({
         <View
           style={{
             position: 'absolute',
-            top: (CONTAINER_HEIGHT - ITEM_HEIGHT) / 2,
+            top: ITEM_HEIGHT,
             left: 0,
             right: 0,
             height: ITEM_HEIGHT,
-            backgroundColor: 'rgba(0,0,0,0.04)',
+            backgroundColor: 'rgba(0,0,0,0.05)',
             borderRadius: normalize(10),
             zIndex: 0,
           }}
@@ -289,8 +289,8 @@ export default function TimePickerSheet({
         </View>
       </View>
 
-      {/* 하단 확인 버튼 */}
-      <View style={{ paddingHorizontal: GRID_PADDING, paddingBottom: normalize(16) }}>
+      {/* 하단 확인 버튼 (항상 화면 내에 선명하게 노출) */}
+      <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(6), paddingBottom: normalize(8) }}>
         <Pressable
           onPress={handleConfirm}
           style={({ pressed }) => ({
