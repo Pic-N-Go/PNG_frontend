@@ -40,7 +40,7 @@ NativeWind (Tailwind CSS v3) is used for all styling. Use `className` props dire
 
 **Do NOT use `StyleSheet.create()`** — all styles must be written as NativeWind `className`. Using StyleSheet breaks design token consistency and makes it harder to match the HTML mockups.
 
-**Do NOT use raw pixel values for font sizes or heights** — always use `src/constants/layout.ts` constants (`FONT_2XS`, `FONT_XS`, `FONT_SM`, `FONT_MD`, `FONT_LG`, `FONT_XL`, `FONT_2XL`, `BUTTON_HEIGHT`, etc.). Font sizes must stay within the 8 scale tokens (10/11/13/14/15/17/22/28px) — never introduce in-between sizes like 12/16/18/20px (use 11 or 13 instead of 12). Only `14px` (`--font-base`) has no constant → use `normalizeFontSize(14)`. Never write `fontSize: 12` or `height: 52` as raw numbers.
+**Do NOT use raw pixel values for font sizes or heights** — always use `src/constants/layout.ts` constants (`FONT_2XS`, `FONT_XS`, `FONT_SM`, `FONT_MD`, `FONT_LG`, `FONT_TITLE`, `FONT_XL`, `FONT_2XL`, `BUTTON_HEIGHT`, etc.). Font sizes must stay within the 9 scale tokens (10/11/13/14/15/17/20/22/28px) — never introduce in-between sizes like 12/16/18px (use 11 or 13 instead of 12). Section and sheet titles use `FONT_TITLE` (20px, Apple Title3); `FONT_XL` (22px) is for larger display headings only. Only `14px` (`--font-base`) has no constant → use `normalizeFontSize(14)`. Never write `fontSize: 12` or `height: 52` as raw numbers.
 
 ### Path Alias
 

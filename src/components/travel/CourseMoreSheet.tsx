@@ -9,7 +9,7 @@ import {
 } from '@tabler/icons-react-native';
 import BottomSheet from '@/components/common/BottomSheet';
 import { normalizeFontSize } from '@/utils/normalize';
-import { CONTENT_PADDING, GRID_PADDING, FONT_2XS } from '@/constants/layout';
+import { CONTENT_PADDING, FONT_2XS, FONT_TITLE, GRID_PADDING } from '@/constants/layout';
 import { BRAND } from '@/constants/colors';
 
 // 미구현 항목 표시. 공동 편집자 초대·캘린더 추가 두 곳에서 같은 모양으로 쓴다.
@@ -45,7 +45,7 @@ export default function CourseMoreSheet({
   return (
     <BottomSheet visible={visible} onClose={onClose}>
       <View className="pb-[16px]" style={{ paddingHorizontal: CONTENT_PADDING }}>
-        <Text className="font-semibold text-black tracking-[-0.5px] mb-1" style={{ fontSize: normalizeFontSize(20) }}>더보기</Text>
+        <Text className="font-semibold text-black tracking-[-0.5px] mb-1" style={{ fontSize: FONT_TITLE }}>더보기</Text>
         <Text className="font-normal text-[#666] tracking-[-0.3px]" style={{ fontSize: normalizeFontSize(13) }}>{courseName}</Text>
       </View>
 

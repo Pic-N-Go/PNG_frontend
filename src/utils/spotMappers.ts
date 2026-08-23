@@ -24,6 +24,8 @@ import type {
   MyReview,
   MyReviewDTO,
   MyReviewListResponse,
+  MapSpot,
+  ReviewedSpotResponse,
   PhotoExifDTO,
   ReviewExifResponse,
   SpotDetailInfo,
@@ -194,6 +196,113 @@ if (__DEV__) {
   console.assert(regionLabelFrom('강원특별자치도 속초시 중앙로') === '강원 속초시', '강원특별자치도 축약 오류');
   console.assert(regionLabelFrom('제주특별자치도 서귀포시') === '제주 서귀포시', '제주특별자치도 축약 오류');
   console.assert(regionLabelFrom('') === null, '빈 주소 → null 오류');
+}
+
+// 서버 enum 코드 → 표시용 라벨. ETC는 버린다(라벨이 "기타"라 칩으로 달 의미가 없다).
+// mapPopularSpot과 같은 규칙으로 최대 2개만 남긴다 — 바텀시트 한 줄에 들어가는 개수다.
+function categoryLabels(codes: string[] | undefined): string[] {
+  return (codes ?? [])
+    .filter((code) => code !== 'ETC')
+    .map((code) => SPOT_CATEGORY_MAP[code]?.label)
+    .filter((label): label is string => !!label)
+    .slice(0, 2);
+}
+
+/**
+ * PIC MAP의 두 핀 목록을 하나로 합친다.
+ * 같은 스팟을 리뷰도 쓰고 즐겨찾기도 했으면 핀은 하나이고 두 플래그가 함께 선다 —
+ * 나누어 담으면 같은 좌표에 핀이 겹쳐 찍히고, "리뷰" 필터에서도 그 스팟이 빠진다.
+ *
+ * 순서는 리뷰 핀(작성일 최신순) → 즐겨찾기 전용(최근 담은 순). 서버 두 응답의 순서를 그대로 잇는다.
+ */
+export function mergeMapSpots(
+  reviewed: ReviewedSpotResponse[] | undefined,
+  bookmarked: SpotResponse[] | undefined,
+): MapSpot[] {
+  const byId = new Map<number, MapSpot>();
+
+  // 리뷰 핀을 먼저 넣는다 — 작성일·별점을 이쪽만 갖고 있다.
+  for (const dto of reviewed ?? []) {
+    byId.set(dto.spotId, {
+      id: String(dto.spotId),
+      name: dto.name,
+      lat: dto.latitude,
+      lng: dto.longitude,
+      loc: regionLabelFrom(dto.address ?? '') ?? '',
+      photo: toHttps(dto.imageUrl),
+      reviewed: true,
+      bookmarked: false,
+      date: dto.reviewedAt.slice(0, 10).replace(/-/g, '.'),
+      rating: dto.rating,
+      categories: categoryLabels(dto.categories),
+    });
+  }
+
+  for (const dto of bookmarked ?? []) {
+    const existing = byId.get(dto.id);
+    if (existing) {
+      existing.bookmarked = true;
+      // 두 응답의 이미지 폴백 규칙이 달라(리뷰는 TRIM된 한 필드, 북마크는 thumbnail/image 두 필드)
+      // 리뷰 쪽만 null인 스팟이 생긴다. 플래그만 갱신하고 넘기면 썸네일이 빈 채로 남는다.
+      existing.photo = existing.photo ?? toHttps(dto.thumbnailUrl ?? dto.imageUrl);
+      continue;
+    }
+    byId.set(dto.id, {
+      id: String(dto.id),
+      name: dto.name,
+      lat: dto.latitude,
+      lng: dto.longitude,
+      loc: regionLabelFrom(dto.address ?? '') ?? '',
+      photo: toHttps(dto.thumbnailUrl ?? dto.imageUrl),
+      reviewed: false,
+      bookmarked: true,
+      // 즐겨찾기만 한 스팟은 리뷰가 없다. 바텀시트에서 통계 카드를 렌더하지 않는 근거가 이 null이다.
+      date: null,
+      rating: null,
+      categories: categoryLabels(dto.categories),
+    });
+  }
+
+  return [...byId.values()];
+}
+
+// ponytail: dev 전용 self-check — 머지가 이 작업에서 유일하게 틀릴 수 있는 로직이다 (프로덕션 no-op)
+if (__DEV__) {
+  const rev: ReviewedSpotResponse = {
+    spotId: 1, name: '광안리', address: '부산광역시 수영구 광안해변로',
+    latitude: 35.1, longitude: 129.1, imageUrl: null,
+    reviewedAt: '2026-06-16T10:30:00.123456', rating: 4,
+    // ETC는 걸러지고 최대 2개만 남아야 한다 (NIGHT_VIEW=야경, BEACH=해변, PARK는 잘림)
+    categories: ['NIGHT_VIEW', 'BEACH', 'PARK', 'ETC'],
+  };
+  const bmk = {
+    id: 1, name: '광안리', address: '부산광역시 수영구', latitude: 35.1, longitude: 129.1,
+    categories: [], badge: false, imageUrl: null, thumbnailUrl: null,
+    bookmarkCount: 0, reviewCount: 0, photogenicScore: 0, reviewAverage: null,
+  } as SpotResponse;
+
+  const onlyReview = mergeMapSpots([rev], []);
+  console.assert(onlyReview[0].categories.join() === '야경,해변', `카테고리 라벨 변환 오류: ${onlyReview[0].categories}`);
+  console.assert(onlyReview.length === 1 && onlyReview[0].reviewed && !onlyReview[0].bookmarked, '리뷰 전용 핀 오류');
+  console.assert(onlyReview[0].date === '2026.06.16', '리뷰 작성일 포맷 오류');
+  console.assert(onlyReview[0].loc === '부산 수영구', '지역명 축약 오류');
+
+  const onlyBookmark = mergeMapSpots([], [bmk]);
+  console.assert(onlyBookmark.length === 1 && !onlyBookmark[0].reviewed && onlyBookmark[0].bookmarked, '즐겨찾기 전용 핀 오류');
+  console.assert(onlyBookmark[0].date === null && onlyBookmark[0].rating === null, '즐겨찾기 전용은 작성일·별점이 없어야 한다');
+
+  // 같은 스팟 — 핀 1개에 두 플래그. 여기가 무너지면 핀이 겹쳐 찍힌다.
+  const both = mergeMapSpots([rev], [bmk]);
+  console.assert(both.length === 1, '같은 스팟이 핀 2개로 갈라졌다');
+  console.assert(both[0].reviewed && both[0].bookmarked, '두 플래그가 함께 서지 않았다');
+  console.assert(both[0].rating === 4, '머지 후 리뷰 별점이 사라졌다');
+
+  // 리뷰 응답에 이미지가 없고 북마크 응답에는 있는 경우 — 있는 쪽을 살려야 한다.
+  const bmkWithPhoto = { ...bmk, thumbnailUrl: 'http://example.com/t.jpg' } as SpotResponse;
+  const merged = mergeMapSpots([rev], [bmkWithPhoto]);
+  console.assert(merged[0].photo === 'https://example.com/t.jpg', `겸용 스팟 썸네일 폴백 오류: ${merged[0].photo}`);
+
+  console.assert(mergeMapSpots(undefined, undefined).length === 0, '로딩 중 undefined 처리 오류');
 }
 
 /**

@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity } from 'react-native';
 import BottomSheet from '@/components/common/BottomSheet';
 import { IconX } from '@tabler/icons-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { FONT_SM, HAIRLINE_WIDTH } from '@/constants/layout';
+import { FONT_SM, FONT_TITLE, HAIRLINE_WIDTH } from '@/constants/layout';
 import { BRAND, BRAND_TINT, HAIRLINE, TEXT_SUB } from '@/constants/colors';
 
 interface SocialSheetProps {
@@ -16,7 +16,7 @@ export default function SocialSheet({ visible, onClose }: SocialSheetProps) {
     <BottomSheet visible={visible} onClose={onClose}>
       <View style={{ paddingHorizontal: normalize(20) }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: normalize(16) }}>
-          <Text className="font-semibold text-black tracking-tight" style={{ fontSize: normalizeFontSize(20) }}>
+          <Text className="font-semibold text-black tracking-tight" style={{ fontSize: FONT_TITLE }}>
             소셜 계정
           </Text>
           <TouchableOpacity onPress={onClose} style={{ padding: normalize(4) }}>

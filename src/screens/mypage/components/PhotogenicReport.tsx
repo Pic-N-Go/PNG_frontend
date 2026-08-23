@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { FONT_XS } from '@/constants/layout';
+import { FONT_TITLE, FONT_XS } from '@/constants/layout';
 import { BRAND, BRAND_TINT, CARD, TEXT_SUB } from '@/constants/colors';
 
 const CHART_DATA = [
@@ -16,7 +16,7 @@ export default function PhotogenicReport() {
   return (
     <View className="mb-10" style={{ paddingHorizontal: normalize(20) }}>
       <View className="mb-3">
-        <Text className="font-semibold tracking-tight text-black" style={{ fontSize: normalizeFontSize(20) }}>
+        <Text className="font-semibold tracking-tight text-black" style={{ fontSize: FONT_TITLE }}>
           5월 포토제닉 리포트
         </Text>
       </View>

@@ -2,7 +2,7 @@ import React from 'react';
 import { Text, View } from 'react-native';
 import { IconSparkles } from '@tabler/icons-react-native';
 import { normalize } from '@/utils/normalize';
-import { FONT_XL, GRID_PADDING, SPACING_XS } from '@/constants/layout';
+import { FONT_TITLE, GRID_PADDING, SPACING_XS } from '@/constants/layout';
 import LinkBanner from '@/components/common/LinkBanner';
 import SpotCarouselSection from '@/components/home/SpotCarouselSection';
 import { useRecommendedSpots } from '@/hooks/useSpot';
@@ -60,7 +60,7 @@ function ThemePrompt({ hasThemes, onPress }: { hasThemes: boolean; onPress?: () 
         allowFontScaling={false}
         style={{
           fontFamily: 'Pretendard-SemiBold',
-          fontSize: FONT_XL,
+          fontSize: FONT_TITLE,
           color: '#000',
           letterSpacing: -0.4,
           paddingHorizontal: GRID_PADDING,

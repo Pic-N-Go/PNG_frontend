@@ -27,7 +27,7 @@ interface Props {
 }
 
 /**
- * MY 탭 "북마크한 스팟"의 한 줄 = 컬렉션 하나.
+ * MY 탭 "즐겨찾기 스팟"의 한 줄 = 컬렉션 하나.
  * 시트에서 만든 색·아이콘을 그대로 써서, 저장할 때 고른 컬렉션이 여기서 다시 보이게 한다.
  */
 export default function BookmarkCollectionRow({ collection, spots, isLoading, onPress }: Props) {

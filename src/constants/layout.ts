@@ -35,6 +35,9 @@ export const FONT_XS = normalizeFontSize(11);
 export const FONT_SM = normalizeFontSize(13);
 export const FONT_MD = normalizeFontSize(15);
 export const FONT_LG = normalizeFontSize(17);
+// 섹션·시트 제목 20px(Apple Title3). 티셔츠 래더의 17과 22 사이라 크기명 대신 역할명으로 둔다 —
+// FONT_XL(22)은 콘테스트 표시 텍스트처럼 더 큰 표제가 쓴다. 화면 타이틀(네비)은 FONT_LG(17).
+export const FONT_TITLE = normalizeFontSize(20);
 export const FONT_XL = normalizeFontSize(22);
 export const FONT_2XL = normalizeFontSize(28);
 

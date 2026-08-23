@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, TextInput, Switch, ActivityIndicator, Alert, Keyboard } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING } from '@/constants/layout';
+import { BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING, FONT_TITLE } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { useKeyboardOverlap } from '@/hooks/useKeyboardHeight';
 import { 
@@ -453,7 +453,7 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
       {/* Spot Change Sheet */}
       <BottomSheet visible={spotSheetVisible} onClose={() => setSpotSheetVisible(false)}>
         <View className="flex-row items-center justify-between px-5 pb-3">
-          <Text className="font-semibold text-black" style={{ fontSize: normalizeFontSize(20) }}>스팟 변경</Text>
+          <Text className="font-semibold text-black" style={{ fontSize: FONT_TITLE }}>스팟 변경</Text>
           <TouchableOpacity onPress={() => setSpotSheetVisible(false)} className="bg-black/5 items-center justify-center rounded-full" style={{ width: normalize(32), height: normalize(32) }}>
             <IconX size={normalize(14)} color={TEXT_SUB} />
           </TouchableOpacity>

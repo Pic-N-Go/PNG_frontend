@@ -146,6 +146,8 @@ export default function NotificationScreen({ navigation }: Props) {
         params: {
           screen: inquiryId ? 'InquiryDetail' : 'Inquiry',
           params: inquiryId ? { id: inquiryId } : undefined,
+          // initial: false — MY 탭 스택 밑에 MyPage를 깔아 둔다. 없으면 뒤로가기가 홈으로 튄다.
+          initial: false,
         },
       });
       return;

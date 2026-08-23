@@ -30,7 +30,8 @@
   --font-base: 14px;   /* 본문 */
   --font-md:   15px;   /* 강조 본문  — FONT_MD */
   --font-lg:   17px;   /* 소제목    — FONT_LG */
-  --font-xl:   22px;   /* 제목      — FONT_XL */
+  --font-title:20px;   /* 섹션·시트 제목 — FONT_TITLE */
+  --font-xl:   22px;   /* 더 큰 표제 — FONT_XL */
   --font-2xl:  28px;   /* 대제목    — FONT_2XL */
 
   /* Spacing (8px grid) */

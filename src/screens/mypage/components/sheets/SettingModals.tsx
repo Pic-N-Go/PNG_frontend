@@ -1,7 +1,7 @@
 import React from 'react';
 import { Text, TouchableOpacity, Modal, Pressable } from 'react-native';
-import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { FONT_SM, FONT_MD, BUTTON_HEIGHT } from '@/constants/layout';
+import { normalize } from '@/utils/normalize';
+import { BUTTON_HEIGHT, FONT_MD, FONT_SM, FONT_TITLE } from '@/constants/layout';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CARD, SCRIM } from '@/constants/colors';
 
@@ -17,7 +17,7 @@ export function LogoutModal({ visible, onClose, onConfirm }: ModalProps) {
     <Modal visible={visible} transparent animationType="slide" statusBarTranslucent onRequestClose={onClose}>
       <Pressable style={{ flex: 1, backgroundColor: SCRIM, justifyContent: 'flex-end' }} onPress={onClose}>
         <Pressable onPress={() => {}} style={{ backgroundColor: '#fff', borderTopLeftRadius: normalize(24), borderTopRightRadius: normalize(24), paddingHorizontal: normalize(24), paddingTop: normalize(28), paddingBottom: Math.max(insets.bottom, normalize(40)) }}>
-          <Text className="font-semibold text-black tracking-tight" style={{ fontSize: normalizeFontSize(20), marginBottom: normalize(8) }}>
+          <Text className="font-semibold text-black tracking-tight" style={{ fontSize: FONT_TITLE, marginBottom: normalize(8) }}>
             로그아웃할까요?
           </Text>
           <Text className="tracking-tight font-normal" style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.45)', lineHeight: normalize(22), marginBottom: normalize(24) }}>
@@ -42,7 +42,7 @@ export function WithdrawModal({ visible, onClose, onConfirm, pending }: ModalPro
     <Modal visible={visible} transparent animationType="slide" statusBarTranslucent onRequestClose={onClose}>
       <Pressable style={{ flex: 1, backgroundColor: SCRIM, justifyContent: 'flex-end' }} onPress={onClose}>
         <Pressable onPress={() => {}} style={{ backgroundColor: '#fff', borderTopLeftRadius: normalize(24), borderTopRightRadius: normalize(24), paddingHorizontal: normalize(24), paddingTop: normalize(28), paddingBottom: Math.max(insets.bottom, normalize(40)) }}>
-          <Text className="font-semibold text-black tracking-tight" style={{ fontSize: normalizeFontSize(20), marginBottom: normalize(8) }}>
+          <Text className="font-semibold text-black tracking-tight" style={{ fontSize: FONT_TITLE, marginBottom: normalize(8) }}>
             정말 탈퇴하시겠어요?
           </Text>
           {/* 서버는 소프트 삭제 후 30일 뒤에 개인정보를 파기한다 —
