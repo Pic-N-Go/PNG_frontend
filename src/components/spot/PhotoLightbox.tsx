@@ -76,6 +76,7 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose, 
   const ty = useSharedValue(0);
   const savedTx = useSharedValue(0);
   const savedTy = useSharedValue(0);
+  const opacity = useSharedValue(1);
 
   const isHorizontal = useSharedValue(false);
   const isVertical = useSharedValue(false);
@@ -83,6 +84,7 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose, 
   const usedMultiTouch = useSharedValue(false);
 
   function resetTransform() {
+    opacity.value = 1;
     scale.value = 1;
     savedScale.value = 1;
     tx.value = 0;
@@ -114,6 +116,7 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose, 
     isVertical.value = false;
     tx.value = enterOffset;
     tx.value = withTiming(0, { duration: 180 });
+    opacity.value = withTiming(1, { duration: 180 });
   }
 
   function goBy(delta: 1 | -1) {
@@ -122,10 +125,11 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose, 
       tx.value = withTiming(0, { duration: 180 });
       return;
     }
-    const exitTarget = delta > 0 ? -SCREEN_WIDTH : SCREEN_WIDTH;
-    const enterOffset = delta > 0 ? SCREEN_WIDTH * 0.45 : -SCREEN_WIDTH * 0.45;
+    const exitTarget = delta > 0 ? -SCREEN_WIDTH * 0.6 : SCREEN_WIDTH * 0.6;
+    const enterOffset = delta > 0 ? SCREEN_WIDTH * 0.4 : -SCREEN_WIDTH * 0.4;
 
-    tx.value = withTiming(exitTarget, { duration: 120 }, (finished) => {
+    tx.value = withTiming(exitTarget, { duration: 110 });
+    opacity.value = withTiming(0, { duration: 100 }, (finished) => {
       if (finished) {
         runOnJS(applyNextPhoto)(next, enterOffset);
       }
@@ -225,6 +229,7 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose, 
     height: IMAGE_HEIGHT,
     alignItems: 'center',
     justifyContent: 'center',
+    opacity: opacity.value,
     transform: [{ translateX: tx.value }, { translateY: ty.value }, { scale: scale.value }],
   }));
 
@@ -334,7 +339,8 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose, 
                   onPress={() => {
                     if (i === safeIndex) return;
                     const delta = i > safeIndex ? 1 : -1;
-                    applyNextPhoto(i, delta * SCREEN_WIDTH * 0.45);
+                    opacity.value = 0.2;
+                    applyNextPhoto(i, delta * SCREEN_WIDTH * 0.4);
                   }}
                   hitSlop={4}
                 >
