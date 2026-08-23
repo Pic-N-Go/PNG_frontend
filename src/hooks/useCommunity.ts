@@ -324,13 +324,79 @@ export function useCreateComment(postId: string) {
       if (!token) throw new Error('로그인이 필요해요.');
       return communityApi.createComment(postId, content, token, parentId);
     },
-    onSuccess: (_res, { parentId }) => {
-      // 답글이어도 최상위 목록을 갱신해야 한다 — 부모의 replyCount가 늘어야 하기 때문.
-      qc.invalidateQueries({ queryKey: commentsKey(postId) });
-      if (parentId) qc.invalidateQueries({ queryKey: repliesKey(postId, parentId) });
-      // 댓글 수는 게시글 응답에 들어 있어 목록·상세도 같이 갱신해야 숫자가 맞는다.
-      qc.invalidateQueries({ queryKey: ['community', 'post', postId] });
-      qc.invalidateQueries({ queryKey: ['community', 'posts'] });
+    onSuccess: (newCommentDTO, { parentId }) => {
+      // 1. 게시글 상세 및 목록 캐시의 commentCount만 +1 (게시글/사진 전체 재조회 제거 -> 상단 사진 깜빡임 원천 차단)
+      patchPostCaches(qc, postId, (dto) => ({
+        ...dto,
+        commentCount: dto.commentCount + 1,
+      }));
+
+      // 2. 새 댓글을 댓글 캐시 목록에 직접 주입 (새로고침 없이 0초 즉시 화면 반영)
+      if (parentId) {
+        // 답글인 경우: 답글 캐시에 추가
+        qc.setQueriesData<{ pages: CommentPageResponseDTO[]; pageParams: unknown[] }>(
+          { queryKey: ['community', 'replies', postId, parentId] },
+          (old) => {
+            if (!old) return old;
+            const pages = [...old.pages];
+            if (pages[0]) {
+              pages[0] = {
+                ...pages[0],
+                comments: [...pages[0].comments, newCommentDTO],
+                totalElements: (pages[0].totalElements ?? 0) + 1,
+              };
+            } else {
+              pages.push({
+                comments: [newCommentDTO],
+                totalElements: 1,
+                page: 0,
+                size: COMMENTS_PAGE_SIZE,
+                hasNext: false,
+              });
+            }
+            return { ...old, pages };
+          },
+        );
+        // 부모 댓글의 replyCount +1
+        qc.setQueriesData<{ pages: CommentPageResponseDTO[]; pageParams: unknown[] }>(
+          { queryKey: commentsKey(postId) },
+          (old) =>
+            old && {
+              ...old,
+              pages: old.pages.map((page) => ({
+                ...page,
+                comments: page.comments.map((c) =>
+                  String(c.id) === parentId ? { ...c, replyCount: (c.replyCount ?? 0) + 1 } : c,
+                ),
+              })),
+            },
+        );
+      } else {
+        // 최상위 댓글인 경우: 댓글 목록 첫 페이지 맨 뒤에 새 댓글 추가
+        qc.setQueriesData<{ pages: CommentPageResponseDTO[]; pageParams: unknown[] }>(
+          { queryKey: commentsKey(postId) },
+          (old) => {
+            if (!old) return old;
+            const pages = [...old.pages];
+            if (pages[0]) {
+              pages[0] = {
+                ...pages[0],
+                comments: [...pages[0].comments, newCommentDTO],
+                totalElements: (pages[0].totalElements ?? 0) + 1,
+              };
+            } else {
+              pages.push({
+                comments: [newCommentDTO],
+                totalElements: 1,
+                page: 0,
+                size: COMMENTS_PAGE_SIZE,
+                hasNext: false,
+              });
+            }
+            return { ...old, pages };
+          },
+        );
+      }
     },
   });
 }
@@ -404,12 +470,25 @@ export function useDeleteComment(postId: string) {
       if (!token) throw new Error('로그인이 필요해요.');
       return communityApi.deleteComment(postId, commentId, token);
     },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: commentsKey(postId) });
-      // 답글을 지웠으면 부모의 replyCount가, 부모를 지웠으면 답글 목록 자체가 바뀐다.
-      qc.invalidateQueries({ queryKey: ['community', 'replies', postId] });
-      qc.invalidateQueries({ queryKey: ['community', 'post', postId] });
-      qc.invalidateQueries({ queryKey: ['community', 'posts'] });
+    onSuccess: (_res, commentId) => {
+      // 1. 게시글 상세 및 목록 캐시의 commentCount만 -1 (게시글/사진 전체 재조회 제거)
+      patchPostCaches(qc, postId, (dto) => ({
+        ...dto,
+        commentCount: Math.max(0, dto.commentCount - 1),
+      }));
+
+      // 2. 댓글 및 답글 캐시에서 삭제된 댓글 제거
+      const remove = (old: { pages: CommentPageResponseDTO[]; pageParams: unknown[] } | undefined) =>
+        old && {
+          ...old,
+          pages: old.pages.map((page) => ({
+            ...page,
+            comments: page.comments.filter((c) => String(c.id) !== commentId),
+            totalElements: Math.max(0, (page.totalElements ?? 1) - 1),
+          })),
+        };
+      qc.setQueriesData({ queryKey: commentsKey(postId) }, remove);
+      qc.setQueriesData({ queryKey: ['community', 'replies', postId] }, remove);
     },
   });
 }

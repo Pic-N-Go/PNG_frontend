@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Image, Pressable, RefreshControl, ScrollView, Text, TextInput, View } from 'react-native';
+import { useQueryClient } from '@tanstack/react-query';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -44,10 +45,13 @@ export default function PostDetailScreen() {
   const insets = useSafeAreaInsets();
   const keyboardOverlap = useKeyboardOverlap();
   const me = useAuthStore((s) => s.user);
+  const qc = useQueryClient();
 
   const { data: post, isLoading, isError, refetch } = usePost(postId);
   const { data: commentData, hasNextPage, fetchNextPage, isFetchingNextPage } = useComments(postId);
   const comments = commentData?.comments ?? [];
+
+  const [refreshing, setRefreshing] = useState(false);
 
   // 목록에서 넘어온 isMyPost는 상세 응답이 오기 전 액션시트 분기용 초기값일 뿐,
   // 응답이 오면 서버가 내려준 작성자 정보(isMine)가 우선이다.
@@ -117,6 +121,16 @@ export default function PostDetailScreen() {
   function handleCloseLightbox() {
     setLightboxOpen(false);
     setExifOpen(false);
+  }
+
+  async function handleRefresh() {
+    setRefreshing(true);
+    await Promise.all([
+      refetch(),
+      qc.invalidateQueries({ queryKey: ['community', 'comments', postId] }),
+      qc.invalidateQueries({ queryKey: ['community', 'replies', postId] }),
+    ]);
+    setRefreshing(false);
   }
 
   /**
@@ -330,7 +344,18 @@ export default function PostDetailScreen() {
           </View>
         ) : (
           <>
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: normalize(24) }}>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: normalize(24) }}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor={BRAND}
+              colors={[BRAND]}
+            />
+          }
+        >
           {/* 히어로 사진 */}
           {/* 확대 버튼을 없애면서 라벨도 함께 사라졌다 — 아래 카운터는 장식이라 읽히지 않으므로,
               스크린리더에게는 이 히어로가 라이트박스로 들어가는 유일한 경로다. */}
