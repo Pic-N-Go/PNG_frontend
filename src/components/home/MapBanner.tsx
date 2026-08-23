@@ -1,11 +1,10 @@
-import React, { useMemo, useState } from 'react';
-import { Pressable, Text, View, Image } from 'react-native';
+import React, { useMemo } from 'react';
+import { Pressable, Text, View } from 'react-native';
 import { WebView } from 'react-native-webview';
-import { LinearGradient } from 'expo-linear-gradient';
 import { IconMapPin } from '@tabler/icons-react-native';
-import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { CARD_RADIUS, FONT_XS } from '@/constants/layout';
-import { BRAND } from '@/constants/colors';
+import { normalize } from '@/utils/normalize';
+import { CARD_RADIUS, FONT_2XS } from '@/constants/layout';
+import { BRAND, TEXT_SUB } from '@/constants/colors';
 
 const KAKAO_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_API_KEY;
 
@@ -24,8 +23,6 @@ interface Props {
 }
 
 export default function MapBanner({ onPress, spotCount = 0, isLoading, userLocation, spots }: Props) {
-  const [webViewLoaded, setWebViewLoaded] = useState(false);
-
   const centerLat = userLocation?.lat ?? 37.5665;
   const centerLng = userLocation?.lng ?? 126.9780;
 
@@ -165,23 +162,12 @@ export default function MapBanner({ onPress, spotCount = 0, isLoading, userLocat
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [centerLat, centerLng, spotsKey]);
 
-  // KAKAO_KEY가 존재할 때만 정적 스태틱 맵 이미지 URL 생성
-  const staticMapUrl = KAKAO_KEY
-    ? `https://dapi.kakao.com/v2/maps/staticmap?appkey=${KAKAO_KEY}&center=${centerLat},${centerLng}&level=6&w=640&h=320`
-    : null;
-
   return (
     <View style={{ width: '100%', height: normalize(160), borderRadius: CARD_RADIUS, overflow: 'hidden', backgroundColor: '#e8e8ed', position: 'relative' }}>
-      {/* 1. 카카오 스태틱 맵 백그라운드 (유효한 키가 있고 웹뷰 초기 로딩 전일 때 표기) */}
-      {staticMapUrl && !webViewLoaded && (
-        <Image
-          source={{ uri: staticMapUrl }}
-          style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
-          resizeMode="cover"
-        />
-      )}
-
-      {/* 2. 실제 카카오 지도 미니 웹뷰 (KAKAO_KEY가 유효할 때만 로드) */}
+      {/* 1. 실제 카카오 지도 미니 웹뷰 (KAKAO_KEY가 유효할 때만 로드).
+             로드 전에는 컨테이너의 #e8e8ed가 그대로 보인다 — 스태틱 맵 폴백은 두지 않는다.
+             dapi.kakao.com/v2/maps/staticmap은 KakaoAK 헤더 인증만 받아서 <Image>로는
+             항상 401이다(쿼리 appkey 무시). 매 마운트마다 실패하는 요청만 남았다. */}
       {Boolean(KAKAO_KEY) && (
         <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
           <WebView
@@ -191,7 +177,6 @@ export default function MapBanner({ onPress, spotCount = 0, isLoading, userLocat
             scrollEnabled={false}
             showsVerticalScrollIndicator={false}
             showsHorizontalScrollIndicator={false}
-            onLoadEnd={() => setWebViewLoaded(true)}
             onMessage={(event) => {
               try {
                 if (JSON.parse(event.nativeEvent.data)?.type === 'BANNER_TAP') onPress();
@@ -205,40 +190,34 @@ export default function MapBanner({ onPress, spotCount = 0, isLoading, userLocat
         </View>
       )}
 
-      {/* 3. 하단 페이드 오버레이 */}
-      <LinearGradient
-        colors={['transparent', 'rgba(0,0,0,0.3)']}
-        style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: normalize(80), zIndex: 2 }}
-        pointerEvents="none"
-      />
-
-      {/* 4. 좌상단 주변 스팟 개수 배지 */}
+      {/* 2. 우하단 주변 스팟 개수 배지 — MY 탭 PIC MAP 범례와 같은 형태로 둔다.
+             좌하단은 카카오 축척 바·로고 자리라 비워야 한다(가리면 안 되는 표기다). */}
       <View
         style={{
           position: 'absolute',
-          top: normalize(12),
-          left: normalize(12),
-          height: normalize(24),
+          bottom: normalize(10),
+          right: normalize(10),
+          backgroundColor: 'rgba(255,255,255,0.88)',
+          borderRadius: normalize(8),
           paddingHorizontal: normalize(10),
-          borderRadius: normalize(12),
-          backgroundColor: 'rgba(0,0,0,0.5)',
+          paddingVertical: normalize(6),
           flexDirection: 'row',
           alignItems: 'center',
-          gap: normalize(4),
+          gap: normalize(3),
           zIndex: 3,
         }}
         pointerEvents="none"
       >
-        <IconMapPin size={normalizeFontSize(10)} color="#fff" strokeWidth={1.5} />
+        <IconMapPin size={normalize(12)} color={BRAND} fill={BRAND} />
         <Text
           allowFontScaling={false}
-          style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_XS, color: '#fff' }}
+          style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_2XS, color: TEXT_SUB, letterSpacing: -0.1 }}
         >
           {isLoading ? '주변 스팟 탐색 중...' : `주변 스팟 ${spotCount}개`}
         </Text>
       </View>
 
-      {/* 5. 배너 전체 터치 오버레이 (탭 시 전체 지도로 이동) */}
+      {/* 3. 배너 전체 터치 오버레이 (탭 시 전체 지도로 이동) */}
       <Pressable
         onPress={onPress}
         style={({ pressed }) => ({

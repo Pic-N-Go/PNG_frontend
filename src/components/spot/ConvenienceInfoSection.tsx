@@ -14,7 +14,7 @@ import {
   SquareParking,
   TrainFront,
 } from 'lucide-react-native';
-import { FONT_SM, GRID_PADDING, HAIRLINE_WIDTH } from '@/constants/layout';
+import { FONT_SM, FONT_TITLE, GRID_PADDING, HAIRLINE_WIDTH } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import type { ConvenienceInfo, FacilityChipData, FacilityKey, FacilityStatus } from '@/types/spot';
 import { BRAND, BRAND_TINT, CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
@@ -93,7 +93,7 @@ export default function ConvenienceInfoSection({ info }: Props) {
 
   return (
     <View style={{ paddingHorizontal: GRID_PADDING }}>
-      <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(20), color: C.text, letterSpacing: -0.4, marginBottom: normalize(16) }}>
+      <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_TITLE, color: C.text, letterSpacing: -0.4, marginBottom: normalize(16) }}>
         편의 정보
       </Text>
 

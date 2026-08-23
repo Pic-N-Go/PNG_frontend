@@ -101,7 +101,7 @@ export function useRecommendedSpots(limit = 10, options?: QueryToggle) {
   });
 }
 
-/** MY 탭 "북마크한 스팟". 북마크 저장 시 무효화 대상이라 키를 내보낸다. */
+/** MY 탭 "즐겨찾기 스팟". 북마크 저장 시 무효화 대상이라 키를 내보낸다. */
 export const BOOKMARKED_SPOTS_KEY = ['spots', 'bookmarked'] as const;
 
 export function useBookmarkedSpots(options?: QueryToggle) {
@@ -109,6 +109,19 @@ export function useBookmarkedSpots(options?: QueryToggle) {
   return useQuery({
     queryKey: [...BOOKMARKED_SPOTS_KEY, token ?? 'guest'],
     queryFn: () => spotApi.getBookmarkedSpots(token!),
+    enabled: !!token && (options?.enabled ?? true),
+    staleTime: SPOTS_STALE_TIME,
+  });
+}
+
+/** PIC MAP "리뷰" 핀. 리뷰 작성·삭제 시 무효화 대상이라 키를 내보낸다. */
+export const REVIEWED_SPOTS_KEY = ['spots', 'reviewed'] as const;
+
+export function useReviewedSpots(options?: QueryToggle) {
+  const token = useAuthStore((s) => s.accessToken);
+  return useQuery({
+    queryKey: [...REVIEWED_SPOTS_KEY, token ?? 'guest'],
+    queryFn: () => spotApi.getReviewedSpots(token!),
     enabled: !!token && (options?.enabled ?? true),
     staleTime: SPOTS_STALE_TIME,
   });
@@ -251,6 +264,8 @@ function invalidateReviewLists(qc: ReturnType<typeof useQueryClient>, id: string
   // 정렬별로 캐시가 갈리므로 sort까지 특정하지 않고 리뷰 목록 전체를 무효화.
   qc.invalidateQueries({ queryKey: ['spot', id, 'reviews'] });
   qc.invalidateQueries({ queryKey: myReviewsKey });
+  // 리뷰를 쓰면 PIC MAP에 핀이 하나 생기고, 지우면 사라진다.
+  qc.invalidateQueries({ queryKey: REVIEWED_SPOTS_KEY });
 }
 
 function invalidateReviewCaches(qc: ReturnType<typeof useQueryClient>, id: string) {

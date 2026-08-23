@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, Text, TouchableOpacity, Image, Animated, Easing, PanResponder, Dimensions } from 'react-native';
-import { FONT_SM, BOTTOM_SHEET_RADIUS } from '@/constants/layout';
+import { BOTTOM_SHEET_RADIUS, FONT_SM, FONT_TITLE } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { IconMapPin, IconX, IconHeart, IconBookmark } from '@tabler/icons-react-native';
 import StarRating from '@/components/common/StarRating';

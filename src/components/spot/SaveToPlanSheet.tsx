@@ -129,7 +129,8 @@ export default function SaveToPlanSheet({ visible, onClose, spot, onSaved }: Pro
       });
     }
     handleClose();
-    navigation.navigate('TravelTab', { screen: 'TravelNew' });
+    // initial: false — 없으면 출사 탭 스택이 [TravelNew] 하나가 되어 뒤로가기가 탭 밖으로 빠진다.
+    navigation.navigate('TravelTab', { screen: 'TravelNew', initial: false });
   }
 
   async function handleExecuteSave(dayNum: number) {

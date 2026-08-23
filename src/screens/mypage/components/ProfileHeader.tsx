@@ -4,8 +4,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { IconSettings } from '@tabler/icons-react-native';
-import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { FONT_XL, FONT_XS, GRID_PADDING } from '@/constants/layout';
+import { normalize } from '@/utils/normalize';
+import { FONT_TITLE, FONT_XS, GRID_PADDING } from '@/constants/layout';
 import Avatar from '@/components/common/Avatar';
 import { useMyProfile, useMyStats, useMyAlbums } from '@/hooks/useUser';
 import { categoryLabel } from '@/constants/spotCategories';
@@ -53,7 +53,7 @@ export default function ProfileHeader() {
         <Avatar userId={profile?.id ?? authUser?.id} nickname={nickname} imageUrl={profileImageUrl} size={72} />
 
         <View className="flex-1">
-          <Text className="font-semibold text-white tracking-tight" style={{ fontSize: normalizeFontSize(20), marginBottom: normalize(2) }}>
+          <Text className="font-semibold text-white tracking-tight" style={{ fontSize: FONT_TITLE, marginBottom: normalize(2) }}>
             {nickname}
           </Text>
           {categories.length > 0 && (
@@ -171,8 +171,7 @@ function StatTile({
       }}
       onPress={onPress}
     >
-      {/* 20px은 8단계 스케일 밖이다(CLAUDE.md) — 가장 가까운 토큰인 FONT_XL(22)을 쓴다 */}
-      <Text className="font-semibold text-white tracking-tight" style={{ fontSize: FONT_XL, marginBottom: normalize(2) }}>
+      <Text className="font-semibold text-white tracking-tight" style={{ fontSize: FONT_TITLE, marginBottom: normalize(2) }}>
         {loading ? '-' : value.toLocaleString()}
       </Text>
       <Text className="tracking-tight font-normal" style={{ fontSize: FONT_XS, color: 'rgba(255, 255, 255, 0.35)' }}>

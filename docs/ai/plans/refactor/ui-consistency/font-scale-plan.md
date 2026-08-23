@@ -1,4 +1,4 @@
-# 구현 계획 — 폰트 크기 8단계 스케일 정리
+# 구현 계획 — 폰트 크기 스케일 정리
 
 > 선행 브랜치: `refactor/design-token-unification`
 > `border-radius-plan.md` · `screen-header-plan.md`와 독립적으로 진행 가능하다.
@@ -6,14 +6,20 @@
 
 ## 1) 입력 스펙
 
-CLAUDE.md는 폰트 크기를 **8개 토큰**으로 제한한다.
+CLAUDE.md는 폰트 크기를 **9개 토큰**으로 제한한다.
 
 ```
-10 · 11 · 13 · 14 · 15 · 17 · 22 · 28  (px)
-FONT_2XS · FONT_XS · FONT_SM · (없음) · FONT_MD · FONT_LG · FONT_XL · FONT_2XL
+10 · 11 · 13 · 14 · 15 · 17 · 20 · 22 · 28  (px)
+FONT_2XS · FONT_XS · FONT_SM · (없음) · FONT_MD · FONT_LG · FONT_TITLE · FONT_XL · FONT_2XL
 ```
 
-`14px`만 상수가 없어 `normalizeFontSize(14)`를 그대로 쓴다. 그 사이값(`9 · 12 · 16 · 18 · 20` 등)은 금지이며 `12`는 `11` 또는 `13`으로 내리거나 올린다.
+`14px`만 상수가 없어 `normalizeFontSize(14)`를 그대로 쓴다. 그 사이값(`9 · 12 · 16 · 18` 등)은 금지이며 `12`는 `11` 또는 `13`으로 내리거나 올린다.
+
+> **20px 편입 (2026-08-23).** Apple 타입 스케일의 Title3(20pt)이 빠져 17과 22 사이가 비어 있었다.
+> 섹션 제목을 22로 올려 보니 카드가 촘촘한 MY 탭에서 과하게 읽히고, 17은 본문 대비가 죽었다.
+> 실측상 시트 제목 9곳이 이미 20이었어서 20을 `FONT_TITLE`로 정식 편입했다.
+> 크기명(`FONT_XL` 등) 래더에 17↔22 사이 자리가 없어 역할명으로 둔다.
+> `FONT_XL`(22)은 콘테스트 표시 텍스트처럼 더 큰 표제가 계속 쓴다.
 
 **현황** (선행 브랜치 HEAD 기준. `TravelNewScreen` 28곳은 이미 정리 완료)
 
@@ -30,7 +36,7 @@ FONT_2XS · FONT_XS · FONT_SM · (없음) · FONT_MD · FONT_LG · FONT_XL · F
 |---|---|---|
 | `12` | 73 | **최대 덩어리.** 캡션·라벨·메타 텍스트 |
 | `16` | 29 | 본문·버튼·행 제목 |
-| `20` | 25 | 섹션 제목·시트 제목 |
+| `20` | 25 | 섹션 제목·시트 제목 → `FONT_TITLE`로 편입 (아래 참고) |
 | `18` | 18 | 화면 타이틀·모달 제목 |
 | `9` `8` | 5 | 아주 작은 배지 |
 | `11.5` `12.5` `14.5` `15.5` | 8 | 소수점 — 명백한 임의값 |
@@ -58,7 +64,7 @@ FONT_2XS · FONT_XS · FONT_SM · (없음) · FONT_MD · FONT_LG · FONT_XL · F
 | 역할 | 토큰 | 근거 |
 |---|---|---|
 | 화면 타이틀 (네비) | `FONT_LG` (17) | 앱 42곳 |
-| 섹션 제목 | `FONT_XL` (22) | CLAUDE.md 역할표 |
+| 섹션 제목 · 시트 제목 | `FONT_TITLE` (20) | 홈·MY 탭 전 섹션, 설정 시트 9곳 |
 | CTA 버튼 · 입력 텍스트 · 행 제목 | `FONT_MD` (15) | `BUTTON_HEIGHT` 사용처 34곳 |
 | 폼 필드 라벨 | `FONT_SM` (13) | `ComposeInquiryScreen`의 `FieldLabel` |
 | 모달 제목 | `FONT_MD` (15) | `ConfirmModal` |
@@ -88,7 +94,7 @@ FONT_2XS · FONT_XS · FONT_SM · (없음) · FONT_MD · FONT_LG · FONT_XL · F
 
 문맥 판단이 필요하다. 위 역할표를 기준으로 배정한다.
 
-- `20`은 대부분 섹션 제목·시트 제목 → `FONT_XL`(22) 또는 `FONT_LG`(17). MY 탭 섹션 제목이 여기 해당한다
+- `20`은 대부분 섹션 제목·시트 제목 → `FONT_TITLE`(20). 홈·MY 탭 섹션 제목과 설정 시트 제목은 정리 완료
 - `18`은 화면·모달 제목 → `FONT_LG`(17) 또는 `FONT_MD`(15)
 - `16`은 본문·버튼 → `FONT_MD`(15)가 다수
 
@@ -111,7 +117,7 @@ FONT_2XS · FONT_XS · FONT_SM · (없음) · FONT_MD · FONT_LG · FONT_XL · F
 
 ### Task 6 — className `text-*` 2곳
 
-`text-xs`(12) 등 Tailwind 기본 스케일은 8단계와 무관하다. `FONT_*`로 옮긴다.
+`text-xs`(12) 등 Tailwind 기본 스케일은 이 스케일과 무관하다. `FONT_*`로 옮긴다.
 
 ## 4) 검증 체크포인트
 
@@ -122,6 +128,7 @@ FONT_2XS · FONT_XS · FONT_SM · (없음) · FONT_MD · FONT_LG · FONT_XL · F
 grep -rhoE "fontSize: normalizeFontSize\([0-9.]+\)" src --include="*.tsx" \
   | grep -oE "[0-9.]+" | sort -n | uniq -c \
   | awk '{ok=($2==10||$2==11||$2==13||$2==14||$2==15||$2==17||$2==22||$2==28); if(!ok) print}'
+# 20은 의도적으로 빠져 있다 — FONT_TITLE 토큰으로만 쓰고 생값 normalizeFontSize(20)은 계속 잡아낸다.
 ```
 
 - [ ] 위반이 많던 화면 육안 확인 — 출사 알림 설정, 출사 코스 더보기 시트, 로그인, MY 사진 지도, 소셜 연동 시트, 북마크·길찾기 시트
