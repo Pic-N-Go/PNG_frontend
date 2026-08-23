@@ -1,17 +1,17 @@
 import React from 'react';
 import { Animated, Dimensions, PanResponder, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { WebView } from 'react-native-webview';
+import { NaverMapView, NaverMapMarkerOverlay } from '@mj-studio/react-native-naver-map';
 import { Aperture, Camera, MapPin, X } from 'lucide-react-native';
 import { PhotoExifData } from '@/types/photo';
 import { hasAnyExif } from '@/utils/spotMappers';
+import { isLocationInKorea } from '@/utils/location';
 import { BOTTOM_SHEET_RADIUS, FONT_2XS, FONT_LG, FONT_SM, FONT_XS, GRID_PADDING, HAIRLINE_WIDTH } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { BRAND, BRAND_TINT, CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
 
 const SURFACE = CARD;
 const ACCENT = BRAND;
-const KAKAO_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_API_KEY;
 const MAP_PREVIEW_HEIGHT = 120;
 /** 미리보기 지도의 핀 너비(px). 높이는 SVG viewBox 24:30 비율로 따라간다.
  *  120px 지도에 PhotoMapScreen의 24px 핀은 커 보여서 한 단계 줄였다. */
@@ -72,7 +72,7 @@ const MAP_BOX_STYLE = {
   marginTop: normalize(12),
 } as const;
 
-/** 지도를 못 그릴 때(키 없음·SDK 로드 실패) 자리를 지키는 아이콘 박스. */
+/** 지도를 못 그릴 때(좌표 유효하지 않음 등) 자리를 지키는 아이콘 박스. */
 function MapPlaceholder() {
   return (
     <View className="items-center justify-center" style={MAP_BOX_STYLE}>
@@ -82,86 +82,57 @@ function MapPlaceholder() {
 }
 
 /**
- * 촬영 위치 미리보기. **조작 없는 정지 지도**다 — 필요한 건 "대충 어디쯤"이지 탐색이 아니다.
- * 탐색이 필요해지면 좌표를 넘겨 지도 화면으로 보내는 편이 맞다.
- *
- * 조작 차단은 두 겹이다. SDK의 `setDraggable/setZoomable`은 지도 내부 동작만 끄고, 그 아래
- * Android WebView가 터치를 삼켜 부모 ScrollView의 스크롤을 막는 건 별개 문제라
- * `pointerEvents="none"`으로 터치 자체를 통과시킨다.
- *
- * 지도를 못 그리는 경우(키 없음·오프라인·SDK 401)는 빈 회색 박스로 두지 않고
- * 아이콘 플레이스홀더로 떨어뜨린다 — 이 시트는 지도가 없어도 나머지 정보로 제 역할을 한다.
+ * 촬영 위치 미리보기. 네이티브 네이버 지도로 렌더링하며, 조작 없는 정지 지도 형태를 유지한다.
  */
 function LocationPreview({ lat, lng }: { lat: number; lng: number }) {
-  const [failed, setFailed] = React.useState(false);
-  React.useEffect(() => setFailed(false), [lat, lng]);
-
-  const source = React.useMemo(
-    () => ({
-      // Number()로 한 번 걸러 넣는다. 타입상 number지만 서버 DTO를 런타임 검증 없이 믿는
-      // 구조라, 문자열이 새어 들어와도 NaN이 될 뿐 스크립트로 해석되지 않게 한다.
-      html: `<!DOCTYPE html>
-<html>
-<head>
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
-  <!-- baseUrl을 https로 주면 카카오 SDK가 내부 라이브러리를 https로 받는다(iOS ATS 통과).
-       단 Referer가 붙으면 미등록 도메인이라 401이 되므로 no-referrer로 억제한다. -->
-  <meta name="referrer" content="no-referrer">
-  <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_KEY}&autoload=false"></script>
-  <style>body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: ${SURFACE}; }
-    #map { width: 100%; height: 100%; }</style>
-</head>
-<body>
-  <div id="map"></div>
-  <script>
-    // 오프라인이면 script 태그가 안 붙어 kakao가 undefined다. 그대로 두면 ReferenceError로
-    // 스크립트가 죽어 빈 회색 박스만 남으므로, RN에 알려 플레이스홀더로 되돌린다.
-    if (window.kakao && window.kakao.maps) {
-      kakao.maps.load(function () {
-        var center = new kakao.maps.LatLng(${Number(lat)}, ${Number(lng)});
-        var map = new kakao.maps.Map(document.getElementById('map'), { center: center, level: 4 });
-        map.setDraggable(false);
-        map.setZoomable(false);
-        // 기본 Marker는 크기가 고정이라 CustomOverlay로 그린다(PhotoMapScreen과 같은 핀 모양).
-        // yAnchor: 1 — 핀 끝(뾰족한 아래쪽)이 실제 좌표에 닿아야 한다.
-        var pin = document.createElement('div');
-        pin.innerHTML =
-          '<svg width="${MAP_PIN_WIDTH}" height="${Math.round((MAP_PIN_WIDTH * 30) / 24)}" viewBox="0 0 24 30" fill="none">' +
-          '<path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill="${ACCENT}"/>' +
-          '<circle cx="12" cy="10.5" r="4.5" fill="#fff"/></svg>';
-        new kakao.maps.CustomOverlay({ position: center, content: pin, yAnchor: 1, map: map });
-      });
-    } else if (window.ReactNativeWebView) {
-      window.ReactNativeWebView.postMessage('MAP_FAILED');
-    }
-  </script>
-</body>
-</html>`,
-      baseUrl: 'https://localhost',
-    }),
-    [lat, lng],
-  );
-
-  if (!KAKAO_KEY || failed) return <MapPlaceholder />;
+  if (!lat || !lng || !isLocationInKorea(lat, lng)) {
+    return <MapPlaceholder />;
+  }
 
   return (
     <View pointerEvents="none" style={{ ...MAP_BOX_STYLE, overflow: 'hidden' }}>
-      <WebView
-        source={source}
-        originWhitelist={['*']}
-        javaScriptEnabled
-        scrollEnabled={false}
-        bounces={false}
-        overScrollMode="never"
-        // Android WebView가 overflow:hidden + borderRadius 클리핑을 무시하고 사각으로 그리는 걸 막는다.
-        androidLayerType="hardware"
-        onError={() => setFailed(true)}
-        onHttpError={() => setFailed(true)}
-        onMessage={(e) => e.nativeEvent.data === 'MAP_FAILED' && setFailed(true)}
-        showsVerticalScrollIndicator={false}
-        showsHorizontalScrollIndicator={false}
-        style={{ flex: 1, backgroundColor: SURFACE }}
-      />
+      <NaverMapView
+        style={{ flex: 1 }}
+        initialCamera={{
+          latitude: lat,
+          longitude: lng,
+          zoom: 14,
+        }}
+        isScrollGesturesEnabled={false}
+        isZoomGesturesEnabled={false}
+        isTiltGesturesEnabled={false}
+        isRotateGesturesEnabled={false}
+        isStopGesturesEnabled={false}
+        isShowCompass={false}
+        isShowScaleBar={false}
+        isShowZoomControls={false}
+        isShowLocationButton={false}
+        logoMargin={{ bottom: 4, left: 4 }}
+      >
+        <NaverMapMarkerOverlay
+          latitude={lat}
+          longitude={lng}
+          width={MAP_PIN_WIDTH}
+          height={MAP_PIN_WIDTH}
+          anchor={{ x: 0.5, y: 0.5 }}
+        >
+          <View
+            key={`exif_pin_${lat}_${lng}`}
+            collapsable={false}
+            style={{
+              width: MAP_PIN_WIDTH,
+              height: MAP_PIN_WIDTH,
+              borderRadius: MAP_PIN_WIDTH / 2,
+              backgroundColor: '#e31b59',
+              borderWidth: 2,
+              borderColor: '#FFFFFF',
+              alignItems: 'center',
+              justifyContent: 'center',
+              elevation: 3,
+            }}
+          />
+        </NaverMapMarkerOverlay>
+      </NaverMapView>
     </View>
   );
 }

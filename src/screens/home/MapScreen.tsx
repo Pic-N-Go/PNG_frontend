@@ -1,12 +1,13 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ScrollView, BackHandler, Image, TextInput, Alert, Linking } from 'react-native';
-import { WebView } from 'react-native-webview';
+import { NaverMapView, NaverMapMarkerOverlay, NaverMapPathOverlay, type NaverMapViewRef } from '@mj-studio/react-native-naver-map';
 import * as Location from 'expo-location';
-import { IconChevronLeft, IconSearch, IconAdjustmentsHorizontal, IconFocus2, IconX, IconChevronDown, IconChevronUp, IconRoute } from '@tabler/icons-react-native';
+import { IconChevronLeft, IconSearch, IconAdjustmentsHorizontal, IconFocus2, IconX, IconChevronDown, IconChevronUp, IconRoute, IconMapPinFilled } from '@tabler/icons-react-native';
 import { useNavigation, useRoute, useFocusEffect, CommonActions } from '@react-navigation/native';
 import { useCourseStore, Spot } from '@/store/useCourseStore';
 import { useSpots, useMapSpots, useSearchSpots } from '@/hooks/useSpot';
 import { useDebounce } from '@/hooks/useDebounce';
+import { useMapCluster } from '@/hooks/useMapCluster';
 import SpotPopup from '@/components/travel/SpotPopup';
 import BottomSheet from '@/components/common/BottomSheet';
 import FilterBottomSheet, { FilterState, EMPTY_FILTER } from '@/components/home/FilterBottomSheet';
@@ -18,26 +19,19 @@ import { getCourseStats } from '@/utils/distance';
 import { parseValidCoordinate } from '@/utils/geo';
 import { getDayColor, DAY_COLOR_PALETTE } from '@/constants/dayColors';
 import { CATEGORY_LABELS, CODE_BY_LABEL } from '@/constants/spotCategories';
-import { BUTTON_HEIGHT, BUTTON_RADIUS, CONTROL_SIZE, FONT_MD, FONT_SM, FONT_TITLE, FONT_XL, HEADER_HEIGHT, ICON_SM } from '@/constants/layout';
+import { BUTTON_HEIGHT, BUTTON_RADIUS, CONTROL_SIZE, FONT_MD, FONT_SM, FONT_TITLE, FONT_XL, FONT_XS, HEADER_HEIGHT, ICON_SM } from '@/constants/layout';
 import Chip from '@/components/common/Chip';
 import { BRAND, TEXT_SUB } from '@/constants/colors';
 import { SHADOW_CONTROL, SHADOW_OVERLAY } from '@/constants/shadow';
-import { MAP_FONT_FACE } from '@/constants/mapFont';
 import { sanitizeKoreaLocation } from '@/utils/location';
 
-const KAKAO_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_API_KEY;
-
 // 칩 id·라벨·enum 매핑 모두 @/constants/spotCategories 단일 출처를 따른다.
-// (예전에는 여기 라벨이 '유적지'·'도시'·'일출일몰'로 스팟 상세와 달랐다)
 const CATEGORY_MAP: Record<string, string> = CODE_BY_LABEL;
 
 // Day 드롭다운의 "전체" 항목. 실제 Day 키("1", "2"…)와 겹치지 않는 값이면 된다.
 const ALL_DAYS = 'all';
 
 // 지도에 넘길 스팟에 Day 색과 Day별 순번을 실어준다.
-// 번호는 Day별로 1부터 다시 매긴다 — 전체 보기에서 같은 번호가 여러 개 보이지만 색으로 구분된다.
-// 좌표가 깨진 스팟은 여기서 걸러낸다. 하나만 섞여도 bounds가 오염돼 전체 보기의 카메라가
-// 엉뚱한 곳으로 날아가고 폴리라인도 끊긴다. (번호는 걸러낸 뒤 매겨 1,2,3이 이어지게 둔다)
 const withDayMeta = (spots: any[], day: string) =>
   spots
     .filter((s) => parseValidCoordinate(s.lat, s.lng) !== null)
@@ -71,13 +65,11 @@ export default function MapScreen() {
              : route.params?.source === 'plan-view' ? 'plan-view'
              : route.params?.source === 'wishlist-change' ? 'wishlist-change'
              : 'view';
-  // 코스·스팟 목록을 들고 들어온 화면은 자기 카메라 의도가 있다(drawMarkers의 setBounds).
-  // HTML useMemo 안에만 두면 아래 위치 효과가 못 보고 그 카메라를 덮어쓴다.
   const isCourseView = mode === 'plan-view' || !!route.params?.spots;
 
-  const webViewRef = useRef<any>(null);
-  const [mapReady, setMapReady] = useState(false);
-  const latestLocationRef = useRef<{ latitude: number; longitude: number } | null>(null);
+  const naverMapRef = useRef<NaverMapViewRef>(null);
+  const currentCameraRef = useRef({ latitude: 37.5665, longitude: 126.9780, zoom: 14 });
+  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const { selectedSpots, addSpot, removeSpot } = useCourseStore();
   const [activeSpot, setActiveSpot] = useState<Spot | null>(null);
   const [isCourseModalOpen, setCourseModalOpen] = useState(false);
@@ -99,7 +91,7 @@ export default function MapScreen() {
     void requestLocationPermissionOnStart();
   }, []);
 
-  // 2. 위치 실시간 추적 및 웹뷰에 주입
+  // 2. 위치 실시간 추적 및 반영
   useEffect(() => {
     let isDisposed = false;
     let subscription: any = null;
@@ -109,31 +101,22 @@ export default function MapScreen() {
         const { status } = await Location.getForegroundPermissionsAsync();
         if (isDisposed) return;
 
-        if (status === Location.PermissionStatus.GRANTED && mapReady) {
-          // 초기 위치 조회 및 반영
+        if (status === Location.PermissionStatus.GRANTED) {
           const lastKnown = await Location.getLastKnownPositionAsync();
           if (isDisposed) return;
 
           if (lastKnown) {
             const sanitized = sanitizeKoreaLocation(lastKnown.coords.latitude, lastKnown.coords.longitude);
-            latestLocationRef.current = { latitude: sanitized.lat, longitude: sanitized.lng } as any;
-            if (webViewRef.current) {
-              // 진입 카메라를 내 위치로 잡는다. 위치를 못 받으면 이 블록을 건너뛰므로
-              // 기존대로 전체 스팟 setBounds(한반도 전체)로 남는다 — 폴백이 곧 이전 동작이다.
-              // 단 코스 보기는 예외다. drawMarkers가 코스에 맞춘 bounds를 먼저 잡는데,
-              // 여기서 내 위치로 setCenter하면 코스가 한 프레임 보이고 튄다 — 마커만 갱신한다.
-              webViewRef.current.injectJavaScript(`
-                if (${!isCourseView} && window.focusUserLocation) {
-                  window.focusUserLocation(${sanitized.lat}, ${sanitized.lng});
-                } else if (window.updateUserLocation) {
-                  window.updateUserLocation(${sanitized.lat}, ${sanitized.lng});
-                }
-                true;
-              `);
+            setUserLocation({ latitude: sanitized.lat, longitude: sanitized.lng });
+            if (!isCourseView) {
+              naverMapRef.current?.animateCameraTo({
+                latitude: sanitized.lat,
+                longitude: sanitized.lng,
+                zoom: 14,
+              });
             }
           }
 
-          // 실시간 위치 추적 구독
           const sub = await Location.watchPositionAsync(
             {
               accuracy: Location.Accuracy.Balanced,
@@ -143,15 +126,7 @@ export default function MapScreen() {
             (location) => {
               if (isDisposed) return;
               const sanitized = sanitizeKoreaLocation(location.coords.latitude, location.coords.longitude);
-              latestLocationRef.current = { latitude: sanitized.lat, longitude: sanitized.lng } as any;
-              if (webViewRef.current) {
-                webViewRef.current.injectJavaScript(`
-                  if (window.updateUserLocation) {
-                    window.updateUserLocation(${sanitized.lat}, ${sanitized.lng});
-                  }
-                  true;
-                `);
-              }
+              setUserLocation({ latitude: sanitized.lat, longitude: sanitized.lng });
             }
           );
 
@@ -168,9 +143,7 @@ export default function MapScreen() {
       }
     };
 
-    if (mapReady) {
-      void startLocationTracking();
-    }
+    void startLocationTracking();
 
     return () => {
       isDisposed = true;
@@ -178,7 +151,7 @@ export default function MapScreen() {
         subscription.remove();
       }
     };
-  }, [mapReady, isCourseView]);
+  }, [isCourseView]);
 
   const showToast = (message: string) => {
     setToastMessage(message);
@@ -193,30 +166,36 @@ export default function MapScreen() {
   const [currentPlanDay, setCurrentPlanDay] = useState<string>(route.params?.initialDay || '1');
   const [dayMenuOpen, setDayMenuOpen] = useState(false);
   const planDays = useMemo(() => Object.keys(route.params?.planData || {}), [route.params?.planData]);
-  // 지도가 idle될 때마다 WebView가 알려주는 현재 화면 영역
   const [mapBounds, setMapBounds] = useState<MapBounds | null>(null);
-  const debouncedKeyword = useDebounce(searchQuery, 500);
-  const debouncedMapBounds = useDebounce(mapBounds, 500);
+  const [mapZoom, setMapZoom] = useState(14);
+  const debouncedKeyword = useDebounce(searchQuery, 300);
+  const debouncedMapBounds = useDebounce(mapBounds, 200);
+
+  // 이전에 받아온 스팟들을 누적 보존하여 줌 인/아웃 시 마커가 사라지거나 깜빡이지 않게 함
+  const spotPoolRef = useRef<Map<string, any>>(new Map());
 
   const apiCategory = CATEGORY_MAP[selectedCategory] || (selectedCategory !== 'all' ? selectedCategory : undefined);
   const hasKeyword = debouncedKeyword.trim().length > 0;
-  // 코스 보기/스팟 목록을 파라미터로 받은 경우엔 API 조회가 필요 없다.
   const usesRouteSpots = mode === 'plan-view' || Array.isArray(route.params?.spots);
 
-  // 1. 지도 영역 핀 목록 (GET /spots/map) — 지도 드래그/확대 축소가 멈춘 뒤 500ms 후에 API 호출
+  // 카테고리 변경 시 스팟 풀 초기화
+  useEffect(() => {
+    spotPoolRef.current.clear();
+  }, [selectedCategory]);
+
+  // 1. 지도 영역 핀 목록 (GET /spots/map)
   const { data: mapSpotsData, error: mapError } = useMapSpots(
     { ...(debouncedMapBounds ?? DEFAULT_BOUNDS), category: apiCategory, size: 200 },
     { enabled: !usesRouteSpots && !hasKeyword },
   );
 
-  // 2. 키워드 검색 목록 (GET /spots/search) — 키워드가 있을 때만 실행된다.
+  // 2. 키워드 검색 목록 (GET /spots/search)
   const { data: searchSpotsData, error: searchError } = useSearchSpots(
     { keyword: debouncedKeyword, category: apiCategory, size: 50 },
     { enabled: !usesRouteSpots },
   );
 
-  // 3. 백업 스팟 목록 (GET /spots) — 지도 조회가 실패했을 때만 받아온다.
-  // 결과가 비어있는 건 "그 영역에 스팟이 없다"는 정상 응답이므로 전국 목록으로 대체하지 않는다.
+  // 3. 백업 스팟 목록 (GET /spots)
   const needsFallback = !usesRouteSpots && !hasKeyword && !!mapError;
   const { data: spotsPageData, error: spotsError } = useSpots(
     { category: apiCategory, size: 50 },
@@ -236,12 +215,10 @@ export default function MapScreen() {
     } else if (mapSpotsData && Array.isArray(mapSpotsData) && mapSpotsData.length > 0) {
       rawList = mapSpotsData;
     } else if (needsFallback && spotsPageData?.content && Array.isArray(spotsPageData.content)) {
-      // 비활성 쿼리도 캐시가 남아 있으면 data를 돌려주므로, 폴백 조건일 때만 사용한다.
-      // (그렇지 않으면 "이 영역에 스팟 없음"인 정상 응답을 이전 전국 목록이 덮어쓴다)
       rawList = spotsPageData.content;
     }
 
-    return rawList.map((spot: any) => {
+    const list = rawList.map((spot: any) => {
       const tags = Array.isArray(spot.categories) && spot.categories.length > 0
         ? spot.categories
         : (spot.category ? [spot.category] : []);
@@ -258,16 +235,23 @@ export default function MapScreen() {
         badge: spot.badge ?? false,
       };
     });
+
+    // 검색 중이 아닐 때는 수신된 스팟들을 누적 풀에 추가
+    if (!hasKeyword && list.length > 0) {
+      list.forEach((s: any) => {
+        if (s.id && s.lat && s.lng) {
+          spotPoolRef.current.set(String(s.id), s);
+        }
+      });
+    }
+
+    return list;
   }, [hasKeyword, needsFallback, mapSpotsData, searchSpotsData, spotsPageData]);
 
-  // 현재 코스(선택 목록)에 담긴 스팟인지 판단 — id 타입 불일치(number/string) 방지
   const isSpotSaved = useCallback(
     (spotId: string) => selectedSpots.some((s) => String(s.id) === String(spotId)),
     [selectedSpots]
   );
-
-
-
 
   useEffect(() => {
     if (route.params?.initialDay) {
@@ -275,8 +259,6 @@ export default function MapScreen() {
     }
   }, [route.params?.initialDay]);
 
-  // MapSearch 화면이 돌려준 결과를 반영한다. searchNonce가 있을 때만 처리하고 바로 지워서,
-  // 다른 파라미터 변경으로 리렌더될 때 예전 검색이 다시 적용되지 않게 한다.
   useEffect(() => {
     const nonce = route.params?.searchNonce;
     if (!nonce) return;
@@ -290,13 +272,12 @@ export default function MapScreen() {
       const lng = Number(searchSelectedSpot.lng);
       const isValidCoord =
         Number.isFinite(lat) && Number.isFinite(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
-      if (webViewRef.current && isValidCoord) {
-        webViewRef.current.injectJavaScript(`
-          if (window.kakaoMap) {
-            window.kakaoMap.setCenter(new kakao.maps.LatLng(${JSON.stringify(lat)}, ${JSON.stringify(lng)}));
-            window.kakaoMap.setLevel(3);
-          }
-        `);
+      if (isValidCoord) {
+        naverMapRef.current?.animateCameraTo({
+          latitude: lat,
+          longitude: lng,
+          zoom: 15,
+        });
       }
     } else if (searchKeyword) {
       setSearchQuery(searchKeyword);
@@ -316,7 +297,7 @@ export default function MapScreen() {
     } else {
       navigation.navigate('HomeTab');
     }
-    return true; // prevent default behavior
+    return true;
   }, [searchQuery, activeSpot, navigation]);
 
   useFocusEffect(
@@ -335,57 +316,28 @@ export default function MapScreen() {
     setActiveSpot(null);
   }, []);
 
-  const handleMessage = useCallback((event: any) => {
-    try {
-      const parsed = JSON.parse(event.nativeEvent.data);
-      if (parsed.type === 'SPOT_CLICK') {
-        // 같은 스팟을 다시 탭하면 참조를 유지해 불필요한 재-진입 애니메이션을 막는다.
-        setActiveSpot(prev => (prev?.id === parsed.data.id ? prev : parsed.data));
-      } else if (parsed.type === 'MAP_CLICK') {
-        setActiveSpot(null);
-      } else if (parsed.type === 'MAP_READY') {
-        setMapReady(true);
-      } else if (parsed.type === 'BOUNDS_CHANGED') {
-        const next = parsed.data as MapBounds;
-        // 같은 영역이면 쿼리 키가 흔들리지 않도록 갱신을 건너뛴다.
-        setMapBounds((prev) =>
-          prev &&
-          prev.southWestLat === next.southWestLat &&
-          prev.southWestLng === next.southWestLng &&
-          prev.northEastLat === next.northEastLat &&
-          prev.northEastLng === next.northEastLng
-            ? prev
-            : next,
-        );
-      }
-    } catch (e) {
-      console.log('WebView Message Parse Error:', e);
-    }
-  }, []);
-
   const handleZoomIn = useCallback(() => {
-    if (webViewRef.current) {
-      webViewRef.current.injectJavaScript(`
-        if (window.kakaoMap) {
-          window.kakaoMap.setLevel(window.kakaoMap.getLevel() - 1);
-        }
-      `);
+    if (naverMapRef.current) {
+      naverMapRef.current.animateCameraTo({
+        latitude: currentCameraRef.current.latitude,
+        longitude: currentCameraRef.current.longitude,
+        zoom: currentCameraRef.current.zoom + 1,
+      });
     }
   }, []);
 
   const handleZoomOut = useCallback(() => {
-    if (webViewRef.current) {
-      webViewRef.current.injectJavaScript(`
-        if (window.kakaoMap) {
-          window.kakaoMap.setLevel(window.kakaoMap.getLevel() + 1);
-        }
-      `);
+    if (naverMapRef.current) {
+      naverMapRef.current.animateCameraTo({
+        latitude: currentCameraRef.current.latitude,
+        longitude: currentCameraRef.current.longitude,
+        zoom: currentCameraRef.current.zoom - 1,
+      });
     }
   }, []);
 
   const handleMyLocation = useCallback(async () => {
     try {
-      // 1. 위치 권한 확인 및 요청
       const { status: existingStatus } = await Location.getForegroundPermissionsAsync();
       let finalStatus = existingStatus;
 
@@ -411,48 +363,26 @@ export default function MapScreen() {
         return;
       }
 
-      // 2. 이미 캐시된 최신 좌표가 있다면 0ms 즉시 panTo 이동
-      if (latestLocationRef.current && webViewRef.current) {
-        const sanitized = sanitizeKoreaLocation(latestLocationRef.current.latitude, latestLocationRef.current.longitude);
-        webViewRef.current.injectJavaScript(`
-          if (window.moveToUserLocation) {
-            window.moveToUserLocation(${sanitized.lat}, ${sanitized.lng});
-          }
-          true;
-        `);
-      } else {
-        // 캐시가 아직 없으면 빠른 OS 캐시(lastKnown)로 즉시 이동
-        const lastKnown = await Location.getLastKnownPositionAsync();
-        if (lastKnown) {
-          const sanitized = sanitizeKoreaLocation(lastKnown.coords.latitude, lastKnown.coords.longitude);
-          latestLocationRef.current = { latitude: sanitized.lat, longitude: sanitized.lng } as any;
-          if (webViewRef.current) {
-            webViewRef.current.injectJavaScript(`
-              if (window.moveToUserLocation) {
-                window.moveToUserLocation(${sanitized.lat}, ${sanitized.lng});
-              }
-              true;
-            `);
-          }
-        }
+      const lastKnown = await Location.getLastKnownPositionAsync();
+      if (lastKnown) {
+        const sanitized = sanitizeKoreaLocation(lastKnown.coords.latitude, lastKnown.coords.longitude);
+        setUserLocation({ latitude: sanitized.lat, longitude: sanitized.lng });
+        naverMapRef.current?.animateCameraTo({
+          latitude: sanitized.lat,
+          longitude: sanitized.lng,
+          zoom: 15,
+        });
       }
 
-      // 3. 백그라운드에서 정확한 최신 GPS 좌표를 한 번 더 갱신하여 미세 보정
       Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced })
         .then((location) => {
           const sanitized = sanitizeKoreaLocation(location.coords.latitude, location.coords.longitude);
-          latestLocationRef.current = { latitude: sanitized.lat, longitude: sanitized.lng } as any;
-          if (webViewRef.current) {
-            webViewRef.current.injectJavaScript(`
-              if (window.updateUserLocation) {
-                window.updateUserLocation(${sanitized.lat}, ${sanitized.lng});
-              }
-              if (window.moveToUserLocation) {
-                window.moveToUserLocation(${sanitized.lat}, ${sanitized.lng});
-              }
-              true;
-            `);
-          }
+          setUserLocation({ latitude: sanitized.lat, longitude: sanitized.lng });
+          naverMapRef.current?.animateCameraTo({
+            latitude: sanitized.lat,
+            longitude: sanitized.lng,
+            zoom: 15,
+          });
         })
         .catch((err) => console.warn('[MapScreen] Background getCurrentPosition error:', err));
 
@@ -469,19 +399,21 @@ export default function MapScreen() {
       }
       return withDayMeta(planData[currentPlanDay]?.spots || [], currentPlanDay);
     }
-    return route.params?.spots || apiSpots;
-  }, [mode, route.params?.spots, route.params?.planData, currentPlanDay, planDays, apiSpots]);
+    if (route.params?.spots) {
+      return route.params.spots;
+    }
+    if (hasKeyword) {
+      return apiSpots;
+    }
+    const pool = Array.from(spotPoolRef.current.values());
+    return pool.length > 0 ? pool : apiSpots;
+  }, [mode, route.params?.spots, route.params?.planData, currentPlanDay, planDays, apiSpots, hasKeyword]);
 
-  // 하단 요약 카드 값 — 계획 화면 통계와 같은 계산(getCourseStats)을 재사용한다.
-  // 값이 없는 항목은 " · " 구분자까지 같이 뺀다.
   const planSummary = useMemo(() => {
     const isAll = currentPlanDay === ALL_DAYS;
     const title = isAll ? '전체 경로' : `DAY ${currentPlanDay} 경로`;
     if (baseSpots.length === 0) return { isEmpty: true, title, meta: '등록된 스팟이 없어요' };
 
-    // 전체는 Day를 이어붙이지 않고 Day별 거리·시간을 각각 더한다(마지막 스팟 → 다음 날 첫 스팟은 이동이 아니다).
-    // 지도에 그리는 것과 같은 집합(withDayMeta로 좌표 검증을 통과한 스팟)으로 계산해야
-    // 같은 Day를 전체에서 볼 때와 따로 볼 때 거리가 달라지지 않는다.
     const perDay = isAll
       ? planDays.map((day) => getCourseStats(withDayMeta(route.params?.planData?.[day]?.spots || [], day)))
       : [getCourseStats(baseSpots)];
@@ -498,31 +430,24 @@ export default function MapScreen() {
   }, [baseSpots, currentPlanDay, planDays, route.params?.planData]);
 
   const filteredSpots = useMemo(() => {
-    // 코스 보기에는 필터 UI 자체가 없다. 게다가 코스 스팟에는 tags 필드가 없어서
-    // 필터가 조금이라도 걸리면 spot.tags.some에서 터진다.
     if (mode === 'plan-view') return baseSpots;
     return baseSpots.filter((spot: any) => {
-      // 1. 카테고리 필터링
       if (selectedCategory !== 'all' && selectedCategory !== '전체') {
         const targetEnum = CATEGORY_MAP[selectedCategory] || selectedCategory;
-        const matchesCategory = spot.tags.some(
+        const matchesCategory = spot.tags?.some(
           (t: string) => t === targetEnum || t === selectedCategory || (typeof t === 'string' && t.includes(selectedCategory))
         );
         if (!matchesCategory) return false;
       }
 
-      // 2. 상세 필터링 (FilterBottomSheet)
-      // 시간대 필터
       if (detailFilter.time.length > 0) {
-        const matchesTime = spot.tags.some((t: string) => detailFilter.time.includes(t));
+        const matchesTime = spot.tags?.some((t: string) => detailFilter.time.includes(t));
         if (!matchesTime) return false;
       }
-      // 날씨 필터
       if (detailFilter.weather.length > 0) {
-        const matchesWeather = spot.tags.some((t: string) => detailFilter.weather.includes(t));
+        const matchesWeather = spot.tags?.some((t: string) => detailFilter.weather.includes(t));
         if (!matchesWeather) return false;
       }
-      // 스코어 필터 (예: '80점 이상')
       if (detailFilter.score) {
         const minScore = parseInt(detailFilter.score.replace(/[^0-9]/g, ''), 10);
         if (spot.score < minScore) return false;
@@ -532,371 +457,63 @@ export default function MapScreen() {
     });
   }, [baseSpots, selectedCategory, detailFilter, mode]);
 
-  // filteredSpots가 변경될 때마다 WebView에 메시지를 보내 마커 갱신
-  // 단, 팝업이 열린 상태(activeSpot !== null)에서는 마커 재그리기 생략
-  // → 마커 재그리기 시 발생하는 map click 이벤트가 팝업을 닫는 부작용 방지
-  // 코스 보기에서 Day를 바꾸면 그 Day 경로가 화면에 들어와야 한다.
-  // drawMarkers는 fitBounds가 true일 때만 카메라를 옮기므로, Day 전환 직후 한 번만 켠다.
-  const fitOnNextUpdateRef = useRef(false);
+  // 코스 보기 모드에서 Day 전환 시 카메라 Bounds 맞춤
   useEffect(() => {
-    if (mode === 'plan-view') fitOnNextUpdateRef.current = true;
-  }, [currentPlanDay, mode]);
-
-  useEffect(() => {
-    // 이 갱신을 건너뛰더라도 플래그는 소비한다. 남겨두면 나중의 무관한 마커 갱신이 카메라를 옮긴다.
-    const shouldFit = hasKeyword || fitOnNextUpdateRef.current;
-    fitOnNextUpdateRef.current = false;
-    if (webViewRef.current && mapReady && !activeSpot) {
-      // 검색 결과이거나 Day를 전환한 직후에만 카메라를 옮긴다.
-      // (지도 이동으로 받아온 핀까지 따라가면 사용자가 보던 영역이 계속 튄다)
-      webViewRef.current.injectJavaScript(`
-        if (window.updateMarkers) {
-          window.updateMarkers(${JSON.stringify(filteredSpots)}, ${shouldFit});
+    if (isCourseView && filteredSpots.length > 0 && naverMapRef.current) {
+      if (filteredSpots.length === 1) {
+        naverMapRef.current.animateCameraTo({
+          latitude: filteredSpots[0].lat,
+          longitude: filteredSpots[0].lng,
+          zoom: 14,
+        });
+      } else {
+        const lats = filteredSpots.map((s: any) => s.lat).filter(Boolean);
+        const lngs = filteredSpots.map((s: any) => s.lng).filter(Boolean);
+        if (lats.length > 0) {
+          const minLat = Math.min(...lats);
+          const maxLat = Math.max(...lats);
+          const minLng = Math.min(...lngs);
+          const maxLng = Math.max(...lngs);
+          naverMapRef.current.animateRegionTo({
+            latitude: (minLat + maxLat) / 2,
+            longitude: (minLng + maxLng) / 2,
+            latitudeDelta: Math.max(0.02, (maxLat - minLat) * 1.5),
+            longitudeDelta: Math.max(0.02, (maxLng - minLng) * 1.5),
+          });
         }
-        true;
-      `);
+      }
     }
-  }, [filteredSpots, mapReady, activeSpot, hasKeyword]);
+  }, [currentPlanDay, isCourseView, filteredSpots]);
 
-  const HTML = useMemo(() => {
-    // 첫 페인트도 Day 색으로 그리게 초기 스팟에도 메타를 실어둔다(이후는 updateMarkers가 담당).
-    const initialDay = route.params?.initialDay || '1';
-    const initialSpots = (mode === 'plan-view' && route.params?.planData)
-      ? withDayMeta(route.params.planData[initialDay]?.spots || [], initialDay)
-      : (route.params?.spots || []);
-
-    return `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
-  <!-- baseUrl을 https로 주면 카카오 SDK가 내부 라이브러리를 https로 받는다(iOS ATS 통과).
-       단 Referer가 붙으면 미등록 도메인이라 401이 되므로 no-referrer로 억제한다. -->
-  <meta name="referrer" content="no-referrer">
-  <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_KEY}&libraries=clusterer&autoload=false"></script>
-  <style>${MAP_FONT_FACE}
-    body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #e8e8ed; }
-    #map { width: 100%; height: 100%; -webkit-transform: translateZ(0); transform: translateZ(0); will-change: transform; }
-    .marker-touch-wrap {
-      width: 44px; height: 44px;
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer;
-      -webkit-tap-highlight-color: transparent;
-      transform: translateZ(0);
-    }
-    .custom-marker {
-      width: 24px; height: 24px; border-radius: 50%; background: ${BRAND};
-      display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 2px 6px rgba(227, 27, 89, 0.35); border: 2px solid white;
-    }
-    .custom-marker svg { width: 12px; height: 12px; fill: white; pointer-events: none; }
-    @keyframes pulse {
-      0% { box-shadow: 0 0 0 0 rgba(0, 122, 255, 0.6); transform: scale(0.95); }
-      70% { box-shadow: 0 0 0 10px rgba(0, 122, 255, 0); transform: scale(1.15); }
-      100% { box-shadow: 0 0 0 0 rgba(0, 122, 255, 0); transform: scale(0.95); }
-    }
-    .user-location-dot {
-      width: 14px; height: 14px;
-      border-radius: 50%;
-      background: #007AFF;
-      border: 2.5px solid #FFFFFF;
-      box-shadow: 0 0 6px rgba(0,122,255,0.8);
-      animation: pulse 2s infinite;
-    }
-  </style>
-</head>
-<body>
-  <div id="map"></div>
-  <script>
-    kakao.maps.load(function() {
-      function initMap() {
-        var mapContainer = document.getElementById('map');
-        if (mapContainer.clientHeight === 0 || mapContainer.clientWidth === 0) {
-          setTimeout(initMap, 50);
-          return;
-        }
-
-        var mapOption = {
-            center: new kakao.maps.LatLng(33.4996, 126.5312),
-            level: 10
+  // 코스 경로 라인 그룹화
+  const dayPathGroups = useMemo(() => {
+    if (!isCourseView || filteredSpots.length < 2) return [];
+    const groups: Record<string, { spots: any[]; color: string }> = {};
+    filteredSpots.forEach((s: any) => {
+      const dayKey = s.__day || '1';
+      if (!groups[dayKey]) {
+        groups[dayKey] = {
+          spots: [],
+          color: s.__dayColor || getDayColor(dayKey).text,
         };
-        var map = new kakao.maps.Map(mapContainer, mapOption);
-        window.kakaoMap = map;
-
-        var clusterer = new kakao.maps.MarkerClusterer({
-            map: map,
-            averageCenter: true,
-            minLevel: 5,
-            gridSize: 50,
-            styles: [{
-                width: '34px', height: '34px',
-                background: '${BRAND}',
-                borderRadius: '17px',
-                color: '#FFFFFF',
-                textAlign: 'center',
-                lineHeight: '34px',
-                fontFamily: 'Pretendard',
-                fontWeight: '600',
-                fontSize: '11px',
-                boxShadow: '0 2px 8px rgba(227, 27, 89, 0.4)',
-                border: '2px solid #FFFFFF'
-            }]
-        });
-
-      // 마커(오버레이) 탭 시 kakao가 지도 'click'도 함께 발생시켜 '열자마자 닫힘'이 생긴다.
-      // 이전에는 MAP_CLICK을 80ms 지연시키고 마커 탭이 오면 취소했는데, 지도 click이 마커 click
-      // '뒤에' 오면 취소 후 다시 예약되어 팝업이 닫혔다. 취소가 아니라 '억제'로 바꿔 순서에 무관하게 만든다.
-      // (touchstart는 항상 click보다 먼저 오므로 마커 탭 시각을 기록해두면 판별이 가능하다)
-      var MARKER_TAP_GUARD_MS = 400;
-      var lastMarkerTapAt = 0;
-      function markMarkerTapped() {
-        lastMarkerTapAt = Date.now();
       }
-      function closePopupFromMapClick() {
-        if (Date.now() - lastMarkerTapAt < MARKER_TAP_GUARD_MS) return; // 마커 탭에 딸려온 지도 클릭
-        window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'MAP_CLICK' }));
-      }
-
-      var spots = ${JSON.stringify(initialSpots).replace(/</g, '\\u003c')};
-      var isCourseView = ${isCourseView};
-
-      var activeOverlays = [];
-      var activePolylines = [];
-      var initialBoundsSet = false;  // 최초 1회만 bounds 맞춤, 이후 updateMarkers 호출 시 지도 이동 방지
-
-      // Day별로 나눠 각자의 색으로 그린다. 단일 Day를 보고 있으면 그룹이 하나뿐이라 결과가 같다.
-      function drawPolyline(targetSpots) {
-        activePolylines.forEach(function(p) { p.setMap(null); });
-        activePolylines = [];
-        if (!isCourseView || !targetSpots || targetSpots.length === 0) return;
-
-        var groups = {};
-        var order = [];
-        targetSpots.forEach(function(s) {
-          var key = s.__day || 'single';
-          if (!groups[key]) { groups[key] = []; order.push(key); }
-          groups[key].push(s);
-        });
-
-        order.forEach(function(key) {
-          var group = groups[key];
-          if (group.length < 2) return;
-          var line = new kakao.maps.Polyline({
-            path: group.map(function(s) { return new kakao.maps.LatLng(s.lat, s.lng); }),
-            strokeWeight: 3,
-            strokeColor: group[0].__dayColor || '${BRAND}',
-            strokeOpacity: 0.8,
-            strokeStyle: 'solid'
-          });
-          line.setMap(map);
-          activePolylines.push(line);
-        });
-      }
-
-      function drawMarkers(targetSpots, fitBounds) {
-        // 기존 오버레이 및 클러스터 제거
-        activeOverlays.forEach(function(o) { o.setMap(null); });
-        activeOverlays = [];
-        if (clusterer) {
-          clusterer.clear();
-        }
-
-        var markerBounds = new kakao.maps.LatLngBounds();
-        var clusterMarkers = [];
-
-        targetSpots.forEach(function(spot, index) {
-          var markerPosition = new kakao.maps.LatLng(spot.lat, spot.lng);
-
-          var wrap = document.createElement('div');
-          wrap.className = 'marker-touch-wrap';
-
-          var content = document.createElement('div');
-          content.className = 'custom-marker';
-          // isCourseView일 때는 숫자, 아닐 때는 하트 아이콘
-          if (isCourseView) {
-            // 전체 보기에서는 Day마다 색이 다르고 번호는 Day별로 1부터 다시 매겨진다.
-            if (spot.__dayColor) {
-              content.style.background = spot.__dayColor;
-              content.style.boxShadow = '0 2px 6px rgba(0,0,0,0.25)';
-            }
-            content.innerHTML = '<span style="color:white; font-family:Pretendard; font-size:11px; font-weight:600;">' + (spot.__label || (index + 1)) + '</span>';
-          } else {
-            content.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg>';
-          }
-          wrap.appendChild(content);
-
-          wrap.onclick = function(e) {
-              e.stopPropagation();
-              markMarkerTapped();
-              window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'SPOT_CLICK', data: spot }));
-          };
-          wrap.addEventListener('touchstart', function(e) { e.stopPropagation(); markMarkerTapped(); }, { passive: true });
-
-          var customOverlay = new kakao.maps.CustomOverlay({
-              position: markerPosition,
-              content: wrap,
-              xAnchor: 0.5,
-              yAnchor: 0.5
-          });
-
-          // 코스 보기는 핀이 많아야 열 몇 개인데, 묶이면 이 화면의 핵심인 번호와 Day 색이
-          // 클러스터 배지(단색) 뒤로 사라진다. 여러 Day가 한 클러스터에 들어가면 색을 정할 수도 없다.
-          if (isCourseView) {
-            customOverlay.setMap(map);
-          } else {
-            clusterMarkers.push(customOverlay);
-          }
-          activeOverlays.push(customOverlay);
-          markerBounds.extend(markerPosition);
-        });
-
-        if (clusterer && clusterMarkers.length > 0) {
-          clusterer.addMarkers(clusterMarkers);
-        }
-
-        // 최초 1회, 그리고 검색 결과를 그릴 때만 지도 범위를 맞춘다.
-        // (그 외에는 setBounds를 생략해야 사용자가 보던 영역이 유지된다)
-        if ((fitBounds || !initialBoundsSet) && targetSpots.length > 0) {
-          if (isCourseView) {
-            // 코스 보기에만 적용한다. 일반 지도/키워드 검색까지 걸면 스팟 한 곳을 검색해도
-            // 축척 500m로 튕겨나가 기존 동작이 깨진다.
-            // 지도 위 오버레이(상단 헤더·Day 드롭다운, 하단 요약 카드)는 RN 뷰라 지도가 존재를 모른다.
-            // 패딩이 없으면 가장자리 핀이 그 뒤로 들어간다.
-            map.setBounds(markerBounds, 140, 40, 160, 40);
-            // 스팟끼리 가까우면 setBounds가 골목 단위까지 확대해버린다(스팟 2곳 3km짜리 Day 등).
-            // 레벨은 작을수록 확대 — 6(축척 500m)보다 더 파고들지 않게 자른다.
-            if (map.getLevel() < 6) map.setLevel(6);
-          } else {
-            map.setBounds(markerBounds);
-          }
-          initialBoundsSet = true;
-        }
-
-        drawPolyline(targetSpots);
-      }
-
-      // 초기 마커 정렬 및 그리기
-      drawMarkers(spots);
-
-      // 외부(React Native)에서 호출 가능한 마커 갱신 함수 노출
-      window.updateMarkers = function(spotsJson, fitBounds) {
-        try {
-          var parsed = typeof spotsJson === 'string' ? JSON.parse(spotsJson) : spotsJson;
-          drawMarkers(parsed, fitBounds);
-        } catch (e) {
-          console.error("updateMarkers Error: ", e);
-        }
-      };
-
-      // 실시간 내 위치 표시용 변수 및 함수 노출
-      var userLocationOverlay = null;
-      var lastUserLatLng = null;
-
-      window.updateUserLocation = function(lat, lng) {
-        try {
-          var locPosition = new kakao.maps.LatLng(lat, lng);
-          lastUserLatLng = locPosition;
-          if (userLocationOverlay) {
-            userLocationOverlay.setPosition(locPosition);
-          } else {
-            var contentNode = document.createElement('div');
-            contentNode.className = 'user-location-dot';
-            userLocationOverlay = new kakao.maps.CustomOverlay({
-              map: map,
-              position: locPosition,
-              content: contentNode,
-              xAnchor: 0.5,
-              yAnchor: 0.5,
-              zIndex: 10
-            });
-          }
-        } catch (err) {
-          console.error("updateUserLocation Error: ", err);
-        }
-      };
-
-      // 진입 시 1회. moveToUserLocation과 달리 축척까지 잡는다 —
-      // panTo만 하면 전체 스팟 setBounds가 만든 한반도 축척이 남아 내 위치가 점 하나로 보인다.
-      // initialBoundsSet을 세워 뒤늦게 도착한 마커의 setBounds가 카메라를 도로 뺏지 못하게 막는다.
-      // 명시적 fitBounds=true(검색·Day 전환)는 이 플래그를 무시하고 카메라를 옮긴다 — 의도된 비대칭이다.
-      window.focusUserLocation = function(lat, lng) {
-        try {
-          if (lat == null || lng == null) return false;
-          initialBoundsSet = true;
-          window.updateUserLocation(lat, lng);
-          map.setCenter(new kakao.maps.LatLng(lat, lng));
-          // 홈 배너 문구("반경 5km 기준")와 같은 범위를 보여준다. 레벨 8 = 축척 2km.
-          map.setLevel(8);
-          return true;
-        } catch (err) {
-          console.error("focusUserLocation Error: ", err);
-          return false;
-        }
-      };
-
-      window.moveToUserLocation = function(lat, lng) {
-        try {
-          if (lat != null && lng != null) {
-            window.updateUserLocation(lat, lng);
-            map.panTo(new kakao.maps.LatLng(lat, lng));
-            return true;
-          }
-          if (lastUserLatLng) {
-            map.panTo(lastUserLatLng);
-            return true;
-          }
-        } catch (err) {
-          console.error("moveToUserLocation Error: ", err);
-        }
-        return false;
-      };
-
-      // 현재 화면 영역을 React Native에 전달 → /spots/map 재조회 트리거
-      function postBounds() {
-        var b = map.getBounds();
-        var sw = b.getSouthWest();
-        var ne = b.getNorthEast();
-        window.ReactNativeWebView.postMessage(JSON.stringify({
-          type: 'BOUNDS_CHANGED',
-          data: {
-            southWestLat: sw.getLat(),
-            southWestLng: sw.getLng(),
-            northEastLat: ne.getLat(),
-            northEastLng: ne.getLng()
-          }
-        }));
-      }
-
-      // 카카오맵 + updateMarkers 준비 완료 → React Native에 알림
-      window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'MAP_READY' }));
-      postBounds();
-
-      // 이동/확대가 멈춘 시점에만 발생하므로 별도 디바운스 없이 그대로 사용
-      kakao.maps.event.addListener(map, 'idle', postBounds);
-
-      kakao.maps.event.addListener(map, 'click', function() {
-          closePopupFromMapClick();
-      });
-      }
-      initMap();
+      groups[dayKey].spots.push(s);
     });
-  </script>
-</body>
-</html>
-  `;
-  }, [route.params?.spots, route.params?.planData, route.params?.initialDay, mode, isCourseView]);
 
-  // source 객체도 HTML 문자열이 바뀔 때만 새로 만들어 WebView가 재로딩되지 않게 한다.
-  const mapSource = useMemo(() => ({ html: HTML, baseUrl: 'https://localhost' }), [HTML]);
+    return Object.values(groups).filter((g) => g.spots.length >= 2);
+  }, [isCourseView, filteredSpots]);
+
+  // 클러스터링 계산 (일반 탐색 모드에서 동작)
+  const { clusterElements } = useMapCluster<any>(
+    isCourseView ? [] : filteredSpots,
+    mapZoom,
+    mapBounds,
+    { radius: 45, maxZoom: 15 }
+  );
 
   const isAllDays = currentPlanDay === ALL_DAYS;
-  // "전체"는 대표 색이 없어 카드 아이콘만 1일차 색을 빌려 쓴다(점은 아래 DayDot이 겹쳐 표시).
   const activeDayColor = isAllDays ? DAY_COLOR_PALETTE[0] : getDayColor(currentPlanDay);
 
-  // 드롭다운 각 행의 점. 전체는 Day 색을 최대 3개까지 겹쳐 보여준다.
-  // 비선택 행도 점은 원래 Day 색 그대로 둔다 — 이 점이 지도 경로 색의 범례라서
-  // 회색으로 죽이면 어느 Day가 무슨 색인지 알 수 없어진다(선택 표시는 배경·굵기로 충분).
-  // 슬롯 폭을 고정해야 "전체" 행과 Day 행의 라벨 시작 위치가 어긋나지 않는다.
   const renderDayDot = (day: string) => {
     const dot = (color: string, i: number) => (
       <View
@@ -921,48 +538,240 @@ export default function MapScreen() {
     );
   };
 
-  if (!KAKAO_KEY) {
-    return (
-      <View className="flex-1 items-center justify-center bg-white">
-        <Text className="text-black/50 font-normal" style={{ fontSize: normalizeFontSize(16) }}>카카오 맵 API 키가 설정되지 않았습니다.</Text>
-      </View>
-    );
-  }
-
   return (
     <View className="flex-1 bg-white">
-        <StatusBar style="dark" />
-        {/* 상단 오버레이 (검색창 + 뒤로가기) */}
-        {mode === 'wishlist-change' ? (
-          <View className="bg-brand pt-14 pb-4 px-5 z-20 absolute top-0 left-0 right-0 w-full pointer-events-auto shadow-md">
-            <View className="flex-row items-center justify-between mb-3">
-              <TouchableOpacity onPress={handleBackNavigation} className="bg-white/20 items-center justify-center rounded-full" style={{ width: normalize(32), height: normalize(32) }}>
-                <IconChevronLeft size={normalize(20)} color="#fff" />
-              </TouchableOpacity>
-              <Text className="font-semibold text-white" style={{ fontSize: normalizeFontSize(18) }}>변경할 스팟을 선택하세요</Text>
-              <TouchableOpacity onPress={handleBackNavigation} className="bg-white/20 items-center justify-center rounded-full" style={{ width: normalize(32), height: normalize(32) }}>
-                <IconX size={normalize(16)} color="#fff" />
-              </TouchableOpacity>
-            </View>
-            <View className="bg-white rounded-xl flex-row items-center px-4" style={{ height: normalize(44) }}>
-              <IconSearch size={normalize(18)} color="rgba(0,0,0,0.3)" />
-              <TextInput
-                value={searchQuery}
-                onChangeText={setSearchQuery}
-                placeholder="스팟 이름으로 검색"
-                placeholderTextColor="rgba(0,0,0,0.3)"
-                className="flex-1 ml-2 text-black font-medium p-0"
-                style={{ fontSize: normalizeFontSize(14) }}
-              />
-              {searchQuery.length > 0 && (
-                <TouchableOpacity onPress={() => setSearchQuery('')} hitSlop={8}>
-                  <IconX size={normalize(16)} color={TEXT_SUB} />
-                </TouchableOpacity>
-              )}
-            </View>
+      <StatusBar style="dark" />
+
+      {/* 네이티브 네이버 지도 */}
+      <NaverMapView
+        ref={naverMapRef}
+        style={{ flex: 1 }}
+        initialCamera={{
+          latitude: filteredSpots[0]?.lat || 37.5665,
+          longitude: filteredSpots[0]?.lng || 126.9780,
+          zoom: isCourseView ? 12 : 14,
+        }}
+        onCameraIdle={(e) => {
+          setMapZoom(e.zoom ?? 14);
+          currentCameraRef.current = {
+            latitude: e.latitude,
+            longitude: e.longitude,
+            zoom: e.zoom ?? 14,
+          };
+          if (e.region) {
+            const swLat = e.region.latitude - e.region.latitudeDelta / 2;
+            const neLat = e.region.latitude + e.region.latitudeDelta / 2;
+            const swLng = e.region.longitude - e.region.longitudeDelta / 2;
+            const neLng = e.region.longitude + e.region.longitudeDelta / 2;
+            setMapBounds({
+              southWestLat: swLat,
+              southWestLng: swLng,
+              northEastLat: neLat,
+              northEastLng: neLng,
+            });
+          }
+        }}
+        onTapMap={() => setActiveSpot(null)}
+        isShowCompass={false}
+        isShowScaleBar={false}
+        isShowZoomControls={false}
+        isShowLocationButton={false}
+        logoMargin={{ bottom: normalize(mode === 'plan-view' ? 120 : 36), left: 16 }}
+        locationOverlay={
+          userLocation
+            ? {
+                isVisible: true,
+                position: userLocation,
+              }
+            : undefined
+        }
+      >
+        {/* 코스 경로선 */}
+        {dayPathGroups.map((group, idx) => (
+          <NaverMapPathOverlay
+            key={`path_${idx}`}
+            coords={group.spots.map((s: any) => ({ latitude: s.lat, longitude: s.lng }))}
+            width={4}
+            color={group.color}
+            outlineWidth={0}
+          />
+        ))}
+
+        {/* 스팟 마커 및 클러스터 마커 */}
+        {isCourseView
+          ? filteredSpots.map((spot: any, index: number) => {
+              if (!spot.lat || !spot.lng) return null;
+              return (
+                <NaverMapMarkerOverlay
+                  key={`${spot.__day || '1'}_${spot.id}_${index}`}
+                  latitude={spot.lat}
+                  longitude={spot.lng}
+                  width={normalize(28)}
+                  height={normalize(28)}
+                  anchor={{ x: 0.5, y: 0.5 }}
+                  onTap={() => setActiveSpot(spot)}
+                >
+                  <View
+                    key={`course_pin_${spot.__day}_${spot.id}_${index}`}
+                    collapsable={false}
+                    style={{
+                      width: normalize(28),
+                      height: normalize(28),
+                      borderRadius: normalize(14),
+                      backgroundColor: spot.__dayColor || '#e31b59',
+                      borderWidth: 2,
+                      borderColor: '#FFFFFF',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      shadowColor: '#000',
+                      shadowOffset: { width: 0, height: 1 },
+                      shadowOpacity: 0.25,
+                      shadowRadius: 2,
+                      elevation: 3,
+                    }}
+                  >
+                    <Text
+                      allowFontScaling={false}
+                      style={{
+                        color: '#FFFFFF',
+                        fontFamily: 'Pretendard-SemiBold',
+                        fontSize: FONT_XS,
+                      }}
+                    >
+                      {spot.__label || index + 1}
+                    </Text>
+                  </View>
+                </NaverMapMarkerOverlay>
+              );
+            })
+          : clusterElements.map((element) => {
+              if (element.isCluster) {
+                return (
+                  <NaverMapMarkerOverlay
+                    key={`cluster_${element.id}`}
+                    latitude={element.latitude}
+                    longitude={element.longitude}
+                    width={normalize(36)}
+                    height={normalize(36)}
+                    anchor={{ x: 0.5, y: 0.5 }}
+                    onTap={() => {
+                      naverMapRef.current?.animateCameraTo({
+                        latitude: element.latitude,
+                        longitude: element.longitude,
+                        zoom: element.expansionZoom,
+                      });
+                    }}
+                  >
+                    <View
+                      key={`cluster_view_${element.id}_${element.count}`}
+                      collapsable={false}
+                      style={{
+                        width: normalize(36),
+                        height: normalize(36),
+                        borderRadius: normalize(18),
+                        backgroundColor: '#e31b59',
+                        borderWidth: 2,
+                        borderColor: '#FFFFFF',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        shadowColor: '#e31b59',
+                        shadowOffset: { width: 0, height: 2 },
+                        shadowOpacity: 0.4,
+                        shadowRadius: 4,
+                        elevation: 4,
+                      }}
+                    >
+                      <Text
+                        allowFontScaling={false}
+                        style={{
+                          color: '#FFFFFF',
+                          fontFamily: 'Pretendard-SemiBold',
+                          fontSize: FONT_SM,
+                        }}
+                      >
+                        {element.count}
+                      </Text>
+                    </View>
+                  </NaverMapMarkerOverlay>
+                );
+              }
+
+              const spot = element.spot;
+              if (!spot.lat || !spot.lng) return null;
+              return (
+                <NaverMapMarkerOverlay
+                  key={String(spot.id)}
+                  latitude={spot.lat}
+                  longitude={spot.lng}
+                  width={normalize(24)}
+                  height={normalize(24)}
+                  anchor={{ x: 0.5, y: 0.5 }}
+                  caption={{
+                    text: spot.name,
+                    textSize: FONT_XS,
+                    color: '#111111',
+                    haloColor: '#FFFFFF',
+                    offset: normalize(4),
+                  }}
+                  onTap={() => setActiveSpot(spot)}
+                >
+                  <View
+                    key={`spot_pin_${spot.id}`}
+                    collapsable={false}
+                    style={{
+                      width: normalize(24),
+                      height: normalize(24),
+                      borderRadius: normalize(12),
+                      backgroundColor: '#e31b59',
+                      borderWidth: 2,
+                      borderColor: '#FFFFFF',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      shadowColor: '#e31b59',
+                      shadowOffset: { width: 0, height: 2 },
+                      shadowOpacity: 0.35,
+                      shadowRadius: 3,
+                      elevation: 3,
+                    }}
+                  >
+                    <IconMapPinFilled size={normalize(12)} color="#FFFFFF" />
+                  </View>
+                </NaverMapMarkerOverlay>
+              );
+            })}
+      </NaverMapView>
+
+      {/* 상단 오버레이 (검색창 + 뒤로가기) */}
+      {mode === 'wishlist-change' ? (
+        <View className="bg-brand pt-14 pb-4 px-5 z-20 absolute top-0 left-0 right-0 w-full pointer-events-auto shadow-md">
+          <View className="flex-row items-center justify-between mb-3">
+            <TouchableOpacity onPress={handleBackNavigation} className="bg-white/20 items-center justify-center rounded-full" style={{ width: normalize(32), height: normalize(32) }}>
+              <IconChevronLeft size={normalize(20)} color="#fff" />
+            </TouchableOpacity>
+            <Text className="font-semibold text-white" style={{ fontSize: normalizeFontSize(18) }}>변경할 스팟을 선택하세요</Text>
+            <TouchableOpacity onPress={handleBackNavigation} className="bg-white/20 items-center justify-center rounded-full" style={{ width: normalize(32), height: normalize(32) }}>
+              <IconX size={normalize(16)} color="#fff" />
+            </TouchableOpacity>
           </View>
-        ) : (
-          <View className="absolute top-0 left-0 right-0 z-20 pointer-events-box-none" style={{ paddingTop: HEADER_HEIGHT }}>
+          <View className="bg-white rounded-xl flex-row items-center px-4" style={{ height: normalize(44) }}>
+            <IconSearch size={normalize(18)} color="rgba(0,0,0,0.3)" />
+            <TextInput
+              value={searchQuery}
+              onChangeText={setSearchQuery}
+              placeholder="스팟 이름으로 검색"
+              placeholderTextColor="rgba(0,0,0,0.3)"
+              className="flex-1 ml-2 text-black font-medium p-0"
+              style={{ fontSize: normalizeFontSize(14) }}
+            />
+            {searchQuery.length > 0 && (
+              <TouchableOpacity onPress={() => setSearchQuery('')} hitSlop={8}>
+                <IconX size={normalize(16)} color={TEXT_SUB} />
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+      ) : (
+        <View className="absolute top-0 left-0 right-0 z-20 pointer-events-box-none" style={{ paddingTop: HEADER_HEIGHT }}>
           <View className="flex-row items-center px-4 gap-2 pointer-events-auto">
             {/* 뒤로가기 버튼 */}
             <TouchableOpacity
@@ -1056,9 +865,7 @@ export default function MapScreen() {
                 </TouchableOpacity>
               </View>
             ) : (
-              /* 코스 보기 — Day 드롭다운.
-                 가로 세그먼트는 Day가 늘어날수록 화면 밖으로 밀려나서 드롭다운으로 바꿨다.
-                 닫힌 폭이 고정이라 2일이든 10일이든 헤더 모양이 같다. */
+              /* 코스 보기 — Day 드롭다운 */
               <View style={{ flex: 1, alignItems: 'flex-end' }}>
                 <TouchableOpacity
                   onPress={() => setDayMenuOpen((v) => !v)}
@@ -1091,7 +898,6 @@ export default function MapScreen() {
                     ? <IconChevronUp size={normalize(16)} color={TEXT_SUB} strokeWidth={2} />
                     : <IconChevronDown size={normalize(16)} color={TEXT_SUB} strokeWidth={2} />}
                 </TouchableOpacity>
-
               </View>
             )}
           </View>
@@ -1103,7 +909,6 @@ export default function MapScreen() {
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 4, gap: 6 }}
               >
-                {/* 지도에 뿌릴 스팟만 거르는 필터라 활성색은 블랙이다. 모양은 공통 Chip으로 통일. */}
                 {CATEGORIES.map((cat) => (
                   <Chip
                     key={cat.id}
@@ -1117,309 +922,278 @@ export default function MapScreen() {
             </View>
           )}
         </View>
-        )}
+      )}
 
-        <WebView
-          ref={webViewRef}
-          source={mapSource}
-          onMessage={handleMessage}
-          onError={(syntheticEvent: any) => console.error('[WebView Error]', syntheticEvent.nativeEvent)}
-          style={{ flex: 1 }}
-          javaScriptEnabled={true}
-          domStorageEnabled={true}
-          geolocationEnabled={true}
-          originWhitelist={['*']}
-          androidLayerType="hardware"
-          androidHardwareAccelerationDisabled={false}
-          overScrollMode="never"
-          showsHorizontalScrollIndicator={false}
-          showsVerticalScrollIndicator={false}
+      {/* Day 드롭다운 스크림 */}
+      {dayMenuOpen && (
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={() => setDayMenuOpen(false)}
+          style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 15, backgroundColor: 'rgba(0,0,0,0.12)' }}
         />
+      )}
 
-        {/* Day 드롭다운 스크림 — 헤더(z-20)보다 아래, 지도 컨트롤(z-10)보다 위 */}
-        {dayMenuOpen && (
-          <TouchableOpacity
-            activeOpacity={1}
-            onPress={() => setDayMenuOpen(false)}
-            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 15, backgroundColor: 'rgba(0,0,0,0.12)' }}
-          />
-        )}
-
-        {/* Day 드롭다운 목록 — 트리거(헤더) 안에 두면 부모 높이를 넘어가서 안드로이드가
-            영역 밖 자식에게 터치를 전달하지 않는다. 루트 형제로 빼고 좌표로 트리거 아래에 붙인다.
-            top = 헤더 + 트리거 세로 중앙정렬 여백(3) + 트리거 높이(42) + 간격(6) */}
-        {dayMenuOpen && (
-          <View
-            style={{
-              position: 'absolute',
-              top: HEADER_HEIGHT + normalize(51),
-              right: 16,
-              zIndex: 16,
-              width: normalize(132),
-              borderRadius: normalize(14),
-              backgroundColor: '#fff',
-              overflow: 'hidden',
-              ...SHADOW_OVERLAY,
-            }}
-          >
-            {/* 5행까지 노출하고 그 이상은 목록만 스크롤 */}
-            <ScrollView style={{ maxHeight: normalize(220) }} showsVerticalScrollIndicator={false}>
-              {/* "전체"는 목록 최상단 고정. 구분선은 전체 ↔ Day 경계에만 둔다 */}
-              {[ALL_DAYS, ...planDays].map((dayStr) => {
-                const isActive = dayStr === currentPlanDay;
-                const isAllRow = dayStr === ALL_DAYS;
-                const rowColor = isAllRow ? DAY_COLOR_PALETTE[0] : getDayColor(dayStr);
-                return (
-                  <View key={dayStr}>
-                    <TouchableOpacity
-                      onPress={() => {
-                        // 팝업이 열린 채로 Day를 바꾸면 마커 갱신 effect가 !activeSpot에서 막혀
-                        // 이전 Day 경로가 그대로 남는다. Day를 바꾸는 순간 팝업은 무효하니 닫는다.
-                        setActiveSpot(null);
-                        setCurrentPlanDay(dayStr);
-                        setDayMenuOpen(false);
-                      }}
-                      activeOpacity={0.7}
-                      style={{
-                        height: normalize(44),
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        paddingHorizontal: normalize(14),
-                        gap: normalize(8),
-                        backgroundColor: isActive ? rowColor.bg : 'transparent',
-                      }}
-                    >
-                      {renderDayDot(dayStr)}
-                      <Text
-                        allowFontScaling={false}
-                        style={{
-                          fontSize: FONT_MD,
-                          fontFamily: isActive ? 'Pretendard-SemiBold' : 'Pretendard-Regular',
-                          color: isActive ? rowColor.text : 'rgba(0,0,0,0.6)',
-                          letterSpacing: -0.2,
-                        }}
-                      >
-                        {isAllRow ? '전체' : `DAY ${dayStr}`}
-                      </Text>
-                    </TouchableOpacity>
-                    {isAllRow && (
-                      <View style={{ height: 1, marginHorizontal: normalize(14), backgroundColor: 'rgba(0,0,0,0.07)' }} />
-                    )}
-                  </View>
-                );
-              })}
-            </ScrollView>
-          </View>
-        )}
-
-        {/* 우측 하단 지도 편의 컨트롤 (내 위치 이동 + 줌 컨트롤) */}
+      {/* Day 드롭다운 목록 */}
+      {dayMenuOpen && (
         <View
-          pointerEvents="box-none"
           style={{
             position: 'absolute',
+            top: HEADER_HEIGHT + normalize(51),
             right: 16,
-            bottom: normalize(mode === 'plan-view' ? 120 : 36),
-            zIndex: 10,
-            gap: 8,
+            zIndex: 16,
+            width: normalize(132),
+            borderRadius: normalize(14),
+            backgroundColor: '#fff',
+            overflow: 'hidden',
+            ...SHADOW_OVERLAY,
           }}
         >
-          {/* 내 위치 이동 버튼 */}
-          <View
-            style={{
-              backgroundColor: '#ffffff',
-              borderRadius: 12,
-              overflow: 'hidden',
-              ...SHADOW_CONTROL,
-            }}
-          >
-            <TouchableOpacity
-              onPress={handleMyLocation}
-              activeOpacity={0.7}
-              style={{
-                width: 40,
-                height: 40,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <IconFocus2 size={18} color="rgba(0,0,0,0.55)" />
-            </TouchableOpacity>
-          </View>
-
-          {/* 줌 컨트롤 그룹 */}
-          <View
-            style={{
-              backgroundColor: '#ffffff',
-              borderRadius: 12,
-              overflow: 'hidden',
-              ...SHADOW_CONTROL,
-            }}
-          >
-            <TouchableOpacity
-              onPress={handleZoomIn}
-              activeOpacity={0.7}
-              style={{
-                width: CONTROL_SIZE,
-                height: CONTROL_SIZE,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Text style={{ fontSize: FONT_XL, color: 'rgba(0,0,0,0.55)', fontFamily: 'Pretendard-Regular' }}>+</Text>
-            </TouchableOpacity>
-            
-            <View style={{ height: 0.5, backgroundColor: 'rgba(0,0,0,0.06)' }} />
-
-            <TouchableOpacity
-              onPress={handleZoomOut}
-              activeOpacity={0.7}
-              style={{
-                width: CONTROL_SIZE,
-                height: CONTROL_SIZE,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Text style={{ fontSize: FONT_XL, color: 'rgba(0,0,0,0.55)', fontFamily: 'Pretendard-Regular' }}>−</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* 코스 보기 하단 요약 카드 — 지도 위에 얹혀 안 읽히던 "DAY N 경로" 텍스트를 대체한다.
-            스팟 팝업이 뜨면 겹치므로 숨긴다. bottom 값은 카카오 로고/축척을 가리지 않는 높이. */}
-        {mode === 'plan-view' && !activeSpot && (
-          <View
-            style={{
-              position: 'absolute',
-              // 드롭다운 목록(right:16)과 줌 컨트롤(right:16)이 raw 16이다. 헤더 행이 Tailwind
-              // px-4(= raw 16)를 쓰기 때문인데, 여기만 normalize하면 430dp에서 2px 어긋난다.
-              left: 16,
-              right: 16,
-              bottom: normalize(40),
-              zIndex: 10,
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: normalize(12),
-              paddingVertical: normalize(14),
-              paddingHorizontal: normalize(16),
-              borderRadius: normalize(16),
-              backgroundColor: '#fff',
-              ...SHADOW_CONTROL,
-            }}
-          >
-            <View
-              style={{
-                width: normalize(36),
-                height: normalize(36),
-                borderRadius: normalize(10),
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: planSummary.isEmpty ? 'rgba(0,0,0,0.05)' : activeDayColor.bg,
-              }}
-            >
-              <IconRoute
-                size={ICON_SM}
-                color={planSummary.isEmpty ? 'rgba(0,0,0,0.3)' : activeDayColor.text}
-                strokeWidth={1.8}
-              />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Text
-                allowFontScaling={false}
-                style={{ fontSize: FONT_MD, fontFamily: 'Pretendard-SemiBold', color: '#000', letterSpacing: -0.2 }}
-              >
-                {planSummary.title}
-              </Text>
-              <Text
-                allowFontScaling={false}
-                numberOfLines={1}
-                style={{ marginTop: normalize(2), fontSize: FONT_SM, fontFamily: 'Pretendard-Regular', color: 'rgba(0,0,0,0.5)', letterSpacing: -0.2 }}
-              >
-                {planSummary.meta}
-              </Text>
-            </View>
-          </View>
-        )}
-
-        {mode === 'wishlist-change' ? (
-          <BottomSheet visible={!!activeSpot} onClose={closeSheet}>
-            {activeSpot && (
-              <View className="px-5 pb-5 pt-2">
-                <View className="flex-row items-center mb-6">
-                  <Image source={{ uri: activeSpot.photo }} className="rounded-xl mr-3" style={{ width: normalize(64), height: normalize(64) }} />
-                  <View className="flex-1 justify-center">
-                    <Text className="font-semibold text-black mb-1" style={{ fontSize: FONT_TITLE }}>{activeSpot.name}</Text>
-                    <Text className="text-sub mb-2.5 font-normal" style={{ fontSize: normalizeFontSize(14) }}>{activeSpot.loc}</Text>
-                    {/* 포토제닉 칩 없음 — 여기 뜨던 값은 고정 컬럼이라 상세의 실시간 지수와 어긋난다.
-                        score는 아래 필터(detailFilter.score)에서 계속 쓰므로 필드 자체는 남긴다. */}
-                    <View className="flex-row items-center gap-2 flex-wrap">
-                      {(activeSpot.tags || []).map((t: string) => (
-                        <View key={t} className="bg-black/5 items-center justify-center rounded-full px-2.5 py-1">
-                          <Text className="text-black/50 font-medium" style={{ fontSize: normalizeFontSize(10) }}>{t}</Text>
-                        </View>
-                      ))}
-                    </View>
-                  </View>
-                </View>
-                <TouchableOpacity 
-                  onPress={() => {
-                    closeSheet();
-                    const state = navigation.getState();
-                    if (state && state.routes.length > 1) {
-                      const prevRoute = state.routes[state.routes.length - 2];
-                      if (prevRoute.name === 'WishlistSetting') {
-                        navigation.dispatch({
-                          ...CommonActions.setParams({ newSpot: activeSpot }),
-                          source: prevRoute.key,
-                        });
-                        navigation.goBack();
-                        return;
-                      }
-                    }
-                    navigation.navigate('WishlistSetting', { newSpot: activeSpot }, { merge: true });
-                  }} 
-                  className="bg-brand items-center justify-center" 
-                  style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}>
-                  <Text className="font-medium text-white" style={{ fontSize: normalizeFontSize(16) }}>이 스팟으로 변경</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          </BottomSheet>
-        ) : (
-          <SpotPopup
-            activeSpot={activeSpot}
-            onClose={closeSheet}
-            renderButtons={(popupSpot) => {
-              const saved = mode === 'plan' && isSpotSaved(popupSpot.id);
+          <ScrollView style={{ maxHeight: normalize(220) }} showsVerticalScrollIndicator={false}>
+            {[ALL_DAYS, ...planDays].map((dayStr) => {
+              const isActive = dayStr === currentPlanDay;
+              const isAllRow = dayStr === ALL_DAYS;
+              const rowColor = isAllRow ? DAY_COLOR_PALETTE[0] : getDayColor(dayStr);
               return (
-              <View className="flex-row gap-2 mt-4">
-                {mode !== 'plan-view' && (
+                <View key={dayStr}>
                   <TouchableOpacity
                     onPress={() => {
-                      if (mode !== 'plan') {
-                        setCourseModalOpen(true);
-                        return;
-                      }
-                      // 렌더 시점 파생값(saved) 대신 스토어 최신 상태를 직접 읽어 판단한다.
-                      // 렌더가 한 박자 늦으면 첫 탭이 removeSpot(목록에 없어 no-op)으로 새어
-                      // "두 번 눌러야 저장되는" 현상이 생기기 때문.
-                      const alreadySaved = useCourseStore
-                        .getState()
-                        .selectedSpots.some((s) => String(s.id) === String(popupSpot.id));
-                      if (alreadySaved) {
-                        removeSpot(popupSpot.id);
-                      } else {
-                        addSpot(popupSpot);
-                      }
+                      setActiveSpot(null);
+                      setCurrentPlanDay(dayStr);
+                      setDayMenuOpen(false);
                     }}
-                    className={`flex-1 items-center justify-center ${saved ? 'bg-brand' : 'bg-card'}`}
-                    style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}
+                    activeOpacity={0.7}
+                    style={{
+                      height: normalize(44),
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      paddingHorizontal: normalize(14),
+                      gap: normalize(8),
+                      backgroundColor: isActive ? rowColor.bg : 'transparent',
+                    }}
                   >
-                    <Text className={`font-semibold ${saved ? 'text-white' : 'text-black/60'}`} style={{ fontSize: FONT_MD }}>
-                      {mode === 'plan' ? (saved ? '현재 코스에 저장됨' : '현재 코스에 저장') : '코스에 저장'}
+                    {renderDayDot(dayStr)}
+                    <Text
+                      allowFontScaling={false}
+                      style={{
+                        fontSize: FONT_MD,
+                        fontFamily: isActive ? 'Pretendard-SemiBold' : 'Pretendard-Regular',
+                        color: isActive ? rowColor.text : 'rgba(0,0,0,0.6)',
+                        letterSpacing: -0.2,
+                      }}
+                    >
+                      {isAllRow ? '전체' : `DAY ${dayStr}`}
                     </Text>
                   </TouchableOpacity>
-                )}
+                  {isAllRow && (
+                    <View style={{ height: 1, marginHorizontal: normalize(14), backgroundColor: 'rgba(0,0,0,0.07)' }} />
+                  )}
+                </View>
+              );
+            })}
+          </ScrollView>
+        </View>
+      )}
+
+      {/* 우측 하단 지도 편의 컨트롤 (내 위치 이동 + 줌 컨트롤) */}
+      <View
+        pointerEvents="box-none"
+        style={{
+          position: 'absolute',
+          right: 16,
+          bottom: normalize(mode === 'plan-view' ? 120 : 36),
+          zIndex: 10,
+          gap: 8,
+        }}
+      >
+        {/* 내 위치 이동 버튼 */}
+        <View
+          style={{
+            backgroundColor: '#ffffff',
+            borderRadius: 12,
+            overflow: 'hidden',
+            ...SHADOW_CONTROL,
+          }}
+        >
+          <TouchableOpacity
+            onPress={handleMyLocation}
+            activeOpacity={0.7}
+            style={{
+              width: 40,
+              height: 40,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <IconFocus2 size={18} color="rgba(0,0,0,0.55)" />
+          </TouchableOpacity>
+        </View>
+
+        {/* 줌 컨트롤 그룹 */}
+        <View
+          style={{
+            backgroundColor: '#ffffff',
+            borderRadius: 12,
+            overflow: 'hidden',
+            ...SHADOW_CONTROL,
+          }}
+        >
+          <TouchableOpacity
+            onPress={handleZoomIn}
+            activeOpacity={0.7}
+            style={{
+              width: CONTROL_SIZE,
+              height: CONTROL_SIZE,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Text style={{ fontSize: FONT_XL, color: 'rgba(0,0,0,0.55)', fontFamily: 'Pretendard-Regular' }}>+</Text>
+          </TouchableOpacity>
+          
+          <View style={{ height: 0.5, backgroundColor: 'rgba(0,0,0,0.06)' }} />
+
+          <TouchableOpacity
+            onPress={handleZoomOut}
+            activeOpacity={0.7}
+            style={{
+              width: CONTROL_SIZE,
+              height: CONTROL_SIZE,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Text style={{ fontSize: FONT_XL, color: 'rgba(0,0,0,0.55)', fontFamily: 'Pretendard-Regular' }}>−</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* 코스 보기 하단 요약 카드 */}
+      {mode === 'plan-view' && !activeSpot && (
+        <View
+          style={{
+            position: 'absolute',
+            left: 16,
+            right: 16,
+            bottom: normalize(40),
+            zIndex: 10,
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: normalize(12),
+            paddingVertical: normalize(14),
+            paddingHorizontal: normalize(16),
+            borderRadius: normalize(16),
+            backgroundColor: '#fff',
+            ...SHADOW_CONTROL,
+          }}
+        >
+          <View
+            style={{
+              width: normalize(36),
+              height: normalize(36),
+              borderRadius: normalize(10),
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: planSummary.isEmpty ? 'rgba(0,0,0,0.05)' : activeDayColor.bg,
+            }}
+          >
+            <IconRoute
+              size={ICON_SM}
+              color={planSummary.isEmpty ? 'rgba(0,0,0,0.3)' : activeDayColor.text}
+              strokeWidth={1.8}
+            />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text
+              allowFontScaling={false}
+              style={{ fontSize: FONT_MD, fontFamily: 'Pretendard-SemiBold', color: '#000', letterSpacing: -0.2 }}
+            >
+              {planSummary.title}
+            </Text>
+            <Text
+              allowFontScaling={false}
+              numberOfLines={1}
+              style={{ marginTop: normalize(2), fontSize: FONT_SM, fontFamily: 'Pretendard-Regular', color: 'rgba(0,0,0,0.5)', letterSpacing: -0.2 }}
+            >
+              {planSummary.meta}
+            </Text>
+          </View>
+        </View>
+      )}
+
+      {mode === 'wishlist-change' ? (
+        <BottomSheet visible={!!activeSpot} onClose={closeSheet}>
+          {activeSpot && (
+            <View className="px-5 pb-5 pt-2">
+              <View className="flex-row items-center mb-6">
+                <Image source={{ uri: activeSpot.photo }} className="rounded-xl mr-3" style={{ width: normalize(64), height: normalize(64) }} />
+                <View className="flex-1 justify-center">
+                  <Text className="font-semibold text-black mb-1" style={{ fontSize: FONT_TITLE }}>{activeSpot.name}</Text>
+                  <Text className="text-sub mb-2.5 font-normal" style={{ fontSize: normalizeFontSize(14) }}>{activeSpot.loc}</Text>
+                  <View className="flex-row items-center gap-2 flex-wrap">
+                    {(activeSpot.tags || []).map((t: string) => (
+                      <View key={t} className="bg-black/5 items-center justify-center rounded-full px-2.5 py-1">
+                        <Text className="text-black/50 font-medium" style={{ fontSize: normalizeFontSize(10) }}>{t}</Text>
+                      </View>
+                    ))}
+                  </View>
+                </View>
+              </View>
+              <TouchableOpacity 
+                onPress={() => {
+                  closeSheet();
+                  const state = navigation.getState();
+                  if (state && state.routes.length > 1) {
+                    const prevRoute = state.routes[state.routes.length - 2];
+                    if (prevRoute.name === 'WishlistSetting') {
+                      navigation.dispatch({
+                        ...CommonActions.setParams({ newSpot: activeSpot }),
+                        source: prevRoute.key,
+                      });
+                      navigation.goBack();
+                      return;
+                    }
+                  }
+                  navigation.navigate('WishlistSetting', { newSpot: activeSpot }, { merge: true });
+                }} 
+                className="bg-brand items-center justify-center" 
+                style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}>
+                <Text className="font-medium text-white" style={{ fontSize: normalizeFontSize(16) }}>이 스팟으로 변경</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </BottomSheet>
+      ) : (
+        <SpotPopup
+          activeSpot={activeSpot}
+          onClose={closeSheet}
+          renderButtons={(popupSpot) => {
+            const saved = mode === 'plan' && isSpotSaved(popupSpot.id);
+            return (
+            <View className="flex-row gap-2 mt-4">
+              {mode !== 'plan-view' && (
+                <TouchableOpacity
+                  onPress={() => {
+                    if (mode !== 'plan') {
+                      setCourseModalOpen(true);
+                      return;
+                    }
+                    const alreadySaved = useCourseStore
+                      .getState()
+                      .selectedSpots.some((s) => String(s.id) === String(popupSpot.id));
+                    if (alreadySaved) {
+                      removeSpot(popupSpot.id);
+                    } else {
+                      addSpot(popupSpot);
+                    }
+                  }}
+                  className={`flex-1 items-center justify-center ${saved ? 'bg-brand' : 'bg-card'}`}
+                  style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}
+                >
+                  <Text className={`font-semibold ${saved ? 'text-white' : 'text-black/60'}`} style={{ fontSize: FONT_MD }}>
+                    {mode === 'plan' ? (saved ? '현재 코스에 저장됨' : '현재 코스에 저장') : '코스에 저장'}
+                  </Text>
+                </TouchableOpacity>
+              )}
 
               <TouchableOpacity
                 onPress={() => navigation.navigate('SpotStack', { screen: 'SpotDetail', params: { spotId: popupSpot.id } })}
@@ -1432,28 +1206,28 @@ export default function MapScreen() {
             );
           }}
         />
-        )}
+      )}
 
-        <SaveToPlanSheet
-          visible={isCourseModalOpen}
-          onClose={() => setCourseModalOpen(false)}
-          spot={activeSpot}
-          onSaved={(message) => {
-            setCourseModalOpen(false);
-            showToast(message);
-          }}
-        />
+      <SaveToPlanSheet
+        visible={isCourseModalOpen}
+        onClose={() => setCourseModalOpen(false)}
+        spot={activeSpot}
+        onSaved={(message) => {
+          setCourseModalOpen(false);
+          showToast(message);
+        }}
+      />
 
-        <Toast message={toastMessage} visible={toastVisible} onHide={() => setToastVisible(false)} />
+      <Toast message={toastMessage} visible={toastVisible} onHide={() => setToastVisible(false)} />
 
-        <FilterBottomSheet
-          visible={filterVisible}
-          onClose={() => setFilterVisible(false)}
-          onApply={(count, filterState) => {
-            setActiveFilterCount(count);
-            setDetailFilter(filterState);
-          }}
-        />
-      </View>
-    );
+      <FilterBottomSheet
+        visible={filterVisible}
+        onClose={() => setFilterVisible(false)}
+        onApply={(count, filterState) => {
+          setActiveFilterCount(count);
+          setDetailFilter(filterState);
+        }}
+      />
+    </View>
+  );
 }

@@ -36,10 +36,7 @@ export default function SpotCard({ item, onPress, onBookmarkPress }: Props) {
     <View style={{ width: normalize(220), borderRadius: CARD_RADIUS, overflow: 'hidden', backgroundColor: CARD }}>
     <Pressable
       onPress={onPress ?? undefined}
-      style={({ pressed }) => ({
-        opacity: onPress && pressed ? 0.95 : 1,
-        transform: [{ scale: onPress && pressed ? 0.98 : 1 }],
-      })}
+      android_ripple={{ color: 'rgba(0,0,0,0.06)' }}
     >
       {/* 사진 영역 */}
       <View style={{ height: normalize(160), position: 'relative' }}>

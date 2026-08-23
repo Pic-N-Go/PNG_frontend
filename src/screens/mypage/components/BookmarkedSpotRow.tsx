@@ -52,7 +52,7 @@ export default function BookmarkedSpotRow({ item, onBookmarkPress, badges }: Pro
         onPress={() =>
           navigation.navigate('SpotStack', { screen: 'SpotDetail', params: { spotId: item.id } })
         }
-        style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}
+        android_ripple={{ color: 'rgba(0,0,0,0.06)' }}
       >
         <View className="flex-row items-center" style={{ padding: normalize(10), gap: normalize(12) }}>
           <View

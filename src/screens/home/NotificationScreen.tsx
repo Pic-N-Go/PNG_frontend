@@ -415,9 +415,7 @@ export default function NotificationScreen({ navigation }: Props) {
                       )}
                       <Pressable
                         onPress={() => handleItemPress(item)}
-                        style={({ pressed }) => ({
-                          backgroundColor: pressed ? 'rgba(0,0,0,0.02)' : 'transparent',
-                        })}
+                        android_ripple={{ color: 'rgba(0,0,0,0.06)' }}
                       >
                         {/* inner: 패딩 + 레이아웃 */}
                         <View

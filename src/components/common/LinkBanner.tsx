@@ -27,9 +27,7 @@ export default function LinkBanner({ icon: Icon, title, subtitle, onPress, margi
     >
       <Pressable
         onPress={onPress}
-        style={({ pressed }) => ({
-          backgroundColor: onPress && pressed ? BRAND_TINT : 'transparent',
-        })}
+        android_ripple={{ color: BRAND_TINT }}
       >
         <View
           className="flex-row items-center"

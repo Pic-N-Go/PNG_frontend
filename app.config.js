@@ -27,6 +27,7 @@ module.exports = {
       googleServicesFile: './GoogleService-Info.plist',
       infoPlist: {
         KAKAO_APP_KEY: process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY,
+        NMFClientId: process.env.EXPO_PUBLIC_NAVER_MAP_CLIENT_ID || '4h3ni6emuq',
       },
     },
     android: {
@@ -50,6 +51,12 @@ module.exports = {
         './plugins/withAndroidColorPrimary',
       ],
       [
+        '@mj-studio/react-native-naver-map',
+        {
+          client_id: process.env.EXPO_PUBLIC_NAVER_MAP_CLIENT_ID || '4h3ni6emuq',
+        },
+      ],
+      [
         '@react-native-seoul/kakao-login',
         {
           kakaoAppKey: process.env.EXPO_PUBLIC_KAKAO_ANDROID_NATIVE_APP_KEY,
@@ -60,7 +67,10 @@ module.exports = {
         'expo-build-properties',
         {
           android: {
-            extraMavenRepos: ['https://devrepo.kakao.com/nexus/content/groups/public/'],
+            extraMavenRepos: [
+              'https://devrepo.kakao.com/nexus/content/groups/public/',
+              'https://repository.map.naver.com/archive/maven',
+            ],
             packagingOptions: {
               pickFirst: ['lib/**/libc++_shared.so']
             }

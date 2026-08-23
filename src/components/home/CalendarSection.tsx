@@ -70,11 +70,7 @@ export default function CalendarSection({ onEventPress }: Props) {
           <View key={event.id} style={{ flex: 1, borderRadius: CARD_RADIUS, overflow: 'hidden', backgroundColor: CARD }}>
           <Pressable
             onPress={onEventPress ? () => onEventPress(event.id) : undefined}
-            style={({ pressed }) => ({
-              flex: 1,
-              opacity: onEventPress && pressed ? 0.95 : 1,
-              transform: [{ scale: onEventPress && pressed ? 0.98 : 1 }],
-            })}
+            android_ripple={{ color: 'rgba(0,0,0,0.06)' }}
           >
             {/* 헤더 */}
             <View style={{ backgroundColor: event.headerColor, paddingVertical: normalize(10), paddingHorizontal: normalize(14) }}>

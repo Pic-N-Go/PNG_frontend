@@ -1,13 +1,11 @@
-import React, { useMemo } from 'react';
+import React from 'react';
 import { Pressable, Text, View } from 'react-native';
-import { WebView } from 'react-native-webview';
+import { NaverMapView, NaverMapMarkerOverlay } from '@mj-studio/react-native-naver-map';
 import { IconMapPin } from '@tabler/icons-react-native';
 import { normalize } from '@/utils/normalize';
 import { CARD_RADIUS, FONT_2XS } from '@/constants/layout';
 import { BRAND, TEXT_SUB } from '@/constants/colors';
 import { isLocationInKorea, sanitizeKoreaLocation } from '@/utils/location';
-
-const KAKAO_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_API_KEY;
 
 export interface SpotPin {
   latitude: number;
@@ -28,174 +26,53 @@ export default function MapBanner({ onPress, spotCount = 0, isLoading, userLocat
   const centerLat = sanitized.lat;
   const centerLng = sanitized.lng;
 
-  // 좌표 및 스팟 ID 기반의 안정적인 spotsKey 생성 (배열 참조 변경으로 인한 불필요한 웹뷰 재로드 방지)
-  const spotsKey = useMemo(() => {
-    if (!spots || spots.length === 0) return '';
-    return spots.map((s) => `${s.id}_${s.latitude}_${s.longitude}`).join('|');
-  }, [spots]);
-
-  const mapHtml = useMemo(() => {
-    if (!KAKAO_KEY) return '';
-
-    const spotItems = (spots || [])
-      .filter((s) => isLocationInKorea(s.latitude, s.longitude))
-      .map((s) => ({
-        lat: s.latitude,
-        lng: s.longitude,
-      }));
-
-    return `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
-  <meta name="referrer" content="no-referrer">
-  <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_KEY}&autoload=false"></script>
-  <style>
-    body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #e8e8ed; }
-    #map { width: 100%; height: 100%; }
-    @keyframes pulse {
-      0% { box-shadow: 0 0 0 0 rgba(227, 27, 89, 0.5); }
-      70% { box-shadow: 0 0 0 10px rgba(227, 27, 89, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(227, 27, 89, 0); }
-    }
-    .user-dot {
-      width: 14px; height: 14px; border-radius: 50%;
-      background: ${BRAND}; border: 2.5px solid #ffffff;
-      box-shadow: 0 0 6px rgba(227,27,89,0.8);
-      animation: pulse 2s infinite;
-    }
-    .spot-pin {
-      width: 22px; height: 27px;
-      display: flex; align-items: center; justify-content: center;
-    }
-    /* 배너 전체를 덮는 투명 탭 레이어. 안드로이드 네이티브 WebView가 자기 영역의 터치를
-       RN보다 먼저 가로채기 때문에, RN 쪽 Pressable 오버레이로는 탭을 받을 수 없다.
-       그래서 웹뷰 안에서 직접 탭을 받아 postMessage로 RN에 알린다. */
-    #tap-overlay {
-      position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-      z-index: 9999; background: transparent;
-    }
-  </style>
-</head>
-<body>
-  <div id="map"></div>
-  <div id="tap-overlay"></div>
-  <script>
-    (function () {
-      var overlay = document.getElementById('tap-overlay');
-      if (overlay) {
-        overlay.addEventListener('click', function () {
-          if (window.ReactNativeWebView) {
-            window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'BANNER_TAP' }));
-          }
-        });
-      }
-    })();
-  </script>
-  <script>
-    var retryCount = 0;
-    var maxRetries = 10;
-
-    function initMap() {
-      if (!window.kakao || !window.kakao.maps) {
-        return;
-      }
-      var container = document.getElementById('map');
-      if (!container || container.clientWidth === 0 || container.clientHeight === 0) {
-        if (retryCount < maxRetries) {
-          retryCount++;
-          setTimeout(initMap, 50);
-        }
-        return;
-      }
-      var mapOption = {
-        center: new kakao.maps.LatLng(${centerLat}, ${centerLng}),
-        level: 6,
-        draggable: false,
-        zoomable: false,
-        disableDoubleClickZoom: true
-      };
-      var map = new kakao.maps.Map(container, mapOption);
-
-      setTimeout(function() {
-        map.relayout();
-        map.setCenter(new kakao.maps.LatLng(${centerLat}, ${centerLng}));
-      }, 100);
-
-      // 내 위치 중앙 마커
-      new kakao.maps.CustomOverlay({
-        map: map,
-        position: new kakao.maps.LatLng(${centerLat}, ${centerLng}),
-        content: '<div class="user-dot"></div>',
-        xAnchor: 0.5,
-        yAnchor: 0.5,
-        zIndex: 10
-      });
-
-      // 주변 스팟 핀들
-      var spots = ${JSON.stringify(spotItems)};
-      spots.forEach(function(s) {
-        if (s.lat && s.lng) {
-          var pinSvg = '<div class="spot-pin"><svg width="22" height="27" viewBox="0 0 28 34"><path d="M14 0C6.3 0 0 6.3 0 14C0 23 14 34 14 34S28 23 28 14C28 6.3 21.7 0 14 0Z" fill="${BRAND}"/><circle cx="14" cy="12" r="5" fill="#fff"/></svg></div>';
-          new kakao.maps.CustomOverlay({
-            map: map,
-            position: new kakao.maps.LatLng(s.lat, s.lng),
-            content: pinSvg,
-            xAnchor: 0.5,
-            yAnchor: 1.0,
-            zIndex: 5
-          });
-        }
-      });
-    }
-
-    if (window.kakao && window.kakao.maps) {
-      kakao.maps.load(initMap);
-    } else {
-      window.onload = function() {
-        if (window.kakao && window.kakao.maps) {
-          kakao.maps.load(initMap);
-        }
-      };
-    }
-  </script>
-</body>
-</html>
-`;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [centerLat, centerLng, spotsKey]);
+  const validSpots = (spots || []).filter((s) => isLocationInKorea(s.latitude, s.longitude));
 
   return (
     <View style={{ width: '100%', height: normalize(160), borderRadius: CARD_RADIUS, overflow: 'hidden', backgroundColor: '#e8e8ed', position: 'relative' }}>
-      {/* 1. 실제 카카오 지도 미니 웹뷰 (KAKAO_KEY가 유효할 때만 로드).
-             로드 전에는 컨테이너의 #e8e8ed가 그대로 보인다 — 스태틱 맵 폴백은 두지 않는다.
-             dapi.kakao.com/v2/maps/staticmap은 KakaoAK 헤더 인증만 받아서 <Image>로는
-             항상 401이다(쿼리 appkey 무시). 매 마운트마다 실패하는 요청만 남았다. */}
-      {Boolean(KAKAO_KEY) && (
-        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
-          <WebView
-            originWhitelist={['*']}
-            source={{ html: mapHtml, baseUrl: 'https://localhost' }}
-            style={{ flex: 1, backgroundColor: 'transparent' }}
-            scrollEnabled={false}
-            showsVerticalScrollIndicator={false}
-            showsHorizontalScrollIndicator={false}
-            onMessage={(event) => {
-              try {
-                if (JSON.parse(event.nativeEvent.data)?.type === 'BANNER_TAP') onPress();
-              } catch {
-                // 배너가 보내는 메시지는 BANNER_TAP 하나뿐이라 파싱 실패는 무시한다.
-              }
-            }}
-            javaScriptEnabled={true}
-            domStorageEnabled={true}
-          />
-        </View>
-      )}
+      {/* 1. 네이티브 네이버 지도 미니 뷰 */}
+      <View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
+        <NaverMapView
+          style={{ flex: 1 }}
+          // initialCamera가 아니라 제어형 camera를 쓴다.
+          // 이 배너는 GPS가 도착하기 전에 먼저 마운트되는데, initialCamera는 "mount 후 변경해도
+          // 동작하지 않는다"(라이브러리 문서). 그래서 마운트 시점의 폴백(서울시청)에 카메라가
+          // 그대로 고정돼, 위치 권한을 허용해도 계속 서울이 보였다.
+          camera={{
+            latitude: centerLat,
+            longitude: centerLng,
+            zoom: 12,
+          }}
+          isScrollGesturesEnabled={false}
+          isZoomGesturesEnabled={false}
+          isTiltGesturesEnabled={false}
+          isRotateGesturesEnabled={false}
+          isStopGesturesEnabled={false}
+          isShowCompass={false}
+          isShowScaleBar={false}
+          isShowZoomControls={false}
+          isShowLocationButton={false}
+          logoMargin={{ bottom: 4, left: 4 }}
+          locationOverlay={{
+            isVisible: true,
+            position: { latitude: centerLat, longitude: centerLng },
+          }}
+        >
+          {validSpots.map((s) => (
+            <NaverMapMarkerOverlay
+              key={String(s.id)}
+              latitude={s.latitude}
+              longitude={s.longitude}
+              width={22}
+              height={27}
+              anchor={{ x: 0.5, y: 1.0 }}
+              image={{ symbol: 'pink' }}
+            />
+          ))}
+        </NaverMapView>
+      </View>
 
-      {/* 2. 우하단 주변 스팟 개수 배지 — MY 탭 PIC MAP 범례와 같은 형태로 둔다.
-             좌하단은 카카오 축척 바·로고 자리라 비워야 한다(가리면 안 되는 표기다). */}
+      {/* 2. 우하단 주변 스팟 개수 배지 */}
       <View
         style={{
           position: 'absolute',
@@ -222,17 +99,21 @@ export default function MapBanner({ onPress, spotCount = 0, isLoading, userLocat
       </View>
 
       {/* 3. 배너 전체 터치 오버레이 (탭 시 전체 지도로 이동) */}
+      {/* style은 반드시 일반 객체로 준다. Pressable의 함수형 style(({pressed}) => ...)은
+          NativeWind v4가 통째로 버려서, 오버레이가 absolute·전체 크기를 잃고 0으로 접힌다
+          — 그래서 배너를 탭해도 지도로 넘어가지 않았다.
+          (같은 함정: mypage/components/BookmarkedSpotRow.tsx, spot/TimePickerSheet.tsx) */}
       <Pressable
         onPress={onPress}
-        style={({ pressed }) => ({
+        android_ripple={{ color: 'rgba(0,0,0,0.06)' }}
+        style={{
           position: 'absolute',
           top: 0,
           left: 0,
           right: 0,
           bottom: 0,
           zIndex: 10,
-          backgroundColor: pressed ? 'rgba(0,0,0,0.05)' : 'transparent',
-        })}
+        }}
       />
     </View>
   );
