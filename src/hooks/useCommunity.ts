@@ -349,6 +349,7 @@ export function useCreateComment(postId: string) {
               pages.push({
                 comments: [newCommentDTO],
                 totalElements: 1,
+                totalPages: 1,
                 page: 0,
                 size: COMMENTS_PAGE_SIZE,
                 hasNext: false,
@@ -388,6 +389,7 @@ export function useCreateComment(postId: string) {
               pages.push({
                 comments: [newCommentDTO],
                 totalElements: 1,
+                totalPages: 1,
                 page: 0,
                 size: COMMENTS_PAGE_SIZE,
                 hasNext: false,
