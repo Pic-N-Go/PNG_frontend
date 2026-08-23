@@ -46,9 +46,10 @@ interface WheelProps {
   value: string;
   onChange: (v: string) => void;
   unit?: string;
+  width: number;
 }
 
-function Wheel({ items, value, onChange, unit }: WheelProps) {
+function Wheel({ items, value, onChange, unit, width }: WheelProps) {
   const scrollRef = useRef<ScrollView>(null);
   const isMomentumRef = useRef(false);
   const dragTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -100,7 +101,10 @@ function Wheel({ items, value, onChange, unit }: WheelProps) {
   };
 
   return (
-    <View className="relative overflow-hidden flex-1" style={{ height: WHEEL_VISIBLE_HEIGHT }}>
+    <View
+      className="relative overflow-hidden"
+      style={{ width, height: WHEEL_VISIBLE_HEIGHT }}
+    >
       {/* 중앙 선택 영역 하이라이트 */}
       <View
         pointerEvents="none"
@@ -250,7 +254,7 @@ export default function TimePickerSheet({
 
   return (
     <BottomSheet visible={visible} onClose={onClose}>
-      <View style={{ paddingBottom: normalize(8) }}>
+      <View style={{ width: '100%', paddingBottom: normalize(4) }}>
         {/* 헤더 */}
         <View style={{ paddingHorizontal: GRID_PADDING, paddingBottom: normalize(4) }}>
           <Text
@@ -277,7 +281,7 @@ export default function TimePickerSheet({
           </Text>
         </View>
 
-        {/* 휠 피커 카드 컨테이너 (SettingScreen의 bg-card 스타일 규격 준수) */}
+        {/* 휠 피커 카드 컨테이너 */}
         <View
           className="overflow-hidden bg-card"
           style={{
@@ -288,24 +292,42 @@ export default function TimePickerSheet({
           }}
         >
           <View
-            className="flex-row items-center justify-around"
+            className="flex-row items-center justify-center"
             style={{
-              paddingHorizontal: normalize(12),
-              paddingVertical: normalize(4),
+              paddingVertical: normalize(6),
+              gap: normalize(16),
             }}
           >
-            <Wheel items={PERIODS} value={selectedPeriod} onChange={setSelectedPeriod} />
-            <Wheel items={HOURS} value={selectedHour} onChange={setSelectedHour} unit="시" />
-            <Wheel items={minuteOptions} value={selectedMinute} onChange={setSelectedMinute} unit="분" />
+            <Wheel
+              items={PERIODS}
+              value={selectedPeriod}
+              onChange={setSelectedPeriod}
+              width={normalize(70)}
+            />
+            <Wheel
+              items={HOURS}
+              value={selectedHour}
+              onChange={setSelectedHour}
+              unit="시"
+              width={normalize(80)}
+            />
+            <Wheel
+              items={minuteOptions}
+              value={selectedMinute}
+              onChange={setSelectedMinute}
+              unit="분"
+              width={normalize(80)}
+            />
           </View>
         </View>
 
         {/* 하단 확인 버튼 */}
-        <View style={{ paddingHorizontal: GRID_PADDING }}>
+        <View style={{ paddingHorizontal: GRID_PADDING, paddingBottom: normalize(8) }}>
           <Pressable
             onPress={handleConfirm}
             className="items-center justify-center"
             style={({ pressed }) => ({
+              width: '100%',
               height: BUTTON_HEIGHT,
               borderRadius: BUTTON_RADIUS,
               backgroundColor: pressed ? '#d11550' : BRAND,
