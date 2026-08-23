@@ -30,6 +30,9 @@ export default function EquipmentSection() {
 
   // 빈 상태에서는 헤더 '관리'를 감춘다 — 관리할 게 없고, 빈 카드의 링크가 추가 폼까지 바로 연다.
   const isEmpty = !isLoading && !isError && items.length === 0;
+  // 재조회가 실패해도 캐시된 목록은 남는다(TanStack v5는 isError와 data를 동시에 준다).
+  // 보여 줄 게 있으면 에러 카드로 덮지 않는다 — BookmarkedSpots와 같은 가드다.
+  const showError = !isLoading && isError && items.length === 0;
 
   const [sheetVisible, setSheetVisible] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<'CAMERA' | 'LENS'>('CAMERA');
@@ -190,13 +193,13 @@ export default function EquipmentSection() {
       >
         {/* 로딩·에러·빈 상태 높이를 EMPTY_CARD_HEIGHT로 묶는다 — 다르면 상태가 바뀔 때 아래가 밀린다. */}
         {isLoading && (
-          <View style={{ height: EMPTY_CARD_HEIGHT, alignItems: 'center', justifyContent: 'center' }}>
+          <View className="items-center justify-center" style={{ height: EMPTY_CARD_HEIGHT }}>
             <ActivityIndicator color={BRAND} />
           </View>
         )}
 
-        {!isLoading && isError && (
-          <View style={{ height: EMPTY_CARD_HEIGHT, alignItems: 'center', justifyContent: 'center', gap: normalize(12) }}>
+        {showError && (
+          <View className="items-center justify-center" style={{ height: EMPTY_CARD_HEIGHT, gap: normalize(12) }}>
             <Text
               className="text-center tracking-tight font-normal"
               style={{ fontSize: FONT_SM, color: TEXT_SUB }}
@@ -216,7 +219,8 @@ export default function EquipmentSection() {
 
         {isEmpty && (
           <View
-            style={{ height: EMPTY_CARD_HEIGHT, alignItems: 'center', justifyContent: 'center', gap: normalize(12) }}
+            className="items-center justify-center"
+            style={{ height: EMPTY_CARD_HEIGHT, gap: normalize(12) }}
           >
             <Text
               className="tracking-tight font-normal text-center"

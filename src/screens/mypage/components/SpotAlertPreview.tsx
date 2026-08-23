@@ -26,6 +26,9 @@ export default function SpotAlertPreview() {
   // 조회 실패를 빈 상태로 그리면 걸어 둔 알림이 있는데도 "없어요"가 된다. isError를 빼야 한다.
   // 빈 상태에서는 헤더 '설정'을 감춘다 — 빈 카드의 링크가 같은 곳으로 가는 CTA라 둘이 겹친다.
   const isEmpty = !isLoading && !isError && uiItems.length === 0;
+  // 재조회가 실패해도 캐시된 알림은 남는다(TanStack v5는 isError와 data를 동시에 준다).
+  // 보여 줄 게 있으면 에러 카드로 덮지 않는다 — BookmarkedSpots와 같은 가드다.
+  const showError = isError && uiItems.length === 0;
 
   return (
     <View className="mb-10">
@@ -58,7 +61,7 @@ export default function SpotAlertPreview() {
         >
           <ActivityIndicator color={BRAND} size="small" />
         </View>
-      ) : isError ? (
+      ) : showError ? (
         <View
           className="bg-card items-center justify-center"
           style={{ marginHorizontal: GRID_PADDING, height: EMPTY_CARD_HEIGHT, borderRadius: CARD_RADIUS, gap: normalize(12) }}
