@@ -1,7 +1,8 @@
 import React from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import Svg, { Circle, Polyline } from 'react-native-svg';
-import { ContestInfo, ContestPhase } from '@/types/community';
+import ContestPhoto from '@/components/community/ContestPhoto';
+import { ContestHistoryRow, ContestInfo, ContestMyHistory, ContestPhase } from '@/types/community';
 import { CONTENT_PADDING, FONT_2XS, FONT_MD, FONT_SM, FONT_XL, FONT_XS, HAIRLINE_WIDTH } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
 import { BRAND, BRAND_TINT, CARD, HAIRLINE } from '@/constants/colors';
@@ -14,53 +15,26 @@ import { BRAND, BRAND_TINT, CARD, HAIRLINE } from '@/constants/colors';
 const ACCENT = BRAND;
 const SURFACE = CARD;
 
-interface HistoryItem {
-  id: string;
-  title: string;
-  monthLabel: string;
-  meta: string;
-  badge: string;
-  /** 집계 중이면 null — 표시 문자열(badge)에서 숫자를 파싱하지 않는다 */
-  myRank: number | null;
-  kind: 'award' | 'plain' | 'pending';
-  gradient: [string, string, string];
-}
-
-// 회차가 월 단위라 메타는 월 표기로 시작한다. 투표 기간이거나 집계 전이면 순위 자리에 "집계 중".
-const HISTORY: HistoryItem[] = [
-  { id: 'h1', title: '골든아워', monthLabel: '8월', meta: '8월 · 투표 기간 · 9월 1일 발표', badge: '집계 중', myRank: null, kind: 'pending', gradient: ['#1a1530', '#5a3355', '#d4856a'] },
-  { id: 'h2', title: '비 오는 날', monthLabel: '7월', meta: '7월 · 96명 중 · 41표', badge: '7위', myRank: 7, kind: 'plain', gradient: ['#241a33', '#8b4a6b', '#e8a87c'] },
-  { id: 'h3', title: '밤하늘', monthLabel: '6월', meta: '6월 · 142명 중 · 68표', badge: '2위', myRank: 2, kind: 'award', gradient: ['#0f1f2e', '#3f5a6b', '#d9a882'] },
-  { id: 'h4', title: '숲 산책', monthLabel: '5월', meta: '5월 · 65명 중 · 24표', badge: '18위', myRank: 18, kind: 'plain', gradient: ['#12333a', '#2f5f5a', '#8fae9b'] },
-];
-
 /**
- * 순위 추이 — 위가 1위, 아래로 갈수록 하위. 최근 6회.
- * viewBox는 목업의 `0 0 294 110`을 그대로 쓰되, x는 아래 X축 라벨 6등분 칸의 중앙(294/12의 홀수배)에
- * 둔다. 목업 좌표(18·73·128·183·238·276)는 마지막 간격만 38이라 점과 라벨이 최대 6% 어긋난다.
- * 양 끝 여백이 24.5로 균등해져 원(r=5.5)이 잘릴 일도 없다.
+ * 순위 추이 좌표계는 목업의 `0 0 294 110`을 그대로 쓴다. 점의 x·y는 mapMyHistory가
+ * 이 viewBox 기준으로 이미 계산해서 넘겨준다 — 컴포넌트는 그리기만 한다.
  */
 const TREND_VIEW_W = 294;
 const TREND_VIEW_H = 110;
-const RANK_TREND: { x: number; y: number; monthLabel: string; theme: string }[] = [
-  { x: 24.5, y: 84, monthLabel: '3월', theme: '안개' },
-  { x: 73.5, y: 58, monthLabel: '4월', theme: '벚꽃' },
-  { x: 122.5, y: 44, monthLabel: '5월', theme: '숲 산책' },
-  { x: 171.5, y: 22, monthLabel: '6월', theme: '밤하늘' },
-  { x: 220.5, y: 66, monthLabel: '7월', theme: '비 오는 날' },
-  { x: 269.5, y: 38, monthLabel: '8월', theme: '골든아워' },
-];
-// 회차별 기록의 최고 순위(6월 밤하늘 2위)와 같은 지점을 가리켜야 한다
-const BEST_RANK_INDEX = 3;
 
-function HistoryRow({ item, onPress }: { item: HistoryItem; onPress: () => void }) {
+function HistoryRow({ item, onPress }: { item: ContestHistoryRow; onPress: () => void }) {
   return (
     <Pressable
       onPress={item.kind === 'pending' ? undefined : onPress}
       disabled={item.kind === 'pending'}
       style={{ width: '100%', height: normalize(76), paddingHorizontal: CONTENT_PADDING, flexDirection: 'row', alignItems: 'center', gap: normalize(12) }}
     >
-      <View style={{ width: normalize(56), height: normalize(56), borderRadius: normalize(13), backgroundColor: item.gradient[0], flexShrink: 0 }} />
+      <ContestPhoto
+        gradient={item.gradient}
+        photoUrl={item.photoUrl}
+        radius={normalize(13)}
+        style={{ width: normalize(56), height: normalize(56), flexShrink: 0 }}
+      />
       <View style={{ flex: 1, minWidth: 0 }}>
         <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, letterSpacing: -0.3, color: '#000' }}>
           {item.title}
@@ -90,18 +64,18 @@ function HistoryRow({ item, onPress }: { item: HistoryItem; onPress: () => void 
 
 interface Props {
   phase: ContestPhase;
-  contest: ContestInfo;
+  /** 진행 중 회차가 없으면 null */
+  contest: ContestInfo | null;
   entryCount: number;
   maxEntries: number;
-  /** 8b(기록 없음) 확인용 — 실제로는 서버가 준 기록 유무로 갈린다 */
-  hasHistory: boolean;
+  /** 아직 안 받았으면 null — 화면은 기록 없음과 같게 그린다 */
+  history: ContestMyHistory | null;
   onOpenSubmit: () => void;
-  onOpenResult: (monthLabel: string, myRank: number | null) => void;
+  onOpenResult: (contestId: string, monthLabel: string, myRank: number | null) => void;
 }
 
-export default function ContestMyEntryTab({ phase, contest, entryCount, maxEntries, hasHistory, onOpenSubmit, onOpenResult }: Props) {
-
-  if (!hasHistory) {
+export default function ContestMyEntryTab({ phase, contest, entryCount, maxEntries, history, onOpenSubmit, onOpenResult }: Props) {
+  if (!history || history.rows.length === 0) {
     return (
       // flexGrow: 1 — 내용이 화면보다 짧을 때 빈 상태가 남은 공간을 차지해 세로 중앙에 설 수 있게 한다
       <ScrollView contentContainerStyle={{ flexGrow: 1, paddingBottom: normalize(24) }} showsVerticalScrollIndicator={false}>
@@ -111,10 +85,10 @@ export default function ContestMyEntryTab({ phase, contest, entryCount, maxEntri
               진행중 콘테스트
             </Text>
             <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XL, letterSpacing: -0.7, color: '#000', marginTop: normalize(6) }}>
-              {contest.theme}
+              {contest?.theme ?? '준비 중이에요'}
             </Text>
             <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, letterSpacing: -0.2, color: '#8e8e93', marginTop: normalize(4) }}>
-              {`출품 마감 ${contest.submitDeadlineLabel}`}
+              {contest ? `출품 마감 ${contest.submitDeadlineLabel}` : '다음 회차를 기다리고 있어요'}
             </Text>
             <Pressable onPress={onOpenSubmit} style={{ width: '100%', height: normalize(44), marginTop: normalize(16), borderRadius: normalize(22), backgroundColor: ACCENT, alignItems: 'center', justifyContent: 'center' }}>
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, letterSpacing: -0.2, color: '#fff' }}>
@@ -145,7 +119,7 @@ export default function ContestMyEntryTab({ phase, contest, entryCount, maxEntri
               출품
             </Text>
             <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XL, letterSpacing: -0.8, color: '#000', marginTop: normalize(4) }}>
-              7회
+              {`${history.totalEntryCount}회`}
             </Text>
           </View>
           <View style={{ flex: 1, alignItems: 'center' }}>
@@ -153,7 +127,7 @@ export default function ContestMyEntryTab({ phase, contest, entryCount, maxEntri
               최고 순위
             </Text>
             <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XL, letterSpacing: -0.8, color: ACCENT, marginTop: normalize(4) }}>
-              2위
+              {history.bestRank == null ? '집계 중' : `${history.bestRank}위`}
             </Text>
           </View>
           <View style={{ flex: 1, alignItems: 'center' }}>
@@ -161,7 +135,7 @@ export default function ContestMyEntryTab({ phase, contest, entryCount, maxEntri
               받은 표
             </Text>
             <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XL, letterSpacing: -0.8, color: '#000', marginTop: normalize(4) }}>
-              168
+              {history.totalVoteCount}
             </Text>
           </View>
         </View>
@@ -173,37 +147,38 @@ export default function ContestMyEntryTab({ phase, contest, entryCount, maxEntri
               순위 추이
             </Text>
             <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, letterSpacing: -0.1, color: '#8e8e93' }}>
-              최근 {RANK_TREND.length}회
+              최근 {history.trend.length}회
             </Text>
           </View>
           <View style={{ height: normalize(TREND_VIEW_H) }}>
             <Svg width="100%" height={normalize(TREND_VIEW_H)} viewBox={`0 0 ${TREND_VIEW_W} ${TREND_VIEW_H}`} preserveAspectRatio="none">
               <Polyline
-                points={RANK_TREND.map((p) => `${p.x},${p.y}`).join(' ')}
+                points={history.trend.map((p) => `${p.x},${p.y}`).join(' ')}
                 fill="none"
                 stroke={ACCENT}
                 strokeWidth={2.2}
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
-              {RANK_TREND.map((p, i) => (
+              {history.trend.map((p, i) => (
                 <Circle
                   key={i}
                   cx={p.x}
                   cy={p.y}
-                  r={i === BEST_RANK_INDEX ? 5.5 : 4}
-                  fill={i === BEST_RANK_INDEX ? ACCENT : SURFACE}
-                  stroke={i === BEST_RANK_INDEX ? undefined : ACCENT}
-                  strokeWidth={i === BEST_RANK_INDEX ? undefined : 2}
+                  r={i === history.bestIndex ? 5.5 : 4}
+                  fill={i === history.bestIndex ? ACCENT : SURFACE}
+                  stroke={i === history.bestIndex ? undefined : ACCENT}
+                  strokeWidth={i === history.bestIndex ? undefined : 2}
                 />
               ))}
             </Svg>
             {/* 축 라벨 대신 최고 순위 지점에 배지 — X는 %로 SVG와 함께 늘어나고 Y는 상단 고정 */}
+            {history.bestIndex >= 0 && history.bestRank != null && (
             <View
               pointerEvents="none"
               style={{
                 position: 'absolute',
-                left: `${(RANK_TREND[BEST_RANK_INDEX].x / TREND_VIEW_W) * 100}%`,
+                left: `${(history.trend[history.bestIndex].x / TREND_VIEW_W) * 100}%`,
                 // 최고점 원과 겹치지 않게 그래프 위쪽으로 빼낸다
                 top: -normalize(12),
                 transform: [{ translateX: -normalize(28) }],
@@ -216,15 +191,16 @@ export default function ContestMyEntryTab({ phase, contest, entryCount, maxEntri
               }}
             >
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_2XS, letterSpacing: -0.1, color: ACCENT }}>
-                최고 2위
+                {`최고 ${history.bestRank}위`}
               </Text>
             </View>
+            )}
           </View>
 
           {/* X축 라벨 — 점 좌표(18~276)는 등간격이 아니지만 라벨은 등분해 배치한다. 마지막 칸만 약 7pt 어긋난다 */}
           <View style={{ flexDirection: 'row', marginTop: normalize(10) }}>
-            {RANK_TREND.map((point, index) => {
-              const isBest = index === BEST_RANK_INDEX;
+            {history.trend.map((point, index) => {
+              const isBest = index === history.bestIndex;
               return (
                 <View key={point.monthLabel} style={{ flex: 1, alignItems: 'center' }}>
                   <Text
@@ -250,11 +226,11 @@ export default function ContestMyEntryTab({ phase, contest, entryCount, maxEntri
       <Text allowFontScaling={false} style={{ paddingHorizontal: CONTENT_PADDING, paddingTop: normalize(24), paddingBottom: normalize(8), fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, letterSpacing: -0.3, color: '#000' }}>
         회차별 기록
       </Text>
-      {HISTORY.map((item) => (
+      {history.rows.map((item) => (
         <HistoryRow
           key={item.id}
           item={item}
-          onPress={() => onOpenResult(item.monthLabel, item.myRank)}
+          onPress={() => onOpenResult(item.id, item.monthLabel, item.myRank)}
         />
       ))}
     </ScrollView>

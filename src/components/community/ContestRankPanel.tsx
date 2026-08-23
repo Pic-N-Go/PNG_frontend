@@ -2,6 +2,7 @@ import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 import Svg, { Circle, Line } from 'react-native-svg';
 import { ChevronDown, ChevronRight, ChevronUp, Clock } from 'lucide-react-native';
+import ContestPhoto from '@/components/community/ContestPhoto';
 import { RankHistory } from '@/types/community';
 import { CARD_RADIUS, CONTENT_PADDING, FONT_2XS, FONT_SM, FONT_XS, HAIRLINE_WIDTH } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
@@ -63,9 +64,12 @@ export default function ContestRankPanel({
       <Pressable onPress={onToggle} style={{ height: normalize(72), paddingHorizontal: normalize(14), flexDirection: 'row', alignItems: 'center', gap: normalize(12) }}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           {history.legend.slice(0, 3).map((entry, index) => (
-            <View
+            <ContestPhoto
               key={entry.id}
-              style={{ width: normalize(34), height: normalize(34), borderRadius: normalize(17), borderWidth: 2, borderColor: FILL, backgroundColor: entry.gradient[0], marginLeft: index === 0 ? 0 : normalize(-10) }}
+              gradient={entry.gradient}
+              photoUrl={entry.photoUrl}
+              radius={normalize(17)}
+              style={{ width: normalize(34), height: normalize(34), borderWidth: 2, borderColor: FILL, marginLeft: index === 0 ? 0 : normalize(-10) }}
             />
           ))}
         </View>
@@ -182,14 +186,15 @@ export default function ContestRankPanel({
                       justifyContent: 'center',
                     }}
                   >
-                    <View
+                    <ContestPhoto
+                      gradient={series.gradient}
+                      photoUrl={series.photoUrl}
+                      radius={normalize(THUMB / 2)}
                       style={{
                         width: normalize(THUMB),
                         height: normalize(THUMB),
-                        borderRadius: normalize(THUMB / 2),
                         borderWidth: RING,
                         borderColor: FILL,
-                        backgroundColor: series.gradient[0],
                       }}
                     />
                   </View>

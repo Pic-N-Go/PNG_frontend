@@ -214,6 +214,10 @@ export interface ContestPhotoEntry {
   author: Pick<PostAuthor, 'handle'>;
   captionMeta: string;
   gradient: [string, string, string];
+  photoUrl?: string | null;
+  /** 스팟 상세로 넘어갈 때 쓴다. 직접 입력한 장소면 null이라 이동을 막는다 */
+  spotId?: number | null;
+  spotName?: string | null;
   voteCount: number;
   isMyVote?: boolean;
   /** 라이트박스 하단의 이탤릭 인용구. 없으면 캡션 블록 미노출 */
@@ -263,7 +267,7 @@ export type ProfileTabKey = 'posts' | 'contests' | 'spots';
 
 // ── 콘테스트 · 월간 주기 최종안 (핸드오프 contest-final-mockup.html + spec/ 11개) ──
 // 매달 1~14일 출품 → 15일~말일 투표 → 다음 달 1일 결과 발표(그 달 내내 노출). phase는 서버가 계산한다.
-export type ContestPhase = 'SUBMITTING' | 'VOTING' | 'RESULT' | 'ENDED';
+export type ContestPhase = 'UPCOMING' | 'SUBMITTING' | 'VOTING' | 'RESULT' | 'ENDED';
 
 /**
  * 출품작 정렬 — API 옵션이 LATEST / VOTES 두 개뿐이라 랜덤은 없다.
@@ -276,18 +280,30 @@ export type ContestSortKey = 'latest' | 'votes';
  * 출품 화면이 자체 기본값(3장)으로 열리면 1인 3장 상한이 무너진다.
  */
 export interface ContestSubmitTarget {
+  /** 어느 회차에 내는지. 이게 없으면 출품 API를 부를 수 없다 */
+  contestId: string;
   theme: string;
   monthLabel: string;
   remainingSlots: number;
 }
 
 export interface ContestInfo {
+  /** 회차를 부르는 짧은 이름. 출품 시작월에서 뽑는다 */
   monthLabel: string;
   theme: string;
   themeDesc: string;
   submitDeadlineLabel: string;
   /** 투표 마감은 출품 마감과 별개 값이다 — 표시 문자열을 가공해서 만들지 않는다 */
   voteDeadlineLabel: string;
+  /**
+   * 결과 발표 시각 문구 — "9월 18일 오전 9시".
+   * 주기가 달력 월이 아니라 출품 2주 + 투표 2주라 "다음 달 1일"로 적으면 틀린다.
+   */
+  resultAnnounceLabel: string;
+  /** 아직 시작하지 않은 회차의 출품 시작일 — "9월 18일" */
+  submitStartLabel: string;
+  /** 히어로 하단 진행 바(0~1). 출품 기간이 얼마나 지났는지 */
+  submitProgress: number;
   participantCount: number;
   entryCount: number;
 }
@@ -306,6 +322,8 @@ export interface ContestEntry {
   votes: number;
   voted: boolean;
   gradient: [string, string, string];
+  /** 서버 출품 사진(presigned). 없으면 gradient로 대체한다 — ProfilePostItem.imageUrl과 같은 규칙 */
+  photoUrl?: string | null;
   caption?: string;
   isMine?: boolean;
 }
@@ -319,6 +337,8 @@ export interface ContestAwardSummary {
   voteCount: number;
   /** 1~3위 썸네일 — 목업 .award-row__thumbs처럼 겹쳐 보여준다. 수상작이 3개 미만인 달도 있어 길이는 가변 */
   podiumGradients: [string, string, string][];
+  /** 위 그라디언트와 같은 순서의 서버 사진. 길이가 짧거나 원소가 null이면 그라디언트로 대체 */
+  podiumPhotoUrls?: (string | null)[];
 }
 
 export interface RankLegendEntry {
@@ -327,6 +347,7 @@ export interface RankLegendEntry {
   meta: string;
   rank: number;
   gradient: [string, string, string];
+  photoUrl?: string | null;
   /** 그 날 처음 순위권(1~3위)에 진입했으면 NEW 배지 */
   isNew: boolean;
 }
@@ -342,6 +363,7 @@ export interface RankSnapshot {
 export interface RankSeries {
   /** 선 끝 썸네일에 채우는 사진 대표색 */
   gradient: [string, string, string];
+  photoUrl?: string | null;
   /** 선과 썸네일 링의 색 — 순위 서열을 나타내는 고정값(1위 accent, 이하 회색 계열)이라 사진색과 별개다 */
   strokeColor: string;
   /** 1위만 2.4, 나머지 2 */
@@ -370,6 +392,40 @@ export interface MyVoteEntry {
   spotLabel: string;
   votedAtLabel: string;
   gradient: [string, string, string];
+  photoUrl?: string | null;
+}
+
+/** 내 출품 탭의 회차별 기록 한 줄 */
+export interface ContestHistoryRow {
+  /** contestId — 결과 화면으로 넘길 때 쓴다 */
+  id: string;
+  title: string;
+  monthLabel: string;
+  meta: string;
+  badge: string;
+  /** 집계 중이면 null — 표시 문자열(badge)에서 숫자를 파싱하지 않는다 */
+  myRank: number | null;
+  kind: 'award' | 'plain' | 'pending';
+  gradient: [string, string, string];
+  photoUrl?: string | null;
+}
+
+/** 순위 추이 그래프의 점 하나. 좌표는 viewBox(294x110) 기준으로 이미 계산돼 있다 */
+export interface ContestRankTrendPoint {
+  x: number;
+  y: number;
+  monthLabel: string;
+  theme: string;
+}
+
+export interface ContestMyHistory {
+  totalEntryCount: number;
+  bestRank: number | null;
+  totalVoteCount: number;
+  rows: ContestHistoryRow[];
+  trend: ContestRankTrendPoint[];
+  /** trend 안에서 최고 순위 지점. 배지를 붙일 자리이고, -1이면 붙일 곳이 없다 */
+  bestIndex: number;
 }
 
 export interface ContestPastMonthItem {
@@ -382,4 +438,6 @@ export interface ContestPastMonthItem {
   myRank: number | null;
   kind: 'award' | 'plain' | 'none';
   gradient: [string, string, string];
+  /** 우승작 사진. 없으면 gradient */
+  photoUrl?: string | null;
 }

@@ -1,8 +1,9 @@
 import React from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Bell, BellOff, Calendar, Camera, Check, ChevronRight, ThumbsUp } from 'lucide-react-native';
+import { Bell, BellOff, Calendar, Camera, Check, ChevronRight, Clock, ThumbsUp } from 'lucide-react-native';
 import ContestRankPanel from '@/components/community/ContestRankPanel';
+import ContestPhoto from '@/components/community/ContestPhoto';
 import {
   ContestEntry,
   ContestInfo,
@@ -12,7 +13,7 @@ import {
   ContestSortKey,
   RankHistory,
 } from '@/types/community';
-import { BUTTON_HEIGHT, BUTTON_RADIUS, CARD_RADIUS, CONTENT_PADDING, FONT_2XL, FONT_2XS, FONT_LG, FONT_MD, FONT_SM, FONT_XL, FONT_XS, HAIRLINE_WIDTH } from '@/constants/layout';
+import { BUTTON_HEIGHT, BUTTON_RADIUS, CARD_RADIUS, CONTENT_PADDING, FONT_2XL, FONT_2XS, FONT_MD, FONT_SM, FONT_XL, FONT_XS, HAIRLINE_WIDTH } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
 import { BRAND, BRAND_TINT, CARD, HAIRLINE } from '@/constants/colors';
 
@@ -91,15 +92,14 @@ function AwardRow({ award, onPress }: { award: ContestAwardSummary; onPress: () 
       {/* 1~3위 썸네일을 10씩 겹친다 — 뒤 순위가 위로 올라오도록 목업과 같은 순서로 렌더 */}
       <View style={{ flexDirection: 'row', alignItems: 'center', flexShrink: 0 }}>
         {award.podiumGradients.map((gradient, index) => (
-          <LinearGradient
+          <ContestPhoto
             key={index}
-            colors={gradient}
-            start={{ x: 0.15, y: 0 }}
-            end={{ x: 0.85, y: 1 }}
+            gradient={gradient}
+            photoUrl={award.podiumPhotoUrls?.[index]}
+            radius={normalize(9)}
             style={{
               width: normalize(34),
               height: normalize(34),
-              borderRadius: normalize(9),
               borderWidth: 2,
               borderColor: FILL,
               marginLeft: index === 0 ? 0 : -normalize(10),
@@ -171,9 +171,7 @@ function Footbar({ topic, state, ctaLabel, ctaIcon, onPressCta, ctaDisabled }: {
 function PlainEntryCard({ entry, onPress }: { entry: ContestEntry; onPress: () => void }) {
   return (
     <Pressable onPress={onPress} style={{ width: '48%', borderRadius: CARD_RADIUS, overflow: 'hidden', backgroundColor: FILL }}>
-      <View style={{ width: '100%', aspectRatio: 1 }}>
-        <LinearGradient colors={entry.gradient} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
-      </View>
+      <ContestPhoto gradient={entry.gradient} photoUrl={entry.photoUrl} style={{ width: '100%', aspectRatio: 1 }} />
       <View style={{ paddingTop: normalize(9), paddingHorizontal: normalize(12), paddingBottom: normalize(11) }}>
         <Text allowFontScaling={false} numberOfLines={1} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, letterSpacing: -0.2, color: INK }}>
           {entry.author}
@@ -189,10 +187,13 @@ function PlainEntryCard({ entry, onPress }: { entry: ContestEntry; onPress: () =
 /** 투표 기간 그리드 — 순위 배지·득표수 없음(투표 기간에는 집계를 노출하지 않는다). 메타는 "스팟 · 출품 시각" */
 function VoteEntryCard({ entry, votesLeft, onVote, onPress }: { entry: ContestEntry; votesLeft: number; onVote: () => void; onPress: () => void }) {
   const spent = !entry.voted && votesLeft <= 0;
+  // 내 출품작에는 투표할 수 없다(서버도 거절한다). 버튼 자리에 "내 작품"을 두어
+  // 왜 못 누르는지 알린다 — 회색 버튼만 두면 "표 소진"과 구분되지 않는다.
+  const mine = entry.isMine === true;
   return (
     <View style={{ width: '48%', borderRadius: CARD_RADIUS, overflow: 'hidden', backgroundColor: FILL }}>
       <Pressable onPress={onPress} style={{ width: '100%', aspectRatio: 1 }}>
-        <LinearGradient colors={entry.gradient} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
+        <ContestPhoto gradient={entry.gradient} photoUrl={entry.photoUrl} style={{ width: '100%', height: '100%' }} />
       </Pressable>
       <View style={{ flexDirection: 'row', alignItems: 'center', paddingTop: normalize(9), paddingHorizontal: normalize(12), paddingBottom: normalize(11), gap: normalize(8) }}>
         <Pressable onPress={onPress} style={{ flex: 1, minWidth: 0 }}>
@@ -200,50 +201,94 @@ function VoteEntryCard({ entry, votesLeft, onVote, onPress }: { entry: ContestEn
             {entry.author}
           </Text>
           <Text allowFontScaling={false} numberOfLines={1} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, letterSpacing: -0.1, color: SUB, marginTop: normalize(2) }}>
-            {`${entry.spot} · ${entry.shotAtLabel}`}
+            {[entry.spot, entry.shotAtLabel].filter(Boolean).join(' · ')}
           </Text>
         </Pressable>
-        <Pressable
-          onPress={onVote}
-          disabled={spent}
-          hitSlop={8}
-          accessibilityRole="button"
-          accessibilityLabel={entry.voted ? '투표함' : '투표'}
-          style={{ width: normalize(28), height: normalize(28), borderRadius: normalize(14), alignItems: 'center', justifyContent: 'center', flexShrink: 0, backgroundColor: entry.voted ? BRAND_TINT : spent ? '#e6e6ea' : PINK }}
-        >
-          {entry.voted ? (
-            <Check size={normalize(14)} color={PINK} strokeWidth={2.6} />
-          ) : (
-            <ThumbsUp size={normalize(15)} color={spent ? '#b8b8be' : '#fff'} strokeWidth={1.9} />
-          )}
-        </Pressable>
+        {mine ? (
+          <Text allowFontScaling={false} style={{ flexShrink: 0, fontFamily: 'Pretendard-Medium', fontSize: FONT_2XS, letterSpacing: -0.1, color: SUB }}>
+            내 작품
+          </Text>
+        ) : (
+          <Pressable
+            onPress={onVote}
+            disabled={spent}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={entry.voted ? '투표함' : '투표'}
+            style={{ width: normalize(28), height: normalize(28), borderRadius: normalize(14), alignItems: 'center', justifyContent: 'center', flexShrink: 0, backgroundColor: entry.voted ? BRAND_TINT : spent ? '#e6e6ea' : PINK }}
+          >
+            {entry.voted ? (
+              <Check size={normalize(14)} color={PINK} strokeWidth={2.6} />
+            ) : (
+              <ThumbsUp size={normalize(15)} color={spent ? '#b8b8be' : '#fff'} strokeWidth={1.9} />
+            )}
+          </Pressable>
+        )}
       </View>
+    </View>
+  );
+}
+
+/** 진행중 탭 하단의 지난 회차 행 — 집계 중 화면과 "없음" 화면이 같은 목록을 쓴다 */
+function PastRow({ item, onPress }: { item: ContestPastMonthItem; onPress: () => void }) {
+  return (
+    <Pressable onPress={onPress} style={{ width: '100%', height: normalize(84), paddingHorizontal: CONTENT_PADDING, flexDirection: 'row', alignItems: 'center', gap: normalize(12) }}>
+      <ContestPhoto
+        gradient={item.gradient}
+        photoUrl={item.photoUrl}
+        radius={normalize(14)}
+        style={{ width: normalize(60), height: normalize(60), flexShrink: 0 }}
+      />
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, letterSpacing: -0.3, color: INK }}>
+          {item.theme}
+        </Text>
+        <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, letterSpacing: -0.1, color: SUB, marginTop: normalize(3) }}>
+          {[item.monthLabel, item.meta].filter(Boolean).join(' · ')}
+        </Text>
+      </View>
+      <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, letterSpacing: -0.1, color: SUB }}>
+        {item.myRank == null ? '출품하지 않음' : `내 순위 ${item.myRank}위`}
+      </Text>
+    </Pressable>
+  );
+}
+
+function PastSectionHeader({ onSeeAll }: { onSeeAll: () => void }) {
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'baseline', paddingTop: normalize(20), paddingBottom: normalize(12) }}>
+      <Text allowFontScaling={false} style={{ flex: 1, paddingLeft: CONTENT_PADDING, fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, letterSpacing: -0.3, color: INK }}>
+        지난 콘테스트
+      </Text>
+      <Pressable onPress={onSeeAll} style={{ paddingRight: CONTENT_PADDING }}>
+        <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, letterSpacing: -0.2, color: PINK }}>
+          전체 보기
+        </Text>
+      </Pressable>
     </View>
   );
 }
 
 interface Props {
   phase: ContestPhase;
-  contest: ContestInfo;
-  lastMonthAward: ContestAwardSummary;
+  /** ENDED(진행 중 회차 없음)에서는 null이다 */
+  contest: ContestInfo | null;
+  /** 직전 회차 수상 요약. 아직 끝난 회차가 없거나 결과 조회가 막히면 null이라 배너를 숨긴다 */
+  lastAward: ContestAwardSummary | null;
   submitFeed: ContestEntry[];
   voteEntries: ContestEntry[];
   sort: ContestSortKey;
   onChangeSort: (sort: ContestSortKey) => void;
-  rankHistory: RankHistory;
+  /** 첫 집계 전이거나 조회가 막히면 null — 패널을 통째로 숨긴다 */
+  rankHistory: RankHistory | null;
   votesLeft: number;
   maxVotes: number;
   myEntryCount: number;
   /** 투표 기간 "내 출품작" 버튼의 겹침 썸네일 — 개수만으로는 무엇을 냈는지 알 수 없다 */
-  myEntryGradients: [string, string, string][];
+  myEntryThumbs: { gradient: [string, string, string]; photoUrl?: string | null }[];
   maxEntries: number;
-  nextContest: ContestInfo;
-  /**
-   * 7b — 다음 콘테스트의 주제·일정이 아직 정해지지 않은 상태. ENDED에서만 의미가 있다.
-   * nextContest를 nullable로 두면 RESULT(발표 당일)에서도 null 검사를 강요받는데,
-   * 그쪽은 새 주기가 반드시 있으므로 플래그로 분리한다.
-   */
-  nextScheduled?: boolean;
+  /** 다음 회차 예고. 아직 개설되지 않았으면 null이고 화면은 "준비 중"으로 물러난다 */
+  nextContest: ContestInfo | null;
   /** 알림 신청 완료 — 신청 후에는 CTA가 물러난다 */
   subscribed?: boolean;
   pastItems: ContestPastMonthItem[];
@@ -263,7 +308,7 @@ interface Props {
 export default function ContestActiveTab({
   phase,
   contest,
-  lastMonthAward,
+  lastAward,
   submitFeed,
   voteEntries,
   sort,
@@ -272,10 +317,9 @@ export default function ContestActiveTab({
   votesLeft,
   maxVotes,
   myEntryCount,
-  myEntryGradients,
+  myEntryThumbs,
   maxEntries,
   nextContest,
-  nextScheduled = true,
   subscribed = false,
   pastItems,
   onVote,
@@ -288,7 +332,21 @@ export default function ContestActiveTab({
   onSubscribe,
   onSeeAllPast,
 }: Props) {
-  const openAward = () => onSelectPastItem({ id: 'award', monthLabel: lastMonthAward.monthLabel, theme: lastMonthAward.theme, winnerHandle: lastMonthAward.winnerHandle, meta: '', myRank: null, kind: 'award', gradient: ['#1a1530', '#5a3355', '#d4856a'] });
+  const openAward = () => {
+    if (!lastAward) return;
+    onSelectPastItem({
+      id: 'award',
+      monthLabel: lastAward.monthLabel,
+      theme: lastAward.theme,
+      winnerHandle: lastAward.winnerHandle,
+      meta: '',
+      myRank: lastAward.rank || null,
+      kind: 'award',
+      gradient: lastAward.podiumGradients[0] ?? ['#1a1530', '#5a3355', '#d4856a'],
+      photoUrl: lastAward.podiumPhotoUrls?.[0],
+    });
+  };
+  const nextScheduled = nextContest != null;
   // 1인 3장이 상한 — 다 쓰면 출품 CTA를 잠근다(서버가 거절하기 전에 클라이언트에서 먼저 막는다)
   const isFull = myEntryCount >= maxEntries;
   // 펼치면 히어로를 줄여 그래프가 첫 화면에 들어오게 한다(목업 .is-expanded)
@@ -297,7 +355,7 @@ export default function ContestActiveTab({
   return (
     // flexGrow: 1 — 내용이 화면보다 짧을 때 빈 상태가 남은 공간을 차지해 세로 중앙에 설 수 있게 한다
     <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1, paddingBottom: normalize(24) }}>
-      {phase === 'SUBMITTING' && (
+      {phase === 'SUBMITTING' && contest && (
         <>
           <View style={{ height: normalize(280), overflow: 'hidden', borderBottomLeftRadius: normalize(24), borderBottomRightRadius: normalize(24) }}>
             <LinearGradient colors={HERO_GRADIENT} locations={HERO_LOCATIONS} start={{ x: 0.15, y: 0 }} end={{ x: 0.85, y: 1 }} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
@@ -323,12 +381,12 @@ export default function ContestActiveTab({
                 </Text>
               </View>
               <View style={{ height: normalize(4), borderRadius: normalize(2), backgroundColor: 'rgba(255,255,255,0.34)', overflow: 'hidden', marginTop: normalize(8) }}>
-                <View style={{ width: '41%', height: '100%', backgroundColor: '#fff' }} />
+                <View style={{ width: `${Math.round(contest.submitProgress * 100)}%`, height: '100%', backgroundColor: '#fff' }} />
               </View>
             </View>
           </View>
 
-          <AwardRow award={lastMonthAward} onPress={openAward} />
+          {lastAward && <AwardRow award={lastAward} onPress={openAward} />}
 
           {submitFeed.length === 0 ? (
             // flex: 1은 남는 공간만 채운다 — 히어로·수상작 행이 화면을 거의 채우면 거의 안 늘어나므로 최소 높이를 따로 준다
@@ -368,7 +426,7 @@ export default function ContestActiveTab({
         </>
       )}
 
-      {phase === 'VOTING' && (
+      {phase === 'VOTING' && contest && (
         <>
           <View style={{ height: normalize(rankPanelOpen ? 160 : 200), overflow: 'hidden', borderBottomLeftRadius: normalize(24), borderBottomRightRadius: normalize(24) }}>
             <LinearGradient colors={HERO_GRADIENT} locations={HERO_LOCATIONS} start={{ x: 0.15, y: 0 }} end={{ x: 0.85, y: 1 }} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
@@ -384,12 +442,14 @@ export default function ContestActiveTab({
                 {`${contest.theme} · ${contest.entryCount}개 출품`}
               </Text>
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, letterSpacing: -0.2, color: 'rgba(255,255,255,0.88)', marginTop: normalize(4) }}>
-                다음 달 1일 결과 발표
+                {`${contest.resultAnnounceLabel} 결과 발표`}
               </Text>
             </View>
           </View>
 
-          <ContestRankPanel history={rankHistory} open={rankPanelOpen} onToggle={() => setRankPanelOpen((v) => !v)} onOpenEntry={onOpenEntry} />
+          {rankHistory && (
+            <ContestRankPanel history={rankHistory} open={rankPanelOpen} onToggle={() => setRankPanelOpen((v) => !v)} onOpenEntry={onOpenEntry} />
+          )}
 
           <View style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: normalize(14), borderBottomWidth: HAIRLINE_WIDTH, borderBottomColor: HAIRLINE }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', height: normalize(34), paddingLeft: CONTENT_PADDING, gap: normalize(14) }}>
@@ -441,16 +501,15 @@ export default function ContestActiveTab({
               {/* 썸네일·chevron은 흐름에서 빼 좌우 끝에 고정한다 — 흐름에 두면 그 폭만큼 문구가 밀려
                   아래 "모두 보기" 버튼의 문구와 축이 어긋난다(양옆 요소 크기가 서로 다르다) */}
               <View style={{ position: 'absolute', left: BUTTON_SIDE_INSET, flexDirection: 'row', alignItems: 'center' }} pointerEvents="none">
-                {myEntryGradients.map((gradient, index) => (
-                  <LinearGradient
+                {myEntryThumbs.map((thumb, index) => (
+                  <ContestPhoto
                     key={index}
-                    colors={gradient}
-                    start={{ x: 0.15, y: 0 }}
-                    end={{ x: 0.85, y: 1 }}
+                    gradient={thumb.gradient}
+                    photoUrl={thumb.photoUrl}
+                    radius={normalize(8)}
                     style={{
                       width: normalize(28),
                       height: normalize(28),
-                      borderRadius: normalize(8),
                       borderWidth: 2,
                       borderColor: FILL,
                       marginLeft: index === 0 ? 0 : -normalize(9),
@@ -481,77 +540,37 @@ export default function ContestActiveTab({
         </>
       )}
 
-      {phase === 'RESULT' && (
+      {/* 집계 중 — 투표는 끝났고 발표(투표 종료 다음 날 09:00) 전이다.
+          이 구간에는 서버가 순위·득표수를 내려주지 않으므로 보여줄 결과가 아예 없다.
+          발표가 나면 이 회차는 지난 목록으로 넘어가고 다음 회차가 곧바로 출품 기간으로 잡힌다. */}
+      {phase === 'RESULT' && contest && (
         <>
-          <View style={{ marginHorizontal: CONTENT_PADDING, marginTop: normalize(16) }}>
-            <Pressable onPress={openAward} style={{ width: '100%', padding: normalize(18), paddingHorizontal: normalize(20), borderRadius: normalize(20), backgroundColor: BRAND_TINT, flexDirection: 'row', alignItems: 'center', gap: normalize(14) }}>
-              <View style={{ width: normalize(56), height: normalize(56), borderRadius: normalize(14), backgroundColor: '#5a3355', flexShrink: 0 }} />
-              <View style={{ flex: 1, minWidth: 0 }}>
-                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, letterSpacing: -0.1, color: PINK }}>
-                  결과 발표 · 오늘
-                </Text>
-                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_LG, letterSpacing: -0.4, color: INK, marginTop: normalize(3) }}>
-                  {`${lastMonthAward.monthLabel} · ${lastMonthAward.rank}위`}
-                </Text>
-                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, letterSpacing: -0.1, color: SUB, marginTop: normalize(2) }}>
-                  {`${lastMonthAward.theme} · ${lastMonthAward.voteCount}표`}
-                </Text>
-              </View>
-              <ChevronRight size={normalize(18)} color="#c7c7cc" strokeWidth={2} />
-            </Pressable>
-          </View>
-
-          <View style={{ position: 'relative', height: normalize(280), overflow: 'hidden', margin: normalize(16), marginTop: normalize(16), marginHorizontal: CONTENT_PADDING, borderRadius: normalize(24) }}>
-            <LinearGradient colors={['#0d0b22', '#241f4a', '#4b4380', '#8a7fb0', '#c9bfe0']} locations={[0, 0.32, 0.64, 0.88, 1]} start={{ x: 0.15, y: 0 }} end={{ x: 0.85, y: 1 }} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
-            <HeroScrim />
-            <View style={{ position: 'absolute', left: normalize(20), right: normalize(20), bottom: normalize(20) }}>
-              <View style={{ alignSelf: 'flex-start', height: normalize(24), justifyContent: 'center', paddingHorizontal: normalize(10), borderRadius: normalize(12), backgroundColor: PINK }}>
-                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_2XS, letterSpacing: 1.6, color: '#fff' }}>
-                  {`${nextContest.monthLabel} · 출품 기간`}
-                </Text>
-              </View>
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_2XL, letterSpacing: -1, color: '#fff', marginTop: normalize(10) }}>
-                {nextContest.theme}
+          <View style={{ marginTop: normalize(18), marginHorizontal: CONTENT_PADDING, padding: normalize(28), paddingHorizontal: normalize(24), borderRadius: normalize(20), backgroundColor: FILL, alignItems: 'center' }}>
+            <View style={{ width: normalize(56), height: normalize(56), borderRadius: normalize(28), backgroundColor: '#fff', alignItems: 'center', justifyContent: 'center', marginBottom: normalize(16) }}>
+              <Clock size={normalize(24)} color="#b8b8be" strokeWidth={1.7} />
+            </View>
+            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XL, letterSpacing: -0.7, color: INK }}>
+              집계 중이에요
+            </Text>
+            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, letterSpacing: -0.2, color: SUB, marginTop: normalize(6), textAlign: 'center', lineHeight: FONT_SM * 1.5 }}>
+              {`${contest.resultAnnounceLabel}에 결과를 발표해요`}
+            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(8), marginTop: normalize(14) }}>
+              <Calendar size={normalize(15)} color={INK} strokeWidth={2} />
+              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, letterSpacing: -0.2, color: INK }}>
+                {`${contest.theme} · ${contest.entryCount}개 출품`}
               </Text>
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, letterSpacing: -0.2, color: 'rgba(255,255,255,0.88)', marginTop: normalize(12) }}>
-                {nextContest.themeDesc}
-              </Text>
-              <View style={{ flexDirection: 'row', alignItems: 'baseline', marginTop: normalize(16) }}>
-                <Text allowFontScaling={false} style={{ flex: 1, fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, letterSpacing: -0.1, color: 'rgba(255,255,255,0.86)' }}>
-                  {`${nextContest.participantCount}명 · ${nextContest.entryCount}개 출품`}
-                </Text>
-                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, letterSpacing: -0.1, color: '#fff' }}>
-                  {`출품 마감 ${nextContest.submitDeadlineLabel}`}
-                </Text>
-              </View>
-              <View style={{ height: normalize(4), borderRadius: normalize(2), backgroundColor: 'rgba(255,255,255,0.34)', overflow: 'hidden', marginTop: normalize(8) }}>
-                <View style={{ width: '4%', height: '100%', backgroundColor: '#fff' }} />
-              </View>
             </View>
           </View>
 
-          <View style={{ flexDirection: 'row', alignItems: 'baseline', paddingHorizontal: CONTENT_PADDING, paddingTop: normalize(22), paddingBottom: normalize(12) }}>
-            <Text allowFontScaling={false} style={{ flex: 1, fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XL, letterSpacing: -0.7, color: INK }}>
-              새로 올라온 출품작
-            </Text>
-            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, letterSpacing: -0.2, color: SUB }}>
-              {submitFeed.length}
-            </Text>
-          </View>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', rowGap: normalize(20), paddingHorizontal: CONTENT_PADDING }}>
-            {submitFeed.slice(0, FEED_PREVIEW_LIMIT).map((entry) => (
-              <PlainEntryCard key={entry.id} entry={entry} onPress={() => onOpenEntry(entry.id)} />
-            ))}
-          </View>
-
-          <Footbar
-            topic={`${nextContest.theme} · 출품 마감 ${nextContest.submitDeadlineLabel}`}
-            state={isFull ? '출품을 다 썼어요' : myEntryCount > 0 ? `${maxEntries - myEntryCount}개 더 낼 수 있어요` : '아직 출품하지 않았어요'}
-            ctaLabel="출품하기"
-            ctaIcon={<Camera size={normalize(16)} color={isFull ? '#b8b8be' : '#fff'} strokeWidth={1.9} />}
-            onPressCta={onOpenSubmit}
-            ctaDisabled={isFull}
-          />
+          {pastItems.length > 0 && (
+            <>
+              <PastSectionHeader onSeeAll={onSeeAllPast} />
+              {pastItems.map((item) => (
+                <PastRow key={item.id} item={item} onPress={() => onSelectPastItem(item)} />
+              ))}
+            </>
+          )}
         </>
       )}
 
@@ -564,10 +583,10 @@ export default function ContestActiveTab({
               </Text>
             </View>
             <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XL, letterSpacing: -0.7, color: INK, marginTop: normalize(12) }}>
-              {nextScheduled ? nextContest.theme : '준비 중이에요'}
+              {nextContest ? nextContest.theme : '준비 중이에요'}
             </Text>
             <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, letterSpacing: -0.2, color: SUB, marginTop: normalize(6), textAlign: 'center', lineHeight: FONT_SM * 1.5 }}>
-              {nextScheduled ? nextContest.themeDesc : '주제와 일정이 정해지면 알려드릴게요'}
+              {nextContest ? nextContest.themeDesc : '주제와 일정이 정해지면 알려드릴게요'}
             </Text>
             {/* 7b는 약속할 날짜가 없다 — 아이콘·글자를 한 단계 낮추고 굵기도 뺀다 */}
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(8), marginTop: normalize(14) }}>
@@ -576,7 +595,7 @@ export default function ContestActiveTab({
                 allowFontScaling={false}
                 style={{ fontFamily: nextScheduled ? 'Pretendard-SemiBold' : 'Pretendard-Regular', fontSize: FONT_SM, letterSpacing: -0.2, color: nextScheduled ? INK : SUB }}
               >
-                {nextScheduled ? `${nextContest.monthLabel} 1일 시작` : '일정 미정'}
+                {nextContest ? `${nextContest.submitStartLabel} 시작` : '일정 미정'}
               </Text>
             </View>
             {/* 알림 신청은 데이터를 바꾸는 동작이라 accent — 목업은 블랙이지만 CLAUDE.md 규칙이 우선한다
@@ -612,32 +631,14 @@ export default function ContestActiveTab({
             </Pressable>
           </View>
 
-          <View style={{ flexDirection: 'row', alignItems: 'baseline', paddingTop: normalize(20), paddingBottom: normalize(12) }}>
-            <Text allowFontScaling={false} style={{ flex: 1, paddingLeft: CONTENT_PADDING, fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, letterSpacing: -0.3, color: INK }}>
-              지난 콘테스트
-            </Text>
-            <Pressable onPress={onSeeAllPast} style={{ paddingRight: CONTENT_PADDING }}>
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, letterSpacing: -0.2, color: PINK }}>
-                전체 보기
-              </Text>
-            </Pressable>
-          </View>
-          {pastItems.map((item) => (
-            <Pressable key={item.id} onPress={() => onSelectPastItem(item)} style={{ width: '100%', height: normalize(84), paddingHorizontal: CONTENT_PADDING, flexDirection: 'row', alignItems: 'center', gap: normalize(12) }}>
-              <View style={{ width: normalize(60), height: normalize(60), borderRadius: normalize(14), flexShrink: 0, backgroundColor: item.gradient[0] }} />
-              <View style={{ flex: 1, minWidth: 0 }}>
-                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, letterSpacing: -0.3, color: INK }}>
-                  {item.theme}
-                </Text>
-                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, letterSpacing: -0.1, color: SUB, marginTop: normalize(3) }}>
-                  {`${item.monthLabel} · ${item.meta}`}
-                </Text>
-              </View>
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, letterSpacing: -0.1, color: SUB }}>
-                {item.myRank == null ? '출품하지 않음' : `내 순위 ${item.myRank}위`}
-              </Text>
-            </Pressable>
-          ))}
+          {pastItems.length > 0 && (
+            <>
+              <PastSectionHeader onSeeAll={onSeeAllPast} />
+              {pastItems.map((item) => (
+                <PastRow key={item.id} item={item} onPress={() => onSelectPastItem(item)} />
+              ))}
+            </>
+          )}
         </>
       )}
     </ScrollView>

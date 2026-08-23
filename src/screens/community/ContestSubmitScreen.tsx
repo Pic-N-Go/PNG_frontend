@@ -5,7 +5,12 @@ import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import * as ImagePicker from 'expo-image-picker';
 import { Camera, ChevronLeft, Info, MapPin, Plus, Search, X } from 'lucide-react-native';
-import DevStateSwitch from '@/components/common/DevStateSwitch';
+import { toErrorMessage } from '@/api/auth';
+import { useCreateContestEntry } from '@/hooks/useContest';
+import { useSearchSpots } from '@/hooks/useSpot';
+import { useDebounce } from '@/hooks/useDebounce';
+import { parseExifDateTime } from '@/utils/exifDate';
+import { toServerDateTime } from '@/utils/contestMappers';
 import { CommunityDetailStackParamList } from '@/navigation/stacks/CommunityDetailStack';
 import { BORDER_CONTROL, BUTTON_HEIGHT, BUTTON_RADIUS, CARD_RADIUS, CONTENT_PADDING, FONT_LG, FONT_MD, FONT_SM, FONT_XS, HAIRLINE_WIDTH, HEADER_HEIGHT } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
@@ -21,20 +26,22 @@ const ACCENT = BRAND;
 const SURFACE = CARD;
 const CAPTION_MAX = 80;
 
-const SPOTS = [
-  { name: '광안리 해수욕장', area: '부산 수영구', count: '출품 24' },
-  { name: '광안대교 전망대', area: '부산 수영구', count: '출품 11' },
-  { name: '광안리 민락수변공원', area: '부산 수영구', count: '출품 6' },
-];
-
 interface Photo {
   id: string;
   uri: string;
+  /**
+   * 원본에서 읽은 촬영 시각. 피커가 quality 옵션으로 재인코딩하면서 EXIF를 떨어뜨려
+   * 업로드된 파일에는 남지 않으므로, 고르는 시점에 붙잡아 둔다
+   * (CommunityWriteScreen이 shotAt을 다루는 방식과 같다).
+   */
+  shotAt?: Date;
 }
 
 interface Draft {
   caption: string;
   spotName: string;
+  /** 스팟 DB에서 고른 경우에만. 직접 입력이면 undefined라 서버는 spotName만 저장한다 */
+  spotId?: number;
 }
 
 type UploadState = 'form' | 'uploading' | 'failed';
@@ -42,9 +49,10 @@ type UploadState = 'form' | 'uploading' | 'failed';
 export default function ContestSubmitScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<CommunityDetailStackParamList>>();
   const route = useRoute<RouteProp<CommunityDetailStackParamList, 'ContestSubmit'>>();
-  const theme = route.params?.theme ?? '골든아워';
-  const monthLabel = route.params?.monthLabel ?? '8월';
-  const remainingSlots = route.params?.remainingSlots ?? 3;
+  const contestId = route.params.contestId;
+  const theme = route.params.theme ?? '';
+  const monthLabel = route.params.monthLabel ?? '';
+  const remainingSlots = route.params.remainingSlots ?? 0;
 
   // 3/3을 채우면 호출부가 이미 CTA를 막지만, 0으로 열리면 "남은 자리 0장" + 동작 안 하는 피커가 남는다.
   // 진입 경로가 늘어나도(딥링크 등) 여기서 한 번 더 끊는다.
@@ -61,6 +69,9 @@ export default function ContestSubmitScreen() {
   const [searchVisible, setSearchVisible] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [uploadState, setUploadState] = useState<UploadState>('form');
+  const [uploadError, setUploadError] = useState('');
+
+  const createEntry = useCreateContestEntry(contestId);
 
   const currentPhoto = photos[current];
   const currentDraft = currentPhoto ? drafts[currentPhoto.id] ?? { caption: '', spotName: '' } : { caption: '', spotName: '' };
@@ -95,13 +106,20 @@ export default function ContestSubmitScreen() {
         mediaTypes: ['images'],
         allowsMultipleSelection: true,
         selectionLimit: remainingSlots - photos.length,
+        exif: true,
         quality: 0.8,
         preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
       });
       if (result.canceled) return;
 
       const seen = new Set(photos.map((p) => p.id));
-      const fresh = result.assets.map((asset) => ({ id: asset.assetId ?? asset.uri, uri: asset.uri })).filter((p) => !seen.has(p.id));
+      const fresh = result.assets
+        .map((asset) => ({
+          id: asset.assetId ?? asset.uri,
+          uri: asset.uri,
+          shotAt: parseExifDateTime(asset.exif) ?? undefined,
+        }))
+        .filter((p) => !seen.has(p.id));
       if (fresh.length === 0) return;
 
       setPhotos((prev) => [...prev, ...fresh]);
@@ -136,35 +154,67 @@ export default function ContestSubmitScreen() {
   // maxLength가 네이티브에서 강제되므로 별도 자르기는 필요 없다(웹 목업만 IME 우회 방어가 필요했다)
   const handleCaptionChange = (text: string) => updateCurrentDraft({ caption: text });
 
-  const filteredSpots = searchQuery ? SPOTS.filter((s) => s.name.includes(searchQuery)) : SPOTS;
+  // 글자마다 부르면 검색 API가 타이핑 수만큼 호출된다
+  const debouncedQuery = useDebounce(searchQuery, 400);
+  const spotSearch = useSearchSpots({ keyword: debouncedQuery, size: 20 }, { enabled: searchVisible });
+  const foundSpots = spotSearch.data?.content ?? [];
 
-  const selectSpot = (name: string) => {
-    updateCurrentDraft({ spotName: name });
+  const selectSpot = (name: string, spotId?: number) => {
+    updateCurrentDraft({ spotName: name, spotId });
     setSearchVisible(false);
     setSearchQuery('');
   };
 
-  const startUpload = () => {
+  /**
+   * 출품. 서버가 사진을 한 장씩만 받아서 순차로 올린다.
+   *
+   * 중간에 실패하면 앞의 장들은 이미 등록돼 있고 되돌릴 방법이 없다(서버에 여러 장을 묶는
+   * 트랜잭션이 없다). 그래서 성공한 장은 폼에서 지우고 실패한 장부터 남겨 재시도하게 한다 —
+   * 그대로 두면 "다시 출품하기"가 이미 올라간 사진을 한 번 더 올린다.
+   */
+  const startUpload = async () => {
+    if (photos.length === 0 || uploadState === 'uploading') return;
     setUploadState('uploading');
-    // ponytail: 실제 업로드 연동 전까지는 성공으로 시뮬레이션한다. 실패(13e)는 상단 __DEV__ 스위처로 연다.
-    setTimeout(() => navigation.goBack(), 900);
-  };
 
-  const devSwitch = (
-    <DevStateSwitch
-      options={[
-        { key: 'form', label: '작성' },
-        { key: 'uploading', label: '업로드' },
-        { key: 'failed', label: '실패' },
-      ]}
-      value={uploadState}
-      onChange={setUploadState}
-    />
-  );
+    const uploaded: string[] = [];
+    for (const photo of photos) {
+      const draft = drafts[photo.id] ?? { caption: '', spotName: '' };
+      const ext = photo.uri.split('.').pop()?.toLowerCase();
+      // 확장자를 못 알아내는 경우가 있어 jpeg로 떨어뜨린다 — 서버는 실제 바이트로 판별한다.
+      const safeExt = ext && /^(jpe?g|png|heic|webp)$/.test(ext) ? ext : 'jpg';
+
+      try {
+        await createEntry.mutateAsync({
+          body: {
+            caption: draft.caption.trim() || undefined,
+            spotId: draft.spotId,
+            // spotId가 있으면 서버가 스팟 이름으로 덮어쓰므로 굳이 같이 보내도 무해하다
+            spotName: draft.spotName.trim() || undefined,
+            shotAt: photo.shotAt ? toServerDateTime(photo.shotAt) : undefined,
+          },
+          photo: {
+            uri: photo.uri,
+            name: `contest-${uploaded.length}.${safeExt}`,
+            type: safeExt === 'png' ? 'image/png' : safeExt === 'webp' ? 'image/webp' : 'image/jpeg',
+          },
+        });
+        uploaded.push(photo.id);
+      } catch (err) {
+        setUploadError(toErrorMessage(err, '업로드에 실패했어요'));
+        if (uploaded.length > 0) {
+          setPhotos((prev) => prev.filter((p) => !uploaded.includes(p.id)));
+          setCurrent(0);
+        }
+        setUploadState('failed');
+        return;
+      }
+    }
+
+    navigation.goBack();
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right', 'bottom']}>
-      {devSwitch}
       <Header title="출품하기" onClose={() => navigation.goBack()} disabled={uploadState === 'uploading'} />
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: normalize(28) }}>
@@ -315,7 +365,7 @@ export default function ContestSubmitScreen() {
           </View>
 
           <ScrollView>
-            {filteredSpots.length === 0 && (
+            {debouncedQuery.trim().length > 0 && foundSpots.length === 0 && !spotSearch.isFetching && (
               <View style={{ paddingTop: normalize(26), paddingHorizontal: CONTENT_PADDING }}>
                 <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, letterSpacing: -0.3, color: '#000' }}>
                   일치하는 스팟이 없어요
@@ -326,8 +376,8 @@ export default function ContestSubmitScreen() {
               </View>
             )}
 
-            {filteredSpots.map((spot) => (
-              <Pressable key={spot.name} onPress={() => selectSpot(spot.name)} style={{ width: '100%', paddingVertical: normalize(13), paddingHorizontal: CONTENT_PADDING, flexDirection: 'row', alignItems: 'center', gap: normalize(12) }}>
+            {foundSpots.map((spot) => (
+              <Pressable key={spot.id} onPress={() => selectSpot(spot.name, spot.id)} style={{ width: '100%', paddingVertical: normalize(13), paddingHorizontal: CONTENT_PADDING, flexDirection: 'row', alignItems: 'center', gap: normalize(12) }}>
                 <View style={{ width: normalize(34), height: normalize(34), borderRadius: normalize(17), backgroundColor: SURFACE, alignItems: 'center', justifyContent: 'center' }}>
                   <MapPin size={normalize(17)} color="#8e8e93" strokeWidth={1.8} />
                 </View>
@@ -335,8 +385,8 @@ export default function ContestSubmitScreen() {
                   <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, letterSpacing: -0.3, color: '#000' }}>
                     {spot.name}
                   </Text>
-                  <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, letterSpacing: -0.1, color: '#8e8e93', marginTop: normalize(2) }}>
-                    {`${spot.area} · ${spot.count}`}
+                  <Text allowFontScaling={false} numberOfLines={1} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, letterSpacing: -0.1, color: '#8e8e93', marginTop: normalize(2) }}>
+                    {spot.address}
                   </Text>
                 </View>
               </Pressable>
@@ -346,9 +396,9 @@ export default function ContestSubmitScreen() {
             <Pressable
               onPress={() => selectSpot(searchQuery)}
               disabled={!searchQuery}
-              style={{ width: '100%', paddingVertical: normalize(13), paddingHorizontal: CONTENT_PADDING, flexDirection: 'row', alignItems: 'center', gap: normalize(12), borderTopWidth: filteredSpots.length > 0 ? HAIRLINE_WIDTH : 0, borderTopColor: HAIRLINE, marginTop: filteredSpots.length > 0 ? normalize(6) : 0 }}
+              style={{ width: '100%', paddingVertical: normalize(13), paddingHorizontal: CONTENT_PADDING, flexDirection: 'row', alignItems: 'center', gap: normalize(12), borderTopWidth: foundSpots.length > 0 ? HAIRLINE_WIDTH : 0, borderTopColor: HAIRLINE, marginTop: foundSpots.length > 0 ? normalize(6) : 0 }}
             >
-              <View style={{ width: normalize(34), height: normalize(34), borderRadius: normalize(17), backgroundColor: filteredSpots.length === 0 && searchQuery ? BRAND_TINT_ACTIVE : SURFACE, alignItems: 'center', justifyContent: 'center' }}>
+              <View style={{ width: normalize(34), height: normalize(34), borderRadius: normalize(17), backgroundColor: foundSpots.length === 0 && searchQuery ? BRAND_TINT_ACTIVE : SURFACE, alignItems: 'center', justifyContent: 'center' }}>
                 <Plus size={normalize(18)} color="#8e8e93" strokeWidth={2} />
               </View>
               <View style={{ flex: 1, minWidth: 0 }}>
@@ -383,7 +433,7 @@ export default function ContestSubmitScreen() {
           }}
         >
           <Text allowFontScaling={false} style={{ flex: 1, fontFamily: 'Pretendard-Medium', fontSize: normalizeFontSize(14), letterSpacing: -0.2, color: '#fff' }}>
-            업로드에 실패했어요
+            {uploadError || '업로드에 실패했어요'}
           </Text>
           <Pressable onPress={startUpload} style={{ height: normalize(34), paddingHorizontal: normalize(14), borderRadius: normalize(17), alignItems: 'center', justifyContent: 'center' }}>
             <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, letterSpacing: -0.2, color: ACCENT }}>

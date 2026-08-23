@@ -1,14 +1,16 @@
 import React from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { CalendarDays } from 'lucide-react-native';
+import ContestPhoto from '@/components/community/ContestPhoto';
 import { ContestPastMonthItem } from '@/types/community';
 import { CONTENT_PADDING, FONT_LG, FONT_MD, FONT_SM, FONT_XS } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
 import { BRAND, BRAND_TINT, CARD } from '@/constants/colors';
 
 /**
- * 콘테스트 > 지난 — 시안 15a(회차 리스트)·15b(빈 상태). 가장 최근 결과는 진행중 탭 상단
- * 요약 행에 있어서 여기 첫 행은 항상 전전 달이다(ContestSegment의 PAST_ITEMS가 이미 그렇게 구성됨).
+ * 콘테스트 > 지난 — 시안 15a(회차 리스트)·15b(빈 상태).
+ * 서버의 지난 목록(GET /contests, 발표 시각 내림차순)을 그대로 그린다. 첫 행이 곧 직전 회차이고,
+ * 같은 회차가 진행중 탭 상단 수상 배너에도 나오는 건 의도된 중복이다.
  */
 
 const ACCENT = BRAND;
@@ -31,7 +33,7 @@ export default function ContestPastTab({ items, onSelectItem }: Props) {
           아직 끝난 콘테스트가 없어요
         </Text>
         <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, letterSpacing: -0.2, color: SUB, marginTop: normalize(6) }}>
-          첫 결과는 9월 1일에 발표돼요
+          첫 회차가 끝나면 여기에 쌓여요
         </Text>
       </View>
     );
@@ -41,17 +43,20 @@ export default function ContestPastTab({ items, onSelectItem }: Props) {
     <ScrollView contentContainerStyle={{ padding: normalize(28), paddingTop: normalize(18), gap: normalize(20) }} showsVerticalScrollIndicator={false}>
       {items.map((item) => (
         <Pressable key={item.id} onPress={() => onSelectItem(item)} style={{ width: '100%', borderRadius: normalize(18), overflow: 'hidden', backgroundColor: SURFACE }}>
-          <View style={{ width: '100%', aspectRatio: 334 / 172, backgroundColor: item.gradient[0] }}>
+          <View style={{ width: '100%', aspectRatio: 334 / 172 }}>
+            <ContestPhoto gradient={item.gradient} photoUrl={item.photoUrl} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
             <View style={{ position: 'absolute', top: normalize(12), left: normalize(12), height: normalize(24), paddingHorizontal: normalize(10), borderRadius: normalize(12), backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' }}>
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, letterSpacing: -0.1, color: '#000' }}>
                 {item.monthLabel}
               </Text>
             </View>
-            <View style={{ position: 'absolute', bottom: normalize(12), left: normalize(12), height: normalize(24), paddingHorizontal: normalize(10), borderRadius: normalize(12), backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center', justifyContent: 'center' }}>
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, letterSpacing: -0.1, color: '#fff' }}>
-                {`1위 ${item.winnerHandle}`}
-              </Text>
-            </View>
+            {!!item.winnerHandle && (
+              <View style={{ position: 'absolute', bottom: normalize(12), left: normalize(12), height: normalize(24), paddingHorizontal: normalize(10), borderRadius: normalize(12), backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center', justifyContent: 'center' }}>
+                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, letterSpacing: -0.1, color: '#fff' }}>
+                  {`1위 ${item.winnerHandle}`}
+                </Text>
+              </View>
+            )}
           </View>
           <View style={{ padding: normalize(16), paddingTop: normalize(14), flexDirection: 'row', alignItems: 'center', gap: normalize(10) }}>
             <View style={{ flex: 1, minWidth: 0 }}>

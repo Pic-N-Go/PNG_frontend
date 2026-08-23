@@ -138,19 +138,20 @@ export default function CommunityFeedScreen() {
     rootNavigation.navigate('CommunityDetailStack', { screen: 'PostDetail', params: { postId, isMyPost: isMine, photoIndex } });
   const goToProfile = (userId: string) =>
     rootNavigation.navigate('CommunityDetailStack', { screen: 'UserProfile', params: { userId } });
+  // 지난 회차 카드의 id가 곧 contestId다(mapPastItem이 그렇게 만든다)
   const goToContestResult = (item: ContestPastMonthItem) =>
     rootNavigation.navigate('CommunityDetailStack', {
       screen: 'ContestResult',
-      params: { monthLabel: item.monthLabel, myRank: item.myRank },
+      params: { contestId: item.id, monthLabel: item.monthLabel, myRank: item.myRank },
     });
-  const goToAllEntries = (submitTarget: ContestSubmitTarget) =>
-    rootNavigation.navigate('CommunityDetailStack', { screen: 'ContestAllEntries', params: { submitTarget } });
+  const goToAllEntries = (contestId: string, submitTarget: ContestSubmitTarget) =>
+    rootNavigation.navigate('CommunityDetailStack', { screen: 'ContestAllEntries', params: { contestId, submitTarget } });
   const goToContestSubmit = (target: ContestSubmitTarget) =>
     rootNavigation.navigate('CommunityDetailStack', { screen: 'ContestSubmit', params: target });
-  const goToContestEntry = (entryId: string) =>
-    rootNavigation.navigate('CommunityDetailStack', { screen: 'ContestEntryDetail', params: { entryId } });
-  const goToContestResultByRank = (monthLabel: string, myRank: number | null) =>
-    rootNavigation.navigate('CommunityDetailStack', { screen: 'ContestResult', params: { monthLabel, myRank } });
+  const goToContestEntry = (contestId: string, entryId: string) =>
+    rootNavigation.navigate('CommunityDetailStack', { screen: 'ContestEntryDetail', params: { contestId, entryId } });
+  const goToContestResultByRank = (contestId: string, monthLabel: string, myRank: number | null) =>
+    rootNavigation.navigate('CommunityDetailStack', { screen: 'ContestResult', params: { contestId, monthLabel, myRank } });
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right']}>
