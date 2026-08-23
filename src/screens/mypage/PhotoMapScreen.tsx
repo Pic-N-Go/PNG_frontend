@@ -153,8 +153,27 @@ export default function PhotoMapScreen() {
   const [mapZoom, setMapZoom] = useState(6);
   const [mapBounds, setMapBounds] = useState<any>(null);
 
-  const { clusterElements } = useMapCluster<any>(
-    filteredSpots,
+  // 서로 다른 색의 핀끼리 섞이지 않도록 리뷰(핑크 #e31b59)와 즐겨찾기(검정 #1c1c1e)를 분리하여 클러스터링
+  const reviewSpots = useMemo(() => {
+    if (filter === 'fav') return [];
+    return filteredSpots.filter((sp) => sp.reviewed);
+  }, [filter, filteredSpots]);
+
+  const bookmarkSpots = useMemo(() => {
+    if (filter === 'review') return [];
+    if (filter === 'fav') return filteredSpots;
+    return filteredSpots.filter((sp) => !sp.reviewed && sp.bookmarked);
+  }, [filter, filteredSpots]);
+
+  const { clusterElements: reviewClusters } = useMapCluster<any>(
+    reviewSpots,
+    mapZoom,
+    mapBounds,
+    { radius: 45, maxZoom: 15 }
+  );
+
+  const { clusterElements: bookmarkClusters } = useMapCluster<any>(
+    bookmarkSpots,
     mapZoom,
     mapBounds,
     { radius: 45, maxZoom: 15 }
@@ -240,11 +259,12 @@ export default function PhotoMapScreen() {
         isShowLocationButton={false}
         logoMargin={{ bottom: mapAreaBottomOf(insets.bottom) + 8, left: 14 }}
       >
-        {clusterElements.map((element) => {
+        {/* 리뷰 클러스터 및 핀 (핑크 #e31b59) */}
+        {reviewClusters.map((element) => {
           if (element.isCluster) {
             return (
               <NaverMapMarkerOverlay
-                key={`cluster_${element.id}`}
+                key={`cluster_review_${element.id}`}
                 latitude={element.latitude}
                 longitude={element.longitude}
                 width={normalize(36)}
@@ -259,7 +279,7 @@ export default function PhotoMapScreen() {
                 }}
               >
                 <View
-                  key={`cluster_view_${element.id}_${element.count}`}
+                  key={`cluster_review_view_${element.id}_${element.count}`}
                   collapsable={false}
                   style={{
                     width: normalize(36),
@@ -294,12 +314,10 @@ export default function PhotoMapScreen() {
 
           const spot = element.spot;
           if (!spot.lat || !spot.lng) return null;
-          const isReviewed = spot.reviewed;
-          const markerColor = isReviewed ? '#e31b59' : '#1c1c1e';
 
           return (
             <NaverMapMarkerOverlay
-              key={String(spot.id)}
+              key={`review_${spot.id}`}
               latitude={spot.lat}
               longitude={spot.lng}
               width={normalize(24)}
@@ -321,12 +339,110 @@ export default function PhotoMapScreen() {
                   width: normalize(24),
                   height: normalize(24),
                   borderRadius: normalize(12),
-                  backgroundColor: markerColor,
+                  backgroundColor: '#e31b59',
                   borderWidth: 2,
                   borderColor: '#FFFFFF',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  shadowColor: markerColor,
+                  shadowColor: '#e31b59',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.35,
+                  shadowRadius: 3,
+                  elevation: 3,
+                }}
+              >
+                <IconMapPinFilled size={normalize(12)} color="#FFFFFF" />
+              </View>
+            </NaverMapMarkerOverlay>
+          );
+        })}
+
+        {/* 즐겨찾기 클러스터 및 핀 (검정 #1c1c1e) */}
+        {bookmarkClusters.map((element) => {
+          if (element.isCluster) {
+            return (
+              <NaverMapMarkerOverlay
+                key={`cluster_fav_${element.id}`}
+                latitude={element.latitude}
+                longitude={element.longitude}
+                width={normalize(36)}
+                height={normalize(36)}
+                anchor={{ x: 0.5, y: 0.5 }}
+                onTap={() => {
+                  naverMapRef.current?.animateCameraTo({
+                    latitude: element.latitude,
+                    longitude: element.longitude,
+                    zoom: element.expansionZoom,
+                  });
+                }}
+              >
+                <View
+                  key={`cluster_fav_view_${element.id}_${element.count}`}
+                  collapsable={false}
+                  style={{
+                    width: normalize(36),
+                    height: normalize(36),
+                    borderRadius: normalize(18),
+                    backgroundColor: '#1c1c1e',
+                    borderWidth: 2,
+                    borderColor: '#FFFFFF',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    shadowColor: '#000000',
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.4,
+                    shadowRadius: 4,
+                    elevation: 4,
+                  }}
+                >
+                  <Text
+                    allowFontScaling={false}
+                    style={{
+                      color: '#FFFFFF',
+                      fontFamily: 'Pretendard-SemiBold',
+                      fontSize: FONT_SM,
+                    }}
+                  >
+                    {element.count}
+                  </Text>
+                </View>
+              </NaverMapMarkerOverlay>
+            );
+          }
+
+          const spot = element.spot;
+          if (!spot.lat || !spot.lng) return null;
+
+          return (
+            <NaverMapMarkerOverlay
+              key={`fav_${spot.id}`}
+              latitude={spot.lat}
+              longitude={spot.lng}
+              width={normalize(24)}
+              height={normalize(24)}
+              anchor={{ x: 0.5, y: 0.5 }}
+              caption={{
+                text: spot.name,
+                textSize: FONT_XS,
+                color: '#1c1c1e',
+                haloColor: '#FFFFFF',
+                offset: normalize(4),
+              }}
+              onTap={() => handleSpotPress(spot)}
+            >
+              <View
+                key={`fav_spot_pin_${spot.id}`}
+                collapsable={false}
+                style={{
+                  width: normalize(24),
+                  height: normalize(24),
+                  borderRadius: normalize(12),
+                  backgroundColor: '#1c1c1e',
+                  borderWidth: 2,
+                  borderColor: '#FFFFFF',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  shadowColor: '#000000',
                   shadowOffset: { width: 0, height: 2 },
                   shadowOpacity: 0.35,
                   shadowRadius: 3,
