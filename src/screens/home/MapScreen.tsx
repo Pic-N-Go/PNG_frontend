@@ -115,7 +115,8 @@ export default function MapScreen() {
           if (isDisposed) return;
 
           if (lastKnown) {
-            latestLocationRef.current = lastKnown.coords;
+            const sanitized = sanitizeKoreaLocation(lastKnown.coords.latitude, lastKnown.coords.longitude);
+            latestLocationRef.current = { latitude: sanitized.lat, longitude: sanitized.lng } as any;
             if (webViewRef.current) {
               // 진입 카메라를 내 위치로 잡는다. 위치를 못 받으면 이 블록을 건너뛰므로
               // 기존대로 전체 스팟 setBounds(한반도 전체)로 남는다 — 폴백이 곧 이전 동작이다.
@@ -123,9 +124,9 @@ export default function MapScreen() {
               // 여기서 내 위치로 setCenter하면 코스가 한 프레임 보이고 튄다 — 마커만 갱신한다.
               webViewRef.current.injectJavaScript(`
                 if (${!isCourseView} && window.focusUserLocation) {
-                  window.focusUserLocation(${lastKnown.coords.latitude}, ${lastKnown.coords.longitude});
+                  window.focusUserLocation(${sanitized.lat}, ${sanitized.lng});
                 } else if (window.updateUserLocation) {
-                  window.updateUserLocation(${lastKnown.coords.latitude}, ${lastKnown.coords.longitude});
+                  window.updateUserLocation(${sanitized.lat}, ${sanitized.lng});
                 }
                 true;
               `);
@@ -141,11 +142,12 @@ export default function MapScreen() {
             },
             (location) => {
               if (isDisposed) return;
-              latestLocationRef.current = location.coords;
+              const sanitized = sanitizeKoreaLocation(location.coords.latitude, location.coords.longitude);
+              latestLocationRef.current = { latitude: sanitized.lat, longitude: sanitized.lng } as any;
               if (webViewRef.current) {
                 webViewRef.current.injectJavaScript(`
                   if (window.updateUserLocation) {
-                    window.updateUserLocation(${location.coords.latitude}, ${location.coords.longitude});
+                    window.updateUserLocation(${sanitized.lat}, ${sanitized.lng});
                   }
                   true;
                 `);
