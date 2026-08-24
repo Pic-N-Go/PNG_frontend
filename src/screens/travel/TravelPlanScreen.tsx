@@ -669,6 +669,12 @@ export default function TravelPlanScreen({ navigation, route }: any) {
   // 이 화면은 마커 데이터를 라우트 파라미터로 이미 들고 있어 마운트 즉시 렌더돼 특히 잘 터진다.
   const [isPlanMapReady, setPlanMapReady] = useState(false);
 
+  // 날짜가 바뀌거나 스팟이 비어 지도가 언마운트될 때 map ready 상태를 리셋하여
+  // 새 NaverMapView 인스턴스가 onInitialized 전에 자식 오버레이를 렌더하지 않도록 방어한다.
+  useEffect(() => {
+    setPlanMapReady(false);
+  }, [currentDay, isDayEmpty]);
+
   const validDaySpots = React.useMemo(() => {
     return (data[currentDay]?.spots || []).flatMap((spot: any) => {
       const coord = parseValidCoordinate(spot.lat, spot.lng);
