@@ -464,7 +464,7 @@ export default function TravelNewScreen() {
                 key={chip}
                 onPress={() => handleChipSelect(chip)}
                 className={`h-9 px-4 rounded-full justify-center ${
-                  selectedChip === chip ? 'bg-brand' : 'bg-card'
+                  selectedChip === chip ? 'bg-black' : 'bg-card'
                 }`}
               >
                 <Text className={`font-medium ${

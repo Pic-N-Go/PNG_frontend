@@ -199,7 +199,7 @@ export default function TravelListScreen({ navigation }: any) {
                     key={tab.id}
                     onPress={() => handleTabPress(tab.id)}
                     className={`flex-row items-center rounded-full ${
-                      isActive ? 'bg-brand' : 'bg-card'
+                      isActive ? 'bg-black' : 'bg-card'
                     }`}
                     style={{ height: normalize(32), paddingHorizontal: normalize(14) }}
                   >

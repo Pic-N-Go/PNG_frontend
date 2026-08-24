@@ -13,7 +13,7 @@ import { IconBookmark, IconChevronLeft } from '@tabler/icons-react-native';
 import { Share as ShareIcon } from 'lucide-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import SpotHeroPlaceholder, { HeroActionButton } from '@/components/spot/SpotHeroPlaceholder';
-import { SCRIM } from '@/constants/colors';
+import { BRAND, SCRIM } from '@/constants/colors';
 
 export const HERO_HEIGHT = normalize(360);
 
@@ -90,7 +90,12 @@ export default function SpotHero({
                 </HeroActionButton>
                 <HeroActionButton>
                   <Pressable onPress={onBookmark} hitSlop={8}>
-                    <IconBookmark size={normalize(19)} color="#111" strokeWidth={2} fill={isBookmarked ? '#111' : 'none'} />
+                    <IconBookmark
+                      size={normalize(19)}
+                      color={isBookmarked ? BRAND : '#111'}
+                      strokeWidth={2}
+                      fill={isBookmarked ? BRAND : 'none'}
+                    />
                   </Pressable>
                 </HeroActionButton>
               </>
@@ -169,13 +174,20 @@ export default function SpotHero({
           <Pressable
             onPress={onBookmark}
             hitSlop={8}
-            style={{ width: normalize(36), height: normalize(36), borderRadius: normalize(18), backgroundColor: 'rgba(0,0,0,0.25)', alignItems: 'center', justifyContent: 'center' }}
+            style={{
+              width: normalize(36),
+              height: normalize(36),
+              borderRadius: normalize(18),
+              backgroundColor: isBookmarked ? '#fff' : 'rgba(0,0,0,0.25)',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
           >
             <IconBookmark
               size={normalize(18)}
-              color="#fff"
+              color={isBookmarked ? BRAND : '#fff'}
               strokeWidth={2}
-              fill={isBookmarked ? '#fff' : 'none'}
+              fill={isBookmarked ? BRAND : 'none'}
             />
           </Pressable>
         </View>

@@ -866,7 +866,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
                 <TouchableOpacity 
                   key={day}
                   onPress={() => setCurrentDay(day)}
-                  className={`rounded-full items-center justify-center flex-row ${currentDay === day ? "bg-brand" : "bg-card"}`}
+                  className={`rounded-full items-center justify-center flex-row ${currentDay === day ? "bg-black" : "bg-card"}`}
                   style={{ height: normalize(36), paddingHorizontal: normalize(16) }}
                 >
                   <View className="rounded-full" style={{ width: normalize(6), height: normalize(6), marginRight: normalize(6), backgroundColor: currentDay === day ? "#fff" : getDayColor(day).text }} />

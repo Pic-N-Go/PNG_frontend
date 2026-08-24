@@ -21,6 +21,7 @@ import FilterBottomSheet from '@/components/home/FilterBottomSheet';
 import { useNotification } from '@/hooks/useNotification';
 import { useNearbySpots } from '@/hooks/useSpot';
 import { TEXT_SUB } from '@/constants/colors';
+import { isLocationInKorea, sanitizeKoreaLocation } from '@/utils/location';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'Home'>;
 
@@ -65,10 +66,11 @@ export default function HomeScreen({ navigation }: Props) {
   const [filterVisible, setFilterVisible] = useState(false);
 
   // 현재 사용자 GPS 위치 관리 (기본값: 서울시청)
-  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number; isReal: boolean }>({
+  const [userLocation, setUserLocation] = useState<{ lat: number; lng: number; isReal: boolean; isFallback?: boolean }>({
     lat: 37.5665,
     lng: 126.9780,
     isReal: false,
+    isFallback: true,
   });
 
   const [userAddress, setUserAddress] = useState<string>('내 위치');
@@ -94,18 +96,22 @@ export default function HomeScreen({ navigation }: Props) {
       if (status === Location.PermissionStatus.GRANTED) {
         const lastKnown = await Location.getLastKnownPositionAsync();
         if (lastKnown) {
+          const sanitized = sanitizeKoreaLocation(lastKnown.coords.latitude, lastKnown.coords.longitude);
           setUserLocation({
-            lat: lastKnown.coords.latitude,
-            lng: lastKnown.coords.longitude,
+            lat: sanitized.lat,
+            lng: sanitized.lng,
             isReal: true,
+            isFallback: sanitized.isFallback,
           });
         }
         const current = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
         if (current) {
+          const sanitized = sanitizeKoreaLocation(current.coords.latitude, current.coords.longitude);
           setUserLocation({
-            lat: current.coords.latitude,
-            lng: current.coords.longitude,
+            lat: sanitized.lat,
+            lng: sanitized.lng,
             isReal: true,
+            isFallback: sanitized.isFallback,
           });
         }
       }
@@ -136,6 +142,10 @@ export default function HomeScreen({ navigation }: Props) {
     const fetchAddress = async () => {
       try {
         if (userLocation.isReal && userLocation.lat && userLocation.lng) {
+          if (userLocation.isFallback || !isLocationInKorea(userLocation.lat, userLocation.lng)) {
+            if (!ignore) setUserAddress('서울시청');
+            return;
+          }
           const [geo] = await Location.reverseGeocodeAsync({
             latitude: userLocation.lat,
             longitude: userLocation.lng,
@@ -158,7 +168,7 @@ export default function HomeScreen({ navigation }: Props) {
     return () => {
       ignore = true;
     };
-  }, [userLocation.isReal, userLocation.lat, userLocation.lng]);
+  }, [userLocation.isReal, userLocation.lat, userLocation.lng, userLocation.isFallback]);
 
   const { data: nearbySpots = [], isLoading: isNearbyLoading } = useNearbySpots(
     {

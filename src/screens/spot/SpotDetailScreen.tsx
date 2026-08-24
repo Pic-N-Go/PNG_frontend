@@ -19,7 +19,7 @@ import SaveToPlanSheet from '@/components/spot/SaveToPlanSheet';
 import NaviSheet from '@/components/spot/NaviSheet';
 import BookmarkSheet from '@/components/spot/BookmarkSheet';
 import PhotoLightbox from '@/components/spot/PhotoLightbox';
-import { useBookmarkCollections, useSpotDetail, useSpotPhotogenicScore, useSpotPhotos } from '@/hooks/useSpot';
+import { useBookmarkCollections, useSpotDetail, useSpotPhotogenicScore, useSpotPhotos, useSpotSummary } from '@/hooks/useSpot';
 import { useKeyboardOverlap } from '@/hooks/useKeyboardHeight';
 import { exifFromPhotoUrl } from '@/utils/spotMappers';
 import { BUTTON_RADIUS, GRID_PADDING, SPACING_LG } from '@/constants/layout';
@@ -39,6 +39,7 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
   const { data: detail, isLoading, isError, refetch } = useSpotDetail(spotId);
   const spot = detail?.info;
   const convenience = detail?.convenience;
+  const { data: summary } = useSpotSummary(spotId);
   const { data: photogenic } = useSpotPhotogenicScore(spotId);
   const { data: heroPhotos } = useSpotPhotos(spotId);
   // 히어로에 보이는 대표 이미지가 항상 뷰어의 1번째 사진이 되도록 맨 앞에 고정 + 갤러리(유저 업로드 제외) 나머지를 뒤에 이어붙임.
@@ -176,7 +177,7 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
         // 키보드가 열렸으면 insets.bottom을 쓰지 않는다 — 내비바 구간이 overlap에 이미 포함돼 있다.
         <View style={{ flex: 1 }}>
           {renderBackButton()}
-          {!chatInputFocused && <SpotInfoHeader spot={spot} />}
+          {!chatInputFocused && <SpotInfoHeader spot={spot} bookmarkCount={summary?.bookmarkCount} />}
           <SpotTabBar activeTab={activeTab} onChange={handleTabChange} />
           <View style={{ flex: 1, paddingBottom: keyboardOverlap || insets.bottom }}>
             <ChatTab
@@ -211,7 +212,7 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
             onShare={handleShare}
             onBookmark={() => setBookmarkSheetVisible(true)}
           />
-          <SpotInfoHeader spot={spot} />
+          <SpotInfoHeader spot={spot} bookmarkCount={summary?.bookmarkCount} />
           <SpotTabBar activeTab={activeTab} onChange={handleTabChange} />
 
           <View>
