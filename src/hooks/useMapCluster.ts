@@ -84,7 +84,7 @@ export function useMapCluster<T extends { id: string | number; lat: number; lng:
       ];
     }
 
-    const currentZoom = Math.max(0, Math.min(maxZoom, Math.round(zoom)));
+    const currentZoom = Math.max(0, Math.round(zoom));
 
     try {
       const results = index.getClusters(bbox, currentZoom);
@@ -119,7 +119,7 @@ export function useMapCluster<T extends { id: string | number; lat: number; lng:
         longitude: spot.lng,
       }));
     }
-  }, [spots, bounds, zoom, index, maxZoom]);
+  }, [spots, bounds, zoom, index]);
 
   const getClusterExpansionZoom = useCallback(
     (clusterId: number) => {
