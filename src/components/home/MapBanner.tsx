@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { NaverMapView, NaverMapMarkerOverlay } from '@mj-studio/react-native-naver-map';
 import { IconMapPin } from '@tabler/icons-react-native';
@@ -28,6 +28,12 @@ export default function MapBanner({ onPress, spotCount = 0, isLoading, userLocat
 
   const validSpots = (spots || []).filter((s) => isLocationInKorea(s.latitude, s.longitude));
 
+  // 네이티브 지도가 준비되기 전에는 마커를 렌더하지 않는다.
+  // 지도 생성 전 추가된 오버레이는 native overlays 리스트에 바로 안 들어가는데 RN은 들어간 줄
+  // 알고 인덱싱해서 `Index n out of bounds for length 0`로 죽는다(TravelPlanScreen 참고).
+  // 이 배너는 React Query 캐시가 있으면 마운트 즉시 spots가 채워져 특히 위험하다.
+  const [isMapReady, setMapReady] = useState(false);
+
   return (
     <View style={{ width: '100%', height: normalize(160), borderRadius: CARD_RADIUS, overflow: 'hidden', backgroundColor: '#e8e8ed', position: 'relative' }}>
       {/* 1. 네이티브 네이버 지도 미니 뷰 */}
@@ -43,6 +49,7 @@ export default function MapBanner({ onPress, spotCount = 0, isLoading, userLocat
             longitude: centerLng,
             zoom: 12,
           }}
+          onInitialized={() => setMapReady(true)}
           isScrollGesturesEnabled={false}
           isZoomGesturesEnabled={false}
           isTiltGesturesEnabled={false}
@@ -58,7 +65,7 @@ export default function MapBanner({ onPress, spotCount = 0, isLoading, userLocat
             position: { latitude: centerLat, longitude: centerLng },
           }}
         >
-          {validSpots.map((s) => (
+          {isMapReady && validSpots.map((s) => (
             <NaverMapMarkerOverlay
               key={String(s.id)}
               latitude={s.latitude}

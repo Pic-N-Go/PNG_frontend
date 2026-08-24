@@ -32,7 +32,7 @@ import {
 import { Share as ShareIcon } from "lucide-react-native";
 import NaviSheet from "@/components/spot/NaviSheet";
 import CourseMoreSheet from "@/components/travel/CourseMoreSheet";
-import { parseValidCoordinate } from "@/utils/geo";
+import { type Coordinate, parseValidCoordinate } from "@/utils/geo";
 import Toast from "@/components/common/Toast";
 import CourseChecklistSection from "@/components/travel/CourseChecklistSection";
 import { getCourseStats } from "@/utils/distance";
@@ -659,6 +659,16 @@ export default function TravelPlanScreen({ navigation, route }: any) {
 
   const planMapRef = useRef<NaverMapViewRef>(null);
 
+  // 네이티브 지도가 준비되기 전에는 마커/경로를 렌더하지 않는다.
+  //
+  // RNCNaverMapView.addOverlay는 withMap {}으로 감싸져 있어, 지도가 아직 생성되지 않았으면
+  // 오버레이 추가가 getMapAsync로 미뤄진다. 그런데 RN은 자식이 이미 붙은 것으로 보고
+  // getChildAt(index)를 호출하고, 이건 아직 비어 있는 overlays 리스트를 그대로 인덱싱한다
+  // (RNCNaverMapViewManager.getChildAt → overlays.get(index)).
+  // 그래서 스팟이 여러 개인 코스를 열면 `Index 2 out of bounds for length 0`로 죽었다.
+  // 이 화면은 마커 데이터를 라우트 파라미터로 이미 들고 있어 마운트 즉시 렌더돼 특히 잘 터진다.
+  const [isPlanMapReady, setPlanMapReady] = useState(false);
+
   const validDaySpots = React.useMemo(() => {
     return (data[currentDay]?.spots || []).flatMap((spot: any) => {
       const coord = parseValidCoordinate(spot.lat, spot.lng);
@@ -669,7 +679,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
   const currentDayColor = getDayColor(currentDay);
 
   useEffect(() => {
-    if (validDaySpots.length > 0 && planMapRef.current) {
+    if (isPlanMapReady && validDaySpots.length > 0 && planMapRef.current) {
       if (validDaySpots.length === 1) {
         planMapRef.current.animateCameraTo({
           latitude: validDaySpots[0].lat,
@@ -684,15 +694,18 @@ export default function TravelPlanScreen({ navigation, route }: any) {
         const minLng = Math.min(...lngs);
         const maxLng = Math.max(...lngs);
 
-        planMapRef.current.animateRegionTo({
-          latitude: (minLat + maxLat) / 2,
-          longitude: (minLng + maxLng) / 2,
-          latitudeDelta: Math.max(0.01, (maxLat - minLat) * 1.5),
-          longitudeDelta: Math.max(0.01, (maxLng - minLng) * 1.5),
+        const latDelta = Math.max(0.005, maxLat - minLat);
+        const lngDelta = Math.max(0.005, maxLng - minLng);
+        const padLat = latDelta * 0.35;
+        const padLng = lngDelta * 0.35;
+
+        planMapRef.current.animateCameraWithTwoCoords({
+          coord1: { latitude: minLat - padLat, longitude: minLng - padLng },
+          coord2: { latitude: maxLat + padLat, longitude: maxLng + padLng },
         });
       }
     }
-  }, [validDaySpots, currentDay]);
+  }, [isPlanMapReady, validDaySpots, currentDay]);
 
   const renderHeader = () => (
     // 지도는 헤더 구분선에 붙인다. 위 여백을 두면 구분선과 지도 사이가 떠 보인다.
@@ -718,6 +731,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
                 longitude: validDaySpots[0]?.lng || 126.9780,
                 zoom: 12,
               }}
+              onInitialized={() => setPlanMapReady(true)}
               onTapMap={() => setSelectedSpotId(null)}
               isShowCompass={false}
               isShowScaleBar={false}
@@ -725,7 +739,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
               isShowLocationButton={false}
               logoMargin={{ bottom: 4, left: 4 }}
             >
-              {validDaySpots.map((spot: any, i: number) => (
+              {isPlanMapReady && validDaySpots.map((spot: any, i: number) => (
                 <NaverMapMarkerOverlay
                   key={`${currentDay}_${spot.id}_${i}`}
                   latitude={spot.lat}
@@ -767,14 +781,20 @@ export default function TravelPlanScreen({ navigation, route }: any) {
                   </View>
                 </NaverMapMarkerOverlay>
               ))}
-              {validDaySpots.length > 1 && (
-                <NaverMapPathOverlay
-                  coords={validDaySpots.map((s: any) => ({ latitude: s.lat, longitude: s.lng }))}
-                  width={3}
-                  color={currentDayColor.text}
-                  outlineWidth={0}
-                />
-              )}
+              {isPlanMapReady && (() => {
+                const validCoords: Coordinate[] = validDaySpots
+                  .map((s: any) => parseValidCoordinate(s.lat, s.lng))
+                  .filter((c: Coordinate | null): c is Coordinate => c !== null);
+                if (validCoords.length < 2) return null;
+                return (
+                  <NaverMapPathOverlay
+                    coords={validCoords}
+                    width={3}
+                    color={currentDayColor.text}
+                    outlineWidth={0}
+                  />
+                );
+              })()}
             </NaverMapView>
             <TouchableOpacity
               className="absolute top-3 right-3 bg-white/90 items-center justify-center rounded-lg shadow-sm"

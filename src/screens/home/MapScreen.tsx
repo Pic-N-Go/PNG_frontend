@@ -16,7 +16,7 @@ import Toast from '@/components/common/Toast';
 import { StatusBar } from 'expo-status-bar';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { getCourseStats } from '@/utils/distance';
-import { parseValidCoordinate } from '@/utils/geo';
+import { type Coordinate, parseValidCoordinate } from '@/utils/geo';
 import { getDayColor, DAY_COLOR_PALETTE } from '@/constants/dayColors';
 import { CATEGORY_LABELS, CODE_BY_LABEL } from '@/constants/spotCategories';
 import { BUTTON_HEIGHT, BUTTON_RADIUS, CONTROL_SIZE, FONT_MD, FONT_SM, FONT_TITLE, FONT_XL, FONT_XS, HEADER_HEIGHT, ICON_SM } from '@/constants/layout';
@@ -34,8 +34,19 @@ const ALL_DAYS = 'all';
 // 지도에 넘길 스팟에 Day 색과 Day별 순번을 실어준다.
 const withDayMeta = (spots: any[], day: string) =>
   spots
-    .filter((s) => parseValidCoordinate(s.lat, s.lng) !== null)
-    .map((s, i) => ({ ...s, __day: day, __dayColor: getDayColor(day).text, __label: i + 1 }));
+    .map((s, i) => {
+      const coord = parseValidCoordinate(s.lat, s.lng);
+      if (!coord) return null;
+      return {
+        ...s,
+        lat: coord.latitude,
+        lng: coord.longitude,
+        __day: day,
+        __dayColor: getDayColor(day).text,
+        __label: i + 1,
+      };
+    })
+    .filter((s): s is NonNullable<typeof s> => s !== null);
 
 type MapBounds = {
   southWestLat: number;
@@ -68,6 +79,9 @@ export default function MapScreen() {
   const isCourseView = mode === 'plan-view' || !!route.params?.spots;
 
   const naverMapRef = useRef<NaverMapViewRef>(null);
+  // 지도 생성 전에 오버레이를 붙이면 native overlays 리스트와 RN이 어긋나 인덱싱에서 죽는다
+  // (`Index n out of bounds for length 0`). 초기화 후에만 자식을 렌더한다.
+  const [isMapReady, setMapReady] = useState(false);
   const currentCameraRef = useRef({ latitude: 37.5665, longitude: 126.9780, zoom: 14 });
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const { selectedSpots, addSpot, removeSpot } = useCourseStore();
@@ -460,27 +474,33 @@ export default function MapScreen() {
   // 코스 보기 모드에서 Day 전환 시 카메라 Bounds 맞춤
   useEffect(() => {
     if (isCourseView && filteredSpots.length > 0 && naverMapRef.current) {
-      if (filteredSpots.length === 1) {
+      const validCoords: Coordinate[] = filteredSpots
+        .map((s: any) => parseValidCoordinate(s.lat, s.lng))
+        .filter((c: Coordinate | null): c is Coordinate => c !== null);
+
+      if (validCoords.length === 1) {
         naverMapRef.current.animateCameraTo({
-          latitude: filteredSpots[0].lat,
-          longitude: filteredSpots[0].lng,
+          latitude: validCoords[0].latitude,
+          longitude: validCoords[0].longitude,
           zoom: 14,
         });
-      } else {
-        const lats = filteredSpots.map((s: any) => s.lat).filter(Boolean);
-        const lngs = filteredSpots.map((s: any) => s.lng).filter(Boolean);
-        if (lats.length > 0) {
-          const minLat = Math.min(...lats);
-          const maxLat = Math.max(...lats);
-          const minLng = Math.min(...lngs);
-          const maxLng = Math.max(...lngs);
-          naverMapRef.current.animateRegionTo({
-            latitude: (minLat + maxLat) / 2,
-            longitude: (minLng + maxLng) / 2,
-            latitudeDelta: Math.max(0.02, (maxLat - minLat) * 1.5),
-            longitudeDelta: Math.max(0.02, (maxLng - minLng) * 1.5),
-          });
-        }
+      } else if (validCoords.length > 1) {
+        const lats = validCoords.map((c: Coordinate) => c.latitude);
+        const lngs = validCoords.map((c: Coordinate) => c.longitude);
+        const minLat = Math.min(...lats);
+        const maxLat = Math.max(...lats);
+        const minLng = Math.min(...lngs);
+        const maxLng = Math.max(...lngs);
+
+        const latDelta = Math.max(0.005, maxLat - minLat);
+        const lngDelta = Math.max(0.005, maxLng - minLng);
+        const padLat = latDelta * 0.35;
+        const padLng = lngDelta * 0.35;
+
+        naverMapRef.current.animateCameraWithTwoCoords({
+          coord1: { latitude: minLat - padLat, longitude: minLng - padLng },
+          coord2: { latitude: maxLat + padLat, longitude: maxLng + padLng },
+        });
       }
     }
   }, [currentPlanDay, isCourseView, filteredSpots]);
@@ -571,6 +591,7 @@ export default function MapScreen() {
             });
           }
         }}
+        onInitialized={() => setMapReady(true)}
         onTapMap={() => setActiveSpot(null)}
         isShowCompass={false}
         isShowScaleBar={false}
@@ -587,18 +608,24 @@ export default function MapScreen() {
         }
       >
         {/* 코스 경로선 */}
-        {dayPathGroups.map((group, idx) => (
-          <NaverMapPathOverlay
-            key={`path_${idx}`}
-            coords={group.spots.map((s: any) => ({ latitude: s.lat, longitude: s.lng }))}
-            width={4}
-            color={group.color}
-            outlineWidth={0}
-          />
-        ))}
+        {isMapReady && dayPathGroups.map((group, idx) => {
+          const validCoords = group.spots
+            .map((s: any) => parseValidCoordinate(s.lat, s.lng))
+            .filter((c): c is NonNullable<ReturnType<typeof parseValidCoordinate>> => c !== null);
+          if (validCoords.length < 2) return null;
+          return (
+            <NaverMapPathOverlay
+              key={`path_${idx}`}
+              coords={validCoords}
+              width={4}
+              color={group.color}
+              outlineWidth={0}
+            />
+          );
+        })}
 
         {/* 스팟 마커 및 클러스터 마커 */}
-        {isCourseView
+        {isMapReady && (isCourseView
           ? filteredSpots.map((spot: any, index: number) => {
               if (!spot.lat || !spot.lng) return null;
               return (
@@ -738,7 +765,7 @@ export default function MapScreen() {
                   </View>
                 </NaverMapMarkerOverlay>
               );
-            })}
+            }))}
       </NaverMapView>
 
       {/* 상단 오버레이 (검색창 + 뒤로가기) */}

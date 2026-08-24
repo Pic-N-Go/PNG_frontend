@@ -30,6 +30,9 @@ export default function PhotoMapScreen() {
   const insets = useSafeAreaInsets();
   
   const naverMapRef = useRef<NaverMapViewRef>(null);
+  // 지도 생성 전에 오버레이를 붙이면 native overlays 리스트와 RN이 어긋나 인덱싱에서 죽는다
+  // (`Index n out of bounds for length 0`). 초기화 후에만 자식을 렌더한다.
+  const [isMapReady, setMapReady] = useState(false);
   const currentCameraRef = useRef({ latitude: 36.5, longitude: 127.5, zoom: 6 });
   const [filter, setFilter] = useState<FilterType>('all');
   const [activeSpot, setActiveSpot] = useState<MapSpot | null>(null);
@@ -139,11 +142,15 @@ export default function PhotoMapScreen() {
           const maxLat = Math.max(...lats);
           const minLng = Math.min(...lngs);
           const maxLng = Math.max(...lngs);
-          naverMapRef.current.animateRegionTo({
-            latitude: (minLat + maxLat) / 2,
-            longitude: (minLng + maxLng) / 2,
-            latitudeDelta: Math.max(0.02, (maxLat - minLat) * 1.4),
-            longitudeDelta: Math.max(0.02, (maxLng - minLng) * 1.4),
+
+          const latDelta = Math.max(0.005, maxLat - minLat);
+          const lngDelta = Math.max(0.005, maxLng - minLng);
+          const padLat = latDelta * 0.3;
+          const padLng = lngDelta * 0.3;
+
+          naverMapRef.current.animateCameraWithTwoCoords({
+            coord1: { latitude: minLat - padLat, longitude: minLng - padLng },
+            coord2: { latitude: maxLat + padLat, longitude: maxLng + padLng },
           });
         }
       }
@@ -252,6 +259,7 @@ export default function PhotoMapScreen() {
             });
           }
         }}
+        onInitialized={() => setMapReady(true)}
         onTapMap={() => setActiveSpot(null)}
         isShowCompass={false}
         isShowScaleBar={false}
@@ -260,7 +268,7 @@ export default function PhotoMapScreen() {
         logoMargin={{ bottom: mapAreaBottomOf(insets.bottom) + 8, left: 14 }}
       >
         {/* 리뷰 클러스터 및 핀 (핑크 #e31b59) */}
-        {reviewClusters.map((element) => {
+        {isMapReady && reviewClusters.map((element) => {
           if (element.isCluster) {
             return (
               <NaverMapMarkerOverlay
@@ -358,7 +366,7 @@ export default function PhotoMapScreen() {
         })}
 
         {/* 즐겨찾기 클러스터 및 핀 (검정 #1c1c1e) */}
-        {bookmarkClusters.map((element) => {
+        {isMapReady && bookmarkClusters.map((element) => {
           if (element.isCluster) {
             return (
               <NaverMapMarkerOverlay
