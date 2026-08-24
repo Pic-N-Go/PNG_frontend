@@ -7,7 +7,7 @@ import { useCourseStore } from "@/store/useCourseStore";
 import { useAnimatedRef } from "react-native-reanimated";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { SvgUri } from "react-native-svg";
-import { WebView } from "react-native-webview";
+import { NaverMapView, NaverMapMarkerOverlay, NaverMapPathOverlay, type NaverMapViewRef } from "@mj-studio/react-native-naver-map";
 import Sortable from "react-native-sortables";
 import { shareContent } from "@/utils/share";
 import { normalize, normalizeFontSize } from "@/utils/normalize";
@@ -32,15 +32,13 @@ import {
 import { Share as ShareIcon } from "lucide-react-native";
 import NaviSheet from "@/components/spot/NaviSheet";
 import CourseMoreSheet from "@/components/travel/CourseMoreSheet";
-import { parseValidCoordinate } from "@/utils/geo";
+import { type Coordinate, parseValidCoordinate } from "@/utils/geo";
 import Toast from "@/components/common/Toast";
 import CourseChecklistSection from "@/components/travel/CourseChecklistSection";
 import { getCourseStats } from "@/utils/distance";
 import { getDayColor } from "@/constants/dayColors";
 import { FONT_XS, FONT_SM, FONT_MD, FONT_LG, CONTENT_PADDING, BUTTON_HEIGHT, BUTTON_RADIUS, CARD_RADIUS, HEADER_HEIGHT, ICON_SM , BORDER_CONTROL } from "@/constants/layout";
 import { BRAND, BRAND_MUTED, BRAND_STRONG, BRAND_TINT, CARD } from '@/constants/colors';
-
-const KAKAO_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_API_KEY;
 
 // 백엔드 CourseService.validateDaySpotLimits 와 같은 값. 넘으면 동기화 요청 전체가 400으로 거부된다.
 const MAX_SPOTS_PER_DAY = 10;
@@ -470,53 +468,44 @@ export default function TravelPlanScreen({ navigation, route }: any) {
     return { totalDistance: Math.round(distanceKm), totalDurationFormatted: durationText };
   }, [currentData]);
 
-  const handleMapMessage = (event: any) => {
-    try {
-      const parsed = JSON.parse(event.nativeEvent.data);
-      if (parsed.type === "SPOT_CLICK") {
-        const spotId = parsed.data.id;
-        let targetDay = currentDay;
-        let index = currentData.spots.findIndex((s: any) => s.id === spotId);
+  const handleSpotClick = (spot: any) => {
+    const spotId = spot.id;
+    let targetDay = currentDay;
+    let index = currentData.spots.findIndex((s: any) => s.id === spotId);
 
-        if (index === -1) {
-          for (const [dayKey, dayData] of Object.entries(data)) {
-            const foundIndex = dayData.spots.findIndex((s: any) => s.id === spotId);
-            if (foundIndex !== -1) {
-              targetDay = dayKey;
-              index = foundIndex;
-              break;
-            }
-          }
+    if (index === -1) {
+      for (const [dayKey, dayData] of Object.entries(data)) {
+        const foundIndex = dayData.spots.findIndex((s: any) => s.id === spotId);
+        if (foundIndex !== -1) {
+          targetDay = dayKey;
+          index = foundIndex;
+          break;
         }
-
-        if (index === -1) return;
-
-        setSelectedSpotId(spotId); // 선택 하이라이트 (항상 동작)
-
-        const scrollToSpot = () => {
-          let yOffset = 0;
-          const targetSpots = data[targetDay].spots;
-          for (let i = 0; i < index; i++) {
-            yOffset += rowHeights.current[targetSpots[i].id] || 0;
-          }
-          scrollRef.current?.scrollTo({
-            y: headerHeightRef.current + yOffset - 24,
-            animated: true,
-          });
-        };
-
-        if (targetDay !== currentDay) {
-          // 다른 Day의 마커면 먼저 탭을 전환하고, 리스트가 다시 그려진 뒤 스크롤한다.
-          setCurrentDay(targetDay);
-          setTimeout(scrollToSpot, 100);
-        } else {
-          scrollToSpot();
-        }
-      } else if (parsed.type === "MAP_CLICK") {
-        setSelectedSpotId(null);
       }
-    } catch (e) {
-      console.log("WebView Message Parse Error:", e);
+    }
+
+    if (index === -1) return;
+
+    setSelectedSpotId(spotId); // 선택 하이라이트 (항상 동작)
+
+    const scrollToSpot = () => {
+      let yOffset = 0;
+      const targetSpots = data[targetDay].spots;
+      for (let i = 0; i < index; i++) {
+        yOffset += rowHeights.current[targetSpots[i].id] || 0;
+      }
+      scrollRef.current?.scrollTo({
+        y: headerHeightRef.current + yOffset - 24,
+        animated: true,
+      });
+    };
+
+    if (targetDay !== currentDay) {
+      // 다른 Day의 마커면 먼저 탭을 전환하고, 리스트가 다시 그려진 뒤 스크롤한다.
+      setCurrentDay(targetDay);
+      setTimeout(scrollToSpot, 100);
+    } else {
+      scrollToSpot();
     }
   };
 
@@ -668,136 +657,61 @@ export default function TravelPlanScreen({ navigation, route }: any) {
   };
 
 
-  // 선택한 Day 하나만 그린다. 여러 Day를 한눈에 보는 건 확대 지도의 "전체" 드롭다운 몫이다.
-  const renderKakaoMapHTML = () => {
-    const day = currentDay;
-    // currentDay가 data의 키라는 보장이 없다(일정이 줄어든 직후 등). 없으면 빈 지도로 둔다.
-    // 좌표는 이 아래에서 생성 JS에 그대로 보간되므로, 숫자가 아닌 값이 섞이면 스크립트나
-    // bounds 계산이 깨진다. mapCourseToData는 falsy 폴백만 하므로 여기서 한 번 더 검증한다.
-    const spots: any[] = (data[day]?.spots || []).flatMap((spot: any) => {
+  const planMapRef = useRef<NaverMapViewRef>(null);
+
+  // 네이티브 지도가 준비되기 전에는 마커/경로를 렌더하지 않는다.
+  //
+  // RNCNaverMapView.addOverlay는 withMap {}으로 감싸져 있어, 지도가 아직 생성되지 않았으면
+  // 오버레이 추가가 getMapAsync로 미뤄진다. 그런데 RN은 자식이 이미 붙은 것으로 보고
+  // getChildAt(index)를 호출하고, 이건 아직 비어 있는 overlays 리스트를 그대로 인덱싱한다
+  // (RNCNaverMapViewManager.getChildAt → overlays.get(index)).
+  // 그래서 스팟이 여러 개인 코스를 열면 `Index 2 out of bounds for length 0`로 죽었다.
+  // 이 화면은 마커 데이터를 라우트 파라미터로 이미 들고 있어 마운트 즉시 렌더돼 특히 잘 터진다.
+  const [isPlanMapReady, setPlanMapReady] = useState(false);
+
+  // 날짜가 바뀌거나 스팟이 비어 지도가 언마운트될 때 map ready 상태를 리셋하여
+  // 새 NaverMapView 인스턴스가 onInitialized 전에 자식 오버레이를 렌더하지 않도록 방어한다.
+  useEffect(() => {
+    setPlanMapReady(false);
+  }, [currentDay, isDayEmpty]);
+
+  const validDaySpots = React.useMemo(() => {
+    return (data[currentDay]?.spots || []).flatMap((spot: any) => {
       const coord = parseValidCoordinate(spot.lat, spot.lng);
       return coord ? [{ ...spot, lat: coord.latitude, lng: coord.longitude }] : [];
     });
-    const color = getDayColor(day);
+  }, [data, currentDay]);
 
-    const markersHtml = spots
-      .map(
-        (spot: any, i: number) => `
-        var pos_${day}_${i} = new kakao.maps.LatLng(${spot.lat}, ${spot.lng});
-        bounds.extend(pos_${day}_${i});
+  const currentDayColor = getDayColor(currentDay);
 
-        var contentWrapper_${day}_${i} = document.createElement('div');
-        // 래퍼가 블록이면 내용보다 넓게 잡혀 중앙 기준점이 실제 뱃지 중앙과 어긋난다 → 내용을 꼭 감싸게 한다
-        contentWrapper_${day}_${i}.style.cssText = 'display:inline-block; font-size:0;';
-        contentWrapper_${day}_${i}.innerHTML = '<div style="background:${color.bg}; color:${color.text}; font-size:12px; font-weight:600; padding:4px 8px; border-radius:12px; box-shadow:0 2px 4px rgba(0,0,0,0.2); pointer-events:auto;">${i + 1}</div>';
-
-        contentWrapper_${day}_${i}.onclick = function(e) {
-            e.stopPropagation();
-            cancelMapClose();
-            window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'SPOT_CLICK', data: ${JSON.stringify(spot).replace(/</g, "\\u003c")} }));
-        };
-        contentWrapper_${day}_${i}.addEventListener('touchstart', function(e) { e.stopPropagation(); cancelMapClose(); }, { passive: true });
-
-        // 꼬리 없는 둥근 뱃지라 가로·세로 모두 중앙을 좌표에 맞춘다.
-        // 기준점이 어긋나면 폴리라인은 좌표에 그려지므로 선이 뱃지 중앙에 닿지 않는다.
-        var customOverlay_${day}_${i} = new kakao.maps.CustomOverlay({
-            position: pos_${day}_${i},
-            content: contentWrapper_${day}_${i},
-            xAnchor: 0.5,
-            yAnchor: 0.5
+  useEffect(() => {
+    if (isPlanMapReady && validDaySpots.length > 0 && planMapRef.current) {
+      if (validDaySpots.length === 1) {
+        planMapRef.current.animateCameraTo({
+          latitude: validDaySpots[0].lat,
+          longitude: validDaySpots[0].lng,
+          zoom: 14,
         });
-        customOverlay_${day}_${i}.setMap(map);
-      `,
-      )
-      .join("\n");
+      } else {
+        const lats = validDaySpots.map((s: any) => s.lat);
+        const lngs = validDaySpots.map((s: any) => s.lng);
+        const minLat = Math.min(...lats);
+        const maxLat = Math.max(...lats);
+        const minLng = Math.min(...lngs);
+        const maxLng = Math.max(...lngs);
 
-    const polylineHtml =
-      spots.length > 1
-        ? `
-          var linePath_${day} = [
-            ${spots.map((spot: any) => `new kakao.maps.LatLng(${spot.lat}, ${spot.lng})`).join(",\n")}
-          ];
-          var polyline_${day} = new kakao.maps.Polyline({
-            path: linePath_${day},
-            strokeWeight: 3,
-            strokeColor: '${color.text}',
-            strokeOpacity: 1,
-            strokeStyle: 'shortdash'
-          });
-          polyline_${day}.setMap(map);
-        `
-        : "";
+        const latDelta = Math.max(0.005, maxLat - minLat);
+        const lngDelta = Math.max(0.005, maxLng - minLng);
+        const padLat = latDelta * 0.35;
+        const padLng = lngDelta * 0.35;
 
-    return `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-          <!-- baseUrl을 https로 주면 카카오 SDK가 내부 라이브러리를 https로 받는다(iOS ATS 통과).
-               단 Referer가 붙으면 미등록 도메인이라 401이 되므로 no-referrer로 억제한다. -->
-          <meta name="referrer" content="no-referrer">
-          <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_KEY}&autoload=false"></script>
-          <style>
-            html, body { margin: 0; padding: 0; width: 100%; height: 100%; }
-            #map { width: 100%; height: 100%; }
-          </style>
-        </head>
-        <body>
-          <div id="map"></div>
-          <script>
-            kakao.maps.load(function() {
-              function initMap() {
-                var mapContainer = document.getElementById('map');
-                if (mapContainer.clientHeight === 0 || mapContainer.clientWidth === 0) {
-                  setTimeout(initMap, 50);
-                  return;
-                }
-                
-                var mapOption = { 
-                    center: new kakao.maps.LatLng(35.1531696, 129.118666), 
-                    level: 7 
-                };
-                var map = new kakao.maps.Map(mapContainer, mapOption);
-                var bounds = new kakao.maps.LatLngBounds();
-
-                var pendingMapClose = null;
-                function scheduleMapClose() {
-                  if (pendingMapClose) clearTimeout(pendingMapClose);
-                  pendingMapClose = setTimeout(function () {
-                    pendingMapClose = null;
-                    window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'MAP_CLICK' }));
-                  }, 80);
-                }
-                function cancelMapClose() {
-                  if (pendingMapClose) { clearTimeout(pendingMapClose); pendingMapClose = null; }
-                }
-                
-                ${markersHtml}
-                ${polylineHtml}
-
-                if (${spots.length} > 0) {
-                    map.setBounds(bounds, 50, 50, 50, 50);
-                }
-
-                kakao.maps.event.addListener(map, 'click', function() {
-                    scheduleMapClose();
-                });
-              }
-              initMap();
-            });
-          </script>
-        </body>
-      </html>
-    `;
-  };
-
-  // 마커 선택(setState)마다 HTML 문자열이 새로 만들어져 WebView가 리로드되지 않도록,
-  // data/currentDay가 바뀔 때만 재생성한다.
-  const interactiveMapHtml = React.useMemo(
-    () => renderKakaoMapHTML(),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [data, currentDay]
-  );
+        planMapRef.current.animateCameraWithTwoCoords({
+          coord1: { latitude: minLat - padLat, longitude: minLng - padLng },
+          coord2: { latitude: maxLat + padLat, longitude: maxLng + padLng },
+        });
+      }
+    }
+  }, [isPlanMapReady, validDaySpots, currentDay]);
 
   const renderHeader = () => (
     // 지도는 헤더 구분선에 붙인다. 위 여백을 두면 구분선과 지도 사이가 떠 보인다.
@@ -815,12 +729,79 @@ export default function TravelPlanScreen({ navigation, route }: any) {
           </View>
         ) : (
           <View className="bg-[#e8e8ed] overflow-hidden relative" style={{ height: normalize(210) }}>
-            <WebView
-              source={{ html: interactiveMapHtml, baseUrl: 'https://localhost' }}
-              onMessage={handleMapMessage}
-              style={{ width: '100%', height: '100%', backgroundColor: 'transparent' }}
-              scrollEnabled={false}
-            />
+            <NaverMapView
+              ref={planMapRef}
+              style={{ width: '100%', height: '100%' }}
+              initialCamera={{
+                latitude: validDaySpots[0]?.lat || 37.5665,
+                longitude: validDaySpots[0]?.lng || 126.9780,
+                zoom: 12,
+              }}
+              onInitialized={() => setPlanMapReady(true)}
+              onTapMap={() => setSelectedSpotId(null)}
+              isShowCompass={false}
+              isShowScaleBar={false}
+              isShowZoomControls={false}
+              isShowLocationButton={false}
+              logoMargin={{ bottom: 4, left: 4 }}
+            >
+              {isPlanMapReady && validDaySpots.map((spot: any, i: number) => (
+                <NaverMapMarkerOverlay
+                  key={`${currentDay}_${spot.id}_${i}`}
+                  latitude={spot.lat}
+                  longitude={spot.lng}
+                  width={normalize(26)}
+                  height={normalize(26)}
+                  anchor={{ x: 0.5, y: 0.5 }}
+                  onTap={() => handleSpotClick(spot)}
+                >
+                  <View
+                    key={`plan_pin_${currentDay}_${spot.id}_${i}`}
+                    collapsable={false}
+                    style={{
+                      width: normalize(26),
+                      height: normalize(26),
+                      borderRadius: normalize(13),
+                      backgroundColor: currentDayColor.text || '#e31b59',
+                      borderWidth: 2,
+                      borderColor: '#FFFFFF',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      shadowColor: '#000',
+                      shadowOffset: { width: 0, height: 1 },
+                      shadowOpacity: 0.25,
+                      shadowRadius: 2,
+                      elevation: 3,
+                    }}
+                  >
+                    <Text
+                      allowFontScaling={false}
+                      style={{
+                        color: '#FFFFFF',
+                        fontFamily: 'Pretendard-SemiBold',
+                        fontSize: FONT_XS,
+                      }}
+                    >
+                      {i + 1}
+                    </Text>
+                  </View>
+                </NaverMapMarkerOverlay>
+              ))}
+              {isPlanMapReady && (() => {
+                const validCoords: Coordinate[] = validDaySpots
+                  .map((s: any) => parseValidCoordinate(s.lat, s.lng))
+                  .filter((c: Coordinate | null): c is Coordinate => c !== null);
+                if (validCoords.length < 2) return null;
+                return (
+                  <NaverMapPathOverlay
+                    coords={validCoords}
+                    width={3}
+                    color={currentDayColor.text}
+                    outlineWidth={0}
+                  />
+                );
+              })()}
+            </NaverMapView>
             <TouchableOpacity
               className="absolute top-3 right-3 bg-white/90 items-center justify-center rounded-lg shadow-sm"
               style={{ width: normalize(32), height: normalize(32) }}

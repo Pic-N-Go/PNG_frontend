@@ -210,7 +210,7 @@ export default function TimePickerSheet({
     const roundedMinutes = roundedDate.getMinutes();
     const minute = roundedMinutes < 10 ? `0${roundedMinutes}` : String(roundedMinutes);
 
-    return { period, hour, minute };
+    return { period, hour, minute, roundedDate };
   }, [value, minuteInterval]);
 
   const minuteOptions = useMemo(() => {
@@ -247,7 +247,7 @@ export default function TimePickerSheet({
 
     const minNum = parseInt(selectedMinute, 10);
 
-    const nextDate = new Date(value);
+    const nextDate = new Date(initialValues.roundedDate);
     nextDate.setHours(hours24, minNum, 0, 0);
 
     onConfirm(nextDate);

@@ -1,7 +1,8 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Platform, PermissionsAndroid, BackHandler, Image, Animated, PanResponder, Easing, ScrollView, useWindowDimensions } from 'react-native';
-import { WebView } from 'react-native-webview';
-import { IconChevronLeft, IconMapPin, IconFocus2, IconChevronRight } from '@tabler/icons-react-native';
+import { View, Text, TouchableOpacity, BackHandler, Image, Animated, PanResponder, Easing, ScrollView, useWindowDimensions } from 'react-native';
+import { NaverMapView, NaverMapMarkerOverlay, type NaverMapViewRef } from '@mj-studio/react-native-naver-map';
+import * as Location from 'expo-location';
+import { IconChevronLeft, IconMapPin, IconFocus2, IconChevronRight, IconMapPinFilled } from '@tabler/icons-react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import BottomSheet from '@/components/common/BottomSheet';
 import { StatusBar } from 'expo-status-bar';
@@ -10,18 +11,18 @@ import { BUTTON_HEIGHT, BUTTON_RADIUS, FONT_LG, FONT_MD, FONT_SM, FONT_XS, HAIRL
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BRAND, HAIRLINE } from '@/constants/colors';
 import { useBookmarkedSpots, useReviewedSpots } from '@/hooks/useSpot';
+import { useMapCluster } from '@/hooks/useMapCluster';
 import { mergeMapSpots } from '@/utils/spotMappers';
 import type { MapSpot } from '@/types/spot';
 import SaveToPlanSheet from '@/components/spot/SaveToPlanSheet';
 import Toast from '@/components/common/Toast';
 import Skeleton from '@/components/common/Skeleton';
-
-const KAKAO_KEY = process.env.EXPO_PUBLIC_KAKAO_MAP_API_KEY;
+import { sanitizeKoreaLocation } from '@/utils/location';
+import { type Coordinate, parseValidCoordinate } from '@/utils/geo';
 
 type FilterType = 'all' | 'review' | 'fav';
 
 // 지도 영역의 위 경계. 헤더 = 내비 행 + 필터 행(위아래 패딩 10 + 칩 높이 30).
-// MapNotice·지도 컨트롤·범례가 모두 이 값을 기준으로 놓여야 헤더를 고칠 때 같이 따라온다.
 const NAV_ROW_HEIGHT = normalize(54);
 const HEADER_HEIGHT = NAV_ROW_HEIGHT + normalize(10) * 2 + normalize(30);
 
@@ -29,42 +30,15 @@ export default function PhotoMapScreen() {
   const navigation = useNavigation<any>();
   const insets = useSafeAreaInsets();
   
-  const webViewRef = useRef<any>(null);
+  const naverMapRef = useRef<NaverMapViewRef>(null);
+  // 지도 생성 전에 오버레이를 붙이면 native overlays 리스트와 RN이 어긋나 인덱싱에서 죽는다
+  // (`Index n out of bounds for length 0`). 초기화 후에만 자식을 렌더한다.
+  const [isMapReady, setMapReady] = useState(false);
+  const currentCameraRef = useRef({ latitude: 36.5, longitude: 127.5, zoom: 6 });
   const [filter, setFilter] = useState<FilterType>('all');
   const [activeSpot, setActiveSpot] = useState<MapSpot | null>(null);
-  const ignoreMapClickRef = useRef(false);
-  // 지도 준비 전에 주입하면 window.updateMarkers가 아직 없어 핀이 조용히 사라진다.
-  // initMap이 컨테이너 크기를 기다리며 재시도하므로 onLoadEnd로도 이르다 — 페이지가 직접 알려준다.
-  const mapReadyRef = useRef(false);
-  const spotsRef = useRef<MapSpot[]>([]);
-  // 오버레이 렌더용. ref는 주입 타이밍 판단에만 쓰고 리렌더를 유발하지 않는다.
-  const [mapReady, setMapReady] = useState(false);
-  // 페이지 안 타임아웃으로는 부족하다 — 카카오 SDK 스크립트가 실패하면 kakao.maps.load가 없어
-  // 인라인 스크립트가 즉시 throw하고, 그 안에 등록하려던 setTimeout이 아예 걸리지 않는다.
-  // 그러면 오버레이가 영구히 남는다. 포기 시점은 RN이 쥔다.
-  const [mapGaveUp, setMapGaveUp] = useState(false);
-  // html source로 띄운 WebView는 reload()가 HTML을 다시 렌더하지 않고 baseUrl(https://localhost)을
-  // 네트워크로 가져오려 해서 복구가 안 된다. key를 올려 강제 리마운트하는 것만 확실하다.
-  const [webViewKey, setWebViewKey] = useState(0);
-  const showMapLoading = !mapReady && !mapGaveUp;
-  const mapAreaBottom = mapAreaBottomOf(insets.bottom);
 
-  const remountMap = useCallback(() => {
-    mapReadyRef.current = false;
-    setMapReady(false);
-    setMapGaveUp(false);
-    setWebViewKey((k) => k + 1);
-  }, []);
-
-  // 리마운트할 때마다 포기 타이머를 다시 건다. 한 번 포기하면 되돌아오지 않는 구조였다.
-  useEffect(() => {
-    if (mapReady) return;
-    const timer = setTimeout(() => setMapGaveUp(true), 6000);
-    return () => clearTimeout(timer);
-  }, [webViewKey, mapReady]);
-
-  // 코스 저장 시트. BottomSheet가 RN Modal이라 스팟 시트 위에 겹쳐 띄우면 iOS에서 불안정하다 —
-  // 스팟 시트를 닫고 코스 시트를 연다. 저장할 스팟은 시트가 닫힌 뒤에도 필요해 따로 들고 있는다.
+  // 코스 저장 시트.
   const [courseTarget, setCourseTarget] = useState<MapSpot | null>(null);
   const [toast, setToast] = useState<string | null>(null);
 
@@ -75,7 +49,6 @@ export default function PhotoMapScreen() {
     () => mergeMapSpots(reviewed.data, bookmarked.data),
     [reviewed.data, bookmarked.data],
   );
-  // 한쪽만 도착한 상태로 핀을 그리면 색이 뒤늦게 바뀐다(리뷰만 먼저 오면 검정 → 핑크). 둘 다 기다린다.
   const isLoading = reviewed.isLoading || bookmarked.isLoading;
   const isError = reviewed.isError || bookmarked.isError;
   const counts = useMemo(
@@ -103,229 +76,118 @@ export default function PhotoMapScreen() {
     }, [handleBackNavigation])
   );
 
-  // 리뷰도 쓰고 즐겨찾기도 한 스팟은 두 필터에 모두 나온다 — 배타 분류가 아니다.
+  // 리뷰도 쓰고 즐겨찾기도 한 스팟은 두 필터에 모두 나온다
   const filteredSpots = useMemo(() => {
     if (filter === 'review') return spots.filter((sp) => sp.reviewed);
     if (filter === 'fav') return spots.filter((sp) => sp.bookmarked);
     return spots;
   }, [filter, spots]);
 
-  const pushMarkers = useCallback((list: MapSpot[]) => {
-    webViewRef.current?.injectJavaScript(`
-      if (window.updateMarkers) {
-        window.updateMarkers(${JSON.stringify(JSON.stringify(list))});
-      }
-      true;
-    `);
-  }, []);
-
-  const handleMessage = useCallback((event: any) => {
-    try {
-      const parsed = JSON.parse(event.nativeEvent.data);
-      if (parsed.type === 'MAP_READY') {
-        mapReadyRef.current = true;
-        setMapReady(true);
-        pushMarkers(spotsRef.current);
-      } else if (parsed.type === 'SPOT_CLICK') {
-        setActiveSpot(parsed.data);
-      } else if (parsed.type === 'MAP_CLICK') {
-        if (!ignoreMapClickRef.current) {
-          setActiveSpot(null);
-        }
-      }
-    } catch (e) {
-      console.log('WebView Message Parse Error:', e);
-    }
-  }, [pushMarkers]);
-
   const handleSpotPress = useCallback((spot: MapSpot) => {
     setActiveSpot(spot);
-    ignoreMapClickRef.current = true;
-    setTimeout(() => {
-      ignoreMapClickRef.current = false;
-    }, 500);
   }, []);
 
   const handleZoomIn = useCallback(() => {
-    if (webViewRef.current) {
-      webViewRef.current.injectJavaScript(`
-        if (window.kakaoMap) {
-          window.kakaoMap.setLevel(window.kakaoMap.getLevel() - 1);
-        }
-      `);
+    if (naverMapRef.current) {
+      naverMapRef.current.animateCameraTo({
+        latitude: currentCameraRef.current.latitude,
+        longitude: currentCameraRef.current.longitude,
+        zoom: currentCameraRef.current.zoom + 1,
+      });
     }
   }, []);
 
   const handleZoomOut = useCallback(() => {
-    if (webViewRef.current) {
-      webViewRef.current.injectJavaScript(`
-        if (window.kakaoMap) {
-          window.kakaoMap.setLevel(window.kakaoMap.getLevel() + 1);
-        }
-      `);
+    if (naverMapRef.current) {
+      naverMapRef.current.animateCameraTo({
+        latitude: currentCameraRef.current.latitude,
+        longitude: currentCameraRef.current.longitude,
+        zoom: currentCameraRef.current.zoom - 1,
+      });
     }
   }, []);
 
   const handleMyLocation = useCallback(async () => {
-    if (Platform.OS === 'android') {
-      try {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-        );
-        if (granted !== PermissionsAndroid.RESULTS.GRANTED) return;
-      } catch {
+    try {
+      const perm = await Location.requestForegroundPermissionsAsync();
+      if (perm.status !== 'granted') {
+        setToast('위치 권한이 필요해요');
         return;
       }
-    }
-    if (webViewRef.current) {
-      webViewRef.current.injectJavaScript(`
-        if (window.kakaoMap && navigator.geolocation) {
-          navigator.geolocation.getCurrentPosition(
-            function(position) {
-              window.kakaoMap.setCenter(new kakao.maps.LatLng(position.coords.latitude, position.coords.longitude));
-            },
-            function(error) {
-              console.error("Geolocation error:", error);
-            }
-          );
-        }
-      `);
+      const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+      const sanitized = sanitizeKoreaLocation(loc.coords.latitude, loc.coords.longitude);
+      currentCameraRef.current = { latitude: sanitized.lat, longitude: sanitized.lng, zoom: 14 };
+      naverMapRef.current?.animateCameraTo({
+        latitude: sanitized.lat,
+        longitude: sanitized.lng,
+        zoom: 14,
+      });
+    } catch {
+      setToast('현재 위치를 가져올 수 없어요');
     }
   }, []);
 
   useEffect(() => {
-    spotsRef.current = filteredSpots;
-    if (mapReadyRef.current) pushMarkers(filteredSpots);
-  }, [filteredSpots, pushMarkers]);
+    if (isMapReady && filteredSpots.length > 0 && naverMapRef.current) {
+      const validCoords: Coordinate[] = filteredSpots
+        .map((s) => parseValidCoordinate(s.lat, s.lng))
+        .filter((c: Coordinate | null): c is Coordinate => c !== null);
 
-  // HTML은 한 번만 만든다. filteredSpots를 여기에 끼우면 핀이 바뀔 때마다 source가 달라져
-  // WebView가 통째로 리로드되고, 지도 중심·줌이 초기화된다. 핀 갱신은 injectJavaScript로만 한다.
-  const HTML = useMemo(() => {
-    return `
-<!DOCTYPE html>
-<html>
-<head>
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
-  <!-- baseUrl을 https로 주면 카카오 SDK가 내부 라이브러리를 https로 받는다(iOS ATS 통과).
-       baseUrl 없이 html만 넘기면 origin이 about:blank가 되어 지도가 흰 화면으로 남는다. -->
-  <!-- 그 baseUrl(https://localhost)이 카카오에 등록된 도메인이 아니라, Referer를 보내면
-       sdk.js가 401 AccessDeniedError를 돌려준다. kakao가 미정의가 되어 지도가 안 뜬다. -->
-  <meta name="referrer" content="no-referrer">
-  <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAO_KEY}&autoload=false"></script>
-  <style>
-    body, html { margin: 0; padding: 0; width: 100%; height: 100%; background: #ffffff; }
-    #map { width: 100%; height: 100%; }
-    .map-pin {
-      position: absolute;
-      transform: translate(-50%, -100%);
-      line-height: 0;
-      cursor: pointer;
-      z-index: 5;
-    }
-    .map-pin--review svg path { fill: ${BRAND}; }
-    .map-pin--fav svg path { fill: #1c1c1e; }
-    .map-pin--review { filter: drop-shadow(0 2px 6px rgba(227,27,89,0.45)); }
-    .map-pin--fav { filter: drop-shadow(0 2px 4px rgba(0,0,0,0.25)); }
-  </style>
-</head>
-<body>
-  <div id="map"></div>
-  <script>
-    kakao.maps.load(function() {
-      function initMap() {
-        var mapContainer = document.getElementById('map');
-        if (mapContainer.clientHeight === 0 || mapContainer.clientWidth === 0) {
-          setTimeout(initMap, 50);
-          return;
-        }
-
-        var map = new kakao.maps.Map(mapContainer, {
-            center: new kakao.maps.LatLng(36.5, 127.5),
-            level: 13
+      if (validCoords.length === 1) {
+        naverMapRef.current.animateCameraTo({
+          latitude: validCoords[0].latitude,
+          longitude: validCoords[0].longitude,
+          zoom: 14,
         });
-        window.kakaoMap = map;
+      } else if (validCoords.length > 1) {
+        const lats = validCoords.map((c: Coordinate) => c.latitude);
+        const lngs = validCoords.map((c: Coordinate) => c.longitude);
+        const minLat = Math.min(...lats);
+        const maxLat = Math.max(...lats);
+        const minLng = Math.min(...lngs);
+        const maxLng = Math.max(...lngs);
 
-        var markers = [];
+        const latDelta = Math.max(0.005, maxLat - minLat);
+        const lngDelta = Math.max(0.005, maxLng - minLng);
+        const padLat = latDelta * 0.3;
+        const padLng = lngDelta * 0.3;
 
-        // 리뷰도 쓰고 즐겨찾기도 한 스팟은 핀이 하나뿐이다. 색은 리뷰(핑크)를 우선한다 —
-        // 리뷰를 쓴 곳은 대개 즐겨찾기도 해두므로, 즐겨찾기를 우선하면 핀이 전부 한 색이 된다.
-        function createPinHtml(isReviewed) {
-          var cls = isReviewed ? 'map-pin map-pin--review' : 'map-pin map-pin--fav';
-          var svgColor = isReviewed ? '${BRAND}' : '#1c1c1e';
-          var size = isReviewed ? 26 : 24;
-          var viewBoxHeight = isReviewed ? 33 : 30;
-          return \`
-            <div class="\${cls}">
-              <svg width="\${size}" height="\${viewBoxHeight}" viewBox="0 0 24 30" fill="none">
-                <path d="M12 0C5.4 0 0 5.4 0 12C0 20 12 30 12 30S24 20 24 12C24 5.4 18.6 0 12 0Z" fill="\${svgColor}"/>
-                <circle cx="12" cy="10.5" r="4.5" fill="#fff"/>
-              </svg>
-            </div>
-          \`;
-        }
-
-        window.updateMarkers = function(spotsJson) {
-          var spots = JSON.parse(spotsJson);
-          
-          markers.forEach(function(m) { m.setMap(null); });
-          markers = [];
-
-          var bounds = new kakao.maps.LatLngBounds();
-
-          spots.forEach(function(spot) {
-            var position = new kakao.maps.LatLng(spot.lat, spot.lng);
-            bounds.extend(position);
-
-            var content = document.createElement('div');
-            content.innerHTML = createPinHtml(spot.reviewed);
-            
-            content.onclick = function(e) {
-              e.stopPropagation();
-              window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'SPOT_CLICK', data: spot }));
-            };
-
-            var customOverlay = new kakao.maps.CustomOverlay({
-              position: position,
-              content: content,
-              clickable: true,
-              yAnchor: 1,
-              zIndex: spot.reviewed ? 2 : 1
-            });
-            
-            customOverlay.setMap(map);
-            markers.push(customOverlay);
-          });
-
-          if (spots.length > 0) {
-            map.setBounds(bounds);
-          }
-        };
-
-        kakao.maps.event.addListener(map, 'click', function() {
-          window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'MAP_CLICK' }));
+        naverMapRef.current.animateCameraWithTwoCoords({
+          coord1: { latitude: minLat - padLat, longitude: minLng - padLng },
+          coord2: { latitude: maxLat + padLat, longitude: maxLng + padLng },
         });
-
-        // 지도 객체 생성 직후는 아직 타일이 회색이다. 실제로 그려진 뒤 알려야 오버레이를
-        // 걷는 시점이 맞는다. tilesloaded가 오지 않는 환경도 있어 타임아웃으로 보정한다.
-        var told = false;
-        function tellReady() {
-          if (told) return;
-          told = true;
-          window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'MAP_READY' }));
-        }
-        kakao.maps.event.addListener(map, 'tilesloaded', tellReady);
-        setTimeout(tellReady, 2000);
       }
-      initMap();
-    });
-  </script>
-</body>
-</html>
-    `;
-  }, []);
+    }
+  }, [filteredSpots, isMapReady]);
 
-  // HTML과 마찬가지로 source 객체도 고정한다 — 매 렌더 새 객체를 주면 WebView가 재로딩된다.
-  const mapSource = useMemo(() => ({ html: HTML, baseUrl: 'https://localhost' }), [HTML]);
+  const [mapZoom, setMapZoom] = useState(6);
+  const [mapBounds, setMapBounds] = useState<any>(null);
+
+  // 서로 다른 색의 핀끼리 섞이지 않도록 리뷰(핑크 #e31b59)와 즐겨찾기(검정 #1c1c1e)를 분리하여 클러스터링
+  const reviewSpots = useMemo(() => {
+    if (filter === 'fav') return [];
+    return filteredSpots.filter((sp) => sp.reviewed);
+  }, [filter, filteredSpots]);
+
+  const bookmarkSpots = useMemo(() => {
+    if (filter === 'review') return [];
+    if (filter === 'fav') return filteredSpots;
+    return filteredSpots.filter((sp) => !sp.reviewed && sp.bookmarked);
+  }, [filter, filteredSpots]);
+
+  const { clusterElements: reviewClusters } = useMapCluster<any>(
+    reviewSpots,
+    mapZoom,
+    mapBounds,
+    { radius: 45, maxZoom: 15 }
+  );
+
+  const { clusterElements: bookmarkClusters } = useMapCluster<any>(
+    bookmarkSpots,
+    mapZoom,
+    mapBounds,
+    { radius: 45, maxZoom: 15 }
+  );
 
   return (
     <View className="flex-1 bg-white">
@@ -348,7 +210,6 @@ export default function PhotoMapScreen() {
         <View className="flex-row" style={{ paddingHorizontal: normalize(16), paddingVertical: normalize(10), gap: normalize(7) }}>
           {(['all', 'review', 'fav'] as FilterType[]).map((f) => {
             const isActive = filter === f;
-            // 로딩 중에는 개수를 붙이지 않는다 — "전체 0"은 핀이 없다는 뜻으로 읽힌다.
             const labels = isLoading
               ? { all: '전체', review: '리뷰', fav: '즐겨찾기' }
               : { all: `전체 ${counts.all}`, review: `리뷰 ${counts.review}`, fav: `즐겨찾기 ${counts.fav}` };
@@ -373,34 +234,239 @@ export default function PhotoMapScreen() {
         </View>
       </View>
 
-      <WebView
-        key={webViewKey}
-        ref={webViewRef}
-        source={mapSource}
-        geolocationEnabled={true}
-        originWhitelist={['*']}
-        onMessage={handleMessage}
-        javaScriptEnabled
-        domStorageEnabled
-        bounces={false}
-        showsVerticalScrollIndicator={false}
-        showsHorizontalScrollIndicator={false}
-        onError={(e: any) => {
-          console.error('[PIC MAP WebView Error]', e.nativeEvent);
-          setMapGaveUp(true);
-        }}
-        onHttpError={(e: any) => console.error('[PIC MAP WebView HTTP]', e.nativeEvent)}
-        // iOS 콘텐츠 프로세스가 죽으면 에러 없이 흰 화면만 남는다. 알아서 되살린다.
-        onContentProcessDidTerminate={() => {
-          console.warn('[PIC MAP] WebView 콘텐츠 프로세스 종료 — 재로딩');
-          remountMap();
-        }}
-        // NativeWind는 WebView에 className을 적용하지 못한다(cssInterop 대상이 아니다).
-        // className="flex-1"을 주면 조용히 무시돼 높이가 0이 되고, 지도가 흰 화면으로 남는다.
+      <NaverMapView
+        ref={naverMapRef}
         style={{ flex: 1 }}
-      />
+        initialCamera={{
+          latitude: filteredSpots[0]?.lat || 36.5,
+          longitude: filteredSpots[0]?.lng || 127.5,
+          zoom: filteredSpots.length > 0 ? 10 : 6,
+        }}
+        onCameraIdle={(e) => {
+          setMapZoom(e.zoom ?? 10);
+          currentCameraRef.current = {
+            latitude: e.latitude,
+            longitude: e.longitude,
+            zoom: e.zoom ?? 10,
+          };
+          if (e.region) {
+            const swLat = e.region.latitude - e.region.latitudeDelta / 2;
+            const neLat = e.region.latitude + e.region.latitudeDelta / 2;
+            const swLng = e.region.longitude - e.region.longitudeDelta / 2;
+            const neLng = e.region.longitude + e.region.longitudeDelta / 2;
+            setMapBounds({
+              southWestLat: swLat,
+              southWestLng: swLng,
+              northEastLat: neLat,
+              northEastLng: neLng,
+            });
+          }
+        }}
+        onInitialized={() => setMapReady(true)}
+        onTapMap={() => setActiveSpot(null)}
+        isShowCompass={false}
+        isShowScaleBar={false}
+        isShowZoomControls={false}
+        isShowLocationButton={false}
+        logoMargin={{ bottom: mapAreaBottomOf(insets.bottom) + 8, left: 14 }}
+      >
+        {/* 리뷰 클러스터 및 핀 (핑크 #e31b59) */}
+        {isMapReady && reviewClusters.map((element) => {
+          if (element.isCluster) {
+            return (
+              <NaverMapMarkerOverlay
+                key={`cluster_review_${element.id}`}
+                latitude={element.latitude}
+                longitude={element.longitude}
+                width={normalize(36)}
+                height={normalize(36)}
+                anchor={{ x: 0.5, y: 0.5 }}
+                onTap={() => {
+                  naverMapRef.current?.animateCameraTo({
+                    latitude: element.latitude,
+                    longitude: element.longitude,
+                    zoom: element.expansionZoom,
+                  });
+                }}
+              >
+                <View
+                  key={`cluster_review_view_${element.id}_${element.count}`}
+                  collapsable={false}
+                  style={{
+                    width: normalize(36),
+                    height: normalize(36),
+                    borderRadius: normalize(18),
+                    backgroundColor: '#e31b59',
+                    borderWidth: 2,
+                    borderColor: '#FFFFFF',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    shadowColor: '#e31b59',
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.4,
+                    shadowRadius: 4,
+                    elevation: 4,
+                  }}
+                >
+                  <Text
+                    allowFontScaling={false}
+                    style={{
+                      color: '#FFFFFF',
+                      fontFamily: 'Pretendard-SemiBold',
+                      fontSize: FONT_SM,
+                    }}
+                  >
+                    {element.count}
+                  </Text>
+                </View>
+              </NaverMapMarkerOverlay>
+            );
+          }
 
-      {!showMapLoading && (
+          const spot = element.spot;
+          if (!spot.lat || !spot.lng) return null;
+
+          return (
+            <NaverMapMarkerOverlay
+              key={`review_${spot.id}`}
+              latitude={spot.lat}
+              longitude={spot.lng}
+              width={normalize(24)}
+              height={normalize(24)}
+              anchor={{ x: 0.5, y: 0.5 }}
+              caption={{
+                text: spot.name,
+                textSize: FONT_XS,
+                color: '#1c1c1e',
+                haloColor: '#FFFFFF',
+                offset: normalize(4),
+              }}
+              onTap={() => handleSpotPress(spot)}
+            >
+              <View
+                key={`photo_spot_pin_${spot.id}`}
+                collapsable={false}
+                style={{
+                  width: normalize(24),
+                  height: normalize(24),
+                  borderRadius: normalize(12),
+                  backgroundColor: '#e31b59',
+                  borderWidth: 2,
+                  borderColor: '#FFFFFF',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  shadowColor: '#e31b59',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.35,
+                  shadowRadius: 3,
+                  elevation: 3,
+                }}
+              >
+                <IconMapPinFilled size={normalize(12)} color="#FFFFFF" />
+              </View>
+            </NaverMapMarkerOverlay>
+          );
+        })}
+
+        {/* 즐겨찾기 클러스터 및 핀 (검정 #1c1c1e) */}
+        {isMapReady && bookmarkClusters.map((element) => {
+          if (element.isCluster) {
+            return (
+              <NaverMapMarkerOverlay
+                key={`cluster_fav_${element.id}`}
+                latitude={element.latitude}
+                longitude={element.longitude}
+                width={normalize(36)}
+                height={normalize(36)}
+                anchor={{ x: 0.5, y: 0.5 }}
+                onTap={() => {
+                  naverMapRef.current?.animateCameraTo({
+                    latitude: element.latitude,
+                    longitude: element.longitude,
+                    zoom: element.expansionZoom,
+                  });
+                }}
+              >
+                <View
+                  key={`cluster_fav_view_${element.id}_${element.count}`}
+                  collapsable={false}
+                  style={{
+                    width: normalize(36),
+                    height: normalize(36),
+                    borderRadius: normalize(18),
+                    backgroundColor: '#1c1c1e',
+                    borderWidth: 2,
+                    borderColor: '#FFFFFF',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    shadowColor: '#000000',
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.4,
+                    shadowRadius: 4,
+                    elevation: 4,
+                  }}
+                >
+                  <Text
+                    allowFontScaling={false}
+                    style={{
+                      color: '#FFFFFF',
+                      fontFamily: 'Pretendard-SemiBold',
+                      fontSize: FONT_SM,
+                    }}
+                  >
+                    {element.count}
+                  </Text>
+                </View>
+              </NaverMapMarkerOverlay>
+            );
+          }
+
+          const spot = element.spot;
+          if (!spot.lat || !spot.lng) return null;
+
+          return (
+            <NaverMapMarkerOverlay
+              key={`fav_${spot.id}`}
+              latitude={spot.lat}
+              longitude={spot.lng}
+              width={normalize(24)}
+              height={normalize(24)}
+              anchor={{ x: 0.5, y: 0.5 }}
+              caption={{
+                text: spot.name,
+                textSize: FONT_XS,
+                color: '#1c1c1e',
+                haloColor: '#FFFFFF',
+                offset: normalize(4),
+              }}
+              onTap={() => handleSpotPress(spot)}
+            >
+              <View
+                key={`fav_spot_pin_${spot.id}`}
+                collapsable={false}
+                style={{
+                  width: normalize(24),
+                  height: normalize(24),
+                  borderRadius: normalize(12),
+                  backgroundColor: '#1c1c1e',
+                  borderWidth: 2,
+                  borderColor: '#FFFFFF',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  shadowColor: '#000000',
+                  shadowOffset: { width: 0, height: 2 },
+                  shadowOpacity: 0.35,
+                  shadowRadius: 3,
+                  elevation: 3,
+                }}
+              >
+                <IconMapPinFilled size={normalize(12)} color="#FFFFFF" />
+              </View>
+            </NaverMapMarkerOverlay>
+          );
+        })}
+      </NaverMapView>
+
       <View className="absolute z-30" style={{ right: normalize(14), top: insets.top + HEADER_HEIGHT + normalize(16), gap: normalize(8) }}>
         <View className="bg-white overflow-hidden" style={{ borderRadius: normalize(12) }}>
           <TouchableOpacity onPress={handleZoomIn} className="items-center justify-center" style={{ width: normalize(40), height: normalize(40) }}>
@@ -415,11 +481,8 @@ export default function PhotoMapScreen() {
           <IconFocus2 size={normalize(20)} color="rgba(0,0,0,0.45)" />
         </TouchableOpacity>
       </View>
-      )}
 
-      {!showMapLoading && (
       <View className="absolute z-30 bg-[rgba(255,255,255,0.88)]" style={{ left: normalize(14), top: insets.top + HEADER_HEIGHT + normalize(16), borderRadius: normalize(10), paddingHorizontal: normalize(12), paddingVertical: normalize(8), gap: normalize(6) }}>
-        {/* 범례 표식은 지도 핀·리스트와 같은 모양이어야 한다 — 동그라미면 무엇을 가리키는지 한 번 더 번역해야 한다 */}
         <View className="flex-row items-center" style={{ gap: normalize(4) }}>
           <IconMapPin size={normalize(13)} color={BRAND} fill={BRAND} />
           <Text className="text-[rgba(0,0,0,0.55)] font-normal" style={{ fontSize: FONT_XS }}>리뷰</Text>
@@ -429,31 +492,13 @@ export default function PhotoMapScreen() {
           <Text className="text-[rgba(0,0,0,0.55)] font-normal" style={{ fontSize: FONT_XS }}>즐겨찾기</Text>
         </View>
       </View>
-      )}
 
-      {/* 지도는 데이터가 0이어도 전국 지도만 덩그러니 뜬다 — 왜 비었는지는 말로 알려줘야 한다.
-          리스트 시트(z-40)와 겹치지 않게 지도 상단 영역에 둔다. */}
-      {/* 카카오 SDK·타일을 받는 동안은 지도가 실제로 비어 있다. 그 구간만 덮는다 —
-          핀 데이터 로딩과 다르다(그건 하단 스켈레톤이 말한다). */}
-      {showMapLoading && (
-        <View
-          pointerEvents="none"
-          className="absolute left-0 right-0 items-center justify-center bg-[rgba(255,255,255,0.9)]"
-          style={{ top: insets.top + HEADER_HEIGHT, bottom: mapAreaBottom, zIndex: 25 }}
-        >
-          <Text className="text-sub font-normal" style={{ fontSize: FONT_SM }}>지도 불러오는 중...</Text>
-        </View>
-      )}
-
-      {showMapLoading ? null : isError && spots.length === 0 ? (
-        // 캐시가 남아 있으면(백그라운드 refetch 실패) 있던 핀을 뺏지 않는다 — SpotCarouselSection과 같은 규칙.
+      {isError && spots.length === 0 ? (
         <MapNotice
           text="핀을 불러오지 못했어요"
           onRetry={() => {
             reviewed.refetch();
             bookmarked.refetch();
-            // 오프라인에서 들어왔으면 지도도 같이 죽어 있다. 데이터만 되살리면 흰 지도가 남는다.
-            if (!mapReady) remountMap();
           }}
         />
       ) : !isLoading && spots.length === 0 ? (

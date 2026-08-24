@@ -1,3 +1,5 @@
+const naverMapClientId = process.env.EXPO_PUBLIC_NAVER_MAP_CLIENT_ID || '4h3ni6emuq';
+
 module.exports = {
   expo: {
     name: 'PNG',
@@ -12,15 +14,17 @@ module.exports = {
       resizeMode: 'contain',
       backgroundColor: '#E31B59',
     },
-    scheme: [
-      'png',
-      process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY
-        ? `kakao${process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY}`
-        : null,
-      process.env.EXPO_PUBLIC_KAKAO_ANDROID_NATIVE_APP_KEY
-        ? `kakao${process.env.EXPO_PUBLIC_KAKAO_ANDROID_NATIVE_APP_KEY}`
-        : null,
-    ].filter(Boolean),
+    scheme: Array.from(
+      new Set([
+        'png',
+        process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY
+          ? `kakao${process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY}`
+          : null,
+        process.env.EXPO_PUBLIC_KAKAO_ANDROID_NATIVE_APP_KEY
+          ? `kakao${process.env.EXPO_PUBLIC_KAKAO_ANDROID_NATIVE_APP_KEY}`
+          : null,
+      ].filter(Boolean))
+    ),
     ios: {
       supportsTablet: false,
       bundleIdentifier: 'com.picngo.app',
@@ -50,6 +54,12 @@ module.exports = {
         './plugins/withAndroidColorPrimary',
       ],
       [
+        '@mj-studio/react-native-naver-map',
+        {
+          client_id: naverMapClientId,
+        },
+      ],
+      [
         '@react-native-seoul/kakao-login',
         {
           kakaoAppKey: process.env.EXPO_PUBLIC_KAKAO_ANDROID_NATIVE_APP_KEY,
@@ -60,7 +70,10 @@ module.exports = {
         'expo-build-properties',
         {
           android: {
-            extraMavenRepos: ['https://devrepo.kakao.com/nexus/content/groups/public/'],
+            extraMavenRepos: [
+              'https://devrepo.kakao.com/nexus/content/groups/public/',
+              'https://repository.map.naver.com/archive/maven',
+            ],
             packagingOptions: {
               pickFirst: ['lib/**/libc++_shared.so']
             }

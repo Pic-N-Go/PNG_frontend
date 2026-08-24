@@ -45,7 +45,7 @@ export default function BookmarkCollectionRow({ collection, spots, isLoading, on
         onPress={onPress}
         accessibilityRole="button"
         accessibilityLabel={`${collection.name} 컬렉션, 스팟 ${count}곳`}
-        style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}
+        android_ripple={{ color: 'rgba(0,0,0,0.06)' }}
       >
         <View className="flex-row items-center" style={{ padding: normalize(10), gap: normalize(12) }}>
           <View

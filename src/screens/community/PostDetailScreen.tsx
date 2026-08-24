@@ -125,12 +125,15 @@ export default function PostDetailScreen() {
 
   async function handleRefresh() {
     setRefreshing(true);
-    await Promise.all([
-      refetch(),
-      qc.invalidateQueries({ queryKey: ['community', 'comments', postId] }),
-      qc.invalidateQueries({ queryKey: ['community', 'replies', postId] }),
-    ]);
-    setRefreshing(false);
+    try {
+      await Promise.all([
+        refetch(),
+        qc.invalidateQueries({ queryKey: ['community', 'comments', postId] }),
+        qc.invalidateQueries({ queryKey: ['community', 'replies', postId] }),
+      ]);
+    } finally {
+      setRefreshing(false);
+    }
   }
 
   /**

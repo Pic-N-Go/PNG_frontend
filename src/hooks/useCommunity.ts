@@ -337,7 +337,7 @@ export function useCreateComment(postId: string) {
         qc.setQueriesData<{ pages: CommentPageResponseDTO[]; pageParams: unknown[] }>(
           { queryKey: ['community', 'replies', postId, parentId] },
           (old) => {
-            if (!old) {
+            if (!old || old.pages.length === 0) {
               return {
                 pages: [
                   {
@@ -353,22 +353,12 @@ export function useCreateComment(postId: string) {
               };
             }
             const pages = [...old.pages];
-            if (pages[0]) {
-              pages[0] = {
-                ...pages[0],
-                comments: [...pages[0].comments, newCommentDTO],
-                totalElements: (pages[0].totalElements ?? 0) + 1,
-              };
-            } else {
-              pages.push({
-                comments: [newCommentDTO],
-                totalElements: 1,
-                totalPages: 1,
-                page: 0,
-                size: COMMENTS_PAGE_SIZE,
-                hasNext: false,
-              });
-            }
+            const lastIdx = pages.length - 1;
+            pages[lastIdx] = {
+              ...pages[lastIdx],
+              comments: [...pages[lastIdx].comments, newCommentDTO],
+              totalElements: (pages[lastIdx].totalElements ?? 0) + 1,
+            };
             return { ...old, pages };
           },
         );
@@ -387,11 +377,11 @@ export function useCreateComment(postId: string) {
             },
         );
       } else {
-        // 최상위 댓글인 경우: 댓글 목록 첫 페이지 맨 뒤에 새 댓글 추가
+        // 최상위 댓글인 경우: 댓글 목록 마지막 페이지 맨 뒤에 새 댓글 추가
         qc.setQueriesData<{ pages: CommentPageResponseDTO[]; pageParams: unknown[] }>(
           { queryKey: commentsKey(postId) },
           (old) => {
-            if (!old) {
+            if (!old || old.pages.length === 0) {
               return {
                 pages: [
                   {
@@ -407,22 +397,12 @@ export function useCreateComment(postId: string) {
               };
             }
             const pages = [...old.pages];
-            if (pages[0]) {
-              pages[0] = {
-                ...pages[0],
-                comments: [...pages[0].comments, newCommentDTO],
-                totalElements: (pages[0].totalElements ?? 0) + 1,
-              };
-            } else {
-              pages.push({
-                comments: [newCommentDTO],
-                totalElements: 1,
-                totalPages: 1,
-                page: 0,
-                size: COMMENTS_PAGE_SIZE,
-                hasNext: false,
-              });
-            }
+            const lastIdx = pages.length - 1;
+            pages[lastIdx] = {
+              ...pages[lastIdx],
+              comments: [...pages[lastIdx].comments, newCommentDTO],
+              totalElements: (pages[lastIdx].totalElements ?? 0) + 1,
+            };
             return { ...old, pages };
           },
         );
@@ -504,16 +484,16 @@ export function useDeleteComment(postId: string) {
       let deletedCount = 1;
       let parentCommentId: string | null = null;
 
-      // 1. 공통 remove 콜백: 대상 commentId가 존재하는 캐시만 수정하고, totalElements를 안전하게 차감
-      const remove = (old: { pages: CommentPageResponseDTO[]; pageParams: unknown[] } | undefined) => {
-        if (!old) return old;
-        const hasTarget = old.pages.some((page) =>
-          page.comments.some((c) => String(c.id) === commentId),
-        );
-        if (!hasTarget) return old;
+      // 1. 캐시 스냅샷에서 대상 댓글 정보를 단 1회 읽어 deletedCount 및 parentCommentId 도출 (순수 updater 유지)
+      const allCommentQueries = [
+        ...qc.getQueriesData<{ pages: CommentPageResponseDTO[] }>({ queryKey: commentsKey(postId) }),
+        ...qc.getQueriesData<{ pages: CommentPageResponseDTO[] }>({ queryKey: ['community', 'replies', postId] }),
+      ];
 
-        for (const page of old.pages) {
-          const target = page.comments.find((c) => String(c.id) === commentId);
+      for (const [, queryData] of allCommentQueries) {
+        if (!queryData?.pages) continue;
+        for (const page of queryData.pages) {
+          const target = page.comments?.find((c) => String(c.id) === commentId);
           if (target) {
             if (target.replyCount) {
               deletedCount += target.replyCount;
@@ -521,8 +501,19 @@ export function useDeleteComment(postId: string) {
             if (target.parentId != null) {
               parentCommentId = String(target.parentId);
             }
+            break;
           }
         }
+        if (parentCommentId != null || deletedCount > 1) break;
+      }
+
+      // 2. 공통 remove 콜백: 대상 commentId가 존재하는 캐시만 수정하고, totalElements를 안전하게 차감
+      const remove = (old: { pages: CommentPageResponseDTO[]; pageParams: unknown[] } | undefined) => {
+        if (!old) return old;
+        const hasTarget = old.pages.some((page) =>
+          page.comments.some((c) => String(c.id) === commentId),
+        );
+        if (!hasTarget) return old;
 
         const pages = old.pages.map((page) => {
           const pageHasTarget = page.comments.some((c) => String(c.id) === commentId);
