@@ -18,6 +18,7 @@ import SaveToPlanSheet from '@/components/spot/SaveToPlanSheet';
 import Toast from '@/components/common/Toast';
 import Skeleton from '@/components/common/Skeleton';
 import { sanitizeKoreaLocation } from '@/utils/location';
+import { type Coordinate, parseValidCoordinate } from '@/utils/geo';
 
 type FilterType = 'all' | 'review' | 'fav';
 
@@ -127,35 +128,37 @@ export default function PhotoMapScreen() {
   }, []);
 
   useEffect(() => {
-    if (filteredSpots.length > 0 && naverMapRef.current) {
-      if (filteredSpots.length === 1) {
+    if (isMapReady && filteredSpots.length > 0 && naverMapRef.current) {
+      const validCoords: Coordinate[] = filteredSpots
+        .map((s) => parseValidCoordinate(s.lat, s.lng))
+        .filter((c: Coordinate | null): c is Coordinate => c !== null);
+
+      if (validCoords.length === 1) {
         naverMapRef.current.animateCameraTo({
-          latitude: filteredSpots[0].lat,
-          longitude: filteredSpots[0].lng,
+          latitude: validCoords[0].latitude,
+          longitude: validCoords[0].longitude,
           zoom: 14,
         });
-      } else {
-        const lats = filteredSpots.map((s) => s.lat).filter(Boolean);
-        const lngs = filteredSpots.map((s) => s.lng).filter(Boolean);
-        if (lats.length > 0) {
-          const minLat = Math.min(...lats);
-          const maxLat = Math.max(...lats);
-          const minLng = Math.min(...lngs);
-          const maxLng = Math.max(...lngs);
+      } else if (validCoords.length > 1) {
+        const lats = validCoords.map((c: Coordinate) => c.latitude);
+        const lngs = validCoords.map((c: Coordinate) => c.longitude);
+        const minLat = Math.min(...lats);
+        const maxLat = Math.max(...lats);
+        const minLng = Math.min(...lngs);
+        const maxLng = Math.max(...lngs);
 
-          const latDelta = Math.max(0.005, maxLat - minLat);
-          const lngDelta = Math.max(0.005, maxLng - minLng);
-          const padLat = latDelta * 0.3;
-          const padLng = lngDelta * 0.3;
+        const latDelta = Math.max(0.005, maxLat - minLat);
+        const lngDelta = Math.max(0.005, maxLng - minLng);
+        const padLat = latDelta * 0.3;
+        const padLng = lngDelta * 0.3;
 
-          naverMapRef.current.animateCameraWithTwoCoords({
-            coord1: { latitude: minLat - padLat, longitude: minLng - padLng },
-            coord2: { latitude: maxLat + padLat, longitude: maxLng + padLng },
-          });
-        }
+        naverMapRef.current.animateCameraWithTwoCoords({
+          coord1: { latitude: minLat - padLat, longitude: minLng - padLng },
+          coord2: { latitude: maxLat + padLat, longitude: maxLng + padLng },
+        });
       }
     }
-  }, [filteredSpots]);
+  }, [filteredSpots, isMapReady]);
 
   const [mapZoom, setMapZoom] = useState(6);
   const [mapBounds, setMapBounds] = useState<any>(null);

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Animated, Dimensions, PanResponder, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NaverMapView, NaverMapMarkerOverlay } from '@mj-studio/react-native-naver-map';
@@ -85,6 +85,8 @@ function MapPlaceholder() {
  * 촬영 위치 미리보기. 네이티브 네이버 지도로 렌더링하며, 조작 없는 정지 지도 형태를 유지한다.
  */
 function LocationPreview({ lat, lng }: { lat: number; lng: number }) {
+  const [isMapReady, setMapReady] = useState(false);
+
   if (!lat || !lng || !isLocationInKorea(lat, lng)) {
     return <MapPlaceholder />;
   }
@@ -98,6 +100,7 @@ function LocationPreview({ lat, lng }: { lat: number; lng: number }) {
           longitude: lng,
           zoom: 14,
         }}
+        onInitialized={() => setMapReady(true)}
         isScrollGesturesEnabled={false}
         isZoomGesturesEnabled={false}
         isTiltGesturesEnabled={false}
@@ -109,29 +112,31 @@ function LocationPreview({ lat, lng }: { lat: number; lng: number }) {
         isShowLocationButton={false}
         logoMargin={{ bottom: 4, left: 4 }}
       >
-        <NaverMapMarkerOverlay
-          latitude={lat}
-          longitude={lng}
-          width={MAP_PIN_WIDTH}
-          height={MAP_PIN_WIDTH}
-          anchor={{ x: 0.5, y: 0.5 }}
-        >
-          <View
-            key={`exif_pin_${lat}_${lng}`}
-            collapsable={false}
-            style={{
-              width: MAP_PIN_WIDTH,
-              height: MAP_PIN_WIDTH,
-              borderRadius: MAP_PIN_WIDTH / 2,
-              backgroundColor: '#e31b59',
-              borderWidth: 2,
-              borderColor: '#FFFFFF',
-              alignItems: 'center',
-              justifyContent: 'center',
-              elevation: 3,
-            }}
-          />
-        </NaverMapMarkerOverlay>
+        {isMapReady && (
+          <NaverMapMarkerOverlay
+            latitude={lat}
+            longitude={lng}
+            width={MAP_PIN_WIDTH}
+            height={MAP_PIN_WIDTH}
+            anchor={{ x: 0.5, y: 0.5 }}
+          >
+            <View
+              key={`exif_pin_${lat}_${lng}`}
+              collapsable={false}
+              style={{
+                width: MAP_PIN_WIDTH,
+                height: MAP_PIN_WIDTH,
+                borderRadius: MAP_PIN_WIDTH / 2,
+                backgroundColor: '#e31b59',
+                borderWidth: 2,
+                borderColor: '#FFFFFF',
+                alignItems: 'center',
+                justifyContent: 'center',
+                elevation: 3,
+              }}
+            />
+          </NaverMapMarkerOverlay>
+        )}
       </NaverMapView>
     </View>
   );

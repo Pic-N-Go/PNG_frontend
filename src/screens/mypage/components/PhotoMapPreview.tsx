@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { NaverMapView, NaverMapMarkerOverlay } from '@mj-studio/react-native-naver-map';
 import { IconMapPin } from '@tabler/icons-react-native';
@@ -14,6 +14,7 @@ import { isLocationInKorea } from '@/utils/location';
 
 export default function PhotoMapPreview() {
   const navigation = useNavigation();
+  const [isMapReady, setMapReady] = useState(false);
 
   const reviewed = useReviewedSpots();
   const bookmarked = useBookmarkedSpots();
@@ -57,11 +58,12 @@ export default function PhotoMapPreview() {
         <View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}>
           <NaverMapView
             style={{ flex: 1 }}
-            initialCamera={{
+            camera={{
               latitude: validSpots[0]?.lat || 36.5,
               longitude: validSpots[0]?.lng || 127.5,
               zoom: validSpots.length > 0 ? 10 : 6,
             }}
+            onInitialized={() => setMapReady(true)}
             isScrollGesturesEnabled={false}
             isZoomGesturesEnabled={false}
             isTiltGesturesEnabled={false}
@@ -73,7 +75,7 @@ export default function PhotoMapPreview() {
             isShowLocationButton={false}
             logoMargin={{ bottom: 4, left: 4 }}
           >
-            {validSpots.map((s) => (
+            {isMapReady && validSpots.map((s) => (
               <NaverMapMarkerOverlay
                 key={String(s.id)}
                 latitude={s.lat}
