@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Dimensions,
   Image,
@@ -62,7 +62,7 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose, 
   const [index, setIndex] = useState(initialIndex);
   const [exifOpen, setExifOpen] = useState(false);
   const [exifRequestedFor, setExifRequestedFor] = useState<number | null>(null);
-  const isNavigatingRef = useRef(false);
+  const isNavigating = useSharedValue(false);
 
   const exifRequested = exifRequestedFor != null && reviewId != null && exifRequestedFor === Number(reviewId);
   const { data: exifByPhotoId, isLoading: exifLoading, isError: exifError } = useReviewExif(
@@ -98,7 +98,7 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose, 
 
   useEffect(() => {
     if (visible) {
-      isNavigatingRef.current = false;
+      isNavigating.value = false;
       setIndex(initialIndex);
       resetTransform();
     } else {
@@ -118,19 +118,19 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose, 
     isVertical.value = false;
     tx.value = enterOffset;
     tx.value = withTiming(0, { duration: 180 }, () => {
-      isNavigatingRef.current = false;
+      isNavigating.value = false;
     });
     opacity.value = withTiming(1, { duration: 180 });
   }
 
   function goBy(delta: 1 | -1) {
-    if (isNavigatingRef.current) return;
+    if (isNavigating.value) return;
     const next = index + delta;
     if (next < 0 || next >= photos.length) {
       tx.value = withTiming(0, { duration: 180 });
       return;
     }
-    isNavigatingRef.current = true;
+    isNavigating.value = true;
     const exitTarget = delta > 0 ? -SCREEN_WIDTH * 0.6 : SCREEN_WIDTH * 0.6;
     const enterOffset = delta > 0 ? SCREEN_WIDTH * 0.4 : -SCREEN_WIDTH * 0.4;
 
@@ -139,7 +139,7 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose, 
       if (finished) {
         runOnJS(applyNextPhoto)(next, enterOffset);
       } else {
-        isNavigatingRef.current = false;
+        isNavigating.value = false;
       }
     });
   }
@@ -366,8 +366,8 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose, 
                 <Pressable
                   key={`${thumbUri}-${i}`}
                   onPress={() => {
-                    if (isNavigatingRef.current || i === safeIndex) return;
-                    isNavigatingRef.current = true;
+                    if (isNavigating.value || i === safeIndex) return;
+                    isNavigating.value = true;
                     const delta = i > safeIndex ? 1 : -1;
                     opacity.value = 0.2;
                     applyNextPhoto(i, delta * SCREEN_WIDTH * 0.4);

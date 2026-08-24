@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, BackHandler, Image, TextInput, Alert, Linking } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, BackHandler, Image, Alert, Linking } from 'react-native';
 import { NaverMapView, NaverMapMarkerOverlay, NaverMapPathOverlay, type NaverMapViewRef } from '@mj-studio/react-native-naver-map';
 import * as Location from 'expo-location';
 import { IconChevronLeft, IconSearch, IconAdjustmentsHorizontal, IconFocus2, IconX, IconChevronDown, IconChevronUp, IconRoute, IconMapPinFilled } from '@tabler/icons-react-native';
@@ -754,17 +754,33 @@ export default function MapScreen() {
             </TouchableOpacity>
           </View>
           <View className="bg-white rounded-xl flex-row items-center px-4" style={{ height: normalize(44) }}>
-            <IconSearch size={normalize(18)} color="rgba(0,0,0,0.3)" />
-            <TextInput
-              value={searchQuery}
-              onChangeText={setSearchQuery}
-              placeholder="스팟 이름으로 검색"
-              placeholderTextColor="rgba(0,0,0,0.3)"
-              className="flex-1 ml-2 text-black font-medium p-0"
-              style={{ fontSize: normalizeFontSize(14) }}
-            />
+            <TouchableOpacity
+              onPress={() => navigation.navigate('MapSearch')}
+              className="flex-1 flex-row items-center"
+              style={{ height: '100%' }}
+              activeOpacity={0.8}
+            >
+              <IconSearch size={normalize(18)} color="rgba(0,0,0,0.3)" />
+              <Text
+                numberOfLines={1}
+                className="flex-1 ml-2 font-medium"
+                style={{
+                  fontFamily: 'Pretendard-Medium',
+                  fontSize: normalizeFontSize(14),
+                  color: searchQuery ? '#111111' : 'rgba(0,0,0,0.3)',
+                }}
+              >
+                {searchQuery || '스팟 이름으로 검색'}
+              </Text>
+            </TouchableOpacity>
             {searchQuery.length > 0 && (
-              <TouchableOpacity onPress={() => setSearchQuery('')} hitSlop={8}>
+              <TouchableOpacity
+                onPress={() => {
+                  setSearchQuery('');
+                  setActiveSpot(null);
+                }}
+                hitSlop={8}
+              >
                 <IconX size={normalize(16)} color={TEXT_SUB} />
               </TouchableOpacity>
             )}
