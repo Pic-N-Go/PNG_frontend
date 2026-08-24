@@ -19,7 +19,7 @@ import { getCourseStats } from '@/utils/distance';
 import { type Coordinate, parseValidCoordinate } from '@/utils/geo';
 import { getDayColor, DAY_COLOR_PALETTE } from '@/constants/dayColors';
 import { CATEGORY_LABELS, CODE_BY_LABEL } from '@/constants/spotCategories';
-import { BUTTON_HEIGHT, BUTTON_RADIUS, CONTROL_SIZE, FONT_MD, FONT_SM, FONT_TITLE, FONT_XL, FONT_XS, HEADER_HEIGHT, ICON_SM } from '@/constants/layout';
+import { BUTTON_HEIGHT, BUTTON_RADIUS, CONTROL_SIZE, FONT_LG, FONT_MD, FONT_SM, FONT_TITLE, FONT_XL, FONT_XS, HEADER_HEIGHT, ICON_SM } from '@/constants/layout';
 import Chip from '@/components/common/Chip';
 import { BRAND, TEXT_SUB } from '@/constants/colors';
 import { SHADOW_CONTROL, SHADOW_OVERLAY } from '@/constants/shadow';
@@ -473,7 +473,7 @@ export default function MapScreen() {
 
   // 코스 보기 모드에서 Day 전환 시 카메라 Bounds 맞춤
   useEffect(() => {
-    if (isCourseView && filteredSpots.length > 0 && naverMapRef.current) {
+    if (isMapReady && isCourseView && filteredSpots.length > 0 && naverMapRef.current) {
       const validCoords: Coordinate[] = filteredSpots
         .map((s: any) => parseValidCoordinate(s.lat, s.lng))
         .filter((c: Coordinate | null): c is Coordinate => c !== null);
@@ -503,7 +503,7 @@ export default function MapScreen() {
         });
       }
     }
-  }, [currentPlanDay, isCourseView, filteredSpots]);
+  }, [currentPlanDay, isCourseView, filteredSpots, isMapReady]);
 
   // 코스 경로 라인 그룹화
   const dayPathGroups = useMemo(() => {
@@ -775,7 +775,7 @@ export default function MapScreen() {
             <TouchableOpacity onPress={handleBackNavigation} className="bg-white/20 items-center justify-center rounded-full" style={{ width: normalize(32), height: normalize(32) }}>
               <IconChevronLeft size={normalize(20)} color="#fff" />
             </TouchableOpacity>
-            <Text className="font-semibold text-white" style={{ fontSize: normalizeFontSize(18) }}>변경할 스팟을 선택하세요</Text>
+            <Text className="font-semibold text-white" style={{ fontSize: FONT_LG }}>변경할 스팟을 선택하세요</Text>
             <TouchableOpacity onPress={handleBackNavigation} className="bg-white/20 items-center justify-center rounded-full" style={{ width: normalize(32), height: normalize(32) }}>
               <IconX size={normalize(16)} color="#fff" />
             </TouchableOpacity>
@@ -1200,7 +1200,7 @@ export default function MapScreen() {
                 }} 
                 className="bg-brand items-center justify-center" 
                 style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}>
-                <Text className="font-medium text-white" style={{ fontSize: normalizeFontSize(16) }}>이 스팟으로 변경</Text>
+                <Text className="font-medium text-white" style={{ fontSize: FONT_MD }}>이 스팟으로 변경</Text>
               </TouchableOpacity>
             </View>
           )}
