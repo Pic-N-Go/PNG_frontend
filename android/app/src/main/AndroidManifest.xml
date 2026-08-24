@@ -46,7 +46,6 @@
         <action android:name="android.intent.action.VIEW"/>
         <category android:name="android.intent.category.DEFAULT"/>
         <category android:name="android.intent.category.BROWSABLE"/>
-        <data android:scheme="kakaofd7f9b8d273c9b33fbf31e8ba7cb4dc6"/>
         <data android:scheme="png"/>
         <data android:scheme="kakaofd7f9b8d273c9b33fbf31e8ba7cb4dc6"/>
       </intent-filter>

@@ -1,3 +1,5 @@
+const naverMapClientId = process.env.EXPO_PUBLIC_NAVER_MAP_CLIENT_ID || '4h3ni6emuq';
+
 module.exports = {
   expo: {
     name: 'PNG',
@@ -12,22 +14,23 @@ module.exports = {
       resizeMode: 'contain',
       backgroundColor: '#E31B59',
     },
-    scheme: [
-      'png',
-      process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY
-        ? `kakao${process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY}`
-        : null,
-      process.env.EXPO_PUBLIC_KAKAO_ANDROID_NATIVE_APP_KEY
-        ? `kakao${process.env.EXPO_PUBLIC_KAKAO_ANDROID_NATIVE_APP_KEY}`
-        : null,
-    ].filter(Boolean),
+    scheme: Array.from(
+      new Set([
+        'png',
+        process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY
+          ? `kakao${process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY}`
+          : null,
+        process.env.EXPO_PUBLIC_KAKAO_ANDROID_NATIVE_APP_KEY
+          ? `kakao${process.env.EXPO_PUBLIC_KAKAO_ANDROID_NATIVE_APP_KEY}`
+          : null,
+      ].filter(Boolean))
+    ),
     ios: {
       supportsTablet: false,
       bundleIdentifier: 'com.picngo.app',
       googleServicesFile: './GoogleService-Info.plist',
       infoPlist: {
         KAKAO_APP_KEY: process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY,
-        NMFClientId: process.env.EXPO_PUBLIC_NAVER_MAP_CLIENT_ID || '4h3ni6emuq',
       },
     },
     android: {
@@ -53,7 +56,7 @@ module.exports = {
       [
         '@mj-studio/react-native-naver-map',
         {
-          client_id: process.env.EXPO_PUBLIC_NAVER_MAP_CLIENT_ID || '4h3ni6emuq',
+          client_id: naverMapClientId,
         },
       ],
       [
