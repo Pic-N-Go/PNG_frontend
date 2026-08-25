@@ -12,6 +12,8 @@ import { mergeMapSpots } from '@/utils/spotMappers';
 import Skeleton from '@/components/common/Skeleton';
 import { isLocationInKorea } from '@/utils/location';
 
+import { PIN_SPOT_IMAGE, PIN_SPOT_DARK_IMAGE } from '@/constants/pins';
+
 export default function PhotoMapPreview() {
   const navigation = useNavigation();
   const [isMapReady, setMapReady] = useState(false);
@@ -83,23 +85,8 @@ export default function PhotoMapPreview() {
                 width={normalize(18)}
                 height={normalize(18)}
                 anchor={{ x: 0.5, y: 0.5 }}
-              >
-                <View
-                  key={`preview_pin_${s.id}`}
-                  collapsable={false}
-                  style={{
-                    width: normalize(18),
-                    height: normalize(18),
-                    borderRadius: normalize(9),
-                    backgroundColor: s.reviewed ? '#e31b59' : '#1c1c1e',
-                    borderWidth: 1.5,
-                    borderColor: '#FFFFFF',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    elevation: 2,
-                  }}
-                />
-              </NaverMapMarkerOverlay>
+                image={s.reviewed ? PIN_SPOT_IMAGE : PIN_SPOT_DARK_IMAGE}
+              />
             ))}
           </NaverMapView>
         </View>

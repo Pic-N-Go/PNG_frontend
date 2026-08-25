@@ -101,3 +101,17 @@ export const AREA_CODES: AreaCodeItem[] = [
   { code: 38, name: '전남' },
   { code: 39, name: '제주' },
 ];
+
+export interface TourSyncStatusResponse {
+  isRunning: boolean;
+  currentJob?: string | null;
+  areaCode?: number | null;
+  totalCount?: number;
+  processedCount?: number;
+  progressPercent?: number;
+  statusMessage?: string | null;
+  startedAt?: string | null;
+  lastCompletedAt?: string | null;
+  lastError?: string | null;
+}
+

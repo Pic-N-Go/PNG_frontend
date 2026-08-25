@@ -9,12 +9,12 @@ import { isLocationInKorea } from '@/utils/location';
 import { BOTTOM_SHEET_RADIUS, FONT_2XS, FONT_LG, FONT_SM, FONT_XS, GRID_PADDING, HAIRLINE_WIDTH } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { BRAND, BRAND_TINT, CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
+import { PIN_SPOT_IMAGE } from '@/constants/pins';
 
 const SURFACE = CARD;
 const ACCENT = BRAND;
 const MAP_PREVIEW_HEIGHT = 120;
-/** 미리보기 지도의 핀 너비(px). 높이는 SVG viewBox 24:30 비율로 따라간다.
- *  120px 지도에 PhotoMapScreen의 24px 핀은 커 보여서 한 단계 줄였다. */
+/** 미리보기 지도의 핀 너비(px). */
 const MAP_PIN_WIDTH = 20;
 
 interface Props {
@@ -119,23 +119,8 @@ function LocationPreview({ lat, lng }: { lat: number; lng: number }) {
             width={MAP_PIN_WIDTH}
             height={MAP_PIN_WIDTH}
             anchor={{ x: 0.5, y: 0.5 }}
-          >
-            <View
-              key={`exif_pin_${lat}_${lng}`}
-              collapsable={false}
-              style={{
-                width: MAP_PIN_WIDTH,
-                height: MAP_PIN_WIDTH,
-                borderRadius: MAP_PIN_WIDTH / 2,
-                backgroundColor: '#e31b59',
-                borderWidth: 2,
-                borderColor: '#FFFFFF',
-                alignItems: 'center',
-                justifyContent: 'center',
-                elevation: 3,
-              }}
-            />
-          </NaverMapMarkerOverlay>
+            image={PIN_SPOT_IMAGE}
+          />
         )}
       </NaverMapView>
     </View>

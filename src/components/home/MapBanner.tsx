@@ -6,6 +6,7 @@ import { normalize } from '@/utils/normalize';
 import { CARD_RADIUS, FONT_2XS } from '@/constants/layout';
 import { BRAND, TEXT_SUB } from '@/constants/colors';
 import { isLocationInKorea, sanitizeKoreaLocation } from '@/utils/location';
+import { PIN_SPOT_IMAGE } from '@/constants/pins';
 
 export interface SpotPin {
   latitude: number;
@@ -70,10 +71,10 @@ export default function MapBanner({ onPress, spotCount = 0, isLoading, userLocat
               key={String(s.id)}
               latitude={s.latitude}
               longitude={s.longitude}
-              width={22}
-              height={27}
-              anchor={{ x: 0.5, y: 1.0 }}
-              image={{ symbol: 'pink' }}
+              width={20}
+              height={20}
+              anchor={{ x: 0.5, y: 0.5 }}
+              image={PIN_SPOT_IMAGE}
             />
           ))}
         </NaverMapView>

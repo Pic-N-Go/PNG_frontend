@@ -7,6 +7,7 @@ import type {
   EmbeddingStatusResponse,
   EmbeddingBackfillResponse,
   EmbeddingSingleResponse,
+  TourSyncStatusResponse,
 } from '@/types/admin';
 
 const BASE = process.env.EXPO_PUBLIC_API_URL ?? '';
@@ -278,5 +279,36 @@ export const adminApi = {
       }
       throw err;
     }
+  },
+
+  // 3.3 테스트/개발용 샘플 동기화 (타입별 소량 동기화)
+  syncSampleTourApi: async (countPerType = 7, accessToken: string): Promise<string> => {
+    const res = await fetchWithTimeout(
+      `${BASE}/admin/tour-api/sync/sample?countPerType=${countPerType}`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+      60_000
+    );
+    const text = await res.text();
+    return text || '샘플 데이터 동기화 완료';
+  },
+
+  // 3.4 실시간 동기화 진행 상태 조회 (GET /admin/tour-api/sync/status)
+  getTourSyncStatus: async (accessToken: string): Promise<TourSyncStatusResponse> => {
+    const res = await fetchWithTimeout(
+      `${BASE}/admin/tour-api/sync/status`,
+      {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+      10_000
+    );
+    return res.json();
   },
 };
