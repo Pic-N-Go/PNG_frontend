@@ -262,7 +262,10 @@ export default function HomeScreen({ navigation }: Props) {
           }
         />
 
-        <CalendarSection onEventPress={goToSpotDetail} />
+        <CalendarSection
+          onEventPress={goToSpotDetail}
+          onViewAll={() => navigation.navigate('FestivalList')}
+        />
         <LinkBanner
           icon={IconBell}
           title="출사 알림 조건 설정"
