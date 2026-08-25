@@ -262,7 +262,7 @@ export default function HomeScreen({ navigation }: Props) {
           }
         />
 
-        <CalendarSection />
+        <CalendarSection onEventPress={goToSpotDetail} />
         <LinkBanner
           icon={IconBell}
           title="출사 알림 조건 설정"

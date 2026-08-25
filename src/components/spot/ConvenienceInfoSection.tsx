@@ -17,6 +17,7 @@ import {
 import { FONT_SM, FONT_TITLE, GRID_PADDING, HAIRLINE_WIDTH } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import type { ConvenienceInfo, FacilityChipData, FacilityKey, FacilityStatus } from '@/types/spot';
+import type { FestivalProgressStatus } from '@/types/festival';
 import { BRAND, BRAND_TINT, CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
 
 const ACCENT = BRAND; // 앱 브랜드 핑크 (디자인 핸드오프의 #F5335F 대신 프로젝트 토큰 사용)
@@ -79,10 +80,22 @@ function FacilityChip({ chip }: { chip: FacilityChipData }) {
 
 interface Props {
   info: ConvenienceInfo;
+  eventPeriod?: {
+    startDate?: string;
+    endDate?: string;
+    status?: FestivalProgressStatus;
+  };
 }
 
-export default function ConvenienceInfoSection({ info }: Props) {
+export default function ConvenienceInfoSection({ info, eventPeriod }: Props) {
   const [hoursOpen, setHoursOpen] = useState(false);
+
+  const isOngoing = eventPeriod?.status === 'ONGOING';
+  const isUpcoming = eventPeriod?.status === 'UPCOMING';
+  const statusLabel = isOngoing ? '진행중' : isUpcoming ? '개최예정' : '종료';
+  const statusColor = isOngoing ? '#34c759' : isUpcoming ? '#007aff' : 'rgba(0,0,0,0.4)';
+  const statusBg = isOngoing ? 'rgba(52, 199, 89, 0.1)' : isUpcoming ? 'rgba(0, 122, 255, 0.1)' : 'rgba(0,0,0,0.05)';
+  const hasEventPeriod = !!(eventPeriod?.startDate && eventPeriod?.endDate);
 
   const groups = info.schedule ?? [];
   const visibleGroups = hoursOpen ? groups : groups.slice(0, 1);
@@ -111,9 +124,27 @@ export default function ConvenienceInfoSection({ info }: Props) {
             <Clock size={normalize(15)} color={TEXT_SUB} />
           </View>
           <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(14), color: C.text }}>
-            이용시간
+            {hasEventPeriod ? '행사 기간 및 이용시간' : '이용시간'}
           </Text>
         </View>
+
+        {hasEventPeriod && (
+          <View style={{ marginBottom: normalize(14), paddingBottom: normalize(12), borderBottomWidth: HAIRLINE_WIDTH, borderBottomColor: C.divider }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: normalize(4) }}>
+              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: C.label }}>
+                행사 기간
+              </Text>
+              <View style={{ backgroundColor: statusBg, paddingHorizontal: normalize(6), paddingVertical: normalize(2), borderRadius: normalize(4) }}>
+                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(11), color: statusColor }}>
+                  {statusLabel}
+                </Text>
+              </View>
+            </View>
+            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(15), color: C.text, fontVariant: ['tabular-nums'] }}>
+              {eventPeriod.startDate} ~ {eventPeriod.endDate}
+            </Text>
+          </View>
+        )}
 
         {info.schedule ? (
           <>

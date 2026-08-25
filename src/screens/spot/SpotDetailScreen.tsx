@@ -20,6 +20,7 @@ import NaviSheet from '@/components/spot/NaviSheet';
 import BookmarkSheet from '@/components/spot/BookmarkSheet';
 import PhotoLightbox from '@/components/spot/PhotoLightbox';
 import { useBookmarkCollections, useSpotDetail, useSpotPhotogenicScore, useSpotPhotos, useSpotSummary } from '@/hooks/useSpot';
+import { useFestival } from '@/hooks/useFestival';
 import { useKeyboardOverlap } from '@/hooks/useKeyboardHeight';
 import { exifFromPhotoUrl } from '@/utils/spotMappers';
 import { BUTTON_RADIUS, GRID_PADDING, SPACING_LG } from '@/constants/layout';
@@ -42,6 +43,10 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
   const { data: summary } = useSpotSummary(spotId);
   const { data: photogenic } = useSpotPhotogenicScore(spotId);
   const { data: heroPhotos } = useSpotPhotos(spotId);
+
+  const isFestival = spot?.categories?.includes('FESTIVAL');
+  const { data: festival } = useFestival(spotId, { enabled: !!isFestival });
+
   // 히어로에 보이는 대표 이미지가 항상 뷰어의 1번째 사진이 되도록 맨 앞에 고정 + 갤러리(유저 업로드 제외) 나머지를 뒤에 이어붙임.
   // 갤러리 API가 비어있거나 로딩 중이어도 대표 이미지 1장은 항상 풀스크린으로 볼 수 있게 fallback.
   // Set으로 대표 이미지뿐 아니라 갤러리 내부 중복 URL까지 제거 (뷰어 중복 페이지·카운터 부풀림 방지)
@@ -220,7 +225,18 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
               <View>
                 <PhotogenicScoreCard spotId={spot.id} spotName={spot.name} />
                 <View style={{ height: 1, backgroundColor: 'rgba(0,0,0,0.06)', marginHorizontal: GRID_PADDING, marginVertical: normalize(24) }} />
-                <ConvenienceInfoSection info={convenience} />
+                <ConvenienceInfoSection
+                  info={convenience}
+                  eventPeriod={
+                    festival?.eventStartDate && festival?.eventEndDate
+                      ? {
+                          startDate: festival.eventStartDate,
+                          endDate: festival.eventEndDate,
+                          status: festival.progressStatus,
+                        }
+                      : undefined
+                  }
+                />
                 <View style={{ height: normalize(24) }} />
                 <LinkBanner
                   icon={IconBell}
