@@ -7,6 +7,7 @@ import Animated, { FadeInDown, ZoomIn } from 'react-native-reanimated';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ChevronLeft, ChevronRight, MapPin, Share as ShareIcon } from 'lucide-react-native';
 import Toast from '@/components/common/Toast';
+import Avatar from '@/components/common/Avatar';
 import ContestPhoto from '@/components/community/ContestPhoto';
 import { useContestResult } from '@/hooks/useContest';
 import { mapResultEntry, monthLabel as toMonthLabel } from '@/utils/contestMappers';
@@ -160,7 +161,15 @@ export default function ContestResultScreen() {
           </View>
         ) : (
           // 출품하지 않은 달이면 이 카드를 감춘다
-          myRank != null && <ContestResultOutrank rank={myRank} totalCount={participantCount} votes={myVotes} />
+          myRank != null && (
+            <ContestResultOutrank
+              rank={myRank}
+              totalCount={participantCount}
+              votes={myVotes}
+              gradient={myEntry?.gradient}
+              photoUrl={myEntry?.photoUrl}
+            />
+          )
         )}
 
         {!isAward && (
@@ -305,7 +314,15 @@ function EntryDetailView({ entry, monthLabel, onBack, onOpenSpot }: { entry: Con
           </View>
 
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(10), marginTop: normalize(16) }}>
-            <View style={{ width: normalize(40), height: normalize(40), borderRadius: normalize(20), backgroundColor: entry.gradient[0], flexShrink: 0 }} />
+            {/* 원형 자리라 출품 사진이 아니라 프로필 사진이다. 사진이 없으면 Avatar가 닉네임 이니셜을 그린다 */}
+            <View style={{ flexShrink: 0 }}>
+              <Avatar
+                userId={entry.author.id}
+                nickname={entry.author.handle}
+                imageUrl={entry.author.profileImageUrl}
+                size={40}
+              />
+            </View>
             {/* flex: 1이 없으면 minWidth: 0은 무의미하다 — 긴 핸들이 내재 폭으로 커져 팔로우 버튼을 화면 밖으로 민다 */}
             <View style={{ flex: 1, minWidth: 0 }}>
               <Text allowFontScaling={false} numberOfLines={1} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, letterSpacing: -0.3, color: '#000' }}>
@@ -357,13 +374,33 @@ function EntryDetailView({ entry, monthLabel, onBack, onOpenSpot }: { entry: Con
  * 10f — 4위 이하 결과 카드(분포 바 포함). 공유 버튼은 두지 않는다 — 42위를 공유하라고 권하는 건 무례하다.
  * 순위가 떨어진 달이어도 deltaLabel은 사실만 적고 빨강으로 강조하지 않는다(ui-publishing.md).
  */
-function ContestResultOutrank({ rank, totalCount, votes, deltaLabel }: { rank: number; totalCount: number; votes: number; deltaLabel?: string }) {
+function ContestResultOutrank({
+  rank,
+  totalCount,
+  votes,
+  deltaLabel,
+  gradient,
+  photoUrl,
+}: {
+  rank: number;
+  totalCount: number;
+  votes: number;
+  deltaLabel?: string;
+  gradient?: [string, string, string];
+  photoUrl?: string | null;
+}) {
   // totalCount가 0이면 width가 NaN%가 되어 바가 사라진다
   const percentile = totalCount > 0 ? Math.round((rank / totalCount) * 100) : 0;
   return (
     <View style={{ margin: normalize(18), marginHorizontal: CONTENT_PADDING, padding: normalize(14), paddingHorizontal: normalize(16), borderRadius: CARD_RADIUS, backgroundColor: SURFACE }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(12) }}>
-        <View style={{ width: normalize(48), height: normalize(48), borderRadius: normalize(12), backgroundColor: '#12333a', flexShrink: 0 }} />
+        {/* 수상 카드와 마찬가지로 "내" 출품작 사진이다 — 목업의 .outrank__thumb 그라디언트 자리 */}
+        <ContestPhoto
+          gradient={gradient ?? ['#12333a', '#2f5f5a', '#8fae9b']}
+          photoUrl={photoUrl}
+          radius={normalize(12)}
+          style={{ width: normalize(48), height: normalize(48), flexShrink: 0 }}
+        />
         <View style={{ flex: 1, minWidth: 0 }}>
           <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, letterSpacing: -0.1, color: SUB }}>
             내 출품작
@@ -378,14 +415,23 @@ function ContestResultOutrank({ rank, totalCount, votes, deltaLabel }: { rank: n
         </Text>
       </View>
 
+      {/* 1위 / 꼴찌는 바의 양 끝 눈금이다 — 아래 캡션에 섞으면 무슨 값인지 읽히지 않아 바 위에 붙인다 */}
+      <View style={{ flexDirection: 'row', alignItems: 'baseline', marginTop: normalize(16) }}>
+        <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_2XS, letterSpacing: -0.1, color: SUB }}>
+          1위
+        </Text>
+        <Text allowFontScaling={false} style={{ marginLeft: 'auto', fontFamily: 'Pretendard-Regular', fontSize: FONT_2XS, letterSpacing: -0.1, color: SUB }}>
+          {`${totalCount}위`}
+        </Text>
+      </View>
       {/* 왼쪽이 1위, 오른쪽이 꼴찌. 채운 구간 끝에 점을 찍어 내 위치를 정확히 가리킨다 */}
-      <View style={{ position: 'relative', height: normalize(8), borderRadius: normalize(4), backgroundColor: '#e6e6ea', marginTop: normalize(16) }}>
+      <View style={{ position: 'relative', height: normalize(8), borderRadius: normalize(4), backgroundColor: '#e6e6ea', marginTop: normalize(6) }}>
         <View style={{ width: `${percentile}%`, height: '100%', borderRadius: normalize(4), backgroundColor: BRAND_MUTED }} />
         <View style={{ position: 'absolute', left: `${percentile}%`, marginLeft: -normalize(4), top: 0, width: normalize(8), height: normalize(8), borderRadius: normalize(4), backgroundColor: ACCENT }} />
       </View>
       <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: normalize(8), marginTop: normalize(10) }}>
         <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, letterSpacing: -0.1, color: SUB }}>
-          {`상위 ${percentile}% · 1위 ← → ${totalCount}위`}
+          {`상위 ${percentile}%`}
         </Text>
         {deltaLabel && (
           <Text allowFontScaling={false} style={{ marginLeft: 'auto', fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, letterSpacing: -0.1, color: SUB }}>

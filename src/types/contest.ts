@@ -152,8 +152,11 @@ export interface ContestMyHistoryDTO {
 export interface ContestRankingDTO {
   rank: number;
   entryId: number;
+  /** 출품 사진 — 1~3위 목록의 사각 썸네일에 쓴다 */
   photoUrl: string;
   authorNickname: string;
+  /** 출품자 프로필 사진 — 순위 그래프의 원형 썸네일에 쓴다. 없으면 null */
+  authorProfileImageUrl: string | null;
   spotName: string | null;
   voteCount: number;
 }
@@ -175,8 +178,13 @@ export interface ContestRankingHistoryDTO {
 export interface ContestResultEntryDTO {
   rank: number;
   entryId: number;
+  /** 출품 사진 — 수상 카드·순위표의 큰 사진 자리 */
   photoUrl: string;
+  /** 아바타 폴백 색을 고르는 씨앗. 같은 사람이 어느 화면에서든 같은 색이어야 한다 */
+  authorId: number;
   authorNickname: string;
+  /** 출품자 프로필 사진 — 순위 목록의 원형 아바타. 없으면 null */
+  authorProfileImageUrl: string | null;
   caption: string | null;
   spotId: number | null;
   spotName: string | null;

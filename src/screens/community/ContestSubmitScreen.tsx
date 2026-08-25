@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Alert, Image, Linking, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Alert, Image, Linking, Modal, Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -343,10 +343,13 @@ export default function ContestSubmitScreen() {
         )}
       </ScrollView>
 
-      {searchVisible && (
-        // 루트 SafeAreaView의 패딩 박스를 기준으로 절대 배치되므로 이미 상태바 아래다 —
-        // 여기서 SafeAreaView로 인셋을 또 주면 노치 높이만큼 헤더가 내려간다
-        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: '#fff' }}>
+      {/* 절대 배치 오버레이가 아니라 Modal이다. 이유 둘 —
+          (1) 안드로이드 하드웨어 뒤로가기가 이 화면 전체를 pop 해서 작성 중인 폼이 통째로 날아갔다.
+              onRequestClose로 받아 검색만 닫는다(레포의 SearchModal·BottomSheet와 같은 방식).
+          (2) 절대 배치는 루트 SafeAreaView의 인셋 처리에 기대고 있었는데, 그래서 검색바가
+              상태바 아래로 파고들었다. Modal은 별도 윈도우라 여기서 인셋을 직접 준다. */}
+      <Modal visible={searchVisible} animationType="slide" transparent={false} onRequestClose={() => setSearchVisible(false)}>
+        <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right', 'bottom']}>
           <View style={{ height: HEADER_HEIGHT, paddingLeft: normalize(12), paddingRight: normalize(20), flexDirection: 'row', alignItems: 'center', gap: normalize(8) }}>
             <Pressable onPress={() => setSearchVisible(false)} hitSlop={8} style={{ width: normalize(40), height: normalize(40), alignItems: 'center', justifyContent: 'center' }}>
               <ChevronLeft size={normalize(22)} color="#000" strokeWidth={2} />
@@ -411,8 +414,8 @@ export default function ContestSubmitScreen() {
               </View>
             </Pressable>
           </ScrollView>
-        </View>
-      )}
+        </SafeAreaView>
+      </Modal>
 
       {/* 업로드 실패 — "다시 시도" 액션이 붙으므로 토스트(44px)가 아니라 48px 스낵바 규약을 쓴다.
           폼은 그대로 두고 이것만 띄운다 — 입력한 내용이 사라진 것처럼 보이면 안 된다. */}

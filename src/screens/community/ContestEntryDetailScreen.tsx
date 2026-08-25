@@ -17,7 +17,7 @@ import {
   useReportContestEntry,
   useToggleVote,
 } from '@/hooks/useContest';
-import { dayLabel, mapContestEntry } from '@/utils/contestMappers';
+import { announceLabel, dayLabel, mapContestEntry } from '@/utils/contestMappers';
 import { CommunityDetailStackParamList } from '@/navigation/stacks/CommunityDetailStack';
 import type { RootStackParamList } from '@/navigation';
 import { BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING, FONT_LG, FONT_MD, FONT_SM, FONT_XS, HAIRLINE_WIDTH, HEADER_HEIGHT } from '@/constants/layout';
@@ -108,7 +108,23 @@ export default function ContestEntryDetailScreen() {
     );
   };
 
-  const spent = !voted && votesLeft <= 0 && !isMine && !isEnded;
+  // 투표 CTA와 남은 표 안내는 투표 기간에만. 출품 기간에도 버튼이 떠서 누르면 서버가
+  // NOT_VOTING_PERIOD로 거절했다 — 눌러서 에러를 보게 하지 말고 아예 감춘다.
+  // 조회 전에는 phase를 모르므로 감춘 상태로 시작한다(잘못된 버튼을 잠깐이라도 보여주지 않는다).
+  const isVoting = dto?.phase === 'VOTING';
+  const spent = isVoting && !voted && votesLeft <= 0 && !isMine && !isEnded;
+
+  // CTA 대신 보여줄 안내. 날짜는 이 화면이 이미 부르고 있는 회차 조회에서 가져온다.
+  // 출품 기간에는 "언제부터", 집계 기간에는 "언제 발표"가 궁금한 값이라 문구를 나눈다.
+  const voteNotice = (() => {
+    const contest = contestQuery.data;
+    if (dto?.phase === 'RESULT') {
+      const announce = announceLabel(contest?.resultOpenAt);
+      return announce ? `투표가 끝났어요 · ${announce} 결과 발표` : '투표가 끝났어요';
+    }
+    const opensAt = dayLabel(contest?.voteStartAt);
+    return opensAt ? `투표는 ${opensAt}부터 할 수 있어요` : '투표 기간에 투표할 수 있어요';
+  })();
   const isAward = isEnded && rank <= 3;
 
   return (
@@ -171,7 +187,7 @@ export default function ContestEntryDetailScreen() {
               </Text>
             </View>
           )}
-          {voted && votesLeft <= 0 && !isEnded && !isMine && (
+          {isVoting && voted && votesLeft <= 0 && !isEnded && !isMine && (
             <View style={{ marginTop: normalize(20), paddingVertical: normalize(11), paddingHorizontal: normalize(14), borderRadius: normalize(12), backgroundColor: SURFACE }}>
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, letterSpacing: -0.2, color: '#5c5c60' }}>
                 {`남은 표 0/${maxVotes} · 다시 누르면 취소돼요`}
@@ -190,7 +206,7 @@ export default function ContestEntryDetailScreen() {
                 {isAward ? `${voteCount}표` : `${totalCount}명 중 · ${voteCount}표`}
               </Text>
             </View>
-          ) : (
+          ) : isVoting ? (
             <Pressable
               onPress={toggleVote}
               disabled={isMine || spent}
@@ -215,6 +231,14 @@ export default function ContestEntryDetailScreen() {
                 {isMine ? '내 출품작' : voted ? '투표함' : '투표하기'}
               </Text>
             </Pressable>
+          ) : (
+            /* 투표 기간이 아닐 때 CTA 자리를 비워두면 화면이 휑하다. 버튼 대신 회색 안내만 둔다 —
+               누를 수 없는 것을 버튼처럼 보이게 하지 않으면서 언제 열리는지는 알려준다. */
+            <View style={{ marginTop: normalize(20), paddingVertical: normalize(16), alignItems: 'center' }}>
+              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, letterSpacing: -0.2, color: '#8e8e93', textAlign: 'center' }}>
+                {voteNotice}
+              </Text>
+            </View>
           )}
         </View>
       </ScrollView>

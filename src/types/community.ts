@@ -211,7 +211,7 @@ export interface FollowUserDTO {
 export interface ContestPhotoEntry {
   id: string;
   rank: number;
-  author: Pick<PostAuthor, 'handle'>;
+  author: Pick<PostAuthor, 'id' | 'handle' | 'profileImageUrl'>;
   captionMeta: string;
   gradient: [string, string, string];
   photoUrl?: string | null;
@@ -328,10 +328,15 @@ export interface ContestEntry {
   isMine?: boolean;
 }
 
-/** 결과 발표 당일 진행중 탭 상단에 뜨는 지난 달 요약 */
+/** 직전 회차 수상 요약. 발표(resultOpenAt) 후 1개월간 진행중 탭 상단에 노출한다 */
 export interface ContestAwardSummary {
+  /** 배너를 눌렀을 때 열 회차. 없으면 결과 화면이 엉뚱한 id로 조회해 빈 화면이 된다 */
+  contestId: string;
   monthLabel: string;
+  /** **우승자의** 순위(항상 1). 내 순위가 아니다 — 그건 myRank */
   rank: number;
+  /** 이 회차에서 내가 받은 순위. 출품하지 않았으면 null */
+  myRank: number | null;
   theme: string;
   winnerHandle: string;
   voteCount: number;
@@ -347,7 +352,10 @@ export interface RankLegendEntry {
   meta: string;
   rank: number;
   gradient: [string, string, string];
+  /** 출품 사진 — 1~3위 목록의 사각 썸네일 */
   photoUrl?: string | null;
+  /** 출품자 프로필 사진 — 접힌 헤더의 겹친 원형 아바타. 원형 자리는 사람 사진이 들어간다 */
+  profilePhotoUrl?: string | null;
   /** 그 날 처음 순위권(1~3위)에 진입했으면 NEW 배지 */
   isNew: boolean;
 }
@@ -363,6 +371,7 @@ export interface RankSnapshot {
 export interface RankSeries {
   /** 선 끝 썸네일에 채우는 사진 대표색 */
   gradient: [string, string, string];
+  /** 선 끝 원형 썸네일에 넣는 출품자 프로필 사진 — 원형 자리는 출품 사진이 아니라 사람 사진이다 */
   photoUrl?: string | null;
   /** 선과 썸네일 링의 색 — 순위 서열을 나타내는 고정값(1위 accent, 이하 회색 계열)이라 사진색과 별개다 */
   strokeColor: string;

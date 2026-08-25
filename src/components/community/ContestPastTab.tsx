@@ -3,7 +3,7 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import { CalendarDays } from 'lucide-react-native';
 import ContestPhoto from '@/components/community/ContestPhoto';
 import { ContestPastMonthItem } from '@/types/community';
-import { CONTENT_PADDING, FONT_LG, FONT_MD, FONT_SM, FONT_XS } from '@/constants/layout';
+import { CONTENT_PADDING, FONT_MD, FONT_SM, FONT_XS } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
 import { BRAND, BRAND_TINT, CARD } from '@/constants/colors';
 
@@ -44,25 +44,24 @@ export default function ContestPastTab({ items, onSelectItem }: Props) {
       {items.map((item) => (
         <Pressable key={item.id} onPress={() => onSelectItem(item)} style={{ width: '100%', borderRadius: normalize(18), overflow: 'hidden', backgroundColor: SURFACE }}>
           <View style={{ width: '100%', aspectRatio: 334 / 172 }}>
+            {/* 사진 위 오버레이 태그는 두지 않는다 — 회차(월)는 제목 왼쪽으로, 우승자 표기는 제거 */}
             <ContestPhoto gradient={item.gradient} photoUrl={item.photoUrl} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
-            <View style={{ position: 'absolute', top: normalize(12), left: normalize(12), height: normalize(24), paddingHorizontal: normalize(10), borderRadius: normalize(12), backgroundColor: 'rgba(255,255,255,0.92)', alignItems: 'center', justifyContent: 'center' }}>
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, letterSpacing: -0.1, color: '#000' }}>
-                {item.monthLabel}
-              </Text>
-            </View>
-            {!!item.winnerHandle && (
-              <View style={{ position: 'absolute', bottom: normalize(12), left: normalize(12), height: normalize(24), paddingHorizontal: normalize(10), borderRadius: normalize(12), backgroundColor: 'rgba(0,0,0,0.55)', alignItems: 'center', justifyContent: 'center' }}>
-                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, letterSpacing: -0.1, color: '#fff' }}>
-                  {`1위 ${item.winnerHandle}`}
-                </Text>
-              </View>
-            )}
           </View>
           <View style={{ padding: normalize(16), paddingTop: normalize(14), flexDirection: 'row', alignItems: 'center', gap: normalize(10) }}>
             <View style={{ flex: 1, minWidth: 0 }}>
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_LG, letterSpacing: -0.4, color: '#000' }}>
-                {item.theme}
-              </Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(6) }}>
+                {/* 회차 라벨. 검정 배경은 CLAUDE.md에서 "컨트롤 활성" 표기라 정적 라벨엔 이례적이지만,
+                    카드 배경(CARD)에서 흰 pill이 같은 행의 순위 배지와 구분되지 않아 이쪽을 택했다. */}
+                <View style={{ height: normalize(24), paddingHorizontal: normalize(8), borderRadius: normalize(12), backgroundColor: '#000', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, letterSpacing: -0.1, color: '#fff' }}>
+                    {item.monthLabel}
+                  </Text>
+                </View>
+                {/* 제목이 길면 줄이고 월 태그는 밀리지 않게 둔다 */}
+                <Text allowFontScaling={false} numberOfLines={1} style={{ flex: 1, minWidth: 0, fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, letterSpacing: -0.3, color: '#000' }}>
+                  {item.theme}
+                </Text>
+              </View>
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, letterSpacing: -0.1, color: SUB, marginTop: normalize(3) }}>
                 {item.meta}
               </Text>

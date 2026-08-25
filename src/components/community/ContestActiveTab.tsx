@@ -87,7 +87,9 @@ function AwardRow({ award, onPress }: { award: ContestAwardSummary; onPress: () 
   return (
     <Pressable
       onPress={onPress}
-      style={{ margin: normalize(16), marginTop: normalize(16), marginHorizontal: CONTENT_PADDING, height: normalize(72), paddingHorizontal: normalize(14), borderRadius: CARD_RADIUS, backgroundColor: FILL, flexDirection: 'row', alignItems: 'center', gap: normalize(12) }}
+      // 아래 간격은 뒤에 오는 요소가 갖는다 — 투표 기간엔 순위 패널(12), 출품 기간엔 SectionHeader(22).
+      // 여기서도 주면 두 값이 더해져 카드 사이가 32로 벌어진다.
+      style={{ marginTop: normalize(16), marginHorizontal: CONTENT_PADDING, height: normalize(72), paddingHorizontal: normalize(14), borderRadius: CARD_RADIUS, backgroundColor: FILL, flexDirection: 'row', alignItems: 'center', gap: normalize(12) }}
     >
       {/* 1~3위 썸네일을 10씩 겹친다 — 뒤 순위가 위로 올라오도록 목업과 같은 순서로 렌더 */}
       <View style={{ flexDirection: 'row', alignItems: 'center', flexShrink: 0 }}>
@@ -335,12 +337,15 @@ export default function ContestActiveTab({
   const openAward = () => {
     if (!lastAward) return;
     onSelectPastItem({
-      id: 'award',
+      // 실제 회차 id여야 한다 — 예전엔 'award' 문자열이라 결과 화면이 조회에 실패해
+      // "0명 · 0표 / 최종 순위 없음"으로 떴다.
+      id: lastAward.contestId,
       monthLabel: lastAward.monthLabel,
       theme: lastAward.theme,
       winnerHandle: lastAward.winnerHandle,
       meta: '',
-      myRank: lastAward.rank || null,
+      // lastAward.rank는 우승자 순위(1)다. 여기 넣으면 출품도 안 한 사람이 1위로 보인다.
+      myRank: lastAward.myRank,
       kind: 'award',
       gradient: lastAward.podiumGradients[0] ?? ['#1a1530', '#5a3355', '#d4856a'],
       photoUrl: lastAward.podiumPhotoUrls?.[0],
@@ -386,6 +391,8 @@ export default function ContestActiveTab({
             </View>
           </View>
 
+          {/* 직전 회차 수상작은 히어로 바로 아래 — 발표 직후 사용자가 가장 먼저 찾는 정보라 하단에 두면 묻힌다.
+              노출 기간(발표 후 1개월) 판정은 mapAwardSummary가 한다. */}
           {lastAward && <AwardRow award={lastAward} onPress={openAward} />}
 
           {submitFeed.length === 0 ? (
@@ -446,6 +453,10 @@ export default function ContestActiveTab({
               </Text>
             </View>
           </View>
+
+          {/* 지난 회차 수상작이 순위 변동 패널보다 먼저 온다 — 둘 다 뜨는 기간에는 확정된 결과를 먼저 보여주고,
+              진행 중인 순위는 그 아래에 둔다. 생김새가 비슷하지만 순서가 고정이라 어느 쪽인지 읽힌다. */}
+          {lastAward && <AwardRow award={lastAward} onPress={openAward} />}
 
           {rankHistory && (
             <ContestRankPanel history={rankHistory} open={rankPanelOpen} onToggle={() => setRankPanelOpen((v) => !v)} onOpenEntry={onOpenEntry} />

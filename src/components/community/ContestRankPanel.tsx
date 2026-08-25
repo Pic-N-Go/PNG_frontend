@@ -60,14 +60,16 @@ export default function ContestRankPanel({
     dayCount <= 1 ? geo.xStart : geo.xStart + ((geo.xEnd - geo.xStart) * index) / (dayCount - 1);
 
   return (
-    <View style={{ margin: normalize(16), marginTop: normalize(16), marginHorizontal: CONTENT_PADDING, borderRadius: CARD_RADIUS, backgroundColor: FILL, overflow: 'hidden' }}>
+    // 위 간격 12는 하단 "내 출품작 / 모두 보기" 버튼 사이와 같은 값 — 카드가 세로로 쌓일 때 리듬을 맞춘다.
+    // 위에 수상작 카드가 올 때 그 카드는 아래 마진을 두지 않으므로 이 값이 곧 두 카드 사이 간격이 된다.
+    <View style={{ marginTop: normalize(12), marginBottom: normalize(16), marginHorizontal: CONTENT_PADDING, borderRadius: CARD_RADIUS, backgroundColor: FILL, overflow: 'hidden' }}>
       <Pressable onPress={onToggle} style={{ height: normalize(72), paddingHorizontal: normalize(14), flexDirection: 'row', alignItems: 'center', gap: normalize(12) }}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           {history.legend.slice(0, 3).map((entry, index) => (
             <ContestPhoto
               key={entry.id}
               gradient={entry.gradient}
-              photoUrl={entry.photoUrl}
+              photoUrl={entry.profilePhotoUrl}
               radius={normalize(17)}
               style={{ width: normalize(34), height: normalize(34), borderWidth: 2, borderColor: FILL, marginLeft: index === 0 ? 0 : normalize(-10) }}
             />
@@ -231,7 +233,12 @@ export default function ContestRankPanel({
             <View style={{ marginTop: normalize(14), paddingTop: normalize(14), borderTopWidth: HAIRLINE_WIDTH, borderTopColor: HAIRLINE, gap: normalize(12) }}>
               {history.legend.map((entry) => (
                 <Pressable key={entry.id} onPress={() => onOpenEntry(entry.id)} style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(12) }}>
-                  <View style={{ width: normalize(40), height: normalize(40), borderRadius: normalize(11), backgroundColor: entry.gradient[0], flexShrink: 0 }} />
+                  <ContestPhoto
+                    gradient={entry.gradient}
+                    photoUrl={entry.photoUrl}
+                    radius={normalize(11)}
+                    style={{ width: normalize(40), height: normalize(40), flexShrink: 0 }}
+                  />
                   <View style={{ flex: 1, minWidth: 0 }}>
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(6) }}>
                       <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, letterSpacing: -0.2, color: INK }}>

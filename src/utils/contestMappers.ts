@@ -149,7 +149,7 @@ export function mapContestInfo(dto: ContestResponseDTO): ContestInfo {
 export function mapContestEntry(dto: ContestEntryDTO): ContestEntry {
   return {
     id: String(dto.entryId),
-    author: `@${dto.authorNickname}`,
+    author: dto.authorNickname,
     spot: dto.spotName ?? undefined,
     shotAtLabel: shotAtLabel(dto.shotAt) || undefined,
     createdAgoLabel: formatRelativeTime(dto.createdAt),
@@ -169,7 +169,7 @@ export function mapPastItem(dto: ContestPastDTO): ContestPastMonthItem {
     id: String(dto.contestId),
     monthLabel: monthLabel(dto.submitStartAt),
     theme: dto.title,
-    winnerHandle: dto.winnerNickname ? `@${dto.winnerNickname}` : '',
+    winnerHandle: dto.winnerNickname ?? '',
     meta: metaParts.join(' · '),
     myRank: dto.myRank,
     // 1위면 수상 강조, 출품했으면 보통, 안 냈으면 회색
@@ -188,18 +188,36 @@ export function mapPastItem(dto: ContestPastDTO): ContestPastMonthItem {
  * rank는 **우승자의 순위**다 — 화면이 `${theme} · ${winnerHandle} ${rank}위`로
  * 핸들 바로 옆에 붙여 그린다. 내 순위로 채우면 출품하지 않은 회차에서 "0위"가 뜬다.
  */
+/**
+ * 발표(resultOpenAt) 이후 1개월이 노출 기간이다. 지나면 배너를 내린다.
+ *
+ * setMonth는 말일에서 다음 달로 넘칠 수 있다(1/31 → 3/3). 노출 기간 판정이라
+ * 하루 이틀 오차는 감수하고, 대신 "30일"로 고정하지 않아 월 길이를 따라간다.
+ */
+function isWithinAwardWindow(resultOpenAt: string | null | undefined): boolean {
+  const opened = parse(resultOpenAt);
+  if (!opened) return false;
+  const until = new Date(opened);
+  until.setMonth(until.getMonth() + 1);
+  return Date.now() < until.getTime();
+}
+
 export function mapAwardSummary(
   past: ContestPastDTO,
   result: ContestResultDTO,
 ): ContestAwardSummary | null {
   if (!result.winner) return null;
+  // 발표 후 1개월이 지난 회차는 더 이상 띄우지 않는다
+  if (!isWithinAwardWindow(past.resultOpenAt)) return null;
 
   const podium = result.rankings.slice(0, 3);
   return {
+    contestId: String(past.contestId),
     monthLabel: monthLabel(past.submitStartAt),
     rank: result.winner.rank,
+    myRank: past.myRank,
     theme: past.title,
-    winnerHandle: `@${result.winner.authorNickname}`,
+    winnerHandle: result.winner.authorNickname,
     voteCount: result.winner.voteCount,
     podiumGradients: podium.map((entry) => fallbackGradient(entry.entryId)),
     podiumPhotoUrls: podium.map((entry) => entry.photoUrl),
@@ -209,7 +227,7 @@ export function mapAwardSummary(
 export function mapMyVotes(dto: ContestMyVoteDTO): MyVoteEntry[] {
   return dto.votedEntries.map((entry) => ({
     id: String(entry.entryId),
-    author: `@${entry.authorNickname}`,
+    author: entry.authorNickname,
     spotLabel: entry.spotName ?? '',
     votedAtLabel: votedAtLabel(entry.votedAt),
     gradient: fallbackGradient(entry.entryId),
@@ -263,7 +281,8 @@ export function mapRankHistory(dto: ContestRankingHistoryDTO, contest: ContestRe
     const info = snapshots.flatMap((s) => s.rankings).find((r) => r.entryId === entryId);
     return {
       gradient: fallbackGradient(entryId),
-      photoUrl: info?.photoUrl ?? null,
+      // 그래프의 원형 썸네일은 "누가"를 보여주는 자리라 출품 사진이 아니라 프로필 사진이다.
+      photoUrl: info?.authorProfileImageUrl ?? null,
       strokeColor: SERIES_STROKE[Math.min(index, SERIES_STROKE.length - 1)],
       strokeWidth: index === 0 ? 2.4 : 2,
       points: points.slice(0, lastKnown + 1),
@@ -276,13 +295,15 @@ export function mapRankHistory(dto: ContestRankingHistoryDTO, contest: ContestRe
     const where = ranking.spotName ? ` · ${ranking.spotName}` : '';
     return {
       id: String(ranking.entryId),
-      author: `@${ranking.authorNickname}`,
+      author: ranking.authorNickname,
       meta: isNew
         ? `${ranking.voteCount}표 · ${Number(latest.snapshotDate.slice(8, 10))}일 ${ranking.rank}위권 진입`
         : `${ranking.voteCount}표${where}`,
       rank: ranking.rank,
       gradient: fallbackGradient(ranking.entryId),
+      // 목록의 사각 썸네일은 출품 사진, 헤더의 원형 아바타는 프로필 사진 — 자리마다 다르다.
       photoUrl: ranking.photoUrl,
+      profilePhotoUrl: ranking.authorProfileImageUrl,
       isNew,
     };
   });
@@ -292,7 +313,7 @@ export function mapRankHistory(dto: ContestRankingHistoryDTO, contest: ContestRe
 
   return {
     variant,
-    subtitle: top ? `어제 집계 · @${top.authorNickname} 1위` : '어제 집계',
+    subtitle: top ? `어제 집계 · ${top.authorNickname} 1위` : '어제 집계',
     periodLabel,
     days,
     legend,
@@ -378,7 +399,13 @@ export function mapResultEntry(dto: ContestResultEntryDTO): ContestPhotoEntry {
   return {
     id: String(dto.entryId),
     rank: dto.rank,
-    author: { handle: `@${dto.authorNickname}` },
+    // 원형 아바타는 프로필 사진, 큰 사진 자리는 출품 사진(photoUrl) — 자리마다 다르다.
+    // id는 Avatar가 폴백 색을 고르는 씨앗이다. 커뮤니티는 문자열 id를 넘기는 쪽으로 통일돼 있다.
+    author: {
+      id: String(dto.authorId),
+      handle: dto.authorNickname,
+      profileImageUrl: dto.authorProfileImageUrl,
+    },
     // 순위표·수상 카드가 같은 줄에 쓰는 메타. 스팟을 직접 입력하지 않은 출품작도 있어 비면 뺀다
     captionMeta: [`${dto.voteCount}표`, dto.spotName].filter(Boolean).join(' · '),
     gradient: fallbackGradient(dto.entryId),
