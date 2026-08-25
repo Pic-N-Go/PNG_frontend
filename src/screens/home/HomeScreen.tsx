@@ -14,7 +14,8 @@ import CategoryFilter from '@/components/home/CategoryFilter';
 import MapBanner from '@/components/home/MapBanner';
 import PopularSpotsSection from '@/components/home/PopularSpotsSection';
 import RecommendedSpotsSection from '@/components/home/RecommendedSpotsSection';
-import CalendarSection from '@/components/home/CalendarSection';
+import FestivalSection from '@/components/home/FestivalSection';
+import SeasonalSpotSection from '@/components/home/SeasonalSpotSection';
 import { IconBell } from '@tabler/icons-react-native';
 import LinkBanner from '@/components/common/LinkBanner';
 import FilterBottomSheet from '@/components/home/FilterBottomSheet';
@@ -262,9 +263,14 @@ export default function HomeScreen({ navigation }: Props) {
           }
         />
 
-        <CalendarSection
+        <FestivalSection
           onEventPress={goToSpotDetail}
           onViewAll={() => navigation.navigate('FestivalList')}
+        />
+
+        <SeasonalSpotSection
+          onSpotPress={goToSpotDetail}
+          onViewAll={(query) => navigation.navigate('SearchResult', { query })}
         />
         <LinkBanner
           icon={IconBell}
