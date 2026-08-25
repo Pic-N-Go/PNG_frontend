@@ -17,8 +17,9 @@ import { StatusBar } from 'expo-status-bar';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { getCourseStats } from '@/utils/distance';
 import { type Coordinate, parseValidCoordinate } from '@/utils/geo';
+import { CATEGORY_CODES, SPOT_CATEGORY_MAP, CODE_BY_LABEL } from '@/constants/spotCategories';
+import { Sparkles } from 'lucide-react-native';
 import { getDayColor, DAY_COLOR_PALETTE } from '@/constants/dayColors';
-import { CATEGORY_LABELS, CODE_BY_LABEL } from '@/constants/spotCategories';
 import { BUTTON_HEIGHT, BUTTON_RADIUS, CONTROL_SIZE, FONT_LG, FONT_MD, FONT_SM, FONT_TITLE, FONT_XL, FONT_XS, HEADER_HEIGHT, ICON_SM } from '@/constants/layout';
 import Chip from '@/components/common/Chip';
 import { BRAND, TEXT_SUB } from '@/constants/colors';
@@ -67,8 +68,12 @@ const DEFAULT_BOUNDS: MapBounds = {
 
 // id는 한글 라벨 그대로 쓴다(CATEGORY_MAP이 라벨로 enum을 찾는다). '기타'는 필터 대상이 아니라 제외.
 const CATEGORIES = [
-  { id: 'all', label: '전체' },
-  ...CATEGORY_LABELS.map((label) => ({ id: label, label })),
+  { id: 'all', label: '전체', icon: Sparkles },
+  ...CATEGORY_CODES.map((code) => ({
+    id: SPOT_CATEGORY_MAP[code].label,
+    label: SPOT_CATEGORY_MAP[code].label,
+    icon: SPOT_CATEGORY_MAP[code].Icon,
+  })),
 ];
 
 export default function MapScreen() {
@@ -885,17 +890,25 @@ export default function MapScreen() {
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 4, gap: 6 }}
+                contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 4, paddingBottom: 6, gap: 8 }}
               >
-                {CATEGORIES.map((cat) => (
-                  <Chip
-                    key={cat.id}
-                    label={cat.label}
-                    selected={selectedCategory === cat.id}
-                    onPress={() => setSelectedCategory(cat.id)}
-                    height={normalize(32)}
-                  />
-                ))}
+                {CATEGORIES.map((cat) => {
+                  const isSelected = selectedCategory === cat.id;
+                  const IconComp = cat.icon;
+                  const iconColor = isSelected ? '#ffffff' : '#4b5563';
+                  return (
+                    <Chip
+                      key={cat.id}
+                      label={cat.label}
+                      selected={isSelected}
+                      onPress={() => setSelectedCategory(cat.id)}
+                      variant="brand"
+                      shadow
+                      icon={IconComp ? <IconComp size={normalize(13)} color={iconColor} strokeWidth={2} /> : undefined}
+                      height={normalize(32)}
+                    />
+                  );
+                })}
               </ScrollView>
             </View>
           )}

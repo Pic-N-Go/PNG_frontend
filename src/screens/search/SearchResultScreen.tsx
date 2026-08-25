@@ -27,10 +27,22 @@ import Skeleton from '@/components/common/Skeleton';
 import { useSpots, useSearchSpots } from '@/hooks/useSpot';
 import { useSearchStore } from '@/store/useSearchStore';
 import { mapPopularSpot } from '@/utils/spotMappers';
+import { CATEGORY_CODES, SPOT_CATEGORY_MAP, CODE_BY_LABEL } from '@/constants/spotCategories';
+import { Sparkles } from 'lucide-react-native';
+import Chip from '@/components/common/Chip';
 import { FONT_MD, FONT_SM, GRID_PADDING, HAIRLINE_WIDTH, SPACING_LG, SPACING_MD } from '@/constants/layout';
 import { BRAND, BRAND_TINT, CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'SearchResult'>;
+
+const CATEGORIES = [
+  { id: 'all', label: '전체', icon: Sparkles },
+  ...CATEGORY_CODES.map((code) => ({
+    id: SPOT_CATEGORY_MAP[code].label,
+    label: SPOT_CATEGORY_MAP[code].label,
+    icon: SPOT_CATEGORY_MAP[code].Icon,
+  })),
+];
 
 const POPULAR = [
   { rank: 1, text: '광안리 해수욕장', badge: '▲ 2', badgeType: 'up' as const },
@@ -50,6 +62,7 @@ interface ResultRow {
   /** 포토제닉 지수. */
   score?: number;
   tags: string[];
+  categories?: string[];
   imageUrl?: string | null;
 }
 
@@ -61,6 +74,7 @@ export default function SearchResultScreen({ route, navigation }: Props) {
 
   const [query, setQuery] = useState(route.params?.query ?? '');
   const [submitted, setSubmitted] = useState(!!route.params?.query);
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const { recentSearches, addRecentSearch, removeRecentSearch, clearRecentSearches } = useSearchStore();
 
   // 홈 "모두 보기"로 들어온 인기순 전체 목록 모드. 검색어를 입력하면 평소 검색으로 넘어간다.
@@ -82,6 +96,7 @@ export default function SearchResultScreen({ route, navigation }: Props) {
           addr: mapped.location,
           score: s.photogenicScore !== undefined ? Math.round(s.photogenicScore) : undefined,
           tags: mapped.category ? [mapped.category] : [],
+          categories: s.categories ?? [],
           imageUrl: mapped.imageUrl,
         };
       }),
@@ -107,6 +122,7 @@ export default function SearchResultScreen({ route, navigation }: Props) {
           addr: mapped.location,
           score: s.photogenicScore !== undefined ? Math.round(s.photogenicScore) : undefined,
           tags: mapped.category ? [mapped.category] : [],
+          categories: s.categories ?? [],
           imageUrl: mapped.imageUrl,
         };
       }),
@@ -118,6 +134,7 @@ export default function SearchResultScreen({ route, navigation }: Props) {
     const q = route.params?.query ?? '';
     setQuery(q);
     setSubmitted(!!q);
+    setSelectedCategory('all');
   }, [route.params?.query]);
 
   function submit(q: string) {
@@ -125,19 +142,38 @@ export default function SearchResultScreen({ route, navigation }: Props) {
     if (!trimmed) return;
     setQuery(trimmed);
     setSubmitted(true);
+    setSelectedCategory('all');
     addRecentSearch(trimmed);
     Keyboard.dismiss();
   }
 
   function backToFocus() {
     setSubmitted(false);
+    setSelectedCategory('all');
     setTimeout(() => inputRef.current?.focus(), 50);
   }
 
-  const results: ResultRow[] = popularMode ? popularRows : submitted ? searchRows : [];
+  const results: ResultRow[] = React.useMemo(() => {
+    return popularMode ? popularRows : submitted ? searchRows : [];
+  }, [popularMode, popularRows, submitted, searchRows]);
   const isLoading = popularMode ? isPopularLoading : isSearchLoading;
   const isError = popularMode ? isPopularError : isSearchError;
   const refetch = popularMode ? refetchPopular : refetchSearch;
+
+  // 카테고리 필터링 적용된 최종 결과
+  const filteredResults = React.useMemo(() => {
+    if (selectedCategory === 'all' || selectedCategory === '전체') {
+      return results;
+    }
+    const targetEnum = CODE_BY_LABEL[selectedCategory] || selectedCategory;
+    return results.filter((item) => {
+      const matchEnum = item.categories?.includes(targetEnum);
+      const matchTag = item.tags.some(
+        (t) => t === selectedCategory || t === targetEnum || t.includes(selectedCategory),
+      );
+      return matchEnum || matchTag;
+    });
+  }, [results, selectedCategory]);
 
   // 인기순 모드에서도 결과 패널을 쓴다(포커스 패널의 최근·인기 검색어는 감춘다).
   const showResults = submitted || popularMode;
@@ -317,9 +353,35 @@ export default function SearchResultScreen({ route, navigation }: Props) {
       {/* 결과 패널 */}
       {showResults && (
         <>
+          {/* 1-Depth 카테고리 스마트 가로 칩 필터 */}
+          <View style={{ backgroundColor: '#fff', paddingVertical: normalize(10), borderBottomWidth: HAIRLINE_WIDTH, borderBottomColor: HAIRLINE }}>
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={{ paddingHorizontal: GRID_PADDING, gap: normalize(8) }}
+            >
+              {CATEGORIES.map((cat) => {
+                const isSelected = selectedCategory === cat.id;
+                const IconComp = cat.icon;
+                const iconColor = isSelected ? '#ffffff' : '#4b5563';
+                return (
+                  <Chip
+                    key={cat.id}
+                    label={cat.label}
+                    selected={isSelected}
+                    onPress={() => setSelectedCategory(cat.id)}
+                    variant="brand"
+                    icon={IconComp ? <IconComp size={normalize(13)} color={iconColor} strokeWidth={2} /> : undefined}
+                    height={normalize(32)}
+                  />
+                );
+              })}
+            </ScrollView>
+          </View>
+
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: GRID_PADDING, paddingVertical: normalize(14) }}>
             <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: TEXT_SUB }}>
-              스팟 <Text style={{ fontFamily: 'Pretendard-SemiBold', color: '#000' }}>{results.length}</Text>개
+              스팟 <Text style={{ fontFamily: 'Pretendard-SemiBold', color: '#000' }}>{filteredResults.length}</Text>개
             </Text>
             {/* TODO: 정렬 기능 미구현 — 정렬 옵션 시트 연결 필요 */}
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(4) }}>
@@ -337,7 +399,7 @@ export default function SearchResultScreen({ route, navigation }: Props) {
                 <Skeleton key={i} width="100%" height={normalize(80)} borderRadius={normalize(12)} />
               ))}
             </View>
-          ) : isError && results.length === 0 ? (
+          ) : isError && filteredResults.length === 0 ? (
             <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(14) }}>
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_MD, color: TEXT_SUB }}>
                 {popularMode ? '인기 스팟을 불러오지 못했어요.' : '스팟 검색 결과를 불러오지 못했어요.'}
@@ -348,7 +410,7 @@ export default function SearchResultScreen({ route, navigation }: Props) {
                 </Text>
               </Pressable>
             </View>
-          ) : results.length === 0 ? (
+          ) : filteredResults.length === 0 ? (
             // paddingBottom을 두지 않는다 — 탭바가 빠진 영역 안에서 그냥 가운데 정렬하면 된다.
             // 탭바 높이를 더하면 빈 상태가 위로 치우쳐 보인다.
             <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: normalize(12) }}>
@@ -358,13 +420,15 @@ export default function SearchResultScreen({ route, navigation }: Props) {
               </Text>
               {!popularMode && (
                 <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_MD, color: 'rgba(0,0,0,0.3)', textAlign: 'center', lineHeight: FONT_MD * 1.5 }}>
-                  {'다른 키워드로 검색하거나\n철자를 확인해보세요'}
+                  {selectedCategory !== 'all' && selectedCategory !== '전체'
+                    ? `'${selectedCategory}' 카테고리에 해당하는 스팟이 없습니다.`
+                    : '다른 키워드로 검색하거나\n철자를 확인해보세요'}
                 </Text>
               )}
             </View>
           ) : (
             <FlatList
-              data={results}
+              data={filteredResults}
               keyExtractor={(item) => item.id}
               keyboardShouldPersistTaps="handled"
               // 탭바 높이·인셋을 더하지 않는다 — 화면 영역에서 이미 빠져 있다(HomeScreen 주석 참고).
