@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import {
   FlatList,
+  Image,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -15,6 +16,7 @@ import {
   IconSearch,
   IconX,
   IconChevronDown,
+  IconMapPin,
 } from '@tabler/icons-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -22,23 +24,13 @@ import { HomeStackParamList } from '@/navigation/stacks/HomeStack';
 import type { RootStackParamList } from '@/navigation';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import Skeleton from '@/components/common/Skeleton';
-import { useSpots } from '@/hooks/useSpot';
+import { useSpots, useSearchSpots } from '@/hooks/useSpot';
+import { useSearchStore } from '@/store/useSearchStore';
 import { mapPopularSpot } from '@/utils/spotMappers';
 import { FONT_MD, FONT_SM, GRID_PADDING, HAIRLINE_WIDTH, SPACING_LG, SPACING_MD } from '@/constants/layout';
 import { BRAND, BRAND_TINT, CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'SearchResult'>;
-
-// TODO: API 연동 시 GET /search?q= 로 교체
-const MOCK_RESULTS = [
-  { id: '1', name: '광안리 해수욕장', addr: '부산 수영구 · 2.1km', score: 92, tags: ['야경', '바다'] },
-  { id: '2', name: '광안대교 전망대', addr: '부산 수영구 · 2.4km', score: 88, tags: ['야경', '도심'] },
-  { id: '3', name: '민락수변공원', addr: '부산 수영구 · 1.8km', score: 85, tags: ['일출', '공원'] },
-  { id: '4', name: '해운대 해수욕장', addr: '부산 해운대구 · 5.3km', score: 90, tags: ['바다', '일출'] },
-  { id: '5', name: '황령산 전망대', addr: '부산 남구 · 6.1km', score: 87, tags: ['야경', '산'] },
-];
-
-const RECENT_INIT = ['광안리 해수욕장', '부산 야경', '제주 성산일출봉'];
 
 const POPULAR = [
   { rank: 1, text: '광안리 해수욕장', badge: '▲ 2', badgeType: 'up' as const },
@@ -50,14 +42,15 @@ const POPULAR = [
 
 const BADGE_COLOR = { up: '#34c759', down: 'rgba(0,0,0,0.25)', new: BRAND } as const;
 
-// 결과 행에 필요한 최소 정보. 검색(목업)과 인기순(실 API) 두 소스가 같은 행을 그린다.
+// 결과 행에 필요한 최소 정보. 검색과 인기순 두 소스가 같은 행을 그린다.
 interface ResultRow {
   id: string;
   name: string;
   addr: string;
-  /** 포토제닉 지수. 인기순 목록에는 그리지 않는다 — 고정 컬럼 값이라 상세의 실시간 점수와 어긋난다. */
+  /** 포토제닉 지수. */
   score?: number;
   tags: string[];
+  imageUrl?: string | null;
 }
 
 const POPULAR_LIST_SIZE = 50;
@@ -68,7 +61,7 @@ export default function SearchResultScreen({ route, navigation }: Props) {
 
   const [query, setQuery] = useState(route.params?.query ?? '');
   const [submitted, setSubmitted] = useState(!!route.params?.query);
-  const [recent, setRecent] = useState(RECENT_INIT);
+  const { recentSearches, addRecentSearch, removeRecentSearch, clearRecentSearches } = useSearchStore();
 
   // 홈 "모두 보기"로 들어온 인기순 전체 목록 모드. 검색어를 입력하면 평소 검색으로 넘어간다.
   const popularMode = route.params?.sort === 'popular' && !submitted;
@@ -78,15 +71,46 @@ export default function SearchResultScreen({ route, navigation }: Props) {
     isError: isPopularError,
     refetch: refetchPopular,
   } = useSpots({ sort: 'popular', size: POPULAR_LIST_SIZE }, { enabled: popularMode });
+
   const popularRows: ResultRow[] = React.useMemo(
     () =>
-      (popularData?.content ?? []).map(mapPopularSpot).map((s) => ({
-        id: s.id,
-        name: s.name,
-        addr: s.location,
-        tags: s.category ? [s.category] : [],
-      })),
+      (popularData?.content ?? []).map((s) => {
+        const mapped = mapPopularSpot(s);
+        return {
+          id: mapped.id,
+          name: mapped.name,
+          addr: mapped.location,
+          score: s.photogenicScore !== undefined ? Math.round(s.photogenicScore) : undefined,
+          tags: mapped.category ? [mapped.category] : [],
+          imageUrl: mapped.imageUrl,
+        };
+      }),
     [popularData?.content],
+  );
+
+  // 실시간 스팟 검색 (GET /spots/search?keyword=...)
+  const searchEnabled = submitted && !popularMode && query.trim().length > 0;
+  const {
+    data: searchData,
+    isLoading: isSearchLoading,
+    isError: isSearchError,
+    refetch: refetchSearch,
+  } = useSearchSpots({ keyword: query.trim() }, { enabled: searchEnabled });
+
+  const searchRows: ResultRow[] = React.useMemo(
+    () =>
+      (searchData?.content ?? []).map((s) => {
+        const mapped = mapPopularSpot(s);
+        return {
+          id: mapped.id,
+          name: mapped.name,
+          addr: mapped.location,
+          score: s.photogenicScore !== undefined ? Math.round(s.photogenicScore) : undefined,
+          tags: mapped.category ? [mapped.category] : [],
+          imageUrl: mapped.imageUrl,
+        };
+      }),
+    [searchData?.content],
   );
 
   // 동일 인스턴스 재방문 시 새 query 파라미터를 상태에 동기화
@@ -101,14 +125,8 @@ export default function SearchResultScreen({ route, navigation }: Props) {
     if (!trimmed) return;
     setQuery(trimmed);
     setSubmitted(true);
-    if (!recent.includes(trimmed)) {
-      setRecent((prev) => [trimmed, ...prev]);
-    }
+    addRecentSearch(trimmed);
     Keyboard.dismiss();
-  }
-
-  function removeRecent(item: string) {
-    setRecent((prev) => prev.filter((v) => v !== item));
   }
 
   function backToFocus() {
@@ -116,11 +134,10 @@ export default function SearchResultScreen({ route, navigation }: Props) {
     setTimeout(() => inputRef.current?.focus(), 50);
   }
 
-  const results: ResultRow[] = popularMode
-    ? popularRows
-    : submitted
-      ? MOCK_RESULTS.filter((r) => r.name.includes(query) || r.tags.some((t) => t.includes(query)))
-      : [];
+  const results: ResultRow[] = popularMode ? popularRows : submitted ? searchRows : [];
+  const isLoading = popularMode ? isPopularLoading : isSearchLoading;
+  const isError = popularMode ? isPopularError : isSearchError;
+  const refetch = popularMode ? refetchPopular : refetchSearch;
 
   // 인기순 모드에서도 결과 패널을 쓴다(포커스 패널의 최근·인기 검색어는 감춘다).
   const showResults = submitted || popularMode;
@@ -219,18 +236,18 @@ export default function SearchResultScreen({ route, navigation }: Props) {
                   <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, color: 'rgba(0,0,0,0.35)', letterSpacing: 0.1 }}>
                     최근 검색어
                   </Text>
-                  <Pressable onPress={() => setRecent([])} hitSlop={8}>
+                  <Pressable onPress={clearRecentSearches} hitSlop={8}>
                     <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: 'rgba(0,0,0,0.35)' }}>
                       전체 삭제
                     </Text>
                   </Pressable>
                 </View>
-                {recent.length === 0 ? (
+                {recentSearches.length === 0 ? (
                   <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_MD, color: 'rgba(0,0,0,0.3)', paddingVertical: SPACING_MD }}>
                     최근 검색어가 없어요
                   </Text>
                 ) : (
-                  recent.map((item) => (
+                  recentSearches.map((item) => (
                     <Pressable
                       key={item}
                       onPress={() => submit(item)}
@@ -242,7 +259,7 @@ export default function SearchResultScreen({ route, navigation }: Props) {
                           {item}
                         </Text>
                       </View>
-                      <Pressable onPress={() => removeRecent(item)} hitSlop={8}>
+                      <Pressable onPress={() => removeRecentSearch(item)} hitSlop={8}>
                         <IconX size={normalize(10)} color="rgba(0,0,0,0.2)" strokeWidth={1.5} />
                       </Pressable>
                     </Pressable>
@@ -314,20 +331,18 @@ export default function SearchResultScreen({ route, navigation }: Props) {
           </View>
           <View style={{ height: 1, backgroundColor: 'rgba(0,0,0,0.06)' }} />
 
-          {popularMode && isPopularLoading ? (
+          {isLoading ? (
             <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(14), gap: normalize(14) }}>
               {[0, 1, 2, 3].map((i) => (
                 <Skeleton key={i} width="100%" height={normalize(80)} borderRadius={normalize(12)} />
               ))}
             </View>
-          ) : popularMode && isPopularError && popularRows.length === 0 ? (
-            // 실패를 "아직 인기 스팟이 없어요"로 그리면 서버에 데이터가 없는 것처럼 읽힌다.
-            // 홈 캐러셀·북마크 목록과 같은 인라인 에러 + 다시 시도.
+          ) : isError && results.length === 0 ? (
             <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(14) }}>
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_MD, color: TEXT_SUB }}>
-                인기 스팟을 불러오지 못했어요.
+                {popularMode ? '인기 스팟을 불러오지 못했어요.' : '스팟 검색 결과를 불러오지 못했어요.'}
               </Text>
-              <Pressable onPress={() => refetchPopular()} hitSlop={8} style={{ marginTop: normalize(6) }}>
+              <Pressable onPress={() => refetch()} hitSlop={8} style={{ marginTop: normalize(6) }}>
                 <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, color: BRAND }}>
                   다시 시도
                 </Text>
@@ -362,7 +377,15 @@ export default function SearchResultScreen({ route, navigation }: Props) {
                   }}
                   style={{ flexDirection: 'row', gap: normalize(14), paddingVertical: normalize(14), borderBottomWidth: HAIRLINE_WIDTH, borderBottomColor: HAIRLINE }}
                 >
-                  <View style={{ width: normalize(80), height: normalize(80), borderRadius: normalize(12), backgroundColor: CARD, flexShrink: 0 }} />
+                  <View style={{ width: normalize(80), height: normalize(80), borderRadius: normalize(12), backgroundColor: CARD, overflow: 'hidden', flexShrink: 0 }}>
+                    {item.imageUrl ? (
+                      <Image source={{ uri: item.imageUrl }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
+                    ) : (
+                      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                        <IconMapPin size={normalize(24)} color="rgba(0,0,0,0.2)" />
+                      </View>
+                    )}
+                  </View>
                   <View style={{ flex: 1, justifyContent: 'space-between' }}>
                     <View>
                       <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, color: '#000', letterSpacing: -0.3, marginBottom: normalize(3) }}>

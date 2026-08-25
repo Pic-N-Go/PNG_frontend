@@ -114,11 +114,13 @@ export default function MapSearchScreen() {
   );
 
   const handleSearchSubmit = (targetQuery?: string) => {
-    const searchQuery = targetQuery ?? query;
-    if (!searchQuery.trim()) return;
-    addRecentSearch(searchQuery.trim());
+    const searchQuery = (targetQuery ?? query).trim();
+    if (!searchQuery) return;
+    if (targetQuery) {
+      setQuery(targetQuery);
+    }
+    addRecentSearch(searchQuery);
     Keyboard.dismiss();
-    returnToMap({ searchKeyword: searchQuery.trim() });
   };
 
   const handleSelectSpot = useCallback(
