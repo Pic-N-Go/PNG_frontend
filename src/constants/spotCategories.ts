@@ -87,7 +87,7 @@ export function categoryLabel(code: string | null | undefined): string {
   return (code && SPOT_CATEGORY_MAP[code]?.label) || SPOT_CATEGORY_MAP.ETC.label;
 }
 
-const PLACE_ORDER = ['CAFE', 'PARK', 'BEACH', 'MOUNTAIN', 'HANOK', 'FOREST', 'HERITAGE'];
+const PLACE_ORDER = ['PARK', 'BEACH', 'MOUNTAIN', 'HANOK', 'FOREST', 'HERITAGE', 'CAFE'];
 
 /**
  * 카테고리 배열 → 노출할 항목 1개.
@@ -104,9 +104,10 @@ export function pickSpotCategory(categories: string[] | undefined | null): strin
 
 // ponytail: dev 전용 self-check — 카테고리 선택 우선순위 회귀 방지 (프로덕션 no-op)
 if (__DEV__) {
+  console.assert(pickSpotCategory(['CAFE', 'PARK']) === 'PARK', '장소형 우선순위 오류');
   console.assert(pickSpotCategory(['CAFE']) === 'CAFE', 'CAFE 단독 장소형 우선순위 오류');
   console.assert(pickSpotCategory(['MOUNTAIN', 'BEACH']) === 'BEACH', '장소형 내부 우선순위(PLACE_ORDER) 오류');
-  console.assert(pickSpotCategory(['CAFE', 'NIGHT_VIEW']) === 'CAFE', '장소형 우선순위 오류');
+  console.assert(pickSpotCategory(['CAFE', 'NIGHT_VIEW']) === 'CAFE', '장소형 없을 때 장면형 첫 항목 오류');
   console.assert(pickSpotCategory(['UNKNOWN_CODE']) === 'ETC', '미매핑 코드 → ETC 오류');
   console.assert(pickSpotCategory([]) === 'ETC', '빈 배열 → ETC 오류');
   console.assert(pickSpotCategory(undefined) === 'ETC', 'undefined → ETC 오류');
