@@ -2,7 +2,7 @@ import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react'
 import { View, Text, TouchableOpacity, ScrollView, BackHandler, Image, Alert, Linking } from 'react-native';
 import { NaverMapView, NaverMapMarkerOverlay, NaverMapPathOverlay, type NaverMapViewRef } from '@mj-studio/react-native-naver-map';
 import * as Location from 'expo-location';
-import { IconChevronLeft, IconSearch, IconAdjustmentsHorizontal, IconFocus2, IconX, IconChevronDown, IconChevronUp, IconRoute, IconMapPinFilled } from '@tabler/icons-react-native';
+import { IconChevronLeft, IconSearch, IconAdjustmentsHorizontal, IconFocus2, IconX, IconChevronDown, IconChevronUp, IconRoute } from '@tabler/icons-react-native';
 import { useNavigation, useRoute, useFocusEffect, CommonActions } from '@react-navigation/native';
 import { useCourseStore, Spot } from '@/store/useCourseStore';
 import { useSpots, useMapSpots, useSearchSpots } from '@/hooks/useSpot';
@@ -17,13 +17,16 @@ import { StatusBar } from 'expo-status-bar';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { getCourseStats } from '@/utils/distance';
 import { type Coordinate, parseValidCoordinate } from '@/utils/geo';
+import { CATEGORY_CODES, SPOT_CATEGORY_MAP, CODE_BY_LABEL } from '@/constants/spotCategories';
+import { Sparkles } from 'lucide-react-native';
 import { getDayColor, DAY_COLOR_PALETTE } from '@/constants/dayColors';
-import { CATEGORY_LABELS, CODE_BY_LABEL } from '@/constants/spotCategories';
 import { BUTTON_HEIGHT, BUTTON_RADIUS, CONTROL_SIZE, FONT_LG, FONT_MD, FONT_SM, FONT_TITLE, FONT_XL, FONT_XS, HEADER_HEIGHT, ICON_SM } from '@/constants/layout';
 import Chip from '@/components/common/Chip';
 import { BRAND, TEXT_SUB } from '@/constants/colors';
 import { SHADOW_CONTROL, SHADOW_OVERLAY } from '@/constants/shadow';
 import { sanitizeKoreaLocation } from '@/utils/location';
+
+import { PIN_SPOT_IMAGE, PIN_CLUSTER_IMAGE, PIN_COURSE_IMAGE } from '@/constants/pins';
 
 // 칩 id·라벨·enum 매핑 모두 @/constants/spotCategories 단일 출처를 따른다.
 const CATEGORY_MAP: Record<string, string> = CODE_BY_LABEL;
@@ -65,8 +68,12 @@ const DEFAULT_BOUNDS: MapBounds = {
 
 // id는 한글 라벨 그대로 쓴다(CATEGORY_MAP이 라벨로 enum을 찾는다). '기타'는 필터 대상이 아니라 제외.
 const CATEGORIES = [
-  { id: 'all', label: '전체' },
-  ...CATEGORY_LABELS.map((label) => ({ id: label, label })),
+  { id: 'all', label: '전체', icon: Sparkles },
+  ...CATEGORY_CODES.map((code) => ({
+    id: SPOT_CATEGORY_MAP[code].label,
+    label: SPOT_CATEGORY_MAP[code].label,
+    icon: SPOT_CATEGORY_MAP[code].Icon,
+  })),
 ];
 
 export default function MapScreen() {
@@ -630,45 +637,22 @@ export default function MapScreen() {
               if (!spot.lat || !spot.lng) return null;
               return (
                 <NaverMapMarkerOverlay
-                  key={`${spot.__day || '1'}_${spot.id}_${index}`}
+                  key={`course_${spot.__day || '1'}_${spot.id}_${index}`}
                   latitude={spot.lat}
                   longitude={spot.lng}
                   width={normalize(28)}
                   height={normalize(28)}
                   anchor={{ x: 0.5, y: 0.5 }}
+                  image={PIN_COURSE_IMAGE}
+                  caption={{
+                    text: String(spot.__label || index + 1),
+                    align: 'Center',
+                    textSize: FONT_XS,
+                    color: '#FFFFFF',
+                    haloColor: 'transparent',
+                  }}
                   onTap={() => setActiveSpot(spot)}
-                >
-                  <View
-                    key={`course_pin_${spot.__day}_${spot.id}_${index}`}
-                    collapsable={false}
-                    style={{
-                      width: normalize(28),
-                      height: normalize(28),
-                      borderRadius: normalize(14),
-                      backgroundColor: spot.__dayColor || '#e31b59',
-                      borderWidth: 2,
-                      borderColor: '#FFFFFF',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      shadowColor: '#000',
-                      shadowOffset: { width: 0, height: 1 },
-                      shadowOpacity: 0.25,
-                      shadowRadius: 2,
-                      elevation: 3,
-                    }}
-                  >
-                    <Text
-                      allowFontScaling={false}
-                      style={{
-                        color: '#FFFFFF',
-                        fontFamily: 'Pretendard-SemiBold',
-                        fontSize: FONT_XS,
-                      }}
-                    >
-                      {spot.__label || index + 1}
-                    </Text>
-                  </View>
-                </NaverMapMarkerOverlay>
+                />
               );
             })
           : clusterElements.map((element) => {
@@ -681,6 +665,14 @@ export default function MapScreen() {
                     width={normalize(36)}
                     height={normalize(36)}
                     anchor={{ x: 0.5, y: 0.5 }}
+                    image={PIN_CLUSTER_IMAGE}
+                    caption={{
+                      text: String(element.count),
+                      align: 'Center',
+                      textSize: FONT_SM,
+                      color: '#FFFFFF',
+                      haloColor: 'transparent',
+                    }}
                     onTap={() => {
                       naverMapRef.current?.animateCameraTo({
                         latitude: element.latitude,
@@ -688,38 +680,7 @@ export default function MapScreen() {
                         zoom: element.expansionZoom,
                       });
                     }}
-                  >
-                    <View
-                      key={`cluster_view_${element.id}_${element.count}`}
-                      collapsable={false}
-                      style={{
-                        width: normalize(36),
-                        height: normalize(36),
-                        borderRadius: normalize(18),
-                        backgroundColor: '#e31b59',
-                        borderWidth: 2,
-                        borderColor: '#FFFFFF',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        shadowColor: '#e31b59',
-                        shadowOffset: { width: 0, height: 2 },
-                        shadowOpacity: 0.4,
-                        shadowRadius: 4,
-                        elevation: 4,
-                      }}
-                    >
-                      <Text
-                        allowFontScaling={false}
-                        style={{
-                          color: '#FFFFFF',
-                          fontFamily: 'Pretendard-SemiBold',
-                          fontSize: FONT_SM,
-                        }}
-                      >
-                        {element.count}
-                      </Text>
-                    </View>
-                  </NaverMapMarkerOverlay>
+                  />
                 );
               }
 
@@ -727,12 +688,13 @@ export default function MapScreen() {
               if (!spot.lat || !spot.lng) return null;
               return (
                 <NaverMapMarkerOverlay
-                  key={String(spot.id)}
+                  key={`spot_${spot.id}`}
                   latitude={spot.lat}
                   longitude={spot.lng}
                   width={normalize(24)}
                   height={normalize(24)}
                   anchor={{ x: 0.5, y: 0.5 }}
+                  image={PIN_SPOT_IMAGE}
                   caption={{
                     text: spot.name,
                     textSize: FONT_XS,
@@ -741,29 +703,7 @@ export default function MapScreen() {
                     offset: normalize(4),
                   }}
                   onTap={() => setActiveSpot(spot)}
-                >
-                  <View
-                    key={`spot_pin_${spot.id}`}
-                    collapsable={false}
-                    style={{
-                      width: normalize(24),
-                      height: normalize(24),
-                      borderRadius: normalize(12),
-                      backgroundColor: '#e31b59',
-                      borderWidth: 2,
-                      borderColor: '#FFFFFF',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      shadowColor: '#e31b59',
-                      shadowOffset: { width: 0, height: 2 },
-                      shadowOpacity: 0.35,
-                      shadowRadius: 3,
-                      elevation: 3,
-                    }}
-                  >
-                    <IconMapPinFilled size={normalize(12)} color="#FFFFFF" />
-                  </View>
-                </NaverMapMarkerOverlay>
+                />
               );
             }))}
       </NaverMapView>
@@ -950,17 +890,25 @@ export default function MapScreen() {
               <ScrollView
                 horizontal
                 showsHorizontalScrollIndicator={false}
-                contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 4, gap: 6 }}
+                contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 4, paddingBottom: 6, gap: 8 }}
               >
-                {CATEGORIES.map((cat) => (
-                  <Chip
-                    key={cat.id}
-                    label={cat.label}
-                    selected={selectedCategory === cat.id}
-                    onPress={() => setSelectedCategory(cat.id)}
-                    height={normalize(32)}
-                  />
-                ))}
+                {CATEGORIES.map((cat) => {
+                  const isSelected = selectedCategory === cat.id;
+                  const IconComp = cat.icon;
+                  const iconColor = isSelected ? '#ffffff' : '#4b5563';
+                  return (
+                    <Chip
+                      key={cat.id}
+                      label={cat.label}
+                      selected={isSelected}
+                      onPress={() => setSelectedCategory(cat.id)}
+                      variant="brand"
+                      shadow
+                      icon={IconComp ? <IconComp size={normalize(13)} color={iconColor} strokeWidth={2} /> : undefined}
+                      height={normalize(32)}
+                    />
+                  );
+                })}
               </ScrollView>
             </View>
           )}

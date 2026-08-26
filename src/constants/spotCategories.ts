@@ -34,19 +34,19 @@ export interface CategoryMeta {
 
 // 장소형(TourAPI cat3 매핑, 신뢰도 높음) · 장면형(name/overview 키워드 추출, 오탐 가능 → 소재형 라벨)
 export const SPOT_CATEGORY_MAP: Record<string, CategoryMeta> = {
-  PARK: { Icon: Trees, label: '공원', group: 'PLACE' },
-  BEACH: { Icon: Umbrella, label: '해변', group: 'PLACE' },
-  MOUNTAIN: { Icon: Mountain, label: '산', group: 'PLACE' },
-  HANOK: { Icon: House, label: '한옥', group: 'PLACE' },
-  FOREST: { Icon: TreePine, label: '숲', group: 'PLACE' },
-  HERITAGE: { Icon: Landmark, label: '문화유산', group: 'PLACE' },
-  CAFE: { Icon: Coffee, label: '카페', group: 'SCENE' },
-  CITY: { Icon: Building2, label: '도심 풍경', group: 'SCENE' },
-  NIGHT_VIEW: { Icon: MoonStar, label: '야경', group: 'SCENE' },
-  FESTIVAL: { Icon: Calendar, label: '축제', group: 'SCENE' },
-  FLOWER: { Icon: Flower2, label: '꽃', group: 'SCENE' },
+  CAFE: { Icon: Coffee, label: '감성 카페', group: 'PLACE' },
+  FESTIVAL: { Icon: Calendar, label: '축제 · 행사', group: 'SCENE' },
+  HERITAGE: { Icon: Landmark, label: '문화 · 전시', group: 'PLACE' },
+  BEACH: { Icon: Umbrella, label: '바다 · 해변', group: 'PLACE' },
+  FOREST: { Icon: TreePine, label: '숲 · 수목원', group: 'PLACE' },
+  HANOK: { Icon: House, label: '고궁 · 한옥', group: 'PLACE' },
+  NIGHT_VIEW: { Icon: MoonStar, label: '야경 명소', group: 'SCENE' },
+  FLOWER: { Icon: Flower2, label: '꽃 · 벚꽃', group: 'SCENE' },
+  PARK: { Icon: Trees, label: '도심 공원', group: 'PLACE' },
+  MOUNTAIN: { Icon: Mountain, label: '산 · 계곡', group: 'PLACE' },
+  CITY: { Icon: Building2, label: '도시 풍경', group: 'SCENE' },
   SUNRISE_SUNSET: { Icon: Sunset, label: '일출 · 일몰', group: 'SCENE' },
-  MILKY_WAY: { Icon: Sparkles, label: '은하수', group: 'SCENE' },
+  MILKY_WAY: { Icon: Sparkles, label: '은하수 · 별', group: 'SCENE' },
   // 표시용 라벨만 둔다. 사용자가 고르는 목록에는 넣지 않는다 — "기타"를 관심사로
   // 선택하거나 태그로 다는 건 의미가 없다. 스팟 히어로는 ETC일 때 지역명을 우선 쓴다.
   ETC: { Icon: MapPin, label: '기타', group: 'ETC' },
@@ -54,19 +54,19 @@ export const SPOT_CATEGORY_MAP: Record<string, CategoryMeta> = {
 
 /**
  * 사용자에게 보여줄 카테고리 순서. 관심 테마·게시글 태그·지도/홈 필터가 모두 이 순서를 쓴다.
- * 기존 지도 필터 순서를 그대로 이어받았다(자주 쓰는 것 먼저). ETC는 제외한다.
+ * TourAPI 4대 분류와 인기 출사 테마를 우선 배치. ETC는 제외한다.
  */
 export const CATEGORY_CODES = [
-  'NIGHT_VIEW',
-  'BEACH',
-  'HANOK',
-  'FLOWER',
   'CAFE',
-  'FOREST',
   'FESTIVAL',
+  'HERITAGE',
+  'BEACH',
+  'FOREST',
+  'HANOK',
+  'NIGHT_VIEW',
+  'FLOWER',
   'PARK',
   'MOUNTAIN',
-  'HERITAGE',
   'CITY',
   'SUNRISE_SUNSET',
   'MILKY_WAY',
@@ -87,7 +87,7 @@ export function categoryLabel(code: string | null | undefined): string {
   return (code && SPOT_CATEGORY_MAP[code]?.label) || SPOT_CATEGORY_MAP.ETC.label;
 }
 
-const PLACE_ORDER = ['PARK', 'BEACH', 'MOUNTAIN', 'HANOK', 'FOREST', 'HERITAGE'];
+const PLACE_ORDER = ['PARK', 'BEACH', 'MOUNTAIN', 'HANOK', 'FOREST', 'HERITAGE', 'CAFE'];
 
 /**
  * 카테고리 배열 → 노출할 항목 1개.
@@ -105,6 +105,7 @@ export function pickSpotCategory(categories: string[] | undefined | null): strin
 // ponytail: dev 전용 self-check — 카테고리 선택 우선순위 회귀 방지 (프로덕션 no-op)
 if (__DEV__) {
   console.assert(pickSpotCategory(['CAFE', 'PARK']) === 'PARK', '장소형 우선순위 오류');
+  console.assert(pickSpotCategory(['CAFE']) === 'CAFE', 'CAFE 단독 장소형 우선순위 오류');
   console.assert(pickSpotCategory(['MOUNTAIN', 'BEACH']) === 'BEACH', '장소형 내부 우선순위(PLACE_ORDER) 오류');
   console.assert(pickSpotCategory(['CAFE', 'NIGHT_VIEW']) === 'CAFE', '장소형 없을 때 장면형 첫 항목 오류');
   console.assert(pickSpotCategory(['UNKNOWN_CODE']) === 'ETC', '미매핑 코드 → ETC 오류');
@@ -112,6 +113,6 @@ if (__DEV__) {
   console.assert(pickSpotCategory(undefined) === 'ETC', 'undefined → ETC 오류');
   console.assert(CATEGORY_CODES.length === Object.keys(SPOT_CATEGORY_MAP).length - 1, 'ETC 외 코드가 목록에서 누락됨');
   console.assert(new Set(CATEGORY_LABELS).size === CATEGORY_LABELS.length, '라벨 중복 — CODE_BY_LABEL이 덮어써진다');
-  console.assert(categoryLabel('HERITAGE') === '문화유산', 'categoryLabel이 이 파일의 라벨을 그대로 써야 한다');
+  console.assert(categoryLabel('HERITAGE') === '문화 · 전시', 'categoryLabel이 이 파일의 라벨을 그대로 써야 한다');
   console.assert(categoryLabel('UNKNOWN_CODE') === '기타', '모르는 코드는 기타로 떨어져야 한다');
 }

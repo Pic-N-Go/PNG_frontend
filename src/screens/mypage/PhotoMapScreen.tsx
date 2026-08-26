@@ -2,7 +2,7 @@ import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react'
 import { View, Text, TouchableOpacity, BackHandler, Image, Animated, PanResponder, Easing, ScrollView, useWindowDimensions } from 'react-native';
 import { NaverMapView, NaverMapMarkerOverlay, type NaverMapViewRef } from '@mj-studio/react-native-naver-map';
 import * as Location from 'expo-location';
-import { IconChevronLeft, IconMapPin, IconFocus2, IconChevronRight, IconMapPinFilled } from '@tabler/icons-react-native';
+import { IconChevronLeft, IconMapPin, IconFocus2, IconChevronRight } from '@tabler/icons-react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import BottomSheet from '@/components/common/BottomSheet';
 import { StatusBar } from 'expo-status-bar';
@@ -19,6 +19,8 @@ import Toast from '@/components/common/Toast';
 import Skeleton from '@/components/common/Skeleton';
 import { sanitizeKoreaLocation } from '@/utils/location';
 import { type Coordinate, parseValidCoordinate } from '@/utils/geo';
+
+import { PIN_SPOT_IMAGE, PIN_CLUSTER_IMAGE, PIN_SPOT_DARK_IMAGE, PIN_CLUSTER_DARK_IMAGE } from '@/constants/pins';
 
 type FilterType = 'all' | 'review' | 'fav';
 
@@ -281,6 +283,14 @@ export default function PhotoMapScreen() {
                 width={normalize(36)}
                 height={normalize(36)}
                 anchor={{ x: 0.5, y: 0.5 }}
+                image={PIN_CLUSTER_IMAGE}
+                caption={{
+                  text: String(element.count),
+                  align: 'Center',
+                  textSize: FONT_SM,
+                  color: '#FFFFFF',
+                  haloColor: 'transparent',
+                }}
                 onTap={() => {
                   naverMapRef.current?.animateCameraTo({
                     latitude: element.latitude,
@@ -288,38 +298,7 @@ export default function PhotoMapScreen() {
                     zoom: element.expansionZoom,
                   });
                 }}
-              >
-                <View
-                  key={`cluster_review_view_${element.id}_${element.count}`}
-                  collapsable={false}
-                  style={{
-                    width: normalize(36),
-                    height: normalize(36),
-                    borderRadius: normalize(18),
-                    backgroundColor: '#e31b59',
-                    borderWidth: 2,
-                    borderColor: '#FFFFFF',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    shadowColor: '#e31b59',
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.4,
-                    shadowRadius: 4,
-                    elevation: 4,
-                  }}
-                >
-                  <Text
-                    allowFontScaling={false}
-                    style={{
-                      color: '#FFFFFF',
-                      fontFamily: 'Pretendard-SemiBold',
-                      fontSize: FONT_SM,
-                    }}
-                  >
-                    {element.count}
-                  </Text>
-                </View>
-              </NaverMapMarkerOverlay>
+              />
             );
           }
 
@@ -334,6 +313,7 @@ export default function PhotoMapScreen() {
               width={normalize(24)}
               height={normalize(24)}
               anchor={{ x: 0.5, y: 0.5 }}
+              image={PIN_SPOT_IMAGE}
               caption={{
                 text: spot.name,
                 textSize: FONT_XS,
@@ -342,29 +322,7 @@ export default function PhotoMapScreen() {
                 offset: normalize(4),
               }}
               onTap={() => handleSpotPress(spot)}
-            >
-              <View
-                key={`photo_spot_pin_${spot.id}`}
-                collapsable={false}
-                style={{
-                  width: normalize(24),
-                  height: normalize(24),
-                  borderRadius: normalize(12),
-                  backgroundColor: '#e31b59',
-                  borderWidth: 2,
-                  borderColor: '#FFFFFF',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  shadowColor: '#e31b59',
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.35,
-                  shadowRadius: 3,
-                  elevation: 3,
-                }}
-              >
-                <IconMapPinFilled size={normalize(12)} color="#FFFFFF" />
-              </View>
-            </NaverMapMarkerOverlay>
+            />
           );
         })}
 
@@ -379,6 +337,14 @@ export default function PhotoMapScreen() {
                 width={normalize(36)}
                 height={normalize(36)}
                 anchor={{ x: 0.5, y: 0.5 }}
+                image={PIN_CLUSTER_DARK_IMAGE}
+                caption={{
+                  text: String(element.count),
+                  align: 'Center',
+                  textSize: FONT_SM,
+                  color: '#FFFFFF',
+                  haloColor: 'transparent',
+                }}
                 onTap={() => {
                   naverMapRef.current?.animateCameraTo({
                     latitude: element.latitude,
@@ -386,38 +352,7 @@ export default function PhotoMapScreen() {
                     zoom: element.expansionZoom,
                   });
                 }}
-              >
-                <View
-                  key={`cluster_fav_view_${element.id}_${element.count}`}
-                  collapsable={false}
-                  style={{
-                    width: normalize(36),
-                    height: normalize(36),
-                    borderRadius: normalize(18),
-                    backgroundColor: '#1c1c1e',
-                    borderWidth: 2,
-                    borderColor: '#FFFFFF',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    shadowColor: '#000000',
-                    shadowOffset: { width: 0, height: 2 },
-                    shadowOpacity: 0.4,
-                    shadowRadius: 4,
-                    elevation: 4,
-                  }}
-                >
-                  <Text
-                    allowFontScaling={false}
-                    style={{
-                      color: '#FFFFFF',
-                      fontFamily: 'Pretendard-SemiBold',
-                      fontSize: FONT_SM,
-                    }}
-                  >
-                    {element.count}
-                  </Text>
-                </View>
-              </NaverMapMarkerOverlay>
+              />
             );
           }
 
@@ -432,6 +367,7 @@ export default function PhotoMapScreen() {
               width={normalize(24)}
               height={normalize(24)}
               anchor={{ x: 0.5, y: 0.5 }}
+              image={PIN_SPOT_DARK_IMAGE}
               caption={{
                 text: spot.name,
                 textSize: FONT_XS,
@@ -440,29 +376,7 @@ export default function PhotoMapScreen() {
                 offset: normalize(4),
               }}
               onTap={() => handleSpotPress(spot)}
-            >
-              <View
-                key={`fav_spot_pin_${spot.id}`}
-                collapsable={false}
-                style={{
-                  width: normalize(24),
-                  height: normalize(24),
-                  borderRadius: normalize(12),
-                  backgroundColor: '#1c1c1e',
-                  borderWidth: 2,
-                  borderColor: '#FFFFFF',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  shadowColor: '#000000',
-                  shadowOffset: { width: 0, height: 2 },
-                  shadowOpacity: 0.35,
-                  shadowRadius: 3,
-                  elevation: 3,
-                }}
-              >
-                <IconMapPinFilled size={normalize(12)} color="#FFFFFF" />
-              </View>
-            </NaverMapMarkerOverlay>
+            />
           );
         })}
       </NaverMapView>

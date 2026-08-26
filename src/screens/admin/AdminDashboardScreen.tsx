@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useMemo } from 'react';
 import {
   View,
   Text,
@@ -34,6 +34,7 @@ import {
   IconSend,
   IconClock,
   IconCheck,
+  IconBolt,
 } from '@tabler/icons-react-native';
 import { normalize } from '@/utils/normalize';
 import { BORDER_CONTROL, BUTTON_RADIUS, CARD_RADIUS, FONT_2XL, FONT_2XS, FONT_LG, FONT_MD, FONT_SM, FONT_XS, GRID_PADDING, SPACING_MD, SPACING_SM } from '@/constants/layout';
@@ -45,6 +46,8 @@ import {
   useRecalculateSpotEmbedding,
   useSyncAreaTourApi,
   useSyncAllTourApi,
+  useSyncSampleTourApi,
+  useTourSyncStatus,
 } from '@/hooks/useAdmin';
 import { useAdminInquiries, useAnswerInquiry } from '@/hooks/useInquiries';
 import { useKeyboardOverlap } from '@/hooks/useKeyboardHeight';
@@ -171,6 +174,17 @@ export default function AdminDashboardScreen() {
   // ── 4. TourAPI 동기화 상태 및 훅 ──────────────────────────────────────
   const syncAreaMutation = useSyncAreaTourApi();
   const syncAllMutation = useSyncAllTourApi();
+  const syncSampleMutation = useSyncSampleTourApi();
+  const { data: tourSyncStatus } = useTourSyncStatus();
+  const syncProgressPercent = useMemo(() => {
+    if (tourSyncStatus?.progressPercent !== undefined && tourSyncStatus?.progressPercent !== null) {
+      return Math.min(100, Math.max(0, tourSyncStatus.progressPercent));
+    }
+    if (tourSyncStatus?.totalCount && tourSyncStatus.totalCount > 0) {
+      return Math.min(100, Math.max(0, ((tourSyncStatus.processedCount || 0) / tourSyncStatus.totalCount) * 100));
+    }
+    return 0;
+  }, [tourSyncStatus?.progressPercent, tourSyncStatus?.totalCount, tourSyncStatus?.processedCount]);
   const [selectedArea, setSelectedArea] = useState<AreaCodeItem>(AREA_CODES[0]); // 기본 서울(1)
 
   // ── 피드백 토스트 ───────────────────────────────────────────────────
@@ -262,11 +276,45 @@ export default function AdminDashboardScreen() {
     });
   };
 
+  // ── 테스트/개발용 샘플 TourAPI 동기화 핸들러 ───────────────────────
+  const handleSyncSample = () => {
+    if (tourSyncStatus?.isRunning) {
+      Alert.alert('동기화 진행 중', '현재 백그라운드에서 다른 TourAPI 동기화 작업이 진행 중입니다.');
+      return;
+    }
+
+    Alert.alert(
+      '테스트/개발용 샘플 동기화',
+      '각 카테고리별(관광지, 문화시설, 축제/행사, 카페)로 소량(7건씩)의 최신 데이터를 빠르게 동기화합니다.\n진행하시겠습니까?',
+      [
+        { text: '취소', style: 'cancel' },
+        {
+          text: '샘플 동기화 시작',
+          onPress: () => {
+            syncSampleMutation.mutate(7, {
+              onSuccess: (resText) => {
+                showToast(resText || '샘플 동기화 작업이 백그라운드에 등록되었습니다.');
+              },
+              onError: (err) => {
+                Alert.alert('동기화 요청 실패', err.message || '요청 중 오류가 발생했습니다.');
+              },
+            });
+          },
+        },
+      ]
+    );
+  };
+
   // ── 전국 TourAPI 전체 동기화 핸들러 ─────────────────────────────────
   const handleSyncAll = () => {
+    if (tourSyncStatus?.isRunning) {
+      Alert.alert('동기화 진행 중', '현재 백그라운드에서 다른 TourAPI 동기화 작업이 진행 중입니다.');
+      return;
+    }
+
     Alert.alert(
       '전국 TourAPI 전체 동기화',
-      '전국 17개 지역의 관광지 공공데이터를 일괄 동기화합니다.\n데이터 양에 따라 수 분이 소요될 수 있습니다. 계속하시겠습니까?',
+      '전국 17개 지역의 관광지·문화시설·축제·카페 공공데이터를 일괄 비동기 동기화합니다.\nRabbitMQ 백그라운드 큐에서 안전하게 처리됩니다. 계속하시겠습니까?',
       [
         { text: '취소', style: 'cancel' },
         {
@@ -275,10 +323,10 @@ export default function AdminDashboardScreen() {
           onPress: () => {
             syncAllMutation.mutate(undefined, {
               onSuccess: (resText) => {
-                showToast(resText || '전국 TourAPI 동기화가 완료되었습니다.');
+                showToast(resText || '전국 동기화 작업이 백그라운드에 등록되었습니다.');
               },
               onError: (err) => {
-                Alert.alert('동기화 실패', err.message || '요청 중 오류가 발생했습니다.');
+                Alert.alert('동기화 요청 실패', err.message || '요청 중 오류가 발생했습니다.');
               },
             });
           },
@@ -289,9 +337,14 @@ export default function AdminDashboardScreen() {
 
   // ── 특정 지역 TourAPI 동기화 핸들러 ──────────────────────────────────
   const handleSyncArea = () => {
+    if (tourSyncStatus?.isRunning) {
+      Alert.alert('동기화 진행 중', '현재 백그라운드에서 다른 TourAPI 동기화 작업이 진행 중입니다.');
+      return;
+    }
+
     Alert.alert(
       `[${selectedArea.name}] 데이터 동기화`,
-      `${selectedArea.name}(지역코드: ${selectedArea.code}) 공공데이터를 동기화하시겠습니까?`,
+      `${selectedArea.name}(지역코드: ${selectedArea.code}) 공공데이터 동기화를 백그라운드 작업으로 등록하시겠습니까?`,
       [
         { text: '취소', style: 'cancel' },
         {
@@ -301,10 +354,10 @@ export default function AdminDashboardScreen() {
               { areaCode: selectedArea.code },
               {
                 onSuccess: (resText) => {
-                  showToast(resText || `[${selectedArea.name}] 동기화가 완료되었습니다.`);
+                  showToast(resText || `[${selectedArea.name}] 동기화 작업이 백그라운드에 등록되었습니다.`);
                 },
                 onError: (err) => {
-                  Alert.alert('동기화 실패', err.message || '요청 중 오류가 발생했습니다.');
+                  Alert.alert('동기화 요청 실패', err.message || '요청 중 오류가 발생했습니다.');
                 },
               }
             );
@@ -1861,7 +1914,252 @@ export default function AdminDashboardScreen() {
         ══════════════════════════════════════════════════════════════ */}
         {activeTab === 'tour' && (
           <View>
-            {/* 1. 전국 17개 지역 전체 동기화 */}
+            {/* 0. TourAPI 4.4 파이프라인 업그레이드 안내 배너 */}
+            <View
+              style={{
+                backgroundColor: '#f0fdf4',
+                borderWidth: BORDER_CONTROL,
+                borderColor: '#bbf7d0',
+                borderRadius: CARD_RADIUS,
+                padding: normalize(16),
+                marginBottom: SPACING_SM,
+              }}
+            >
+              <View className="flex-row items-center justify-between" style={{ marginBottom: normalize(8) }}>
+                <View className="flex-row items-center" style={{ gap: normalize(6) }}>
+                  <IconSparkles size={normalize(18)} color="#15803d" />
+                  <Text
+                    style={{
+                      fontSize: FONT_MD,
+                      fontFamily: 'Pretendard-Bold',
+                      color: '#166534',
+                    }}
+                  >
+                    TourAPI 4.4 파이프라인 업그레이드
+                  </Text>
+                </View>
+                <View
+                  style={{
+                    backgroundColor: '#dcfce7',
+                    paddingHorizontal: normalize(8),
+                    paddingVertical: normalize(2),
+                    borderRadius: normalize(6),
+                  }}
+                >
+                  <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-SemiBold', color: '#15803d' }}>
+                    Upsert 지원
+                  </Text>
+                </View>
+              </View>
+
+              <Text
+                style={{
+                  fontSize: FONT_SM,
+                  fontFamily: 'Pretendard-Regular',
+                  color: '#14532d',
+                  lineHeight: normalize(20),
+                }}
+              >
+                • <Text style={{ fontFamily: 'Pretendard-SemiBold' }}>수집 대상 확장</Text>: 일반 관광지(12) 외 문화시설(14), 축제/행사(15), 카페(39) 자동 선별 수집{'\n'}
+                • <Text style={{ fontFamily: 'Pretendard-SemiBold' }}>축제 캘린더 연동</Text>: 시작/종료일 메타데이터 및 진행중/예정 축제 조회 지원{'\n'}
+                • <Text style={{ fontFamily: 'Pretendard-SemiBold' }}>AI 벡터 임베딩 자동화</Text>: 스팟 적재 시 OpenAI 의미 검색 벡터 즉시 생성{'\n'}
+                • <Text style={{ fontFamily: 'Pretendard-SemiBold' }}>중복 방지</Text>: 여러 번 실행해도 최신 정보와 사진으로 자동 업데이트
+              </Text>
+            </View>
+
+            {/* 1. 실시간 백그라운드 동기화 상태 모니터 (RabbitMQ 비동기 큐 상태) */}
+            <View
+              style={{
+                backgroundColor: tourSyncStatus?.isRunning ? '#eff6ff' : '#ffffff',
+                borderWidth: BORDER_CONTROL,
+                borderColor: tourSyncStatus?.isRunning ? '#60a5fa' : 'rgba(0,0,0,0.08)',
+                borderRadius: CARD_RADIUS,
+                padding: normalize(16),
+                marginBottom: SPACING_SM,
+              }}
+            >
+              <View className="flex-row items-center justify-between" style={{ marginBottom: normalize(8) }}>
+                <View className="flex-row items-center" style={{ gap: normalize(6) }}>
+                  <IconRefresh
+                    size={normalize(18)}
+                    color={tourSyncStatus?.isRunning ? '#2563eb' : '#6b7280'}
+                  />
+                  <Text
+                    style={{
+                      fontSize: FONT_MD,
+                      fontFamily: 'Pretendard-Bold',
+                      color: tourSyncStatus?.isRunning ? '#1d4ed8' : '#111827',
+                    }}
+                  >
+                    실시간 동기화 파이프라인 상태
+                  </Text>
+                </View>
+                <View
+                  style={{
+                    backgroundColor: tourSyncStatus?.isRunning ? '#dbeafe' : '#f3f4f6',
+                    paddingHorizontal: normalize(8),
+                    paddingVertical: normalize(3),
+                    borderRadius: normalize(6),
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: normalize(4),
+                  }}
+                >
+                  {tourSyncStatus?.isRunning && (
+                    <ActivityIndicator size="small" color="#2563eb" style={{ transform: [{ scale: 0.7 }] }} />
+                  )}
+                  <Text
+                    style={{
+                      fontSize: FONT_2XS,
+                      fontFamily: 'Pretendard-SemiBold',
+                      color: tourSyncStatus?.isRunning ? '#1d4ed8' : '#4b5563',
+                    }}
+                  >
+                    {tourSyncStatus?.isRunning ? '백그라운드 진행 중' : '대기 상태'}
+                  </Text>
+                </View>
+              </View>
+
+              {tourSyncStatus?.isRunning ? (
+                <View style={{ marginTop: normalize(4) }}>
+                  <Text
+                    style={{
+                      fontSize: FONT_SM,
+                      fontFamily: 'Pretendard-SemiBold',
+                      color: '#1e40af',
+                      marginBottom: normalize(2),
+                    }}
+                  >
+                    {tourSyncStatus.currentJob || '동기화 작업 처리 중...'}
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: FONT_XS,
+                      fontFamily: 'Pretendard-Regular',
+                      color: '#3b82f6',
+                      marginBottom: normalize(10),
+                    }}
+                  >
+                    {tourSyncStatus.statusMessage || '진행 상태를 실시간 수신하고 있습니다.'}
+                  </Text>
+
+                  {/* 프로그레스 바 */}
+                  <View
+                    style={{
+                      height: normalize(8),
+                      backgroundColor: '#bfdbfe',
+                      borderRadius: normalize(4),
+                      overflow: 'hidden',
+                      marginBottom: normalize(6),
+                    }}
+                  >
+                    <View
+                      style={{
+                        height: '100%',
+                        width: `${syncProgressPercent}%`,
+                        backgroundColor: '#2563eb',
+                        borderRadius: normalize(4),
+                      }}
+                    />
+                  </View>
+
+                  <View className="flex-row items-center justify-between">
+                    <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Medium', color: '#60a5fa' }}>
+                      진행률: {syncProgressPercent.toFixed(1)}%
+                    </Text>
+                    {tourSyncStatus.totalCount !== undefined && tourSyncStatus.totalCount > 0 && (
+                      <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Medium', color: '#1e40af' }}>
+                        {tourSyncStatus.processedCount || 0} / {tourSyncStatus.totalCount}건
+                      </Text>
+                    )}
+                  </View>
+                </View>
+              ) : (
+                <View style={{ marginTop: normalize(4) }}>
+                  <Text
+                    style={{
+                      fontSize: FONT_SM,
+                      fontFamily: 'Pretendard-Regular',
+                      color: 'rgba(0,0,0,0.6)',
+                      lineHeight: normalize(20),
+                    }}
+                  >
+                    현재 실행 중인 백그라운드 작업이 없습니다.{'\n'}
+                    {tourSyncStatus?.lastCompletedAt && (
+                      <Text style={{ color: '#059669', fontSize: FONT_XS }}>
+                        최근 완료 시각: {new Date(tourSyncStatus.lastCompletedAt).toLocaleString('ko-KR')}
+                      </Text>
+                    )}
+                    {tourSyncStatus?.lastError && (
+                      <Text style={{ color: '#dc2626', fontSize: FONT_XS }}>
+                        최근 오류: {tourSyncStatus.lastError}
+                      </Text>
+                    )}
+                  </Text>
+                </View>
+              )}
+            </View>
+
+            {/* 2. 테스트/개발용 샘플 동기화 (신규) */}
+            <View
+              style={{
+                backgroundColor: '#fff',
+                borderRadius: CARD_RADIUS,
+                padding: normalize(16),
+                marginBottom: SPACING_SM,
+              }}
+            >
+              <Text
+                style={{
+                  fontSize: FONT_MD,
+                  fontFamily: 'Pretendard-SemiBold',
+                  color: '#111827',
+                  marginBottom: normalize(4),
+                }}
+              >
+                테스트/개발용 빠른 샘플 동기화
+              </Text>
+              <Text
+                style={{
+                  fontSize: FONT_SM,
+                  fontFamily: 'Pretendard-Regular',
+                  color: 'rgba(0,0,0,0.5)',
+                  lineHeight: normalize(20),
+                  marginBottom: normalize(14),
+                }}
+              >
+                전체 동기화 전 각 타입별(관광지·문화시설·축제·카페)로 7건씩 소량의 데이터를 빠르게 가져와 정상 작동 여부를 테스트합니다.
+              </Text>
+
+              <TouchableOpacity
+                onPress={handleSyncSample}
+                disabled={syncSampleMutation.isPending || !!tourSyncStatus?.isRunning}
+                style={{
+                  height: normalize(46),
+                  borderRadius: BUTTON_RADIUS,
+                  backgroundColor: (syncSampleMutation.isPending || tourSyncStatus?.isRunning) ? '#9ca3af' : '#059669',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexDirection: 'row',
+                  gap: normalize(6),
+                }}
+              >
+                {syncSampleMutation.isPending ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <IconBolt size={normalize(18)} color="#fff" strokeWidth={2} />
+                )}
+                <Text style={{ fontSize: FONT_SM, fontFamily: 'Pretendard-SemiBold', color: '#fff' }}>
+                  {tourSyncStatus?.isRunning
+                    ? '동기화 진행 중 (추가 실행 제한)'
+                    : syncSampleMutation.isPending
+                    ? '요청 등록 중...'
+                    : '타입별 샘플 데이터 빠른 동기화 (7건씩)'}
+                </Text>
+              </TouchableOpacity>
+            </View>
+
+            {/* 3. 전국 17개 지역 전체 동기화 */}
             <View
               style={{
                 backgroundColor: '#fff',
@@ -1889,19 +2187,19 @@ export default function AdminDashboardScreen() {
                   marginBottom: normalize(14),
                 }}
               >
-                전국 17개 지역 관광지 데이터를 전부 가져와 동기화합니다.{'\n'}
-                <Text style={{ color: '#dc2626', fontFamily: 'Pretendard-Medium' }}>
-                  주의: 전체 동기화는 수 분 이상 소요될 수 있습니다. (최초 1회 구축용)
+                전국 17개 시도의 관광지·문화시설·축제·카페 데이터를 일괄 비동기 수집합니다.{'\n'}
+                <Text style={{ color: '#0284c7', fontFamily: 'Pretendard-Medium' }}>
+                  백그라운드 큐(RabbitMQ)에서 순차적으로 안전하게 처리됩니다.
                 </Text>
               </Text>
 
               <TouchableOpacity
                 onPress={handleSyncAll}
-                disabled={syncAllMutation.isPending}
+                disabled={syncAllMutation.isPending || !!tourSyncStatus?.isRunning}
                 style={{
                   height: normalize(46),
                   borderRadius: BUTTON_RADIUS,
-                  backgroundColor: syncAllMutation.isPending ? '#9ca3af' : '#0284c7',
+                  backgroundColor: (syncAllMutation.isPending || tourSyncStatus?.isRunning) ? '#9ca3af' : '#0284c7',
                   alignItems: 'center',
                   justifyContent: 'center',
                   flexDirection: 'row',
@@ -1914,12 +2212,16 @@ export default function AdminDashboardScreen() {
                   <IconRefresh size={normalize(18)} color="#fff" strokeWidth={2} />
                 )}
                 <Text style={{ fontSize: FONT_SM, fontFamily: 'Pretendard-SemiBold', color: '#fff' }}>
-                  {syncAllMutation.isPending ? '전국 동기화 진행 중...' : '전국 데이터 전체 동기화'}
+                  {tourSyncStatus?.isRunning
+                    ? '동기화 진행 중 (추가 실행 제한)'
+                    : syncAllMutation.isPending
+                    ? '요청 등록 중...'
+                    : '전국 데이터 전체 비동기 동기화'}
                 </Text>
               </TouchableOpacity>
             </View>
 
-            {/* 2. 특정 지역 선택 수동 동기화 */}
+            {/* 4. 특정 지역 선택 수동 동기화 */}
             <View
               style={{
                 backgroundColor: '#fff',
@@ -1982,11 +2284,11 @@ export default function AdminDashboardScreen() {
               {/* 선택 지역 동기화 실행 버튼 */}
               <TouchableOpacity
                 onPress={handleSyncArea}
-                disabled={syncAreaMutation.isPending}
+                disabled={syncAreaMutation.isPending || !!tourSyncStatus?.isRunning}
                 style={{
                   height: normalize(46),
                   borderRadius: BUTTON_RADIUS,
-                  backgroundColor: syncAreaMutation.isPending ? '#9ca3af' : '#111827',
+                  backgroundColor: (syncAreaMutation.isPending || tourSyncStatus?.isRunning) ? '#9ca3af' : '#111827',
                   alignItems: 'center',
                   justifyContent: 'center',
                   flexDirection: 'row',
@@ -1999,8 +2301,10 @@ export default function AdminDashboardScreen() {
                   <IconMapPin size={normalize(18)} color="#fff" strokeWidth={2} />
                 )}
                 <Text style={{ fontSize: FONT_SM, fontFamily: 'Pretendard-SemiBold', color: '#fff' }}>
-                  {syncAreaMutation.isPending
-                    ? `[${selectedArea.name}] 동기화 진행 중...`
+                  {tourSyncStatus?.isRunning
+                    ? '동기화 진행 중 (추가 실행 제한)'
+                    : syncAreaMutation.isPending
+                    ? '요청 등록 중...'
                     : `[${selectedArea.name}] 데이터 동기화 실행`}
                 </Text>
               </TouchableOpacity>

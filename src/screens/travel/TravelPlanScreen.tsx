@@ -40,6 +40,8 @@ import { getDayColor } from "@/constants/dayColors";
 import { FONT_XS, FONT_SM, FONT_MD, FONT_LG, CONTENT_PADDING, BUTTON_HEIGHT, BUTTON_RADIUS, CARD_RADIUS, HEADER_HEIGHT, ICON_SM , BORDER_CONTROL } from "@/constants/layout";
 import { BRAND, BRAND_MUTED, BRAND_STRONG, BRAND_TINT, CARD } from '@/constants/colors';
 
+import { PIN_COURSE_IMAGE } from '@/constants/pins';
+
 // 백엔드 CourseService.validateDaySpotLimits 와 같은 값. 넘으면 동기화 요청 전체가 400으로 거부된다.
 const MAX_SPOTS_PER_DAY = 10;
 
@@ -747,45 +749,22 @@ export default function TravelPlanScreen({ navigation, route }: any) {
             >
               {isPlanMapReady && validDaySpots.map((spot: any, i: number) => (
                 <NaverMapMarkerOverlay
-                  key={`${currentDay}_${spot.id}_${i}`}
+                  key={`plan_${currentDay}_${spot.id}_${i}`}
                   latitude={spot.lat}
                   longitude={spot.lng}
-                  width={normalize(26)}
-                  height={normalize(26)}
+                  width={normalize(28)}
+                  height={normalize(28)}
                   anchor={{ x: 0.5, y: 0.5 }}
+                  image={PIN_COURSE_IMAGE}
+                  caption={{
+                    text: String(i + 1),
+                    align: 'Center',
+                    textSize: FONT_XS,
+                    color: '#FFFFFF',
+                    haloColor: 'transparent',
+                  }}
                   onTap={() => handleSpotClick(spot)}
-                >
-                  <View
-                    key={`plan_pin_${currentDay}_${spot.id}_${i}`}
-                    collapsable={false}
-                    style={{
-                      width: normalize(26),
-                      height: normalize(26),
-                      borderRadius: normalize(13),
-                      backgroundColor: currentDayColor.text || '#e31b59',
-                      borderWidth: 2,
-                      borderColor: '#FFFFFF',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      shadowColor: '#000',
-                      shadowOffset: { width: 0, height: 1 },
-                      shadowOpacity: 0.25,
-                      shadowRadius: 2,
-                      elevation: 3,
-                    }}
-                  >
-                    <Text
-                      allowFontScaling={false}
-                      style={{
-                        color: '#FFFFFF',
-                        fontFamily: 'Pretendard-SemiBold',
-                        fontSize: FONT_XS,
-                      }}
-                    >
-                      {i + 1}
-                    </Text>
-                  </View>
-                </NaverMapMarkerOverlay>
+                />
               ))}
               {isPlanMapReady && (() => {
                 const validCoords: Coordinate[] = validDaySpots

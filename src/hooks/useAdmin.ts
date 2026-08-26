@@ -9,6 +9,7 @@ import type {
   EmbeddingStatusResponse,
   EmbeddingBackfillResponse,
   EmbeddingSingleResponse,
+  TourSyncStatusResponse,
 } from '@/types/admin';
 
 export const ADMIN_KEYS = {
@@ -16,6 +17,7 @@ export const ADMIN_KEYS = {
   users: (params?: AdminUserFilterParams) => [...ADMIN_KEYS.all, 'users', params] as const,
   userDetail: (userId: number) => [...ADMIN_KEYS.all, 'user', userId] as const,
   embeddings: () => [...ADMIN_KEYS.all, 'embeddings'] as const,
+  tourSyncStatus: () => [...ADMIN_KEYS.all, 'tour-sync-status'] as const,
 };
 
 // ── 1. 회원 및 권한 관리 훅 ──────────────────────────────────────────
@@ -120,6 +122,7 @@ export function useRecalculateSpotEmbedding() {
 // 3.1 한국관광공사 특정 지역 데이터 수동 동기화 뮤테이션
 export function useSyncAreaTourApi() {
   const accessToken = useAuthStore((s) => s.accessToken);
+  const queryClient = useQueryClient();
 
   return useMutation<
     string,
@@ -130,17 +133,59 @@ export function useSyncAreaTourApi() {
       if (!accessToken) throw new Error('관리자 권한이 필요합니다.');
       return adminApi.syncAreaTourApi(areaCode, accessToken, startPage, endPage);
     },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ADMIN_KEYS.tourSyncStatus() });
+    },
   });
 }
 
 // 3.2 한국관광공사 전국 17개 지역 전체 데이터 동기화 뮤테이션
 export function useSyncAllTourApi() {
   const accessToken = useAuthStore((s) => s.accessToken);
+  const queryClient = useQueryClient();
 
   return useMutation<string, Error, void>({
     mutationFn: () => {
       if (!accessToken) throw new Error('관리자 권한이 필요합니다.');
       return adminApi.syncAllTourApi(accessToken);
     },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ADMIN_KEYS.tourSyncStatus() });
+    },
+  });
+}
+
+// 3.3 테스트/개발용 샘플 동기화 (타입별 소량 동기화) 뮤테이션
+export function useSyncSampleTourApi() {
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const queryClient = useQueryClient();
+
+  return useMutation<string, Error, number | undefined>({
+    mutationFn: (countPerType = 7) => {
+      if (!accessToken) throw new Error('관리자 권한이 필요합니다.');
+      return adminApi.syncSampleTourApi(countPerType, accessToken);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ADMIN_KEYS.tourSyncStatus() });
+    },
+  });
+}
+
+// 3.4 실시간 TourAPI 동기화 진행 상태 조회 훅 (GET /admin/tour-api/sync/status)
+export function useTourSyncStatus() {
+  const accessToken = useAuthStore((s) => s.accessToken);
+
+  return useQuery<TourSyncStatusResponse, Error>({
+    queryKey: ADMIN_KEYS.tourSyncStatus(),
+    queryFn: () => {
+      if (!accessToken) throw new Error('관리자 권한이 필요합니다.');
+      return adminApi.getTourSyncStatus(accessToken);
+    },
+    enabled: !!accessToken,
+    refetchInterval: (query) => {
+      // 백그라운드 진행 중(isRunning)일 때는 3초마다 폴링, 대기 중일 때는 10초마다 갱신
+      return query.state.data?.isRunning ? 3000 : 10000;
+    },
+    staleTime: 2000,
   });
 }

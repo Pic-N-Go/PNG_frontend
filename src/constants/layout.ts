@@ -66,3 +66,8 @@ export const BORDER_CONTROL = 1.5;
 
 /** 빈 상태 카드 기본 높이 (MY 탭 섹션 등) */
 export const EMPTY_CARD_HEIGHT = normalize(120);
+
+// ── 지도 미리보기 / 미니맵 ──────────────────────
+export const MAP_PREVIEW_HEIGHT = normalize(120);
+export const MAP_MINI_PIN_SIZE = normalize(20);
+

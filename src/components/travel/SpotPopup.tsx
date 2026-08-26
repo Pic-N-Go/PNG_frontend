@@ -215,10 +215,6 @@ export default function SpotPopup({ activeSpot, onClose, renderButtons }: Props)
                 <TouchableOpacity onPress={handleClose} className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/40 items-center justify-center z-10">
                   <IconX size={18} color="#fff" />
                 </TouchableOpacity>
-
-                <View className="absolute top-3 left-3 h-7 px-3 rounded-full bg-brand items-center justify-center z-10 shadow-sm shadow-brand/30">
-                  <Text className="font-semibold text-white" style={{ fontSize: FONT_SM }}>{currentSpot.score}점</Text>
-                </View>
               </View>
 
               {/* Body */}
