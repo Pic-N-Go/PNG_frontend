@@ -157,7 +157,7 @@ export default function SeasonalSpotSection({ onSpotPress, onViewAll }: Props) {
             allowFontScaling={false}
             style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_TITLE, color: '#000', letterSpacing: -0.4 }}
           >
-            이달의 추천 포토스팟
+            이달의 추천 출사스팟
           </Text>
           {onViewAll && (
             <Pressable onPress={() => onViewAll(season.keyword)} hitSlop={8}>
@@ -198,7 +198,7 @@ export default function SeasonalSpotSection({ onSpotPress, onViewAll }: Props) {
         <View style={{ paddingHorizontal: GRID_PADDING }}>
           <View className="items-center" style={{ padding: normalize(18), borderRadius: CARD_RADIUS, backgroundColor: CARD }}>
             <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: TEXT_SUB }}>
-              이달의 추천 포토스팟 정보를 준비 중입니다.
+              이달의 추천 출사스팟 정보를 준비 중입니다.
             </Text>
           </View>
         </View>
