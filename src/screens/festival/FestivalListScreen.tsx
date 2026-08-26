@@ -13,13 +13,13 @@ import { IconChevronLeft, IconMapPin, IconCalendarEvent, IconSparkles } from '@t
 import { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
 import { HomeStackParamList } from '@/navigation/stacks/HomeStack';
 import type { RootStackParamList } from '@/navigation';
-import { normalize, normalizeFontSize } from '@/utils/normalize';
+import { normalize } from '@/utils/normalize';
 import Skeleton from '@/components/common/Skeleton';
 import Chip from '@/components/common/Chip';
 import { useInfiniteFestivals } from '@/hooks/useFestival';
 import { regionLabelFrom, toHttps } from '@/utils/spotMappers';
 import { SPOT_CATEGORY_MAP } from '@/constants/spotCategories';
-import { CARD_RADIUS, FONT_LG, FONT_MD, FONT_SM, GRID_PADDING, HAIRLINE_WIDTH, SPACING_LG } from '@/constants/layout';
+import { CARD_RADIUS, FONT_LG, FONT_MD, FONT_SM, FONT_XS, GRID_PADDING, HAIRLINE_WIDTH, SPACING_LG } from '@/constants/layout';
 import { BRAND, CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
 import type { FestivalResponse } from '@/types/festival';
 
@@ -148,8 +148,8 @@ export default function FestivalListScreen({ route, navigation }: Props) {
           ))}
         </View>
       ) : isError && festivals.length === 0 ? (
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: GRID_PADDING }}>
-          <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_MD, color: TEXT_SUB, textAlign: 'center' }}>
+        <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(20) }}>
+          <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_MD, color: TEXT_SUB }}>
             축제 목록을 불러오지 못했습니다.
           </Text>
           <Pressable onPress={() => refetch()} hitSlop={8} style={{ marginTop: normalize(8) }}>
@@ -159,9 +159,9 @@ export default function FestivalListScreen({ route, navigation }: Props) {
           </Pressable>
         </View>
       ) : festivals.length === 0 ? (
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: normalize(12) }}>
+        <View className="flex-1 items-center justify-center" style={{ gap: normalize(12) }}>
           <IconCalendarEvent size={normalize(48)} color="rgba(0,0,0,0.15)" strokeWidth={1.2} />
-          <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(16), color: 'rgba(0,0,0,0.5)' }}>
+          <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_LG, color: 'rgba(0,0,0,0.5)' }}>
             해당하는 축제 정보가 없습니다.
           </Text>
         </View>
@@ -229,18 +229,18 @@ export default function FestivalListScreen({ route, navigation }: Props) {
                 {/* 정보 */}
                 <View style={{ flex: 1, justifyContent: 'center' }}>
                   {/* 상태 뱃지 & 날짜 */}
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(6), marginBottom: normalize(4) }}>
+                  <View className="flex-row items-center" style={{ gap: normalize(6), marginBottom: normalize(4) }}>
                     <View style={{ backgroundColor: statusBg, paddingHorizontal: normalize(6), paddingVertical: normalize(2), borderRadius: normalize(4) }}>
                       <Text
                         allowFontScaling={false}
-                        style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(10.5), color: statusColor }}
+                        style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, color: statusColor }}
                       >
                         {statusLabel}
                       </Text>
                     </View>
                     <Text
                       allowFontScaling={false}
-                      style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(12), color: TEXT_SUB, fontVariant: ['tabular-nums'] }}
+                      style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: TEXT_SUB, fontVariant: ['tabular-nums'] }}
                     >
                       {dateRange}
                     </Text>
@@ -262,12 +262,12 @@ export default function FestivalListScreen({ route, navigation }: Props) {
                   </Text>
 
                   {/* 장소 */}
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(3), marginBottom: normalize(4) }}>
+                  <View className="flex-row items-center" style={{ gap: normalize(3), marginBottom: normalize(4) }}>
                     <IconMapPin size={normalize(12)} color="rgba(0,0,0,0.4)" strokeWidth={1.5} />
                     <Text
                       allowFontScaling={false}
                       numberOfLines={1}
-                      style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(12.5), color: 'rgba(0,0,0,0.5)' }}
+                      style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: 'rgba(0,0,0,0.5)' }}
                     >
                       {location}
                     </Text>
@@ -278,7 +278,7 @@ export default function FestivalListScreen({ route, navigation }: Props) {
                     <Text
                       allowFontScaling={false}
                       numberOfLines={1}
-                      style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(11.5), color: 'rgba(0,0,0,0.35)', marginBottom: normalize(4) }}
+                      style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.35)', marginBottom: normalize(4) }}
                     >
                       {item.overview.replace(/\r?\n/g, ' ')}
                     </Text>
@@ -286,7 +286,7 @@ export default function FestivalListScreen({ route, navigation }: Props) {
 
                   {/* 카테고리 태그 */}
                   {item.categories && item.categories.length > 0 && (
-                    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: normalize(4) }}>
+                    <View className="flex-row flex-wrap" style={{ gap: normalize(4) }}>
                       {item.categories.map((c) => {
                         const label = SPOT_CATEGORY_MAP[c]?.label;
                         if (!label) return null;
@@ -302,7 +302,7 @@ export default function FestivalListScreen({ route, navigation }: Props) {
                           >
                             <Text
                               allowFontScaling={false}
-                              style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(10.5), color: TEXT_SUB }}
+                              style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: TEXT_SUB }}
                             >
                               {label}
                             </Text>

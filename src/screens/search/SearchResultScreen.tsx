@@ -30,7 +30,7 @@ import { mapPopularSpot } from '@/utils/spotMappers';
 import { CATEGORY_CODES, SPOT_CATEGORY_MAP, CODE_BY_LABEL } from '@/constants/spotCategories';
 import { Sparkles } from 'lucide-react-native';
 import Chip from '@/components/common/Chip';
-import { FONT_MD, FONT_SM, GRID_PADDING, HAIRLINE_WIDTH, SPACING_LG, SPACING_MD } from '@/constants/layout';
+import { FONT_LG, FONT_MD, FONT_SM, GRID_PADDING, HAIRLINE_WIDTH, SPACING_LG, SPACING_MD } from '@/constants/layout';
 import { BRAND, BRAND_TINT, CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'SearchResult'>;
@@ -103,14 +103,22 @@ export default function SearchResultScreen({ route, navigation }: Props) {
     [popularData?.content],
   );
 
-  // 실시간 스팟 검색 (GET /spots/search?keyword=...)
+  // 실시간 스팟 검색 (GET /spots/search?keyword=...&category=...)
+  const selectedCategoryCode =
+    selectedCategory !== 'all' && selectedCategory !== '전체'
+      ? CODE_BY_LABEL[selectedCategory] || selectedCategory
+      : undefined;
+
   const searchEnabled = submitted && !popularMode && query.trim().length > 0;
   const {
     data: searchData,
     isLoading: isSearchLoading,
     isError: isSearchError,
     refetch: refetchSearch,
-  } = useSearchSpots({ keyword: query.trim() }, { enabled: searchEnabled });
+  } = useSearchSpots(
+    { keyword: query.trim(), category: selectedCategoryCode },
+    { enabled: searchEnabled }
+  );
 
   const searchRows: ResultRow[] = React.useMemo(
     () =>
@@ -165,7 +173,11 @@ export default function SearchResultScreen({ route, navigation }: Props) {
     if (selectedCategory === 'all' || selectedCategory === '전체') {
       return results;
     }
-    const targetEnum = CODE_BY_LABEL[selectedCategory] || selectedCategory;
+    if (!popularMode && submitted) {
+      // 서버에서 이미 category 파라미터로 필터링되어 반환됨
+      return searchRows;
+    }
+    const targetEnum = selectedCategoryCode || selectedCategory;
     return results.filter((item) => {
       const matchEnum = item.categories?.includes(targetEnum);
       const matchTag = item.tags.some(
@@ -173,7 +185,11 @@ export default function SearchResultScreen({ route, navigation }: Props) {
       );
       return matchEnum || matchTag;
     });
-  }, [results, selectedCategory]);
+  }, [results, selectedCategory, popularMode, submitted, searchRows, selectedCategoryCode]);
+
+  const resultCount = popularMode
+    ? filteredResults.length
+    : (searchData?.totalElements ?? filteredResults.length);
 
   // 인기순 모드에서도 결과 패널을 쓴다(포커스 패널의 최근·인기 검색어는 감춘다).
   const showResults = submitted || popularMode;
@@ -381,7 +397,7 @@ export default function SearchResultScreen({ route, navigation }: Props) {
 
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: GRID_PADDING, paddingVertical: normalize(14) }}>
             <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: TEXT_SUB }}>
-              스팟 <Text style={{ fontFamily: 'Pretendard-SemiBold', color: '#000' }}>{filteredResults.length}</Text>개
+              스팟 <Text style={{ fontFamily: 'Pretendard-SemiBold', color: '#000' }}>{resultCount}</Text>개
             </Text>
             {/* TODO: 정렬 기능 미구현 — 정렬 옵션 시트 연결 필요 */}
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(4) }}>
@@ -415,7 +431,7 @@ export default function SearchResultScreen({ route, navigation }: Props) {
             // 탭바 높이를 더하면 빈 상태가 위로 치우쳐 보인다.
             <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: normalize(12) }}>
               <IconSearch size={normalize(48)} color="rgba(0,0,0,0.12)" strokeWidth={1} />
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(16), color: 'rgba(0,0,0,0.5)' }}>
+              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_LG, color: 'rgba(0,0,0,0.5)' }}>
                 {popularMode ? '아직 인기 스팟이 없어요' : '검색 결과가 없어요'}
               </Text>
               {!popularMode && (

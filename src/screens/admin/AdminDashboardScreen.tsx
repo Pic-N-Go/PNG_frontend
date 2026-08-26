@@ -2035,35 +2035,47 @@ export default function AdminDashboardScreen() {
                   </Text>
 
                   {/* 프로그레스 바 */}
-                  <View
-                    style={{
-                      height: normalize(8),
-                      backgroundColor: '#bfdbfe',
-                      borderRadius: normalize(4),
-                      overflow: 'hidden',
-                      marginBottom: normalize(6),
-                    }}
-                  >
-                    <View
-                      style={{
-                        height: '100%',
-                        width: `${Math.min(100, Math.max(0, tourSyncStatus.progressPercent || 0))}%`,
-                        backgroundColor: '#2563eb',
-                        borderRadius: normalize(4),
-                      }}
-                    />
-                  </View>
+                  {(() => {
+                    const syncProgressPercent = tourSyncStatus?.progressPercent !== undefined && tourSyncStatus?.progressPercent !== null
+                      ? Math.min(100, Math.max(0, tourSyncStatus.progressPercent))
+                      : (tourSyncStatus?.totalCount && tourSyncStatus.totalCount > 0)
+                        ? Math.min(100, Math.max(0, ((tourSyncStatus.processedCount || 0) / tourSyncStatus.totalCount) * 100))
+                        : 0;
 
-                  <View className="flex-row items-center justify-between">
-                    <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Medium', color: '#60a5fa' }}>
-                      진행률: {(tourSyncStatus.progressPercent || 0).toFixed(1)}%
-                    </Text>
-                    {tourSyncStatus.totalCount !== undefined && tourSyncStatus.totalCount > 0 && (
-                      <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Medium', color: '#1e40af' }}>
-                        {tourSyncStatus.processedCount || 0} / {tourSyncStatus.totalCount}건
-                      </Text>
-                    )}
-                  </View>
+                    return (
+                      <>
+                        <View
+                          style={{
+                            height: normalize(8),
+                            backgroundColor: '#bfdbfe',
+                            borderRadius: normalize(4),
+                            overflow: 'hidden',
+                            marginBottom: normalize(6),
+                          }}
+                        >
+                          <View
+                            style={{
+                              height: '100%',
+                              width: `${syncProgressPercent}%`,
+                              backgroundColor: '#2563eb',
+                              borderRadius: normalize(4),
+                            }}
+                          />
+                        </View>
+
+                        <View className="flex-row items-center justify-between">
+                          <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Medium', color: '#60a5fa' }}>
+                            진행률: {syncProgressPercent.toFixed(1)}%
+                          </Text>
+                          {tourSyncStatus.totalCount !== undefined && tourSyncStatus.totalCount > 0 && (
+                            <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Medium', color: '#1e40af' }}>
+                              {tourSyncStatus.processedCount || 0} / {tourSyncStatus.totalCount}건
+                            </Text>
+                          )}
+                        </View>
+                      </>
+                    );
+                  })()}
                 </View>
               ) : (
                 <View style={{ marginTop: normalize(4) }}>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
-import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { CARD_RADIUS, FONT_MD, FONT_SM, FONT_TITLE, GRID_PADDING, SPACING_XS } from '@/constants/layout';
+import { normalize } from '@/utils/normalize';
+import { CARD_RADIUS, FONT_2XS, FONT_MD, FONT_SM, FONT_TITLE, FONT_XS, GRID_PADDING } from '@/constants/layout';
 import { BRAND, CARD, TEXT_SUB } from '@/constants/colors';
 import { useFestivals } from '@/hooks/useFestival';
 import { regionLabelFrom } from '@/utils/spotMappers';
@@ -46,17 +46,10 @@ export default function FestivalSection({ onEventPress, onViewAll }: Props) {
   }, [festivalData?.content]);
 
   return (
-    <View style={{ marginTop: normalize(28) }}>
+    <View className="mt-7">
       {/* 헤더 */}
       <View style={{ paddingHorizontal: GRID_PADDING }}>
-        <View
-          style={{
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            alignItems: 'baseline',
-            marginBottom: SPACING_XS,
-          }}
-        >
+        <View className="flex-row justify-between items-baseline mb-1">
           <Text
             allowFontScaling={false}
             style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_TITLE, color: '#000', letterSpacing: -0.4 }}
@@ -90,7 +83,7 @@ export default function FestivalSection({ onEventPress, onViewAll }: Props) {
 
       {/* 가로 횡 스크롤 카드 목록 */}
       {isLoading ? (
-        <View style={{ flexDirection: 'row', gap: normalize(12), paddingHorizontal: GRID_PADDING }}>
+        <View className="flex-row" style={{ gap: normalize(12), paddingHorizontal: GRID_PADDING }}>
           <View style={{ width: CARD_WIDTH }}>
             <Skeleton width="100%" height={normalize(180)} borderRadius={CARD_RADIUS} />
           </View>
@@ -100,7 +93,7 @@ export default function FestivalSection({ onEventPress, onViewAll }: Props) {
         </View>
       ) : isError ? (
         <View style={{ paddingHorizontal: GRID_PADDING }}>
-          <View style={{ padding: normalize(18), borderRadius: CARD_RADIUS, backgroundColor: CARD, alignItems: 'center' }}>
+          <View className="items-center" style={{ padding: normalize(18), borderRadius: CARD_RADIUS, backgroundColor: CARD }}>
             <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: TEXT_SUB, marginBottom: normalize(6) }}>
               축제 정보를 불러오지 못했습니다.
             </Text>
@@ -113,7 +106,7 @@ export default function FestivalSection({ onEventPress, onViewAll }: Props) {
         </View>
       ) : festivalList.length === 0 ? (
         <View style={{ paddingHorizontal: GRID_PADDING }}>
-          <View style={{ padding: normalize(18), borderRadius: CARD_RADIUS, backgroundColor: CARD, alignItems: 'center' }}>
+          <View className="items-center" style={{ padding: normalize(18), borderRadius: CARD_RADIUS, backgroundColor: CARD }}>
             <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: TEXT_SUB }}>
               현재 예정된 축제 정보를 준비 중입니다.
             </Text>
@@ -149,7 +142,7 @@ export default function FestivalSection({ onEventPress, onViewAll }: Props) {
                       allowFontScaling={false}
                       style={{
                         fontFamily: 'Pretendard-SemiBold',
-                        fontSize: normalizeFontSize(10),
+                        fontSize: FONT_2XS,
                         color: 'rgba(255,255,255,0.65)',
                         letterSpacing: 0.5,
                         marginBottom: normalize(4),
@@ -189,7 +182,7 @@ export default function FestivalSection({ onEventPress, onViewAll }: Props) {
                       allowFontScaling={false}
                       style={{
                         fontFamily: 'Pretendard-Regular',
-                        fontSize: normalizeFontSize(12),
+                        fontSize: FONT_SM,
                         color: TEXT_SUB,
                         marginBottom: normalize(10),
                       }}
@@ -200,10 +193,8 @@ export default function FestivalSection({ onEventPress, onViewAll }: Props) {
 
                     {/* 상태 뱃지 */}
                     <View
+                      className="flex-row items-center justify-between"
                       style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
                         height: normalize(30),
                         paddingHorizontal: normalize(10),
                         borderRadius: normalize(8),
@@ -213,7 +204,7 @@ export default function FestivalSection({ onEventPress, onViewAll }: Props) {
                     >
                       <Text
                         allowFontScaling={false}
-                        style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(11), color: TEXT_SUB }}
+                        style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: TEXT_SUB }}
                       >
                         행사 상태
                       </Text>
@@ -222,7 +213,7 @@ export default function FestivalSection({ onEventPress, onViewAll }: Props) {
                           allowFontScaling={false}
                           style={{
                             fontFamily: 'Pretendard-SemiBold',
-                            fontSize: normalizeFontSize(11),
+                            fontSize: FONT_XS,
                             color: statusColor,
                           }}
                         >
@@ -233,21 +224,19 @@ export default function FestivalSection({ onEventPress, onViewAll }: Props) {
 
                     {/* 테마 태그 */}
                     <View
+                      className="self-start items-center justify-center"
                       style={{
-                        alignSelf: 'flex-start',
                         height: normalize(22),
                         paddingHorizontal: normalize(8),
                         borderRadius: normalize(11),
                         backgroundColor: '#fff',
-                        alignItems: 'center',
-                        justifyContent: 'center',
                       }}
                     >
                       <Text
                         allowFontScaling={false}
                         style={{
                           fontFamily: 'Pretendard-Regular',
-                          fontSize: normalizeFontSize(10),
+                          fontSize: FONT_2XS,
                           color: TEXT_SUB,
                         }}
                         numberOfLines={1}

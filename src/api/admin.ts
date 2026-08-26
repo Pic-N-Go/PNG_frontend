@@ -309,6 +309,8 @@ export const adminApi = {
       },
       10_000
     );
-    return res.json();
+    const json = (await res.json()) as any;
+    const body = json?.data !== undefined && json.data !== null ? json.data : json;
+    return body as TourSyncStatusResponse;
   },
 };

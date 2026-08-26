@@ -3,7 +3,7 @@ import { Pressable, Text, View } from 'react-native';
 import { NaverMapView, NaverMapMarkerOverlay } from '@mj-studio/react-native-naver-map';
 import { IconMapPin } from '@tabler/icons-react-native';
 import { normalize } from '@/utils/normalize';
-import { CARD_RADIUS, FONT_2XS } from '@/constants/layout';
+import { CARD_RADIUS, FONT_2XS, MAP_MINI_PIN_SIZE } from '@/constants/layout';
 import { BRAND, TEXT_SUB } from '@/constants/colors';
 import { isLocationInKorea, sanitizeKoreaLocation } from '@/utils/location';
 import { PIN_SPOT_IMAGE } from '@/constants/pins';
@@ -71,8 +71,8 @@ export default function MapBanner({ onPress, spotCount = 0, isLoading, userLocat
               key={String(s.id)}
               latitude={s.latitude}
               longitude={s.longitude}
-              width={20}
-              height={20}
+              width={MAP_MINI_PIN_SIZE}
+              height={MAP_MINI_PIN_SIZE}
               anchor={{ x: 0.5, y: 0.5 }}
               image={PIN_SPOT_IMAGE}
             />

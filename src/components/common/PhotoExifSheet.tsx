@@ -6,16 +6,14 @@ import { Aperture, Camera, MapPin, X } from 'lucide-react-native';
 import { PhotoExifData } from '@/types/photo';
 import { hasAnyExif } from '@/utils/spotMappers';
 import { isLocationInKorea } from '@/utils/location';
-import { BOTTOM_SHEET_RADIUS, FONT_2XS, FONT_LG, FONT_SM, FONT_XS, GRID_PADDING, HAIRLINE_WIDTH } from '@/constants/layout';
+import { BOTTOM_SHEET_RADIUS, FONT_2XS, FONT_LG, FONT_SM, FONT_XS, GRID_PADDING, HAIRLINE_WIDTH, MAP_MINI_PIN_SIZE, MAP_PREVIEW_HEIGHT } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { BRAND, BRAND_TINT, CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
 import { PIN_SPOT_IMAGE } from '@/constants/pins';
 
 const SURFACE = CARD;
 const ACCENT = BRAND;
-const MAP_PREVIEW_HEIGHT = 120;
-/** 미리보기 지도의 핀 너비(px). */
-const MAP_PIN_WIDTH = 20;
+const MAP_PIN_WIDTH = MAP_MINI_PIN_SIZE;
 
 interface Props {
   onClose: () => void;

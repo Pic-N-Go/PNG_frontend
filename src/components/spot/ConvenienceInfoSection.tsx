@@ -14,7 +14,7 @@ import {
   SquareParking,
   TrainFront,
 } from 'lucide-react-native';
-import { FONT_SM, FONT_TITLE, GRID_PADDING, HAIRLINE_WIDTH } from '@/constants/layout';
+import { FONT_MD, FONT_SM, FONT_TITLE, FONT_XS, GRID_PADDING, HAIRLINE_WIDTH } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import type { ConvenienceInfo, FacilityChipData, FacilityKey, FacilityStatus } from '@/types/spot';
 import type { FestivalProgressStatus } from '@/types/festival';
@@ -135,12 +135,12 @@ export default function ConvenienceInfoSection({ info, eventPeriod }: Props) {
                 행사 기간
               </Text>
               <View style={{ backgroundColor: statusBg, paddingHorizontal: normalize(6), paddingVertical: normalize(2), borderRadius: normalize(4) }}>
-                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(11), color: statusColor }}>
+                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, color: statusColor }}>
                   {statusLabel}
                 </Text>
               </View>
             </View>
-            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(15), color: C.text, fontVariant: ['tabular-nums'] }}>
+            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, color: C.text, fontVariant: ['tabular-nums'] }}>
               {eventPeriod.startDate} ~ {eventPeriod.endDate}
             </Text>
           </View>
