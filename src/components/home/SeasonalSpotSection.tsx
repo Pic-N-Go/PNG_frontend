@@ -140,17 +140,13 @@ export default function SeasonalSpotSection({ onSpotPress, onViewAll }: Props) {
     size: 8,
   }, { enabled: !searchData?.content || searchData.content.length === 0 });
 
-  const isLoading = isSearchLoading && isCategoryLoading;
+  const isLoading = isSearchLoading || (isCategoryLoading && (!searchData?.content || searchData.content.length === 0));
 
   const spotList: SpotResponse[] = useMemo(() => {
     const fromSearch = searchData?.content ?? [];
     if (fromSearch.length > 0) return fromSearch.slice(0, 6);
     return (categoryData?.content ?? []).slice(0, 6);
   }, [searchData?.content, categoryData?.content]);
-
-  if (!isLoading && spotList.length === 0) {
-    return null;
-  }
 
   return (
     <View style={{ marginTop: normalize(28) }}>
@@ -203,6 +199,14 @@ export default function SeasonalSpotSection({ onSpotPress, onViewAll }: Props) {
           </View>
           <View style={{ width: CARD_WIDTH }}>
             <Skeleton width="100%" height={normalize(180)} borderRadius={CARD_RADIUS} />
+          </View>
+        </View>
+      ) : spotList.length === 0 ? (
+        <View style={{ paddingHorizontal: GRID_PADDING }}>
+          <View style={{ padding: normalize(18), borderRadius: CARD_RADIUS, backgroundColor: CARD, alignItems: 'center' }}>
+            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: TEXT_SUB }}>
+              이달의 추천 포토스팟 정보를 준비 중입니다.
+            </Text>
           </View>
         </View>
       ) : (

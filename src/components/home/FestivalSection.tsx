@@ -29,21 +29,12 @@ function formatDateRange(startDate?: string, endDate?: string): string {
 const CARD_WIDTH = normalize(210);
 
 export default function FestivalSection({ onEventPress, onViewAll }: Props) {
-  const { data: ongoingData, isLoading: isOngoingLoading } = useFestivals({ status: 'ONGOING', size: 10 });
-  const { data: upcomingData, isLoading: isUpcomingLoading } = useFestivals({ status: 'UPCOMING', size: 10 });
-
-  const isLoading = isOngoingLoading || isUpcomingLoading;
+  // 백엔드가 종료된 축제를 제외한 목록을 기본 반환하므로 단일 쿼리로 안정적이고 빠르게 호출
+  const { data: festivalData, isLoading, isError, refetch } = useFestivals({ size: 10 });
 
   const festivalList = React.useMemo(() => {
-    const list = [...(ongoingData?.content ?? []), ...(upcomingData?.content ?? [])];
-    const seen = new Set<number>();
-    const unique = list.filter((item) => {
-      if (seen.has(item.id)) return false;
-      seen.add(item.id);
-      return true;
-    });
-
-    const sorted = unique.sort((a, b) => {
+    const list = festivalData?.content ?? [];
+    const sorted = [...list].sort((a, b) => {
       const hasDateA = a.eventStartDate ? 1 : 0;
       const hasDateB = b.eventStartDate ? 1 : 0;
       if (hasDateA !== hasDateB) return hasDateB - hasDateA;
@@ -52,11 +43,7 @@ export default function FestivalSection({ onEventPress, onViewAll }: Props) {
     });
 
     return sorted.slice(0, 6);
-  }, [ongoingData?.content, upcomingData?.content]);
-
-  if (!isLoading && festivalList.length === 0) {
-    return null;
-  }
+  }, [festivalData?.content]);
 
   return (
     <View style={{ marginTop: normalize(28) }}>
@@ -109,6 +96,27 @@ export default function FestivalSection({ onEventPress, onViewAll }: Props) {
           </View>
           <View style={{ width: CARD_WIDTH }}>
             <Skeleton width="100%" height={normalize(180)} borderRadius={CARD_RADIUS} />
+          </View>
+        </View>
+      ) : isError ? (
+        <View style={{ paddingHorizontal: GRID_PADDING }}>
+          <View style={{ padding: normalize(18), borderRadius: CARD_RADIUS, backgroundColor: CARD, alignItems: 'center' }}>
+            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: TEXT_SUB, marginBottom: normalize(6) }}>
+              축제 정보를 불러오지 못했습니다.
+            </Text>
+            <Pressable onPress={() => refetch()} hitSlop={8}>
+              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, color: BRAND }}>
+                다시 시도
+              </Text>
+            </Pressable>
+          </View>
+        </View>
+      ) : festivalList.length === 0 ? (
+        <View style={{ paddingHorizontal: GRID_PADDING }}>
+          <View style={{ padding: normalize(18), borderRadius: CARD_RADIUS, backgroundColor: CARD, alignItems: 'center' }}>
+            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: TEXT_SUB }}>
+              현재 예정된 축제 정보를 준비 중입니다.
+            </Text>
           </View>
         </View>
       ) : (
