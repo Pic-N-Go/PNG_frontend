@@ -191,6 +191,10 @@ export default function SearchResultScreen({ route, navigation }: Props) {
     ? filteredResults.length
     : (searchData?.totalElements ?? filteredResults.length);
 
+  const isResultEmpty = popularMode
+    ? filteredResults.length === 0
+    : (searchData ? (searchData.totalElements === 0 || searchRows.length === 0) : filteredResults.length === 0);
+
   // 인기순 모드에서도 결과 패널을 쓴다(포커스 패널의 최근·인기 검색어는 감춘다).
   const showResults = submitted || popularMode;
 
@@ -415,7 +419,7 @@ export default function SearchResultScreen({ route, navigation }: Props) {
                 <Skeleton key={i} width="100%" height={normalize(80)} borderRadius={normalize(12)} />
               ))}
             </View>
-          ) : isError && filteredResults.length === 0 ? (
+          ) : isError && isResultEmpty ? (
             <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(14) }}>
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_MD, color: TEXT_SUB }}>
                 {popularMode ? '인기 스팟을 불러오지 못했어요.' : '스팟 검색 결과를 불러오지 못했어요.'}
@@ -426,7 +430,7 @@ export default function SearchResultScreen({ route, navigation }: Props) {
                 </Text>
               </Pressable>
             </View>
-          ) : filteredResults.length === 0 ? (
+          ) : isResultEmpty ? (
             // paddingBottom을 두지 않는다 — 탭바가 빠진 영역 안에서 그냥 가운데 정렬하면 된다.
             // 탭바 높이를 더하면 빈 상태가 위로 치우쳐 보인다.
             <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: normalize(12) }}>
