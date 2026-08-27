@@ -33,7 +33,14 @@ export default function PostCard({ post, onPress, onToggleLike, onToggleBookmark
       <View style={{ height: normalize(230), position: 'relative' }}>
         {/* 사진이 로드되기 전/실패했을 때도 카드 높이가 유지되도록 대체 색을 배경으로 깔아둔다 */}
         <View style={{ flex: 1, backgroundColor: post.photoGradient[0] }}>
-          {mainPhoto && <Image source={{ uri: mainPhoto }} resizeMode="cover" style={{ width: '100%', height: '100%' }} />}
+          {mainPhoto && (
+            <Image
+              source={{ uri: mainPhoto }}
+              resizeMode="cover"
+              resizeMethod="resize"
+              style={{ width: '100%', height: '100%' }}
+            />
+          )}
         </View>
         {/* 위치는 사진 위에 겹치지 않고 아래 액션 행 왼쪽에서 보여준다 */}
         <Pressable

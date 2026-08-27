@@ -226,7 +226,12 @@ export default function ReviewTab({ spotId, onWriteReview, onEditReview }: Props
                         })
                       }
                     >
-                      <Image source={{ uri: photo.url }} resizeMode="cover" style={{ width: normalize(68), height: normalize(68), borderRadius: normalize(10), backgroundColor: '#E5E5EA' }} />
+                      <Image
+                        source={{ uri: photo.url }}
+                        resizeMode="cover"
+                        resizeMethod="resize"
+                        style={{ width: normalize(68), height: normalize(68), borderRadius: normalize(10), backgroundColor: '#E5E5EA' }}
+                      />
                     </Pressable>
                   ))}
                 </ScrollView>
