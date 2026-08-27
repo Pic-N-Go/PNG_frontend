@@ -300,6 +300,7 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose, 
                 <Image
                   source={{ uri }}
                   resizeMode="contain"
+                  resizeMethod="resize"
                   onError={(e) => __DEV__ && console.warn('[lightbox] 이미지 로드 실패:', e.nativeEvent, uri?.slice(0, 90))}
                   style={{ width: SCREEN_WIDTH, height: IMAGE_HEIGHT }}
                 />
@@ -377,6 +378,7 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose, 
                   <Image
                     source={{ uri: thumbUri }}
                     resizeMode="cover"
+                    resizeMethod="resize"
                     style={{
                       width: normalize(48),
                       height: normalize(48),

@@ -255,6 +255,7 @@ export default function MyReviewsScreen() {
                         <Image
                           source={{ uri: photo.url }}
                           resizeMode="cover"
+                          resizeMethod="resize"
                           style={{
                             width: normalize(56),
                             height: normalize(56),

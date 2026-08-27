@@ -339,7 +339,14 @@ export default function CommunityFeedScreen() {
                       backgroundColor: cell.color,
                     }}
                   >
-                    {!!cell.uri && <Image source={{ uri: cell.uri }} resizeMode="cover" style={{ width: '100%', height: '100%' }} />}
+                    {!!cell.uri && (
+                      <Image
+                        source={{ uri: cell.uri }}
+                        resizeMode="cover"
+                        resizeMethod="resize"
+                        style={{ width: '100%', height: '100%' }}
+                      />
+                    )}
                     {isPopular && (
                       <>
                         <View style={{ position: 'absolute', top: normalize(10), left: normalize(10), height: normalize(22), paddingHorizontal: normalize(9), borderRadius: normalize(11), backgroundColor: 'rgba(255,255,255,0.9)', alignItems: 'center', justifyContent: 'center' }}>
