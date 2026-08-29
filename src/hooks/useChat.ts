@@ -1,7 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AppState } from 'react-native';
 import { Client, type IFrame, type IMessage } from '@stomp/stompjs';
-import { keepPreviousData, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  keepPreviousData,
+  useInfiniteQuery,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { chatApi, getChatWebSocketUrl } from '@/api/chat';
 import {
   refreshAccessTokenForWebSocket,
@@ -11,6 +16,7 @@ import type { ChatConnectionStatus, ChatMessageResponse } from '@/types/chat';
 
 const RECONNECT_DELAY_MS = 3_000;
 const SEND_TIMEOUT_MS = 15_000;
+const MESSAGE_PAGE_SIZE = 20;
 const ACCESS_TOKEN_EXPIRED_MARKERS = [
   '만료된 WebSocket Access Token입니다.',
   'ACCESS_TOKEN_EXPIRED',
@@ -78,9 +84,18 @@ export function useChat(spotId: number) {
   const pendingMessageRef = useRef<PendingMessage | null>(null);
   const pendingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const messagesQuery = useQuery({
+  const messagesQuery = useInfiniteQuery({
     queryKey: ['chat', spotId, 'messages', accessToken ?? 'guest'],
-    queryFn: () => chatApi.getMessages(spotId, accessToken!),
+    queryFn: ({ pageParam }) =>
+      chatApi.getMessages(spotId, accessToken!, {
+        beforeId: pageParam,
+        size: MESSAGE_PAGE_SIZE,
+      }),
+    initialPageParam: undefined as number | undefined,
+    getNextPageParam: (lastPage) => {
+      if (lastPage.length < MESSAGE_PAGE_SIZE) return undefined;
+      return lastPage[0]?.id;
+    },
     enabled: !!accessToken && Number.isFinite(spotId),
     staleTime: 10_000,
     placeholderData: keepPreviousData,
@@ -374,10 +389,22 @@ export function useChat(spotId: number) {
     [clearPendingMessage, isSending, spotId, startPendingTimeout],
   );
 
-  const messages = useMemo(
-    () => mergeMessages(messagesQuery.data ?? [], liveMessages),
-    [liveMessages, messagesQuery.data],
+  const historyMessages = useMemo(
+    () => messagesQuery.data?.pages.flat() ?? [],
+    [messagesQuery.data],
   );
+
+  const messages = useMemo(
+    () => mergeMessages(historyMessages, liveMessages),
+    [historyMessages, liveMessages],
+  );
+
+  const { fetchNextPage, hasNextPage, isFetchingNextPage } = messagesQuery;
+
+  const fetchOlderMessages = useCallback(async () => {
+    if (!hasNextPage || isFetchingNextPage) return;
+    await fetchNextPage();
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   return {
     messages,
@@ -387,8 +414,12 @@ export function useChat(spotId: number) {
     isSending,
     isLoading: messagesQuery.isLoading || participantCountQuery.isLoading,
     isHistoryError: messagesQuery.isError || participantCountQuery.isError,
+    hasOlderMessages: hasNextPage,
+    isFetchingOlderMessages: isFetchingNextPage,
+    isOlderMessagesError: messagesQuery.isFetchNextPageError,
     currentUserId,
     sendMessage,
+    fetchOlderMessages,
     refetch: async () => {
       await Promise.all([messagesQuery.refetch(), participantCountQuery.refetch()]);
     },
