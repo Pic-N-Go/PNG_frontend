@@ -7,6 +7,7 @@ import MyVotesSheet from '@/components/community/MyVotesSheet';
 import MyEntriesSheet from '@/components/community/MyEntriesSheet';
 import Toast from '@/components/common/Toast';
 import { toErrorMessage } from '@/api/auth';
+import { useAuthStore } from '@/store/useAuthStore';
 import { voteHaptic } from '@/utils/haptics';
 import {
   useContestEntries,
@@ -65,6 +66,7 @@ interface Props {
 
 export default function ContestSegment({ onSelectPastItem, onSeeAllEntries, onOpenSubmit, onOpenEntry, onOpenResult }: Props) {
   const [subtab, setSubtab] = useState<SubtabKey>('active');
+  const isLoggedIn = useAuthStore((s) => !!s.accessToken);
   const [voteSort, setVoteSort] = useState<ContestSortKey>('latest');
 
   const currentQuery = useCurrentContest();
@@ -210,7 +212,8 @@ export default function ContestSegment({ onSelectPastItem, onSeeAllEntries, onOp
     });
   };
 
-  const isLoading = currentQuery.isPending || pastQuery.isPending;
+  // isPending은 enabled: false에서도 true라 비로그인이면 영원히 안 풀린다 — isLoading(=isPending && isFetching)을 쓴다
+  const isLoading = currentQuery.isLoading || pastQuery.isLoading;
   // 조회 실패와 "회차가 없다"는 다르다 — 없음은 currentQuery.data === null로 이미 표현된다
   const loadError = currentQuery.error ?? pastQuery.error ?? entriesQuery.error ?? null;
 
@@ -228,6 +231,20 @@ export default function ContestSegment({ onSelectPastItem, onSeeAllEntries, onOp
       })}
     </View>
   );
+
+  // 콘테스트 쿼리는 전부 토큰이 있어야 돈다 — 없으면 어느 탭이든 빈 화면이라 안내로 끊는다
+  if (!isLoggedIn) {
+    return (
+      <View style={{ flex: 1 }}>
+        {subtabBar}
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: CONTENT_PADDING }}>
+          <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, letterSpacing: -0.2, color: SUB }}>
+            로그인이 필요해요
+          </Text>
+        </View>
+      </View>
+    );
+  }
 
   if (subtab === 'active' && (isLoading || loadError)) {
     return (

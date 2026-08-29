@@ -199,7 +199,8 @@ function isWithinAwardWindow(resultOpenAt: string | null | undefined): boolean {
   if (!opened) return false;
   const until = new Date(opened);
   until.setMonth(until.getMonth() + 1);
-  return Date.now() < until.getTime();
+  const now = Date.now();
+  return now >= opened.getTime() && now < until.getTime();
 }
 
 export function mapAwardSummary(

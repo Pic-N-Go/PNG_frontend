@@ -124,11 +124,12 @@ export default function ContestSubmitScreen() {
 
       setPhotos((prev) => [...prev, ...fresh]);
       // 같은 자리에서 여러 장 찍는 경우가 많아, 직전 장에서 고른 장소를 기본값으로 미리 채운다.
-      const lastSpot = photos.length > 0 ? drafts[photos[photos.length - 1].id]?.spotName ?? '' : '';
+      // spotName만 옮기면 스팟 DB에서 고른 장소가 직접 입력으로 떨어진다 — spotId도 같이 넘긴다
+      const lastDraft = photos.length > 0 ? drafts[photos[photos.length - 1].id] : undefined;
       setDrafts((prev) => {
         const next = { ...prev };
         fresh.forEach((p) => {
-          next[p.id] = { caption: '', spotName: lastSpot };
+          next[p.id] = { caption: '', spotName: lastDraft?.spotName ?? '', spotId: lastDraft?.spotId };
         });
         return next;
       });

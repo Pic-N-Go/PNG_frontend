@@ -199,11 +199,12 @@ export default function ContestEntryDetailScreen() {
             /* 결과 발표 후 — 누를 수 없다. 1~3위만 핑크로 강조 */
             <View style={{ marginTop: normalize(20), height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS, backgroundColor: isAward ? BRAND_TINT : SURFACE, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: normalize(8) }}>
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, letterSpacing: -0.3, color: isAward ? ACCENT : '#000' }}>
-                {`${rank}위`}
+                {rank > 0 ? `${rank}위` : ''}
               </Text>
               {/* 목업 .rank__meta는 --font-base(14px) — 위 .rank__value(15px)와 다른 크기다 */}
+              {/* 목록에서 들어오면 rank가 없어 첫 페인트에 0위·0표가 스친다 — 조회가 끝날 때까지 비운다 */}
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(14), letterSpacing: -0.2, color: isAward ? ACCENT : '#8e8e93' }}>
-                {isAward ? `${voteCount}표` : `${totalCount}명 중 · ${voteCount}표`}
+                {rank <= 0 ? '' : isAward ? `${voteCount}표` : `${totalCount}명 중 · ${voteCount}표`}
               </Text>
             </View>
           ) : isVoting ? (

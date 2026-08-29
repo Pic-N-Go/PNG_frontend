@@ -79,7 +79,8 @@ export default function ContestMyEntryTab({ phase, contest, entryCount, maxEntri
     return (
       // flexGrow: 1 — 내용이 화면보다 짧을 때 빈 상태가 남은 공간을 차지해 세로 중앙에 설 수 있게 한다
       <ScrollView contentContainerStyle={{ flexGrow: 1, paddingBottom: normalize(24) }} showsVerticalScrollIndicator={false}>
-        {entryCount < maxEntries && (
+        {/* 투표 기간엔 출품이 닫혀 있다 — 자리가 남아도 CTA를 띄우면 안 된다 */}
+        {phase === 'SUBMITTING' && entryCount < maxEntries && (
           <View style={{ margin: normalize(18), marginTop: normalize(18), marginHorizontal: CONTENT_PADDING, padding: normalize(20), borderRadius: normalize(20), backgroundColor: SURFACE }}>
             <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, letterSpacing: -0.1, color: ACCENT }}>
               진행중 콘테스트

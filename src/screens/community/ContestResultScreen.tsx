@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -105,19 +105,56 @@ export default function ContestResultScreen() {
     );
   }
 
-  return (
-    <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right', 'bottom']}>
-      <View className="flex-row items-center" style={{ height: HEADER_HEIGHT, paddingLeft: normalize(12), paddingRight: CONTENT_PADDING, gap: normalize(4) }}>
-        <Pressable onPress={() => navigation.goBack()} hitSlop={8} accessibilityRole="button" accessibilityLabel="뒤로" className="items-center justify-center" style={{ width: normalize(40), height: normalize(40) }}>
-          <ChevronLeft size={normalize(22)} color="#000" strokeWidth={2} />
-        </Pressable>
-        <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_LG, letterSpacing: -0.4, color: '#000' }}>
-          {`${monthLabel} 수상작`}
-        </Text>
+  const header = (
+    <View className="flex-row items-center" style={{ height: HEADER_HEIGHT, paddingLeft: normalize(12), paddingRight: CONTENT_PADDING, gap: normalize(4) }}>
+      <Pressable onPress={() => navigation.goBack()} hitSlop={8} accessibilityRole="button" accessibilityLabel="뒤로" className="items-center justify-center" style={{ width: normalize(40), height: normalize(40) }}>
+        <ChevronLeft size={normalize(22)} color="#000" strokeWidth={2} />
+      </Pressable>
+      <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_LG, letterSpacing: -0.4, color: '#000' }}>
+        {`${monthLabel} 수상작`}
+      </Text>
+      {/* 집계 전엔 0명·0표가 되므로 결과가 있을 때만 띄운다 */}
+      {result && (
         <Text allowFontScaling={false} style={{ marginLeft: 'auto', fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, letterSpacing: -0.2, color: SUB }}>
           {`${participantCount}명 · ${totalVotes}표`}
         </Text>
-      </View>
+      )}
+    </View>
+  );
+
+  /**
+   * 발표 전 회차는 useContestResult가 null을 준다(RESULT_NOT_OPENED를 에러로 안 본다).
+   * 그대로 본문을 그리면 수상작도 순위도 없는 0명·0표 화면이 나오므로 여기서 끊는다.
+   */
+  if (resultQuery.isLoading || !result) {
+    return (
+      <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right', 'bottom']}>
+        {header}
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: CONTENT_PADDING, gap: normalize(12) }}>
+          {resultQuery.isLoading ? (
+            <ActivityIndicator color={ACCENT} />
+          ) : (
+            <>
+              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, letterSpacing: -0.2, color: SUB }}>
+                {resultQuery.error ? '결과를 불러오지 못했어요' : '아직 결과가 발표되지 않았어요'}
+              </Text>
+              {!!resultQuery.error && (
+                <Pressable onPress={() => resultQuery.refetch()}>
+                  <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, letterSpacing: -0.2, color: ACCENT }}>
+                    다시 시도
+                  </Text>
+                </Pressable>
+              )}
+            </>
+          )}
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  return (
+    <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right', 'bottom']}>
+      {header}
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: normalize(28) }}>
         {isAward ? (
