@@ -1,6 +1,8 @@
 import React, { Fragment, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
   Pressable,
   ScrollView,
   Text,
@@ -26,6 +28,7 @@ import { normalize, normalizeFontSize } from '@/utils/normalize';
 
 const AVATAR_COLORS = ['#0071e3', '#2c5364', '#c9705a', '#8e44ad', '#2e8b57'];
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
+const HISTORY_LOAD_THRESHOLD = 60;
 
 interface Props {
   spotId: number;
@@ -133,6 +136,20 @@ function MessageBubble({
 export default function ChatTab({ spotId, spotName, onFocusChange }: Props) {
   const [input, setInput] = useState('');
   const scrollRef = useRef<ScrollView>(null);
+  const previousMessageRangeRef = useRef<{
+    oldestId?: number;
+    newestId?: number;
+  }>({});
+  const hasCompletedInitialScrollRef = useRef(false);
+  const hasUserScrolledRef = useRef(false);
+  const hasTriggeredHistoryLoadRef = useRef(false);
+  const scrollOffsetRef = useRef(0);
+  const contentHeightRef = useRef(0);
+  const pendingHistoryAnchorRef = useRef<{
+    oldestId: number;
+    contentHeight: number;
+    offsetY: number;
+  } | null>(null);
   const {
     messages,
     participantCount,
@@ -141,8 +158,12 @@ export default function ChatTab({ spotId, spotName, onFocusChange }: Props) {
     isSending,
     isLoading,
     isHistoryError,
+    hasOlderMessages,
+    isFetchingOlderMessages,
+    isOlderMessagesError,
     currentUserId,
     sendMessage,
+    fetchOlderMessages,
     refetch,
   } = useChat(spotId);
 
@@ -174,9 +195,117 @@ export default function ChatTab({ spotId, spotName, onFocusChange }: Props) {
   );
 
   useEffect(() => {
-    const timer = setTimeout(() => scrollRef.current?.scrollToEnd({ animated: true }), 50);
+    previousMessageRangeRef.current = {};
+    hasCompletedInitialScrollRef.current = false;
+    hasUserScrolledRef.current = false;
+    hasTriggeredHistoryLoadRef.current = false;
+    scrollOffsetRef.current = 0;
+    contentHeightRef.current = 0;
+    pendingHistoryAnchorRef.current = null;
+  }, [spotId]);
+
+  const oldestMessageId = messages[0]?.id;
+  const newestMessageId = messages[messages.length - 1]?.id;
+
+  useEffect(() => {
+    if (oldestMessageId === undefined || newestMessageId === undefined) return;
+
+    const previousRange = previousMessageRangeRef.current;
+    const isInitialMessages = previousRange.newestId === undefined;
+    const hasNewMessage =
+      previousRange.newestId !== undefined &&
+      previousRange.newestId !== newestMessageId;
+
+    previousMessageRangeRef.current = {
+      oldestId: oldestMessageId,
+      newestId: newestMessageId,
+    };
+
+    if (!isInitialMessages && !hasNewMessage) return;
+    if (pendingHistoryAnchorRef.current && hasNewMessage) return;
+
+    const timer = setTimeout(() => {
+      scrollRef.current?.scrollToEnd({ animated: !isInitialMessages });
+      hasCompletedInitialScrollRef.current = true;
+    }, 50);
     return () => clearTimeout(timer);
-  }, [messages.length]);
+  }, [newestMessageId, oldestMessageId]);
+
+  const handleMessageScroll = (
+    event: NativeSyntheticEvent<NativeScrollEvent>,
+  ) => {
+    const offsetY = event.nativeEvent.contentOffset.y;
+    scrollOffsetRef.current = offsetY;
+    contentHeightRef.current = event.nativeEvent.contentSize.height;
+
+    if (offsetY > HISTORY_LOAD_THRESHOLD * 2) {
+      hasTriggeredHistoryLoadRef.current = false;
+      return;
+    }
+
+    const shouldLoadOlderMessages =
+      offsetY <= HISTORY_LOAD_THRESHOLD &&
+      hasCompletedInitialScrollRef.current &&
+      hasUserScrolledRef.current &&
+      !hasTriggeredHistoryLoadRef.current &&
+      hasOlderMessages &&
+      !isFetchingOlderMessages;
+
+    if (!shouldLoadOlderMessages) return;
+
+    hasTriggeredHistoryLoadRef.current = true;
+    pendingHistoryAnchorRef.current = {
+      oldestId: oldestMessageId,
+      contentHeight: contentHeightRef.current,
+      offsetY: scrollOffsetRef.current,
+    };
+    void fetchOlderMessages();
+  };
+
+  const handleContentSizeChange = (_width: number, height: number) => {
+    contentHeightRef.current = height;
+
+    const anchor = pendingHistoryAnchorRef.current;
+    if (
+      !anchor ||
+      oldestMessageId === undefined ||
+      oldestMessageId === anchor.oldestId ||
+      height <= anchor.contentHeight
+    ) {
+      return;
+    }
+
+    const nextOffsetY = Math.max(
+      0,
+      anchor.offsetY + height - anchor.contentHeight,
+    );
+    pendingHistoryAnchorRef.current = null;
+
+    requestAnimationFrame(() => {
+      scrollRef.current?.scrollTo({ y: nextOffsetY, animated: false });
+    });
+  };
+
+  const retryOlderMessages = () => {
+    if (
+      oldestMessageId === undefined ||
+      !hasOlderMessages ||
+      isFetchingOlderMessages
+    ) {
+      return;
+    }
+
+    pendingHistoryAnchorRef.current = {
+      oldestId: oldestMessageId,
+      contentHeight: contentHeightRef.current,
+      offsetY: scrollOffsetRef.current,
+    };
+    void fetchOlderMessages();
+  };
+
+  useEffect(() => {
+    if (isOlderMessagesError) pendingHistoryAnchorRef.current = null;
+  }, [isOlderMessagesError]);
 
   function handleSend() {
     const text = input.trim();
@@ -210,6 +339,12 @@ export default function ChatTab({ spotId, spotName, onFocusChange }: Props) {
         style={{ flex: 1 }}
         contentContainerStyle={{ flexGrow: 1, paddingHorizontal: normalize(16), paddingVertical: normalize(12), gap: normalize(12) }}
         keyboardShouldPersistTaps="handled"
+        onScroll={handleMessageScroll}
+        onContentSizeChange={handleContentSizeChange}
+        onScrollBeginDrag={() => {
+          hasUserScrolledRef.current = true;
+        }}
+        scrollEventThrottle={16}
       >
         {isLoading && messages.length === 0 ? (
           <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
@@ -229,7 +364,55 @@ export default function ChatTab({ spotId, spotName, onFocusChange }: Props) {
             )}
           </View>
         ) : (
-          renderedMessages
+          <>
+            {isFetchingOlderMessages && (
+              <View
+                style={{
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  paddingVertical: normalize(10),
+                }}
+              >
+                <ActivityIndicator color={BRAND} size="small" />
+              </View>
+            )}
+
+            {isOlderMessagesError && (
+              <View
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: normalize(10),
+                  paddingHorizontal: normalize(12),
+                  paddingVertical: normalize(10),
+                  backgroundColor: BRAND_TINT,
+                  borderRadius: normalize(10),
+                }}
+              >
+                <Text
+                  className="font-normal"
+                  allowFontScaling={false}
+                  style={{ flex: 1, fontSize: FONT_XS, color: 'rgba(0,0,0,0.5)' }}
+                >
+                  이전 메시지를 불러오지 못했어요.
+                </Text>
+                <Pressable
+                  onPress={retryOlderMessages}
+                  disabled={isFetchingOlderMessages}
+                  hitSlop={8}
+                >
+                  <Text
+                    allowFontScaling={false}
+                    style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, color: BRAND }}
+                  >
+                    다시 시도
+                  </Text>
+                </Pressable>
+              </View>
+            )}
+
+            {renderedMessages}
+          </>
         )}
 
         {messages.length > 0 && isHistoryError && (
