@@ -130,7 +130,7 @@ export default function ContestResultScreen() {
     return (
       <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right', 'bottom']}>
         {header}
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: CONTENT_PADDING, gap: normalize(12) }}>
+        <View className="flex-1 items-center justify-center" style={{ paddingHorizontal: CONTENT_PADDING, gap: normalize(12) }}>
           {resultQuery.isLoading ? (
             <ActivityIndicator color={ACCENT} />
           ) : (

@@ -212,10 +212,19 @@ export default function ContestSegment({ onSelectPastItem, onSeeAllEntries, onOp
     });
   };
 
-  // isPending은 enabled: false에서도 true라 비로그인이면 영원히 안 풀린다 — isLoading(=isPending && isFetching)을 쓴다
-  const isLoading = currentQuery.isLoading || pastQuery.isLoading;
+  /**
+   * 탭마다 보는 쿼리가 다르다 — 아직 안 온 쿼리의 빈 배열을 "없음"으로 그리면 안 된다.
+   * isPending은 enabled: false에서도 true라 비로그인이면 영원히 안 풀린다 —
+   * isLoading(=isPending && isFetching)을 쓴다.
+   */
+  const tabQueries: { isLoading: boolean; error: unknown; refetch: () => unknown }[] = {
+    active: [currentQuery, pastQuery, entriesQuery, myEntryQuery],
+    mine: [currentQuery, myEntryQuery, historyQuery],
+    past: [pastQuery],
+  }[subtab];
+  const isLoading = tabQueries.some((query) => query.isLoading);
   // 조회 실패와 "회차가 없다"는 다르다 — 없음은 currentQuery.data === null로 이미 표현된다
-  const loadError = currentQuery.error ?? pastQuery.error ?? entriesQuery.error ?? null;
+  const loadError = tabQueries.some((query) => query.error);
 
   const subtabBar = (
     <View className="flex-row" style={{ paddingHorizontal: CONTENT_PADDING, gap: normalize(20), borderBottomWidth: HAIRLINE_WIDTH, borderBottomColor: HAIRLINE }}>
@@ -246,7 +255,7 @@ export default function ContestSegment({ onSelectPastItem, onSeeAllEntries, onOp
     );
   }
 
-  if (subtab === 'active' && (isLoading || loadError)) {
+  if (isLoading || loadError) {
     return (
       <View style={{ flex: 1 }}>
         {subtabBar}
@@ -258,13 +267,7 @@ export default function ContestSegment({ onSelectPastItem, onSeeAllEntries, onOp
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, letterSpacing: -0.3, color: INK }}>
                 콘테스트를 불러오지 못했어요
               </Text>
-              <Pressable
-                onPress={() => {
-                  currentQuery.refetch();
-                  pastQuery.refetch();
-                  entriesQuery.refetch();
-                }}
-              >
+              <Pressable onPress={() => tabQueries.forEach((query) => query.refetch())}>
                 <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, letterSpacing: -0.2, color: ACCENT }}>
                   다시 시도
                 </Text>
