@@ -15,13 +15,20 @@ export type CommunityDetailStackParamList = {
   PostDetail: { postId: string; isMyPost?: boolean; photoIndex?: number };
   /** postId가 있으면 그 글의 수정 모드로 연다. 없으면 새 글 작성. */
   CommunityWrite: { postId?: string } | undefined;
-  /** submitTarget: 빈 상태 CTA가 출품 화면으로 넘길 값. 없으면 출품 경로를 막는다(남은 자리를 모르므로) */
-  ContestAllEntries: { mode?: 'voting' | 'past'; submitTarget?: ContestSubmitTarget } | undefined;
-  ContestResult: { monthLabel?: string; myRank?: number | null; myVotes?: number; participantCount?: number; totalVotes?: number } | undefined;
+  /**
+   * contestId는 필수다 — mode: 'past'로 열면 어느 회차인지 알 방법이 이것밖에 없다.
+   * (mock 시절에는 monthLabel 같은 표시 문자열만 넘겼는데, 그걸로는 서버를 부를 수 없다.)
+   * submitTarget: 빈 상태 CTA가 출품 화면으로 넘길 값. 없으면 출품 경로를 막는다(남은 자리를 모르므로)
+   */
+  ContestAllEntries: { contestId: string; mode?: 'voting' | 'past'; submitTarget?: ContestSubmitTarget };
+  /** contestId가 없으면 서버 결과를 못 부른다. 나머지는 조회 전 첫 페인트용 힌트다 */
+  ContestResult: { contestId: string; monthLabel?: string; myRank?: number | null };
   /** userId 없이 열면 서버에서 받아올 대상이 없어 빈 프로필이 뜬다 — 진입점에서 반드시 넘긴다 */
   UserProfile: { userId?: string } | undefined;
-  ContestSubmit: { theme?: string; monthLabel?: string; remainingSlots?: number } | undefined;
-  ContestEntryDetail: { entryId?: string; isMine?: boolean; isEnded?: boolean; rank?: number; totalCount?: number; voteCount?: number } | undefined;
+  /** 어느 회차에 내는지 모르면 출품 자체가 불가능하다 */
+  ContestSubmit: { contestId: string; theme?: string; monthLabel?: string; remainingSlots?: number };
+  /** 상세 조회가 /contests/{contestId}/entries/{entryId}라 회차 id가 함께 필요하다 */
+  ContestEntryDetail: { contestId: string; entryId: string; isMine?: boolean; isEnded?: boolean; rank?: number; totalCount?: number; voteCount?: number };
   /** 마이페이지와 같은 화면을 재사용한다. userId를 넘기면 그 사람의 팔로워·팔로잉 목록이 열린다. */
   Follow: { initialTab: 'followers' | 'following'; userId?: number };
 };

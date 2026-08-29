@@ -1,3 +1,4 @@
+import ContestPhoto from '@/components/community/ContestPhoto';
 import React from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { ThumbsUp } from 'lucide-react-native';
@@ -60,7 +61,14 @@ export default function MyVotesSheet({ visible, onClose, entries, votesLeft, max
           <View style={{ marginTop: normalize(18), gap: normalize(16) }}>
             {entries.map((entry) => (
               <View key={entry.id} style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(12) }}>
-                <Pressable onPress={() => onOpenEntry(entry.id)} style={{ width: normalize(44), height: normalize(44), borderRadius: normalize(11), backgroundColor: entry.gradient[0], flexShrink: 0 }} />
+                <Pressable onPress={() => onOpenEntry(entry.id)} style={{ flexShrink: 0 }}>
+                  <ContestPhoto
+                    gradient={entry.gradient}
+                    photoUrl={entry.photoUrl}
+                    radius={normalize(11)}
+                    style={{ width: normalize(44), height: normalize(44) }}
+                  />
+                </Pressable>
                 <Pressable onPress={() => onOpenEntry(entry.id)} style={{ flex: 1, minWidth: 0 }}>
                   <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, letterSpacing: -0.2, color: '#000' }}>
                     {entry.author}

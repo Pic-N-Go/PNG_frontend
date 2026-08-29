@@ -8,7 +8,16 @@ import { Check, ChevronLeft, MapPin, MoreHorizontal, Share as ShareIcon, Flag, T
 import BottomSheet from '@/components/common/BottomSheet';
 import ConfirmModal from '@/components/common/ConfirmModal';
 import Toast from '@/components/common/Toast';
-import DevStateSwitch from '@/components/common/DevStateSwitch';
+import ContestPhoto from '@/components/community/ContestPhoto';
+import { toErrorMessage } from '@/api/auth';
+import {
+  useContestById,
+  useContestEntryDetail,
+  useDeleteContestEntry,
+  useReportContestEntry,
+  useToggleVote,
+} from '@/hooks/useContest';
+import { announceLabel, dayLabel, mapContestEntry } from '@/utils/contestMappers';
 import { CommunityDetailStackParamList } from '@/navigation/stacks/CommunityDetailStack';
 import type { RootStackParamList } from '@/navigation';
 import { BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING, FONT_LG, FONT_MD, FONT_SM, FONT_XS, HAIRLINE_WIDTH, HEADER_HEIGHT } from '@/constants/layout';
@@ -19,37 +28,37 @@ import { BRAND, BRAND_TINT, CARD, HAIRLINE } from '@/constants/colors';
 /**
  * 콘테스트 출품작 상세 (시안 14a·14b·14d·14e·14f·14g) — 게시글 상세와 골격이 다르다.
  * 아바타·팔로우·댓글·저장·EXIF가 없고, 사진이 화면을 채우고 정보 블록 + 액션 하나로 끝난다.
- * TODO(API): route.params의 entryId 기준 실제 조회로 교체. 지금은 목업과 동일한 단일 mock.
  */
 
 const ACCENT = BRAND;
 const SURFACE = CARD;
-const MAX_VOTES = 3;
-
-// spotId가 있으면 스팟 DB에서 고른 경우, 없으면 자유 입력 — 자유 입력은 스팟 상세로 연결되지 않는다.
-const MOCK_ENTRY = {
-  author: '@sunset_jk',
-  dateLabel: '8월 6일 출품',
-  caption: '해가 넘어가기 직전의 광안대교. 바람이 잔잔해서 물 반영도 깨끗하게 담겼습니다.',
-  spot: '광안리 해수욕장',
-  spotId: 'spot-1' as string | null,
-  gradient: ['#1a1530', '#5a3355', '#d4856a'] as [string, string, string],
-};
 
 export default function ContestEntryDetailScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<CommunityDetailStackParamList & RootStackParamList>>();
   const route = useRoute<RouteProp<CommunityDetailStackParamList, 'ContestEntryDetail'>>();
-  // 내 작품 여부·종료 여부는 진입 경로가 넘긴다. 아직 넘기는 곳이 없어 __DEV__ 스위처로도 연다.
-  const [devVariant, setDevVariant] = useState<'route' | 'mine' | 'ended'>('route');
-  const isMine = devVariant === 'mine' || (devVariant === 'route' && (route.params?.isMine ?? false));
-  const isEnded = devVariant === 'ended' || (devVariant === 'route' && (route.params?.isEnded ?? false));
-  const rank = route.params?.rank ?? 18;
-  const totalCount = route.params?.totalCount ?? 214;
-  const voteCount = route.params?.voteCount ?? 33;
+  const contestId = route.params.contestId;
+  const entryId = route.params.entryId;
+
+  const entryQuery = useContestEntryDetail(contestId, entryId);
+  const contestQuery = useContestById(contestId);
+  const voteMutation = useToggleVote(contestId);
+  const deleteMutation = useDeleteContestEntry(contestId);
+  const reportMutation = useReportContestEntry();
+
+  const dto = entryQuery.data ?? null;
+  const entry = dto ? mapContestEntry(dto) : null;
+
+  // 내 작품·종료 여부는 서버가 판정한다. 진입 경로가 넘긴 값은 조회 전 첫 페인트에만 쓴다
+  const isMine = dto?.mine ?? route.params.isMine ?? false;
+  const isEnded = dto ? dto.phase === 'ENDED' : route.params.isEnded ?? false;
+  const rank = dto?.rank ?? route.params.rank ?? 0;
+  const voteCount = dto?.voteCount ?? route.params.voteCount ?? 0;
+  const totalCount = contestQuery.data?.participantCount ?? route.params.totalCount ?? 0;
 
   const insets = useSafeAreaInsets();
-  const [votesLeft, setVotesLeft] = useState(2);
-  const [voted, setVoted] = useState(false);
+  const maxVotes = dto?.voteLimit ?? 0;
+  const votesLeft = dto?.remainingVoteCount ?? 0;
+  const voted = dto?.voted ?? false;
   const deferredRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(
     () => () => {
@@ -63,11 +72,10 @@ export default function ContestEntryDetailScreen() {
   const [toastMessage, setToastMessage] = useState('');
   const [toastVisible, setToastVisible] = useState(false);
 
-  // 출품작은 아직 목데이터다. 공유 텍스트도 그 값에서 만든다 — 서버 연동 시 entry로 교체한다.
   const handleShare = async () => {
     const ok = await shareContent({
-      title: `${MOCK_ENTRY.spot} 출품작`,
-      message: [MOCK_ENTRY.caption, MOCK_ENTRY.spot].filter(Boolean).join('\n'),
+      title: dto?.spotName ? `${dto.spotName} 출품작` : '콘테스트 출품작',
+      message: [dto?.caption, dto?.spotName].filter(Boolean).join('\n'),
     });
     // 성공 토스트는 띄우지 않는다 — Android는 취소해도 성공으로 오므로 거짓이 된다.
     if (!ok) showToast('공유 화면을 열지 못했어요');
@@ -80,46 +88,56 @@ export default function ContestEntryDetailScreen() {
 
   // 투표 취소는 투표 기간 내 자유 — 확인 다이얼로그 없이 토스트만
   const toggleVote = () => {
-    if (isEnded || isMine) return;
-    if (voted) {
-      setVoted(false);
-      const remaining = Math.min(MAX_VOTES, votesLeft + 1);
-      setVotesLeft(remaining);
-      showToast(`투표를 취소했어요 · ${remaining}/${MAX_VOTES}`);
-      return;
-    }
-    if (votesLeft <= 0) return;
-    setVoted(true);
-    const remaining = votesLeft - 1;
-    setVotesLeft(remaining);
-    showToast(`투표했어요 · ${remaining}/${MAX_VOTES}`);
+    if (!dto || isEnded || isMine || voteMutation.isPending) return;
+    if (!voted && votesLeft <= 0) return;
+
+    voteMutation.mutate(
+      { entryId, voted },
+      {
+        onSuccess: (data) => {
+          // 상세는 별도 캐시라 목록과 함께 뒤집히지 않는다 — 직접 다시 받는다
+          entryQuery.refetch();
+          showToast(
+            voted
+              ? `투표를 취소했어요 · ${data.remainingVoteCount}/${data.voteLimit}`
+              : `투표했어요 · ${data.remainingVoteCount}/${data.voteLimit}`,
+          );
+        },
+        onError: (err) => showToast(toErrorMessage(err, '투표에 실패했어요')),
+      },
+    );
   };
 
-  const spent = !voted && votesLeft <= 0 && !isMine && !isEnded;
+  // 투표 CTA와 남은 표 안내는 투표 기간에만. 출품 기간에도 버튼이 떠서 누르면 서버가
+  // NOT_VOTING_PERIOD로 거절했다 — 눌러서 에러를 보게 하지 말고 아예 감춘다.
+  // 조회 전에는 phase를 모르므로 감춘 상태로 시작한다(잘못된 버튼을 잠깐이라도 보여주지 않는다).
+  const isVoting = dto?.phase === 'VOTING';
+  const spent = isVoting && !voted && votesLeft <= 0 && !isMine && !isEnded;
+
+  // CTA 대신 보여줄 안내. 날짜는 이 화면이 이미 부르고 있는 회차 조회에서 가져온다.
+  // 출품 기간에는 "언제부터", 집계 기간에는 "언제 발표"가 궁금한 값이라 문구를 나눈다.
+  const voteNotice = (() => {
+    const contest = contestQuery.data;
+    if (dto?.phase === 'RESULT') {
+      const announce = announceLabel(contest?.resultOpenAt);
+      return announce ? `투표가 끝났어요 · ${announce} 결과 발표` : '투표가 끝났어요';
+    }
+    const opensAt = dayLabel(contest?.voteStartAt);
+    return opensAt ? `투표는 ${opensAt}부터 할 수 있어요` : '투표 기간에 투표할 수 있어요';
+  })();
   const isAward = isEnded && rank <= 3;
 
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
-      {/* 이 화면만 사진이 상태바 아래까지 꽉 차서 스위처가 흐름 맨 앞에 온다 — 인셋을 안 주면 상태바 글자와 겹친다.
-          대신 상단 인셋을 여기서 소비하므로 아래 사진 위 네비는 인셋을 다시 주지 않는다(두 번 밀리면 버튼이 화면 중앙까지 내려온다) */}
-      {__DEV__ && (
-        <View style={{ paddingTop: insets.top, backgroundColor: '#000' }}>
-          <DevStateSwitch
-            options={[
-              { key: 'route', label: '14a 투표' },
-              { key: 'mine', label: '14e 내 작품' },
-              { key: 'ended', label: '14f 결과' },
-            ]}
-            value={devVariant}
-            onChange={setDevVariant}
-          />
-        </View>
-      )}
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom }}>
-        <View style={{ height: normalizeHeight(600), backgroundColor: MOCK_ENTRY.gradient[0] }}>
-          <LinearGradient colors={MOCK_ENTRY.gradient} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
+        <View style={{ height: normalizeHeight(600) }}>
+          <ContestPhoto
+            gradient={entry?.gradient ?? ['#1a1530', '#5a3355', '#d4856a']}
+            photoUrl={entry?.photoUrl}
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+          />
           <LinearGradient colors={['rgba(0,0,0,0.42)', 'rgba(0,0,0,0)']} style={{ position: 'absolute', top: 0, left: 0, right: 0, height: normalize(150) }} pointerEvents="none" />
-          <View style={{ paddingTop: __DEV__ ? 0 : insets.top }}>
+          <View style={{ paddingTop: insets.top }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: normalize(12), height: HEADER_HEIGHT, marginTop: normalize(2) }}>
               <Pressable onPress={() => navigation.goBack()} hitSlop={8} accessibilityRole="button" accessibilityLabel="뒤로" style={{ width: normalize(40), height: normalize(40), alignItems: 'center', justifyContent: 'center' }}>
                 <ChevronLeft size={normalize(22)} color="#fff" strokeWidth={2} />
@@ -136,14 +154,14 @@ export default function ContestEntryDetailScreen() {
         <View style={{ borderTopWidth: HAIRLINE_WIDTH, borderTopColor: HAIRLINE, paddingTop: normalize(22), paddingHorizontal: normalize(24), paddingBottom: normalize(24) }}>
           <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: normalize(8) }}>
             <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_LG, letterSpacing: -0.4, color: '#000' }}>
-              {MOCK_ENTRY.author}
+              {entry?.author ?? ''}
             </Text>
             <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, letterSpacing: -0.1, color: '#8e8e93' }}>
-              {MOCK_ENTRY.dateLabel}
+              {dto ? `${dayLabel(dto.createdAt)} 출품` : ''}
             </Text>
           </View>
           <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_MD, lineHeight: FONT_MD * 1.6, letterSpacing: -0.25, color: '#000', marginTop: normalize(10) }}>
-            {MOCK_ENTRY.caption}
+            {dto?.caption ?? ''}
           </Text>
 
           <View style={{ height: 1, backgroundColor: 'rgba(0,0,0,0.06)', marginVertical: normalize(18) }} />
@@ -151,10 +169,10 @@ export default function ContestEntryDetailScreen() {
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(8) }}>
             <MapPin size={normalize(17)} color="#8e8e93" strokeWidth={1.8} />
             <Text allowFontScaling={false} style={{ flex: 1, minWidth: 0, fontFamily: 'Pretendard-Regular', fontSize: FONT_MD, letterSpacing: -0.25, color: '#000' }}>
-              {MOCK_ENTRY.spot}
+              {dto?.spotName ?? ''}
             </Text>
-            {MOCK_ENTRY.spotId && (
-              <Pressable onPress={() => navigation.navigate('SpotStack', { screen: 'SpotDetail', params: { spotId: MOCK_ENTRY.spotId! } })}>
+            {dto?.spotId != null && (
+              <Pressable onPress={() => navigation.navigate('SpotStack', { screen: 'SpotDetail', params: { spotId: String(dto.spotId) } })}>
                 <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, letterSpacing: -0.2, color: ACCENT }}>
                   스팟 보기
                 </Text>
@@ -165,14 +183,14 @@ export default function ContestEntryDetailScreen() {
           {spent && (
             <View style={{ marginTop: normalize(20), paddingVertical: normalize(11), paddingHorizontal: normalize(14), borderRadius: normalize(12), backgroundColor: SURFACE }}>
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, letterSpacing: -0.2, color: '#5c5c60' }}>
-                남은 표 0/3 · 투표를 취소하면 다시 쓸 수 있어요
+                {`남은 표 0/${maxVotes} · 투표를 취소하면 다시 쓸 수 있어요`}
               </Text>
             </View>
           )}
-          {voted && votesLeft <= 0 && !isEnded && !isMine && (
+          {isVoting && voted && votesLeft <= 0 && !isEnded && !isMine && (
             <View style={{ marginTop: normalize(20), paddingVertical: normalize(11), paddingHorizontal: normalize(14), borderRadius: normalize(12), backgroundColor: SURFACE }}>
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, letterSpacing: -0.2, color: '#5c5c60' }}>
-                남은 표 0/3 · 다시 누르면 취소돼요
+                {`남은 표 0/${maxVotes} · 다시 누르면 취소돼요`}
               </Text>
             </View>
           )}
@@ -181,14 +199,15 @@ export default function ContestEntryDetailScreen() {
             /* 결과 발표 후 — 누를 수 없다. 1~3위만 핑크로 강조 */
             <View style={{ marginTop: normalize(20), height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS, backgroundColor: isAward ? BRAND_TINT : SURFACE, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: normalize(8) }}>
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, letterSpacing: -0.3, color: isAward ? ACCENT : '#000' }}>
-                {isAward ? `8월 ${rank}위` : `${rank}위`}
+                {rank > 0 ? `${rank}위` : ''}
               </Text>
               {/* 목업 .rank__meta는 --font-base(14px) — 위 .rank__value(15px)와 다른 크기다 */}
+              {/* 목록에서 들어오면 rank가 없어 첫 페인트에 0위·0표가 스친다 — 조회가 끝날 때까지 비운다 */}
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(14), letterSpacing: -0.2, color: isAward ? ACCENT : '#8e8e93' }}>
-                {isAward ? `${voteCount}표` : `${totalCount}명 중 · ${voteCount}표`}
+                {rank <= 0 ? '' : isAward ? `${voteCount}표` : `${totalCount}명 중 · ${voteCount}표`}
               </Text>
             </View>
-          ) : (
+          ) : isVoting ? (
             <Pressable
               onPress={toggleVote}
               disabled={isMine || spent}
@@ -213,6 +232,14 @@ export default function ContestEntryDetailScreen() {
                 {isMine ? '내 출품작' : voted ? '투표함' : '투표하기'}
               </Text>
             </Pressable>
+          ) : (
+            /* 투표 기간이 아닐 때 CTA 자리를 비워두면 화면이 휑하다. 버튼 대신 회색 안내만 둔다 —
+               누를 수 없는 것을 버튼처럼 보이게 하지 않으면서 언제 열리는지는 알려준다. */
+            <View style={{ marginTop: normalize(20), paddingVertical: normalize(16), alignItems: 'center' }}>
+              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, letterSpacing: -0.2, color: '#8e8e93', textAlign: 'center' }}>
+                {voteNotice}
+              </Text>
+            </View>
           )}
         </View>
       </ScrollView>
@@ -248,7 +275,12 @@ export default function ContestEntryDetailScreen() {
             <Pressable
               onPress={() => {
                 setActionSheetVisible(false);
-                showToast('신고했어요. 검토 후 처리됩니다');
+                if (reportMutation.isPending) return;
+                reportMutation.mutate(entryId, {
+                  onSuccess: () => showToast('신고했어요. 검토 후 처리됩니다'),
+                  // 같은 작품을 두 번 신고하면 409다 — 서버 문구를 그대로 보여준다
+                  onError: (err) => showToast(toErrorMessage(err, '신고에 실패했어요')),
+                });
               }}
               style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(12), height: normalize(56), borderTopWidth: HAIRLINE_WIDTH, borderTopColor: HAIRLINE }}
             >
@@ -284,7 +316,10 @@ export default function ContestEntryDetailScreen() {
           onConfirm={() => {
             setDeleteModalVisible(false);
             setActionSheetVisible(false);
-            navigation.goBack();
+            deleteMutation.mutate(entryId, {
+              onSuccess: () => navigation.goBack(),
+              onError: (err) => showToast(toErrorMessage(err, '삭제에 실패했어요')),
+            });
           }}
           cancelLabel="취소"
           onCancel={() => setDeleteModalVisible(false)}

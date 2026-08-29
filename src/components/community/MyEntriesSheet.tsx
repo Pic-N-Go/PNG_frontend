@@ -3,6 +3,7 @@ import { Pressable, Text, View } from 'react-native';
 import { Info } from 'lucide-react-native';
 import BottomSheet from '@/components/common/BottomSheet';
 import ConfirmModal from '@/components/common/ConfirmModal';
+import ContestPhoto from '@/components/community/ContestPhoto';
 import { ContestEntry, ContestInfo, ContestPhase } from '@/types/community';
 import { BUTTON_HEIGHT, BUTTON_RADIUS, FONT_LG, FONT_SM, FONT_XS, GRID_PADDING } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
@@ -20,7 +21,8 @@ interface Props {
   visible: boolean;
   onClose: () => void;
   phase: ContestPhase;
-  contest: ContestInfo;
+  /** 진행 중 회차가 없으면 null */
+  contest: ContestInfo | null;
   maxEntries: number;
   entries: ContestEntry[];
   onDelete: (id: string) => void;
@@ -49,14 +51,14 @@ export default function MyEntriesSheet({ visible, onClose, phase, contest, maxEn
             </Text>
           </View>
           <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, letterSpacing: -0.2, color: TEXT_SUB, marginTop: normalize(4) }}>
-            {`${contest.theme} · ${contest.monthLabel} 콘테스트 · 사진 ${maxEntries}장까지`}
+            {contest ? `${contest.theme} · ${contest.monthLabel} 콘테스트 · 사진 ${maxEntries}장까지` : `사진 ${maxEntries}장까지`}
           </Text>
 
           <View style={{ marginTop: normalize(16), padding: normalize(12), paddingHorizontal: normalize(14), borderRadius: normalize(12), backgroundColor: SURFACE, flexDirection: 'row', alignItems: 'flex-start', gap: normalize(8) }}>
             <Info size={normalize(15)} color="#8e8e93" strokeWidth={1.8} style={{ marginTop: normalize(2) }} />
             <Text allowFontScaling={false} style={{ flex: 1, fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, lineHeight: FONT_SM * 1.5, letterSpacing: -0.2, color: '#5c5c60' }}>
               {voting
-                ? '투표가 시작돼서 추가 출품은 할 수 없어요. 삭제는 가능하지만 받은 표도 함께 사라집니다.'
+                ? '투표가 시작돼서 추가 출품은 할 수 없어요.\n삭제는 가능하지만 받은 표도 함께 사라집니다.'
                 : '출품한 사진과 설명은 수정할 수 없어요. 바꾸려면 삭제하고 다시 출품해주세요.'}
             </Text>
           </View>
@@ -64,7 +66,12 @@ export default function MyEntriesSheet({ visible, onClose, phase, contest, maxEn
           <View style={{ marginTop: normalize(18), gap: normalize(16) }}>
             {entries.map((entry) => (
               <View key={entry.id} style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(12) }}>
-                <View style={{ width: normalize(52), height: normalize(52), borderRadius: normalize(12), backgroundColor: entry.gradient[0], flexShrink: 0 }} />
+                <ContestPhoto
+                  gradient={entry.gradient}
+                  photoUrl={entry.photoUrl}
+                  radius={normalize(12)}
+                  style={{ width: normalize(52), height: normalize(52), flexShrink: 0 }}
+                />
                 <View style={{ flex: 1, minWidth: 0 }}>
                   <Text allowFontScaling={false} numberOfLines={1} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, letterSpacing: -0.2, color: '#000' }}>
                     {entry.caption}
@@ -99,7 +106,7 @@ export default function MyEntriesSheet({ visible, onClose, phase, contest, maxEn
 
           {voting && (
             <Text allowFontScaling={false} style={{ marginTop: normalize(20), textAlign: 'center', fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, letterSpacing: -0.1, color: '#c7c7cc' }}>
-              {`삭제해도 다시 출품할 수 없어요 · ${contest.monthLabel} 1일 결과 발표`}
+              {contest ? `삭제해도 다시 출품할 수 없어요 · ${contest.resultAnnounceLabel} 결과 발표` : '삭제해도 다시 출품할 수 없어요'}
             </Text>
           )}
         </View>
