@@ -1,8 +1,13 @@
 import { ApiError, fetchWithAuthRetry, toHttpError } from '@/api/auth';
-import type { ChatMessageResponse, ChatParticipantResponse } from '@/types/chat';
+import type {
+  ChatMessagePageParams,
+  ChatMessageResponse,
+  ChatParticipantResponse,
+} from '@/types/chat';
 
 const BASE = process.env.EXPO_PUBLIC_API_URL ?? '';
 const TIMEOUT_MS = 10_000;
+const DEFAULT_MESSAGE_PAGE_SIZE = 20;
 
 if (__DEV__ && !BASE) {
   console.warn('[chat] EXPO_PUBLIC_API_URL 환경 변수가 설정되지 않았습니다. 채팅 연결이 실패할 수 있습니다.');
@@ -36,8 +41,19 @@ async function get<T>(path: string, accessToken: string): Promise<T> {
 }
 
 export const chatApi = {
-  getMessages: (spotId: number, accessToken: string) =>
-    get<ChatMessageResponse[]>(`/chats/${spotId}/messages`, accessToken),
+  getMessages: (
+    spotId: number,
+    accessToken: string,
+    { beforeId, size = DEFAULT_MESSAGE_PAGE_SIZE }: ChatMessagePageParams = {},
+  ) => {
+    const query = new URLSearchParams({ size: String(size) });
+    if (beforeId !== undefined) query.set('beforeId', String(beforeId));
+
+    return get<ChatMessageResponse[]>(
+      `/chats/${spotId}/messages?${query.toString()}`,
+      accessToken,
+    );
+  },
 
   getParticipantCount: (spotId: number, accessToken: string) =>
     get<number>(`/chats/${spotId}/participants/count`, accessToken),

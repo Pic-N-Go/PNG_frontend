@@ -5,47 +5,47 @@
 - 스펙 문서: `docs/ai/specs/feature/chat-integration/chat-integration.md`
 - 관련 도메인 (필수): `chat`, `auth`, `spot`
 - 관련 목업: `src/components/ui/spot/spot-detail.html`
-- 완료 목표: 기존 채팅 목업을 유지하면서 백엔드 REST·STOMP 채팅과 Refresh Token 재연결을 연결한다.
+- 완료 목표: 기존 채팅 목업과 실시간 연결을 유지하면서 최근 메시지를 20개씩 조회하고 `beforeId` 커서로 과거 메시지를 추가 조회한다.
 
 ## 2) 구현 전략
 
-- 핵심 접근: REST 초기 상태는 TanStack Query, 실시간 수명주기는 전용 훅, 인증 갱신은 기존 auth store single-flight 로직을 재사용한다.
-- 리스크: REST 조회와 실시간 이벤트 경쟁으로 중복·누락이 발생할 수 있고, 만료 STOMP 오류는 문자열 계약이다.
-- 리스크 완화: 먼저 구독을 활성화하고 메시지 ID로 병합하며, 만료 문구에만 재전송을 허용하고 재시도 횟수를 1회로 제한한다.
+- 핵심 접근: REST 메시지는 TanStack Query infinite query로 페이지를 관리하고, 각 추가 요청에는 현재 가장 오래된 메시지 ID를 `beforeId`로 전달한다. 실시간 수명주기는 전용 훅에서 유지하고 인증 갱신은 기존 auth store single-flight 로직을 재사용한다.
+- 리스크: REST 페이지와 실시간 이벤트 경쟁으로 중복·누락이 발생할 수 있고, 과거 메시지를 앞에 추가할 때 현재 스크롤이 튀거나 기존 자동 스크롤이 하단으로 이동시킬 수 있다. 만료 STOMP 오류는 문자열 계약이다.
+- 리스크 완화: 모든 REST 페이지와 실시간 메시지를 ID 기준으로 병합하고, 과거 메시지 추가와 새 메시지 수신의 스크롤 처리를 분리한다. 응답이 20개 미만이면 추가 조회를 종료하며, 만료 문구에만 재전송을 허용하고 재시도 횟수를 1회로 제한한다.
 
 ## 3) 작업 태스크 (작게 분할)
 
-### Task 1 - 타입/계약 및 의존성 정리
+### Task 1 - 메시지 조회 API 계약 정리
 
-- 대상 파일: `package.json`, `pnpm-lock.yaml`, `src/types/chat.ts`
-- 변경 내용: `@stomp/stompjs` 추가, 백엔드 DTO와 연결 상태 타입 정의.
-- 완료 조건: STOMP 클라이언트와 채팅 타입을 `any` 없이 사용할 수 있다.
+- 대상 파일: `src/api/chat.ts`, `src/types/chat.ts`
+- 변경 내용: 메시지 조회 함수가 선택적 `beforeId`와 기본 `size=20`을 쿼리 파라미터로 전달하도록 변경하고 페이지 조회 파라미터 타입을 정의한다.
+- 완료 조건: 최초 요청은 `beforeId` 없이 전송되고 추가 요청은 현재 가장 오래된 메시지 ID와 `size=20`을 전달한다.
 - 검증 방법: TypeScript 컴파일.
 
-### Task 2 - REST API 연결
+### Task 2 - 과거 메시지 페이지 상태 연결
 
-- 대상 파일: `src/api/chat.ts`, `src/hooks/useChat.ts`
-- 변경 내용: 최근 메시지와 참여자 수를 기존 인증 재시도 래퍼로 조회하고 spotId별 query key로 캐시.
-- 완료 조건: 초기 채팅 데이터가 인증 만료 자동 갱신을 포함해 조회된다.
-- 검증 방법: 타입 검사 및 Android 개발 빌드 수동 조회.
+- 대상 파일: `src/hooks/useChat.ts`
+- 변경 내용: 단일 메시지 `useQuery`를 infinite query로 전환하고, 페이지를 시간순으로 평탄화한 뒤 실시간 메시지와 ID 기준으로 병합한다. `fetchOlderMessages`, `hasOlderMessages`, 추가 로딩·오류 상태를 UI에 제공한다.
+- 완료 조건: 최초 20개 조회 후 가장 오래된 메시지 ID를 커서로 이전 20개를 가져오며, 20개 미만 응답 이후에는 추가 요청하지 않는다.
+- 검증 방법: 45개 테스트 메시지로 20개/20개/5개 페이지와 중복 제거 확인.
 
-### Task 3 - STOMP 및 인증 갱신 연결
+### Task 3 - 채팅 목록 상단 로딩 UI 연결
 
-- 대상 파일: `src/store/useAuthStore.ts`, `src/hooks/useChat.ts`
-- 변경 내용: 기존 session revision·single-flight를 보존하는 공개 갱신 액션, 연결·구독·입장·전송·퇴장·만료 재연결 구현.
-- 완료 조건: 최신 토큰이 CONNECT/SEND에 사용되고 만료 전송이 갱신 후 최대 한 번 재시도된다.
-- 검증 방법: 짧은 Access Token 만료 설정으로 Redis rotation과 재전송 확인.
+- 대상 파일: `src/components/spot/ChatTab.tsx`
+- 변경 내용: 메시지 목록 상단 도달 시 과거 메시지를 요청하고 상단 로더·재시도 상태를 표시한다. 과거 메시지를 앞에 추가할 때 현재 화면 위치를 보존하고, 기존 하단 자동 이동은 최초 진입·새 실시간 메시지·직접 전송과 구분한다.
+- 완료 조건: 과거 메시지 추가 전후 사용자가 보고 있던 메시지 위치가 유지되고 중복 요청이 발생하지 않는다.
+- 검증 방법: Android에서 상단 반복 스크롤, 느린 네트워크, 마지막 페이지 및 추가 조회 실패 후 재시도 확인.
 
-### Task 4 - 목업 UI 실데이터 전환
+### Task 4 - 기존 실시간 채팅 회귀 검증
 
-- 대상 파일: `src/components/spot/ChatTab.tsx`, `src/screens/spot/SpotDetailScreen.tsx`, `src/types/spot.ts`
-- 변경 내용: 목 데이터 제거, 실제 메시지·참여자 수·연결 상태 적용, spotId/spotName 전달, 사진 버튼 비활성화.
-- 완료 조건: 목업 구조를 유지하며 실제 채팅이 표시되고 입력 제한·빈/로딩/오류 상태가 동작한다.
-- 검증 방법: 두 클라이언트 송수신과 360~430dp 화면 확인.
+- 대상 파일: `src/hooks/useChat.ts`, `src/components/spot/ChatTab.tsx`
+- 변경 내용: REST 과거 페이지와 STOMP 수신 메시지의 병합, 재연결 후 캐시 동기화, 메시지 전송 및 참여자 수 표시의 기존 동작을 점검한다.
+- 완료 조건: 과거 메시지를 불러온 뒤에도 새 메시지가 한 번만 시간순으로 표시되고 인증 갱신·재연결 흐름이 유지된다.
+- 검증 방법: 두 클라이언트 송수신, REST/실시간 동일 ID 중복, 탭 이탈·재진입, Access Token 갱신 확인.
 
 ## 4) 검증 체크포인트
 
-- [x] Type check 통과 (`node_modules/.bin/tsc.CMD --noEmit`)
+- [x] Type check 통과 (`pnpm exec tsc --noEmit`)
 - [x] Lint 통과 (`pnpm lint`)
 - [ ] 주요 사용자 시나리오 수동 검증
 - [ ] 회귀 영향 범위 점검
@@ -53,21 +53,16 @@
 ## 5) 롤백 계획
 
 - 복원할 기존 파일:
-  - `package.json`
-  - `pnpm-lock.yaml`
-  - `src/store/useAuthStore.ts`
-  - `src/components/spot/ChatTab.tsx`
-  - `src/screens/spot/SpotDetailScreen.tsx`
-  - `src/types/spot.ts`
-- 제거할 신규 파일:
-  - `src/types/chat.ts`
   - `src/api/chat.ts`
   - `src/hooks/useChat.ts`
-- 되돌림 방법: 신규 채팅 파일을 제거하고, 변경된 기존 파일을 채팅 연동 이전 상태로 복원한 뒤 의존성을 다시 설치한다.
+  - `src/components/spot/ChatTab.tsx`
+  - `src/types/chat.ts` (페이지 조회 타입을 추가하는 경우)
+- 제거할 신규 파일: 없음.
+- 되돌림 방법: 메시지 API와 훅을 단일 최근 메시지 조회 방식으로 복원하고 채팅 목록의 상단 추가 로딩 처리를 제거한다.
 - 데이터 영향: 없음. 서버 메시지 및 기존 인증 저장 형식은 변경하지 않는다.
 
 ## 6) PR 구성
 
-- PR 제목(컨벤션): `feat: 스팟 실시간 채팅 연동`
-- 변경 요약(3줄 이내): REST 최근 메시지와 STOMP 실시간 채팅 연결, Refresh Token 만료 복구, 목업 UI 실데이터 전환.
-- 리뷰 요청 포인트: STOMP 수명주기 정리, 세션 revision 보호, REST/실시간 메시지 중복 제거, 목업 일치 여부.
+- PR 제목(컨벤션): `feat: 채팅 과거 메시지 커서 페이지네이션 연동`
+- 변경 요약(3줄 이내): 최초 메시지 20개 조회, `beforeId` 기반 과거 메시지 추가 로딩, REST 페이지와 STOMP 메시지 중복 제거 및 스크롤 위치 보존.
+- 리뷰 요청 포인트: infinite query 커서 계산, 마지막 페이지 판정, REST/실시간 메시지 중복 제거, 과거 메시지 추가 시 스크롤 위치 유지 여부.

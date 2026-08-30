@@ -9,6 +9,11 @@ export interface ChatMessageResponse {
   createdAt: string;
 }
 
+export interface ChatMessagePageParams {
+  beforeId?: number;
+  size?: number;
+}
+
 export interface ChatMessageSendRequest {
   content: string;
 }
