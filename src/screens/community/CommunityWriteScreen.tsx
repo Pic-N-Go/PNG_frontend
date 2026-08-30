@@ -470,6 +470,14 @@ export default function CommunityWriteScreen() {
 
           {/* 폼 */}
           <View onLayout={(e) => { formY.current = e.nativeEvent.layout.y; }} style={{ paddingHorizontal: CONTENT_PADDING }}>
+            {/* 원본 EXIF의 촬영 위치가 공개될 수 있으므로 사진 업로드 전에 안내한다. */}
+            <Text
+              allowFontScaling={false}
+              style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.28)', letterSpacing: -0.1, marginTop: normalize(8) }}
+            >
+              사진에 담긴 촬영 위치가 다른 사용자에게 보일 수 있어요
+            </Text>
+
             {/* 캡션 */}
             <View style={{ paddingTop: normalize(20), paddingBottom: normalize(8), borderBottomWidth: HAIRLINE_WIDTH, borderBottomColor: HAIRLINE }}>
               <TextInput
