@@ -264,7 +264,6 @@ export function PhotoExifSheetContent({
                   label={row.label}
                   value={row.value as string}
                   isLast={row.isLast}
-                  valueAlignRight={row.valueAlignRight}
                   numberOfLines={row.numberOfLines}
                 />
               ))}
