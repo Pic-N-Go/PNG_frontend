@@ -239,6 +239,7 @@ export interface PhotoExifDTO {
   flash: string | null;
   focalLength35mm: string | null;
   software: string | null;
+  address: string | null;
   latitude: number | null;
   longitude: number | null;
   fileSize: number | null;

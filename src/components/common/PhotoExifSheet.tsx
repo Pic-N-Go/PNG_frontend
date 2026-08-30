@@ -79,9 +79,7 @@ function MapPlaceholder() {
   );
 }
 
-/**
- * 촬영 위치 미리보기. 네이티브 네이버 지도로 렌더링하며, 조작 없는 정지 지도 형태를 유지한다.
- */
+/** 촬영 위치 미리보기. 좌표 값은 텍스트로 노출하지 않고 지도 렌더링에만 사용한다. */
 function LocationPreview({ lat, lng }: { lat: number; lng: number }) {
   const [isMapReady, setMapReady] = useState(false);
 
@@ -93,11 +91,7 @@ function LocationPreview({ lat, lng }: { lat: number; lng: number }) {
     <View pointerEvents="none" style={{ ...MAP_BOX_STYLE, overflow: 'hidden' }}>
       <NaverMapView
         style={{ flex: 1 }}
-        initialCamera={{
-          latitude: lat,
-          longitude: lng,
-          zoom: 14,
-        }}
+        initialCamera={{ latitude: lat, longitude: lng, zoom: 14 }}
         onInitialized={() => setMapReady(true)}
         isScrollGesturesEnabled={false}
         isZoomGesturesEnabled={false}
@@ -136,7 +130,19 @@ function SectionLabel({ label }: { label: string }) {
   );
 }
 
-function DetailRow({ label, value, isLast, valueAlignRight }: { label: string; value: string; isLast?: boolean; valueAlignRight?: boolean }) {
+function DetailRow({
+  label,
+  value,
+  isLast,
+  valueAlignRight,
+  numberOfLines = 1,
+}: {
+  label: string;
+  value: string;
+  isLast?: boolean;
+  valueAlignRight?: boolean;
+  numberOfLines?: number;
+}) {
   return (
     <View
       className="flex-row items-center justify-between"
@@ -147,7 +153,7 @@ function DetailRow({ label, value, isLast, valueAlignRight }: { label: string; v
       </Text>
       <Text
         allowFontScaling={false}
-        numberOfLines={1}
+        numberOfLines={numberOfLines}
         style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: '#000', letterSpacing: -0.2, maxWidth: valueAlignRight ? '60%' : undefined, textAlign: valueAlignRight ? 'right' : 'left' }}
       >
         {value}
@@ -172,11 +178,7 @@ export function PhotoExifSheetContent({
   exif,
   showMap = true,
 }: Props & {
-  /**
-   * 지도 미리보기 마운트 여부. `PhotoExifLayer`처럼 시트를 상시 마운트해두는 호출부는
-   * 시트를 실제로 연 뒤에만 true로 넘긴다 — 안 그러면 사용자가 열지도 않은 시트 때문에
-   * 카카오 SDK·타일 요청이 나가고, 촬영 좌표가 조회된다.
-   */
+  /** 시트가 실제로 열린 뒤에만 지도 SDK와 타일 요청을 시작한다. */
   showMap?: boolean;
 }) {
   const statCells = [
@@ -202,7 +204,11 @@ export function PhotoExifSheetContent({
     { label: '수정일', value: exif.modifiedAtLabel },
   ]);
 
-  const hasLocation = exif.gpsLat != null && exif.gpsLng != null;
+  const locationRows = withIsLast([
+    { label: '주소', value: exif.address, numberOfLines: 2 },
+  ]);
+  const hasCoordinates = exif.gpsLat != null && exif.gpsLng != null;
+  const hasLocation = locationRows.length > 0 || hasCoordinates;
   const hasGear = !!exif.camera || !!exif.lens;
 
   return (
@@ -250,13 +256,20 @@ export function PhotoExifSheetContent({
       {hasLocation && (
         <>
           <SectionLabel label="위치" />
-          <View style={{ backgroundColor: SURFACE, borderRadius: normalize(14), paddingHorizontal: normalize(16) }}>
-            {/* EXIF의 GPS는 도/분/초를 나눈 값이라 그대로 문자열화하면 37.512319444444444처럼
-                소수점 15자리가 나온다. 목업과 같은 6자리로 자른다(≈0.1m 해상도로 충분). */}
-            <DetailRow label="위도" value={exif.gpsLat!.toFixed(6)} />
-            <DetailRow label="경도" value={exif.gpsLng!.toFixed(6)} isLast />
-          </View>
-          {showMap ? <LocationPreview lat={exif.gpsLat!} lng={exif.gpsLng!} /> : <MapPlaceholder />}
+          {locationRows.length > 0 && (
+            <View style={{ backgroundColor: SURFACE, borderRadius: normalize(14), paddingHorizontal: normalize(16) }}>
+              {locationRows.map((row) => (
+                <DetailRow
+                  key={row.label}
+                  label={row.label}
+                  value={row.value as string}
+                  isLast={row.isLast}
+                  numberOfLines={row.numberOfLines}
+                />
+              ))}
+            </View>
+          )}
+          {hasCoordinates && (showMap ? <LocationPreview lat={exif.gpsLat!} lng={exif.gpsLng!} /> : <MapPlaceholder />)}
         </>
       )}
 
@@ -299,9 +312,7 @@ export function PhotoExifLayer({
   const insets = useSafeAreaInsets();
   const translateY = React.useRef(new Animated.Value(SCREEN_HEIGHT)).current;
 
-  // 시트는 항상 마운트된 채 화면 밖으로 밀려 있을 뿐이라, 지도까지 그대로 두면 사용자가
-  // 열지도 않은 시트가 네트워크를 쓴다. 한 번 연 뒤에만 마운트한다 — `open`으로 직접 걸면
-  // 닫기 애니메이션 도중 지도가 사라져 시트가 무너져 보인다.
+  // 시트가 항상 마운트되어 있어도 사용자가 실제로 열기 전에는 지도 네트워크 요청을 하지 않는다.
   const [everOpened, setEverOpened] = React.useState(false);
   React.useEffect(() => {
     if (open) setEverOpened(true);

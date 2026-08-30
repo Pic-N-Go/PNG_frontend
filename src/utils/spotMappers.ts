@@ -653,6 +653,7 @@ export function mapPhotoExif(dto: PhotoExifDTO): PhotoExifData {
     flash: exifLabel(dto.flash),
     focalLength35mm: dto.focalLength35mm ? `${stripMm(dto.focalLength35mm)}mm` : undefined,
     software: dto.software ?? undefined,
+    address: dto.address ?? undefined,
     gpsLat: dto.latitude ?? undefined,
     gpsLng: dto.longitude ?? undefined,
     filename: dto.fileName ?? undefined,
@@ -781,20 +782,22 @@ if (__DEV__) {
   const empty: PhotoExifDTO = {
     imageId: 1, cameraModel: null, lensModel: null, iso: null, fNumber: null, exposureTime: null,
     focalLength: null, exposureMode: null, meteringMode: null, whiteBalance: null, flash: null,
-    focalLength35mm: null, software: null, latitude: null, longitude: null, fileSize: null,
+    focalLength35mm: null, software: null, address: null, latitude: null, longitude: null, fileSize: null,
     fileFormat: null, fileName: null,
   };
   const full = mapPhotoExif({
     ...empty, imageId: 2, cameraModel: 'ILCE-7M4', iso: 100, fNumber: 'f/2.8',
     exposureTime: '1/500 sec', focalLength: '24 mm', focalLength35mm: '24 mm',
     meteringMode: 'Multi-segment', whiteBalance: 'Auto white balance', flash: 'Flash did not fire',
-    exposureMode: 'Manual exposure', fileSize: 8_808_038, fileFormat: 'JPEG',
+    exposureMode: 'Manual exposure', address: '서울특별시 중구 세종대로 110',
+    fileSize: 8_808_038, fileFormat: 'JPEG',
   });
   console.assert(full.focalLength === '24', 'focalLength에서 mm를 떼야 StatCell 단위와 겹치지 않는다');
   console.assert(full.focalLength35mm === '24mm', '35mm 환산은 DetailRow라 단위를 붙여야 한다');
   console.assert(full.shutter === '1/500s', "'1/500 sec' → '1/500s' 변환 오류");
   console.assert(full.metering === '다분할측광' && full.flash === '사용 안 함' && full.exposureMode === '수동', 'EXIF 한글화 오류');
   console.assert(full.fileSize === '8.4MB', `fileSize 포맷 오류: ${full.fileSize}`);
+  console.assert(full.address === '서울특별시 중구 세종대로 110', 'EXIF 주소 매핑 오류');
   console.assert(hasAnyExif(full) && !hasAnyExif(mapPhotoExif(empty)), 'EXIF 없음 판정 오류 (전 필드 null이면 false여야 함)');
   // 시트가 그리지 않는 필드만 있으면 빈 시트가 열린다 — '정보 없음'으로 떨어져야 한다.
   console.assert(!hasAnyExif({ shotAtLabel: '2026.08.18' }), 'shotAtLabel만 있으면 EXIF 없음이어야 한다');

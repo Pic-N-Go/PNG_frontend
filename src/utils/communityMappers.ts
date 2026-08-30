@@ -175,6 +175,7 @@ export function mapExif(dto: PhotoExifDTO | undefined, shootingTime?: string | n
     flash: dto.flash ?? undefined,
     focalLength35mm: dto.focalLength35mm ?? undefined,
     software: dto.software ?? undefined,
+    address: dto.address ?? undefined,
     gpsLat: dto.latitude ?? undefined,
     gpsLng: dto.longitude ?? undefined,
     filename: dto.fileName ?? undefined,

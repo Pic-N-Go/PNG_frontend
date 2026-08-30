@@ -17,6 +17,7 @@ export interface PhotoExifData {
   flash?: string;
   focalLength35mm?: string;
   software?: string;
+  address?: string;
   gpsLat?: number;
   gpsLng?: number;
   filename?: string;
