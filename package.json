@@ -13,6 +13,7 @@
     "web": "expo start --web",
     "filelist": "node scripts/generate-filelist.js",
     "build:apk": "eas build -p android --profile preview",
+    "build:onestore": "eas build -p android --profile onestore",
     "lint": "eslint .",
     "prepare": "husky",
     "licenses:gen": "node scripts/gen-licenses.mjs"
