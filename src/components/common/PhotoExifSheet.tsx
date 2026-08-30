@@ -205,7 +205,7 @@ export function PhotoExifSheetContent({
   ]);
 
   const locationRows = withIsLast([
-    { label: '주소', value: exif.address, valueAlignRight: true, numberOfLines: 2 },
+    { label: '주소', value: exif.address, numberOfLines: 2 },
   ]);
   const hasCoordinates = exif.gpsLat != null && exif.gpsLng != null;
   const hasLocation = locationRows.length > 0 || hasCoordinates;
