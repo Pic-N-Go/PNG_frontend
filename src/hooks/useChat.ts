@@ -3,6 +3,7 @@ import { AppState } from 'react-native';
 import { Client, type IFrame, type IMessage } from '@stomp/stompjs';
 import {
   keepPreviousData,
+  type InfiniteData,
   useInfiniteQuery,
   useQuery,
   useQueryClient,
@@ -238,8 +239,37 @@ export function useChat(spotId: number) {
         }
         publishPendingRetry(client);
 
+        // 재연결 때 무한 쿼리 전체를 다시 요청하면 커서 구간이 밀려 이미 조회한 과거 메시지가
+        // 캐시에서 사라질 수 있다. 최신 페이지 하나만 받아 기존 첫 페이지와 병합한다.
+        // TODO(chat-sync): 연결이 끊긴 동안 20개를 초과한 메시지가 생기면 중간 메시지를 놓칠 수 있다.
+        // 백엔드 afterId 커서 또는 기존 캐시와 겹칠 때까지 beforeId를 반복 조회하는 동기화가 필요하다.
+        void chatApi
+          .getMessages(spotId, tokenForConnection, { size: MESSAGE_PAGE_SIZE })
+          .then((latestMessages) => {
+            queryClient.setQueryData<InfiniteData<ChatMessageResponse[], number | undefined>>(
+              ['chat', spotId, 'messages', tokenForConnection],
+              (cached) => {
+                if (!cached) {
+                  return { pages: [latestMessages], pageParams: [undefined] };
+                }
+
+                return {
+                  ...cached,
+                  pages: [
+                    mergeMessages(cached.pages[0] ?? [], latestMessages),
+                    ...cached.pages.slice(1),
+                  ],
+                };
+              },
+            );
+          })
+          .catch((error: unknown) => {
+            if (__DEV__) console.warn('[chat] 재연결 후 최신 메시지 동기화 실패:', error);
+          });
+
         void queryClient.invalidateQueries({
-          queryKey: ['chat', spotId],
+          queryKey: ['chat', spotId, 'participants', 'count', tokenForConnection],
+          exact: true,
         });
       },
       onStompError: (frame) => {
