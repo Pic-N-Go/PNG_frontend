@@ -6,14 +6,9 @@ module.exports = {
     slug: 'png',
     version: '1.0.0',
     orientation: 'portrait',
-    icon: './assets/images/logo/logo_2.png',
+    icon: './assets/images/logo/icon.png',
     userInterfaceStyle: 'light',
     newArchEnabled: true,
-    splash: {
-      image: './assets/images/logo/logo_2.png',
-      resizeMode: 'contain',
-      backgroundColor: '#E31B59',
-    },
     scheme: Array.from(
       new Set([
         'png',
@@ -38,17 +33,32 @@ module.exports = {
       googleServicesFile: './google-services.json',
       permissions: ['android.permission.POST_NOTIFICATIONS'],
       adaptiveIcon: {
-        foregroundImage: './assets/images/logo/logo_2.png',
+        // 런처 마스크가 중앙 일부만 남기므로 icon.png보다 여백을 더 넣은 전용 파일을 쓴다.
+        foregroundImage: './assets/images/logo/icon-adaptive.png',
         backgroundColor: '#ffffff',
       },
       edgeToEdgeEnabled: true,
       predictiveBackGestureEnabled: false,
     },
     web: {
-      favicon: './assets/images/logo/logo_2.png',
+      favicon: './assets/images/logo/icon.png',
     },
     plugins: [
       'expo-secure-store',
+      [
+        // top-level splash는 SDK 52+에서 deprecated. 이 플러그인만이 Android 12+의
+        // windowSplashScreenBackground/AnimatedIcon을 넣어준다 — 없으면 시스템이
+        // windowBackground를 무시하고 흰 배경 + 런처 아이콘을 띄운다.
+        // 아이콘은 192dp 원으로 마스킹되므로 워드마크·로딩바는 들어가지 않는다.
+        // 핑크 배경에 묻히지 않게 흰색으로 채운 핀 마크를 쓴다(원본은 검정+핑크).
+        'expo-splash-screen',
+        {
+          backgroundColor: '#E31B59',
+          image: './assets/images/logo/splash-icon.png',
+          imageWidth: 180,
+          resizeMode: 'contain',
+        },
+      ],
       [
         // ponytail: prebuild 시 colorPrimary가 #023c69으로 덮어써지는 문제 방지
         './plugins/withAndroidColorPrimary',
