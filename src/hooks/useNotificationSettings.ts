@@ -191,8 +191,7 @@ export function useNotificationSettings(initial?: Partial<NotificationSettings>)
   const setMarketing = useCallback((value: boolean) => {
     const next = { ...latestSettingsRef.current, marketing: value };
     setSettings(next);
-    syncSettingsToApi(next);
-  }, [syncSettingsToApi]);
+  }, []);
 
   const setDndEnabled = useCallback((value: boolean) => {
     const next = {

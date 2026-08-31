@@ -60,7 +60,7 @@ const TERMS_CONTENT: Record<TermModalType, { title: string; subtitle: string; bo
     ]
   },
   privacy: {
-    title: '개인정보 수직 및 이용 동의',
+    title: '개인정보 수집 및 이용 동의',
     subtitle: '원활한 서비스 제공을 위해 최소한의 개인정보를 수집합니다.',
     body: [
       '1. 개인정보 수집 및 이용 목적\n• 회원 식별, 본인 확인, 회원제 서비스 제공 및 고객 상담\n• 위치 기반 주변 출사지 및 사진 촬영 명소 추천, 길안내 연동\n• 사진 업로드 및 포토 리뷰 커뮤니티 서비스 제공\n• 서비스 부정 이용 방지 및 계정 보호',

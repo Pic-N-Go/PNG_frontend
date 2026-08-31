@@ -207,7 +207,11 @@ export default function SettingScreen({ route, navigation }: Props) {
 
   const handleMarketingToggle = (value: boolean) => {
     toggleNotif(value, setMarketing);
-    const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '.');
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const dateStr = `${year}.${month}.${day}`;
     if (value) {
       Alert.alert('마케팅 정보 수신 동의', `마케팅 및 혜택 정보 수신에 동의하셨습니다.\n(처리일시: ${dateStr})`);
     } else {
