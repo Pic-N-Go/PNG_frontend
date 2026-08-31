@@ -9,7 +9,7 @@ import {
   IconBell, IconSun, IconMessageCircle,
   IconMoon, IconCurrentLocation, IconBan,
   IconMessage2Question, IconInfoCircle, IconLogout, IconTrash,
-  IconX, IconCheck, IconRefresh, IconShield,
+  IconX, IconCheck, IconRefresh, IconShield, IconAd2,
 } from '@tabler/icons-react-native';
 import { getMessaging, hasPermission, AuthorizationStatus } from '@react-native-firebase/messaging';
 import * as Location from 'expo-location';
@@ -35,7 +35,7 @@ const NEUTRAL_ICON_BG = '#eef0f2';
 const NEUTRAL_ICON_FG = '#615d59';
 
 export default function SettingScreen({ route, navigation }: Props) {
-  const { settings, setWishlist, setGolden, setCommunity, setDndEnabled, setDndTime, setDndRepeat } = useNotificationSettings();
+  const { settings, setWishlist, setGolden, setCommunity, setMarketing, setDndEnabled, setDndTime, setDndRepeat } = useNotificationSettings();
   const { unreadCount } = useInquiries();
   const user = useAuthStore((s) => s.user);
   const clearAuth = useAuthStore((s) => s.clearAuth);
@@ -205,6 +205,20 @@ export default function SettingScreen({ route, navigation }: Props) {
     apply(value);
   };
 
+  const handleMarketingToggle = (value: boolean) => {
+    toggleNotif(value, setMarketing);
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const day = String(now.getDate()).padStart(2, '0');
+    const dateStr = `${year}.${month}.${day}`;
+    if (value) {
+      Alert.alert('마케팅 정보 수신 동의', `마케팅 및 혜택 정보 수신에 동의하셨습니다.\n(처리일시: ${dateStr})`);
+    } else {
+      Alert.alert('마케팅 정보 수신 거부', `마케팅 및 혜택 정보 수신 동의가 철회되었습니다.\n(처리일시: ${dateStr})`);
+    }
+  };
+
   const handleLogout = () => {
     Alert.alert('로그아웃', '로그아웃 하시겠어요?', [
       { text: '취소', style: 'cancel' },
@@ -294,6 +308,18 @@ export default function SettingScreen({ route, navigation }: Props) {
               toggle
               toggleValue={settings.community}
               onToggle={(v) => toggleNotif(v, setCommunity)}
+              disabled={!hasSystemPermission}
+              disabledPress={openSystemNotifSettingsAlert}
+            />
+            <SettingRow
+              icon={IconAd2}
+              iconBg="#e0f2fe"
+              iconColor="#0284c7"
+              label="마케팅 및 혜택 알림"
+              desc="이벤트, 시즌별 출사지 혜택 안내 (선택)"
+              toggle
+              toggleValue={settings.marketing}
+              onToggle={handleMarketingToggle}
               disabled={!hasSystemPermission}
               disabledPress={openSystemNotifSettingsAlert}
             />

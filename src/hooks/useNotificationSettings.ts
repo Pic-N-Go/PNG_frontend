@@ -18,6 +18,7 @@ export interface NotificationSettings {
   wishlist: boolean;
   golden: boolean;
   community: boolean;
+  marketing: boolean;
   dnd: DndSettings;
 }
 
@@ -25,6 +26,7 @@ const DEFAULT_SETTINGS: NotificationSettings = {
   wishlist: true,
   golden: true,
   community: true,
+  marketing: false,
   dnd: {
     enabled: true,
     start: '22:00',
@@ -186,6 +188,11 @@ export function useNotificationSettings(initial?: Partial<NotificationSettings>)
     syncSettingsToApi(next);
   }, [syncSettingsToApi]);
 
+  const setMarketing = useCallback((value: boolean) => {
+    const next = { ...latestSettingsRef.current, marketing: value };
+    setSettings(next);
+  }, []);
+
   const setDndEnabled = useCallback((value: boolean) => {
     const next = {
       ...latestSettingsRef.current,
@@ -217,6 +224,7 @@ export function useNotificationSettings(initial?: Partial<NotificationSettings>)
     setWishlist,
     setGolden,
     setCommunity,
+    setMarketing,
     setDndEnabled,
     setDndTime,
     setDndRepeat,
