@@ -75,7 +75,7 @@ export default function SpotCarouselSection({
           <Pressable onPress={onAction} hitSlop={8}>
             <Text
               allowFontScaling={false}
-              style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_MD, color: BRAND }}
+              style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: BRAND }}
             >
               {actionLabel}
             </Text>

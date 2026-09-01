@@ -50,6 +50,10 @@
     <string>12.0</string>
     <key>LSRequiresIPhoneOS</key>
     <true/>
+    <key>NMFClientId</key>
+    <string>4h3ni6emuq</string>
+    <key>NMFNcpKeyId</key>
+    <string>4h3ni6emuq</string>
     <key>NSAppTransportSecurity</key>
     <dict>
       <key>NSAllowsArbitraryLoads</key>

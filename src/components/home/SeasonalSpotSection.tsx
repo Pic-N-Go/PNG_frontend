@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { normalize } from '@/utils/normalize';
-import { CARD_RADIUS, FONT_2XS, FONT_MD, FONT_SM, FONT_TITLE, FONT_XS, GRID_PADDING } from '@/constants/layout';
+import { CARD_RADIUS, FONT_2XS, FONT_MD, FONT_SM, FONT_TITLE, GRID_PADDING } from '@/constants/layout';
 import { BRAND, CARD, TEXT_SUB } from '@/constants/colors';
 import { useSearchSpots, useSpots } from '@/hooks/useSpot';
 import { regionLabelFrom } from '@/utils/spotMappers';
@@ -163,7 +163,7 @@ export default function SeasonalSpotSection({ onSpotPress, onViewAll }: Props) {
             <Pressable onPress={() => onViewAll(season.keyword)} hitSlop={8}>
               <Text
                 allowFontScaling={false}
-                style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_MD, color: BRAND }}
+                style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: BRAND }}
               >
                 모두 보기
               </Text>
@@ -236,7 +236,7 @@ export default function SeasonalSpotSection({ onSpotPress, onViewAll }: Props) {
                       }}
                       numberOfLines={1}
                     >
-                      {`${currentMonth}월 추천 · ${season.timeTip}`}
+                      {season.timeTip}
                     </Text>
                     <Text
                       allowFontScaling={false}
@@ -277,37 +277,6 @@ export default function SeasonalSpotSection({ onSpotPress, onViewAll }: Props) {
                     >
                       {tipText}
                     </Text>
-
-                    {/* 테마 뱃지 */}
-                    <View
-                      className="flex-row items-center justify-between"
-                      style={{
-                        height: normalize(30),
-                        paddingHorizontal: normalize(10),
-                        borderRadius: normalize(8),
-                        backgroundColor: '#fff',
-                        marginBottom: normalize(8),
-                      }}
-                    >
-                      <Text
-                        allowFontScaling={false}
-                        style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: TEXT_SUB }}
-                      >
-                        추천 테마
-                      </Text>
-                      <View style={{ backgroundColor: 'rgba(227, 27, 89, 0.1)', paddingHorizontal: normalize(6), paddingVertical: normalize(2), borderRadius: normalize(4) }}>
-                        <Text
-                          allowFontScaling={false}
-                          style={{
-                            fontFamily: 'Pretendard-SemiBold',
-                            fontSize: FONT_XS,
-                            color: BRAND,
-                          }}
-                        >
-                          이달의 출사지
-                        </Text>
-                      </View>
-                    </View>
 
                     {/* 카테고리 태그 */}
                     <View
