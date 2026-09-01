@@ -5,7 +5,7 @@ import Svg, { Polygon } from 'react-native-svg';
 import { IconBell } from '@tabler/icons-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { FONT_LG, FONT_MD, GRID_PADDING, ICON_MD } from '@/constants/layout';
+import { FONT_MD, FONT_XS, GRID_PADDING, ICON_MD } from '@/constants/layout';
 import { BRAND } from '@/constants/colors';
 
 const HERO_COLORS = ['#1a1530', '#2d1b4e', '#8b4a6b', '#d4856a', '#e8a87c', '#f0c89a'] as const;
@@ -90,22 +90,35 @@ export default function HeroSection({ onNotificationPress, hasUnread }: Props) {
           justifyContent: 'space-between',
         }}
       >
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-          <Image
-            source={require('../../../assets/images/logo/logo.png')}
-            style={{ width: normalize(26), height: normalize(26) }}
-            resizeMode="contain"
-          />
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
+          {/* 마크 전용(icon.png) + 투명 배경 → 어두운 hero 위 대비 위해 흰 원형 배경 */}
+          <View
+            style={{
+              width: normalize(26),
+              height: normalize(26),
+              borderRadius: normalize(13),
+              backgroundColor: '#fff',
+              overflow: 'hidden',
+              padding: normalize(1),
+            }}
+          >
+            <Image
+              source={require('../../../assets/images/logo/icon.png')}
+              style={{ width: '100%', height: '100%' }}
+              resizeMode="contain"
+            />
+          </View>
           <Text
             allowFontScaling={false}
             style={{
+              // LoginScreen의 'PIC N GO' 서브 워드마크와 동일 규격, 두께만 SemiBold
               fontFamily: 'Pretendard-SemiBold',
-              fontSize: FONT_LG,
+              fontSize: FONT_XS,
               color: '#fff',
-              letterSpacing: -0.5,
+              letterSpacing: 3.5,
             }}
           >
-            Pic N Go
+            PIC N GO
           </Text>
         </View>
 
