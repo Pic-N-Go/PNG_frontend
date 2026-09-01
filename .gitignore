@@ -64,6 +64,9 @@ Desktop.ini
 # Android debug keystore (개발용, 배포 키는 별도 관리)
 android/app/debug.keystore
 
+# Android SDK 경로 (머신별로 달라 커밋 대상이 아니다)
+android/local.properties
+
 # AI
 .cursor
 docs/ai/doc-sync-reports/
