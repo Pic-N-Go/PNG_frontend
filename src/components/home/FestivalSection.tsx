@@ -60,7 +60,7 @@ export default function FestivalSection({ onEventPress, onViewAll }: Props) {
             <Pressable onPress={onViewAll} hitSlop={8}>
               <Text
                 allowFontScaling={false}
-                style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_MD, color: BRAND }}
+                style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: BRAND }}
               >
                 모두 보기
               </Text>
