@@ -10,8 +10,8 @@ import {
   Aperture, Camera, ChevronLeft, ChevronRight, Clock, Cloud, Image as ImageIcon, MapPin, Plus, X,
 } from 'lucide-react-native';
 import OptionSheet from '@/components/common/OptionSheet';
+import ExifConsentSection from '@/components/common/ExifConsentSection';
 import TimePickerSheet from '@/components/spot/TimePickerSheet';
-import { parseExifDateTime } from '@/utils/exifDate';
 import type { LucideIcon } from 'lucide-react-native';
 import LocationSheet, { LocationOption } from '@/components/community/LocationSheet';
 import GearSheet from '@/components/community/GearSheet';
@@ -119,6 +119,8 @@ export default function CommunityWriteScreen() {
 
   const [photos, setPhotos] = useState<PickedPhoto[]>([]);
   const [caption, setCaption] = useState('');
+  const [technicalExifEnabled, setTechnicalExifEnabled] = useState(false);
+  const [locationExifEnabled, setLocationExifEnabled] = useState(false);
   const [location, setLocation] = useState<LocationOption | null>(null);
   const [camera, setCamera] = useState('');
   const [lens, setLens] = useState('');
@@ -136,20 +138,27 @@ export default function CommunityWriteScreen() {
   const { data: editing, isLoading: loadingPost, isError: loadFailed } = usePostForEdit(editingPostId);
   const submitting = isEdit ? updatePost.isPending : createPost.isPending;
 
+  // 사진이 없으면 적용 대상도 없다. 숨겨진 GRANTED 상태가 다음 사진에 그대로 적용되지 않도록 초기화한다.
+  useEffect(() => {
+    if (photos.length === 0) {
+      setTechnicalExifEnabled(false);
+      setLocationExifEnabled(false);
+    }
+  }, [photos.length]);
+
   /**
-   * 촬영 일시. 사진 EXIF에서 읽고, 없으면 작성자가 직접 고른다.
+   * 게시글의 촬영 시각. EXIF 동의 전에 클라이언트가 메타데이터를 읽지 않도록 작성자가 직접 고른다.
    *
    * 현재 시각을 기본값으로 채워두지 않는다 — 서버가 shootingTime을 @NotNull로 요구해서
    * 뭐라도 보내야 하는데, 사용자가 손대지 않으면 "업로드 시각"이 촬영 시각으로 저장돼 버린다.
    * 그래서 미정(null)일 때는 게시를 막아 반드시 고르게 한다.
    *
-   * 날짜는 EXIF에서 온 경우에만 보여준다. 서버가 LocalTime이라 어차피 저장되지 않는데,
-   * EXIF가 없을 때 오늘 날짜를 띄우면 촬영일인 것처럼 읽혀 틀린 정보가 된다.
+   * 서버 필드는 LocalTime이므로 날짜는 저장하지 않는다. 사진 자체의 촬영 일시는 기술 EXIF에
+   * 동의한 경우에만 서버 ExifExtractor가 별도로 추출한다.
    */
   const openedAt = useRef(new Date()).current;
   const [shotAt, setShotAt] = useState<Date | null>(null);
-  const [shotAtSource, setShotAtSource] = useState<'exif' | 'manual' | 'saved' | null>(null);
-  const [dateFromExif, setDateFromExif] = useState(false);
+  const [shotAtSource, setShotAtSource] = useState<'manual' | 'saved' | null>(null);
 
   /**
    * 수정 모드 폼 채우기. 서버 응답이 도착하면 한 번만 실행한다 —
@@ -186,12 +195,9 @@ export default function CommunityWriteScreen() {
   }, [isEdit, editing]);
 
   const timeLabel = shotAt ? `${pad(shotAt.getHours())}:${pad(shotAt.getMinutes())}` : '';
-  const shotDateLabel = shotAt && dateFromExif
-    ? `${shotAt.getFullYear()}.${pad(shotAt.getMonth() + 1)}.${pad(shotAt.getDate())}`
-    : '-';
+  const shotDateLabel = '-';
   const shotAtHint =
-    shotAtSource === 'exif' ? `${timeLabel} · 사진에서 가져옴`
-    : shotAtSource === 'manual' ? `${timeLabel} · 직접 선택`
+    shotAtSource === 'manual' ? `${timeLabel} · 직접 선택`
     : shotAtSource === 'saved' ? `${timeLabel} · 저장된 값`
     : '탭하여 시각 선택';
 
@@ -230,8 +236,6 @@ export default function CommunityWriteScreen() {
         // 통째로 날아간다 — 상세 라이트박스의 사진 정보 시트가 그 바이트에 의존한다.
         // 이유 전문은 ReviewWriteScreen의 같은 옵션 주석 참고.
         quality: 1,
-        // 촬영 일시를 사진에서 읽기 위해 EXIF를 함께 받는다.
-        exif: true,
         preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
       });
       if (result.canceled) return;
@@ -267,16 +271,6 @@ export default function CommunityWriteScreen() {
       if (overBudget > 0) skipped.push(`${overBudget}장은 전체 용량 한도를 넘어 담지 못했어요`);
       if (skipped.length > 0) Alert.alert('첨부하지 못한 사진', skipped.join('\n'));
       if (picked.length === 0) return;
-
-      // 사용자가 직접 고른 값과 이미 저장된 값은 덮지 않는다. 스크린샷·편집본은 EXIF가 없어 null이 온다.
-      if (shotAtSource !== 'manual' && shotAtSource !== 'saved') {
-        const exifDate = picked.map((a) => parseExifDateTime(a.exif)).find(Boolean);
-        if (exifDate) {
-          setShotAt(exifDate);
-          setShotAtSource('exif');
-          setDateFromExif(true);
-        }
-      }
 
       setPhotos((prev) => {
         const seen = new Set(prev.map((p) => p.id));
@@ -363,7 +357,14 @@ export default function CommunityWriteScreen() {
     }
 
     createPost.mutate(
-      { request, images: photos.map(toUpload) },
+      {
+        request: {
+          ...request,
+          technicalExifConsent: technicalExifEnabled ? 'GRANTED' : 'DECLINED',
+          locationExifConsent: locationExifEnabled ? 'GRANTED' : 'DECLINED',
+        },
+        images: photos.map(toUpload),
+      },
       {
         onSuccess: () => navigation.goBack(),
         onError: (err) => Alert.alert('게시글을 등록하지 못했어요', toErrorMessage(err, '잠시 후 다시 시도해 주세요.')),
@@ -470,13 +471,15 @@ export default function CommunityWriteScreen() {
 
           {/* 폼 */}
           <View onLayout={(e) => { formY.current = e.nativeEvent.layout.y; }} style={{ paddingHorizontal: CONTENT_PADDING }}>
-            {/* 원본 EXIF의 촬영 위치가 공개될 수 있으므로 사진 업로드 전에 안내한다. */}
-            <Text
-              allowFontScaling={false}
-              style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.28)', letterSpacing: -0.1, marginTop: normalize(8) }}
-            >
-              사진에 담긴 촬영 위치가 다른 사용자에게 보일 수 있어요
-            </Text>
+            {!isEdit && photos.length > 0 && (
+              <ExifConsentSection
+                technicalEnabled={technicalExifEnabled}
+                locationEnabled={locationExifEnabled}
+                onTechnicalChange={setTechnicalExifEnabled}
+                onLocationChange={setLocationExifEnabled}
+                style={{ paddingTop: normalize(16), paddingBottom: normalize(16), borderBottomWidth: HAIRLINE_WIDTH, borderBottomColor: HAIRLINE }}
+              />
+            )}
 
             {/* 캡션 */}
             <View style={{ paddingTop: normalize(20), paddingBottom: normalize(8), borderBottomWidth: HAIRLINE_WIDTH, borderBottomColor: HAIRLINE }}>

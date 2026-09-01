@@ -6,7 +6,7 @@ import { spotApi } from '@/api/spot';
 import type { ReviewPhotoUpload, MapSpotsParams, GetSpotsParams, SearchSpotsParams } from '@/api/spot';
 import { useAuthStore } from '@/store/useAuthStore';
 import { invertCollectionSpots, mapMyReviewPages, mapPhotogenicScore, mapReviewExif, mapReviewPages, mapSpotDetail, toHttps } from '@/utils/spotMappers';
-import type { ReviewCreateRequest, ReviewSortApi } from '@/types/spot';
+import type { ReviewCreateRequest, ReviewSortApi, ReviewUpdateRequest } from '@/types/spot';
 
 
 export function useSpotDetail(id: string) {
@@ -278,7 +278,7 @@ export function useUpdateReview(id: string) {
   const token = useAuthStore((s) => s.accessToken);
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ reviewId, body }: { reviewId: number; body: ReviewCreateRequest }) => {
+    mutationFn: ({ reviewId, body }: { reviewId: number; body: ReviewUpdateRequest }) => {
       if (!token) return Promise.reject(new ApiError('로그인이 필요합니다.'));
       return spotApi.updateReview(reviewId, body, token);
     },

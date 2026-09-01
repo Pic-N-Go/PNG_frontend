@@ -5,6 +5,7 @@ import type {
   BookmarkCollectionDTO,
   PhotogenicScoreResponse,
   ReviewCreateRequest,
+  ReviewUpdateRequest,
   MyReviewListResponse,
   ReviewedSpotResponse,
   ReviewListResponse,
@@ -229,7 +230,7 @@ export const spotApi = {
 
   // 작성과 달리 JSON. 서버가 사진을 다루지 않아 기존 사진은 그대로 유지된다(변경 불가).
   // 경로가 /spots/{spotId}가 아니라 /reviews/{reviewId}인 점에 주의.
-  updateReview: (reviewId: number, body: ReviewCreateRequest, token: string) =>
+  updateReview: (reviewId: number, body: ReviewUpdateRequest, token: string) =>
     request<ReviewResponseDTO>(`/reviews/${reviewId}`, { method: 'PUT', body, token }),
 
   // 204. 서버가 S3 사진 삭제와 스팟 통계 재계산까지 처리한다.

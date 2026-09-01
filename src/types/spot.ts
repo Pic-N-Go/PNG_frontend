@@ -1,3 +1,5 @@
+import type { ExifConsentStatus } from '@/types/photo';
+
 export type SpotBadge = 'HOT' | 'NEW';
 
 // 홈 스팟 카드 표시 모델.
@@ -327,7 +329,17 @@ export interface ReviewCreateRequest {
   tags: ReviewTagApi[];
   equipmentInfo?: string[];
   visitedAt: string; // yyyy-MM-dd
+  /** 카메라·렌즈·ISO·노출 등 기술 EXIF 추출 동의. 생성 시 필수. */
+  technicalExifConsent: ExifConsentStatus;
+  /** GPS 위도·경도 및 촬영 주소 추출 동의. 생성 시 필수. */
+  locationExifConsent: ExifConsentStatus;
 }
+
+/** PUT /reviews/{id}. 생성 시 결정한 EXIF 동의 상태는 수정하지 않는다. */
+export type ReviewUpdateRequest = Omit<
+  ReviewCreateRequest,
+  'technicalExifConsent' | 'locationExifConsent'
+>;
 
 /** POST/PUT 응답. 목록의 ReviewDTO와 달리 nickname이 없다. */
 export interface ReviewResponseDTO {
