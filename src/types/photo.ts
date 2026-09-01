@@ -1,3 +1,6 @@
+/** 백엔드 ExifConsentStatus 중 신규 작성 요청에서 허용하는 명시적 결정값. */
+export type ExifConsentStatus = 'GRANTED' | 'DECLINED';
+
 /**
  * 사진 EXIF 표시용 뷰모델. 커뮤니티 게시글 상세와 스팟 사진 상세(`photo-detail.html`)가
  * 공유한다. 값이 없는 필드는 행 자체를 렌더링하지 않으므로(원본 목업 주석 참고) 전부 옵셔널.

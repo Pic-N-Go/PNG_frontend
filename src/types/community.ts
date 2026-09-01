@@ -1,4 +1,4 @@
-import { PhotoExifData } from '@/types/photo';
+import type { ExifConsentStatus, PhotoExifData } from '@/types/photo';
 
 export interface PostAuthor {
   id: string;
@@ -182,13 +182,20 @@ export interface PostCreateRequestDTO {
   cameraModel?: string | null;
   lensModel?: string | null;
   tags?: string[];
+  /** 카메라·렌즈·ISO·노출 등 기술 EXIF 추출 동의. 생성 시 필수. */
+  technicalExifConsent: ExifConsentStatus;
+  /** GPS 위도·경도 및 촬영 주소 추출 동의. 생성 시 필수. */
+  locationExifConsent: ExifConsentStatus;
 }
 
-export interface PostUpdateRequestDTO extends PostCreateRequestDTO {
+export type PostUpdateRequestDTO = Omit<
+  PostCreateRequestDTO,
+  'technicalExifConsent' | 'locationExifConsent'
+> & {
   /** 수정 시 남길 기존 이미지 id. 배열 순서가 그대로 사진 순서가 된다.
    *  생략(undefined)하면 기존 이미지를 전부 유지한다(PostService.resolveRetainedImages). */
   retainedImageIds?: number[];
-}
+};
 
 /** `/users/{id}/profile` — 게시글 수·팔로우 여부는 서버에 없다 */
 export interface UserProfileDTO {
