@@ -25,6 +25,7 @@ import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { BORDER_CONTROL, BUTTON_HEIGHT, BUTTON_RADIUS, CARD_RADIUS, FONT_2XS, FONT_LG, FONT_MD, FONT_SM, FONT_XS, GRID_PADDING, HAIRLINE_WIDTH, INPUT_RADIUS } from '@/constants/layout';
 import type { ReviewPhotoDTO, ReviewTagApi, TimePeriodApi } from '@/types/spot';
 import { MAX_REVIEW_TAGS, REVIEW_TAGS } from '@/constants/reviewTags';
+import ExifConsentSection from '@/components/common/ExifConsentSection';
 import { BRAND, BRAND_TINT_ACTIVE, CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
 
 type Props = NativeStackScreenProps<SpotStackParamList, 'ReviewWrite'>;
@@ -151,6 +152,8 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
   const [content, setContent] = React.useState(edit?.content ?? '');
   const [contentFocused, setContentFocused] = React.useState(false);
   const [photos, setPhotos] = React.useState<PickedPhoto[]>([]);
+  const [technicalExifEnabled, setTechnicalExifEnabled] = React.useState(false);
+  const [locationExifEnabled, setLocationExifEnabled] = React.useState(false);
   // 수정 모드의 사진은 저장 버튼과 무관하게 즉시 서버에 반영되므로(전용 엔드포인트) 로컬 파일이
   // 아니라 서버가 준 목록을 그대로 들고 있는다. 작성 모드에서는 항상 빈 배열.
   const [serverPhotos, setServerPhotos] = React.useState<ReviewPhotoDTO[]>(edit?.photos ?? []);
@@ -175,6 +178,15 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
       .map((name) => ({ name, type: '내 장비에 없는 항목', isCamera: false }));
     return [...mine, ...orphans];
   }, [myEquipments, seeded]);
+
+  // 마지막 사진을 지우면 동의 대상도 사라진다. 이후 추가하는 사진에 이전 동의가 묵시적으로
+  // 재사용되지 않도록 두 상태를 개인정보 보호 기본값으로 되돌린다.
+  React.useEffect(() => {
+    if (!isEdit && photos.length === 0) {
+      setTechnicalExifEnabled(false);
+      setLocationExifEnabled(false);
+    }
+  }, [isEdit, photos.length]);
 
   const trimmed = content.trim();
   const canSubmit = rating > 0 && period !== null && trimmed.length >= CONTENT_MIN;
@@ -216,7 +228,8 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
     toISODate(visitedAt) !== initial.visitedAt ||
     equipment.join('|') !== initial.equipment ||
     [...tags].sort().join('|') !== initial.tags ||
-    photos.length > 0;
+    photos.length > 0 ||
+    (!isEdit && (technicalExifEnabled || locationExifEnabled));
 
   React.useEffect(() => {
     if (leaving) navigation.goBack();
@@ -253,12 +266,8 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
     setEquipment((prev) => (prev.includes(name) ? prev.filter((e) => e !== name) : [...prev, name]));
   };
 
-  // ponytail: EXIF를 지우지 않는다. 서버가 EXIF에서 촬영 위치(위도·경도)를 읽어 사진 정보 화면에
-  // 표시할 예정이라 GPS 태그가 유지되어야 한다.
-  // (docs/guide/api/photo-upload-spec.md의 "저장 시 GPS 제거" 규정은 이 결정으로 철회됨 — 갱신 완료)
-  // 주의: 그 표시 기능은 아직 없다 — 백엔드 ExifExtractor는 어디서도 호출되지 않는 죽은 코드다.
-  // 즉 지금은 좌표가 공개되기만 하고 쓰이지는 않는다. 리뷰 목록은 인증 없이 조회되므로
-  // 사진 섹션에 고지 문구를 뒀다. 표시 기능을 끝내 안 만들면 클라에서 GPS를 지우는 쪽이 맞다.
+  // 원본 EXIF는 서버가 작성 요청의 두 동의 상태에 따라 선택적으로 추출한다. 피커에서 원본 바이트를
+  // 유지해야 동의한 필드가 실제로 남아 있는 사진에서만 서버가 값을 읽을 수 있다.
   // 권한 요청·피커 호출 모두 reject할 수 있다(Android는 요청이 겹치면 IllegalStateException,
   // iOS는 presenting VC를 못 찾으면 예외). 처리하지 않으면 unhandled rejection으로 끝나
   // 프로덕션에서는 아무 반응도 없다. 재진입 가드까지 둬 더블탭도 막는다.
@@ -481,7 +490,14 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
       updateReview.mutate({ reviewId: edit.reviewId, body }, handlers);
       return;
     }
-    createReview.mutate({ body, photos: photos.map(({ uri, name, type }) => ({ uri, name, type })) }, handlers);
+    createReview.mutate({
+      body: {
+        ...body,
+        technicalExifConsent: technicalExifEnabled ? 'GRANTED' : 'DECLINED',
+        locationExifConsent: locationExifEnabled ? 'GRANTED' : 'DECLINED',
+      },
+      photos: photos.map(({ uri, name, type }) => ({ uri, name, type })),
+    }, handlers);
   };
 
   let contentHint = `최소 ${CONTENT_MIN}자 이상 입력해 주세요`;
@@ -794,14 +810,17 @@ export default function ReviewWriteScreen({ route, navigation }: Props) {
                 </Pressable>
               )}
             </ScrollView>
-            {/* 촬영 위치는 EXIF에 남긴다(아래 주석 참고). 공개 엔드포인트로 나가므로 고지한다. */}
-            <Text
-              allowFontScaling={false}
-              style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.28)', letterSpacing: -0.1, marginTop: normalize(8) }}
-            >
-              사진에 담긴 촬영 위치가 다른 사용자에게 보일 수 있어요
-            </Text>
           </Section>
+
+          {!isEdit && photos.length > 0 && (
+            <ExifConsentSection
+              technicalEnabled={technicalExifEnabled}
+              locationEnabled={locationExifEnabled}
+              onTechnicalChange={setTechnicalExifEnabled}
+              onLocationChange={setLocationExifEnabled}
+              style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(24) }}
+            />
+          )}
 
           {/* 사용 장비 */}
           <Section label="사용 장비" hint="선택">
