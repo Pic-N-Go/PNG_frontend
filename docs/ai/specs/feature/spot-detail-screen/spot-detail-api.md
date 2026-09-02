@@ -70,12 +70,15 @@ Base URL: `http://localhost:8080` (`EXPO_PUBLIC_API_URL`). 체크리스트는 `A
 | 체크리스트 삭제 | `DELETE /spots/{id}/checklist/{itemId}` | O | userItem만, `204` |
 | 기본 항목 숨김 | `DELETE /spots/{id}/checklist/default/{defaultItemId}` | O | defaultItem 숨김, 멱등, `204` |
 | 기본 항목 복원 | `POST /spots/{id}/checklist/default/{defaultItemId}/restore` | O | 숨김 해제, 멱등(숨겨져 있지 않아도 `204`) |
-| 사진 목록 | `GET /spots/{id}/photos` | X | TourAPI 사진만(유저 업로드 제외) → `stats.photoCount`보다 적을 수 있음 |
+| 사진 목록 | `GET /spots/{id}/photos` | X | TourAPI 사진만(유저 업로드 제외). `detailImage2`가 대표 사진(`firstimage`)을 응답에서 빼므로 `imageUrl`은 이 목록에 **없다** → 고유 장수 = `photos` + 대표 1 |
 | 포토제닉 | `GET /spots/{id}/photogenic-score?date=&time=` | X | `date`(yyyy-MM-dd)·`time`(HH:mm) 선택 파라미터. 5팩터 + 골든아워 카운트다운 |
 
 **응답 → 뷰 모델 매핑**
 
-- 상세: `badge(boolean)` → 라벨(true→"관광공사 인증"), `stats.avgRating/reviewCount/photoCount` → 평점·리뷰수·사진수, `imageUrl` → 히어로 단일 이미지(다중 카운터는 사진 탭 후속)
+- 상세: `badge(boolean)` → 라벨(true→"관광공사 인증"), `stats.avgRating/reviewCount` → 평점·리뷰수, `imageUrl` → 히어로 이미지
+  - **사진수에 `stats.photoCount`를 쓰지 않는다.** 그 값은 `spot_photo`만 세서 대표 사진이 빠진다(북촌한옥마을: 갤러리 10 + 대표 1 = 11인데 `photoCount`는 10).
+    `SpotDetailScreen`이 `imageUrl` + `photos`의 합집합(`viewerPhotos`)을 만들고, 그 길이를 헤더(`SpotInfoHeader photoCount`)와 라이트박스 카운터에 함께 넘겨 두 값이 어긋나지 않게 한다.
+  - 라이트박스는 대표를 **맨 앞**에 두므로 `1 / N`의 1번이 히어로에 보인 사진이다.
 - 편의정보(`convenience`) → `ConvenienceInfo`:
   - transport 카드: `parking`, `subwayAccess`
   - cells: **주차장**(`parking`), 휠체어(`wheelchairAccess`), 유모차(`strollerAccess`), 반려동물(`petFriendly`), 지하철(`subwayAccess`), 문의(`infocenter`) — 값이 "가능/있음"이면 `green`, 아니면 `default`
