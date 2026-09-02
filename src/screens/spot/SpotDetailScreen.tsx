@@ -217,7 +217,7 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
             onShare={handleShare}
             onBookmark={() => setBookmarkSheetVisible(true)}
           />
-          <SpotInfoHeader spot={spot} bookmarkCount={summary?.bookmarkCount} />
+          <SpotInfoHeader spot={spot} bookmarkCount={summary?.bookmarkCount} photoCount={viewerPhotos.length} />
           <SpotTabBar activeTab={activeTab} onChange={handleTabChange} />
 
           <View>
