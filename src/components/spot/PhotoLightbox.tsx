@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   Dimensions,
   Image,
   Modal,
   Pressable,
+  ScrollView,
   StatusBar,
   StyleSheet,
   Text,
@@ -46,6 +47,11 @@ interface Props {
 }
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
+
+// 썸네일 크기·간격은 스트립 렌더와 자동 스크롤 위치 계산이 같은 값을 써야 한다.
+const THUMB_SIZE = normalize(48);
+const THUMB_GAP = normalize(8);
+const STRIP_PADDING = normalize(16);
 const IMAGE_HEIGHT = SCREEN_HEIGHT * 0.7;
 const CLOSE_DRAG_DISTANCE = 120;
 const MAX_ZOOM = 4;
@@ -253,6 +259,20 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose, 
 
   const photoGesture = Gesture.Simultaneous(pinch, pan);
 
+  const safeIndex = Math.min(Math.max(index, 0), Math.max(photos.length - 1, 0));
+
+  // 스트립이 화면보다 넓으면(사진 7장 이상) 활성 썸네일이 화면 밖으로 나가 테두리가 안 보인다.
+  // 인덱스가 바뀔 때마다 그 썸네일을 가로 중앙으로 끌어온다. 넘치지 않으면 clamp가 0을 만들어 no-op.
+  const stripRef = useRef<ScrollView>(null);
+  useEffect(() => {
+    if (!visible || photos.length <= 1) return;
+    const step = THUMB_SIZE + THUMB_GAP;
+    const contentWidth = photos.length * THUMB_SIZE + (photos.length - 1) * THUMB_GAP + STRIP_PADDING * 2;
+    const maxOffset = Math.max(0, contentWidth - SCREEN_WIDTH);
+    const centered = STRIP_PADDING + safeIndex * step + THUMB_SIZE / 2 - SCREEN_WIDTH / 2;
+    stripRef.current?.scrollTo({ x: Math.min(Math.max(centered, 0), maxOffset), animated: true });
+  }, [safeIndex, visible, photos.length]);
+
   const photoStyle = useAnimatedStyle(() => ({
     width: SCREEN_WIDTH,
     height: IMAGE_HEIGHT,
@@ -264,7 +284,6 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose, 
 
   // visible로만 판정한다. photos가 비는 순간 Modal을 언마운트하면 fade 종료 애니메이션이 생략된다.
   if (!visible && photos.length === 0) return null;
-  const safeIndex = Math.min(Math.max(index, 0), Math.max(photos.length - 1, 0));
   const uri = photos[safeIndex];
 
   // EXIF 데이터 처리
@@ -358,10 +377,21 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose, 
 
           {/* 하단 썸네일 스트립 */}
           {photos.length > 1 && !exifOpen && (
-            <View
-              className="absolute flex-row items-center justify-center"
-              style={{ bottom: normalize(48), left: 0, right: 0, gap: normalize(8), zIndex: 10 }}
-              pointerEvents="box-none"
+            <ScrollView
+              ref={stripRef}
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              className="absolute"
+              style={{ bottom: normalize(48), left: 0, right: 0, maxHeight: THUMB_SIZE, zIndex: 10 }}
+              // flexGrow + justifyContent: 사진이 적어 스트립이 화면보다 좁으면 가운데,
+              // 넘치면 왼쪽 정렬로 자연히 전환된다 (justify-center만 쓰면 넘칠 때 양쪽이 잘린다).
+              contentContainerStyle={{
+                alignItems: 'center',
+                gap: THUMB_GAP,
+                paddingHorizontal: STRIP_PADDING,
+                flexGrow: 1,
+                justifyContent: 'center',
+              }}
             >
               {photos.map((thumbUri, i) => (
                 <Pressable
@@ -380,8 +410,8 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose, 
                     resizeMode="cover"
                     resizeMethod="resize"
                     style={{
-                      width: normalize(48),
-                      height: normalize(48),
+                      width: THUMB_SIZE,
+                      height: THUMB_SIZE,
                       borderRadius: normalize(8),
                       opacity: i === safeIndex ? 1 : 0.4,
                       borderWidth: i === safeIndex ? 1.5 : 0,
@@ -390,7 +420,7 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose, 
                   />
                 </Pressable>
               ))}
-            </View>
+            </ScrollView>
           )}
 
           <PhotoExifLayer

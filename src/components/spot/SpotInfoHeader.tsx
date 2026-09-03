@@ -10,9 +10,15 @@ import { BRAND, BRAND_TINT, CARD } from '@/constants/colors';
 interface Props {
   spot: SpotDetailInfo;
   bookmarkCount?: number;
+  /**
+   * 라이트박스에 실제로 뜨는 장수. spot.photoCount(=stats.photoCount)는 spot_photo만 세서
+   * TourAPI 대표 사진(spot.imageUrl)이 빠진다 — 대표는 detailImage2 응답에 없는 별개 이미지라
+   * 헤더가 10장, 라이트박스가 1/11로 어긋났다. 호출부가 합집합 길이를 넘긴다.
+   */
+  photoCount?: number;
 }
 
-export default function SpotInfoHeader({ spot, bookmarkCount }: Props) {
+export default function SpotInfoHeader({ spot, bookmarkCount, photoCount }: Props) {
   return (
     <View style={{ paddingHorizontal: GRID_PADDING, paddingVertical: normalize(20) }}>
       {spot.badge && (
@@ -60,7 +66,7 @@ export default function SpotInfoHeader({ spot, bookmarkCount }: Props) {
           {` · 저장 ${(bookmarkCount ?? 0).toLocaleString()}`}
         </Text>
         <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(14), color: 'rgba(0,0,0,0.35)', marginLeft: normalize(2) }}>
-          {` · 사진 ${(spot.photoCount ?? 0).toLocaleString()}장`}
+          {` · 사진 ${(photoCount ?? spot.photoCount ?? 0).toLocaleString()}장`}
         </Text>
       </View>
 
