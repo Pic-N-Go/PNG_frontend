@@ -1175,6 +1175,10 @@ export default function MapScreen() {
                       removeSpot(popupSpot.id);
                     } else {
                       addSpot(popupSpot);
+                      closeSheet();
+                      if (navigation.canGoBack()) {
+                        navigation.goBack();
+                      }
                     }
                   }}
                   className={`flex-1 items-center justify-center ${saved ? 'bg-brand' : 'bg-card'}`}
