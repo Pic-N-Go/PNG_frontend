@@ -47,7 +47,7 @@ function getCourseDuration(startDate: string, endDate: string) {
   return `${diffDays}박 ${diffDays + 1}일`;
 }
 
-export default function TravelListScreen({ navigation }: any) {
+export default function CourseListScreen({ navigation }: any) {
   const [activeTab, setActiveTab] = useState('all');
   const scrollY = useRef(new Animated.Value(0)).current;
 
@@ -75,13 +75,13 @@ export default function TravelListScreen({ navigation }: any) {
       title: course.title,
       date: dateFormatted,
       duration: durationFormatted,
-      spots: course.spots?.length ?? 0,
+      spots: course.spotCount ?? (course.spots?.length ?? 0),
       estimatedTime: '-',
       distance: '-',
       status,
       statusText,
       progressText: null,
-      thumbnails: [] as string[],
+      thumbnails: course.thumbnailUrls ?? [],
     };
   });
 
@@ -109,14 +109,14 @@ export default function TravelListScreen({ navigation }: any) {
     setActiveTab(tabId);
   };
 
-  // 새 출사 계획 화면으로 이동
+  // 새 코스 계획 화면으로 이동
   const handleNewPlan = () => {
-    navigation.navigate('TravelNew');
+    navigation.navigate('CourseNew');
   };
 
   // 상세 화면으로 이동
   const handlePlanDetail = (id: number) => {
-    navigation.navigate('TravelPlan', { planId: String(id) });
+    navigation.navigate('CoursePlan', { planId: String(id) });
   };
 
   const compactTitleOpacity = scrollY.interpolate({

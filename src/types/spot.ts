@@ -176,13 +176,15 @@ export interface Review {
   equipment?: string;
 }
 
-export interface TravelPlanOption {
+export interface CoursePlanOption {
   id: string;
   name: string;
   meta: string;
   days: string[] | null;
   thumbGradient: [string, string];
 }
+
+export type TravelPlanOption = CoursePlanOption;
 
 export type NaviAppId = 'kakao' | 'naver' | 'apple';
 

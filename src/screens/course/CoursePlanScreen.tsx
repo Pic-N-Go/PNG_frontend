@@ -31,10 +31,10 @@ import {
 } from "@tabler/icons-react-native";
 import { Share as ShareIcon } from "lucide-react-native";
 import NaviSheet from "@/components/spot/NaviSheet";
-import CourseMoreSheet from "@/components/travel/CourseMoreSheet";
+import CourseMoreSheet from "@/components/course/CourseMoreSheet";
 import { type Coordinate, parseValidCoordinate } from "@/utils/geo";
 import Toast from "@/components/common/Toast";
-import CourseChecklistSection from "@/components/travel/CourseChecklistSection";
+import CourseChecklistSection from "@/components/course/CourseChecklistSection";
 import { getCourseStats } from "@/utils/distance";
 import { getDayColor } from "@/constants/dayColors";
 import { FONT_XS, FONT_SM, FONT_MD, FONT_LG, CONTENT_PADDING, BUTTON_HEIGHT, BUTTON_RADIUS, CARD_RADIUS, HEADER_HEIGHT, ICON_SM , BORDER_CONTROL } from "@/constants/layout";
@@ -390,7 +390,7 @@ function mapCourseToData(course: any) {
   return result;
 }
 
-export default function TravelPlanScreen({ navigation, route }: any) {
+export default function CoursePlanScreen({ navigation, route }: any) {
   const { planId } = route?.params || {};
   const [currentDay, setCurrentDay] = useState<string>("1");
   const [isEditMode, setIsEditMode] = useState(false);
@@ -785,7 +785,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
               className="absolute top-3 right-3 bg-white/90 items-center justify-center rounded-lg shadow-sm"
               style={{ width: normalize(32), height: normalize(32) }}
               activeOpacity={0.8}
-              onPress={() => navigation.navigate('Map', { source: 'plan-view', planData: data, initialDay: currentDay, from: 'TravelPlan' })}
+              onPress={() => navigation.navigate('Map', { source: 'plan-view', planData: data, initialDay: currentDay, from: 'CoursePlan' })}
             >
               <IconArrowsMaximize size={normalize(20)} color="#000" />
             </TouchableOpacity>
@@ -1328,7 +1328,7 @@ export default function TravelPlanScreen({ navigation, route }: any) {
         courseName={course?.title || "출사 계획"}
         onEditName={() => {
           if (planId && course) {
-            navigation.navigate('TravelNew', {
+            navigation.navigate('CourseNew', {
               editMode: true,
               courseId: planId,
               initialTitle: course.title,

@@ -1,8 +1,8 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import TravelListScreen from '@/screens/travel/TravelListScreen';
-import TravelPlanScreen from '@/screens/travel/TravelPlanScreen';
-import TravelNewScreen from '@/screens/travel/TravelNewScreen';
+import CourseListScreen from '@/screens/course/CourseListScreen';
+import CoursePlanScreen from '@/screens/course/CoursePlanScreen';
+import CourseNewScreen from '@/screens/course/CourseNewScreen';
 
 import MapScreen from '@/screens/home/MapScreen';
 import MapSearchScreen from '@/screens/search/MapSearchScreen';
@@ -39,13 +39,13 @@ const Stack = createNativeStackNavigator<CourseStackParamList>();
 export default function CourseStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="CourseList" component={TravelListScreen} />
-      <Stack.Screen name="CoursePlan" component={TravelPlanScreen} />
-      <Stack.Screen name="CourseNew" component={TravelNewScreen} />
+      <Stack.Screen name="CourseList" component={CourseListScreen} />
+      <Stack.Screen name="CoursePlan" component={CoursePlanScreen} />
+      <Stack.Screen name="CourseNew" component={CourseNewScreen} />
 
-      <Stack.Screen name="TravelList" component={TravelListScreen} />
-      <Stack.Screen name="TravelPlan" component={TravelPlanScreen} />
-      <Stack.Screen name="TravelNew" component={TravelNewScreen} />
+      <Stack.Screen name="TravelList" component={CourseListScreen} />
+      <Stack.Screen name="TravelPlan" component={CoursePlanScreen} />
+      <Stack.Screen name="TravelNew" component={CourseNewScreen} />
 
       <Stack.Screen name="Map" component={MapScreen} />
       <Stack.Screen name="MapSearch" component={MapSearchScreen} />

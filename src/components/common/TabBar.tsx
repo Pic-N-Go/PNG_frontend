@@ -13,7 +13,7 @@ type TabIcon = typeof Home;
 const TABS: { route: string; label: string; Icon: TabIcon }[] = [
   { route: 'HomeTab',      label: '홈',      Icon: Home },
   { route: 'MapTab',       label: '지도',    Icon: Map },
-  { route: 'TravelTab',    label: '출사',    Icon: Route },
+  { route: 'CourseTab',    label: '코스',    Icon: Route },
   { route: 'CommunityTab', label: '커뮤니티', Icon: MessageCircle },
   { route: 'MyPageTab',    label: 'MY',      Icon: User },
 ];

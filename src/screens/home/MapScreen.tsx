@@ -8,7 +8,7 @@ import { useCourseStore, Spot } from '@/store/useCourseStore';
 import { useSpots, useMapSpots, useSearchSpots } from '@/hooks/useSpot';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useMapCluster } from '@/hooks/useMapCluster';
-import SpotPopup from '@/components/travel/SpotPopup';
+import SpotPopup from '@/components/course/SpotPopup';
 import BottomSheet from '@/components/common/BottomSheet';
 import FilterBottomSheet, { FilterState, EMPTY_FILTER } from '@/components/home/FilterBottomSheet';
 import SaveToPlanSheet from '@/components/spot/SaveToPlanSheet';

@@ -2,7 +2,7 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import HomeStack from './stacks/HomeStack';
 import MapStack from './stacks/MapStack';
-import TravelStack from './stacks/TravelStack';
+import CourseStack from './stacks/CourseStack';
 import CommunityStack from './stacks/CommunityStack';
 import MyPageStack from './stacks/MyPageStack';
 import TabBar from '@/components/common/TabBar';
@@ -10,7 +10,8 @@ import TabBar from '@/components/common/TabBar';
 export type MainTabParamList = {
   HomeTab: undefined;
   MapTab: undefined;
-  TravelTab: undefined;
+  CourseTab: undefined;
+  TravelTab?: undefined;
   CommunityTab: undefined;
   MyPageTab: undefined;
 };
@@ -25,7 +26,7 @@ export default function MainTab() {
     >
       <Tab.Screen name="HomeTab" component={HomeStack} />
       <Tab.Screen name="MapTab" component={MapStack} />
-      <Tab.Screen name="TravelTab" component={TravelStack} />
+      <Tab.Screen name="CourseTab" component={CourseStack} />
       <Tab.Screen name="CommunityTab" component={CommunityStack} />
       <Tab.Screen name="MyPageTab" component={MyPageStack} />
     </Tab.Navigator>

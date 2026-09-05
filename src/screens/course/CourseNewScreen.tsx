@@ -9,7 +9,7 @@ import {
   ScrollView,
   Modal,
   Pressable,
-
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native';
@@ -40,7 +40,7 @@ const MAX_TRIP_DAYS = 15;
 const toLocalDateString = (date: Date) =>
   `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 
-export default function TravelNewScreen() {
+export default function CourseNewScreen() {
   const navigation = useNavigation<any>();
 
   const route = useRoute<any>();
@@ -542,7 +542,15 @@ export default function TravelNewScreen() {
                       <Text className="font-semibold text-white" style={{ fontSize: normalizeFontSize(10) }}>{i + 1}</Text>
                     </View>
                     <View className="bg-card rounded-2xl p-3 flex-row items-center">
-                      <View className="w-[60px] h-[60px] rounded-xl overflow-hidden" style={{ backgroundColor: '#2d9cdb' }} />
+                      {spot.photo ? (
+                        <Image
+                          source={{ uri: spot.photo }}
+                          className="w-[60px] h-[60px] rounded-xl bg-gray-200"
+                          resizeMode="cover"
+                        />
+                      ) : (
+                        <View className="w-[60px] h-[60px] rounded-xl overflow-hidden bg-gray-300" />
+                      )}
                       <View className="flex-1 ml-3">
                         <Text className="font-semibold text-black mb-1" style={{ fontSize: FONT_MD }}>{spot.name}</Text>
                         <View className="flex-row items-center mb-1.5">
