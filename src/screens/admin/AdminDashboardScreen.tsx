@@ -35,6 +35,7 @@ import {
   IconClock,
   IconCheck,
   IconBolt,
+  IconTrophy,
 } from '@tabler/icons-react-native';
 import { normalize } from '@/utils/normalize';
 import { BORDER_CONTROL, BUTTON_RADIUS, CARD_RADIUS, FONT_2XL, FONT_2XS, FONT_LG, FONT_MD, FONT_SM, FONT_XS, GRID_PADDING, SPACING_MD, SPACING_SM } from '@/constants/layout';
@@ -61,9 +62,10 @@ import {
 } from '@/types/inquiry';
 import { useAuthStore } from '@/store/useAuthStore';
 import Toast from '@/components/common/Toast';
+import AdminContestTab from '@/components/admin/AdminContestTab';
 import { BRAND, BRAND_TINT, CARD, TEXT_SUB } from '@/constants/colors';
 
-type AdminTab = 'users' | 'inquiries' | 'embeddings' | 'tour';
+type AdminTab = 'users' | 'inquiries' | 'embeddings' | 'tour' | 'contests';
 
 export default function AdminDashboardScreen() {
   const insets = useSafeAreaInsets();
@@ -477,12 +479,20 @@ export default function AdminDashboardScreen() {
         <View style={{ width: normalize(40) }} />
       </View>
 
-      {/* Top Segmented Tabs (4 Tabs) */}
-      <View className="flex-row bg-white border-b-[0.5px] border-hairline" style={{ paddingHorizontal: GRID_PADDING }}>
+      {/* Top Segmented Tabs (5 Tabs) */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        className="bg-white border-b-[0.5px] border-hairline"
+        contentContainerStyle={{
+          flexDirection: 'row',
+          paddingHorizontal: GRID_PADDING,
+        }}
+      >
         <TouchableOpacity
           onPress={() => setActiveTab('users')}
           style={{
-            flex: 1,
+            paddingHorizontal: normalize(14),
             paddingVertical: normalize(13),
             alignItems: 'center',
             justifyContent: 'center',
@@ -511,7 +521,7 @@ export default function AdminDashboardScreen() {
         <TouchableOpacity
           onPress={() => setActiveTab('inquiries')}
           style={{
-            flex: 1,
+            paddingHorizontal: normalize(14),
             paddingVertical: normalize(13),
             alignItems: 'center',
             justifyContent: 'center',
@@ -540,7 +550,7 @@ export default function AdminDashboardScreen() {
         <TouchableOpacity
           onPress={() => setActiveTab('embeddings')}
           style={{
-            flex: 1,
+            paddingHorizontal: normalize(14),
             paddingVertical: normalize(13),
             alignItems: 'center',
             justifyContent: 'center',
@@ -569,7 +579,7 @@ export default function AdminDashboardScreen() {
         <TouchableOpacity
           onPress={() => setActiveTab('tour')}
           style={{
-            flex: 1,
+            paddingHorizontal: normalize(14),
             paddingVertical: normalize(13),
             alignItems: 'center',
             justifyContent: 'center',
@@ -594,7 +604,36 @@ export default function AdminDashboardScreen() {
             관광 동기화
           </Text>
         </TouchableOpacity>
-      </View>
+
+        <TouchableOpacity
+          onPress={() => setActiveTab('contests')}
+          style={{
+            paddingHorizontal: normalize(14),
+            paddingVertical: normalize(13),
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderBottomWidth: 2,
+            borderBottomColor: activeTab === 'contests' ? '#d97706' : 'transparent',
+            flexDirection: 'row',
+            gap: normalize(5),
+          }}
+        >
+          <IconTrophy
+            size={normalize(18)}
+            color={activeTab === 'contests' ? '#d97706' : TEXT_SUB}
+            strokeWidth={activeTab === 'contests' ? 2.2 : 1.8}
+          />
+          <Text
+            style={{
+              fontSize: FONT_SM,
+              fontFamily: activeTab === 'contests' ? 'Pretendard-SemiBold' : 'Pretendard-Medium',
+              color: activeTab === 'contests' ? '#d97706' : TEXT_SUB,
+            }}
+          >
+            콘테스트
+          </Text>
+        </TouchableOpacity>
+      </ScrollView>
 
       <ScrollView
         contentContainerStyle={{
@@ -2311,6 +2350,11 @@ export default function AdminDashboardScreen() {
             </View>
           </View>
         )}
+
+        {/* ══════════════════════════════════════════════════════════════
+            TAB 5: 콘테스트 운영 관리 (/admin/contests)
+        ══════════════════════════════════════════════════════════════ */}
+        {activeTab === 'contests' && <AdminContestTab showToast={showToast} />}
       </ScrollView>
 
       {/* ── 관리자 답변 작성/수정 모달 ──────────────────────────────── */}

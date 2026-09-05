@@ -115,3 +115,118 @@ export interface TourSyncStatusResponse {
   lastError?: string | null;
 }
 
+// 4. 공통 페이징 응답 모델
+export interface AdminPageResponse<T> {
+  content: T[];
+  pageable: {
+    pageNumber: number;
+    pageSize: number;
+  };
+  totalElements: number;
+  totalPages: number;
+  last: boolean;
+  first: boolean;
+}
+
+// 5. 콘테스트 운영 관리 모델 (/admin/contests)
+export type ContestPhase = 'UPCOMING' | 'SUBMITTING' | 'VOTING' | 'RESULT' | 'ENDED';
+
+export const CONTEST_PHASE_LABELS: Record<ContestPhase, string> = {
+  UPCOMING: '개설 대기',
+  SUBMITTING: '출품 진행중',
+  VOTING: '투표 진행중',
+  RESULT: '결과 발표',
+  ENDED: '종료',
+};
+
+export type ContestReportReason = 'SPAM' | 'ABUSE' | 'COPYRIGHT' | 'INAPPROPRIATE' | 'ETC';
+
+export const CONTEST_REPORT_REASON_LABELS: Record<ContestReportReason, string> = {
+  SPAM: '스팸/홍보',
+  ABUSE: '욕설/비방',
+  COPYRIGHT: '저작권 침해',
+  INAPPROPRIATE: '부적절한 사진',
+  ETC: '기타 사유',
+};
+
+export interface ContestCreateRequest {
+  title: string;
+  description?: string;
+  themeImageUrl?: string;
+  submitStartAt?: string;
+  maxEntriesPerUser?: number;
+  voteLimit?: number;
+}
+
+export interface AdminContestSummaryResponse {
+  contestId: number;
+  title: string;
+  description: string | null;
+  themeImageUrl: string | null;
+  phase: ContestPhase;
+  submitStartAt: string;
+  submitEndAt: string;
+  voteStartAt: string;
+  voteEndAt: string;
+  resultOpenAt: string;
+  maxEntriesPerUser: number;
+  voteLimit: number;
+  active: boolean;
+  startNotificationSent: boolean;
+  totalEntries: number;
+  totalVotes: number;
+  createdAt: string;
+}
+
+export interface AdminContestDetailResponse {
+  contestId: number;
+  title: string;
+  description: string | null;
+  themeImageUrl: string | null;
+  phase: ContestPhase;
+  submitStartAt: string;
+  submitEndAt: string;
+  voteStartAt: string;
+  voteEndAt: string;
+  resultOpenAt: string;
+  maxEntriesPerUser: number;
+  voteLimit: number;
+  active: boolean;
+  startNotificationSent: boolean;
+  subscriberCount: number;
+  totalEntries: number;
+  participantCount: number;
+  totalVotes: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface AdminContestEntryResponse {
+  entryId: number;
+  contestId: number;
+  userId: number;
+  userNickname: string;
+  userProfileImageUrl: string | null;
+  spotId: number | null;
+  spotName: string | null;
+  photoUrl: string;
+  caption: string | null;
+  voteCount: number;
+  reportCount: number;
+  createdAt: string;
+}
+
+export interface AdminContestReportResponse {
+  reportId: number;
+  entryId: number;
+  entryPhotoUrl: string;
+  entryCaption: string | null;
+  entryAuthorId: number;
+  entryAuthorNickname: string;
+  reporterId: number;
+  reporterNickname: string;
+  reason: ContestReportReason;
+  content: string | null;
+  createdAt: string;
+}
+
