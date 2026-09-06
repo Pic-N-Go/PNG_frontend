@@ -1,9 +1,7 @@
-import React, { useState } from 'react';
-import { View, Image, StyleSheet } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import React, { useState, useEffect, useMemo } from 'react';
+import { View, Image, Text, StyleSheet } from 'react-native';
 import { IconRoute } from '@tabler/icons-react-native';
-import { normalize } from '@/utils/normalize';
-import { getFallbackGradient } from '@/utils/gradient';
+import { normalize, normalizeFontSize } from '@/utils/normalize';
 
 interface CourseCardThumbnailProps {
   courseId: number;
@@ -11,116 +9,120 @@ interface CourseCardThumbnailProps {
   height?: number;
 }
 
-function ThumbnailSlot({
-  url,
-  seed,
-  style,
-}: {
-  url: string;
-  seed: string;
-  style?: any;
-}) {
-  const [failed, setFailed] = useState(false);
-
-  return (
-    <View style={[{ position: 'relative', overflow: 'hidden' }, style]}>
-      <LinearGradient
-        colors={getFallbackGradient(seed)}
-        start={{ x: 0.15, y: 0 }}
-        end={{ x: 0.85, y: 1 }}
-        style={StyleSheet.absoluteFillObject}
-      />
-      {!failed && (
-        <Image
-          source={{ uri: url }}
-          style={StyleSheet.absoluteFillObject}
-          resizeMode="cover"
-          onError={() => setFailed(true)}
-        />
-      )}
-    </View>
-  );
-}
-
 export default function CourseCardThumbnail({
   courseId,
   thumbnails,
   height = normalize(120),
 }: CourseCardThumbnailProps) {
-  const validThumbnails = (thumbnails || [])
-    .map((u) => (typeof u === 'string' ? u.trim() : ''))
-    .filter((u) => u.length > 0)
-    .filter((u, idx, arr) => arr.indexOf(u) === idx)
-    .slice(0, 3);
+  const initialThumbnails = useMemo(() => {
+    return (thumbnails || [])
+      .map((u) => (typeof u === 'string' ? u.trim() : ''))
+      .filter((u) => u.length > 0)
+      .filter((u, idx, arr) => arr.indexOf(u) === idx)
+      .slice(0, 3);
+  }, [thumbnails]);
 
+  // 로딩 실패(404, 네트워크 에러 등)한 URL을 추적하여 콜라주 목록에서 제외
+  const [failedUrls, setFailedUrls] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    setFailedUrls({});
+  }, [thumbnails]);
+
+  const handleImageError = (url: string) => {
+    setFailedUrls((prev) => {
+      if (prev[url]) return prev;
+      return { ...prev, [url]: true };
+    });
+  };
+
+  const validThumbnails = initialThumbnails.filter((url) => !failedUrls[url]);
   const count = validThumbnails.length;
 
-  // 1. 이미지가 0개인 경우: 콘테스트 스타일의 목업 그라데이션 배너
+  // 1. 유효한 이미지가 0개인 경우 (코스 목록 페이지에서는 목업 그래디언트를 띄우지 않고 단정한 중립 빈 상태 유지)
   if (count === 0) {
     return (
-      <View style={{ width: '100%', height, position: 'relative', overflow: 'hidden' }}>
-        <LinearGradient
-          colors={getFallbackGradient(courseId)}
-          start={{ x: 0.15, y: 0 }}
-          end={{ x: 0.85, y: 1 }}
+      <View
+        className="flex-1 items-center justify-center bg-card"
+        style={{ width: '100%', height, gap: normalize(8) }}
+      >
+        <IconRoute size={normalize(26)} color="rgba(0,0,0,0.2)" strokeWidth={1.5} />
+        <Text
+          allowFontScaling={false}
+          className="font-normal tracking-tight"
+          style={{ fontSize: normalizeFontSize(13), color: 'rgba(0,0,0,0.3)' }}
+        >
+          표시할 경로가 없어요
+        </Text>
+      </View>
+    );
+  }
+
+  // 2. 유효한 이미지가 1개인 경우: 단일 전체 썸네일
+  if (count === 1) {
+    return (
+      <View style={{ width: '100%', height, overflow: 'hidden', backgroundColor: '#E5E7EB' }}>
+        <Image
+          source={{ uri: validThumbnails[0] }}
           style={StyleSheet.absoluteFillObject}
+          resizeMode="cover"
+          onError={() => handleImageError(validThumbnails[0])}
         />
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <IconRoute size={normalize(26)} color="rgba(255,255,255,0.45)" strokeWidth={1.6} />
+      </View>
+    );
+  }
+
+  // 3. 유효한 이미지가 2개인 경우: 2분할 콜라주
+  if (count === 2) {
+    return (
+      <View style={{ flexDirection: 'row', width: '100%', height, overflow: 'hidden', backgroundColor: '#E5E7EB' }}>
+        <View style={{ flex: 1, height: '100%', borderRightWidth: 1.5, borderColor: '#ffffff', overflow: 'hidden' }}>
+          <Image
+            source={{ uri: validThumbnails[0] }}
+            style={StyleSheet.absoluteFillObject}
+            resizeMode="cover"
+            onError={() => handleImageError(validThumbnails[0])}
+          />
+        </View>
+        <View style={{ flex: 1, height: '100%', overflow: 'hidden' }}>
+          <Image
+            source={{ uri: validThumbnails[1] }}
+            style={StyleSheet.absoluteFillObject}
+            resizeMode="cover"
+            onError={() => handleImageError(validThumbnails[1])}
+          />
         </View>
       </View>
     );
   }
 
-  // 2. 이미지가 1개인 경우: 단일 전체 썸네일
-  if (count === 1) {
-    return (
-      <View style={{ width: '100%', height, position: 'relative', overflow: 'hidden' }}>
-        <ThumbnailSlot
-          url={validThumbnails[0]}
-          seed={`${courseId}_0`}
-          style={{ width: '100%', height: '100%' }}
-        />
-      </View>
-    );
-  }
-
-  // 3. 이미지가 2개인 경우: 2분할 콜라주
-  if (count === 2) {
-    return (
-      <View style={{ flexDirection: 'row', width: '100%', height, overflow: 'hidden' }}>
-        <ThumbnailSlot
-          url={validThumbnails[0]}
-          seed={`${courseId}_0`}
-          style={{ flex: 1, height: '100%', borderRightWidth: 1.5, borderColor: '#ffffff' }}
-        />
-        <ThumbnailSlot
-          url={validThumbnails[1]}
-          seed={`${courseId}_1`}
-          style={{ flex: 1, height: '100%' }}
-        />
-      </View>
-    );
-  }
-
-  // 4. 이미지가 3개인 경우: 3분할 콜라주 (메인 1.6 : 서브 1 : 서브 1)
+  // 4. 유효한 이미지가 3개인 경우: 3분할 콜라주 (메인 1.6 : 서브 1 : 서브 1)
   return (
-    <View style={{ flexDirection: 'row', width: '100%', height, overflow: 'hidden' }}>
-      <ThumbnailSlot
-        url={validThumbnails[0]}
-        seed={`${courseId}_0`}
-        style={{ flex: 1.6, height: '100%', borderRightWidth: 1.5, borderColor: '#ffffff' }}
-      />
-      <ThumbnailSlot
-        url={validThumbnails[1]}
-        seed={`${courseId}_1`}
-        style={{ flex: 1, height: '100%', borderRightWidth: 1.5, borderColor: '#ffffff' }}
-      />
-      <ThumbnailSlot
-        url={validThumbnails[2]}
-        seed={`${courseId}_2`}
-        style={{ flex: 1, height: '100%' }}
-      />
+    <View style={{ flexDirection: 'row', width: '100%', height, overflow: 'hidden', backgroundColor: '#E5E7EB' }}>
+      <View style={{ flex: 1.6, height: '100%', borderRightWidth: 1.5, borderColor: '#ffffff', overflow: 'hidden' }}>
+        <Image
+          source={{ uri: validThumbnails[0] }}
+          style={StyleSheet.absoluteFillObject}
+          resizeMode="cover"
+          onError={() => handleImageError(validThumbnails[0])}
+        />
+      </View>
+      <View style={{ flex: 1, height: '100%', borderRightWidth: 1.5, borderColor: '#ffffff', overflow: 'hidden' }}>
+        <Image
+          source={{ uri: validThumbnails[1] }}
+          style={StyleSheet.absoluteFillObject}
+          resizeMode="cover"
+          onError={() => handleImageError(validThumbnails[1])}
+        />
+      </View>
+      <View style={{ flex: 1, height: '100%', overflow: 'hidden' }}>
+        <Image
+          source={{ uri: validThumbnails[2] }}
+          style={StyleSheet.absoluteFillObject}
+          resizeMode="cover"
+          onError={() => handleImageError(validThumbnails[2])}
+        />
+      </View>
     </View>
   );
 }
