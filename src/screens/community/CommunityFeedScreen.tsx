@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ActivityIndicator, Image, NativeSyntheticEvent, NativeScrollEvent, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
+import { ActivityIndicator, Image, NativeSyntheticEvent, NativeScrollEvent, Pressable, RefreshControl, ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -96,6 +96,16 @@ export default function CommunityFeedScreen() {
     useCommunityFeed(SORT_TO_API[feedSort], keyword);
   // `?? []`를 그대로 쓰면 매 렌더마다 새 배열이 되어 아래 갤러리 useMemo가 항상 다시 계산된다.
   const displayedPosts = React.useMemo(() => data?.posts ?? [], [data?.posts]);
+
+  const [refreshing, setRefreshing] = useState(false);
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await refetch();
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const toggleLike = useToggleLike();
   const toggleBookmark = useToggleBookmark();
@@ -247,7 +257,19 @@ export default function CommunityFeedScreen() {
           onOpenResult={goToContestResultByRank}
         />
       ) : (
-        <ScrollView onScroll={handleScroll} scrollEventThrottle={16} contentContainerStyle={{ flexGrow: 1, paddingBottom: normalize(20) }}>
+        <ScrollView
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
+          contentContainerStyle={{ flexGrow: 1, paddingBottom: normalize(20) }}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor={ACCENT}
+              colors={[ACCENT]}
+            />
+          }
+        >
           {/* contentContainerStyle의 flexGrow: 1 — 내용이 화면보다 짧아도 컨테이너가 남은 높이를
               차지해야 아래 빈 상태 문구를 그 안에서 세로 중앙에 놓을 수 있다 */}
           {segment === 'posts' && (

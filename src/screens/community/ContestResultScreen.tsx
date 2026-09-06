@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -42,6 +42,16 @@ export default function ContestResultScreen() {
   const [detailEntry, setDetailEntry] = useState<ContestPhotoEntry | null>(null);
   const [toastMessage, setToastMessage] = useState('');
   const [toastVisible, setToastVisible] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await resultQuery.refetch();
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   // 진입 경로가 넘겨준 값은 조회가 끝나기 전 첫 페인트에만 쓴다 — 서버 값이 오면 그쪽이 이긴다
   const monthLabel = toMonthLabel(result?.submitStartAt) || route.params.monthLabel || '';
@@ -156,7 +166,18 @@ export default function ContestResultScreen() {
     <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right', 'bottom']}>
       {header}
 
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: normalize(28) }}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: normalize(28) }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor={ACCENT}
+            colors={[ACCENT]}
+          />
+        }
+      >
         {isAward ? (
           <View style={{ margin: normalize(18), marginHorizontal: CONTENT_PADDING, padding: normalize(20), borderRadius: normalize(20), backgroundColor: BRAND_TINT }}>
             {/* 등수 배지와 축하 문구는 같은 행 — 카드 안쪽 294px에 들어가야 해서 문구는 FONT_MD */}

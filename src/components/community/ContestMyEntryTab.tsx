@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import Svg, { Circle, Polyline } from 'react-native-svg';
 import ContestPhoto from '@/components/community/ContestPhoto';
 import { ContestHistoryRow, ContestInfo, ContestMyHistory, ContestPhase } from '@/types/community';
@@ -72,13 +72,38 @@ interface Props {
   history: ContestMyHistory | null;
   onOpenSubmit: () => void;
   onOpenResult: (contestId: string, monthLabel: string, myRank: number | null) => void;
+  refreshing?: boolean;
+  onRefresh?: () => void;
 }
 
-export default function ContestMyEntryTab({ phase, contest, entryCount, maxEntries, history, onOpenSubmit, onOpenResult }: Props) {
+export default function ContestMyEntryTab({
+  phase,
+  contest,
+  entryCount,
+  maxEntries,
+  history,
+  onOpenSubmit,
+  onOpenResult,
+  refreshing = false,
+  onRefresh,
+}: Props) {
+  const refreshElement = onRefresh ? (
+    <RefreshControl
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      tintColor={ACCENT}
+      colors={[ACCENT]}
+    />
+  ) : undefined;
+
   if (!history || history.rows.length === 0) {
     return (
       // flexGrow: 1 — 내용이 화면보다 짧을 때 빈 상태가 남은 공간을 차지해 세로 중앙에 설 수 있게 한다
-      <ScrollView contentContainerStyle={{ flexGrow: 1, paddingBottom: normalize(24) }} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: normalize(24) }}
+        showsVerticalScrollIndicator={false}
+        refreshControl={refreshElement}
+      >
         {/* 투표 기간엔 출품이 닫혀 있다 — 자리가 남아도 CTA를 띄우면 안 된다 */}
         {phase === 'SUBMITTING' && entryCount < maxEntries && (
           <View style={{ margin: normalize(18), marginTop: normalize(18), marginHorizontal: CONTENT_PADDING, padding: normalize(20), borderRadius: normalize(20), backgroundColor: SURFACE }}>
@@ -112,7 +137,11 @@ export default function ContestMyEntryTab({ phase, contest, entryCount, maxEntri
   }
 
   return (
-    <ScrollView contentContainerStyle={{ paddingBottom: normalize(24) }} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      contentContainerStyle={{ paddingBottom: normalize(24) }}
+      showsVerticalScrollIndicator={false}
+      refreshControl={refreshElement}
+    >
       <View style={{ margin: normalize(18), marginHorizontal: CONTENT_PADDING, padding: normalize(20), borderRadius: normalize(20), backgroundColor: SURFACE }}>
         <View style={{ flexDirection: 'row' }}>
           <View style={{ flex: 1, alignItems: 'center' }}>

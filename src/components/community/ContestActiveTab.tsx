@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Bell, BellOff, Calendar, Camera, Check, ChevronRight, Clock, ThumbsUp } from 'lucide-react-native';
 import ContestRankPanel from '@/components/community/ContestRankPanel';
@@ -305,6 +305,8 @@ interface Props {
   onSubscribe: () => void;
   /** ENDED 섹션 헤더의 "전체 보기" — 지난 탭으로 이동 */
   onSeeAllPast: () => void;
+  refreshing?: boolean;
+  onRefresh?: () => void;
 }
 
 export default function ContestActiveTab({
@@ -333,6 +335,8 @@ export default function ContestActiveTab({
   onSelectPastItem,
   onSubscribe,
   onSeeAllPast,
+  refreshing = false,
+  onRefresh,
 }: Props) {
   const openAward = () => {
     if (!lastAward) return;
@@ -359,7 +363,20 @@ export default function ContestActiveTab({
 
   return (
     // flexGrow: 1 — 내용이 화면보다 짧을 때 빈 상태가 남은 공간을 차지해 세로 중앙에 설 수 있게 한다
-    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1, paddingBottom: normalize(24) }}>
+    <ScrollView
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={{ flexGrow: 1, paddingBottom: normalize(24) }}
+      refreshControl={
+        onRefresh ? (
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={PINK}
+            colors={[PINK]}
+          />
+        ) : undefined
+      }
+    >
       {phase === 'SUBMITTING' && contest && (
         <>
           <View style={{ height: normalize(280), overflow: 'hidden', borderBottomLeftRadius: normalize(24), borderBottomRightRadius: normalize(24) }}>
