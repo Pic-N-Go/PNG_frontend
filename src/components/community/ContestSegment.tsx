@@ -138,16 +138,22 @@ export default function ContestSegment({ onSelectPastItem, onSeeAllEntries, onOp
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
-      await Promise.all([
+      const refetches: Promise<unknown>[] = [
         currentQuery.refetch(),
         upcomingQuery.refetch(),
         pastQuery.refetch(),
         historyQuery.refetch(),
-        entriesQuery.refetch(),
-        myEntryQuery.refetch(),
-        rankingQuery.refetch(),
-        lastResultQuery.refetch(),
-      ]);
+      ];
+      if (contestId) {
+        refetches.push(entriesQuery.refetch(), myEntryQuery.refetch());
+      }
+      if (phase === 'VOTING') {
+        refetches.push(rankingQuery.refetch());
+      }
+      if (lastPast) {
+        refetches.push(lastResultQuery.refetch());
+      }
+      await Promise.all(refetches);
     } finally {
       setRefreshing(false);
     }

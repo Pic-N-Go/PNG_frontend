@@ -97,8 +97,13 @@ export default function CommunityFeedScreen() {
   // `?? []`를 그대로 쓰면 매 렌더마다 새 배열이 되어 아래 갤러리 useMemo가 항상 다시 계산된다.
   const displayedPosts = React.useMemo(() => data?.posts ?? [], [data?.posts]);
 
+  // 팔로잉·내 글은 서버가 토큰을 요구한다. 비로그인이면 조회를 아예 안 하므로 안내를 따로 띄운다.
+  // 훅의 needsAuth와 같은 목록이어야 한다 — 여기서 빠지면 쿼리는 막히는데 화면은 '결과 없음'을 띄운다.
+  const needsLogin = !isLoggedIn && (feedSort === '팔로잉' || feedSort === '내 글' || feedSort === '저장');
+
   const [refreshing, setRefreshing] = useState(false);
   const handleRefresh = async () => {
+    if (needsLogin) return;
     setRefreshing(true);
     try {
       await refetch();
@@ -110,10 +115,6 @@ export default function CommunityFeedScreen() {
   const toggleLike = useToggleLike();
   const toggleBookmark = useToggleBookmark();
   const toggleFollow = useToggleFollow();
-
-  // 팔로잉·내 글은 서버가 토큰을 요구한다. 비로그인이면 조회를 아예 안 하므로 안내를 따로 띄운다.
-  // 훅의 needsAuth와 같은 목록이어야 한다 — 여기서 빠지면 쿼리는 막히는데 화면은 '결과 없음'을 띄운다.
-  const needsLogin = !isLoggedIn && (feedSort === '팔로잉' || feedSort === '내 글' || feedSort === '저장');
 
   // 카드 목록 대신 안내 한 줄만 띄우는 상태. null이면 정상 목록을 그린다.
   const postsState: 'login' | 'loading' | 'error' | 'empty' | null =
