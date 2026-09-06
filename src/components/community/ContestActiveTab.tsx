@@ -143,10 +143,22 @@ function SidePill({ label, value, dots, onPress }: { label: string; value: strin
   );
 }
 
-function Footbar({ topic, state, ctaLabel, ctaIcon, onPressCta, ctaDisabled }: { topic: string; state: string; ctaLabel: string; ctaIcon?: React.ReactNode; onPressCta: () => void; ctaDisabled?: boolean }) {
+/** 출품하기 카드 — 출품 기간에 스크롤 없이 바로 보이도록 새로 올라온 출품작 위에 배치되는 카드 */
+function SubmitCard({ topic, state, ctaLabel, ctaIcon, onPressCta, ctaDisabled }: { topic: string; state: string; ctaLabel: string; ctaIcon?: React.ReactNode; onPressCta: () => void; ctaDisabled?: boolean }) {
   return (
-    // 아래 여백은 ScrollView의 contentContainer paddingBottom이 담당한다 — 여기서 또 주면 CTA 밑에 빈 흰 영역이 남는다
-    <View style={{ margin: normalize(28), marginTop: normalize(24), marginBottom: 0, paddingTop: normalize(24), borderTopWidth: HAIRLINE_WIDTH, borderTopColor: HAIRLINE, flexDirection: 'row', alignItems: 'center', gap: normalize(12) }}>
+    <View
+      style={{
+        marginTop: normalize(14),
+        marginHorizontal: CONTENT_PADDING,
+        paddingVertical: normalize(14),
+        paddingHorizontal: normalize(16),
+        borderRadius: CARD_RADIUS,
+        backgroundColor: FILL,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: normalize(12),
+      }}
+    >
       <View style={{ flex: 1, minWidth: 0 }}>
         <Text allowFontScaling={false} numberOfLines={1} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, letterSpacing: -0.1, color: SUB }}>
           {topic}
@@ -158,7 +170,18 @@ function Footbar({ topic, state, ctaLabel, ctaIcon, onPressCta, ctaDisabled }: {
       <Pressable
         onPress={ctaDisabled ? undefined : onPressCta}
         disabled={ctaDisabled}
-        style={{ height: normalize(44), paddingHorizontal: normalize(20), borderRadius: normalize(22), backgroundColor: ctaDisabled ? '#e6e6ea' : PINK, flexDirection: 'row', alignItems: 'center', gap: normalize(6), flexShrink: 0 }}
+        accessibilityRole="button"
+        accessibilityLabel={ctaLabel}
+        style={{
+          height: normalize(44),
+          paddingHorizontal: normalize(20),
+          borderRadius: normalize(22),
+          backgroundColor: ctaDisabled ? '#e6e6ea' : PINK,
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: normalize(6),
+          flexShrink: 0,
+        }}
       >
         {ctaIcon}
         <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, letterSpacing: -0.2, color: ctaDisabled ? '#b8b8be' : '#fff' }}>
@@ -426,9 +449,19 @@ export default function ContestActiveTab({
               노출 기간(발표 후 1개월) 판정은 mapAwardSummary가 한다. */}
           {lastAward && <AwardRow award={lastAward} onPress={openAward} />}
 
+          {/* 출품하기 카드 — 스크롤하지 않고도 바로 인지할 수 있도록 새로 올라온 출품작 위에 배치 */}
+          <SubmitCard
+            topic={`${contest.theme} · 출품 마감 ${contest.submitDeadlineLabel}`}
+            state={isFull ? '출품을 다 썼어요' : myEntryCount > 0 ? `${maxEntries - myEntryCount}개 더 낼 수 있어요` : '아직 출품하지 않았어요'}
+            ctaLabel="출품하기"
+            ctaIcon={<Camera size={normalize(16)} color={isFull ? '#b8b8be' : '#fff'} strokeWidth={1.9} />}
+            onPressCta={onOpenSubmit}
+            ctaDisabled={isFull}
+          />
+
           {submitFeed.length === 0 ? (
             // flex: 1은 남는 공간만 채운다 — 히어로·수상작 행이 화면을 거의 채우면 거의 안 늘어나므로 최소 높이를 따로 준다
-            <View style={{ flex: 1, minHeight: normalize(260), justifyContent: 'center', paddingHorizontal: CONTENT_PADDING, alignItems: 'center' }}>
+            <View style={{ flex: 1, minHeight: normalize(240), justifyContent: 'center', paddingHorizontal: CONTENT_PADDING, alignItems: 'center' }}>
               <View style={{ width: normalize(56), height: normalize(56), borderRadius: normalize(28), backgroundColor: FILL, alignItems: 'center', justifyContent: 'center', marginBottom: normalize(16) }}>
                 <Camera size={normalize(24)} color="#b8b8be" strokeWidth={1.7} />
               </View>
@@ -452,15 +485,6 @@ export default function ContestActiveTab({
               </View>
             </>
           )}
-
-          <Footbar
-            topic={`${contest.theme} · 출품 마감 ${contest.submitDeadlineLabel}`}
-            state={isFull ? '출품을 다 썼어요' : myEntryCount > 0 ? `${maxEntries - myEntryCount}개 더 낼 수 있어요` : '아직 출품하지 않았어요'}
-            ctaLabel="출품하기"
-            ctaIcon={<Camera size={normalize(16)} color={isFull ? '#b8b8be' : '#fff'} strokeWidth={1.9} />}
-            onPressCta={onOpenSubmit}
-            ctaDisabled={isFull}
-          />
         </>
       )}
 
