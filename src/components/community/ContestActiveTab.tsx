@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { Image, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Bell, BellOff, Calendar, Camera, Check, ChevronRight, Clock, ThumbsUp } from 'lucide-react-native';
 import ContestRankPanel from '@/components/community/ContestRankPanel';
@@ -360,6 +360,11 @@ export default function ContestActiveTab({
   const isFull = myEntryCount >= maxEntries;
   // 펼치면 히어로를 줄여 그래프가 첫 화면에 들어오게 한다(목업 .is-expanded)
   const [rankPanelOpen, setRankPanelOpen] = React.useState(false);
+  const [imageError, setImageError] = React.useState(false);
+
+  React.useEffect(() => {
+    setImageError(false);
+  }, [contest?.themeImageUrl]);
 
   return (
     // flexGrow: 1 — 내용이 화면보다 짧을 때 빈 상태가 남은 공간을 차지해 세로 중앙에 설 수 있게 한다
@@ -379,8 +384,17 @@ export default function ContestActiveTab({
     >
       {phase === 'SUBMITTING' && contest && (
         <>
-          <View style={{ height: normalize(280), overflow: 'hidden', borderBottomLeftRadius: normalize(24), borderBottomRightRadius: normalize(24) }}>
-            <LinearGradient colors={HERO_GRADIENT} locations={HERO_LOCATIONS} start={{ x: 0.15, y: 0 }} end={{ x: 0.85, y: 1 }} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
+          <View style={{ height: normalize(280), overflow: 'hidden', borderBottomLeftRadius: normalize(24), borderBottomRightRadius: normalize(24), backgroundColor: '#1a1530' }}>
+            {contest.themeImageUrl && !imageError ? (
+              <Image
+                source={{ uri: contest.themeImageUrl }}
+                style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+                resizeMode="cover"
+                onError={() => setImageError(true)}
+              />
+            ) : (
+              <LinearGradient colors={HERO_GRADIENT} locations={HERO_LOCATIONS} start={{ x: 0.15, y: 0 }} end={{ x: 0.85, y: 1 }} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
+            )}
             <HeroScrim />
             <View style={{ position: 'absolute', left: normalize(28), right: normalize(28), bottom: normalize(20) }}>
               <View style={{ alignSelf: 'flex-start', height: normalize(24), justifyContent: 'center', paddingHorizontal: normalize(10), borderRadius: normalize(12), backgroundColor: PINK }}>
@@ -452,8 +466,17 @@ export default function ContestActiveTab({
 
       {phase === 'VOTING' && contest && (
         <>
-          <View style={{ height: normalize(rankPanelOpen ? 160 : 200), overflow: 'hidden', borderBottomLeftRadius: normalize(24), borderBottomRightRadius: normalize(24) }}>
-            <LinearGradient colors={HERO_GRADIENT} locations={HERO_LOCATIONS} start={{ x: 0.15, y: 0 }} end={{ x: 0.85, y: 1 }} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
+          <View style={{ height: normalize(rankPanelOpen ? 160 : 200), overflow: 'hidden', borderBottomLeftRadius: normalize(24), borderBottomRightRadius: normalize(24), backgroundColor: '#1a1530' }}>
+            {contest.themeImageUrl && !imageError ? (
+              <Image
+                source={{ uri: contest.themeImageUrl }}
+                style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+                resizeMode="cover"
+                onError={() => setImageError(true)}
+              />
+            ) : (
+              <LinearGradient colors={HERO_GRADIENT} locations={HERO_LOCATIONS} start={{ x: 0.15, y: 0 }} end={{ x: 0.85, y: 1 }} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
+            )}
             <HeroScrim />
             <View style={{ position: 'absolute', left: normalize(28), right: normalize(28), bottom: normalize(18) }}>
               <View style={{ alignSelf: 'flex-start', height: normalize(24), justifyContent: 'center', paddingHorizontal: normalize(10), borderRadius: normalize(12), backgroundColor: PINK }}>

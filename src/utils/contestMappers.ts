@@ -129,6 +129,7 @@ export function mapContestInfo(dto: ContestResponseDTO): ContestInfo {
     monthLabel: monthLabel(dto.submitStartAt),
     theme: dto.title,
     themeDesc: dto.description ?? '',
+    themeImageUrl: dto.themeImageUrl ?? null,
     submitDeadlineLabel: dayLabel(dto.submitEndAt),
     voteDeadlineLabel: dayLabel(dto.voteEndAt),
     resultAnnounceLabel: announceLabel(dto.resultOpenAt),
@@ -175,7 +176,7 @@ export function mapPastItem(dto: ContestPastDTO): ContestPastMonthItem {
     // 1위면 수상 강조, 출품했으면 보통, 안 냈으면 회색
     kind: dto.myRank == null ? 'none' : dto.myRank === 1 ? 'award' : 'plain',
     gradient: fallbackGradient(dto.contestId),
-    photoUrl: dto.winnerPhotoUrl,
+    photoUrl: dto.winnerPhotoUrl ?? dto.themeImageUrl ?? null,
   };
 }
 
