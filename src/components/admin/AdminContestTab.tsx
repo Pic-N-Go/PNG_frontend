@@ -11,7 +11,11 @@ import {
   Modal,
   Pressable,
   Dimensions,
+  Platform,
+  Linking,
 } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
+import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
 import {
   IconTrophy,
   IconPlus,
@@ -28,6 +32,7 @@ import {
   IconPlayerStop,
   IconSend,
   IconEdit,
+  IconCalendarEvent,
 } from '@tabler/icons-react-native';
 import { normalize } from '@/utils/normalize';
 import {
@@ -45,6 +50,7 @@ import {
   useAdminContestDetail,
   useCreateContest,
   useUpdateContest,
+  useUploadContestThemeImage,
   useSendContestStartNotification,
   usePublishContestResult,
   useSendContestResultNotification,
@@ -86,6 +92,34 @@ function formatDateTime(str?: string | null): string {
   return str.replace('T', ' ').slice(0, 16);
 }
 
+function parseIsoToDate(str?: string | null): Date {
+  if (!str) return new Date();
+  const match = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (match) {
+    const [, y, m, d] = match;
+    return new Date(parseInt(y, 10), parseInt(m, 10) - 1, parseInt(d, 10), 9, 0, 0);
+  }
+  const fallback = new Date(str);
+  return isNaN(fallback.getTime()) ? new Date() : fallback;
+}
+
+function formatKoreanDate(str?: string | null): string {
+  if (!str) return '';
+  const match = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (match) {
+    const [, y, m, d] = match;
+    return `${y}년 ${m}월 ${d}일 오전 09:00`;
+  }
+  return str;
+}
+
+function toIsoStartAt(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}T09:00:00`;
+}
+
 export default function AdminContestTab({ showToast }: AdminContestTabProps) {
   const [subTab, setSubTab] = useState<ContestSubTab>('contests');
 
@@ -106,9 +140,13 @@ export default function AdminContestTab({ showToast }: AdminContestTabProps) {
   const [createMaxEntries, setCreateMaxEntries] = useState('3');
   const [createVoteLimit, setCreateVoteLimit] = useState('3');
   const [createSubmitStartAt, setCreateSubmitStartAt] = useState('');
+  const [isUploadingCreateImage, setIsUploadingCreateImage] = useState(false);
+  const [showCreateDatePicker, setShowCreateDatePicker] = useState(false);
+  const [showCreateUrlInput, setShowCreateUrlInput] = useState(false);
 
   const createContestMutation = useCreateContest();
   const updateContestMutation = useUpdateContest();
+  const uploadThemeImageMutation = useUploadContestThemeImage();
   const sendStartNotificationMutation = useSendContestStartNotification();
   const publishResultMutation = usePublishContestResult();
   const sendResultNotificationMutation = useSendContestResultNotification();
@@ -121,6 +159,9 @@ export default function AdminContestTab({ showToast }: AdminContestTabProps) {
   const [editDescription, setEditDescription] = useState('');
   const [editThemeImageUrl, setEditThemeImageUrl] = useState('');
   const [editSubmitStartAt, setEditSubmitStartAt] = useState('');
+  const [isUploadingEditImage, setIsUploadingEditImage] = useState(false);
+  const [showEditDatePicker, setShowEditDatePicker] = useState(false);
+  const [showEditUrlInput, setShowEditUrlInput] = useState(false);
 
   // ── 2. 상세 & 출품작 모달 상태 ──────────────────────────────────────
   const [selectedContestId, setSelectedContestId] = useState<number | null>(null);
@@ -159,6 +200,84 @@ export default function AdminContestTab({ showToast }: AdminContestTabProps) {
     refetch: refetchReports,
   } = useAdminContestReports(reportPage, 10);
 
+  // ── 핸들러: 사진 선택 및 업로드 ────────────────────────────────────
+  const todayDate = new Date();
+  todayDate.setHours(0, 0, 0, 0);
+
+  const handlePickThemeImage = async (target: 'create' | 'edit') => {
+    try {
+      if (Platform.OS === 'android') {
+        const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (!permission.granted) {
+          Alert.alert(
+            '사진 접근 권한 필요',
+            '대표 이미지를 등록하려면 사진 접근 권한을 허용해 주세요.',
+            permission.canAskAgain
+              ? [{ text: '확인' }]
+              : [{ text: '취소', style: 'cancel' }, { text: '설정 열기', onPress: () => Linking.openSettings() }]
+          );
+          return;
+        }
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [16, 9],
+        quality: 0.85,
+        preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
+      });
+
+      if (result.canceled || !result.assets || result.assets.length === 0) return;
+
+      const asset = result.assets[0];
+      if (target === 'create') setIsUploadingCreateImage(true);
+      else setIsUploadingEditImage(true);
+
+      try {
+        const uploadRes = await uploadThemeImageMutation.mutateAsync({
+          uri: asset.uri,
+          name: asset.fileName || 'contest_theme.jpg',
+          type: asset.mimeType || 'image/jpeg',
+        });
+
+        if (target === 'create') {
+          setCreateThemeImageUrl(uploadRes.imageUrl);
+        } else {
+          setEditThemeImageUrl(uploadRes.imageUrl);
+        }
+        showToast('대표 이미지가 성공적으로 업로드되었습니다.');
+      } catch (uploadErr: any) {
+        Alert.alert('이미지 업로드 실패', uploadErr?.message || '이미지를 업로드하는 중 오류가 발생했습니다.');
+      } finally {
+        if (target === 'create') setIsUploadingCreateImage(false);
+        else setIsUploadingEditImage(false);
+      }
+    } catch (err: any) {
+      Alert.alert('사진 선택 오류', err?.message || '사진을 가져오는 중 오류가 발생했습니다.');
+    }
+  };
+
+  const handleDateChange = (
+    target: 'create' | 'edit',
+    event: DateTimePickerEvent,
+    selectedDate?: Date
+  ) => {
+    if (Platform.OS !== 'ios') {
+      if (target === 'create') setShowCreateDatePicker(false);
+      else setShowEditDatePicker(false);
+    }
+
+    if ((event.type === 'set' || Platform.OS === 'ios') && selectedDate) {
+      const isoString = toIsoStartAt(selectedDate);
+      if (target === 'create') {
+        setCreateSubmitStartAt(isoString);
+      } else {
+        setEditSubmitStartAt(isoString);
+      }
+    }
+  };
+
   // ── 핸들러: 콘테스트 개설 제출 ─────────────────────────────────────
   const handleOpenCreateModal = () => {
     setCreateTitle('');
@@ -167,6 +286,9 @@ export default function AdminContestTab({ showToast }: AdminContestTabProps) {
     setCreateMaxEntries('3');
     setCreateVoteLimit('3');
     setCreateSubmitStartAt('');
+    setShowCreateDatePicker(false);
+    setShowCreateUrlInput(false);
+    setIsUploadingCreateImage(false);
     setCreateModalVisible(true);
   };
 
@@ -215,6 +337,9 @@ export default function AdminContestTab({ showToast }: AdminContestTabProps) {
     setEditDescription(contest.description || '');
     setEditThemeImageUrl(contest.themeImageUrl || '');
     setEditSubmitStartAt(contest.submitStartAt ? contest.submitStartAt.slice(0, 19) : '');
+    setShowEditDatePicker(false);
+    setShowEditUrlInput(false);
+    setIsUploadingEditImage(false);
     setEditModalVisible(true);
   };
 
@@ -1497,28 +1622,170 @@ export default function AdminContestTab({ showToast }: AdminContestTabProps) {
                   />
                 </View>
 
-                {/* 3. 대표 이미지 URL */}
+                {/* 3. 대표 테마 이미지 (앨범 선택) */}
                 <View>
-                  <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-SemiBold', color: '#374151', marginBottom: normalize(4) }}>
-                    대표 이미지 URL (선택)
-                  </Text>
-                  <TextInput
-                    value={createThemeImageUrl}
-                    onChangeText={setCreateThemeImageUrl}
-                    placeholder="https://example.com/theme.jpg"
-                    placeholderTextColor="rgba(0,0,0,0.3)"
-                    autoCapitalize="none"
-                    style={{
-                      height: normalize(42),
-                      borderWidth: 1,
-                      borderColor: 'rgba(0,0,0,0.12)',
-                      borderRadius: normalize(8),
-                      paddingHorizontal: normalize(12),
-                      fontSize: FONT_SM,
-                      fontFamily: 'Pretendard-Regular',
-                      color: '#111',
-                    }}
-                  />
+                  <View className="flex-row items-center justify-between" style={{ marginBottom: normalize(6) }}>
+                    <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-SemiBold', color: '#374151' }}>
+                      대표 테마 이미지 (선택)
+                    </Text>
+                    <TouchableOpacity
+                      onPress={() => setShowCreateUrlInput((v) => !v)}
+                      hitSlop={6}
+                    >
+                      <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Regular', color: TEXT_SUB }}>
+                        {showCreateUrlInput ? '직접 입력 닫기' : '직접 URL 입력'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  {createThemeImageUrl ? (
+                    <View
+                      style={{
+                        borderRadius: normalize(10),
+                        overflow: 'hidden',
+                        borderWidth: 1,
+                        borderColor: 'rgba(0,0,0,0.08)',
+                        backgroundColor: '#f9fafb',
+                      }}
+                    >
+                      <Image
+                        source={{ uri: createThemeImageUrl }}
+                        style={{
+                          width: '100%',
+                          height: normalize(150),
+                          backgroundColor: '#f3f4f6',
+                        }}
+                        resizeMode="cover"
+                      />
+                      <View
+                        className="flex-row items-center justify-between"
+                        style={{
+                          paddingHorizontal: normalize(12),
+                          paddingVertical: normalize(8),
+                          backgroundColor: '#fff',
+                        }}
+                      >
+                        <Text
+                          numberOfLines={1}
+                          style={{
+                            flex: 1,
+                            fontSize: FONT_2XS,
+                            fontFamily: 'Pretendard-Regular',
+                            color: TEXT_SUB,
+                            marginRight: normalize(8),
+                          }}
+                        >
+                          {createThemeImageUrl}
+                        </Text>
+                        <View className="flex-row items-center" style={{ gap: normalize(6) }}>
+                          <TouchableOpacity
+                            onPress={() => handlePickThemeImage('create')}
+                            disabled={isUploadingCreateImage}
+                            style={{
+                              paddingHorizontal: normalize(8),
+                              paddingVertical: normalize(4),
+                              borderRadius: normalize(6),
+                              backgroundColor: '#f3f4f6',
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                              gap: normalize(4),
+                            }}
+                          >
+                            <IconPhoto size={normalize(13)} color="#374151" />
+                            <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Medium', color: '#374151' }}>
+                              변경
+                            </Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            onPress={() => setCreateThemeImageUrl('')}
+                            style={{
+                              paddingHorizontal: normalize(8),
+                              paddingVertical: normalize(4),
+                              borderRadius: normalize(6),
+                              backgroundColor: '#fee2e2',
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                              gap: normalize(4),
+                            }}
+                          >
+                            <IconTrash size={normalize(13)} color="#dc2626" />
+                            <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Medium', color: '#dc2626' }}>
+                              삭제
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    </View>
+                  ) : (
+                    <TouchableOpacity
+                      onPress={() => handlePickThemeImage('create')}
+                      disabled={isUploadingCreateImage}
+                      activeOpacity={0.8}
+                      style={{
+                        height: normalize(110),
+                        borderWidth: 1.5,
+                        borderColor: 'rgba(0,0,0,0.15)',
+                        borderStyle: 'dashed',
+                        borderRadius: normalize(10),
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: '#fcfcfc',
+                      }}
+                    >
+                      {isUploadingCreateImage ? (
+                        <View style={{ alignItems: 'center', gap: normalize(6) }}>
+                          <ActivityIndicator size="small" color={BRAND} />
+                          <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-Medium', color: BRAND }}>
+                            이미지 업로드 중...
+                          </Text>
+                        </View>
+                      ) : (
+                        <View style={{ alignItems: 'center', gap: normalize(4) }}>
+                          <View
+                            style={{
+                              width: normalize(38),
+                              height: normalize(38),
+                              borderRadius: normalize(19),
+                              backgroundColor: '#eef2ff',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                            }}
+                          >
+                            <IconPhoto size={normalize(20)} color={BRAND} />
+                          </View>
+                          <Text style={{ fontSize: FONT_SM, fontFamily: 'Pretendard-SemiBold', color: '#111' }}>
+                            앨범에서 사진 선택
+                          </Text>
+                          <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Regular', color: TEXT_SUB }}>
+                            권장 비율 16:9 · JPG, PNG, WEBP (최대 10MB)
+                          </Text>
+                        </View>
+                      )}
+                    </TouchableOpacity>
+                  )}
+
+                  {showCreateUrlInput && (
+                    <View style={{ marginTop: normalize(8) }}>
+                      <TextInput
+                        value={createThemeImageUrl}
+                        onChangeText={setCreateThemeImageUrl}
+                        placeholder="https://example.com/theme.jpg"
+                        placeholderTextColor="rgba(0,0,0,0.3)"
+                        autoCapitalize="none"
+                        style={{
+                          height: normalize(40),
+                          borderWidth: 1,
+                          borderColor: 'rgba(0,0,0,0.12)',
+                          borderRadius: normalize(8),
+                          paddingHorizontal: normalize(12),
+                          fontSize: FONT_XS,
+                          fontFamily: 'Pretendard-Regular',
+                          color: '#111',
+                          backgroundColor: '#f9fafb',
+                        }}
+                      />
+                    </View>
+                  )}
                 </View>
 
                 {/* 4. 최대 출품수 & 투표수 */}
@@ -1570,28 +1837,91 @@ export default function AdminContestTab({ showToast }: AdminContestTabProps) {
                   </View>
                 </View>
 
-                {/* 5. 출품 시작 일시 (선택) */}
+                {/* 5. 출품 시작 일시 (캘린더 선택) */}
                 <View>
-                  <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-SemiBold', color: '#374151', marginBottom: normalize(4) }}>
-                    출품 시작 일시 (선택)
-                  </Text>
-                  <TextInput
-                    value={createSubmitStartAt}
-                    onChangeText={setCreateSubmitStartAt}
-                    placeholder="2026-10-01T09:00:00 (미입력 시 즉시/직전회차 직후)"
-                    placeholderTextColor="rgba(0,0,0,0.3)"
-                    autoCapitalize="none"
+                  <View className="flex-row items-center justify-between" style={{ marginBottom: normalize(4) }}>
+                    <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-SemiBold', color: '#374151' }}>
+                      출품 시작 일시 (캘린더 선택)
+                    </Text>
+                    {createSubmitStartAt ? (
+                      <TouchableOpacity onPress={() => setCreateSubmitStartAt('')} hitSlop={6}>
+                        <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Medium', color: '#dc2626' }}>
+                          일정 초기화
+                        </Text>
+                      </TouchableOpacity>
+                    ) : null}
+                  </View>
+
+                  <TouchableOpacity
+                    onPress={() => setShowCreateDatePicker((v) => !v)}
+                    activeOpacity={0.8}
                     style={{
-                      height: normalize(42),
+                      height: normalize(44),
                       borderWidth: 1,
-                      borderColor: 'rgba(0,0,0,0.12)',
+                      borderColor: createSubmitStartAt ? BRAND : 'rgba(0,0,0,0.12)',
                       borderRadius: normalize(8),
                       paddingHorizontal: normalize(12),
-                      fontSize: FONT_SM,
-                      fontFamily: 'Pretendard-Regular',
-                      color: '#111',
+                      backgroundColor: createSubmitStartAt ? '#eff6ff' : '#fff',
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
                     }}
-                  />
+                  >
+                    <View className="flex-row items-center" style={{ gap: normalize(8) }}>
+                      <IconCalendarEvent
+                        size={normalize(18)}
+                        color={createSubmitStartAt ? BRAND : TEXT_SUB}
+                      />
+                      <Text
+                        style={{
+                          fontSize: FONT_SM,
+                          fontFamily: createSubmitStartAt ? 'Pretendard-SemiBold' : 'Pretendard-Regular',
+                          color: createSubmitStartAt ? '#1e40af' : 'rgba(0,0,0,0.35)',
+                        }}
+                      >
+                        {createSubmitStartAt
+                          ? `${formatKoreanDate(createSubmitStartAt)} 시작`
+                          : '날짜 선택 (미선택 시 즉시/직전회차 종료 직후 시작)'}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+
+                  {showCreateDatePicker && (
+                    <View
+                      style={{
+                        marginTop: normalize(8),
+                        backgroundColor: '#f9fafb',
+                        borderRadius: normalize(10),
+                        padding: normalize(8),
+                        borderWidth: 1,
+                        borderColor: 'rgba(0,0,0,0.06)',
+                      }}
+                    >
+                      <DateTimePicker
+                        value={createSubmitStartAt ? parseIsoToDate(createSubmitStartAt) : new Date()}
+                        mode="date"
+                        display={Platform.OS === 'ios' ? 'inline' : 'default'}
+                        minimumDate={todayDate}
+                        themeVariant="light"
+                        accentColor={BRAND}
+                        onChange={(event, date) => handleDateChange('create', event, date)}
+                      />
+                      {Platform.OS === 'ios' && (
+                        <TouchableOpacity
+                          onPress={() => setShowCreateDatePicker(false)}
+                          style={{
+                            alignSelf: 'flex-end',
+                            paddingVertical: normalize(6),
+                            paddingHorizontal: normalize(12),
+                          }}
+                        >
+                          <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-SemiBold', color: BRAND }}>
+                            선택 완료
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  )}
                 </View>
 
                 {/* 안내 카드 */}
@@ -2361,40 +2691,191 @@ export default function AdminContestTab({ showToast }: AdminContestTabProps) {
                   />
                 </View>
 
-                {/* 3. 대표 이미지 URL */}
+                {/* 3. 대표 테마 이미지 (앨범 선택) */}
                 <View>
-                  <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-SemiBold', color: '#374151', marginBottom: normalize(4) }}>
-                    대표 이미지 URL (선택)
-                  </Text>
-                  <TextInput
-                    value={editThemeImageUrl}
-                    onChangeText={setEditThemeImageUrl}
-                    placeholder="https://example.com/theme.jpg"
-                    placeholderTextColor="rgba(0,0,0,0.3)"
-                    autoCapitalize="none"
-                    style={{
-                      height: normalize(42),
-                      borderWidth: 1,
-                      borderColor: 'rgba(0,0,0,0.12)',
-                      borderRadius: normalize(8),
-                      paddingHorizontal: normalize(12),
-                      fontSize: FONT_SM,
-                      fontFamily: 'Pretendard-Regular',
-                      color: '#111',
-                    }}
-                  />
+                  <View className="flex-row items-center justify-between" style={{ marginBottom: normalize(6) }}>
+                    <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-SemiBold', color: '#374151' }}>
+                      대표 테마 이미지 (선택)
+                    </Text>
+                    <TouchableOpacity
+                      onPress={() => setShowEditUrlInput((v) => !v)}
+                      hitSlop={6}
+                    >
+                      <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Regular', color: TEXT_SUB }}>
+                        {showEditUrlInput ? '직접 입력 닫기' : '직접 URL 입력'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  {editThemeImageUrl ? (
+                    <View
+                      style={{
+                        borderRadius: normalize(10),
+                        overflow: 'hidden',
+                        borderWidth: 1,
+                        borderColor: 'rgba(0,0,0,0.08)',
+                        backgroundColor: '#f9fafb',
+                      }}
+                    >
+                      <Image
+                        source={{ uri: editThemeImageUrl }}
+                        style={{
+                          width: '100%',
+                          height: normalize(150),
+                          backgroundColor: '#f3f4f6',
+                        }}
+                        resizeMode="cover"
+                      />
+                      <View
+                        className="flex-row items-center justify-between"
+                        style={{
+                          paddingHorizontal: normalize(12),
+                          paddingVertical: normalize(8),
+                          backgroundColor: '#fff',
+                        }}
+                      >
+                        <Text
+                          numberOfLines={1}
+                          style={{
+                            flex: 1,
+                            fontSize: FONT_2XS,
+                            fontFamily: 'Pretendard-Regular',
+                            color: TEXT_SUB,
+                            marginRight: normalize(8),
+                          }}
+                        >
+                          {editThemeImageUrl}
+                        </Text>
+                        <View className="flex-row items-center" style={{ gap: normalize(6) }}>
+                          <TouchableOpacity
+                            onPress={() => handlePickThemeImage('edit')}
+                            disabled={isUploadingEditImage}
+                            style={{
+                              paddingHorizontal: normalize(8),
+                              paddingVertical: normalize(4),
+                              borderRadius: normalize(6),
+                              backgroundColor: '#f3f4f6',
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                              gap: normalize(4),
+                            }}
+                          >
+                            <IconPhoto size={normalize(13)} color="#374151" />
+                            <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Medium', color: '#374151' }}>
+                              변경
+                            </Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            onPress={() => setEditThemeImageUrl('')}
+                            style={{
+                              paddingHorizontal: normalize(8),
+                              paddingVertical: normalize(4),
+                              borderRadius: normalize(6),
+                              backgroundColor: '#fee2e2',
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                              gap: normalize(4),
+                            }}
+                          >
+                            <IconTrash size={normalize(13)} color="#dc2626" />
+                            <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Medium', color: '#dc2626' }}>
+                              삭제
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    </View>
+                  ) : (
+                    <TouchableOpacity
+                      onPress={() => handlePickThemeImage('edit')}
+                      disabled={isUploadingEditImage}
+                      activeOpacity={0.8}
+                      style={{
+                        height: normalize(110),
+                        borderWidth: 1.5,
+                        borderColor: 'rgba(0,0,0,0.15)',
+                        borderStyle: 'dashed',
+                        borderRadius: normalize(10),
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: '#fcfcfc',
+                      }}
+                    >
+                      {isUploadingEditImage ? (
+                        <View style={{ alignItems: 'center', gap: normalize(6) }}>
+                          <ActivityIndicator size="small" color={BRAND} />
+                          <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-Medium', color: BRAND }}>
+                            이미지 업로드 중...
+                          </Text>
+                        </View>
+                      ) : (
+                        <View style={{ alignItems: 'center', gap: normalize(4) }}>
+                          <View
+                            style={{
+                              width: normalize(38),
+                              height: normalize(38),
+                              borderRadius: normalize(19),
+                              backgroundColor: '#eef2ff',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                            }}
+                          >
+                            <IconPhoto size={normalize(20)} color={BRAND} />
+                          </View>
+                          <Text style={{ fontSize: FONT_SM, fontFamily: 'Pretendard-SemiBold', color: '#111' }}>
+                            앨범에서 사진 선택
+                          </Text>
+                          <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Regular', color: TEXT_SUB }}>
+                            권장 비율 16:9 · JPG, PNG, WEBP (최대 10MB)
+                          </Text>
+                        </View>
+                      )}
+                    </TouchableOpacity>
+                  )}
+
+                  {showEditUrlInput && (
+                    <View style={{ marginTop: normalize(8) }}>
+                      <TextInput
+                        value={editThemeImageUrl}
+                        onChangeText={setEditThemeImageUrl}
+                        placeholder="https://example.com/theme.jpg"
+                        placeholderTextColor="rgba(0,0,0,0.3)"
+                        autoCapitalize="none"
+                        style={{
+                          height: normalize(40),
+                          borderWidth: 1,
+                          borderColor: 'rgba(0,0,0,0.12)',
+                          borderRadius: normalize(8),
+                          paddingHorizontal: normalize(12),
+                          fontSize: FONT_XS,
+                          fontFamily: 'Pretendard-Regular',
+                          color: '#111',
+                          backgroundColor: '#f9fafb',
+                        }}
+                      />
+                    </View>
+                  )}
                 </View>
 
-                {/* 4. 출품 시작 시각 (submitStartAt) */}
+                {/* 4. 출품 시작 시각 (submitStartAt) - 캘린더 선택 */}
                 <View>
                   <View className="flex-row items-center justify-between" style={{ marginBottom: normalize(4) }}>
                     <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-SemiBold', color: '#374151' }}>
-                      출품 시작 시각 (일정 재계산)
+                      출품 시작 일시 (캘린더 선택)
                     </Text>
                     {editingContestPhase === 'UPCOMING' ? (
-                      <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Regular', color: '#16a34a' }}>
-                        수정 가능 (개설 대기 상태)
-                      </Text>
+                      <View className="flex-row items-center" style={{ gap: normalize(6) }}>
+                        {editSubmitStartAt ? (
+                          <TouchableOpacity onPress={() => setEditSubmitStartAt('')} hitSlop={6}>
+                            <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Medium', color: '#dc2626' }}>
+                              일정 초기화
+                            </Text>
+                          </TouchableOpacity>
+                        ) : null}
+                        <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Regular', color: '#16a34a' }}>
+                          수정 가능 (개설 대기)
+                        </Text>
+                      </View>
                     ) : (
                       <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Regular', color: '#dc2626' }}>
                         수정 불가 (진행/종료 상태)
@@ -2402,25 +2883,102 @@ export default function AdminContestTab({ showToast }: AdminContestTabProps) {
                     )}
                   </View>
 
-                  <TextInput
-                    value={editSubmitStartAt}
-                    onChangeText={setEditSubmitStartAt}
-                    editable={editingContestPhase === 'UPCOMING'}
-                    placeholder="2026-10-15T09:00:00"
-                    placeholderTextColor="rgba(0,0,0,0.3)"
-                    autoCapitalize="none"
+                  <TouchableOpacity
+                    onPress={() => {
+                      if (editingContestPhase === 'UPCOMING') {
+                        setShowEditDatePicker((v) => !v);
+                      }
+                    }}
+                    disabled={editingContestPhase !== 'UPCOMING'}
+                    activeOpacity={0.8}
                     style={{
-                      height: normalize(42),
+                      height: normalize(44),
                       borderWidth: 1,
-                      borderColor: 'rgba(0,0,0,0.12)',
+                      borderColor:
+                        editingContestPhase !== 'UPCOMING'
+                          ? 'rgba(0,0,0,0.08)'
+                          : editSubmitStartAt
+                          ? BRAND
+                          : 'rgba(0,0,0,0.12)',
                       borderRadius: normalize(8),
                       paddingHorizontal: normalize(12),
-                      fontSize: FONT_SM,
-                      fontFamily: 'Pretendard-Regular',
-                      color: editingContestPhase === 'UPCOMING' ? '#111' : '#9ca3af',
-                      backgroundColor: editingContestPhase === 'UPCOMING' ? '#fff' : '#f9fafb',
+                      backgroundColor:
+                        editingContestPhase !== 'UPCOMING'
+                          ? '#f9fafb'
+                          : editSubmitStartAt
+                          ? '#eff6ff'
+                          : '#fff',
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
                     }}
-                  />
+                  >
+                    <View className="flex-row items-center" style={{ gap: normalize(8) }}>
+                      <IconCalendarEvent
+                        size={normalize(18)}
+                        color={
+                          editingContestPhase !== 'UPCOMING'
+                            ? '#9ca3af'
+                            : editSubmitStartAt
+                            ? BRAND
+                            : TEXT_SUB
+                        }
+                      />
+                      <Text
+                        style={{
+                          fontSize: FONT_SM,
+                          fontFamily: editSubmitStartAt ? 'Pretendard-SemiBold' : 'Pretendard-Regular',
+                          color:
+                            editingContestPhase !== 'UPCOMING'
+                              ? '#9ca3af'
+                              : editSubmitStartAt
+                              ? '#1e40af'
+                              : 'rgba(0,0,0,0.35)',
+                        }}
+                      >
+                        {editSubmitStartAt
+                          ? `${formatKoreanDate(editSubmitStartAt)} 시작`
+                          : '시작 일시 미설정 (자동 스케줄러)'}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+
+                  {showEditDatePicker && editingContestPhase === 'UPCOMING' && (
+                    <View
+                      style={{
+                        marginTop: normalize(8),
+                        backgroundColor: '#f9fafb',
+                        borderRadius: normalize(10),
+                        padding: normalize(8),
+                        borderWidth: 1,
+                        borderColor: 'rgba(0,0,0,0.06)',
+                      }}
+                    >
+                      <DateTimePicker
+                        value={editSubmitStartAt ? parseIsoToDate(editSubmitStartAt) : new Date()}
+                        mode="date"
+                        display={Platform.OS === 'ios' ? 'inline' : 'default'}
+                        minimumDate={todayDate}
+                        themeVariant="light"
+                        accentColor={BRAND}
+                        onChange={(event, date) => handleDateChange('edit', event, date)}
+                      />
+                      {Platform.OS === 'ios' && (
+                        <TouchableOpacity
+                          onPress={() => setShowEditDatePicker(false)}
+                          style={{
+                            alignSelf: 'flex-end',
+                            paddingVertical: normalize(6),
+                            paddingHorizontal: normalize(12),
+                          }}
+                        >
+                          <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-SemiBold', color: BRAND }}>
+                            선택 완료
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  )}
 
                   {editingContestPhase === 'UPCOMING' ? (
                     <Text

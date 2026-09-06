@@ -272,7 +272,23 @@ export function useUpdateContest() {
   });
 }
 
-// 4.5 출품 시작 알림 수동 발송 뮤테이션
+// 4.5 콘테스트 테마 대표 사진 업로드 뮤테이션
+export function useUploadContestThemeImage() {
+  const accessToken = useAuthStore((s) => s.accessToken);
+
+  return useMutation<
+    { imageUrl: string; key?: string },
+    Error,
+    { uri: string; name?: string; type?: string }
+  >({
+    mutationFn: (file) => {
+      if (!accessToken) throw new Error('관리자 권한이 필요합니다.');
+      return adminApi.uploadContestThemeImage(file, accessToken);
+    },
+  });
+}
+
+// 4.6 출품 시작 알림 수동 발송 뮤테이션
 export function useSendContestStartNotification() {
   const accessToken = useAuthStore((s) => s.accessToken);
   const queryClient = useQueryClient();

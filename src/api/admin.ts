@@ -392,7 +392,39 @@ export const adminApi = {
     return body as AdminContestDetailResponse;
   },
 
-  // 4.5 콘테스트 출품 시작 알림 수동 발송
+  // 4.5 콘테스트 테마 대표 사진 업로드 (POST /admin/contests/theme-image)
+  uploadContestThemeImage: async (
+    file: { uri: string; name?: string; type?: string },
+    accessToken: string
+  ): Promise<{ imageUrl: string; key?: string }> => {
+    const formData = new FormData();
+    const ext = file.uri.split('.').pop()?.toLowerCase();
+    const safeExt = ext && /^(jpe?g|png|webp|heic)$/.test(ext) ? ext : 'jpg';
+    const mimeType = safeExt === 'png' ? 'image/png' : safeExt === 'webp' ? 'image/webp' : 'image/jpeg';
+
+    formData.append('image', {
+      uri: file.uri,
+      name: file.name || `theme-${Date.now()}.${safeExt}`,
+      type: file.type || mimeType,
+    } as any);
+
+    const res = await fetchWithTimeout(
+      `${BASE}/admin/contests/theme-image`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: formData,
+      },
+      180_000
+    );
+    const json = (await res.json()) as any;
+    const body = json?.data !== undefined && json.data !== null ? json.data : json;
+    return body;
+  },
+
+  // 4.6 콘테스트 출품 시작 알림 수동 발송
   sendContestStartNotification: async (
     contestId: number,
     accessToken: string
