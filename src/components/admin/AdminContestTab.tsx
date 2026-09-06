@@ -27,6 +27,7 @@ import {
   IconClock,
   IconPlayerStop,
   IconSend,
+  IconEdit,
 } from '@tabler/icons-react-native';
 import { normalize } from '@/utils/normalize';
 import {
@@ -43,6 +44,7 @@ import {
   useAdminContests,
   useAdminContestDetail,
   useCreateContest,
+  useUpdateContest,
   useSendContestStartNotification,
   usePublishContestResult,
   useSendContestResultNotification,
@@ -106,9 +108,19 @@ export default function AdminContestTab({ showToast }: AdminContestTabProps) {
   const [createSubmitStartAt, setCreateSubmitStartAt] = useState('');
 
   const createContestMutation = useCreateContest();
+  const updateContestMutation = useUpdateContest();
   const sendStartNotificationMutation = useSendContestStartNotification();
   const publishResultMutation = usePublishContestResult();
   const sendResultNotificationMutation = useSendContestResultNotification();
+
+  // 수정 모달 상태
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [editingContestId, setEditingContestId] = useState<number | null>(null);
+  const [editingContestPhase, setEditingContestPhase] = useState<ContestPhase>('UPCOMING');
+  const [editTitle, setEditTitle] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editThemeImageUrl, setEditThemeImageUrl] = useState('');
+  const [editSubmitStartAt, setEditSubmitStartAt] = useState('');
 
   // ── 2. 상세 & 출품작 모달 상태 ──────────────────────────────────────
   const [selectedContestId, setSelectedContestId] = useState<number | null>(null);
@@ -183,6 +195,63 @@ export default function AdminContestTab({ showToast }: AdminContestTabProps) {
         },
         onError: (err) => {
           Alert.alert('개설 실패', err.message || '콘테스트 개설 중 오류가 발생했습니다.');
+        },
+      }
+    );
+  };
+
+  // ── 핸들러: 콘테스트 수정 모달 열기 ─────────────────────────────────
+  const handleOpenEditModal = (contest: {
+    contestId: number;
+    title: string;
+    description?: string | null;
+    themeImageUrl?: string | null;
+    submitStartAt?: string | null;
+    phase: ContestPhase;
+  }) => {
+    setEditingContestId(contest.contestId);
+    setEditingContestPhase(contest.phase);
+    setEditTitle(contest.title || '');
+    setEditDescription(contest.description || '');
+    setEditThemeImageUrl(contest.themeImageUrl || '');
+    setEditSubmitStartAt(contest.submitStartAt ? contest.submitStartAt.slice(0, 19) : '');
+    setEditModalVisible(true);
+  };
+
+  const handleSubmitUpdateContest = () => {
+    if (!editingContestId) return;
+    if (!editTitle.trim()) {
+      Alert.alert('입력 필요', '콘테스트 테마(제목)를 입력해 주세요.');
+      return;
+    }
+
+    const payload: {
+      title: string;
+      description?: string;
+      themeImageUrl?: string;
+      submitStartAt?: string;
+    } = {
+      title: editTitle.trim(),
+      description: editDescription.trim() || undefined,
+      themeImageUrl: editThemeImageUrl.trim() || undefined,
+    };
+
+    if (editingContestPhase === 'UPCOMING' && editSubmitStartAt.trim()) {
+      payload.submitStartAt = editSubmitStartAt.trim();
+    }
+
+    updateContestMutation.mutate(
+      {
+        contestId: editingContestId,
+        data: payload,
+      },
+      {
+        onSuccess: () => {
+          setEditModalVisible(false);
+          showToast(`콘테스트 #${editingContestId} 정보가 성공적으로 수정되었습니다.`);
+        },
+        onError: (err) => {
+          Alert.alert('수정 실패', err.message || '콘테스트 수정 중 오류가 발생했습니다.');
         },
       }
     );
@@ -769,6 +838,32 @@ export default function AdminContestTab({ showToast }: AdminContestTabProps) {
                           }}
                         >
                           상세 및 출품작
+                        </Text>
+                      </TouchableOpacity>
+
+                      {/* 수정 버튼 */}
+                      <TouchableOpacity
+                        onPress={() => handleOpenEditModal(item)}
+                        style={{
+                          height: normalize(36),
+                          paddingHorizontal: normalize(10),
+                          borderRadius: normalize(8),
+                          backgroundColor: '#f3f4f6',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexDirection: 'row',
+                          gap: normalize(4),
+                        }}
+                      >
+                        <IconEdit size={normalize(14)} color="#374151" />
+                        <Text
+                          style={{
+                            fontSize: FONT_XS,
+                            fontFamily: 'Pretendard-SemiBold',
+                            color: '#374151',
+                          }}
+                        >
+                          수정
                         </Text>
                       </TouchableOpacity>
 
@@ -1475,6 +1570,30 @@ export default function AdminContestTab({ showToast }: AdminContestTabProps) {
                   </View>
                 </View>
 
+                {/* 5. 출품 시작 일시 (선택) */}
+                <View>
+                  <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-SemiBold', color: '#374151', marginBottom: normalize(4) }}>
+                    출품 시작 일시 (선택)
+                  </Text>
+                  <TextInput
+                    value={createSubmitStartAt}
+                    onChangeText={setCreateSubmitStartAt}
+                    placeholder="2026-10-01T09:00:00 (미입력 시 즉시/직전회차 직후)"
+                    placeholderTextColor="rgba(0,0,0,0.3)"
+                    autoCapitalize="none"
+                    style={{
+                      height: normalize(42),
+                      borderWidth: 1,
+                      borderColor: 'rgba(0,0,0,0.12)',
+                      borderRadius: normalize(8),
+                      paddingHorizontal: normalize(12),
+                      fontSize: FONT_SM,
+                      fontFamily: 'Pretendard-Regular',
+                      color: '#111',
+                    }}
+                  />
+                </View>
+
                 {/* 안내 카드 */}
                 <View
                   style={{
@@ -1564,7 +1683,7 @@ export default function AdminContestTab({ showToast }: AdminContestTabProps) {
           >
             {/* 헤더 */}
             <View className="flex-row items-center justify-between border-b-[0.5px] border-hairline pb-3">
-              <View>
+              <View style={{ flex: 1 }}>
                 <Text style={{ fontSize: FONT_LG, fontFamily: 'Pretendard-Bold', color: '#111' }}>
                   콘테스트 상세 및 출품작
                 </Text>
@@ -1572,9 +1691,30 @@ export default function AdminContestTab({ showToast }: AdminContestTabProps) {
                   #{selectedContestId} {contestDetail?.title ?? ''}
                 </Text>
               </View>
-              <TouchableOpacity onPress={() => setDetailModalVisible(false)} hitSlop={8}>
-                <IconX size={normalize(22)} color="rgba(0,0,0,0.5)" />
-              </TouchableOpacity>
+              <View className="flex-row items-center" style={{ gap: normalize(8) }}>
+                {contestDetail && (
+                  <TouchableOpacity
+                    onPress={() => handleOpenEditModal(contestDetail)}
+                    style={{
+                      height: normalize(32),
+                      paddingHorizontal: normalize(10),
+                      borderRadius: normalize(6),
+                      backgroundColor: '#f3f4f6',
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: normalize(4),
+                    }}
+                  >
+                    <IconEdit size={normalize(14)} color="#374151" />
+                    <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-SemiBold', color: '#374151' }}>
+                      수정
+                    </Text>
+                  </TouchableOpacity>
+                )}
+                <TouchableOpacity onPress={() => setDetailModalVisible(false)} hitSlop={8}>
+                  <IconX size={normalize(22)} color="rgba(0,0,0,0.5)" />
+                </TouchableOpacity>
+              </View>
             </View>
 
             <ScrollView showsVerticalScrollIndicator={false} style={{ marginVertical: normalize(12) }}>
@@ -2095,6 +2235,267 @@ export default function AdminContestTab({ showToast }: AdminContestTabProps) {
                   <Text style={{ fontSize: FONT_SM, fontFamily: 'Pretendard-SemiBold', color: '#fff' }}>
                     삭제 확인
                   </Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      {/* ══════════════════════════════════════════════════════════════
+          MODAL 4: 콘테스트 회차 정보 및 일정 수정 모달
+      ══════════════════════════════════════════════════════════════ */}
+      <Modal
+        visible={editModalVisible}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() => setEditModalVisible(false)}
+      >
+        <Pressable
+          className="flex-1 justify-center bg-black/60"
+          style={{ paddingHorizontal: normalize(20) }}
+          onPress={() => setEditModalVisible(false)}
+        >
+          <Pressable
+            onPress={(e) => e.stopPropagation()}
+            style={{
+              backgroundColor: '#fff',
+              borderRadius: CARD_RADIUS,
+              padding: normalize(20),
+              maxHeight: Dimensions.get('screen').height * 0.85,
+            }}
+          >
+            {/* 모달 헤더 */}
+            <View className="flex-row items-center justify-between border-b-[0.5px] border-hairline pb-3">
+              <View className="flex-row items-center" style={{ gap: normalize(6) }}>
+                <IconEdit size={normalize(20)} color={BRAND} />
+                <Text style={{ fontSize: FONT_LG, fontFamily: 'Pretendard-SemiBold', color: '#111' }}>
+                  콘테스트 정보/일정 수정
+                </Text>
+                {editingContestId && (
+                  <Text style={{ fontSize: FONT_SM, fontFamily: 'Pretendard-Medium', color: TEXT_SUB }}>
+                    #{editingContestId}
+                  </Text>
+                )}
+              </View>
+              <TouchableOpacity onPress={() => setEditModalVisible(false)} hitSlop={8}>
+                <IconX size={normalize(20)} color="rgba(0,0,0,0.5)" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false} style={{ marginVertical: normalize(14) }}>
+              <View style={{ gap: normalize(14) }}>
+                {/* 현재 상태 뱃지 */}
+                <View className="flex-row items-center" style={{ gap: normalize(6) }}>
+                  <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-Medium', color: TEXT_SUB }}>
+                    현재 회차 상태:
+                  </Text>
+                  <View
+                    style={{
+                      paddingHorizontal: normalize(8),
+                      paddingVertical: normalize(3),
+                      borderRadius: normalize(4),
+                      backgroundColor: (PHASE_COLORS[editingContestPhase] ?? { bg: '#f3f4f6' }).bg,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: FONT_2XS,
+                        fontFamily: 'Pretendard-SemiBold',
+                        color: (PHASE_COLORS[editingContestPhase] ?? { text: '#374151' }).text,
+                      }}
+                    >
+                      {CONTEST_PHASE_LABELS[editingContestPhase] ?? editingContestPhase}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* 1. 테마(제목) */}
+                <View>
+                  <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-SemiBold', color: '#374151', marginBottom: normalize(4) }}>
+                    콘테스트 테마명 (필수)
+                  </Text>
+                  <TextInput
+                    value={editTitle}
+                    onChangeText={setEditTitle}
+                    placeholder="예: 늦가을 단풍 출사전"
+                    placeholderTextColor="rgba(0,0,0,0.3)"
+                    style={{
+                      height: normalize(42),
+                      borderWidth: 1,
+                      borderColor: 'rgba(0,0,0,0.12)',
+                      borderRadius: normalize(8),
+                      paddingHorizontal: normalize(12),
+                      fontSize: FONT_SM,
+                      fontFamily: 'Pretendard-Medium',
+                      color: '#111',
+                    }}
+                  />
+                </View>
+
+                {/* 2. 설명 */}
+                <View>
+                  <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-SemiBold', color: '#374151', marginBottom: normalize(4) }}>
+                    테마 설명 (선택)
+                  </Text>
+                  <TextInput
+                    value={editDescription}
+                    onChangeText={setEditDescription}
+                    placeholder="콘테스트 참여 안내 및 테마 설명"
+                    placeholderTextColor="rgba(0,0,0,0.3)"
+                    multiline
+                    numberOfLines={3}
+                    style={{
+                      height: normalize(72),
+                      borderWidth: 1,
+                      borderColor: 'rgba(0,0,0,0.12)',
+                      borderRadius: normalize(8),
+                      paddingHorizontal: normalize(12),
+                      paddingTop: normalize(8),
+                      fontSize: FONT_SM,
+                      fontFamily: 'Pretendard-Regular',
+                      color: '#111',
+                      textAlignVertical: 'top',
+                    }}
+                  />
+                </View>
+
+                {/* 3. 대표 이미지 URL */}
+                <View>
+                  <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-SemiBold', color: '#374151', marginBottom: normalize(4) }}>
+                    대표 이미지 URL (선택)
+                  </Text>
+                  <TextInput
+                    value={editThemeImageUrl}
+                    onChangeText={setEditThemeImageUrl}
+                    placeholder="https://example.com/theme.jpg"
+                    placeholderTextColor="rgba(0,0,0,0.3)"
+                    autoCapitalize="none"
+                    style={{
+                      height: normalize(42),
+                      borderWidth: 1,
+                      borderColor: 'rgba(0,0,0,0.12)',
+                      borderRadius: normalize(8),
+                      paddingHorizontal: normalize(12),
+                      fontSize: FONT_SM,
+                      fontFamily: 'Pretendard-Regular',
+                      color: '#111',
+                    }}
+                  />
+                </View>
+
+                {/* 4. 출품 시작 시각 (submitStartAt) */}
+                <View>
+                  <View className="flex-row items-center justify-between" style={{ marginBottom: normalize(4) }}>
+                    <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-SemiBold', color: '#374151' }}>
+                      출품 시작 시각 (일정 재계산)
+                    </Text>
+                    {editingContestPhase === 'UPCOMING' ? (
+                      <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Regular', color: '#16a34a' }}>
+                        수정 가능 (개설 대기 상태)
+                      </Text>
+                    ) : (
+                      <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Regular', color: '#dc2626' }}>
+                        수정 불가 (진행/종료 상태)
+                      </Text>
+                    )}
+                  </View>
+
+                  <TextInput
+                    value={editSubmitStartAt}
+                    onChangeText={setEditSubmitStartAt}
+                    editable={editingContestPhase === 'UPCOMING'}
+                    placeholder="2026-10-15T09:00:00"
+                    placeholderTextColor="rgba(0,0,0,0.3)"
+                    autoCapitalize="none"
+                    style={{
+                      height: normalize(42),
+                      borderWidth: 1,
+                      borderColor: 'rgba(0,0,0,0.12)',
+                      borderRadius: normalize(8),
+                      paddingHorizontal: normalize(12),
+                      fontSize: FONT_SM,
+                      fontFamily: 'Pretendard-Regular',
+                      color: editingContestPhase === 'UPCOMING' ? '#111' : '#9ca3af',
+                      backgroundColor: editingContestPhase === 'UPCOMING' ? '#fff' : '#f9fafb',
+                    }}
+                  />
+
+                  {editingContestPhase === 'UPCOMING' ? (
+                    <Text
+                      style={{
+                        fontSize: FONT_2XS,
+                        fontFamily: 'Pretendard-Regular',
+                        color: '#2563eb',
+                        marginTop: normalize(4),
+                      }}
+                    >
+                      💡 시작일을 수정하면 출품 2주 → 투표 2주 → 익일 09:00 발표(총 4주) 일정이 자동 재계산됩니다.
+                    </Text>
+                  ) : (
+                    <Text
+                      style={{
+                        fontSize: FONT_2XS,
+                        fontFamily: 'Pretendard-Regular',
+                        color: '#6b7280',
+                        marginTop: normalize(4),
+                      }}
+                    >
+                      ⚠️ 출품이 시작되었거나 종료된 콘테스트는 시작 일정을 변경할 수 없으며 기본 정보만 수정됩니다.
+                    </Text>
+                  )}
+                </View>
+              </View>
+            </ScrollView>
+
+            {/* 수정 완료 버튼 */}
+            <View className="flex-row items-center" style={{ gap: normalize(8) }}>
+              <TouchableOpacity
+                onPress={() => setEditModalVisible(false)}
+                style={{
+                  flex: 1,
+                  height: normalize(44),
+                  borderRadius: BUTTON_RADIUS,
+                  backgroundColor: '#f3f4f6',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Text style={{ fontSize: FONT_SM, fontFamily: 'Pretendard-Medium', color: '#4b5563' }}>
+                  취소
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleSubmitUpdateContest}
+                disabled={updateContestMutation.isPending || !editTitle.trim()}
+                style={{
+                  flex: 1.5,
+                  height: normalize(44),
+                  borderRadius: BUTTON_RADIUS,
+                  backgroundColor: !editTitle.trim() || updateContestMutation.isPending ? '#e5e7eb' : BRAND,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexDirection: 'row',
+                  gap: normalize(6),
+                }}
+              >
+                {updateContestMutation.isPending ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <>
+                    <IconCheck size={normalize(16)} color={!editTitle.trim() ? '#9ca3af' : '#fff'} />
+                    <Text
+                      style={{
+                        fontSize: FONT_SM,
+                        fontFamily: 'Pretendard-SemiBold',
+                        color: !editTitle.trim() ? '#9ca3af' : '#fff',
+                      }}
+                    >
+                      수정 저장
+                    </Text>
+                  </>
                 )}
               </TouchableOpacity>
             </View>

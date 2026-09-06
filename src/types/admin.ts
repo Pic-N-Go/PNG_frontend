@@ -158,6 +158,13 @@ export interface ContestCreateRequest {
   voteLimit?: number;
 }
 
+export interface ContestUpdateRequest {
+  title?: string;
+  description?: string;
+  themeImageUrl?: string;
+  submitStartAt?: string;
+}
+
 export interface AdminContestSummaryResponse {
   contestId: number;
   title: string;

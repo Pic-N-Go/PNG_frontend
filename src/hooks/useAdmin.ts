@@ -12,6 +12,7 @@ import type {
   TourSyncStatusResponse,
   AdminPageResponse,
   ContestCreateRequest,
+  ContestUpdateRequest,
   AdminContestSummaryResponse,
   AdminContestDetailResponse,
   AdminContestEntryResponse,
@@ -250,7 +251,28 @@ export function useCreateContest() {
   });
 }
 
-// 4.4 출품 시작 알림 수동 발송 뮤테이션
+// 4.4 콘테스트 정보 및 시작 일정 수정 뮤테이션
+export function useUpdateContest() {
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    AdminContestDetailResponse,
+    Error,
+    { contestId: number; data: ContestUpdateRequest }
+  >({
+    mutationFn: ({ contestId, data }) => {
+      if (!accessToken) throw new Error('관리자 권한이 필요합니다.');
+      return adminApi.updateContest(contestId, data, accessToken);
+    },
+    onSuccess: (_, { contestId }) => {
+      queryClient.invalidateQueries({ queryKey: [...ADMIN_KEYS.all, 'contests'] });
+      queryClient.invalidateQueries({ queryKey: ADMIN_KEYS.contestDetail(contestId) });
+    },
+  });
+}
+
+// 4.5 출품 시작 알림 수동 발송 뮤테이션
 export function useSendContestStartNotification() {
   const accessToken = useAuthStore((s) => s.accessToken);
   const queryClient = useQueryClient();

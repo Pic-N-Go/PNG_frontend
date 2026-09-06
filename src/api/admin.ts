@@ -10,6 +10,7 @@ import type {
   TourSyncStatusResponse,
   AdminPageResponse,
   ContestCreateRequest,
+  ContestUpdateRequest,
   AdminContestSummaryResponse,
   AdminContestDetailResponse,
   AdminContestEntryResponse,
@@ -372,7 +373,26 @@ export const adminApi = {
     return body as AdminContestDetailResponse;
   },
 
-  // 4.4 콘테스트 출품 시작 알림 수동 발송
+  // 4.4 콘테스트 정보 및 일정 수정 (PATCH /admin/contests/{contestId})
+  updateContest: async (
+    contestId: number,
+    data: ContestUpdateRequest,
+    accessToken: string
+  ): Promise<AdminContestDetailResponse> => {
+    const res = await fetchWithTimeout(`${BASE}/admin/contests/${contestId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify(data),
+    });
+    const json = (await res.json()) as any;
+    const body = json?.data !== undefined && json.data !== null ? json.data : json;
+    return body as AdminContestDetailResponse;
+  },
+
+  // 4.5 콘테스트 출품 시작 알림 수동 발송
   sendContestStartNotification: async (
     contestId: number,
     accessToken: string
