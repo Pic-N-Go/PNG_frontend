@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, Image, Animated, Easing, PanResponder, Di
 import { LinearGradient } from 'expo-linear-gradient';
 import { BOTTOM_SHEET_RADIUS, FONT_SM, FONT_TITLE, FONT_XS } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { IconMapPin, IconX, IconHeart, IconBookmark, IconCamera } from '@tabler/icons-react-native';
+import { IconMapPin, IconX, IconBookmark, IconCamera } from '@tabler/icons-react-native';
 import { getFallbackGradient } from '@/utils/gradient';
 import StarRating from '@/components/common/StarRating';
 import { Spot } from '@/store/useCourseStore';
