@@ -173,6 +173,7 @@ export interface AdminContestSummaryResponse {
   voteLimit: number;
   active: boolean;
   startNotificationSent: boolean;
+  resultNotificationSent: boolean;
   totalEntries: number;
   totalVotes: number;
   createdAt: string;
@@ -193,6 +194,7 @@ export interface AdminContestDetailResponse {
   voteLimit: number;
   active: boolean;
   startNotificationSent: boolean;
+  resultNotificationSent: boolean;
   subscriberCount: number;
   totalEntries: number;
   participantCount: number;

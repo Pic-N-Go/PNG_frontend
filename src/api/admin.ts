@@ -388,7 +388,39 @@ export const adminApi = {
     return body;
   },
 
-  // 4.5 특정 콘테스트 출품작 목록 조회 (신고 건수 포함)
+  // 4.5 콘테스트 강제 마감 및 즉시 결과 발표 (POST /admin/contests/{contestId}/publish-result)
+  publishContestResult: async (
+    contestId: number,
+    accessToken: string
+  ): Promise<AdminContestDetailResponse> => {
+    const res = await fetchWithTimeout(`${BASE}/admin/contests/${contestId}/publish-result`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    const json = (await res.json()) as any;
+    const body = json?.data !== undefined && json.data !== null ? json.data : json;
+    return body as AdminContestDetailResponse;
+  },
+
+  // 4.6 콘테스트 결과 발표 알림 수동 발송 (POST /admin/contests/{contestId}/notifications/result)
+  sendContestResultNotification: async (
+    contestId: number,
+    accessToken: string
+  ): Promise<{ message?: string; sentCount?: number; [key: string]: any }> => {
+    const res = await fetchWithTimeout(`${BASE}/admin/contests/${contestId}/notifications/result`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    const json = (await res.json()) as any;
+    const body = json?.data !== undefined && json.data !== null ? json.data : json;
+    return body;
+  },
+
+  // 4.7 특정 콘테스트 출품작 목록 조회 (신고 건수 포함)
   getAdminContestEntries: async (
     contestId: number,
     page: number = 0,

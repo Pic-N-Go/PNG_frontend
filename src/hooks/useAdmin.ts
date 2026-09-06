@@ -267,7 +267,42 @@ export function useSendContestStartNotification() {
   });
 }
 
-// 4.5 콘테스트 출품작 목록 조회 훅
+// 4.5 콘테스트 강제 마감 및 즉시 결과 발표 뮤테이션
+export function usePublishContestResult() {
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const queryClient = useQueryClient();
+
+  return useMutation<AdminContestDetailResponse, Error, number>({
+    mutationFn: (contestId) => {
+      if (!accessToken) throw new Error('관리자 권한이 필요합니다.');
+      return adminApi.publishContestResult(contestId, accessToken);
+    },
+    onSuccess: (_, contestId) => {
+      queryClient.invalidateQueries({ queryKey: [...ADMIN_KEYS.all, 'contests'] });
+      queryClient.invalidateQueries({ queryKey: ADMIN_KEYS.contestDetail(contestId) });
+      queryClient.invalidateQueries({ queryKey: ADMIN_KEYS.contestEntries(contestId) });
+    },
+  });
+}
+
+// 4.6 결과 발표 알림 수동 발송 뮤테이션
+export function useSendContestResultNotification() {
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const queryClient = useQueryClient();
+
+  return useMutation<{ message?: string; sentCount?: number; [key: string]: any }, Error, number>({
+    mutationFn: (contestId) => {
+      if (!accessToken) throw new Error('관리자 권한이 필요합니다.');
+      return adminApi.sendContestResultNotification(contestId, accessToken);
+    },
+    onSuccess: (_, contestId) => {
+      queryClient.invalidateQueries({ queryKey: [...ADMIN_KEYS.all, 'contests'] });
+      queryClient.invalidateQueries({ queryKey: ADMIN_KEYS.contestDetail(contestId) });
+    },
+  });
+}
+
+// 4.7 콘테스트 출품작 목록 조회 훅
 export function useAdminContestEntries(contestId: number | null, page = 0, size = 20) {
   const accessToken = useAuthStore((s) => s.accessToken);
 

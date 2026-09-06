@@ -25,6 +25,8 @@ import {
   IconChevronLeft,
   IconChevronRight,
   IconClock,
+  IconPlayerStop,
+  IconSend,
 } from '@tabler/icons-react-native';
 import { normalize } from '@/utils/normalize';
 import {
@@ -42,6 +44,8 @@ import {
   useAdminContestDetail,
   useCreateContest,
   useSendContestStartNotification,
+  usePublishContestResult,
+  useSendContestResultNotification,
   useAdminContestEntries,
   useDeleteAdminContestEntry,
   useAdminContestReports,
@@ -103,6 +107,8 @@ export default function AdminContestTab({ showToast }: AdminContestTabProps) {
 
   const createContestMutation = useCreateContest();
   const sendStartNotificationMutation = useSendContestStartNotification();
+  const publishResultMutation = usePublishContestResult();
+  const sendResultNotificationMutation = useSendContestResultNotification();
 
   // ── 2. 상세 & 출품작 모달 상태 ──────────────────────────────────────
   const [selectedContestId, setSelectedContestId] = useState<number | null>(null);
@@ -206,6 +212,56 @@ export default function AdminContestTab({ showToast }: AdminContestTabProps) {
               },
               onError: (err) => {
                 Alert.alert('발송 실패', err.message || '알림 발송 중 오류가 발생했습니다.');
+              },
+            });
+          },
+        },
+      ]
+    );
+  };
+
+  // ── 핸들러: 강제 조기 마감 및 즉시 결과 발표 ─────────────────────
+  const handlePublishResult = (contestId: number, contestTitle: string) => {
+    Alert.alert(
+      '강제 결과 발표 및 조기 마감',
+      `[${contestTitle}] 콘테스트를 즉시 종료하고 최종 순위를 확정하여 결과를 발표하시겠습니까?\n\n이 작업은 되돌릴 수 없으며, 참여자 및 구독자들에게 결과 발표 알림이 자동 발송됩니다.`,
+      [
+        { text: '취소', style: 'cancel' },
+        {
+          text: '즉시 결과 발표',
+          style: 'destructive',
+          onPress: () => {
+            publishResultMutation.mutate(contestId, {
+              onSuccess: () => {
+                showToast(`[${contestTitle}] 콘테스트 결과가 즉시 발표되었습니다.`);
+              },
+              onError: (err) => {
+                Alert.alert('발표 실패', err.message || '결과 발표 처리 중 오류가 발생했습니다.');
+              },
+            });
+          },
+        },
+      ]
+    );
+  };
+
+  // ── 핸들러: 결과 발표 알림 수동 발송 ─────────────────────────────
+  const handleSendResultNotification = (contestId: number, contestTitle: string) => {
+    Alert.alert(
+      '결과 발표 알림 발송',
+      `[${contestTitle}] 출품자, 투표자 및 구독자들에게 최종 결과 푸시/인앱 알림을 발송하시겠습니까?`,
+      [
+        { text: '취소', style: 'cancel' },
+        {
+          text: '알림 발송',
+          onPress: () => {
+            sendResultNotificationMutation.mutate(contestId, {
+              onSuccess: (res) => {
+                const count = res?.sentCount ?? 0;
+                showToast(`결과 알림이 발송되었습니다. (수신: ${count}명)`);
+              },
+              onError: (err) => {
+                Alert.alert('발송 실패', err.message || '결과 알림 발송 중 오류가 발생했습니다.');
               },
             });
           },
@@ -495,48 +551,93 @@ export default function AdminContestTab({ showToast }: AdminContestTabProps) {
                         </Text>
                       </View>
 
-                      {item.startNotificationSent ? (
-                        <View
-                          className="flex-row items-center"
-                          style={{
-                            gap: normalize(3),
-                            paddingHorizontal: normalize(6),
-                            paddingVertical: normalize(2),
-                            borderRadius: normalize(4),
-                            backgroundColor: '#f0fdf4',
-                          }}
-                        >
-                          <IconCheck size={normalize(12)} color="#16a34a" />
-                          <Text
+                      <View className="flex-row items-center" style={{ gap: normalize(4) }}>
+                        {item.startNotificationSent ? (
+                          <View
+                            className="flex-row items-center"
                             style={{
-                              fontSize: FONT_2XS,
-                              fontFamily: 'Pretendard-Medium',
-                              color: '#15803d',
+                              gap: normalize(2),
+                              paddingHorizontal: normalize(6),
+                              paddingVertical: normalize(2),
+                              borderRadius: normalize(4),
+                              backgroundColor: '#f0fdf4',
                             }}
                           >
-                            알림 발송완료
-                          </Text>
-                        </View>
-                      ) : (
-                        <View
-                          style={{
-                            paddingHorizontal: normalize(6),
-                            paddingVertical: normalize(2),
-                            borderRadius: normalize(4),
-                            backgroundColor: '#fef2f2',
-                          }}
-                        >
-                          <Text
+                            <IconCheck size={normalize(11)} color="#16a34a" />
+                            <Text
+                              style={{
+                                fontSize: FONT_2XS,
+                                fontFamily: 'Pretendard-Medium',
+                                color: '#15803d',
+                              }}
+                            >
+                              시작알림 완료
+                            </Text>
+                          </View>
+                        ) : item.phase !== 'ENDED' ? (
+                          <View
                             style={{
-                              fontSize: FONT_2XS,
-                              fontFamily: 'Pretendard-Medium',
-                              color: '#b91c1c',
+                              paddingHorizontal: normalize(6),
+                              paddingVertical: normalize(2),
+                              borderRadius: normalize(4),
+                              backgroundColor: '#fef2f2',
                             }}
                           >
-                            알림 미발송
-                          </Text>
-                        </View>
-                      )}
+                            <Text
+                              style={{
+                                fontSize: FONT_2XS,
+                                fontFamily: 'Pretendard-Medium',
+                                color: '#b91c1c',
+                              }}
+                            >
+                              시작알림 미발송
+                            </Text>
+                          </View>
+                        ) : null}
+
+                        {item.resultNotificationSent ? (
+                          <View
+                            className="flex-row items-center"
+                            style={{
+                              gap: normalize(2),
+                              paddingHorizontal: normalize(6),
+                              paddingVertical: normalize(2),
+                              borderRadius: normalize(4),
+                              backgroundColor: '#f0fdf4',
+                            }}
+                          >
+                            <IconCheck size={normalize(11)} color="#16a34a" />
+                            <Text
+                              style={{
+                                fontSize: FONT_2XS,
+                                fontFamily: 'Pretendard-Medium',
+                                color: '#15803d',
+                              }}
+                            >
+                              결과알림 완료
+                            </Text>
+                          </View>
+                        ) : item.phase === 'ENDED' ? (
+                          <View
+                            style={{
+                              paddingHorizontal: normalize(6),
+                              paddingVertical: normalize(2),
+                              borderRadius: normalize(4),
+                              backgroundColor: '#fffbeb',
+                            }}
+                          >
+                            <Text
+                              style={{
+                                fontSize: FONT_2XS,
+                                fontFamily: 'Pretendard-Medium',
+                                color: '#b45309',
+                              }}
+                            >
+                              결과알림 미발송
+                            </Text>
+                          </View>
+                        ) : null}
+                      </View>
                     </View>
 
                     {/* 테마 제목 & 설명 */}
@@ -644,11 +745,12 @@ export default function AdminContestTab({ showToast }: AdminContestTabProps) {
                     </View>
 
                     {/* 하단 액션 버튼 그룹 */}
-                    <View className="flex-row items-center" style={{ gap: normalize(8) }}>
+                    <View className="flex-row items-center flex-wrap" style={{ gap: normalize(6) }}>
                       <TouchableOpacity
                         onPress={() => handleOpenDetailModal(item.contestId)}
                         style={{
                           flex: 1,
+                          minWidth: normalize(100),
                           height: normalize(36),
                           borderRadius: normalize(8),
                           backgroundColor: '#f3f4f6',
@@ -670,13 +772,13 @@ export default function AdminContestTab({ showToast }: AdminContestTabProps) {
                         </Text>
                       </TouchableOpacity>
 
-                      {!item.startNotificationSent && (
+                      {!item.startNotificationSent && item.phase !== 'ENDED' && (
                         <TouchableOpacity
                           onPress={() => handleSendStartNotification(item.contestId, item.title)}
                           disabled={sendStartNotificationMutation.isPending}
                           style={{
                             height: normalize(36),
-                            paddingHorizontal: normalize(12),
+                            paddingHorizontal: normalize(10),
                             borderRadius: normalize(8),
                             backgroundColor: '#e0f2fe',
                             alignItems: 'center',
@@ -693,7 +795,63 @@ export default function AdminContestTab({ showToast }: AdminContestTabProps) {
                               color: '#0284c7',
                             }}
                           >
-                            시작 알림 발송
+                            시작 알림
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+
+                      {item.phase !== 'ENDED' && (
+                        <TouchableOpacity
+                          onPress={() => handlePublishResult(item.contestId, item.title)}
+                          disabled={publishResultMutation.isPending}
+                          style={{
+                            height: normalize(36),
+                            paddingHorizontal: normalize(10),
+                            borderRadius: normalize(8),
+                            backgroundColor: '#fee2e2',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexDirection: 'row',
+                            gap: normalize(4),
+                          }}
+                        >
+                          <IconPlayerStop size={normalize(14)} color="#dc2626" />
+                          <Text
+                            style={{
+                              fontSize: FONT_XS,
+                              fontFamily: 'Pretendard-SemiBold',
+                              color: '#dc2626',
+                            }}
+                          >
+                            강제 결과 발표
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+
+                      {item.phase === 'ENDED' && (
+                        <TouchableOpacity
+                          onPress={() => handleSendResultNotification(item.contestId, item.title)}
+                          disabled={sendResultNotificationMutation.isPending}
+                          style={{
+                            height: normalize(36),
+                            paddingHorizontal: normalize(10),
+                            borderRadius: normalize(8),
+                            backgroundColor: '#fef3c7',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexDirection: 'row',
+                            gap: normalize(4),
+                          }}
+                        >
+                          <IconSend size={normalize(14)} color="#b45309" />
+                          <Text
+                            style={{
+                              fontSize: FONT_XS,
+                              fontFamily: 'Pretendard-SemiBold',
+                              color: '#b45309',
+                            }}
+                          >
+                            {item.resultNotificationSent ? '결과알림 재발송' : '결과 알림 발송'}
                           </Text>
                         </TouchableOpacity>
                       )}
@@ -1470,6 +1628,155 @@ export default function AdminContestTab({ showToast }: AdminContestTabProps) {
                       <Text style={{ fontSize: FONT_MD, fontFamily: 'Pretendard-Bold', color: '#111', marginTop: normalize(2) }}>
                         {contestDetail.totalVotes}표
                       </Text>
+                    </View>
+                  </View>
+
+                  {/* 회차 운영 제어 패널 */}
+                  <View
+                    style={{
+                      backgroundColor: '#f9fafb',
+                      borderRadius: normalize(12),
+                      padding: normalize(12),
+                      gap: normalize(10),
+                      borderWidth: 1,
+                      borderColor: 'rgba(0,0,0,0.06)',
+                    }}
+                  >
+                    <View className="flex-row items-center justify-between">
+                      <View className="flex-row items-center" style={{ gap: normalize(6) }}>
+                        <Text style={{ fontSize: FONT_SM, fontFamily: 'Pretendard-SemiBold', color: '#111' }}>
+                          운영 제어 & 알림 관리
+                        </Text>
+                        <View
+                          style={{
+                            paddingHorizontal: normalize(6),
+                            paddingVertical: normalize(2),
+                            borderRadius: normalize(4),
+                            backgroundColor: (PHASE_COLORS[contestDetail.phase] ?? { bg: '#f3f4f6' }).bg,
+                          }}
+                        >
+                          <Text
+                            style={{
+                              fontSize: FONT_2XS,
+                              fontFamily: 'Pretendard-SemiBold',
+                              color: (PHASE_COLORS[contestDetail.phase] ?? { text: '#374151' }).text,
+                            }}
+                          >
+                            {CONTEST_PHASE_LABELS[contestDetail.phase] ?? contestDetail.phase}
+                          </Text>
+                        </View>
+                      </View>
+
+                      <View className="flex-row items-center" style={{ gap: normalize(4) }}>
+                        <View
+                          style={{
+                            paddingHorizontal: normalize(5),
+                            paddingVertical: normalize(2),
+                            borderRadius: normalize(4),
+                            backgroundColor: contestDetail.startNotificationSent ? '#f0fdf4' : '#fef2f2',
+                          }}
+                        >
+                          <Text
+                            style={{
+                              fontSize: FONT_2XS,
+                              fontFamily: 'Pretendard-Medium',
+                              color: contestDetail.startNotificationSent ? '#15803d' : '#b91c1c',
+                            }}
+                          >
+                            시작알림 {contestDetail.startNotificationSent ? '완료' : '미발송'}
+                          </Text>
+                        </View>
+
+                        <View
+                          style={{
+                            paddingHorizontal: normalize(5),
+                            paddingVertical: normalize(2),
+                            borderRadius: normalize(4),
+                            backgroundColor: contestDetail.resultNotificationSent ? '#f0fdf4' : '#fffbeb',
+                          }}
+                        >
+                          <Text
+                            style={{
+                              fontSize: FONT_2XS,
+                              fontFamily: 'Pretendard-Medium',
+                              color: contestDetail.resultNotificationSent ? '#15803d' : '#b45309',
+                            }}
+                          >
+                            결과알림 {contestDetail.resultNotificationSent ? '완료' : '미발송'}
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+
+                    {/* 액션 버튼 그룹 */}
+                    <View className="flex-row items-center" style={{ gap: normalize(8) }}>
+                      {!contestDetail.startNotificationSent && contestDetail.phase !== 'ENDED' && (
+                        <TouchableOpacity
+                          onPress={() => handleSendStartNotification(contestDetail.contestId, contestDetail.title)}
+                          disabled={sendStartNotificationMutation.isPending}
+                          style={{
+                            flex: 1,
+                            height: normalize(38),
+                            borderRadius: normalize(8),
+                            backgroundColor: '#e0f2fe',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexDirection: 'row',
+                            gap: normalize(4),
+                          }}
+                        >
+                          <IconBell size={normalize(15)} color="#0284c7" />
+                          <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-SemiBold', color: '#0284c7' }}>
+                            출품 시작 알림 발송
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+
+                      {contestDetail.phase !== 'ENDED' && (
+                        <TouchableOpacity
+                          onPress={() => handlePublishResult(contestDetail.contestId, contestDetail.title)}
+                          disabled={publishResultMutation.isPending}
+                          style={{
+                            flex: 1,
+                            height: normalize(38),
+                            borderRadius: normalize(8),
+                            backgroundColor: '#fee2e2',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexDirection: 'row',
+                            gap: normalize(4),
+                          }}
+                        >
+                          <IconPlayerStop size={normalize(15)} color="#dc2626" />
+                          <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-SemiBold', color: '#dc2626' }}>
+                            강제 마감 및 즉시 결과 발표
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+
+                      {contestDetail.phase === 'ENDED' && (
+                        <TouchableOpacity
+                          onPress={() => handleSendResultNotification(contestDetail.contestId, contestDetail.title)}
+                          disabled={sendResultNotificationMutation.isPending}
+                          style={{
+                            flex: 1,
+                            height: normalize(38),
+                            borderRadius: normalize(8),
+                            backgroundColor: '#fef3c7',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexDirection: 'row',
+                            gap: normalize(4),
+                          }}
+                        >
+                          <IconSend size={normalize(15)} color="#b45309" />
+                          <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-SemiBold', color: '#b45309' }}>
+                            {contestDetail.resultNotificationSent
+                              ? '결과 발표 알림 재발송'
+                              : '결과 발표 알림 즉시 발송'}
+                          </Text>
+                        </TouchableOpacity>
+                      )}
                     </View>
                   </View>
 
