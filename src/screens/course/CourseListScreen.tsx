@@ -9,6 +9,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useFocusEffect } from '@react-navigation/native';
 import { coursesApi } from '@/api/courses';
 import { BRAND, BRAND_TINT } from '@/constants/colors';
+import CourseCardThumbnail from '@/components/course/CourseCardThumbnail';
 
 const TABS = [
   { id: 'all', label: '전체' },
@@ -69,6 +70,24 @@ export default function CourseListScreen({ navigation }: any) {
     const { status, statusText } = getCourseStatus(course.startDate, course.endDate);
     const dateFormatted = `${course.startDate.replace(/-/g, '.')} ~ ${course.endDate.substring(5).replace(/-/g, '.')}`;
     const durationFormatted = getCourseDuration(course.startDate, course.endDate);
+
+    // 이미지가 존재하는 스팟만 순서대로 추출 (DAY 순서 -> 시퀀스 순서대로 스캔, 최대 3개)
+    const rawThumbs: string[] = [];
+    if (course.thumbnailUrls && course.thumbnailUrls.length > 0) {
+      rawThumbs.push(...course.thumbnailUrls);
+    } else if (course.spots && course.spots.length > 0) {
+      const sortedSpots = [...course.spots].sort(
+        (a, b) => (a.dayNumber - b.dayNumber) || (a.sequenceOrder - b.sequenceOrder)
+      );
+      for (const s of sortedSpots) {
+        if (s.thumbnailUrl) rawThumbs.push(s.thumbnailUrl);
+      }
+    }
+    const thumbnails = rawThumbs
+      .map((u) => (typeof u === 'string' ? u.trim() : ''))
+      .filter((u) => u.length > 0)
+      .filter((u, idx, arr) => arr.indexOf(u) === idx)
+      .slice(0, 3);
     
     return {
       id: course.id,
@@ -81,7 +100,7 @@ export default function CourseListScreen({ navigation }: any) {
       status,
       statusText,
       progressText: null,
-      thumbnails: course.thumbnailUrls ?? [],
+      thumbnails,
     };
   });
 
@@ -342,31 +361,8 @@ export default function CourseListScreen({ navigation }: any) {
                 style={{ borderRadius: CARD_RADIUS }}
               >
                 {/* 썸네일 영역 */}
-                <View className="flex-row bg-gray-100" style={{ height: normalize(120) }}>
-                  {plan.thumbnails.length > 0 ? (
-                    plan.thumbnails.map((url, index) => (
-                      <View
-                        key={index}
-                        style={{ flex: index === 0 ? 2 : 1 }}
-                        className="h-full border-r border-white/20"
-                      >
-                        <Image source={{ uri: url }} className="w-full h-full" resizeMode="cover" />
-                      </View>
-                    ))
-                  ) : (
-                    // 출사 상세의 지도 빈 상태와 같은 표현을 쓴다
-                    <View className="flex-1 items-center justify-center bg-card" style={{ gap: normalize(8) }}>
-                      <IconRoute size={normalize(26)} color="rgba(0,0,0,0.2)" strokeWidth={1.5} />
-                      <Text
-                        allowFontScaling={false}
-                        className="font-normal tracking-tight"
-                        style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.3)' }}
-                      >
-                        표시할 경로가 없어요
-                      </Text>
-                    </View>
-                  )}
-
+                <View style={{ height: normalize(120), overflow: 'hidden', position: 'relative' }}>
+                  <CourseCardThumbnail courseId={plan.id} thumbnails={plan.thumbnails} height={normalize(120)} />
                   {/* 뱃지 */}
                   <View
                     className={`absolute top-3 left-3 rounded-full flex-row items-center justify-center ${

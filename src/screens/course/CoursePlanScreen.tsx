@@ -1,7 +1,9 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useFocusEffect } from "@react-navigation/native";
-import { View, Text, TouchableOpacity, ScrollView, Alert, Image, KeyboardAvoidingView, Platform } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, Alert, Image, KeyboardAvoidingView, Platform, StyleSheet } from "react-native";
+import { LinearGradient } from "expo-linear-gradient";
+import { getFallbackGradient } from "@/utils/gradient";
 import { coursesApi } from "@/api/courses";
 import { useCourseStore } from "@/store/useCourseStore";
 import { useAnimatedRef } from "react-native-reanimated";
@@ -89,6 +91,37 @@ const WeatherCell = ({ period, data }: { period: string; data: { weatherStatus: 
     </View>
   </View>
 );
+
+const SpotThumbnail = ({ photo, spotId }: { photo?: string | null; spotId: string | number }) => {
+  const [failed, setFailed] = useState(false);
+  const showImage = Boolean(photo && !failed);
+
+  return (
+    <View
+      className="rounded-xl shrink-0 overflow-hidden"
+      style={{ width: normalize(72), height: normalize(72), position: 'relative' }}
+    >
+      <LinearGradient
+        colors={getFallbackGradient(spotId)}
+        start={{ x: 0.15, y: 0 }}
+        end={{ x: 0.85, y: 1 }}
+        style={StyleSheet.absoluteFillObject}
+      />
+      {showImage ? (
+        <Image
+          source={{ uri: photo! }}
+          style={StyleSheet.absoluteFillObject}
+          resizeMode="cover"
+          onError={() => setFailed(true)}
+        />
+      ) : (
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+          <IconCamera size={normalize(22)} color="rgba(255,255,255,0.6)" strokeWidth={1.8} />
+        </View>
+      )}
+    </View>
+  );
+};
 
 const MOCK_DATA: Record<string, any> = {
   "1": {
@@ -1105,19 +1138,7 @@ export default function CoursePlanScreen({ navigation, route }: any) {
                 <IconTrash size={12} color={BRAND_STRONG} />
               </TouchableOpacity>
             )}
-            {item.photo ? (
-              <Image
-                source={{ uri: item.photo }}
-                className="rounded-xl shrink-0 bg-[#e8e8ed]"
-                style={{ width: normalize(72), height: normalize(72) }}
-                resizeMode="cover"
-              />
-            ) : (
-              <View
-                className="rounded-xl shrink-0"
-                style={{ width: normalize(72), height: normalize(72),  backgroundColor: item.bg }}
-              />
-            )}
+            <SpotThumbnail photo={item.photo} spotId={item.realSpotId || item.id} />
             <View
               className={`flex-1 justify-center ${isEditMode ? "pr-10" : "pr-4"}`}
             >

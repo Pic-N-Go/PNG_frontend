@@ -1,8 +1,10 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, Image, Animated, Easing, PanResponder, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, Image, Animated, Easing, PanResponder, Dimensions, StyleSheet } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { BOTTOM_SHEET_RADIUS, FONT_SM, FONT_TITLE, FONT_XS } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { IconMapPin, IconX, IconHeart, IconBookmark } from '@tabler/icons-react-native';
+import { IconMapPin, IconX, IconHeart, IconBookmark, IconCamera } from '@tabler/icons-react-native';
+import { getFallbackGradient } from '@/utils/gradient';
 import StarRating from '@/components/common/StarRating';
 import { Spot } from '@/store/useCourseStore';
 import { useBookmarkCollections, useSpotDetail, useSpotPhotos, useSpotSummary } from '@/hooks/useSpot';
@@ -215,8 +217,16 @@ export default function SpotPopup({ activeSpot, onClose, renderButtons }: Props)
                     ))}
                   </View>
                 ) : (
-                  <View className="w-full h-full items-center justify-center bg-gray-100">
-                    <IconHeart size={40} color="#ccc" />
+                  <View className="w-full h-full relative overflow-hidden">
+                    <LinearGradient
+                      colors={getFallbackGradient(spotId)}
+                      start={{ x: 0.15, y: 0 }}
+                      end={{ x: 0.85, y: 1 }}
+                      style={StyleSheet.absoluteFillObject}
+                    />
+                    <View className="w-full h-full items-center justify-center">
+                      <IconCamera size={normalize(32)} color="rgba(255,255,255,0.55)" strokeWidth={1.6} />
+                    </View>
                   </View>
                 )}
 

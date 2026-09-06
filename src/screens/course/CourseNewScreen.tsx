@@ -10,7 +10,9 @@ import {
   Modal,
   Pressable,
   Image,
+  StyleSheet,
 } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native';
 import {
@@ -20,7 +22,9 @@ import {
   IconChevronRight,
   IconMapPin,
   IconPlus,
+  IconCamera,
 } from '@tabler/icons-react-native';
+import { getFallbackGradient } from '@/utils/gradient';
 
 import { StatusBar } from 'expo-status-bar';
 import { useCourseStore, Spot } from '@/store/useCourseStore';
@@ -542,15 +546,25 @@ export default function CourseNewScreen() {
                       <Text className="font-semibold text-white" style={{ fontSize: normalizeFontSize(10) }}>{i + 1}</Text>
                     </View>
                     <View className="bg-card rounded-2xl p-3 flex-row items-center">
-                      {spot.photo ? (
-                        <Image
-                          source={{ uri: spot.photo }}
-                          className="w-[60px] h-[60px] rounded-xl bg-gray-200"
-                          resizeMode="cover"
+                      <View className="w-[60px] h-[60px] rounded-xl overflow-hidden relative">
+                        <LinearGradient
+                          colors={getFallbackGradient(spot.id)}
+                          start={{ x: 0.15, y: 0 }}
+                          end={{ x: 0.85, y: 1 }}
+                          style={StyleSheet.absoluteFillObject}
                         />
-                      ) : (
-                        <View className="w-[60px] h-[60px] rounded-xl overflow-hidden bg-gray-300" />
-                      )}
+                        {spot.photo ? (
+                          <Image
+                            source={{ uri: spot.photo }}
+                            style={StyleSheet.absoluteFillObject}
+                            resizeMode="cover"
+                          />
+                        ) : (
+                          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+                            <IconCamera size={normalize(20)} color="rgba(255,255,255,0.6)" strokeWidth={1.8} />
+                          </View>
+                        )}
+                      </View>
                       <View className="flex-1 ml-3">
                         <Text className="font-semibold text-black mb-1" style={{ fontSize: FONT_MD }}>{spot.name}</Text>
                         <View className="flex-row items-center mb-1.5">
