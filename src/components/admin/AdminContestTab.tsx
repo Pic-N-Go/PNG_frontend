@@ -1516,16 +1516,31 @@ export default function AdminContestTab({ showToast }: AdminContestTabProps) {
                             gap: normalize(12),
                           }}
                         >
-                          <Image
-                            source={{ uri: entry.photoUrl }}
-                            style={{
-                              width: normalize(70),
-                              height: normalize(70),
-                              borderRadius: normalize(8),
-                              backgroundColor: '#e5e7eb',
-                            }}
-                            resizeMode="cover"
-                          />
+                          {entry.photoUrl ? (
+                            <Image
+                              source={{ uri: entry.photoUrl }}
+                              style={{
+                                width: normalize(70),
+                                height: normalize(70),
+                                borderRadius: normalize(8),
+                                backgroundColor: '#e5e7eb',
+                              }}
+                              resizeMode="cover"
+                            />
+                          ) : (
+                            <View
+                              style={{
+                                width: normalize(70),
+                                height: normalize(70),
+                                borderRadius: normalize(8),
+                                backgroundColor: '#f3f4f6',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                              }}
+                            >
+                              <IconPhoto size={normalize(24)} color="#9ca3af" />
+                            </View>
+                          )}
 
                           <View style={{ flex: 1, justifyContent: 'space-between' }}>
                             <View>
