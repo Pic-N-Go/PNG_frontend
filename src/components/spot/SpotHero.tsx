@@ -11,7 +11,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import { IconBookmark, IconChevronLeft } from '@tabler/icons-react-native';
 import { Share as ShareIcon } from 'lucide-react-native';
-import { normalize, normalizeFontSize } from '@/utils/normalize';
+import { normalize } from '@/utils/normalize';
+import { FONT_XS } from '@/constants/layout';
 import SpotHeroPlaceholder, { HeroActionButton } from '@/components/spot/SpotHeroPlaceholder';
 import { BRAND, SCRIM } from '@/constants/colors';
 
@@ -51,13 +52,15 @@ export default function SpotHero({
   // 대표 이미지 로드 실패 시에도 placeholder로 폴백 (핸드오프 6번 상태표)
   const [imageFailed, setImageFailed] = useState(false);
   const [pageIndex, setPageIndex] = useState(0);
+  // 대표 이미지가 photos[0]. photos가 아직 안 왔으면 대표 이미지 1장만 페이징 없이 보여준다.
+  const pages = photos?.length ? photos : imageUrl ? [imageUrl] : [];
   useEffect(() => {
     setImageFailed(false);
     setPageIndex(0);
-  }, [imageUrl]);
-  const hasImage = !!imageUrl && !imageFailed;
-  // 대표 이미지가 photos[0]. photos가 아직 안 왔으면 대표 이미지 1장만 페이징 없이 보여준다.
-  const pages = photos?.length ? photos : imageUrl ? [imageUrl] : [];
+  }, [imageUrl, pages.length]);
+  // 대표 이미지가 없어도 갤러리 사진이 있으면 히어로에 스와이프로 보여준다.
+  // 길이를 dep에 넣어, 대표 이미지 실패 뒤 photos가 도착한 경우 imageFailed가 stale로 남지 않게 한다.
+  const hasImage = pages.length > 0 && !imageFailed;
 
   const heroStyle = useAnimatedStyle(() => ({
     transform: [
@@ -233,7 +236,7 @@ export default function SpotHero({
           }}
           pointerEvents="none"
         >
-          <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: normalizeFontSize(12), color: '#fff' }}>
+          <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_XS, color: '#fff' }}>
             {pageIndex + 1} / {pages.length}
           </Text>
         </View>
