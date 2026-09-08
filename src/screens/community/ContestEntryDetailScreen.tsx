@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -127,9 +127,33 @@ export default function ContestEntryDetailScreen() {
   })();
   const isAward = isEnded && rank <= 3;
 
+  const [refreshing, setRefreshing] = useState(false);
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([
+        entryQuery.refetch(),
+        contestQuery.refetch(),
+      ]);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
-      <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom }}>
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: insets.bottom }}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor={ACCENT}
+            colors={[ACCENT]}
+          />
+        }
+      >
         <View style={{ height: normalizeHeight(600) }}>
           <ContestPhoto
             gradient={entry?.gradient ?? ['#1a1530', '#5a3355', '#d4856a']}

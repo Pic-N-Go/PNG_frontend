@@ -10,6 +10,13 @@ import type {
   EmbeddingBackfillResponse,
   EmbeddingSingleResponse,
   TourSyncStatusResponse,
+  AdminPageResponse,
+  ContestCreateRequest,
+  ContestUpdateRequest,
+  AdminContestSummaryResponse,
+  AdminContestDetailResponse,
+  AdminContestEntryResponse,
+  AdminContestReportResponse,
 } from '@/types/admin';
 
 export const ADMIN_KEYS = {
@@ -18,6 +25,12 @@ export const ADMIN_KEYS = {
   userDetail: (userId: number) => [...ADMIN_KEYS.all, 'user', userId] as const,
   embeddings: () => [...ADMIN_KEYS.all, 'embeddings'] as const,
   tourSyncStatus: () => [...ADMIN_KEYS.all, 'tour-sync-status'] as const,
+  contests: (page?: number, size?: number) => [...ADMIN_KEYS.all, 'contests', page, size] as const,
+  contestDetail: (contestId: number) => [...ADMIN_KEYS.all, 'contest', contestId] as const,
+  contestEntries: (contestId: number, page?: number, size?: number) =>
+    [...ADMIN_KEYS.all, 'contest-entries', contestId, page, size] as const,
+  contestReports: (page?: number, size?: number) =>
+    [...ADMIN_KEYS.all, 'contest-reports', page, size] as const,
 };
 
 // ── 1. 회원 및 권한 관리 훅 ──────────────────────────────────────────
@@ -189,3 +202,194 @@ export function useTourSyncStatus() {
     staleTime: 2000,
   });
 }
+
+// ── 4. 콘테스트 운영 관리 훅 ─────────────────────────────────────────
+
+// 4.1 콘테스트 전체 목록 조회 훅
+export function useAdminContests(page = 0, size = 20) {
+  const accessToken = useAuthStore((s) => s.accessToken);
+
+  return useQuery<AdminPageResponse<AdminContestSummaryResponse>, Error>({
+    queryKey: ADMIN_KEYS.contests(page, size),
+    queryFn: () => {
+      if (!accessToken) throw new Error('관리자 권한이 필요합니다.');
+      return adminApi.getAdminContests(page, size, accessToken);
+    },
+    enabled: !!accessToken,
+    staleTime: 1000 * 15,
+  });
+}
+
+// 4.2 콘테스트 상세 조회 훅
+export function useAdminContestDetail(contestId: number | null) {
+  const accessToken = useAuthStore((s) => s.accessToken);
+
+  return useQuery<AdminContestDetailResponse, Error>({
+    queryKey: ADMIN_KEYS.contestDetail(contestId ?? 0),
+    queryFn: () => {
+      if (!accessToken || !contestId) throw new Error('콘테스트 정보가 유효하지 않습니다.');
+      return adminApi.getAdminContestDetail(contestId, accessToken);
+    },
+    enabled: !!accessToken && !!contestId && contestId > 0,
+    staleTime: 1000 * 15,
+  });
+}
+
+// 4.3 콘테스트 신규 개설 뮤테이션
+export function useCreateContest() {
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const queryClient = useQueryClient();
+
+  return useMutation<any, Error, ContestCreateRequest>({
+    mutationFn: (data) => {
+      if (!accessToken) throw new Error('관리자 권한이 필요합니다.');
+      return adminApi.createContest(data, accessToken);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [...ADMIN_KEYS.all, 'contests'] });
+    },
+  });
+}
+
+// 4.4 콘테스트 정보 및 시작 일정 수정 뮤테이션
+export function useUpdateContest() {
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const queryClient = useQueryClient();
+
+  return useMutation<
+    AdminContestDetailResponse,
+    Error,
+    { contestId: number; data: ContestUpdateRequest }
+  >({
+    mutationFn: ({ contestId, data }) => {
+      if (!accessToken) throw new Error('관리자 권한이 필요합니다.');
+      return adminApi.updateContest(contestId, data, accessToken);
+    },
+    onSuccess: (_, { contestId }) => {
+      queryClient.invalidateQueries({ queryKey: [...ADMIN_KEYS.all, 'contests'] });
+      queryClient.invalidateQueries({ queryKey: ADMIN_KEYS.contestDetail(contestId) });
+    },
+  });
+}
+
+// 4.5 콘테스트 테마 대표 사진 업로드 뮤테이션
+export function useUploadContestThemeImage() {
+  const accessToken = useAuthStore((s) => s.accessToken);
+
+  return useMutation<
+    { imageUrl: string; key?: string },
+    Error,
+    { uri: string; name?: string; type?: string }
+  >({
+    mutationFn: (file) => {
+      if (!accessToken) throw new Error('관리자 권한이 필요합니다.');
+      return adminApi.uploadContestThemeImage(file, accessToken);
+    },
+  });
+}
+
+// 4.6 출품 시작 알림 수동 발송 뮤테이션
+export function useSendContestStartNotification() {
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const queryClient = useQueryClient();
+
+  return useMutation<{ message?: string; sentCount?: number; [key: string]: any }, Error, number>({
+    mutationFn: (contestId) => {
+      if (!accessToken) throw new Error('관리자 권한이 필요합니다.');
+      return adminApi.sendContestStartNotification(contestId, accessToken);
+    },
+    onSuccess: (_, contestId) => {
+      queryClient.invalidateQueries({ queryKey: [...ADMIN_KEYS.all, 'contests'] });
+      queryClient.invalidateQueries({ queryKey: ADMIN_KEYS.contestDetail(contestId) });
+    },
+  });
+}
+
+// 4.5 콘테스트 강제 마감 및 즉시 결과 발표 뮤테이션
+export function usePublishContestResult() {
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const queryClient = useQueryClient();
+
+  return useMutation<AdminContestDetailResponse, Error, number>({
+    mutationFn: (contestId) => {
+      if (!accessToken) throw new Error('관리자 권한이 필요합니다.');
+      return adminApi.publishContestResult(contestId, accessToken);
+    },
+    onSuccess: (_, contestId) => {
+      queryClient.invalidateQueries({ queryKey: [...ADMIN_KEYS.all, 'contests'] });
+      queryClient.invalidateQueries({ queryKey: ADMIN_KEYS.contestDetail(contestId) });
+      queryClient.invalidateQueries({ queryKey: ADMIN_KEYS.contestEntries(contestId) });
+    },
+  });
+}
+
+// 4.6 결과 발표 알림 수동 발송 뮤테이션
+export function useSendContestResultNotification() {
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const queryClient = useQueryClient();
+
+  return useMutation<{ message?: string; sentCount?: number; [key: string]: any }, Error, number>({
+    mutationFn: (contestId) => {
+      if (!accessToken) throw new Error('관리자 권한이 필요합니다.');
+      return adminApi.sendContestResultNotification(contestId, accessToken);
+    },
+    onSuccess: (_, contestId) => {
+      queryClient.invalidateQueries({ queryKey: [...ADMIN_KEYS.all, 'contests'] });
+      queryClient.invalidateQueries({ queryKey: ADMIN_KEYS.contestDetail(contestId) });
+    },
+  });
+}
+
+// 4.7 콘테스트 출품작 목록 조회 훅
+export function useAdminContestEntries(contestId: number | null, page = 0, size = 20) {
+  const accessToken = useAuthStore((s) => s.accessToken);
+
+  return useQuery<AdminPageResponse<AdminContestEntryResponse>, Error>({
+    queryKey: ADMIN_KEYS.contestEntries(contestId ?? 0, page, size),
+    queryFn: () => {
+      if (!accessToken || !contestId) throw new Error('출품작 조회를 위한 콘테스트 ID가 필요합니다.');
+      return adminApi.getAdminContestEntries(contestId, page, size, accessToken);
+    },
+    enabled: !!accessToken && !!contestId && contestId > 0,
+    staleTime: 1000 * 10,
+  });
+}
+
+// 4.6 부적격 출품작 관리자 강제 삭제 뮤테이션
+export function useDeleteAdminContestEntry() {
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const queryClient = useQueryClient();
+
+  return useMutation<void, Error, { entryId: number; reason?: string; contestId?: number }>({
+    mutationFn: ({ entryId, reason }) => {
+      if (!accessToken) throw new Error('관리자 권한이 필요합니다.');
+      return adminApi.deleteAdminContestEntry(entryId, reason, accessToken);
+    },
+    onSuccess: (_, variables) => {
+      if (variables.contestId) {
+        queryClient.invalidateQueries({ queryKey: ADMIN_KEYS.contestEntries(variables.contestId) });
+        queryClient.invalidateQueries({ queryKey: ADMIN_KEYS.contestDetail(variables.contestId) });
+      } else {
+        queryClient.invalidateQueries({ queryKey: [...ADMIN_KEYS.all, 'contest-entries'] });
+      }
+      queryClient.invalidateQueries({ queryKey: [...ADMIN_KEYS.all, 'contest-reports'] });
+      queryClient.invalidateQueries({ queryKey: [...ADMIN_KEYS.all, 'contests'] });
+    },
+  });
+}
+
+// 4.7 접수된 출품작 신고 목록 조회 훅
+export function useAdminContestReports(page = 0, size = 20) {
+  const accessToken = useAuthStore((s) => s.accessToken);
+
+  return useQuery<AdminPageResponse<AdminContestReportResponse>, Error>({
+    queryKey: ADMIN_KEYS.contestReports(page, size),
+    queryFn: () => {
+      if (!accessToken) throw new Error('관리자 권한이 필요합니다.');
+      return adminApi.getAdminContestReports(page, size, accessToken);
+    },
+    enabled: !!accessToken,
+    staleTime: 1000 * 15,
+  });
+}
+

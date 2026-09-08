@@ -1,11 +1,14 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { View, Text, TouchableOpacity, Image, Animated, Easing, PanResponder, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, Image, Animated, Easing, PanResponder, Dimensions, StyleSheet } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { BOTTOM_SHEET_RADIUS, FONT_SM, FONT_TITLE, FONT_XS } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { IconMapPin, IconX, IconHeart, IconBookmark } from '@tabler/icons-react-native';
+import { IconMapPin, IconX, IconBookmark, IconCamera } from '@tabler/icons-react-native';
+import { getFallbackGradient } from '@/utils/gradient';
 import StarRating from '@/components/common/StarRating';
 import { Spot } from '@/store/useCourseStore';
 import { useBookmarkCollections, useSpotDetail, useSpotPhotos, useSpotSummary } from '@/hooks/useSpot';
+import { useFestival } from '@/hooks/useFestival';
 import { useAuthStore } from '@/store/useAuthStore';
 import BookmarkSheet from '@/components/spot/BookmarkSheet';
 import Toast from '@/components/common/Toast';
@@ -42,6 +45,13 @@ export default function SpotPopup({ activeSpot, onClose, renderButtons }: Props)
   const { data: summary } = useSpotSummary(spotId || null);
   const { data: photos } = useSpotPhotos(spotId);
   const { data: bookmarkCollections } = useBookmarkCollections(spotId);
+
+  const isFestival = Boolean(
+    detail?.info?.categories?.includes('FESTIVAL') ||
+    summary?.category === 'FESTIVAL' ||
+    displaySpot?.tags?.some((t: string) => t === 'FESTIVAL' || t.includes('축제'))
+  );
+  const { data: festival } = useFestival(spotId, { enabled: isFestival });
 
   const isBookmarked = bookmarkCollections?.some((c) => c.contains) ?? false;
 
@@ -207,8 +217,16 @@ export default function SpotPopup({ activeSpot, onClose, renderButtons }: Props)
                     ))}
                   </View>
                 ) : (
-                  <View className="w-full h-full items-center justify-center bg-gray-100">
-                    <IconHeart size={40} color="#ccc" />
+                  <View className="w-full h-full relative overflow-hidden">
+                    <LinearGradient
+                      colors={getFallbackGradient(spotId)}
+                      start={{ x: 0.15, y: 0 }}
+                      end={{ x: 0.85, y: 1 }}
+                      style={StyleSheet.absoluteFillObject}
+                    />
+                    <View className="w-full h-full items-center justify-center">
+                      <IconCamera size={normalize(32)} color="rgba(255,255,255,0.55)" strokeWidth={1.6} />
+                    </View>
                   </View>
                 )}
 
@@ -238,6 +256,28 @@ export default function SpotPopup({ activeSpot, onClose, renderButtons }: Props)
                         {` · 사진 ${photoCount.toLocaleString()}장`}
                       </Text>
                     </View>
+
+                    {festival?.eventStartDate && festival?.eventEndDate && (() => {
+                      const isOngoing = festival.progressStatus === 'ONGOING';
+                      const isUpcoming = festival.progressStatus === 'UPCOMING';
+                      const statusLabel = isOngoing ? '진행중' : isUpcoming ? '개최예정' : '종료';
+                      const statusColor = isOngoing ? '#34C759' : isUpcoming ? '#007AFF' : 'rgba(0,0,0,0.4)';
+                      const statusBg = isOngoing ? 'rgba(52, 199, 89, 0.1)' : isUpcoming ? 'rgba(0, 122, 255, 0.1)' : 'rgba(0,0,0,0.05)';
+                      const start = festival.eventStartDate.replace(/-/g, '.');
+                      const end = festival.eventEndDate.replace(/-/g, '.');
+                      return (
+                        <View style={{ flexDirection: 'row', alignItems: 'center', marginTop: normalize(8), gap: normalize(6) }}>
+                          <View style={{ backgroundColor: statusBg, paddingHorizontal: normalize(6), paddingVertical: normalize(2), borderRadius: normalize(4) }}>
+                            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, color: statusColor }}>
+                              {statusLabel}
+                            </Text>
+                          </View>
+                          <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: 'rgba(0,0,0,0.7)', fontVariant: ['tabular-nums'] }}>
+                            {`${start} ~ ${end}`}
+                          </Text>
+                        </View>
+                      );
+                    })()}
 
                     <View className="flex-row items-center mt-2.5 mb-1">
                       <IconMapPin size={14} color={TEXT_SUB} />

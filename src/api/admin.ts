@@ -8,6 +8,13 @@ import type {
   EmbeddingBackfillResponse,
   EmbeddingSingleResponse,
   TourSyncStatusResponse,
+  AdminPageResponse,
+  ContestCreateRequest,
+  ContestUpdateRequest,
+  AdminContestSummaryResponse,
+  AdminContestDetailResponse,
+  AdminContestEntryResponse,
+  AdminContestReportResponse,
 } from '@/types/admin';
 
 const BASE = process.env.EXPO_PUBLIC_API_URL ?? '';
@@ -312,5 +319,209 @@ export const adminApi = {
     const json = (await res.json()) as any;
     const body = json?.data !== undefined && json.data !== null ? json.data : json;
     return body as TourSyncStatusResponse;
+  },
+
+  // ── 4. 콘테스트 운영 관리 API (/admin/contests) ──────────────────────
+
+  // 4.1 콘테스트 회차 개설
+  createContest: async (
+    data: ContestCreateRequest,
+    accessToken: string
+  ): Promise<any> => {
+    const res = await fetchWithTimeout(`${BASE}/admin/contests`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify(data),
+    });
+    const json = (await res.json()) as any;
+    return json?.data !== undefined && json.data !== null ? json.data : json;
+  },
+
+  // 4.2 콘테스트 전체 목록 조회 (최신순 페이징)
+  getAdminContests: async (
+    page: number = 0,
+    size: number = 20,
+    accessToken: string
+  ): Promise<AdminPageResponse<AdminContestSummaryResponse>> => {
+    const res = await fetchWithTimeout(`${BASE}/admin/contests?page=${page}&size=${size}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    const json = (await res.json()) as any;
+    const body = json?.data !== undefined && json.data !== null ? json.data : json;
+    return body as AdminPageResponse<AdminContestSummaryResponse>;
+  },
+
+  // 4.3 특정 콘테스트 상세 및 통계 조회
+  getAdminContestDetail: async (
+    contestId: number,
+    accessToken: string
+  ): Promise<AdminContestDetailResponse> => {
+    const res = await fetchWithTimeout(`${BASE}/admin/contests/${contestId}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    const json = (await res.json()) as any;
+    const body = json?.data !== undefined && json.data !== null ? json.data : json;
+    return body as AdminContestDetailResponse;
+  },
+
+  // 4.4 콘테스트 정보 및 일정 수정 (PATCH /admin/contests/{contestId})
+  updateContest: async (
+    contestId: number,
+    data: ContestUpdateRequest,
+    accessToken: string
+  ): Promise<AdminContestDetailResponse> => {
+    const res = await fetchWithTimeout(`${BASE}/admin/contests/${contestId}`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify(data),
+    });
+    const json = (await res.json()) as any;
+    const body = json?.data !== undefined && json.data !== null ? json.data : json;
+    return body as AdminContestDetailResponse;
+  },
+
+  // 4.5 콘테스트 테마 대표 사진 업로드 (POST /admin/contests/theme-image)
+  uploadContestThemeImage: async (
+    file: { uri: string; name?: string; type?: string },
+    accessToken: string
+  ): Promise<{ imageUrl: string; key?: string }> => {
+    const formData = new FormData();
+    const ext = file.uri.split('.').pop()?.toLowerCase();
+    const safeExt = ext && /^(jpe?g|png|webp|heic)$/.test(ext) ? ext : 'jpg';
+    const mimeType = safeExt === 'png' ? 'image/png' : safeExt === 'webp' ? 'image/webp' : 'image/jpeg';
+
+    formData.append('image', {
+      uri: file.uri,
+      name: file.name || `theme-${Date.now()}.${safeExt}`,
+      type: file.type || mimeType,
+    } as any);
+
+    const res = await fetchWithTimeout(
+      `${BASE}/admin/contests/theme-image`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+        body: formData,
+      },
+      180_000
+    );
+    const json = (await res.json()) as any;
+    const body = json?.data !== undefined && json.data !== null ? json.data : json;
+    return body;
+  },
+
+  // 4.6 콘테스트 출품 시작 알림 수동 발송
+  sendContestStartNotification: async (
+    contestId: number,
+    accessToken: string
+  ): Promise<{ message?: string; sentCount?: number; [key: string]: any }> => {
+    const res = await fetchWithTimeout(`${BASE}/admin/contests/${contestId}/notifications/start`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    const json = (await res.json()) as any;
+    const body = json?.data !== undefined && json.data !== null ? json.data : json;
+    return body;
+  },
+
+  // 4.5 콘테스트 강제 마감 및 즉시 결과 발표 (POST /admin/contests/{contestId}/publish-result)
+  publishContestResult: async (
+    contestId: number,
+    accessToken: string
+  ): Promise<AdminContestDetailResponse> => {
+    const res = await fetchWithTimeout(`${BASE}/admin/contests/${contestId}/publish-result`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    const json = (await res.json()) as any;
+    const body = json?.data !== undefined && json.data !== null ? json.data : json;
+    return body as AdminContestDetailResponse;
+  },
+
+  // 4.6 콘테스트 결과 발표 알림 수동 발송 (POST /admin/contests/{contestId}/notifications/result)
+  sendContestResultNotification: async (
+    contestId: number,
+    accessToken: string
+  ): Promise<{ message?: string; sentCount?: number; [key: string]: any }> => {
+    const res = await fetchWithTimeout(`${BASE}/admin/contests/${contestId}/notifications/result`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    const json = (await res.json()) as any;
+    const body = json?.data !== undefined && json.data !== null ? json.data : json;
+    return body;
+  },
+
+  // 4.7 특정 콘테스트 출품작 목록 조회 (신고 건수 포함)
+  getAdminContestEntries: async (
+    contestId: number,
+    page: number = 0,
+    size: number = 20,
+    accessToken: string
+  ): Promise<AdminPageResponse<AdminContestEntryResponse>> => {
+    const res = await fetchWithTimeout(
+      `${BASE}/admin/contests/${contestId}/entries?page=${page}&size=${size}`,
+      {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+    const json = (await res.json()) as any;
+    const body = json?.data !== undefined && json.data !== null ? json.data : json;
+    return body as AdminPageResponse<AdminContestEntryResponse>;
+  },
+
+  // 4.6 부적절한 출품작 관리자 강제 삭제
+  deleteAdminContestEntry: async (
+    entryId: number,
+    reason: string = '운영자 권한 강제 삭제',
+    accessToken: string
+  ): Promise<void> => {
+    const query = new URLSearchParams({ reason });
+    await fetchWithTimeout(`${BASE}/admin/contests/entries/${entryId}?${query.toString()}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+  },
+
+  // 4.7 접수된 출품작 신고 목록 조회
+  getAdminContestReports: async (
+    page: number = 0,
+    size: number = 20,
+    accessToken: string
+  ): Promise<AdminPageResponse<AdminContestReportResponse>> => {
+    const res = await fetchWithTimeout(`${BASE}/admin/contests/reports?page=${page}&size=${size}`, {
+      method: 'GET',
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+      },
+    });
+    const json = (await res.json()) as any;
+    const body = json?.data !== undefined && json.data !== null ? json.data : json;
+    return body as AdminPageResponse<AdminContestReportResponse>;
   },
 };

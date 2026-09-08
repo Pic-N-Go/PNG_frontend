@@ -1,0 +1,3065 @@
+import React, { useState } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  ActivityIndicator,
+  Alert,
+  Image,
+  Modal,
+  Pressable,
+  Dimensions,
+  Platform,
+  Linking,
+} from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
+import DateTimePicker, { type DateTimePickerEvent } from '@react-native-community/datetimepicker';
+import {
+  IconTrophy,
+  IconPlus,
+  IconTrash,
+  IconAlertTriangle,
+  IconBell,
+  IconPhoto,
+  IconRefresh,
+  IconX,
+  IconCheck,
+  IconChevronLeft,
+  IconChevronRight,
+  IconClock,
+  IconPlayerStop,
+  IconSend,
+  IconEdit,
+  IconCalendarEvent,
+} from '@tabler/icons-react-native';
+import { normalize } from '@/utils/normalize';
+import {
+  BUTTON_RADIUS,
+  CARD_RADIUS,
+  FONT_2XS,
+  FONT_LG,
+  FONT_MD,
+  FONT_SM,
+  FONT_XS,
+} from '@/constants/layout';
+import { BRAND, TEXT_SUB } from '@/constants/colors';
+import {
+  useAdminContests,
+  useAdminContestDetail,
+  useCreateContest,
+  useUpdateContest,
+  useUploadContestThemeImage,
+  useSendContestStartNotification,
+  usePublishContestResult,
+  useSendContestResultNotification,
+  useAdminContestEntries,
+  useDeleteAdminContestEntry,
+  useAdminContestReports,
+} from '@/hooks/useAdmin';
+import {
+  CONTEST_PHASE_LABELS,
+  CONTEST_REPORT_REASON_LABELS,
+  type ContestPhase,
+  type ContestReportReason,
+} from '@/types/admin';
+
+interface AdminContestTabProps {
+  showToast: (msg: string) => void;
+}
+
+type ContestSubTab = 'contests' | 'reports';
+
+const PHASE_COLORS: Record<ContestPhase, { bg: string; text: string }> = {
+  UPCOMING: { bg: '#e0f2fe', text: '#0284c7' },
+  SUBMITTING: { bg: '#dcfce7', text: '#15803d' },
+  VOTING: { bg: '#ede9fe', text: '#7c3aed' },
+  RESULT: { bg: '#fef3c7', text: '#b45309' },
+  ENDED: { bg: '#f3f4f6', text: '#9ca3af' },
+};
+
+const REPORT_REASON_COLORS: Record<ContestReportReason, { bg: string; text: string }> = {
+  SPAM: { bg: '#fee2e2', text: '#dc2626' },
+  ABUSE: { bg: '#fee2e2', text: '#b91c1c' },
+  COPYRIGHT: { bg: '#fef3c7', text: '#b45309' },
+  INAPPROPRIATE: { bg: '#fce7f3', text: '#be185d' },
+  ETC: { bg: '#f3f4f6', text: '#4b5563' },
+};
+
+function formatDateTime(str?: string | null): string {
+  if (!str) return '-';
+  return str.replace('T', ' ').slice(0, 16);
+}
+
+function parseIsoToDate(str?: string | null): Date {
+  if (!str) return new Date();
+  const match = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (match) {
+    const [, y, m, d] = match;
+    return new Date(parseInt(y, 10), parseInt(m, 10) - 1, parseInt(d, 10), 9, 0, 0);
+  }
+  const fallback = new Date(str);
+  return isNaN(fallback.getTime()) ? new Date() : fallback;
+}
+
+function formatKoreanDate(str?: string | null): string {
+  if (!str) return '';
+  const match = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (match) {
+    const [, y, m, d] = match;
+    return `${y}년 ${m}월 ${d}일 오전 09:00`;
+  }
+  return str;
+}
+
+function toIsoStartAt(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}T09:00:00`;
+}
+
+export default function AdminContestTab({ showToast }: AdminContestTabProps) {
+  const [subTab, setSubTab] = useState<ContestSubTab>('contests');
+
+  // ── 1. 회차 관리 상태 ──────────────────────────────────────────────
+  const [contestPage, setContestPage] = useState(0);
+  const {
+    data: contestsData,
+    isLoading: isContestsLoading,
+    isRefetching: isContestsRefetching,
+    refetch: refetchContests,
+  } = useAdminContests(contestPage, 10);
+
+  // 개설 모달 상태
+  const [createModalVisible, setCreateModalVisible] = useState(false);
+  const [createTitle, setCreateTitle] = useState('');
+  const [createDescription, setCreateDescription] = useState('');
+  const [createThemeImageUrl, setCreateThemeImageUrl] = useState('');
+  const [createMaxEntries, setCreateMaxEntries] = useState('3');
+  const [createVoteLimit, setCreateVoteLimit] = useState('3');
+  const [createSubmitStartAt, setCreateSubmitStartAt] = useState('');
+  const [isUploadingCreateImage, setIsUploadingCreateImage] = useState(false);
+  const [showCreateDatePicker, setShowCreateDatePicker] = useState(false);
+  const [showCreateUrlInput, setShowCreateUrlInput] = useState(false);
+
+  const createContestMutation = useCreateContest();
+  const updateContestMutation = useUpdateContest();
+  const uploadThemeImageMutation = useUploadContestThemeImage();
+  const sendStartNotificationMutation = useSendContestStartNotification();
+  const publishResultMutation = usePublishContestResult();
+  const sendResultNotificationMutation = useSendContestResultNotification();
+
+  // 수정 모달 상태
+  const [editModalVisible, setEditModalVisible] = useState(false);
+  const [editingContestId, setEditingContestId] = useState<number | null>(null);
+  const [editingContestPhase, setEditingContestPhase] = useState<ContestPhase>('UPCOMING');
+  const [editTitle, setEditTitle] = useState('');
+  const [editDescription, setEditDescription] = useState('');
+  const [editThemeImageUrl, setEditThemeImageUrl] = useState('');
+  const [editSubmitStartAt, setEditSubmitStartAt] = useState('');
+  const [isUploadingEditImage, setIsUploadingEditImage] = useState(false);
+  const [showEditDatePicker, setShowEditDatePicker] = useState(false);
+  const [showEditUrlInput, setShowEditUrlInput] = useState(false);
+
+  // ── 2. 상세 & 출품작 모달 상태 ──────────────────────────────────────
+  const [selectedContestId, setSelectedContestId] = useState<number | null>(null);
+  const [detailModalVisible, setDetailModalVisible] = useState(false);
+  const [entriesPage, setEntriesPage] = useState(0);
+
+  const {
+    data: contestDetail,
+    isLoading: isDetailLoading,
+  } = useAdminContestDetail(selectedContestId);
+
+  const {
+    data: entriesData,
+    isLoading: isEntriesLoading,
+    refetch: refetchEntries,
+  } = useAdminContestEntries(selectedContestId, entriesPage, 12);
+
+  // ── 3. 출품작 강제 삭제 모달 상태 ────────────────────────────────────
+  const [targetEntry, setTargetEntry] = useState<{
+    entryId: number;
+    userNickname?: string;
+    caption?: string;
+    contestId?: number;
+  } | null>(null);
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [deleteReason, setDeleteReason] = useState('운영자 권한 강제 삭제');
+
+  const deleteEntryMutation = useDeleteAdminContestEntry();
+
+  // ── 4. 신고 접수함 상태 ────────────────────────────────────────────
+  const [reportPage, setReportPage] = useState(0);
+  const {
+    data: reportsData,
+    isLoading: isReportsLoading,
+    isRefetching: isReportsRefetching,
+    refetch: refetchReports,
+  } = useAdminContestReports(reportPage, 10);
+
+  // ── 핸들러: 사진 선택 및 업로드 ────────────────────────────────────
+  const todayDate = new Date();
+  todayDate.setHours(0, 0, 0, 0);
+
+  const handlePickThemeImage = async (target: 'create' | 'edit') => {
+    try {
+      if (Platform.OS === 'android') {
+        const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (!permission.granted) {
+          Alert.alert(
+            '사진 접근 권한 필요',
+            '대표 이미지를 등록하려면 사진 접근 권한을 허용해 주세요.',
+            permission.canAskAgain
+              ? [{ text: '확인' }]
+              : [{ text: '취소', style: 'cancel' }, { text: '설정 열기', onPress: () => Linking.openSettings() }]
+          );
+          return;
+        }
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsEditing: true,
+        aspect: [16, 9],
+        quality: 0.85,
+        preferredAssetRepresentationMode: ImagePicker.UIImagePickerPreferredAssetRepresentationMode.Compatible,
+      });
+
+      if (result.canceled || !result.assets || result.assets.length === 0) return;
+
+      const asset = result.assets[0];
+      if (target === 'create') setIsUploadingCreateImage(true);
+      else setIsUploadingEditImage(true);
+
+      try {
+        const uploadRes = await uploadThemeImageMutation.mutateAsync({
+          uri: asset.uri,
+          name: asset.fileName || 'contest_theme.jpg',
+          type: asset.mimeType || 'image/jpeg',
+        });
+
+        if (target === 'create') {
+          setCreateThemeImageUrl(uploadRes.imageUrl);
+        } else {
+          setEditThemeImageUrl(uploadRes.imageUrl);
+        }
+        showToast('대표 이미지가 성공적으로 업로드되었습니다.');
+      } catch (uploadErr: any) {
+        Alert.alert('이미지 업로드 실패', uploadErr?.message || '이미지를 업로드하는 중 오류가 발생했습니다.');
+      } finally {
+        if (target === 'create') setIsUploadingCreateImage(false);
+        else setIsUploadingEditImage(false);
+      }
+    } catch (err: any) {
+      Alert.alert('사진 선택 오류', err?.message || '사진을 가져오는 중 오류가 발생했습니다.');
+    }
+  };
+
+  const handleDateChange = (
+    target: 'create' | 'edit',
+    event: DateTimePickerEvent,
+    selectedDate?: Date
+  ) => {
+    if (Platform.OS !== 'ios') {
+      if (target === 'create') setShowCreateDatePicker(false);
+      else setShowEditDatePicker(false);
+    }
+
+    if ((event.type === 'set' || Platform.OS === 'ios') && selectedDate) {
+      const isoString = toIsoStartAt(selectedDate);
+      if (target === 'create') {
+        setCreateSubmitStartAt(isoString);
+      } else {
+        setEditSubmitStartAt(isoString);
+      }
+    }
+  };
+
+  // ── 핸들러: 콘테스트 개설 제출 ─────────────────────────────────────
+  const handleOpenCreateModal = () => {
+    setCreateTitle('');
+    setCreateDescription('');
+    setCreateThemeImageUrl('');
+    setCreateMaxEntries('3');
+    setCreateVoteLimit('3');
+    setCreateSubmitStartAt('');
+    setShowCreateDatePicker(false);
+    setShowCreateUrlInput(false);
+    setIsUploadingCreateImage(false);
+    setCreateModalVisible(true);
+  };
+
+  const handleSubmitCreateContest = () => {
+    if (!createTitle.trim()) {
+      Alert.alert('입력 필요', '콘테스트 테마(제목)를 입력해 주세요.');
+      return;
+    }
+
+    const maxEntries = parseInt(createMaxEntries, 10) || 3;
+    const voteLimit = parseInt(createVoteLimit, 10) || 3;
+
+    createContestMutation.mutate(
+      {
+        title: createTitle.trim(),
+        description: createDescription.trim() || undefined,
+        themeImageUrl: createThemeImageUrl.trim() || undefined,
+        maxEntriesPerUser: maxEntries,
+        voteLimit: voteLimit,
+        submitStartAt: createSubmitStartAt.trim() || undefined,
+      },
+      {
+        onSuccess: () => {
+          setCreateModalVisible(false);
+          showToast('새로운 콘테스트 회차가 성공적으로 개설되었습니다.');
+        },
+        onError: (err) => {
+          Alert.alert('개설 실패', err.message || '콘테스트 개설 중 오류가 발생했습니다.');
+        },
+      }
+    );
+  };
+
+  // ── 핸들러: 콘테스트 수정 모달 열기 ─────────────────────────────────
+  const handleOpenEditModal = (contest: {
+    contestId: number;
+    title: string;
+    description?: string | null;
+    themeImageUrl?: string | null;
+    submitStartAt?: string | null;
+    phase: ContestPhase;
+  }) => {
+    setEditingContestId(contest.contestId);
+    setEditingContestPhase(contest.phase);
+    setEditTitle(contest.title || '');
+    setEditDescription(contest.description || '');
+    setEditThemeImageUrl(contest.themeImageUrl || '');
+    setEditSubmitStartAt(contest.submitStartAt ? contest.submitStartAt.slice(0, 19) : '');
+    setShowEditDatePicker(false);
+    setShowEditUrlInput(false);
+    setIsUploadingEditImage(false);
+    setEditModalVisible(true);
+  };
+
+  const handleSubmitUpdateContest = () => {
+    if (!editingContestId) return;
+    if (!editTitle.trim()) {
+      Alert.alert('입력 필요', '콘테스트 테마(제목)를 입력해 주세요.');
+      return;
+    }
+
+    const payload: {
+      title: string;
+      description?: string;
+      themeImageUrl?: string;
+      submitStartAt?: string;
+    } = {
+      title: editTitle.trim(),
+      description: editDescription.trim() || undefined,
+      themeImageUrl: editThemeImageUrl.trim() || undefined,
+    };
+
+    if (editingContestPhase === 'UPCOMING' && editSubmitStartAt.trim()) {
+      payload.submitStartAt = editSubmitStartAt.trim();
+    }
+
+    updateContestMutation.mutate(
+      {
+        contestId: editingContestId,
+        data: payload,
+      },
+      {
+        onSuccess: () => {
+          setEditModalVisible(false);
+          showToast(`콘테스트 #${editingContestId} 정보가 성공적으로 수정되었습니다.`);
+        },
+        onError: (err) => {
+          Alert.alert('수정 실패', err.message || '콘테스트 수정 중 오류가 발생했습니다.');
+        },
+      }
+    );
+  };
+
+  // ── 핸들러: 상세 모달 열기 ─────────────────────────────────────────
+  const handleOpenDetailModal = (contestId: number) => {
+    setSelectedContestId(contestId);
+    setEntriesPage(0);
+    setDetailModalVisible(true);
+  };
+
+  // ── 핸들러: 출품 시작 알림 발송 ─────────────────────────────────────
+  const handleSendStartNotification = (contestId: number, contestTitle: string) => {
+    Alert.alert(
+      '출품 시작 알림 발송',
+      `[${contestTitle}] 구독자들에게 출품 시작 푸시/인앱 알림을 발송하시겠습니까?`,
+      [
+        { text: '취소', style: 'cancel' },
+        {
+          text: '알림 발송',
+          onPress: () => {
+            sendStartNotificationMutation.mutate(contestId, {
+              onSuccess: (res) => {
+                const count = res?.sentCount ?? 0;
+                showToast(`출품 시작 알림이 발송되었습니다. (수신: ${count}명)`);
+              },
+              onError: (err) => {
+                Alert.alert('발송 실패', err.message || '알림 발송 중 오류가 발생했습니다.');
+              },
+            });
+          },
+        },
+      ]
+    );
+  };
+
+  // ── 핸들러: 강제 조기 마감 및 즉시 결과 발표 ─────────────────────
+  const handlePublishResult = (contestId: number, contestTitle: string) => {
+    Alert.alert(
+      '강제 결과 발표 및 조기 마감',
+      `[${contestTitle}] 콘테스트를 즉시 종료하고 최종 순위를 확정하여 결과를 발표하시겠습니까?\n\n이 작업은 되돌릴 수 없으며, 참여자 및 구독자들에게 결과 발표 알림이 자동 발송됩니다.`,
+      [
+        { text: '취소', style: 'cancel' },
+        {
+          text: '즉시 결과 발표',
+          style: 'destructive',
+          onPress: () => {
+            publishResultMutation.mutate(contestId, {
+              onSuccess: () => {
+                showToast(`[${contestTitle}] 콘테스트 결과가 즉시 발표되었습니다.`);
+              },
+              onError: (err) => {
+                Alert.alert('발표 실패', err.message || '결과 발표 처리 중 오류가 발생했습니다.');
+              },
+            });
+          },
+        },
+      ]
+    );
+  };
+
+  // ── 핸들러: 결과 발표 알림 수동 발송 ─────────────────────────────
+  const handleSendResultNotification = (contestId: number, contestTitle: string) => {
+    Alert.alert(
+      '결과 발표 알림 발송',
+      `[${contestTitle}] 출품자, 투표자 및 구독자들에게 최종 결과 푸시/인앱 알림을 발송하시겠습니까?`,
+      [
+        { text: '취소', style: 'cancel' },
+        {
+          text: '알림 발송',
+          onPress: () => {
+            sendResultNotificationMutation.mutate(contestId, {
+              onSuccess: (res) => {
+                const count = res?.sentCount ?? 0;
+                showToast(`결과 알림이 발송되었습니다. (수신: ${count}명)`);
+              },
+              onError: (err) => {
+                Alert.alert('발송 실패', err.message || '결과 알림 발송 중 오류가 발생했습니다.');
+              },
+            });
+          },
+        },
+      ]
+    );
+  };
+
+  // ── 핸들러: 출품작 강제 삭제 열기 ───────────────────────────────────
+  const handleOpenDeleteEntryModal = (
+    entryId: number,
+    userNickname?: string,
+    caption?: string,
+    contestId?: number
+  ) => {
+    setTargetEntry({ entryId, userNickname, caption, contestId });
+    setDeleteReason('운영자 권한 강제 삭제 (부적절한 게시물)');
+    setDeleteModalVisible(true);
+  };
+
+  // ── 핸들러: 출품작 강제 삭제 실행 ───────────────────────────────────
+  const handleConfirmDeleteEntry = () => {
+    if (!targetEntry) return;
+
+    deleteEntryMutation.mutate(
+      {
+        entryId: targetEntry.entryId,
+        reason: deleteReason.trim() || '운영자 권한 강제 삭제',
+        contestId: targetEntry.contestId,
+      },
+      {
+        onSuccess: () => {
+          setDeleteModalVisible(false);
+          showToast(`출품작 #${targetEntry.entryId}이(가) 강제 삭제되었습니다.`);
+          setTargetEntry(null);
+        },
+        onError: (err) => {
+          Alert.alert('삭제 실패', err.message || '출품작 삭제 중 오류가 발생했습니다.');
+        },
+      }
+    );
+  };
+
+  return (
+    <View style={{ gap: normalize(14) }}>
+      {/* 서브 탭 세그먼트 (회차 관리 / 신고 접수함) */}
+      <View
+        className="flex-row bg-white"
+        style={{
+          borderRadius: normalize(10),
+          padding: normalize(4),
+          borderWidth: 1,
+          borderColor: 'rgba(0,0,0,0.06)',
+        }}
+      >
+        <TouchableOpacity
+          onPress={() => setSubTab('contests')}
+          style={{
+            flex: 1,
+            paddingVertical: normalize(8),
+            borderRadius: normalize(8),
+            backgroundColor: subTab === 'contests' ? '#111827' : 'transparent',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexDirection: 'row',
+            gap: normalize(6),
+          }}
+        >
+          <IconTrophy
+            size={normalize(15)}
+            color={subTab === 'contests' ? '#fff' : TEXT_SUB}
+            strokeWidth={2}
+          />
+          <Text
+            style={{
+              fontSize: FONT_SM,
+              fontFamily: subTab === 'contests' ? 'Pretendard-SemiBold' : 'Pretendard-Medium',
+              color: subTab === 'contests' ? '#fff' : TEXT_SUB,
+            }}
+          >
+            회차 관리
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => setSubTab('reports')}
+          style={{
+            flex: 1,
+            paddingVertical: normalize(8),
+            borderRadius: normalize(8),
+            backgroundColor: subTab === 'reports' ? '#111827' : 'transparent',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexDirection: 'row',
+            gap: normalize(6),
+          }}
+        >
+          <IconAlertTriangle
+            size={normalize(15)}
+            color={subTab === 'reports' ? '#fff' : TEXT_SUB}
+            strokeWidth={2}
+          />
+          <Text
+            style={{
+              fontSize: FONT_SM,
+              fontFamily: subTab === 'reports' ? 'Pretendard-SemiBold' : 'Pretendard-Medium',
+              color: subTab === 'reports' ? '#fff' : TEXT_SUB,
+            }}
+          >
+            신고 접수함
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* ══════════════════════════════════════════════════════════════
+          SUBTAB 1: 회차 관리
+      ══════════════════════════════════════════════════════════════ */}
+      {subTab === 'contests' && (
+        <View style={{ gap: normalize(12) }}>
+          {/* 상단 액션 바 (개설 버튼 & 새로고침) */}
+          <View className="flex-row items-center justify-between">
+            <View>
+              <Text
+                style={{
+                  fontSize: FONT_LG,
+                  fontFamily: 'Pretendard-Bold',
+                  color: '#111',
+                }}
+              >
+                콘테스트 회차 목록
+              </Text>
+              <Text
+                style={{
+                  fontSize: FONT_2XS,
+                  fontFamily: 'Pretendard-Regular',
+                  color: TEXT_SUB,
+                  marginTop: normalize(2),
+                }}
+              >
+                총 {contestsData?.totalElements ?? 0}개의 회차가 등록되어 있습니다
+              </Text>
+            </View>
+
+            <View className="flex-row items-center" style={{ gap: normalize(8) }}>
+              <TouchableOpacity
+                onPress={() => refetchContests()}
+                disabled={isContestsRefetching}
+                style={{
+                  width: normalize(38),
+                  height: normalize(38),
+                  borderRadius: normalize(10),
+                  backgroundColor: '#fff',
+                  borderWidth: 1,
+                  borderColor: 'rgba(0,0,0,0.08)',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                {isContestsRefetching ? (
+                  <ActivityIndicator size="small" color={BRAND} />
+                ) : (
+                  <IconRefresh size={normalize(18)} color="#4b5563" />
+                )}
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleOpenCreateModal}
+                style={{
+                  height: normalize(38),
+                  paddingHorizontal: normalize(14),
+                  borderRadius: normalize(10),
+                  backgroundColor: BRAND,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: normalize(4),
+                }}
+              >
+                <IconPlus size={normalize(16)} color="#fff" strokeWidth={2.2} />
+                <Text
+                  style={{
+                    fontSize: FONT_SM,
+                    fontFamily: 'Pretendard-SemiBold',
+                    color: '#fff',
+                  }}
+                >
+                  새 회차 개설
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* 목록 로딩 / 빈 화면 / 리스트 */}
+          {isContestsLoading ? (
+            <View style={{ paddingVertical: normalize(40), alignItems: 'center' }}>
+              <ActivityIndicator size="large" color={BRAND} />
+              <Text
+                style={{
+                  fontSize: FONT_SM,
+                  fontFamily: 'Pretendard-Medium',
+                  color: TEXT_SUB,
+                  marginTop: normalize(10),
+                }}
+              >
+                콘테스트 목록을 불러오는 중...
+              </Text>
+            </View>
+          ) : !contestsData || contestsData.content.length === 0 ? (
+            <View
+              style={{
+                backgroundColor: '#fff',
+                borderRadius: CARD_RADIUS,
+                paddingVertical: normalize(40),
+                alignItems: 'center',
+                borderWidth: 1,
+                borderColor: 'rgba(0,0,0,0.06)',
+              }}
+            >
+              <IconTrophy size={normalize(40)} color="rgba(0,0,0,0.15)" strokeWidth={1.5} />
+              <Text
+                style={{
+                  fontSize: FONT_MD,
+                  fontFamily: 'Pretendard-SemiBold',
+                  color: '#374151',
+                  marginTop: normalize(12),
+                }}
+              >
+                개설된 콘테스트가 없습니다.
+              </Text>
+              <Text
+                style={{
+                  fontSize: FONT_XS,
+                  fontFamily: 'Pretendard-Regular',
+                  color: TEXT_SUB,
+                  marginTop: normalize(4),
+                }}
+              >
+                상단의 &apos;새 회차 개설&apos; 버튼으로 콘테스트를 시작해보세요.
+              </Text>
+            </View>
+          ) : (
+            <View style={{ gap: normalize(12) }}>
+              {contestsData.content.map((item) => {
+                const phaseConfig = PHASE_COLORS[item.phase] ?? { bg: '#f3f4f6', text: '#6b7280' };
+                const phaseLabel = CONTEST_PHASE_LABELS[item.phase] ?? item.phase;
+
+                return (
+                  <View
+                    key={item.contestId}
+                    style={{
+                      backgroundColor: '#fff',
+                      borderRadius: CARD_RADIUS,
+                      padding: normalize(16),
+                      borderWidth: 1,
+                      borderColor: 'rgba(0,0,0,0.06)',
+                    }}
+                  >
+                    {/* 카드 상단: 상태 뱃지 & 회차 ID & 시작 알림 상태 */}
+                    <View className="flex-row items-center justify-between" style={{ marginBottom: normalize(8) }}>
+                      <View className="flex-row items-center" style={{ gap: normalize(6) }}>
+                        <View
+                          style={{
+                            paddingHorizontal: normalize(8),
+                            paddingVertical: normalize(3),
+                            borderRadius: normalize(4),
+                            backgroundColor: phaseConfig.bg,
+                          }}
+                        >
+                          <Text
+                            style={{
+                              fontSize: FONT_2XS,
+                              fontFamily: 'Pretendard-SemiBold',
+                              color: phaseConfig.text,
+                            }}
+                          >
+                            {phaseLabel}
+                          </Text>
+                        </View>
+                        <Text
+                          style={{
+                            fontSize: FONT_XS,
+                            fontFamily: 'Pretendard-Medium',
+                            color: TEXT_SUB,
+                          }}
+                        >
+                          #{item.contestId}
+                        </Text>
+                      </View>
+
+                      <View className="flex-row items-center" style={{ gap: normalize(4) }}>
+                        {item.startNotificationSent ? (
+                          <View
+                            className="flex-row items-center"
+                            style={{
+                              gap: normalize(2),
+                              paddingHorizontal: normalize(6),
+                              paddingVertical: normalize(2),
+                              borderRadius: normalize(4),
+                              backgroundColor: '#f0fdf4',
+                            }}
+                          >
+                            <IconCheck size={normalize(11)} color="#16a34a" />
+                            <Text
+                              style={{
+                                fontSize: FONT_2XS,
+                                fontFamily: 'Pretendard-Medium',
+                                color: '#15803d',
+                              }}
+                            >
+                              시작알림 완료
+                            </Text>
+                          </View>
+                        ) : item.phase !== 'ENDED' ? (
+                          <View
+                            style={{
+                              paddingHorizontal: normalize(6),
+                              paddingVertical: normalize(2),
+                              borderRadius: normalize(4),
+                              backgroundColor: '#fef2f2',
+                            }}
+                          >
+                            <Text
+                              style={{
+                                fontSize: FONT_2XS,
+                                fontFamily: 'Pretendard-Medium',
+                                color: '#b91c1c',
+                              }}
+                            >
+                              시작알림 미발송
+                            </Text>
+                          </View>
+                        ) : null}
+
+                        {item.resultNotificationSent ? (
+                          <View
+                            className="flex-row items-center"
+                            style={{
+                              gap: normalize(2),
+                              paddingHorizontal: normalize(6),
+                              paddingVertical: normalize(2),
+                              borderRadius: normalize(4),
+                              backgroundColor: '#f0fdf4',
+                            }}
+                          >
+                            <IconCheck size={normalize(11)} color="#16a34a" />
+                            <Text
+                              style={{
+                                fontSize: FONT_2XS,
+                                fontFamily: 'Pretendard-Medium',
+                                color: '#15803d',
+                              }}
+                            >
+                              결과알림 완료
+                            </Text>
+                          </View>
+                        ) : item.phase === 'ENDED' ? (
+                          <View
+                            style={{
+                              paddingHorizontal: normalize(6),
+                              paddingVertical: normalize(2),
+                              borderRadius: normalize(4),
+                              backgroundColor: '#fffbeb',
+                            }}
+                          >
+                            <Text
+                              style={{
+                                fontSize: FONT_2XS,
+                                fontFamily: 'Pretendard-Medium',
+                                color: '#b45309',
+                              }}
+                            >
+                              결과알림 미발송
+                            </Text>
+                          </View>
+                        ) : null}
+                      </View>
+                    </View>
+
+                    {/* 테마 제목 & 설명 */}
+                    <Text
+                      style={{
+                        fontSize: FONT_MD,
+                        fontFamily: 'Pretendard-SemiBold',
+                        color: '#111',
+                        marginBottom: normalize(4),
+                      }}
+                    >
+                      {item.title}
+                    </Text>
+                    {item.description ? (
+                      <Text
+                        numberOfLines={2}
+                        style={{
+                          fontSize: FONT_XS,
+                          fontFamily: 'Pretendard-Regular',
+                          color: '#4b5563',
+                          lineHeight: normalize(18),
+                          marginBottom: normalize(10),
+                        }}
+                      >
+                        {item.description}
+                      </Text>
+                    ) : null}
+
+                    {/* 통계 요약 (출품작 수, 투표 수, 1인 제한) */}
+                    <View
+                      className="flex-row items-center"
+                      style={{
+                        backgroundColor: '#f9fafb',
+                        borderRadius: normalize(8),
+                        paddingVertical: normalize(8),
+                        paddingHorizontal: normalize(12),
+                        marginBottom: normalize(10),
+                        justifyContent: 'space-between',
+                      }}
+                    >
+                      <View className="items-center">
+                        <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Regular', color: TEXT_SUB }}>
+                          총 출품수
+                        </Text>
+                        <Text
+                          style={{
+                            fontSize: FONT_SM,
+                            fontFamily: 'Pretendard-Bold',
+                            color: '#111827',
+                            marginTop: normalize(2),
+                          }}
+                        >
+                          {item.totalEntries}개
+                        </Text>
+                      </View>
+
+                      <View style={{ width: 1, height: normalize(18), backgroundColor: '#e5e7eb' }} />
+
+                      <View className="items-center">
+                        <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Regular', color: TEXT_SUB }}>
+                          총 투표수
+                        </Text>
+                        <Text
+                          style={{
+                            fontSize: FONT_SM,
+                            fontFamily: 'Pretendard-Bold',
+                            color: '#111827',
+                            marginTop: normalize(2),
+                          }}
+                        >
+                          {item.totalVotes}표
+                        </Text>
+                      </View>
+
+                      <View style={{ width: 1, height: normalize(18), backgroundColor: '#e5e7eb' }} />
+
+                      <View className="items-center">
+                        <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Regular', color: TEXT_SUB }}>
+                          최대출품/투표
+                        </Text>
+                        <Text
+                          style={{
+                            fontSize: FONT_SM,
+                            fontFamily: 'Pretendard-Bold',
+                            color: '#111827',
+                            marginTop: normalize(2),
+                          }}
+                        >
+                          {item.maxEntriesPerUser}장 / {item.voteLimit}회
+                        </Text>
+                      </View>
+                    </View>
+
+                    {/* 일정 안내 */}
+                    <View style={{ gap: normalize(3), marginBottom: normalize(12) }}>
+                      <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Regular', color: '#6b7280' }}>
+                        출품: {formatDateTime(item.submitStartAt)} ~ {formatDateTime(item.submitEndAt)}
+                      </Text>
+                      <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Regular', color: '#6b7280' }}>
+                        투표: {formatDateTime(item.voteStartAt)} ~ {formatDateTime(item.voteEndAt)}
+                      </Text>
+                      <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Regular', color: '#6b7280' }}>
+                        발표: {formatDateTime(item.resultOpenAt)}
+                      </Text>
+                    </View>
+
+                    {/* 하단 액션 버튼 그룹 */}
+                    <View className="flex-row items-center flex-wrap" style={{ gap: normalize(6) }}>
+                      <TouchableOpacity
+                        onPress={() => handleOpenDetailModal(item.contestId)}
+                        style={{
+                          flex: 1,
+                          minWidth: normalize(100),
+                          height: normalize(36),
+                          borderRadius: normalize(8),
+                          backgroundColor: '#f3f4f6',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexDirection: 'row',
+                          gap: normalize(4),
+                        }}
+                      >
+                        <IconPhoto size={normalize(14)} color="#374151" />
+                        <Text
+                          style={{
+                            fontSize: FONT_XS,
+                            fontFamily: 'Pretendard-SemiBold',
+                            color: '#374151',
+                          }}
+                        >
+                          상세 및 출품작
+                        </Text>
+                      </TouchableOpacity>
+
+                      {/* 수정 버튼 */}
+                      <TouchableOpacity
+                        onPress={() => handleOpenEditModal(item)}
+                        style={{
+                          height: normalize(36),
+                          paddingHorizontal: normalize(10),
+                          borderRadius: normalize(8),
+                          backgroundColor: '#f3f4f6',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flexDirection: 'row',
+                          gap: normalize(4),
+                        }}
+                      >
+                        <IconEdit size={normalize(14)} color="#374151" />
+                        <Text
+                          style={{
+                            fontSize: FONT_XS,
+                            fontFamily: 'Pretendard-SemiBold',
+                            color: '#374151',
+                          }}
+                        >
+                          수정
+                        </Text>
+                      </TouchableOpacity>
+
+                      {!item.startNotificationSent && item.phase !== 'ENDED' && (
+                        <TouchableOpacity
+                          onPress={() => handleSendStartNotification(item.contestId, item.title)}
+                          disabled={sendStartNotificationMutation.isPending}
+                          style={{
+                            height: normalize(36),
+                            paddingHorizontal: normalize(10),
+                            borderRadius: normalize(8),
+                            backgroundColor: '#e0f2fe',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexDirection: 'row',
+                            gap: normalize(4),
+                          }}
+                        >
+                          <IconBell size={normalize(14)} color="#0284c7" />
+                          <Text
+                            style={{
+                              fontSize: FONT_XS,
+                              fontFamily: 'Pretendard-SemiBold',
+                              color: '#0284c7',
+                            }}
+                          >
+                            시작 알림
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+
+                      {item.phase !== 'ENDED' && (
+                        <TouchableOpacity
+                          onPress={() => handlePublishResult(item.contestId, item.title)}
+                          disabled={publishResultMutation.isPending}
+                          style={{
+                            height: normalize(36),
+                            paddingHorizontal: normalize(10),
+                            borderRadius: normalize(8),
+                            backgroundColor: '#fee2e2',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexDirection: 'row',
+                            gap: normalize(4),
+                          }}
+                        >
+                          <IconPlayerStop size={normalize(14)} color="#dc2626" />
+                          <Text
+                            style={{
+                              fontSize: FONT_XS,
+                              fontFamily: 'Pretendard-SemiBold',
+                              color: '#dc2626',
+                            }}
+                          >
+                            강제 결과 발표
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+
+                      {item.phase === 'ENDED' && (
+                        <TouchableOpacity
+                          onPress={() => handleSendResultNotification(item.contestId, item.title)}
+                          disabled={sendResultNotificationMutation.isPending}
+                          style={{
+                            height: normalize(36),
+                            paddingHorizontal: normalize(10),
+                            borderRadius: normalize(8),
+                            backgroundColor: '#fef3c7',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexDirection: 'row',
+                            gap: normalize(4),
+                          }}
+                        >
+                          <IconSend size={normalize(14)} color="#b45309" />
+                          <Text
+                            style={{
+                              fontSize: FONT_XS,
+                              fontFamily: 'Pretendard-SemiBold',
+                              color: '#b45309',
+                            }}
+                          >
+                            {item.resultNotificationSent ? '결과알림 재발송' : '결과 알림 발송'}
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  </View>
+                );
+              })}
+
+              {/* 페이징 컨트롤 */}
+              {contestsData.totalPages > 1 && (
+                <View
+                  className="flex-row items-center justify-between"
+                  style={{
+                    paddingVertical: normalize(10),
+                    paddingHorizontal: normalize(8),
+                  }}
+                >
+                  <TouchableOpacity
+                    onPress={() => setContestPage((p) => Math.max(0, p - 1))}
+                    disabled={contestsData.first}
+                    style={{
+                      height: normalize(36),
+                      paddingHorizontal: normalize(14),
+                      borderRadius: normalize(8),
+                      backgroundColor: contestsData.first ? '#f3f4f6' : '#fff',
+                      borderWidth: 1,
+                      borderColor: 'rgba(0,0,0,0.06)',
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: normalize(4),
+                    }}
+                  >
+                    <IconChevronLeft
+                      size={normalize(16)}
+                      color={contestsData.first ? '#9ca3af' : '#374151'}
+                    />
+                    <Text
+                      style={{
+                        fontSize: FONT_XS,
+                        fontFamily: 'Pretendard-Medium',
+                        color: contestsData.first ? '#9ca3af' : '#374151',
+                      }}
+                    >
+                      이전
+                    </Text>
+                  </TouchableOpacity>
+
+                  <Text
+                    style={{
+                      fontSize: FONT_SM,
+                      fontFamily: 'Pretendard-Medium',
+                      color: TEXT_SUB,
+                    }}
+                  >
+                    {contestPage + 1} / {contestsData.totalPages} 페이지
+                  </Text>
+
+                  <TouchableOpacity
+                    onPress={() => setContestPage((p) => Math.min(contestsData.totalPages - 1, p + 1))}
+                    disabled={contestsData.last}
+                    style={{
+                      height: normalize(36),
+                      paddingHorizontal: normalize(14),
+                      borderRadius: normalize(8),
+                      backgroundColor: contestsData.last ? '#f3f4f6' : '#fff',
+                      borderWidth: 1,
+                      borderColor: 'rgba(0,0,0,0.06)',
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: normalize(4),
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: FONT_XS,
+                        fontFamily: 'Pretendard-Medium',
+                        color: contestsData.last ? '#9ca3af' : '#374151',
+                      }}
+                    >
+                      다음
+                    </Text>
+                    <IconChevronRight
+                      size={normalize(16)}
+                      color={contestsData.last ? '#9ca3af' : '#374151'}
+                    />
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          )}
+        </View>
+      )}
+
+      {/* ══════════════════════════════════════════════════════════════
+          SUBTAB 2: 신고 접수함
+      ══════════════════════════════════════════════════════════════ */}
+      {subTab === 'reports' && (
+        <View style={{ gap: normalize(12) }}>
+          <View className="flex-row items-center justify-between">
+            <View>
+              <Text
+                style={{
+                  fontSize: FONT_LG,
+                  fontFamily: 'Pretendard-Bold',
+                  color: '#111',
+                }}
+              >
+                출품작 신고 접수함
+              </Text>
+              <Text
+                style={{
+                  fontSize: FONT_2XS,
+                  fontFamily: 'Pretendard-Regular',
+                  color: TEXT_SUB,
+                  marginTop: normalize(2),
+                }}
+              >
+                유저들이 접수한 부적절한 출품작 신고 내역입니다
+              </Text>
+            </View>
+
+            <TouchableOpacity
+              onPress={() => refetchReports()}
+              disabled={isReportsRefetching}
+              style={{
+                width: normalize(38),
+                height: normalize(38),
+                borderRadius: normalize(10),
+                backgroundColor: '#fff',
+                borderWidth: 1,
+                borderColor: 'rgba(0,0,0,0.08)',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              {isReportsRefetching ? (
+                <ActivityIndicator size="small" color={BRAND} />
+              ) : (
+                <IconRefresh size={normalize(18)} color="#4b5563" />
+              )}
+            </TouchableOpacity>
+          </View>
+
+          {/* 신고 목록 로딩 / 빈 화면 / 리스트 */}
+          {isReportsLoading ? (
+            <View style={{ paddingVertical: normalize(40), alignItems: 'center' }}>
+              <ActivityIndicator size="large" color={BRAND} />
+              <Text
+                style={{
+                  fontSize: FONT_SM,
+                  fontFamily: 'Pretendard-Medium',
+                  color: TEXT_SUB,
+                  marginTop: normalize(10),
+                }}
+              >
+                신고 접수 내역을 불러오는 중...
+              </Text>
+            </View>
+          ) : !reportsData || reportsData.content.length === 0 ? (
+            <View
+              style={{
+                backgroundColor: '#fff',
+                borderRadius: CARD_RADIUS,
+                paddingVertical: normalize(40),
+                alignItems: 'center',
+                borderWidth: 1,
+                borderColor: 'rgba(0,0,0,0.06)',
+              }}
+            >
+              <IconCheck size={normalize(40)} color="#16a34a" strokeWidth={1.5} />
+              <Text
+                style={{
+                  fontSize: FONT_MD,
+                  fontFamily: 'Pretendard-SemiBold',
+                  color: '#374151',
+                  marginTop: normalize(12),
+                }}
+              >
+                접수된 신고 내역이 없습니다.
+              </Text>
+              <Text
+                style={{
+                  fontSize: FONT_XS,
+                  fontFamily: 'Pretendard-Regular',
+                  color: TEXT_SUB,
+                  marginTop: normalize(4),
+                }}
+              >
+                모든 출품작이 쾌적하게 운영되고 있습니다.
+              </Text>
+            </View>
+          ) : (
+            <View style={{ gap: normalize(12) }}>
+              {reportsData.content.map((item) => {
+                const reasonColor = REPORT_REASON_COLORS[item.reason] ?? {
+                  bg: '#f3f4f6',
+                  text: '#4b5563',
+                };
+                const reasonLabel = CONTEST_REPORT_REASON_LABELS[item.reason] ?? item.reason;
+
+                return (
+                  <View
+                    key={item.reportId}
+                    style={{
+                      backgroundColor: '#fff',
+                      borderRadius: CARD_RADIUS,
+                      padding: normalize(14),
+                      borderWidth: 1,
+                      borderColor: 'rgba(0,0,0,0.06)',
+                    }}
+                  >
+                    {/* 상단: 신고 사유 뱃지 + 신고일시 */}
+                    <View className="flex-row items-center justify-between" style={{ marginBottom: normalize(8) }}>
+                      <View
+                        style={{
+                          paddingHorizontal: normalize(8),
+                          paddingVertical: normalize(3),
+                          borderRadius: normalize(4),
+                          backgroundColor: reasonColor.bg,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            fontSize: FONT_2XS,
+                            fontFamily: 'Pretendard-SemiBold',
+                            color: reasonColor.text,
+                          }}
+                        >
+                          {reasonLabel}
+                        </Text>
+                      </View>
+
+                      <Text
+                        style={{
+                          fontSize: FONT_2XS,
+                          fontFamily: 'Pretendard-Regular',
+                          color: TEXT_SUB,
+                        }}
+                      >
+                        {formatDateTime(item.createdAt)}
+                      </Text>
+                    </View>
+
+                    {/* 출품작 사진 & 정보 */}
+                    <View className="flex-row" style={{ gap: normalize(12), marginBottom: normalize(10) }}>
+                      {item.entryPhotoUrl ? (
+                        <Image
+                          source={{ uri: item.entryPhotoUrl }}
+                          style={{
+                            width: normalize(72),
+                            height: normalize(72),
+                            borderRadius: normalize(8),
+                            backgroundColor: '#e5e7eb',
+                          }}
+                          resizeMode="cover"
+                        />
+                      ) : (
+                        <View
+                          style={{
+                            width: normalize(72),
+                            height: normalize(72),
+                            borderRadius: normalize(8),
+                            backgroundColor: '#f3f4f6',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <IconPhoto size={normalize(24)} color="#9ca3af" />
+                        </View>
+                      )}
+
+                      <View style={{ flex: 1, justifyContent: 'space-between' }}>
+                        <View>
+                          <Text
+                            style={{
+                              fontSize: FONT_2XS,
+                              fontFamily: 'Pretendard-Regular',
+                              color: TEXT_SUB,
+                            }}
+                          >
+                            출품작 #{item.entryId} · 작성자: {item.entryAuthorNickname}
+                          </Text>
+                          {item.entryCaption ? (
+                            <Text
+                              numberOfLines={2}
+                              style={{
+                                fontSize: FONT_XS,
+                                fontFamily: 'Pretendard-Medium',
+                                color: '#111827',
+                                marginTop: normalize(2),
+                              }}
+                            >
+                              &quot;{item.entryCaption}&quot;
+                            </Text>
+                          ) : null}
+                        </View>
+
+                        <Text
+                          style={{
+                            fontSize: FONT_2XS,
+                            fontFamily: 'Pretendard-Regular',
+                            color: '#6b7280',
+                          }}
+                        >
+                          신고자: {item.reporterNickname} (#{item.reporterId})
+                        </Text>
+                      </View>
+                    </View>
+
+                    {/* 신고 상세 사유 */}
+                    {item.content ? (
+                      <View
+                        style={{
+                          backgroundColor: '#f9fafb',
+                          borderRadius: normalize(8),
+                          padding: normalize(10),
+                          marginBottom: normalize(10),
+                        }}
+                      >
+                        <Text
+                          style={{
+                            fontSize: FONT_2XS,
+                            fontFamily: 'Pretendard-SemiBold',
+                            color: '#6b7280',
+                            marginBottom: normalize(2),
+                          }}
+                        >
+                          신고 상세 내용
+                        </Text>
+                        <Text
+                          style={{
+                            fontSize: FONT_XS,
+                            fontFamily: 'Pretendard-Regular',
+                            color: '#374151',
+                            lineHeight: normalize(18),
+                          }}
+                        >
+                          {item.content}
+                        </Text>
+                      </View>
+                    ) : null}
+
+                    {/* 강제 삭제 액션 버튼 */}
+                    <TouchableOpacity
+                      onPress={() =>
+                        handleOpenDeleteEntryModal(
+                          item.entryId,
+                          item.entryAuthorNickname,
+                          item.entryCaption || undefined
+                        )
+                      }
+                      style={{
+                        height: normalize(34),
+                        borderRadius: normalize(8),
+                        backgroundColor: '#fef2f2',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        flexDirection: 'row',
+                        gap: normalize(4),
+                      }}
+                    >
+                      <IconTrash size={normalize(14)} color="#dc2626" />
+                      <Text
+                        style={{
+                          fontSize: FONT_XS,
+                          fontFamily: 'Pretendard-SemiBold',
+                          color: '#dc2626',
+                        }}
+                      >
+                        해당 출품작 강제 삭제
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                );
+              })}
+
+              {/* 페이징 컨트롤 */}
+              {reportsData.totalPages > 1 && (
+                <View
+                  className="flex-row items-center justify-between"
+                  style={{
+                    paddingVertical: normalize(10),
+                    paddingHorizontal: normalize(8),
+                  }}
+                >
+                  <TouchableOpacity
+                    onPress={() => setReportPage((p) => Math.max(0, p - 1))}
+                    disabled={reportsData.first}
+                    style={{
+                      height: normalize(36),
+                      paddingHorizontal: normalize(14),
+                      borderRadius: normalize(8),
+                      backgroundColor: reportsData.first ? '#f3f4f6' : '#fff',
+                      borderWidth: 1,
+                      borderColor: 'rgba(0,0,0,0.06)',
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: normalize(4),
+                    }}
+                  >
+                    <IconChevronLeft
+                      size={normalize(16)}
+                      color={reportsData.first ? '#9ca3af' : '#374151'}
+                    />
+                    <Text
+                      style={{
+                        fontSize: FONT_XS,
+                        fontFamily: 'Pretendard-Medium',
+                        color: reportsData.first ? '#9ca3af' : '#374151',
+                      }}
+                    >
+                      이전
+                    </Text>
+                  </TouchableOpacity>
+
+                  <Text
+                    style={{
+                      fontSize: FONT_SM,
+                      fontFamily: 'Pretendard-Medium',
+                      color: TEXT_SUB,
+                    }}
+                  >
+                    {reportPage + 1} / {reportsData.totalPages} 페이지
+                  </Text>
+
+                  <TouchableOpacity
+                    onPress={() => setReportPage((p) => Math.min(reportsData.totalPages - 1, p + 1))}
+                    disabled={reportsData.last}
+                    style={{
+                      height: normalize(36),
+                      paddingHorizontal: normalize(14),
+                      borderRadius: normalize(8),
+                      backgroundColor: reportsData.last ? '#f3f4f6' : '#fff',
+                      borderWidth: 1,
+                      borderColor: 'rgba(0,0,0,0.06)',
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: normalize(4),
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: FONT_XS,
+                        fontFamily: 'Pretendard-Medium',
+                        color: reportsData.last ? '#9ca3af' : '#374151',
+                      }}
+                    >
+                      다음
+                    </Text>
+                    <IconChevronRight
+                      size={normalize(16)}
+                      color={reportsData.last ? '#9ca3af' : '#374151'}
+                    />
+                  </TouchableOpacity>
+                </View>
+              )}
+            </View>
+          )}
+        </View>
+      )}
+
+      {/* ══════════════════════════════════════════════════════════════
+          MODAL 1: 새 콘테스트 회차 개설 모달
+      ══════════════════════════════════════════════════════════════ */}
+      <Modal
+        visible={createModalVisible}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() => setCreateModalVisible(false)}
+      >
+        <Pressable
+          className="flex-1 justify-center bg-black/60"
+          style={{ paddingHorizontal: normalize(20) }}
+          onPress={() => setCreateModalVisible(false)}
+        >
+          <Pressable
+            onPress={(e) => e.stopPropagation()}
+            style={{
+              backgroundColor: '#fff',
+              borderRadius: CARD_RADIUS,
+              padding: normalize(20),
+              maxHeight: Dimensions.get('screen').height * 0.85,
+            }}
+          >
+            {/* 모달 헤더 */}
+            <View className="flex-row items-center justify-between border-b-[0.5px] border-hairline pb-3">
+              <View className="flex-row items-center" style={{ gap: normalize(6) }}>
+                <IconTrophy size={normalize(20)} color={BRAND} />
+                <Text style={{ fontSize: FONT_LG, fontFamily: 'Pretendard-SemiBold', color: '#111' }}>
+                  새 콘테스트 회차 개설
+                </Text>
+              </View>
+              <TouchableOpacity onPress={() => setCreateModalVisible(false)} hitSlop={8}>
+                <IconX size={normalize(20)} color="rgba(0,0,0,0.5)" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false} style={{ marginVertical: normalize(14) }}>
+              <View style={{ gap: normalize(14) }}>
+                {/* 1. 테마(제목) */}
+                <View>
+                  <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-SemiBold', color: '#374151', marginBottom: normalize(4) }}>
+                    콘테스트 테마명 (필수)
+                  </Text>
+                  <TextInput
+                    value={createTitle}
+                    onChangeText={setCreateTitle}
+                    placeholder="예: 가을 단풍과 함께한 최고의 순간"
+                    placeholderTextColor="rgba(0,0,0,0.3)"
+                    style={{
+                      height: normalize(42),
+                      borderWidth: 1,
+                      borderColor: 'rgba(0,0,0,0.12)',
+                      borderRadius: normalize(8),
+                      paddingHorizontal: normalize(12),
+                      fontSize: FONT_SM,
+                      fontFamily: 'Pretendard-Medium',
+                      color: '#111',
+                    }}
+                  />
+                </View>
+
+                {/* 2. 설명 */}
+                <View>
+                  <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-SemiBold', color: '#374151', marginBottom: normalize(4) }}>
+                    테마 설명 (선택)
+                  </Text>
+                  <TextInput
+                    value={createDescription}
+                    onChangeText={setCreateDescription}
+                    placeholder="콘테스트 참여 안내 및 테마 설명"
+                    placeholderTextColor="rgba(0,0,0,0.3)"
+                    multiline
+                    numberOfLines={3}
+                    style={{
+                      height: normalize(72),
+                      borderWidth: 1,
+                      borderColor: 'rgba(0,0,0,0.12)',
+                      borderRadius: normalize(8),
+                      paddingHorizontal: normalize(12),
+                      paddingTop: normalize(8),
+                      fontSize: FONT_SM,
+                      fontFamily: 'Pretendard-Regular',
+                      color: '#111',
+                      textAlignVertical: 'top',
+                    }}
+                  />
+                </View>
+
+                {/* 3. 대표 테마 이미지 (앨범 선택) */}
+                <View>
+                  <View className="flex-row items-center justify-between" style={{ marginBottom: normalize(6) }}>
+                    <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-SemiBold', color: '#374151' }}>
+                      대표 테마 이미지 (선택)
+                    </Text>
+                    <TouchableOpacity
+                      onPress={() => setShowCreateUrlInput((v) => !v)}
+                      hitSlop={6}
+                    >
+                      <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Regular', color: TEXT_SUB }}>
+                        {showCreateUrlInput ? '직접 입력 닫기' : '직접 URL 입력'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  {createThemeImageUrl ? (
+                    <View
+                      style={{
+                        borderRadius: normalize(10),
+                        overflow: 'hidden',
+                        borderWidth: 1,
+                        borderColor: 'rgba(0,0,0,0.08)',
+                        backgroundColor: '#f9fafb',
+                      }}
+                    >
+                      <Image
+                        source={{ uri: createThemeImageUrl }}
+                        style={{
+                          width: '100%',
+                          height: normalize(150),
+                          backgroundColor: '#f3f4f6',
+                        }}
+                        resizeMode="cover"
+                      />
+                      <View
+                        className="flex-row items-center justify-between"
+                        style={{
+                          paddingHorizontal: normalize(12),
+                          paddingVertical: normalize(8),
+                          backgroundColor: '#fff',
+                        }}
+                      >
+                        <Text
+                          numberOfLines={1}
+                          style={{
+                            flex: 1,
+                            fontSize: FONT_2XS,
+                            fontFamily: 'Pretendard-Regular',
+                            color: TEXT_SUB,
+                            marginRight: normalize(8),
+                          }}
+                        >
+                          {createThemeImageUrl}
+                        </Text>
+                        <View className="flex-row items-center" style={{ gap: normalize(6) }}>
+                          <TouchableOpacity
+                            onPress={() => handlePickThemeImage('create')}
+                            disabled={isUploadingCreateImage}
+                            style={{
+                              paddingHorizontal: normalize(8),
+                              paddingVertical: normalize(4),
+                              borderRadius: normalize(6),
+                              backgroundColor: '#f3f4f6',
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                              gap: normalize(4),
+                            }}
+                          >
+                            <IconPhoto size={normalize(13)} color="#374151" />
+                            <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Medium', color: '#374151' }}>
+                              변경
+                            </Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            onPress={() => setCreateThemeImageUrl('')}
+                            style={{
+                              paddingHorizontal: normalize(8),
+                              paddingVertical: normalize(4),
+                              borderRadius: normalize(6),
+                              backgroundColor: '#fee2e2',
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                              gap: normalize(4),
+                            }}
+                          >
+                            <IconTrash size={normalize(13)} color="#dc2626" />
+                            <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Medium', color: '#dc2626' }}>
+                              삭제
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    </View>
+                  ) : (
+                    <TouchableOpacity
+                      onPress={() => handlePickThemeImage('create')}
+                      disabled={isUploadingCreateImage}
+                      activeOpacity={0.8}
+                      style={{
+                        height: normalize(110),
+                        borderWidth: 1.5,
+                        borderColor: 'rgba(0,0,0,0.15)',
+                        borderStyle: 'dashed',
+                        borderRadius: normalize(10),
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: '#fcfcfc',
+                      }}
+                    >
+                      {isUploadingCreateImage ? (
+                        <View style={{ alignItems: 'center', gap: normalize(6) }}>
+                          <ActivityIndicator size="small" color={BRAND} />
+                          <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-Medium', color: BRAND }}>
+                            이미지 업로드 중...
+                          </Text>
+                        </View>
+                      ) : (
+                        <View style={{ alignItems: 'center', gap: normalize(4) }}>
+                          <View
+                            style={{
+                              width: normalize(38),
+                              height: normalize(38),
+                              borderRadius: normalize(19),
+                              backgroundColor: '#eef2ff',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                            }}
+                          >
+                            <IconPhoto size={normalize(20)} color={BRAND} />
+                          </View>
+                          <Text style={{ fontSize: FONT_SM, fontFamily: 'Pretendard-SemiBold', color: '#111' }}>
+                            앨범에서 사진 선택
+                          </Text>
+                          <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Regular', color: TEXT_SUB }}>
+                            권장 비율 16:9 · JPG, PNG, WEBP (최대 10MB)
+                          </Text>
+                        </View>
+                      )}
+                    </TouchableOpacity>
+                  )}
+
+                  {showCreateUrlInput && (
+                    <View style={{ marginTop: normalize(8) }}>
+                      <TextInput
+                        value={createThemeImageUrl}
+                        onChangeText={setCreateThemeImageUrl}
+                        placeholder="https://example.com/theme.jpg"
+                        placeholderTextColor="rgba(0,0,0,0.3)"
+                        autoCapitalize="none"
+                        style={{
+                          height: normalize(40),
+                          borderWidth: 1,
+                          borderColor: 'rgba(0,0,0,0.12)',
+                          borderRadius: normalize(8),
+                          paddingHorizontal: normalize(12),
+                          fontSize: FONT_XS,
+                          fontFamily: 'Pretendard-Regular',
+                          color: '#111',
+                          backgroundColor: '#f9fafb',
+                        }}
+                      />
+                    </View>
+                  )}
+                </View>
+
+                {/* 4. 최대 출품수 & 투표수 */}
+                <View className="flex-row" style={{ gap: normalize(12) }}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-SemiBold', color: '#374151', marginBottom: normalize(4) }}>
+                      1인 최대 출품 수
+                    </Text>
+                    <TextInput
+                      value={createMaxEntries}
+                      onChangeText={setCreateMaxEntries}
+                      keyboardType="numeric"
+                      placeholder="3"
+                      placeholderTextColor="rgba(0,0,0,0.3)"
+                      style={{
+                        height: normalize(42),
+                        borderWidth: 1,
+                        borderColor: 'rgba(0,0,0,0.12)',
+                        borderRadius: normalize(8),
+                        paddingHorizontal: normalize(12),
+                        fontSize: FONT_SM,
+                        fontFamily: 'Pretendard-Medium',
+                        color: '#111',
+                      }}
+                    />
+                  </View>
+
+                  <View style={{ flex: 1 }}>
+                    <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-SemiBold', color: '#374151', marginBottom: normalize(4) }}>
+                      1인 최대 투표 수
+                    </Text>
+                    <TextInput
+                      value={createVoteLimit}
+                      onChangeText={setCreateVoteLimit}
+                      keyboardType="numeric"
+                      placeholder="3"
+                      placeholderTextColor="rgba(0,0,0,0.3)"
+                      style={{
+                        height: normalize(42),
+                        borderWidth: 1,
+                        borderColor: 'rgba(0,0,0,0.12)',
+                        borderRadius: normalize(8),
+                        paddingHorizontal: normalize(12),
+                        fontSize: FONT_SM,
+                        fontFamily: 'Pretendard-Medium',
+                        color: '#111',
+                      }}
+                    />
+                  </View>
+                </View>
+
+                {/* 5. 출품 시작 일시 (캘린더 선택) */}
+                <View>
+                  <View className="flex-row items-center justify-between" style={{ marginBottom: normalize(4) }}>
+                    <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-SemiBold', color: '#374151' }}>
+                      출품 시작 일시 (캘린더 선택)
+                    </Text>
+                    {createSubmitStartAt ? (
+                      <TouchableOpacity onPress={() => setCreateSubmitStartAt('')} hitSlop={6}>
+                        <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Medium', color: '#dc2626' }}>
+                          일정 초기화
+                        </Text>
+                      </TouchableOpacity>
+                    ) : null}
+                  </View>
+
+                  <TouchableOpacity
+                    onPress={() => setShowCreateDatePicker((v) => !v)}
+                    activeOpacity={0.8}
+                    style={{
+                      height: normalize(44),
+                      borderWidth: 1,
+                      borderColor: createSubmitStartAt ? BRAND : 'rgba(0,0,0,0.12)',
+                      borderRadius: normalize(8),
+                      paddingHorizontal: normalize(12),
+                      backgroundColor: createSubmitStartAt ? '#eff6ff' : '#fff',
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    <View className="flex-row items-center" style={{ gap: normalize(8) }}>
+                      <IconCalendarEvent
+                        size={normalize(18)}
+                        color={createSubmitStartAt ? BRAND : TEXT_SUB}
+                      />
+                      <Text
+                        style={{
+                          fontSize: FONT_SM,
+                          fontFamily: createSubmitStartAt ? 'Pretendard-SemiBold' : 'Pretendard-Regular',
+                          color: createSubmitStartAt ? '#1e40af' : 'rgba(0,0,0,0.35)',
+                        }}
+                      >
+                        {createSubmitStartAt
+                          ? `${formatKoreanDate(createSubmitStartAt)} 시작`
+                          : '날짜 선택 (미선택 시 즉시/직전회차 종료 직후 시작)'}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+
+                  {showCreateDatePicker && (
+                    <View
+                      style={{
+                        marginTop: normalize(8),
+                        backgroundColor: '#f9fafb',
+                        borderRadius: normalize(10),
+                        padding: normalize(8),
+                        borderWidth: 1,
+                        borderColor: 'rgba(0,0,0,0.06)',
+                      }}
+                    >
+                      <DateTimePicker
+                        value={createSubmitStartAt ? parseIsoToDate(createSubmitStartAt) : new Date()}
+                        mode="date"
+                        display={Platform.OS === 'ios' ? 'inline' : 'default'}
+                        minimumDate={todayDate}
+                        themeVariant="light"
+                        accentColor={BRAND}
+                        onChange={(event, date) => handleDateChange('create', event, date)}
+                      />
+                      {Platform.OS === 'ios' && (
+                        <TouchableOpacity
+                          onPress={() => setShowCreateDatePicker(false)}
+                          style={{
+                            alignSelf: 'flex-end',
+                            paddingVertical: normalize(6),
+                            paddingHorizontal: normalize(12),
+                          }}
+                        >
+                          <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-SemiBold', color: BRAND }}>
+                            선택 완료
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  )}
+                </View>
+
+                {/* 안내 카드 */}
+                <View
+                  style={{
+                    backgroundColor: '#eff6ff',
+                    borderRadius: normalize(8),
+                    padding: normalize(10),
+                    flexDirection: 'row',
+                    gap: normalize(6),
+                  }}
+                >
+                  <IconClock size={normalize(16)} color="#2563eb" />
+                  <Text
+                    style={{
+                      flex: 1,
+                      fontSize: FONT_2XS,
+                      fontFamily: 'Pretendard-Regular',
+                      color: '#1d4ed8',
+                      lineHeight: normalize(16),
+                    }}
+                  >
+                    일정 규칙: 출품 2주 → 투표 2주 → 익일 오전 9시 발표 순으로 자동 산정됩니다.
+                  </Text>
+                </View>
+              </View>
+            </ScrollView>
+
+            {/* 개설 완료 버튼 */}
+            <TouchableOpacity
+              onPress={handleSubmitCreateContest}
+              disabled={createContestMutation.isPending || !createTitle.trim()}
+              style={{
+                height: normalize(46),
+                borderRadius: BUTTON_RADIUS,
+                backgroundColor: !createTitle.trim() || createContestMutation.isPending ? '#e5e7eb' : BRAND,
+                alignItems: 'center',
+                justifyContent: 'center',
+                flexDirection: 'row',
+                gap: normalize(6),
+              }}
+            >
+              {createContestMutation.isPending ? (
+                <ActivityIndicator color="#fff" />
+              ) : (
+                <>
+                  <IconCheck size={normalize(16)} color={!createTitle.trim() ? '#9ca3af' : '#fff'} />
+                  <Text
+                    style={{
+                      fontSize: FONT_MD,
+                      fontFamily: 'Pretendard-SemiBold',
+                      color: !createTitle.trim() ? '#9ca3af' : '#fff',
+                    }}
+                  >
+                    콘테스트 개설하기
+                  </Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      {/* ══════════════════════════════════════════════════════════════
+          MODAL 2: 콘테스트 상세 & 출품작 관리 모달
+      ══════════════════════════════════════════════════════════════ */}
+      <Modal
+        visible={detailModalVisible}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() => setDetailModalVisible(false)}
+      >
+        <Pressable
+          className="flex-1 justify-end bg-black/60"
+          onPress={() => setDetailModalVisible(false)}
+        >
+          <Pressable
+            onPress={(e) => e.stopPropagation()}
+            style={{
+              backgroundColor: '#fff',
+              borderTopLeftRadius: normalize(20),
+              borderTopRightRadius: normalize(20),
+              paddingHorizontal: normalize(20),
+              paddingTop: normalize(18),
+              paddingBottom: normalize(32),
+              maxHeight: Dimensions.get('screen').height * 0.9,
+            }}
+          >
+            {/* 헤더 */}
+            <View className="flex-row items-center justify-between border-b-[0.5px] border-hairline pb-3">
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: FONT_LG, fontFamily: 'Pretendard-Bold', color: '#111' }}>
+                  콘테스트 상세 및 출품작
+                </Text>
+                <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-Regular', color: TEXT_SUB, marginTop: normalize(2) }}>
+                  #{selectedContestId} {contestDetail?.title ?? ''}
+                </Text>
+              </View>
+              <View className="flex-row items-center" style={{ gap: normalize(8) }}>
+                {contestDetail && (
+                  <TouchableOpacity
+                    onPress={() => handleOpenEditModal(contestDetail)}
+                    style={{
+                      height: normalize(32),
+                      paddingHorizontal: normalize(10),
+                      borderRadius: normalize(6),
+                      backgroundColor: '#f3f4f6',
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: normalize(4),
+                    }}
+                  >
+                    <IconEdit size={normalize(14)} color="#374151" />
+                    <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-SemiBold', color: '#374151' }}>
+                      수정
+                    </Text>
+                  </TouchableOpacity>
+                )}
+                <TouchableOpacity onPress={() => setDetailModalVisible(false)} hitSlop={8}>
+                  <IconX size={normalize(22)} color="rgba(0,0,0,0.5)" />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false} style={{ marginVertical: normalize(12) }}>
+              {isDetailLoading ? (
+                <View style={{ paddingVertical: normalize(30), alignItems: 'center' }}>
+                  <ActivityIndicator size="small" color={BRAND} />
+                </View>
+              ) : contestDetail ? (
+                <View style={{ gap: normalize(14) }}>
+                  {/* 통계 4분할 그리드 */}
+                  <View
+                    className="flex-row flex-wrap"
+                    style={{
+                      backgroundColor: '#f9fafb',
+                      borderRadius: normalize(12),
+                      padding: normalize(12),
+                      gap: normalize(8),
+                    }}
+                  >
+                    <View style={{ width: '48%', paddingVertical: normalize(6) }}>
+                      <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Regular', color: TEXT_SUB }}>
+                        구독자 수
+                      </Text>
+                      <Text style={{ fontSize: FONT_MD, fontFamily: 'Pretendard-Bold', color: '#111', marginTop: normalize(2) }}>
+                        {contestDetail.subscriberCount}명
+                      </Text>
+                    </View>
+
+                    <View style={{ width: '48%', paddingVertical: normalize(6) }}>
+                      <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Regular', color: TEXT_SUB }}>
+                        출품자 수
+                      </Text>
+                      <Text style={{ fontSize: FONT_MD, fontFamily: 'Pretendard-Bold', color: '#111', marginTop: normalize(2) }}>
+                        {contestDetail.participantCount}명
+                      </Text>
+                    </View>
+
+                    <View style={{ width: '48%', paddingVertical: normalize(6) }}>
+                      <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Regular', color: TEXT_SUB }}>
+                        총 출품 수
+                      </Text>
+                      <Text style={{ fontSize: FONT_MD, fontFamily: 'Pretendard-Bold', color: '#111', marginTop: normalize(2) }}>
+                        {contestDetail.totalEntries}개
+                      </Text>
+                    </View>
+
+                    <View style={{ width: '48%', paddingVertical: normalize(6) }}>
+                      <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Regular', color: TEXT_SUB }}>
+                        총 투표 수
+                      </Text>
+                      <Text style={{ fontSize: FONT_MD, fontFamily: 'Pretendard-Bold', color: '#111', marginTop: normalize(2) }}>
+                        {contestDetail.totalVotes}표
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* 회차 운영 제어 패널 */}
+                  <View
+                    style={{
+                      backgroundColor: '#f9fafb',
+                      borderRadius: normalize(12),
+                      padding: normalize(12),
+                      gap: normalize(10),
+                      borderWidth: 1,
+                      borderColor: 'rgba(0,0,0,0.06)',
+                    }}
+                  >
+                    <View className="flex-row items-center justify-between">
+                      <View className="flex-row items-center" style={{ gap: normalize(6) }}>
+                        <Text style={{ fontSize: FONT_SM, fontFamily: 'Pretendard-SemiBold', color: '#111' }}>
+                          운영 제어 & 알림 관리
+                        </Text>
+                        <View
+                          style={{
+                            paddingHorizontal: normalize(6),
+                            paddingVertical: normalize(2),
+                            borderRadius: normalize(4),
+                            backgroundColor: (PHASE_COLORS[contestDetail.phase] ?? { bg: '#f3f4f6' }).bg,
+                          }}
+                        >
+                          <Text
+                            style={{
+                              fontSize: FONT_2XS,
+                              fontFamily: 'Pretendard-SemiBold',
+                              color: (PHASE_COLORS[contestDetail.phase] ?? { text: '#374151' }).text,
+                            }}
+                          >
+                            {CONTEST_PHASE_LABELS[contestDetail.phase] ?? contestDetail.phase}
+                          </Text>
+                        </View>
+                      </View>
+
+                      <View className="flex-row items-center" style={{ gap: normalize(4) }}>
+                        <View
+                          style={{
+                            paddingHorizontal: normalize(5),
+                            paddingVertical: normalize(2),
+                            borderRadius: normalize(4),
+                            backgroundColor: contestDetail.startNotificationSent ? '#f0fdf4' : '#fef2f2',
+                          }}
+                        >
+                          <Text
+                            style={{
+                              fontSize: FONT_2XS,
+                              fontFamily: 'Pretendard-Medium',
+                              color: contestDetail.startNotificationSent ? '#15803d' : '#b91c1c',
+                            }}
+                          >
+                            시작알림 {contestDetail.startNotificationSent ? '완료' : '미발송'}
+                          </Text>
+                        </View>
+
+                        <View
+                          style={{
+                            paddingHorizontal: normalize(5),
+                            paddingVertical: normalize(2),
+                            borderRadius: normalize(4),
+                            backgroundColor: contestDetail.resultNotificationSent ? '#f0fdf4' : '#fffbeb',
+                          }}
+                        >
+                          <Text
+                            style={{
+                              fontSize: FONT_2XS,
+                              fontFamily: 'Pretendard-Medium',
+                              color: contestDetail.resultNotificationSent ? '#15803d' : '#b45309',
+                            }}
+                          >
+                            결과알림 {contestDetail.resultNotificationSent ? '완료' : '미발송'}
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+
+                    {/* 액션 버튼 그룹 */}
+                    <View className="flex-row items-center" style={{ gap: normalize(8) }}>
+                      {!contestDetail.startNotificationSent && contestDetail.phase !== 'ENDED' && (
+                        <TouchableOpacity
+                          onPress={() => handleSendStartNotification(contestDetail.contestId, contestDetail.title)}
+                          disabled={sendStartNotificationMutation.isPending}
+                          style={{
+                            flex: 1,
+                            height: normalize(38),
+                            borderRadius: normalize(8),
+                            backgroundColor: '#e0f2fe',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexDirection: 'row',
+                            gap: normalize(4),
+                          }}
+                        >
+                          <IconBell size={normalize(15)} color="#0284c7" />
+                          <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-SemiBold', color: '#0284c7' }}>
+                            출품 시작 알림 발송
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+
+                      {contestDetail.phase !== 'ENDED' && (
+                        <TouchableOpacity
+                          onPress={() => handlePublishResult(contestDetail.contestId, contestDetail.title)}
+                          disabled={publishResultMutation.isPending}
+                          style={{
+                            flex: 1,
+                            height: normalize(38),
+                            borderRadius: normalize(8),
+                            backgroundColor: '#fee2e2',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexDirection: 'row',
+                            gap: normalize(4),
+                          }}
+                        >
+                          <IconPlayerStop size={normalize(15)} color="#dc2626" />
+                          <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-SemiBold', color: '#dc2626' }}>
+                            강제 마감 및 즉시 결과 발표
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+
+                      {contestDetail.phase === 'ENDED' && (
+                        <TouchableOpacity
+                          onPress={() => handleSendResultNotification(contestDetail.contestId, contestDetail.title)}
+                          disabled={sendResultNotificationMutation.isPending}
+                          style={{
+                            flex: 1,
+                            height: normalize(38),
+                            borderRadius: normalize(8),
+                            backgroundColor: '#fef3c7',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            flexDirection: 'row',
+                            gap: normalize(4),
+                          }}
+                        >
+                          <IconSend size={normalize(15)} color="#b45309" />
+                          <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-SemiBold', color: '#b45309' }}>
+                            {contestDetail.resultNotificationSent
+                              ? '결과 발표 알림 재발송'
+                              : '결과 발표 알림 즉시 발송'}
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  </View>
+
+                  {/* 출품작 섹션 타이틀 */}
+                  <View className="flex-row items-center justify-between">
+                    <Text style={{ fontSize: FONT_MD, fontFamily: 'Pretendard-SemiBold', color: '#111' }}>
+                      출품작 관리 ({entriesData?.totalElements ?? 0})
+                    </Text>
+                    <TouchableOpacity onPress={() => refetchEntries()} hitSlop={6}>
+                      <IconRefresh size={normalize(16)} color="#4b5563" />
+                    </TouchableOpacity>
+                  </View>
+
+                  {/* 출품작 목록 */}
+                  {isEntriesLoading ? (
+                    <View style={{ paddingVertical: normalize(30), alignItems: 'center' }}>
+                      <ActivityIndicator size="small" color={BRAND} />
+                    </View>
+                  ) : !entriesData || entriesData.content.length === 0 ? (
+                    <View
+                      style={{
+                        paddingVertical: normalize(30),
+                        alignItems: 'center',
+                        backgroundColor: '#f9fafb',
+                        borderRadius: normalize(10),
+                      }}
+                    >
+                      <Text style={{ fontSize: FONT_SM, fontFamily: 'Pretendard-Medium', color: TEXT_SUB }}>
+                        등록된 출품작이 없습니다.
+                      </Text>
+                    </View>
+                  ) : (
+                    <View style={{ gap: normalize(10) }}>
+                      {entriesData.content.map((entry) => (
+                        <View
+                          key={entry.entryId}
+                          style={{
+                            backgroundColor: '#fff',
+                            borderRadius: normalize(10),
+                            borderWidth: 1,
+                            borderColor: 'rgba(0,0,0,0.06)',
+                            padding: normalize(12),
+                            flexDirection: 'row',
+                            gap: normalize(12),
+                          }}
+                        >
+                          {entry.photoUrl ? (
+                            <Image
+                              source={{ uri: entry.photoUrl }}
+                              style={{
+                                width: normalize(70),
+                                height: normalize(70),
+                                borderRadius: normalize(8),
+                                backgroundColor: '#e5e7eb',
+                              }}
+                              resizeMode="cover"
+                            />
+                          ) : (
+                            <View
+                              style={{
+                                width: normalize(70),
+                                height: normalize(70),
+                                borderRadius: normalize(8),
+                                backgroundColor: '#f3f4f6',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                              }}
+                            >
+                              <IconPhoto size={normalize(24)} color="#9ca3af" />
+                            </View>
+                          )}
+
+                          <View style={{ flex: 1, justifyContent: 'space-between' }}>
+                            <View>
+                              <View className="flex-row items-center justify-between">
+                                <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Regular', color: TEXT_SUB }}>
+                                  #{entry.entryId} · {entry.userNickname}
+                                </Text>
+                                <View className="flex-row items-center" style={{ gap: normalize(4) }}>
+                                  <View
+                                    style={{
+                                      paddingHorizontal: normalize(6),
+                                      paddingVertical: normalize(1),
+                                      borderRadius: normalize(4),
+                                      backgroundColor: '#f3f4f6',
+                                    }}
+                                  >
+                                    <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Medium', color: '#4b5563' }}>
+                                      {entry.voteCount}표
+                                    </Text>
+                                  </View>
+
+                                  {entry.reportCount > 0 && (
+                                    <View
+                                      style={{
+                                        paddingHorizontal: normalize(6),
+                                        paddingVertical: normalize(1),
+                                        borderRadius: normalize(4),
+                                        backgroundColor: '#fee2e2',
+                                      }}
+                                    >
+                                      <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-SemiBold', color: '#dc2626' }}>
+                                        신고 {entry.reportCount}건
+                                      </Text>
+                                    </View>
+                                  )}
+                                </View>
+                              </View>
+
+                              {entry.caption ? (
+                                <Text
+                                  numberOfLines={2}
+                                  style={{
+                                    fontSize: FONT_XS,
+                                    fontFamily: 'Pretendard-Medium',
+                                    color: '#111',
+                                    marginTop: normalize(3),
+                                  }}
+                                >
+                                  {entry.caption}
+                                </Text>
+                              ) : null}
+
+                              {entry.spotName ? (
+                                <Text
+                                  style={{
+                                    fontSize: FONT_2XS,
+                                    fontFamily: 'Pretendard-Regular',
+                                    color: BRAND,
+                                    marginTop: normalize(2),
+                                  }}
+                                >
+                                  📍 {entry.spotName}
+                                </Text>
+                              ) : null}
+                            </View>
+
+                            <TouchableOpacity
+                              onPress={() =>
+                                handleOpenDeleteEntryModal(
+                                  entry.entryId,
+                                  entry.userNickname,
+                                  entry.caption || undefined,
+                                  entry.contestId
+                                )
+                              }
+                              style={{
+                                alignSelf: 'flex-end',
+                                paddingHorizontal: normalize(8),
+                                paddingVertical: normalize(3),
+                                borderRadius: normalize(6),
+                                backgroundColor: '#fef2f2',
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                gap: normalize(3),
+                              }}
+                            >
+                              <IconTrash size={normalize(12)} color="#dc2626" />
+                              <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-SemiBold', color: '#dc2626' }}>
+                                강제 삭제
+                              </Text>
+                            </TouchableOpacity>
+                          </View>
+                        </View>
+                      ))}
+
+                      {/* 출품작 페이징 */}
+                      {entriesData.totalPages > 1 && (
+                        <View className="flex-row items-center justify-between" style={{ marginTop: normalize(6) }}>
+                          <TouchableOpacity
+                            onPress={() => setEntriesPage((p) => Math.max(0, p - 1))}
+                            disabled={entriesData.first}
+                            style={{
+                              paddingHorizontal: normalize(10),
+                              paddingVertical: normalize(6),
+                              borderRadius: normalize(6),
+                              backgroundColor: entriesData.first ? '#f3f4f6' : '#fff',
+                              borderWidth: 1,
+                              borderColor: 'rgba(0,0,0,0.06)',
+                            }}
+                          >
+                            <Text style={{ fontSize: FONT_2XS, color: entriesData.first ? '#9ca3af' : '#374151' }}>
+                              이전
+                            </Text>
+                          </TouchableOpacity>
+
+                          <Text style={{ fontSize: FONT_2XS, color: TEXT_SUB }}>
+                            {entriesPage + 1} / {entriesData.totalPages}
+                          </Text>
+
+                          <TouchableOpacity
+                            onPress={() => setEntriesPage((p) => Math.min(entriesData.totalPages - 1, p + 1))}
+                            disabled={entriesData.last}
+                            style={{
+                              paddingHorizontal: normalize(10),
+                              paddingVertical: normalize(6),
+                              borderRadius: normalize(6),
+                              backgroundColor: entriesData.last ? '#f3f4f6' : '#fff',
+                              borderWidth: 1,
+                              borderColor: 'rgba(0,0,0,0.06)',
+                            }}
+                          >
+                            <Text style={{ fontSize: FONT_2XS, color: entriesData.last ? '#9ca3af' : '#374151' }}>
+                              다음
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
+                      )}
+                    </View>
+                  )}
+                </View>
+              ) : null}
+            </ScrollView>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      {/* ══════════════════════════════════════════════════════════════
+          MODAL 3: 출품작 강제 삭제 사유 입력 모달
+      ══════════════════════════════════════════════════════════════ */}
+      <Modal
+        visible={deleteModalVisible}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() => setDeleteModalVisible(false)}
+      >
+        <Pressable
+          className="flex-1 justify-center bg-black/60"
+          style={{ paddingHorizontal: normalize(20) }}
+          onPress={() => setDeleteModalVisible(false)}
+        >
+          <Pressable
+            onPress={(e) => e.stopPropagation()}
+            style={{
+              backgroundColor: '#fff',
+              borderRadius: CARD_RADIUS,
+              padding: normalize(20),
+            }}
+          >
+            <View className="flex-row items-center justify-between border-b-[0.5px] border-hairline pb-3">
+              <View className="flex-row items-center" style={{ gap: normalize(6) }}>
+                <IconTrash size={normalize(20)} color="#dc2626" />
+                <Text style={{ fontSize: FONT_LG, fontFamily: 'Pretendard-SemiBold', color: '#111' }}>
+                  출품작 강제 삭제
+                </Text>
+              </View>
+              <TouchableOpacity onPress={() => setDeleteModalVisible(false)} hitSlop={8}>
+                <IconX size={normalize(20)} color="rgba(0,0,0,0.5)" />
+              </TouchableOpacity>
+            </View>
+
+            <View style={{ marginVertical: normalize(14), gap: normalize(10) }}>
+              <Text style={{ fontSize: FONT_SM, fontFamily: 'Pretendard-Medium', color: '#374151' }}>
+                출품작 #{targetEntry?.entryId} (작성자: {targetEntry?.userNickname})을(를) 삭제하시겠습니까?
+              </Text>
+              <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Regular', color: '#dc2626' }}>
+                삭제 시 관련된 투표, 신고 내역, 이미지 스토리지 파일이 함께 정리됩니다.
+              </Text>
+
+              <View style={{ marginTop: normalize(4) }}>
+                <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-SemiBold', color: '#374151', marginBottom: normalize(4) }}>
+                  삭제 사유 입력
+                </Text>
+                <TextInput
+                  value={deleteReason}
+                  onChangeText={setDeleteReason}
+                  placeholder="예: 타인의 저작권 침해 또는 부적절한 이미지"
+                  placeholderTextColor="rgba(0,0,0,0.3)"
+                  style={{
+                    height: normalize(42),
+                    borderWidth: 1,
+                    borderColor: 'rgba(0,0,0,0.12)',
+                    borderRadius: normalize(8),
+                    paddingHorizontal: normalize(12),
+                    fontSize: FONT_SM,
+                    fontFamily: 'Pretendard-Regular',
+                    color: '#111',
+                  }}
+                />
+              </View>
+            </View>
+
+            <View className="flex-row items-center" style={{ gap: normalize(8) }}>
+              <TouchableOpacity
+                onPress={() => setDeleteModalVisible(false)}
+                style={{
+                  flex: 1,
+                  height: normalize(44),
+                  borderRadius: BUTTON_RADIUS,
+                  backgroundColor: '#f3f4f6',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Text style={{ fontSize: FONT_SM, fontFamily: 'Pretendard-Medium', color: '#4b5563' }}>
+                  취소
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleConfirmDeleteEntry}
+                disabled={deleteEntryMutation.isPending}
+                style={{
+                  flex: 1,
+                  height: normalize(44),
+                  borderRadius: BUTTON_RADIUS,
+                  backgroundColor: '#dc2626',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                {deleteEntryMutation.isPending ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <Text style={{ fontSize: FONT_SM, fontFamily: 'Pretendard-SemiBold', color: '#fff' }}>
+                    삭제 확인
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
+
+      {/* ══════════════════════════════════════════════════════════════
+          MODAL 4: 콘테스트 회차 정보 및 일정 수정 모달
+      ══════════════════════════════════════════════════════════════ */}
+      <Modal
+        visible={editModalVisible}
+        transparent
+        animationType="fade"
+        statusBarTranslucent
+        onRequestClose={() => setEditModalVisible(false)}
+      >
+        <Pressable
+          className="flex-1 justify-center bg-black/60"
+          style={{ paddingHorizontal: normalize(20) }}
+          onPress={() => setEditModalVisible(false)}
+        >
+          <Pressable
+            onPress={(e) => e.stopPropagation()}
+            style={{
+              backgroundColor: '#fff',
+              borderRadius: CARD_RADIUS,
+              padding: normalize(20),
+              maxHeight: Dimensions.get('screen').height * 0.85,
+            }}
+          >
+            {/* 모달 헤더 */}
+            <View className="flex-row items-center justify-between border-b-[0.5px] border-hairline pb-3">
+              <View className="flex-row items-center" style={{ gap: normalize(6) }}>
+                <IconEdit size={normalize(20)} color={BRAND} />
+                <Text style={{ fontSize: FONT_LG, fontFamily: 'Pretendard-SemiBold', color: '#111' }}>
+                  콘테스트 정보/일정 수정
+                </Text>
+                {editingContestId && (
+                  <Text style={{ fontSize: FONT_SM, fontFamily: 'Pretendard-Medium', color: TEXT_SUB }}>
+                    #{editingContestId}
+                  </Text>
+                )}
+              </View>
+              <TouchableOpacity onPress={() => setEditModalVisible(false)} hitSlop={8}>
+                <IconX size={normalize(20)} color="rgba(0,0,0,0.5)" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView showsVerticalScrollIndicator={false} style={{ marginVertical: normalize(14) }}>
+              <View style={{ gap: normalize(14) }}>
+                {/* 현재 상태 뱃지 */}
+                <View className="flex-row items-center" style={{ gap: normalize(6) }}>
+                  <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-Medium', color: TEXT_SUB }}>
+                    현재 회차 상태:
+                  </Text>
+                  <View
+                    style={{
+                      paddingHorizontal: normalize(8),
+                      paddingVertical: normalize(3),
+                      borderRadius: normalize(4),
+                      backgroundColor: (PHASE_COLORS[editingContestPhase] ?? { bg: '#f3f4f6' }).bg,
+                    }}
+                  >
+                    <Text
+                      style={{
+                        fontSize: FONT_2XS,
+                        fontFamily: 'Pretendard-SemiBold',
+                        color: (PHASE_COLORS[editingContestPhase] ?? { text: '#374151' }).text,
+                      }}
+                    >
+                      {CONTEST_PHASE_LABELS[editingContestPhase] ?? editingContestPhase}
+                    </Text>
+                  </View>
+                </View>
+
+                {/* 1. 테마(제목) */}
+                <View>
+                  <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-SemiBold', color: '#374151', marginBottom: normalize(4) }}>
+                    콘테스트 테마명 (필수)
+                  </Text>
+                  <TextInput
+                    value={editTitle}
+                    onChangeText={setEditTitle}
+                    placeholder="예: 늦가을 단풍 출사전"
+                    placeholderTextColor="rgba(0,0,0,0.3)"
+                    style={{
+                      height: normalize(42),
+                      borderWidth: 1,
+                      borderColor: 'rgba(0,0,0,0.12)',
+                      borderRadius: normalize(8),
+                      paddingHorizontal: normalize(12),
+                      fontSize: FONT_SM,
+                      fontFamily: 'Pretendard-Medium',
+                      color: '#111',
+                    }}
+                  />
+                </View>
+
+                {/* 2. 설명 */}
+                <View>
+                  <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-SemiBold', color: '#374151', marginBottom: normalize(4) }}>
+                    테마 설명 (선택)
+                  </Text>
+                  <TextInput
+                    value={editDescription}
+                    onChangeText={setEditDescription}
+                    placeholder="콘테스트 참여 안내 및 테마 설명"
+                    placeholderTextColor="rgba(0,0,0,0.3)"
+                    multiline
+                    numberOfLines={3}
+                    style={{
+                      height: normalize(72),
+                      borderWidth: 1,
+                      borderColor: 'rgba(0,0,0,0.12)',
+                      borderRadius: normalize(8),
+                      paddingHorizontal: normalize(12),
+                      paddingTop: normalize(8),
+                      fontSize: FONT_SM,
+                      fontFamily: 'Pretendard-Regular',
+                      color: '#111',
+                      textAlignVertical: 'top',
+                    }}
+                  />
+                </View>
+
+                {/* 3. 대표 테마 이미지 (앨범 선택) */}
+                <View>
+                  <View className="flex-row items-center justify-between" style={{ marginBottom: normalize(6) }}>
+                    <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-SemiBold', color: '#374151' }}>
+                      대표 테마 이미지 (선택)
+                    </Text>
+                    <TouchableOpacity
+                      onPress={() => setShowEditUrlInput((v) => !v)}
+                      hitSlop={6}
+                    >
+                      <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Regular', color: TEXT_SUB }}>
+                        {showEditUrlInput ? '직접 입력 닫기' : '직접 URL 입력'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  {editThemeImageUrl ? (
+                    <View
+                      style={{
+                        borderRadius: normalize(10),
+                        overflow: 'hidden',
+                        borderWidth: 1,
+                        borderColor: 'rgba(0,0,0,0.08)',
+                        backgroundColor: '#f9fafb',
+                      }}
+                    >
+                      <Image
+                        source={{ uri: editThemeImageUrl }}
+                        style={{
+                          width: '100%',
+                          height: normalize(150),
+                          backgroundColor: '#f3f4f6',
+                        }}
+                        resizeMode="cover"
+                      />
+                      <View
+                        className="flex-row items-center justify-between"
+                        style={{
+                          paddingHorizontal: normalize(12),
+                          paddingVertical: normalize(8),
+                          backgroundColor: '#fff',
+                        }}
+                      >
+                        <Text
+                          numberOfLines={1}
+                          style={{
+                            flex: 1,
+                            fontSize: FONT_2XS,
+                            fontFamily: 'Pretendard-Regular',
+                            color: TEXT_SUB,
+                            marginRight: normalize(8),
+                          }}
+                        >
+                          {editThemeImageUrl}
+                        </Text>
+                        <View className="flex-row items-center" style={{ gap: normalize(6) }}>
+                          <TouchableOpacity
+                            onPress={() => handlePickThemeImage('edit')}
+                            disabled={isUploadingEditImage}
+                            style={{
+                              paddingHorizontal: normalize(8),
+                              paddingVertical: normalize(4),
+                              borderRadius: normalize(6),
+                              backgroundColor: '#f3f4f6',
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                              gap: normalize(4),
+                            }}
+                          >
+                            <IconPhoto size={normalize(13)} color="#374151" />
+                            <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Medium', color: '#374151' }}>
+                              변경
+                            </Text>
+                          </TouchableOpacity>
+                          <TouchableOpacity
+                            onPress={() => setEditThemeImageUrl('')}
+                            style={{
+                              paddingHorizontal: normalize(8),
+                              paddingVertical: normalize(4),
+                              borderRadius: normalize(6),
+                              backgroundColor: '#fee2e2',
+                              flexDirection: 'row',
+                              alignItems: 'center',
+                              gap: normalize(4),
+                            }}
+                          >
+                            <IconTrash size={normalize(13)} color="#dc2626" />
+                            <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Medium', color: '#dc2626' }}>
+                              삭제
+                            </Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    </View>
+                  ) : (
+                    <TouchableOpacity
+                      onPress={() => handlePickThemeImage('edit')}
+                      disabled={isUploadingEditImage}
+                      activeOpacity={0.8}
+                      style={{
+                        height: normalize(110),
+                        borderWidth: 1.5,
+                        borderColor: 'rgba(0,0,0,0.15)',
+                        borderStyle: 'dashed',
+                        borderRadius: normalize(10),
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        backgroundColor: '#fcfcfc',
+                      }}
+                    >
+                      {isUploadingEditImage ? (
+                        <View style={{ alignItems: 'center', gap: normalize(6) }}>
+                          <ActivityIndicator size="small" color={BRAND} />
+                          <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-Medium', color: BRAND }}>
+                            이미지 업로드 중...
+                          </Text>
+                        </View>
+                      ) : (
+                        <View style={{ alignItems: 'center', gap: normalize(4) }}>
+                          <View
+                            style={{
+                              width: normalize(38),
+                              height: normalize(38),
+                              borderRadius: normalize(19),
+                              backgroundColor: '#eef2ff',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                            }}
+                          >
+                            <IconPhoto size={normalize(20)} color={BRAND} />
+                          </View>
+                          <Text style={{ fontSize: FONT_SM, fontFamily: 'Pretendard-SemiBold', color: '#111' }}>
+                            앨범에서 사진 선택
+                          </Text>
+                          <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Regular', color: TEXT_SUB }}>
+                            권장 비율 16:9 · JPG, PNG, WEBP (최대 10MB)
+                          </Text>
+                        </View>
+                      )}
+                    </TouchableOpacity>
+                  )}
+
+                  {showEditUrlInput && (
+                    <View style={{ marginTop: normalize(8) }}>
+                      <TextInput
+                        value={editThemeImageUrl}
+                        onChangeText={setEditThemeImageUrl}
+                        placeholder="https://example.com/theme.jpg"
+                        placeholderTextColor="rgba(0,0,0,0.3)"
+                        autoCapitalize="none"
+                        style={{
+                          height: normalize(40),
+                          borderWidth: 1,
+                          borderColor: 'rgba(0,0,0,0.12)',
+                          borderRadius: normalize(8),
+                          paddingHorizontal: normalize(12),
+                          fontSize: FONT_XS,
+                          fontFamily: 'Pretendard-Regular',
+                          color: '#111',
+                          backgroundColor: '#f9fafb',
+                        }}
+                      />
+                    </View>
+                  )}
+                </View>
+
+                {/* 4. 출품 시작 시각 (submitStartAt) - 캘린더 선택 */}
+                <View>
+                  <View className="flex-row items-center justify-between" style={{ marginBottom: normalize(4) }}>
+                    <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-SemiBold', color: '#374151' }}>
+                      출품 시작 일시 (캘린더 선택)
+                    </Text>
+                    {editingContestPhase === 'UPCOMING' ? (
+                      <View className="flex-row items-center" style={{ gap: normalize(6) }}>
+                        {editSubmitStartAt ? (
+                          <TouchableOpacity onPress={() => setEditSubmitStartAt('')} hitSlop={6}>
+                            <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Medium', color: '#dc2626' }}>
+                              일정 초기화
+                            </Text>
+                          </TouchableOpacity>
+                        ) : null}
+                        <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Regular', color: '#16a34a' }}>
+                          수정 가능 (개설 대기)
+                        </Text>
+                      </View>
+                    ) : (
+                      <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Regular', color: '#dc2626' }}>
+                        수정 불가 (진행/종료 상태)
+                      </Text>
+                    )}
+                  </View>
+
+                  <TouchableOpacity
+                    onPress={() => {
+                      if (editingContestPhase === 'UPCOMING') {
+                        setShowEditDatePicker((v) => !v);
+                      }
+                    }}
+                    disabled={editingContestPhase !== 'UPCOMING'}
+                    activeOpacity={0.8}
+                    style={{
+                      height: normalize(44),
+                      borderWidth: 1,
+                      borderColor:
+                        editingContestPhase !== 'UPCOMING'
+                          ? 'rgba(0,0,0,0.08)'
+                          : editSubmitStartAt
+                          ? BRAND
+                          : 'rgba(0,0,0,0.12)',
+                      borderRadius: normalize(8),
+                      paddingHorizontal: normalize(12),
+                      backgroundColor:
+                        editingContestPhase !== 'UPCOMING'
+                          ? '#f9fafb'
+                          : editSubmitStartAt
+                          ? '#eff6ff'
+                          : '#fff',
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    <View className="flex-row items-center" style={{ gap: normalize(8) }}>
+                      <IconCalendarEvent
+                        size={normalize(18)}
+                        color={
+                          editingContestPhase !== 'UPCOMING'
+                            ? '#9ca3af'
+                            : editSubmitStartAt
+                            ? BRAND
+                            : TEXT_SUB
+                        }
+                      />
+                      <Text
+                        style={{
+                          fontSize: FONT_SM,
+                          fontFamily: editSubmitStartAt ? 'Pretendard-SemiBold' : 'Pretendard-Regular',
+                          color:
+                            editingContestPhase !== 'UPCOMING'
+                              ? '#9ca3af'
+                              : editSubmitStartAt
+                              ? '#1e40af'
+                              : 'rgba(0,0,0,0.35)',
+                        }}
+                      >
+                        {editSubmitStartAt
+                          ? `${formatKoreanDate(editSubmitStartAt)} 시작`
+                          : '시작 일시 미설정 (자동 스케줄러)'}
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
+
+                  {showEditDatePicker && editingContestPhase === 'UPCOMING' && (
+                    <View
+                      style={{
+                        marginTop: normalize(8),
+                        backgroundColor: '#f9fafb',
+                        borderRadius: normalize(10),
+                        padding: normalize(8),
+                        borderWidth: 1,
+                        borderColor: 'rgba(0,0,0,0.06)',
+                      }}
+                    >
+                      <DateTimePicker
+                        value={editSubmitStartAt ? parseIsoToDate(editSubmitStartAt) : new Date()}
+                        mode="date"
+                        display={Platform.OS === 'ios' ? 'inline' : 'default'}
+                        minimumDate={todayDate}
+                        themeVariant="light"
+                        accentColor={BRAND}
+                        onChange={(event, date) => handleDateChange('edit', event, date)}
+                      />
+                      {Platform.OS === 'ios' && (
+                        <TouchableOpacity
+                          onPress={() => setShowEditDatePicker(false)}
+                          style={{
+                            alignSelf: 'flex-end',
+                            paddingVertical: normalize(6),
+                            paddingHorizontal: normalize(12),
+                          }}
+                        >
+                          <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-SemiBold', color: BRAND }}>
+                            선택 완료
+                          </Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                  )}
+
+                  {editingContestPhase === 'UPCOMING' ? (
+                    <Text
+                      style={{
+                        fontSize: FONT_2XS,
+                        fontFamily: 'Pretendard-Regular',
+                        color: '#2563eb',
+                        marginTop: normalize(4),
+                      }}
+                    >
+                      💡 시작일을 수정하면 출품 2주 → 투표 2주 → 익일 09:00 발표(총 4주) 일정이 자동 재계산됩니다.
+                    </Text>
+                  ) : (
+                    <Text
+                      style={{
+                        fontSize: FONT_2XS,
+                        fontFamily: 'Pretendard-Regular',
+                        color: '#6b7280',
+                        marginTop: normalize(4),
+                      }}
+                    >
+                      ⚠️ 출품이 시작되었거나 종료된 콘테스트는 시작 일정을 변경할 수 없으며 기본 정보만 수정됩니다.
+                    </Text>
+                  )}
+                </View>
+              </View>
+            </ScrollView>
+
+            {/* 수정 완료 버튼 */}
+            <View className="flex-row items-center" style={{ gap: normalize(8) }}>
+              <TouchableOpacity
+                onPress={() => setEditModalVisible(false)}
+                style={{
+                  flex: 1,
+                  height: normalize(44),
+                  borderRadius: BUTTON_RADIUS,
+                  backgroundColor: '#f3f4f6',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Text style={{ fontSize: FONT_SM, fontFamily: 'Pretendard-Medium', color: '#4b5563' }}>
+                  취소
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleSubmitUpdateContest}
+                disabled={updateContestMutation.isPending || !editTitle.trim()}
+                style={{
+                  flex: 1.5,
+                  height: normalize(44),
+                  borderRadius: BUTTON_RADIUS,
+                  backgroundColor: !editTitle.trim() || updateContestMutation.isPending ? '#e5e7eb' : BRAND,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexDirection: 'row',
+                  gap: normalize(6),
+                }}
+              >
+                {updateContestMutation.isPending ? (
+                  <ActivityIndicator color="#fff" />
+                ) : (
+                  <>
+                    <IconCheck size={normalize(16)} color={!editTitle.trim() ? '#9ca3af' : '#fff'} />
+                    <Text
+                      style={{
+                        fontSize: FONT_SM,
+                        fontFamily: 'Pretendard-SemiBold',
+                        color: !editTitle.trim() ? '#9ca3af' : '#fff',
+                      }}
+                    >
+                      수정 저장
+                    </Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
+    </View>
+  );
+}

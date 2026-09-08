@@ -218,6 +218,19 @@ export default function ContestAllEntriesScreen() {
   const maxVotes = contest?.voteLimit ?? 0;
   const votesLeft = contest?.remainingVoteCount ?? 0;
 
+  const [refreshing, setRefreshing] = useState(false);
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await Promise.all([
+        contestQuery.refetch(),
+        entriesQuery.refetch(),
+      ]);
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   const entries = useMemo(
     () => (entriesQuery.data?.pages ?? []).flatMap((page) => page.entries).map(mapContestEntry),
     [entriesQuery.data],
@@ -411,6 +424,8 @@ export default function ContestAllEntriesScreen() {
             contentContainerStyle={{ paddingHorizontal: CONTENT_PADDING, paddingTop: normalize(20), paddingBottom: normalize(28), rowGap: normalize(GAP) }}
             onLayout={(e) => setGridWidth(e.nativeEvent.layout.width - CONTENT_PADDING * 2)}
             showsVerticalScrollIndicator={false}
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
             onEndReachedThreshold={0.4}
             onEndReached={() => {
               if (entriesQuery.hasNextPage && !entriesQuery.isFetchingNextPage) entriesQuery.fetchNextPage();

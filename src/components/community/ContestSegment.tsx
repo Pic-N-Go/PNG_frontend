@@ -133,6 +133,31 @@ export default function ContestSegment({ onSelectPastItem, onSeeAllEntries, onOp
   const [toastVisible, setToastVisible] = useState(false);
   const [myVotesSheetVisible, setMyVotesSheetVisible] = useState(false);
   const [myEntriesSheetVisible, setMyEntriesSheetVisible] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      const refetches: Promise<unknown>[] = [
+        currentQuery.refetch(),
+        upcomingQuery.refetch(),
+        pastQuery.refetch(),
+        historyQuery.refetch(),
+      ];
+      if (contestId) {
+        refetches.push(entriesQuery.refetch(), myEntryQuery.refetch());
+      }
+      if (phase === 'VOTING') {
+        refetches.push(rankingQuery.refetch());
+      }
+      if (lastPast) {
+        refetches.push(lastResultQuery.refetch());
+      }
+      await Promise.all(refetches);
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const subscribeMutation = useToggleContestSubscription();
   const voteMutation = useToggleVote(contestId);
@@ -321,6 +346,8 @@ export default function ContestSegment({ onSelectPastItem, onSeeAllEntries, onOp
               },
             );
           }}
+          refreshing={refreshing}
+          onRefresh={handleRefresh}
         />
       )}
       {subtab === 'mine' && (
@@ -332,9 +359,18 @@ export default function ContestSegment({ onSelectPastItem, onSeeAllEntries, onOp
           history={myHistory}
           onOpenSubmit={openSubmit}
           onOpenResult={onOpenResult}
+          refreshing={refreshing}
+          onRefresh={handleRefresh}
         />
       )}
-      {subtab === 'past' && <ContestPastTab items={pastItems} onSelectItem={onSelectPastItem} />}
+      {subtab === 'past' && (
+        <ContestPastTab
+          items={pastItems}
+          onSelectItem={onSelectPastItem}
+          refreshing={refreshing}
+          onRefresh={handleRefresh}
+        />
+      )}
 
       <Toast message={toastMessage} visible={toastVisible} onHide={() => setToastVisible(false)} />
 

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { CalendarDays } from 'lucide-react-native';
 import ContestPhoto from '@/components/community/ContestPhoto';
 import { ContestPastMonthItem } from '@/types/community';
@@ -20,12 +20,27 @@ const SUB = '#8e8e93';
 interface Props {
   items: ContestPastMonthItem[];
   onSelectItem: (item: ContestPastMonthItem) => void;
+  refreshing?: boolean;
+  onRefresh?: () => void;
 }
 
-export default function ContestPastTab({ items, onSelectItem }: Props) {
+export default function ContestPastTab({ items, onSelectItem, refreshing = false, onRefresh }: Props) {
+  const refreshElement = onRefresh ? (
+    <RefreshControl
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      tintColor={ACCENT}
+      colors={[ACCENT]}
+    />
+  ) : undefined;
+
   if (items.length === 0) {
     return (
-      <View style={{ flex: 1, paddingTop: normalize(96), paddingHorizontal: CONTENT_PADDING, alignItems: 'center' }}>
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1, paddingTop: normalize(96), paddingHorizontal: CONTENT_PADDING, alignItems: 'center' }}
+        showsVerticalScrollIndicator={false}
+        refreshControl={refreshElement}
+      >
         <View style={{ width: normalize(56), height: normalize(56), borderRadius: normalize(28), backgroundColor: SURFACE, alignItems: 'center', justifyContent: 'center', marginBottom: normalize(16) }}>
           <CalendarDays size={normalize(24)} color="#b8b8be" strokeWidth={1.7} />
         </View>
@@ -35,12 +50,16 @@ export default function ContestPastTab({ items, onSelectItem }: Props) {
         <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, letterSpacing: -0.2, color: SUB, marginTop: normalize(6) }}>
           첫 회차가 끝나면 여기에 쌓여요
         </Text>
-      </View>
+      </ScrollView>
     );
   }
 
   return (
-    <ScrollView contentContainerStyle={{ padding: normalize(28), paddingTop: normalize(18), gap: normalize(20) }} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      contentContainerStyle={{ padding: normalize(28), paddingTop: normalize(18), gap: normalize(20) }}
+      showsVerticalScrollIndicator={false}
+      refreshControl={refreshElement}
+    >
       {items.map((item) => (
         <Pressable key={item.id} onPress={() => onSelectItem(item)} style={{ width: '100%', borderRadius: normalize(18), overflow: 'hidden', backgroundColor: SURFACE }}>
           <View style={{ width: '100%', aspectRatio: 334 / 172 }}>

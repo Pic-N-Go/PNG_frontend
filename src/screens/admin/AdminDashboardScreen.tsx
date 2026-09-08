@@ -35,6 +35,7 @@ import {
   IconClock,
   IconCheck,
   IconBolt,
+  IconTrophy,
 } from '@tabler/icons-react-native';
 import { normalize } from '@/utils/normalize';
 import { BORDER_CONTROL, BUTTON_RADIUS, CARD_RADIUS, FONT_2XL, FONT_2XS, FONT_LG, FONT_MD, FONT_SM, FONT_XS, GRID_PADDING, SPACING_MD, SPACING_SM } from '@/constants/layout';
@@ -61,9 +62,10 @@ import {
 } from '@/types/inquiry';
 import { useAuthStore } from '@/store/useAuthStore';
 import Toast from '@/components/common/Toast';
+import AdminContestTab from '@/components/admin/AdminContestTab';
 import { BRAND, BRAND_TINT, CARD, TEXT_SUB } from '@/constants/colors';
 
-type AdminTab = 'users' | 'inquiries' | 'embeddings' | 'tour';
+type AdminTab = 'users' | 'inquiries' | 'embeddings' | 'tour' | 'contests';
 
 export default function AdminDashboardScreen() {
   const insets = useSafeAreaInsets();
@@ -477,123 +479,163 @@ export default function AdminDashboardScreen() {
         <View style={{ width: normalize(40) }} />
       </View>
 
-      {/* Top Segmented Tabs (4 Tabs) */}
-      <View className="flex-row bg-white border-b-[0.5px] border-hairline" style={{ paddingHorizontal: GRID_PADDING }}>
-        <TouchableOpacity
-          onPress={() => setActiveTab('users')}
-          style={{
-            flex: 1,
-            paddingVertical: normalize(13),
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderBottomWidth: 2,
-            borderBottomColor: activeTab === 'users' ? '#111827' : 'transparent',
+      {/* Top Segmented Tabs (5 Tabs) */}
+      <View className="bg-white border-b-[0.5px] border-hairline" style={{ height: normalize(48) }}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={{ flexGrow: 0, height: normalize(48) }}
+          contentContainerStyle={{
             flexDirection: 'row',
-            gap: normalize(5),
+            paddingHorizontal: normalize(8),
+            alignItems: 'center',
           }}
         >
-          <IconUsers
-            size={normalize(18)}
-            color={activeTab === 'users' ? '#111827' : TEXT_SUB}
-            strokeWidth={activeTab === 'users' ? 2.2 : 1.8}
-          />
-          <Text
+          <TouchableOpacity
+            onPress={() => setActiveTab('users')}
             style={{
-              fontSize: FONT_SM,
-              fontFamily: activeTab === 'users' ? 'Pretendard-SemiBold' : 'Pretendard-Medium',
-              color: activeTab === 'users' ? '#111827' : TEXT_SUB,
+              paddingHorizontal: normalize(14),
+              height: normalize(48),
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderBottomWidth: 2,
+              borderBottomColor: activeTab === 'users' ? '#111827' : 'transparent',
+              flexDirection: 'row',
+              gap: normalize(5),
             }}
           >
-            회원
-          </Text>
-        </TouchableOpacity>
+            <IconUsers
+              size={normalize(18)}
+              color={activeTab === 'users' ? '#111827' : TEXT_SUB}
+              strokeWidth={activeTab === 'users' ? 2.2 : 1.8}
+            />
+            <Text
+              style={{
+                fontSize: FONT_SM,
+                fontFamily: activeTab === 'users' ? 'Pretendard-SemiBold' : 'Pretendard-Medium',
+                color: activeTab === 'users' ? '#111827' : TEXT_SUB,
+              }}
+            >
+              회원
+            </Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          onPress={() => setActiveTab('inquiries')}
-          style={{
-            flex: 1,
-            paddingVertical: normalize(13),
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderBottomWidth: 2,
-            borderBottomColor: activeTab === 'inquiries' ? BRAND : 'transparent',
-            flexDirection: 'row',
-            gap: normalize(5),
-          }}
-        >
-          <IconMessage2Question
-            size={normalize(18)}
-            color={activeTab === 'inquiries' ? BRAND : TEXT_SUB}
-            strokeWidth={activeTab === 'inquiries' ? 2.2 : 1.8}
-          />
-          <Text
+          <TouchableOpacity
+            onPress={() => setActiveTab('inquiries')}
             style={{
-              fontSize: FONT_SM,
-              fontFamily: activeTab === 'inquiries' ? 'Pretendard-SemiBold' : 'Pretendard-Medium',
-              color: activeTab === 'inquiries' ? BRAND : TEXT_SUB,
+              paddingHorizontal: normalize(14),
+              height: normalize(48),
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderBottomWidth: 2,
+              borderBottomColor: activeTab === 'inquiries' ? BRAND : 'transparent',
+              flexDirection: 'row',
+              gap: normalize(5),
             }}
           >
-            1:1 문의
-          </Text>
-        </TouchableOpacity>
+            <IconMessage2Question
+              size={normalize(18)}
+              color={activeTab === 'inquiries' ? BRAND : TEXT_SUB}
+              strokeWidth={activeTab === 'inquiries' ? 2.2 : 1.8}
+            />
+            <Text
+              style={{
+                fontSize: FONT_SM,
+                fontFamily: activeTab === 'inquiries' ? 'Pretendard-SemiBold' : 'Pretendard-Medium',
+                color: activeTab === 'inquiries' ? BRAND : TEXT_SUB,
+              }}
+            >
+              1:1 문의
+            </Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          onPress={() => setActiveTab('embeddings')}
-          style={{
-            flex: 1,
-            paddingVertical: normalize(13),
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderBottomWidth: 2,
-            borderBottomColor: activeTab === 'embeddings' ? '#4f46e5' : 'transparent',
-            flexDirection: 'row',
-            gap: normalize(5),
-          }}
-        >
-          <IconBrain
-            size={normalize(18)}
-            color={activeTab === 'embeddings' ? '#4f46e5' : TEXT_SUB}
-            strokeWidth={activeTab === 'embeddings' ? 2.2 : 1.8}
-          />
-          <Text
+          <TouchableOpacity
+            onPress={() => setActiveTab('embeddings')}
             style={{
-              fontSize: FONT_SM,
-              fontFamily: activeTab === 'embeddings' ? 'Pretendard-SemiBold' : 'Pretendard-Medium',
-              color: activeTab === 'embeddings' ? '#4f46e5' : TEXT_SUB,
+              paddingHorizontal: normalize(14),
+              height: normalize(48),
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderBottomWidth: 2,
+              borderBottomColor: activeTab === 'embeddings' ? '#4f46e5' : 'transparent',
+              flexDirection: 'row',
+              gap: normalize(5),
             }}
           >
-            의미 검색
-          </Text>
-        </TouchableOpacity>
+            <IconBrain
+              size={normalize(18)}
+              color={activeTab === 'embeddings' ? '#4f46e5' : TEXT_SUB}
+              strokeWidth={activeTab === 'embeddings' ? 2.2 : 1.8}
+            />
+            <Text
+              style={{
+                fontSize: FONT_SM,
+                fontFamily: activeTab === 'embeddings' ? 'Pretendard-SemiBold' : 'Pretendard-Medium',
+                color: activeTab === 'embeddings' ? '#4f46e5' : TEXT_SUB,
+              }}
+            >
+              의미 검색
+            </Text>
+          </TouchableOpacity>
 
-        <TouchableOpacity
-          onPress={() => setActiveTab('tour')}
-          style={{
-            flex: 1,
-            paddingVertical: normalize(13),
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderBottomWidth: 2,
-            borderBottomColor: activeTab === 'tour' ? '#0284c7' : 'transparent',
-            flexDirection: 'row',
-            gap: normalize(5),
-          }}
-        >
-          <IconWorld
-            size={normalize(18)}
-            color={activeTab === 'tour' ? '#0284c7' : TEXT_SUB}
-            strokeWidth={activeTab === 'tour' ? 2.2 : 1.8}
-          />
-          <Text
+          <TouchableOpacity
+            onPress={() => setActiveTab('tour')}
             style={{
-              fontSize: FONT_SM,
-              fontFamily: activeTab === 'tour' ? 'Pretendard-SemiBold' : 'Pretendard-Medium',
-              color: activeTab === 'tour' ? '#0284c7' : TEXT_SUB,
+              paddingHorizontal: normalize(14),
+              height: normalize(48),
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderBottomWidth: 2,
+              borderBottomColor: activeTab === 'tour' ? '#0284c7' : 'transparent',
+              flexDirection: 'row',
+              gap: normalize(5),
             }}
           >
-            관광 동기화
-          </Text>
-        </TouchableOpacity>
+            <IconWorld
+              size={normalize(18)}
+              color={activeTab === 'tour' ? '#0284c7' : TEXT_SUB}
+              strokeWidth={activeTab === 'tour' ? 2.2 : 1.8}
+            />
+            <Text
+              style={{
+                fontSize: FONT_SM,
+                fontFamily: activeTab === 'tour' ? 'Pretendard-SemiBold' : 'Pretendard-Medium',
+                color: activeTab === 'tour' ? '#0284c7' : TEXT_SUB,
+              }}
+            >
+              관광 동기화
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            onPress={() => setActiveTab('contests')}
+            style={{
+              paddingHorizontal: normalize(14),
+              height: normalize(48),
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderBottomWidth: 2,
+              borderBottomColor: activeTab === 'contests' ? '#d97706' : 'transparent',
+              flexDirection: 'row',
+              gap: normalize(5),
+            }}
+          >
+            <IconTrophy
+              size={normalize(18)}
+              color={activeTab === 'contests' ? '#d97706' : TEXT_SUB}
+              strokeWidth={activeTab === 'contests' ? 2.2 : 1.8}
+            />
+            <Text
+              style={{
+                fontSize: FONT_SM,
+                fontFamily: activeTab === 'contests' ? 'Pretendard-SemiBold' : 'Pretendard-Medium',
+                color: activeTab === 'contests' ? '#d97706' : TEXT_SUB,
+              }}
+            >
+              콘테스트
+            </Text>
+          </TouchableOpacity>
+        </ScrollView>
       </View>
 
       <ScrollView
@@ -2311,6 +2353,11 @@ export default function AdminDashboardScreen() {
             </View>
           </View>
         )}
+
+        {/* ══════════════════════════════════════════════════════════════
+            TAB 5: 콘테스트 운영 관리 (/admin/contests)
+        ══════════════════════════════════════════════════════════════ */}
+        {activeTab === 'contests' && <AdminContestTab showToast={showToast} />}
       </ScrollView>
 
       {/* ── 관리자 답변 작성/수정 모달 ──────────────────────────────── */}

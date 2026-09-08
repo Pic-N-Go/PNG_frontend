@@ -300,6 +300,7 @@ export interface ContestInfo {
   monthLabel: string;
   theme: string;
   themeDesc: string;
+  themeImageUrl?: string | null;
   submitDeadlineLabel: string;
   /** 투표 마감은 출품 마감과 별개 값이다 — 표시 문자열을 가공해서 만들지 않는다 */
   voteDeadlineLabel: string;

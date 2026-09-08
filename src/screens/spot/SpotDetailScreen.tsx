@@ -174,6 +174,15 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
       }]
     : undefined;
 
+  const eventPeriodData =
+    festival?.eventStartDate && festival?.eventEndDate
+      ? {
+          startDate: festival.eventStartDate,
+          endDate: festival.eventEndDate,
+          status: festival.progressStatus,
+        }
+      : undefined;
+
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
       {activeTab === 'chat' ? (
@@ -183,7 +192,7 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
         // 키보드가 열렸으면 insets.bottom을 쓰지 않는다 — 내비바 구간이 overlap에 이미 포함돼 있다.
         <View style={{ flex: 1 }}>
           {renderBackButton()}
-          {!chatInputFocused && <SpotInfoHeader spot={spot} bookmarkCount={summary?.bookmarkCount} />}
+          {!chatInputFocused && <SpotInfoHeader spot={spot} bookmarkCount={summary?.bookmarkCount} eventPeriod={eventPeriodData} />}
           <SpotTabBar activeTab={activeTab} onChange={handleTabChange} />
           <View style={{ flex: 1, paddingBottom: keyboardOverlap || insets.bottom }}>
             <ChatTab
@@ -225,7 +234,7 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
             onShare={handleShare}
             onBookmark={() => setBookmarkSheetVisible(true)}
           />
-          <SpotInfoHeader spot={spot} bookmarkCount={summary?.bookmarkCount} photoCount={viewerPhotos.length} />
+          <SpotInfoHeader spot={spot} bookmarkCount={summary?.bookmarkCount} photoCount={viewerPhotos.length} eventPeriod={eventPeriodData} />
           <SpotTabBar activeTab={activeTab} onChange={handleTabChange} />
 
           <View>
@@ -235,15 +244,7 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
                 <View style={{ height: 1, backgroundColor: 'rgba(0,0,0,0.06)', marginHorizontal: GRID_PADDING, marginVertical: normalize(24) }} />
                 <ConvenienceInfoSection
                   info={convenience}
-                  eventPeriod={
-                    festival?.eventStartDate && festival?.eventEndDate
-                      ? {
-                          startDate: festival.eventStartDate,
-                          endDate: festival.eventEndDate,
-                          status: festival.progressStatus,
-                        }
-                      : undefined
-                  }
+                  eventPeriod={eventPeriodData}
                 />
                 <View style={{ height: normalize(24) }} />
                 <LinkBanner

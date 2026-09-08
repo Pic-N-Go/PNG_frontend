@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { ActivityIndicator, Image, NativeSyntheticEvent, NativeScrollEvent, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
+import { ActivityIndicator, Image, NativeSyntheticEvent, NativeScrollEvent, Pressable, RefreshControl, ScrollView, Text, View, useWindowDimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -97,13 +97,24 @@ export default function CommunityFeedScreen() {
   // `?? []`를 그대로 쓰면 매 렌더마다 새 배열이 되어 아래 갤러리 useMemo가 항상 다시 계산된다.
   const displayedPosts = React.useMemo(() => data?.posts ?? [], [data?.posts]);
 
-  const toggleLike = useToggleLike();
-  const toggleBookmark = useToggleBookmark();
-  const toggleFollow = useToggleFollow();
-
   // 팔로잉·내 글은 서버가 토큰을 요구한다. 비로그인이면 조회를 아예 안 하므로 안내를 따로 띄운다.
   // 훅의 needsAuth와 같은 목록이어야 한다 — 여기서 빠지면 쿼리는 막히는데 화면은 '결과 없음'을 띄운다.
   const needsLogin = !isLoggedIn && (feedSort === '팔로잉' || feedSort === '내 글' || feedSort === '저장');
+
+  const [refreshing, setRefreshing] = useState(false);
+  const handleRefresh = async () => {
+    if (needsLogin) return;
+    setRefreshing(true);
+    try {
+      await refetch();
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  const toggleLike = useToggleLike();
+  const toggleBookmark = useToggleBookmark();
+  const toggleFollow = useToggleFollow();
 
   // 카드 목록 대신 안내 한 줄만 띄우는 상태. null이면 정상 목록을 그린다.
   const postsState: 'login' | 'loading' | 'error' | 'empty' | null =
@@ -247,7 +258,19 @@ export default function CommunityFeedScreen() {
           onOpenResult={goToContestResultByRank}
         />
       ) : (
-        <ScrollView onScroll={handleScroll} scrollEventThrottle={16} contentContainerStyle={{ flexGrow: 1, paddingBottom: normalize(20) }}>
+        <ScrollView
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
+          contentContainerStyle={{ flexGrow: 1, paddingBottom: normalize(20) }}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor={ACCENT}
+              colors={[ACCENT]}
+            />
+          }
+        >
           {/* contentContainerStyle의 flexGrow: 1 — 내용이 화면보다 짧아도 컨테이너가 남은 높이를
               차지해야 아래 빈 상태 문구를 그 안에서 세로 중앙에 놓을 수 있다 */}
           {segment === 'posts' && (

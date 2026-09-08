@@ -1,5 +1,5 @@
 import React from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Image, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Bell, BellOff, Calendar, Camera, Check, ChevronRight, Clock, ThumbsUp } from 'lucide-react-native';
 import ContestRankPanel from '@/components/community/ContestRankPanel';
@@ -143,10 +143,22 @@ function SidePill({ label, value, dots, onPress }: { label: string; value: strin
   );
 }
 
-function Footbar({ topic, state, ctaLabel, ctaIcon, onPressCta, ctaDisabled }: { topic: string; state: string; ctaLabel: string; ctaIcon?: React.ReactNode; onPressCta: () => void; ctaDisabled?: boolean }) {
+/** 출품하기 카드 — 출품 기간에 스크롤 없이 바로 보이도록 새로 올라온 출품작 위에 배치되는 카드 */
+function SubmitCard({ topic, state, ctaLabel, ctaIcon, onPressCta, ctaDisabled }: { topic: string; state: string; ctaLabel: string; ctaIcon?: React.ReactNode; onPressCta: () => void; ctaDisabled?: boolean }) {
   return (
-    // 아래 여백은 ScrollView의 contentContainer paddingBottom이 담당한다 — 여기서 또 주면 CTA 밑에 빈 흰 영역이 남는다
-    <View style={{ margin: normalize(28), marginTop: normalize(24), marginBottom: 0, paddingTop: normalize(24), borderTopWidth: HAIRLINE_WIDTH, borderTopColor: HAIRLINE, flexDirection: 'row', alignItems: 'center', gap: normalize(12) }}>
+    <View
+      style={{
+        marginTop: normalize(14),
+        marginHorizontal: CONTENT_PADDING,
+        paddingVertical: normalize(14),
+        paddingHorizontal: normalize(16),
+        borderRadius: CARD_RADIUS,
+        backgroundColor: FILL,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: normalize(12),
+      }}
+    >
       <View style={{ flex: 1, minWidth: 0 }}>
         <Text allowFontScaling={false} numberOfLines={1} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, letterSpacing: -0.1, color: SUB }}>
           {topic}
@@ -158,7 +170,18 @@ function Footbar({ topic, state, ctaLabel, ctaIcon, onPressCta, ctaDisabled }: {
       <Pressable
         onPress={ctaDisabled ? undefined : onPressCta}
         disabled={ctaDisabled}
-        style={{ height: normalize(44), paddingHorizontal: normalize(20), borderRadius: normalize(22), backgroundColor: ctaDisabled ? '#e6e6ea' : PINK, flexDirection: 'row', alignItems: 'center', gap: normalize(6), flexShrink: 0 }}
+        accessibilityRole="button"
+        accessibilityLabel={ctaLabel}
+        style={{
+          height: normalize(44),
+          paddingHorizontal: normalize(20),
+          borderRadius: normalize(22),
+          backgroundColor: ctaDisabled ? '#e6e6ea' : PINK,
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: normalize(6),
+          flexShrink: 0,
+        }}
       >
         {ctaIcon}
         <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, letterSpacing: -0.2, color: ctaDisabled ? '#b8b8be' : '#fff' }}>
@@ -305,6 +328,8 @@ interface Props {
   onSubscribe: () => void;
   /** ENDED 섹션 헤더의 "전체 보기" — 지난 탭으로 이동 */
   onSeeAllPast: () => void;
+  refreshing?: boolean;
+  onRefresh?: () => void;
 }
 
 export default function ContestActiveTab({
@@ -333,6 +358,8 @@ export default function ContestActiveTab({
   onSelectPastItem,
   onSubscribe,
   onSeeAllPast,
+  refreshing = false,
+  onRefresh,
 }: Props) {
   const openAward = () => {
     if (!lastAward) return;
@@ -356,14 +383,41 @@ export default function ContestActiveTab({
   const isFull = myEntryCount >= maxEntries;
   // 펼치면 히어로를 줄여 그래프가 첫 화면에 들어오게 한다(목업 .is-expanded)
   const [rankPanelOpen, setRankPanelOpen] = React.useState(false);
+  const [imageError, setImageError] = React.useState(false);
+
+  React.useEffect(() => {
+    setImageError(false);
+  }, [contest?.themeImageUrl]);
 
   return (
     // flexGrow: 1 — 내용이 화면보다 짧을 때 빈 상태가 남은 공간을 차지해 세로 중앙에 설 수 있게 한다
-    <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ flexGrow: 1, paddingBottom: normalize(24) }}>
+    <ScrollView
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={{ flexGrow: 1, paddingBottom: normalize(24) }}
+      refreshControl={
+        onRefresh ? (
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            tintColor={PINK}
+            colors={[PINK]}
+          />
+        ) : undefined
+      }
+    >
       {phase === 'SUBMITTING' && contest && (
         <>
-          <View style={{ height: normalize(280), overflow: 'hidden', borderBottomLeftRadius: normalize(24), borderBottomRightRadius: normalize(24) }}>
-            <LinearGradient colors={HERO_GRADIENT} locations={HERO_LOCATIONS} start={{ x: 0.15, y: 0 }} end={{ x: 0.85, y: 1 }} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
+          <View style={{ height: normalize(280), overflow: 'hidden', borderBottomLeftRadius: normalize(24), borderBottomRightRadius: normalize(24), backgroundColor: '#1a1530' }}>
+            {contest.themeImageUrl && !imageError ? (
+              <Image
+                source={{ uri: contest.themeImageUrl }}
+                style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+                resizeMode="cover"
+                onError={() => setImageError(true)}
+              />
+            ) : (
+              <LinearGradient colors={HERO_GRADIENT} locations={HERO_LOCATIONS} start={{ x: 0.15, y: 0 }} end={{ x: 0.85, y: 1 }} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
+            )}
             <HeroScrim />
             <View style={{ position: 'absolute', left: normalize(28), right: normalize(28), bottom: normalize(20) }}>
               <View style={{ alignSelf: 'flex-start', height: normalize(24), justifyContent: 'center', paddingHorizontal: normalize(10), borderRadius: normalize(12), backgroundColor: PINK }}>
@@ -395,9 +449,19 @@ export default function ContestActiveTab({
               노출 기간(발표 후 1개월) 판정은 mapAwardSummary가 한다. */}
           {lastAward && <AwardRow award={lastAward} onPress={openAward} />}
 
+          {/* 출품하기 카드 — 스크롤하지 않고도 바로 인지할 수 있도록 새로 올라온 출품작 위에 배치 */}
+          <SubmitCard
+            topic={`${contest.theme} · 출품 마감 ${contest.submitDeadlineLabel}`}
+            state={isFull ? '출품을 다 썼어요' : myEntryCount > 0 ? `${maxEntries - myEntryCount}개 더 낼 수 있어요` : '아직 출품하지 않았어요'}
+            ctaLabel="출품하기"
+            ctaIcon={<Camera size={normalize(16)} color={isFull ? '#b8b8be' : '#fff'} strokeWidth={1.9} />}
+            onPressCta={onOpenSubmit}
+            ctaDisabled={isFull}
+          />
+
           {submitFeed.length === 0 ? (
             // flex: 1은 남는 공간만 채운다 — 히어로·수상작 행이 화면을 거의 채우면 거의 안 늘어나므로 최소 높이를 따로 준다
-            <View style={{ flex: 1, minHeight: normalize(260), justifyContent: 'center', paddingHorizontal: CONTENT_PADDING, alignItems: 'center' }}>
+            <View style={{ flex: 1, minHeight: normalize(240), justifyContent: 'center', paddingHorizontal: CONTENT_PADDING, alignItems: 'center' }}>
               <View style={{ width: normalize(56), height: normalize(56), borderRadius: normalize(28), backgroundColor: FILL, alignItems: 'center', justifyContent: 'center', marginBottom: normalize(16) }}>
                 <Camera size={normalize(24)} color="#b8b8be" strokeWidth={1.7} />
               </View>
@@ -421,22 +485,22 @@ export default function ContestActiveTab({
               </View>
             </>
           )}
-
-          <Footbar
-            topic={`${contest.theme} · 출품 마감 ${contest.submitDeadlineLabel}`}
-            state={isFull ? '출품을 다 썼어요' : myEntryCount > 0 ? `${maxEntries - myEntryCount}개 더 낼 수 있어요` : '아직 출품하지 않았어요'}
-            ctaLabel="출품하기"
-            ctaIcon={<Camera size={normalize(16)} color={isFull ? '#b8b8be' : '#fff'} strokeWidth={1.9} />}
-            onPressCta={onOpenSubmit}
-            ctaDisabled={isFull}
-          />
         </>
       )}
 
       {phase === 'VOTING' && contest && (
         <>
-          <View style={{ height: normalize(rankPanelOpen ? 160 : 200), overflow: 'hidden', borderBottomLeftRadius: normalize(24), borderBottomRightRadius: normalize(24) }}>
-            <LinearGradient colors={HERO_GRADIENT} locations={HERO_LOCATIONS} start={{ x: 0.15, y: 0 }} end={{ x: 0.85, y: 1 }} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
+          <View style={{ height: normalize(rankPanelOpen ? 160 : 200), overflow: 'hidden', borderBottomLeftRadius: normalize(24), borderBottomRightRadius: normalize(24), backgroundColor: '#1a1530' }}>
+            {contest.themeImageUrl && !imageError ? (
+              <Image
+                source={{ uri: contest.themeImageUrl }}
+                style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+                resizeMode="cover"
+                onError={() => setImageError(true)}
+              />
+            ) : (
+              <LinearGradient colors={HERO_GRADIENT} locations={HERO_LOCATIONS} start={{ x: 0.15, y: 0 }} end={{ x: 0.85, y: 1 }} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
+            )}
             <HeroScrim />
             <View style={{ position: 'absolute', left: normalize(28), right: normalize(28), bottom: normalize(18) }}>
               <View style={{ alignSelf: 'flex-start', height: normalize(24), justifyContent: 'center', paddingHorizontal: normalize(10), borderRadius: normalize(12), backgroundColor: PINK }}>

@@ -68,6 +68,8 @@ export type Course = {
   version?: number;
   spots?: SpotInCourse[];
   checklists?: CourseChecklist[];
+  thumbnailUrls?: string[];
+  spotCount?: number;
 };
 
 export const coursesApi = {

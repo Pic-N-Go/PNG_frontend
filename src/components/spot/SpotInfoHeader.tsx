@@ -5,6 +5,7 @@ import StarRating from '@/components/common/StarRating';
 import { FONT_2XL, FONT_XS, GRID_PADDING } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import type { SpotDetailInfo } from '@/types/spot';
+import type { FestivalProgressStatus } from '@/types/festival';
 import { BRAND, BRAND_TINT, CARD } from '@/constants/colors';
 
 interface Props {
@@ -16,9 +17,14 @@ interface Props {
    * 헤더가 10장, 라이트박스가 1/11로 어긋났다. 호출부가 합집합 길이를 넘긴다.
    */
   photoCount?: number;
+  eventPeriod?: {
+    startDate?: string;
+    endDate?: string;
+    status?: FestivalProgressStatus;
+  };
 }
 
-export default function SpotInfoHeader({ spot, bookmarkCount, photoCount }: Props) {
+export default function SpotInfoHeader({ spot, bookmarkCount, photoCount, eventPeriod }: Props) {
   return (
     <View style={{ paddingHorizontal: GRID_PADDING, paddingVertical: normalize(20) }}>
       {spot.badge && (
@@ -46,6 +52,28 @@ export default function SpotInfoHeader({ spot, bookmarkCount, photoCount }: Prop
       >
         {spot.name}
       </Text>
+
+      {eventPeriod?.startDate && eventPeriod?.endDate && (() => {
+        const isOngoing = eventPeriod.status === 'ONGOING';
+        const isUpcoming = eventPeriod.status === 'UPCOMING';
+        const statusLabel = isOngoing ? '진행중' : isUpcoming ? '개최예정' : '종료';
+        const statusColor = isOngoing ? '#34C759' : isUpcoming ? '#007AFF' : 'rgba(0,0,0,0.4)';
+        const statusBg = isOngoing ? 'rgba(52, 199, 89, 0.1)' : isUpcoming ? 'rgba(0, 122, 255, 0.1)' : 'rgba(0,0,0,0.05)';
+        const start = eventPeriod.startDate.replace(/-/g, '.');
+        const end = eventPeriod.endDate.replace(/-/g, '.');
+        return (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(8), marginBottom: normalize(10) }}>
+            <View style={{ backgroundColor: statusBg, paddingHorizontal: normalize(8), paddingVertical: normalize(3), borderRadius: normalize(4) }}>
+              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, color: statusColor }}>
+                {statusLabel}
+              </Text>
+            </View>
+            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(14.5), color: '#000', fontVariant: ['tabular-nums'] }}>
+              {`${start} ~ ${end}`}
+            </Text>
+          </View>
+        );
+      })()}
 
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(6), marginBottom: normalize(12) }}>
         <IconMapPin size={normalize(14)} color="rgba(0,0,0,0.35)" strokeWidth={2} />
