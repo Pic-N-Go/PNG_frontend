@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Dimensions, Image, Pressable, Text, View } from 'react-native';
+import { Dimensions, Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Svg, { Polygon } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -11,7 +11,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import { IconBookmark, IconChevronLeft } from '@tabler/icons-react-native';
 import { Share as ShareIcon } from 'lucide-react-native';
-import { normalize, normalizeFontSize } from '@/utils/normalize';
+import { normalize } from '@/utils/normalize';
+import { FONT_XS } from '@/constants/layout';
 import SpotHeroPlaceholder, { HeroActionButton } from '@/components/spot/SpotHeroPlaceholder';
 import { BRAND, SCRIM } from '@/constants/colors';
 
@@ -27,9 +28,9 @@ interface Props {
   imageUrl?: string | null;
   categories?: string[];
   regionLabel?: string | null;
-  /** 대표 이미지 뒤에 있는 실제 전체 사진 장수. 2장 이상이면 카운터 노출 + 탭 시 풀스크린 뷰어 */
-  heroPhotoCount?: number;
-  onPressPhoto?: () => void;
+  /** 히어로에 표시할 사진 목록(0번이 대표 이미지). 2장 이상이면 좌우 스와이프 + 카운터 노출 */
+  photos?: string[];
+  onPressPhoto?: (index: number) => void;
   onBack: () => void;
   onShare: () => void;
   onBookmark: () => void;
@@ -41,7 +42,7 @@ export default function SpotHero({
   imageUrl,
   categories,
   regionLabel,
-  heroPhotoCount = 0,
+  photos,
   onPressPhoto,
   onBack,
   onShare,
@@ -50,10 +51,16 @@ export default function SpotHero({
   const insets = useSafeAreaInsets();
   // 대표 이미지 로드 실패 시에도 placeholder로 폴백 (핸드오프 6번 상태표)
   const [imageFailed, setImageFailed] = useState(false);
+  const [pageIndex, setPageIndex] = useState(0);
+  // 대표 이미지가 photos[0]. photos가 아직 안 왔으면 대표 이미지 1장만 페이징 없이 보여준다.
+  const pages = photos?.length ? photos : imageUrl ? [imageUrl] : [];
   useEffect(() => {
     setImageFailed(false);
-  }, [imageUrl]);
-  const hasImage = !!imageUrl && !imageFailed;
+    setPageIndex(0);
+  }, [imageUrl, pages.length]);
+  // 대표 이미지가 없어도 갤러리 사진이 있으면 히어로에 스와이프로 보여준다.
+  // 길이를 dep에 넣어, 대표 이미지 실패 뒤 photos가 도착한 경우 imageFailed가 stale로 남지 않게 한다.
+  const hasImage = pages.length > 0 && !imageFailed;
 
   const heroStyle = useAnimatedStyle(() => ({
     transform: [
@@ -66,10 +73,10 @@ export default function SpotHero({
   if (!hasImage) {
     // 대표 이미지가 없거나 로드에 실패해도 갤러리 사진이 있으면 뷰어는 열 수 있어야 함.
     // 중첩 Pressable에서 헤더 버튼(뒤로/공유/저장)이 우선 처리되므로 그대로 동작한다.
-    const canOpenViewer = !!onPressPhoto && heroPhotoCount > 0;
+    const canOpenViewer = !!onPressPhoto && pages.length > 0;
     return (
       <Animated.View style={[{ height: HERO_HEIGHT, overflow: 'hidden' }, heroStyle]}>
-        <Pressable onPress={onPressPhoto} disabled={!canOpenViewer} style={{ flex: 1 }}>
+        <Pressable onPress={() => onPressPhoto?.(0)} disabled={!canOpenViewer} style={{ flex: 1 }}>
           <SpotHeroPlaceholder
             categories={categories}
             regionLabel={regionLabel}
@@ -108,15 +115,35 @@ export default function SpotHero({
 
   return (
     <Animated.View style={[{ height: HERO_HEIGHT, overflow: 'hidden' }, heroStyle]}>
-      <Pressable onPress={onPressPhoto} disabled={!onPressPhoto} style={{ width: SCREEN_WIDTH, height: HERO_HEIGHT }}>
-        <Image
-          source={{ uri: imageUrl! }}
-          style={{ width: SCREEN_WIDTH, height: HERO_HEIGHT, backgroundColor: '#203a43' }}
-          resizeMode="cover"
-          accessibilityLabel="스팟 대표 이미지"
-          onError={() => setImageFailed(true)}
-        />
-      </Pressable>
+      {/* pagingEnabled가 첫/마지막 페이지 밖으로는 안 넘어가게 알아서 막는다 */}
+      <ScrollView
+        horizontal
+        pagingEnabled
+        scrollEnabled={pages.length > 1}
+        showsHorizontalScrollIndicator={false}
+        onMomentumScrollEnd={(e) =>
+          setPageIndex(Math.round(e.nativeEvent.contentOffset.x / SCREEN_WIDTH))
+        }
+        style={{ width: SCREEN_WIDTH, height: HERO_HEIGHT }}
+      >
+        {pages.map((uri, i) => (
+          <Pressable
+            key={`${uri}-${i}`}
+            onPress={() => onPressPhoto?.(i)}
+            disabled={!onPressPhoto}
+            style={{ width: SCREEN_WIDTH, height: HERO_HEIGHT }}
+          >
+            <Image
+              source={{ uri }}
+              style={{ width: SCREEN_WIDTH, height: HERO_HEIGHT, backgroundColor: '#203a43' }}
+              resizeMode="cover"
+              accessibilityLabel={`스팟 사진 ${i + 1}`}
+              // 여러 장일 땐 한 장 실패해도 나머지는 살려둔다 (placeholder 폴백은 1장뿐일 때만)
+              onError={() => pages.length === 1 && setImageFailed(true)}
+            />
+          </Pressable>
+        ))}
+      </ScrollView>
 
       {/* 상단 페이드 */}
       <LinearGradient
@@ -193,8 +220,8 @@ export default function SpotHero({
         </View>
       </View>
 
-      {/* 카운터 — 대표 이미지 뒤에 실제 사진이 2장 이상일 때. 탭하면 풀스크린 뷰어 */}
-      {heroPhotoCount > 1 && (
+      {/* 카운터 — 사진이 2장 이상일 때. 탭하면 풀스크린 뷰어 */}
+      {pages.length > 1 && (
         <View
           style={{
             position: 'absolute',
@@ -209,8 +236,8 @@ export default function SpotHero({
           }}
           pointerEvents="none"
         >
-          <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: normalizeFontSize(12), color: '#fff' }}>
-            1 / {heroPhotoCount}
+          <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_XS, color: '#fff' }}>
+            {pageIndex + 1} / {pages.length}
           </Text>
         </View>
       )}
