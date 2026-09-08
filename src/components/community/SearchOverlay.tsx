@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, BackHandler, Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { ChevronRight, Clock, MapPin, X } from 'lucide-react-native';
@@ -66,6 +66,19 @@ export default function SearchOverlay({ visible, onClose, onSubmitKeyword, onOpe
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   /** 검색이 실행된 키워드. query와 분리해야 타이핑 중에 매 글자 요청이 나가지 않는다. */
   const [submitted, setSubmitted] = useState('');
+
+  // 검색 오버레이는 내비게이션 화면이 아니라서 Android 뒤로가기를 직접 소비해야 한다.
+  // 처리하지 않으면 이벤트가 하단 탭까지 전달돼 첫 탭인 홈으로 이동한다.
+  useEffect(() => {
+    if (!visible) return;
+
+    const subscription = BackHandler.addEventListener('hardwareBackPress', () => {
+      onClose();
+      return true;
+    });
+
+    return () => subscription.remove();
+  }, [visible, onClose]);
 
   /**
    * `visible=false`에서 언마운트되지 않으므로(아래 return null) 상태가 그대로 남는다.
