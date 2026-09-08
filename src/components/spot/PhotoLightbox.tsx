@@ -11,6 +11,7 @@ import {
   View,
 } from 'react-native';
 import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Reanimated, {
   runOnJS,
   useAnimatedStyle,
@@ -22,7 +23,8 @@ import { Info } from 'lucide-react-native';
 import { PhotoExifLayer } from '@/components/common/PhotoExifSheet';
 import { useReviewExif } from '@/hooks/useSpot';
 import type { PhotoExifData } from '@/types/photo';
-import { FONT_SM } from '@/constants/layout';
+import StarRating from '@/components/common/StarRating';
+import { FONT_2XS, FONT_SM, FONT_XS } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
 import { SCRIM } from '@/constants/colors';
 
@@ -37,6 +39,13 @@ interface Props {
    * 리뷰 사진일 때만 넘긴다. 넘기면 `GET /reviews/{id}/exif`로 사진별 EXIF를 조회한다.
    */
   reviewId?: string | number | null;
+  /**
+   * photos와 같은 순서의 리뷰 id. 사진마다 리뷰가 다른 목록(사진 탭)에서 쓴다 —
+   * 넘기면 reviewId보다 우선하고, 스와이프할 때마다 그 사진의 리뷰로 EXIF 조회 대상이 바뀐다.
+   */
+  reviewIds?: (string | number)[];
+  /** photos와 같은 순서의 리뷰 미리보기. 넘긴 인덱스에만 사진 아래 캡션을 그린다. */
+  captions?: (PhotoLightboxCaption | undefined)[];
   /** photos와 같은 순서의 photoId. EXIF 응답을 imageId로 매칭한다(URL은 presigned라 키가 못 된다). */
   photoIds?: number[];
   /**
@@ -44,6 +53,14 @@ interface Props {
    * (`exifFromPhotoUrl` 참고). reviewId와 함께 넘기면 서버 응답이 우선한다.
    */
   exifs?: (PhotoExifData | undefined)[];
+}
+
+/** 사진 아래에 겹쳐 보여주는 리뷰 요약. 본문은 2줄로 자른다("살짝"만 보여주는 자리다). */
+export interface PhotoLightboxCaption {
+  name: string;
+  rating: number;
+  date: string;
+  text: string;
 }
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -64,16 +81,32 @@ const SWIPE_DISTANCE = 50;
  * 2. 축 고정 (Axis Locking): 가로 이동 중에는 세로 이동을 0으로 잠그고, 아래로 당길 때만 닫기 동작 수행 (대각선 쏠림 방지)
  * 3. 핀치 줌: 두 손가락 확대/축소 및 확대 상태에서 사진 이동 지원
  */
-export default function PhotoLightbox({ photos, initialIndex, visible, onClose, reviewId, photoIds, exifs }: Props) {
+export default function PhotoLightbox({ photos, initialIndex, visible, onClose, reviewId, reviewIds, photoIds, exifs, captions }: Props) {
   const [index, setIndex] = useState(initialIndex);
   const [exifOpen, setExifOpen] = useState(false);
-  const [exifRequestedFor, setExifRequestedFor] = useState<number | null>(null);
   const isNavigating = useSharedValue(false);
 
-  const exifRequested = exifRequestedFor != null && reviewId != null && exifRequestedFor === Number(reviewId);
+  // 안드로이드 내비게이션 바(갤럭시)에 썸네일 스트립이 물린다. 커뮤니티 라이트박스와 같은 방식으로
+  // 하단 인셋을 더해 올린다 — 스트립 위에 얹히는 캡션도 이 값에서 파생시킨다.
+  const insets = useSafeAreaInsets();
+  const stripBottom = insets.bottom + normalize(8);
+
+  // resizeMode="contain"이라 실제 렌더 높이는 사진 비율마다 다르다(세로 사진은 아래로 더 내려온다).
+  // 캡션을 고정 위치에 두면 어떤 사진에서는 가려지므로, 원본 비율(h/w)을 onLoad로 받아
+  // "사진 아래 여백"을 계산한다. uri로 캐시해 뒤로 스와이프할 때 다시 재지 않는다.
+  const [ratios, setRatios] = useState<Record<string, number>>({});
+  // 캡션을 "사진 아래"에 두려면 박스 높이를 알아야 한다(본문이 1줄인지 2줄인지에 따라 다르다).
+  // 초기값은 첫 프레임이 튀지 않을 정도의 어림값이고, onLayout이 실측으로 덮는다.
+  const [captionHeight, setCaptionHeight] = useState(normalize(80));
+
+  const safeIndex = Math.min(Math.max(index, 0), Math.max(photos.length - 1, 0));
+  const activeReviewId = reviewIds?.[safeIndex] ?? reviewId ?? null;
+
+  // 시트가 열려 있는 동안만 조회한다. 사진 탭은 사진마다 리뷰가 달라, 한 번 누른 걸 계속 켜두면
+  // 스와이프마다 EXIF 요청이 하나씩 붙는다. 닫아도 응답은 캐시(staleTime: Infinity)에 남아 재조회가 없다.
   const { data: exifByPhotoId, isLoading: exifLoading, isError: exifError } = useReviewExif(
-    reviewId ?? null,
-    exifRequested,
+    activeReviewId,
+    exifOpen,
   );
 
   // 확대 배율과 이동량.
@@ -259,8 +292,6 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose, 
 
   const photoGesture = Gesture.Simultaneous(pinch, pan);
 
-  const safeIndex = Math.min(Math.max(index, 0), Math.max(photos.length - 1, 0));
-
   // 스트립이 화면보다 넓으면(사진 7장 이상) 활성 썸네일이 화면 밖으로 나가 테두리가 안 보인다.
   // 인덱스가 바뀔 때마다 그 썸네일을 가로 중앙으로 끌어온다. 넘치지 않으면 clamp가 0을 만들어 no-op.
   const stripRef = useRef<ScrollView>(null);
@@ -291,13 +322,21 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose, 
   const currentPhotoId = photoIds?.[safeIndex];
   const fetchedExif = currentPhotoId != null ? exifByPhotoId?.[currentPhotoId] : undefined;
   const exif = fetchedExif ?? exifs?.[safeIndex];
-  const hasReviewExif = reviewId != null && photoIds != null && photoIds.length === photos.length;
+  const hasReviewExif = activeReviewId != null && photoIds != null && photoIds.length === photos.length;
   const canShowExif = hasReviewExif || (exifs != null && exifs.length === photos.length);
+  const caption = captions?.[safeIndex];
 
-  const openExif = () => {
-    if (reviewId != null) setExifRequestedFor(Number(reviewId));
-    setExifOpen(true);
-  };
+  // 사진은 화면 중앙에 놓이므로 아래 여백 = (화면 높이 - 렌더 높이) / 2.
+  // 비율을 아직 모르면 박스 전체 높이로 보수적으로 계산한다(= 기존 위치).
+  const ratio = uri ? ratios[uri] : undefined;
+  const renderedHeight = ratio ? Math.min(IMAGE_HEIGHT, SCREEN_WIDTH * ratio) : IMAGE_HEIGHT;
+  const stripFloor = photos.length > 1 ? stripBottom + THUMB_SIZE + normalize(10) : stripBottom + normalize(10);
+  // 박스 '위쪽 끝'이 사진 밑에 오도록 높이만큼 내린다. 세로로 꽉 찬 사진처럼 자리가 안 나오면
+  // stripFloor가 하한으로 걸려 사진 하단에 겹치는데, 스크림이 있어 읽기는 된다.
+  const photoBottomGap = (SCREEN_HEIGHT - renderedHeight) / 2;
+  const captionBottom = Math.max(stripFloor, photoBottomGap - captionHeight - normalize(14));
+
+  const openExif = () => setExifOpen(true);
 
   return (
     <Modal
@@ -320,6 +359,11 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose, 
                   source={{ uri }}
                   resizeMode="contain"
                   resizeMethod="resize"
+                  onLoad={(e) => {
+                    const { width: w, height: h } = e.nativeEvent.source;
+                    if (!uri || !w || !h) return;
+                    setRatios((prev) => (prev[uri] ? prev : { ...prev, [uri]: h / w }));
+                  }}
                   onError={(e) => __DEV__ && console.warn('[lightbox] 이미지 로드 실패:', e.nativeEvent, uri?.slice(0, 90))}
                   style={{ width: SCREEN_WIDTH, height: IMAGE_HEIGHT }}
                 />
@@ -375,6 +419,45 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose, 
             </View>
           </View>
 
+          {/* 사진에 딸린 리뷰 미리보기. 썸네일 스트립 위에 얹으므로 스트립 유무로 bottom이 갈린다. */}
+          {caption && !exifOpen && (
+            <View
+              className="absolute"
+              onLayout={(e) => {
+                const h = e.nativeEvent.layout.height;
+                setCaptionHeight((prev) => (Math.abs(prev - h) < 1 ? prev : h));
+              }}
+              style={{
+                bottom: captionBottom,
+                left: normalize(16),
+                right: normalize(16),
+                paddingHorizontal: normalize(14),
+                paddingVertical: normalize(12),
+                borderRadius: normalize(12),
+                backgroundColor: SCRIM,
+                gap: normalize(6),
+                zIndex: 10,
+              }}
+            >
+              <View className="flex-row items-center" style={{ gap: normalize(6) }}>
+                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, color: '#fff', letterSpacing: -0.15 }}>
+                  {caption.name}
+                </Text>
+                <StarRating rating={caption.rating} size={FONT_2XS} />
+                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_2XS, color: 'rgba(255,255,255,0.5)' }}>
+                  {caption.date}
+                </Text>
+              </View>
+              <Text
+                numberOfLines={2}
+                allowFontScaling={false}
+                style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(255,255,255,0.82)', lineHeight: FONT_XS * 1.5, letterSpacing: -0.15 }}
+              >
+                {caption.text}
+              </Text>
+            </View>
+          )}
+
           {/* 하단 썸네일 스트립 */}
           {photos.length > 1 && !exifOpen && (
             <ScrollView
@@ -382,7 +465,7 @@ export default function PhotoLightbox({ photos, initialIndex, visible, onClose, 
               horizontal
               showsHorizontalScrollIndicator={false}
               className="absolute"
-              style={{ bottom: normalize(48), left: 0, right: 0, maxHeight: THUMB_SIZE, zIndex: 10 }}
+              style={{ bottom: stripBottom, left: 0, right: 0, maxHeight: THUMB_SIZE, zIndex: 10 }}
               // flexGrow + justifyContent: 사진이 적어 스트립이 화면보다 좁으면 가운데,
               // 넘치면 왼쪽 정렬로 자연히 전환된다 (justify-center만 쓰면 넘칠 때 양쪽이 잘린다).
               contentContainerStyle={{

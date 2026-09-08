@@ -284,7 +284,7 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
               </View>
             )}
 
-            {activeTab === 'photo' && <PhotoGridTab loadMoreSignal={photoLoadSignal} />}
+            {activeTab === 'photo' && <PhotoGridTab spotId={spotId} loadMoreSignal={photoLoadSignal} />}
 
             {activeTab === 'review' && (
               <ReviewTab
