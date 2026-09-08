@@ -47,20 +47,21 @@ export default function PhotoGridTab({ spotId, loadMoreSignal }: Props) {
     else seenCount.current = photos.length;
   }, [photos.length, isLoading, isFetchingNextPage, hasNextPage, fetchNextPage]);
 
-  if (isLoading) {
-    return (
-      <View style={{ paddingVertical: normalize(60), alignItems: 'center' }}>
-        <ActivityIndicator color={BRAND} />
-      </View>
-    );
-  }
-
   if (isError) {
     return (
       <View style={{ paddingVertical: normalize(60), alignItems: 'center' }}>
         <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(14), color: TEXT_SUB, letterSpacing: -0.2 }}>
           사진을 불러오지 못했어요.
         </Text>
+      </View>
+    );
+  }
+
+  // 사진 없는 페이지가 이어지는 동안(위 effect가 다음 페이지를 이어 받는다) 빈 상태 문구가 뜨지 않게 스피너를 유지한다
+  if (isLoading || (photos.length === 0 && hasNextPage)) {
+    return (
+      <View style={{ paddingVertical: normalize(60), alignItems: 'center' }}>
+        <ActivityIndicator color={BRAND} />
       </View>
     );
   }
