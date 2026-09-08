@@ -56,6 +56,7 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
   // 스팟 사진은 서버에 EXIF가 없어 URL에서 뽑히는 파일명·형식만 채운다.
   const viewerExifs = viewerPhotos.map(exifFromPhotoUrl);
   const [photoViewerVisible, setPhotoViewerVisible] = useState(false);
+  const [photoViewerIndex, setPhotoViewerIndex] = useState(0);
 
   const [activeTab, setActiveTab] = useState<SpotTabKey>('info');
   const [photoLoadSignal, setPhotoLoadSignal] = useState(0);
@@ -211,8 +212,15 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
             imageUrl={spot.imageUrl}
             categories={spot.categories}
             regionLabel={spot.regionLabel}
-            heroPhotoCount={viewerPhotos.length}
-            onPressPhoto={viewerPhotos.length ? () => setPhotoViewerVisible(true) : undefined}
+            photos={viewerPhotos}
+            onPressPhoto={
+              viewerPhotos.length
+                ? (i) => {
+                    setPhotoViewerIndex(i);
+                    setPhotoViewerVisible(true);
+                  }
+                : undefined
+            }
             onBack={() => navigation.goBack()}
             onShare={handleShare}
             onBookmark={() => setBookmarkSheetVisible(true)}
@@ -324,7 +332,7 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
         visible={photoViewerVisible}
         photos={viewerPhotos}
         exifs={viewerExifs}
-        initialIndex={0}
+        initialIndex={photoViewerIndex}
         onClose={() => setPhotoViewerVisible(false)}
       />
 
