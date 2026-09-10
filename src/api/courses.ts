@@ -1,6 +1,7 @@
 import { fetchWithAuthRetry, toHttpError } from '@/api/auth';
 import { useAuthStore } from '@/store/useAuthStore';
 import type { SpotNavigationDTO } from '@/types/spot';
+import type { AiCoursePlanRequest, AiCoursePlanResponse } from '@/types/aiCourse';
 
 const BASE = process.env.EXPO_PUBLIC_API_URL ?? '';
 const TIMEOUT_MS = 30_000;
@@ -158,6 +159,21 @@ export const coursesApi = {
         afternoon: { weatherStatus: item.weatherStatus, temperature: item.temperature },
         evening: { weatherStatus: item.weatherStatus, temperature: item.temperature }
       } as CourseWeather;
+    });
+  },
+
+  // 14. AI 코스 기획 요청 (비동기 큐 발행)
+  requestAiPlan: (data: AiCoursePlanRequest): Promise<AiCoursePlanResponse> => {
+    return fetchWithAuth('/api/v1/courses/ai-plan', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  // 15. AI 코스 기획 상태 조회 (폴링)
+  getAiPlanStatus: (taskId: string): Promise<AiCoursePlanResponse> => {
+    return fetchWithAuth(`/api/v1/courses/ai-plan/${taskId}`, {
+      method: 'GET',
     });
   },
 };

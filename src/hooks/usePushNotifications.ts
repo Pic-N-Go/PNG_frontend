@@ -105,9 +105,16 @@ export const usePushNotifications = (onDeepLinkNav?: (deepLink: string) => void)
 
     const handleDeepLinkMessage = (remoteMessage: any) => {
       if (!remoteMessage || !onDeepLinkNavRef.current) return;
-      const deepLink = remoteMessage.data?.deepLink || remoteMessage.data?.link || remoteMessage.data?.spotId;
-      if (deepLink && (typeof deepLink === 'string' || typeof deepLink === 'number')) {
+      const courseId = remoteMessage.data?.courseId;
+      const deepLink = remoteMessage.data?.deepLink || remoteMessage.data?.link;
+      const spotId = remoteMessage.data?.spotId;
+
+      if (courseId) {
+        onDeepLinkNavRef.current(`/courses/${courseId}`);
+      } else if (deepLink && (typeof deepLink === 'string' || typeof deepLink === 'number')) {
         onDeepLinkNavRef.current(String(deepLink));
+      } else if (spotId && (typeof spotId === 'string' || typeof spotId === 'number')) {
+        onDeepLinkNavRef.current(String(spotId));
       }
     };
 
