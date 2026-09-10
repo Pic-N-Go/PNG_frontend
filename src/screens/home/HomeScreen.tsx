@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { ScrollView, Text, View, AppState, Alert } from 'react-native';
+import { ScrollView, Text, View, AppState } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Location from 'expo-location';
 import { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -19,11 +19,8 @@ import SeasonalSpotSection from '@/components/home/SeasonalSpotSection';
 import { IconBell } from '@tabler/icons-react-native';
 import LinkBanner from '@/components/common/LinkBanner';
 import FilterBottomSheet from '@/components/home/FilterBottomSheet';
-import AiPlannerBanner from '@/components/home/AiPlannerBanner';
-import AiCoursePlannerBottomSheet from '@/components/course/AiCoursePlannerBottomSheet';
 import { useNotification } from '@/hooks/useNotification';
 import { useNearbySpots } from '@/hooks/useSpot';
-import { useAuthStore } from '@/store/useAuthStore';
 import { TEXT_SUB } from '@/constants/colors';
 import { isLocationInKorea, sanitizeKoreaLocation } from '@/utils/location';
 
@@ -68,26 +65,6 @@ export default function HomeScreen({ navigation }: Props) {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [activeFilterCount, setActiveFilterCount] = useState(0);
   const [filterVisible, setFilterVisible] = useState(false);
-  const [aiPlannerVisible, setAiPlannerVisible] = useState(false);
-
-  const handleOpenAiPlanner = useCallback(() => {
-    const isLoggedIn = !!useAuthStore.getState().accessToken;
-    if (!isLoggedIn) {
-      Alert.alert('로그인 필요', 'AI 코스 기획 기능을 이용하려면 로그인이 필요합니다.');
-      return;
-    }
-    setAiPlannerVisible(true);
-  }, []);
-
-  const handleNavigateToCourse = useCallback((courseId: number) => {
-    (navigation as any).navigate('Main', {
-      screen: 'CourseTab',
-      params: {
-        screen: 'CoursePlan',
-        params: { planId: String(courseId) },
-      },
-    });
-  }, [navigation]);
 
   // 현재 사용자 GPS 위치 관리 (기본값: 서울시청)
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number; isReal: boolean; isFallback?: boolean }>({
@@ -239,8 +216,6 @@ export default function HomeScreen({ navigation }: Props) {
           onSelect={setSelectedCategory}
         />
 
-        <AiPlannerBanner onPress={handleOpenAiPlanner} marginTop={normalize(20)} />
-
         {/* 주변 스팟 섹션 */}
         <View style={{ paddingHorizontal: CONTENT_PADDING, marginTop: normalize(28) }}>
           <Text
@@ -311,12 +286,6 @@ export default function HomeScreen({ navigation }: Props) {
         visible={filterVisible}
         onClose={() => setFilterVisible(false)}
         onApply={(count) => setActiveFilterCount(count)}
-      />
-
-      <AiCoursePlannerBottomSheet
-        visible={aiPlannerVisible}
-        onClose={() => setAiPlannerVisible(false)}
-        onSuccessNavigate={handleNavigateToCourse}
       />
 
     </View>
