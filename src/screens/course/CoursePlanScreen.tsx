@@ -707,11 +707,14 @@ export default function CoursePlanScreen({ navigation, route }: any) {
   // 이 화면은 마커 데이터를 라우트 파라미터로 이미 들고 있어 마운트 즉시 렌더돼 특히 잘 터진다.
   const [isPlanMapReady, setPlanMapReady] = useState(false);
 
-  // 날짜가 바뀌거나 스팟이 비어 지도가 언마운트될 때 map ready 상태를 리셋하여
-  // 새 NaverMapView 인스턴스가 onInitialized 전에 자식 오버레이를 렌더하지 않도록 방어한다.
+  // 스팟이 비어 지도가 언마운트될 때만 map ready 상태를 리셋한다.
+  // currentDay 변경 시에는 기존 NaverMapView가 언마운트되지 않으므로 onInitialized가 재호출되지 않는다.
+  // 따라서 ready 상태를 유지해야 다른 Day 탭 클릭 시에도 마커와 경로선이 정상 표시된다.
   useEffect(() => {
-    setPlanMapReady(false);
-  }, [currentDay, isDayEmpty]);
+    if (isDayEmpty) {
+      setPlanMapReady(false);
+    }
+  }, [isDayEmpty]);
 
   const validDaySpots = React.useMemo(() => {
     return (data[currentDay]?.spots || []).flatMap((spot: any) => {
@@ -809,6 +812,7 @@ export default function CoursePlanScreen({ navigation, route }: any) {
                 if (validCoords.length < 2) return null;
                 return (
                   <NaverMapPathOverlay
+                    key={`plan_path_${currentDay}`}
                     coords={validCoords}
                     width={3}
                     color={currentDayColor.text}
