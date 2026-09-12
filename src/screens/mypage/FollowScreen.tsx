@@ -96,8 +96,12 @@ export default function FollowScreen() {
     <UserRow
       key={user.id}
       user={user}
-      // FollowScreen은 MyPageStack·CommunityDetailStack 양쪽에 등록돼 있고 둘 다 UserProfile을 가진다.
-      onPress={() => navigation.navigate('UserProfile', { userId: String(user.id) })}
+      onPress={() =>
+        navigation.navigate('CommunityDetailStack', {
+          screen: 'UserProfile',
+          params: { userId: String(user.id) },
+        })
+      }
       action={actionFor(user)}
     />
   );
