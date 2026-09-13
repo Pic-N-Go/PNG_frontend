@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { ActivityIndicator, Image, NativeSyntheticEvent, NativeScrollEvent, Pressable, RefreshControl, ScrollView, Text, View, useWindowDimensions } from 'react-native';
+import { ActivityIndicator, Image, Pressable, RefreshControl, Text, View, useWindowDimensions } from 'react-native';
+import Animated, { Extrapolation, interpolate, useAnimatedScrollHandler, useAnimatedStyle, useSharedValue } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -12,7 +13,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import { useCommunityFeed, useToggleBookmark, useToggleFollow, useToggleLike } from '@/hooks/useCommunity';
 import type { RootStackParamList } from '@/navigation';
 import { ContestPastMonthItem, ContestSubmitTarget, Post, PostSortApi } from '@/types/community';
-import { CONTENT_PADDING, FONT_LG, FONT_SM, FONT_2XL, FONT_2XS, GRID_PADDING } from '@/constants/layout';
+import { COMPACT_CONTROL_HEIGHT, COMPACT_CONTROL_RADIUS, CONTENT_PADDING, FONT_LG, FONT_SM, FONT_2XL, FONT_2XS, GRID_PADDING } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
 import { layoutGalleryGrid } from '@/utils/galleryGrid';
 import { BRAND, CARD, TEXT_SUB } from '@/constants/colors';
@@ -77,6 +78,10 @@ function pickPopularIds(photos: GalleryPhoto[], count: number): Set<string> {
   return new Set(ranked.map((p) => p.id));
 }
 
+function PostSeparator() {
+  return <View style={{ height: normalize(20) }} />;
+}
+
 export default function CommunityFeedScreen() {
   const navigation = useNavigation();
   // PostDetail/CommunityWrite/ContestResult/UserProfile은 탭바 없는 push 화면이라
@@ -85,7 +90,10 @@ export default function CommunityFeedScreen() {
   const rootNavigation = navigation as unknown as NativeStackNavigationProp<RootStackParamList>;
   const { width: windowWidth } = useWindowDimensions();
   const [segment, setSegment] = useState<SegmentKey>('posts');
-  const [isScrolled, setIsScrolled] = useState(false);
+  const scrollY = useSharedValue(0);
+  const [titleHeight, setTitleHeight] = useState(normalize(54));
+  const [headerHeight, setHeaderHeight] = useState(normalize(148));
+  const [viewportHeight, setViewportHeight] = useState(0);
   const [searchVisible, setSearchVisible] = useState(false);
   const [keyword, setKeyword] = useState('');
   const [feedSort, setFeedSort] = useState<FeedSortOption>('인기');
@@ -128,9 +136,23 @@ export default function CommunityFeedScreen() {
   // 실제 사용 가능한 너비(화면 너비 - 좌우 패딩 - 갤럼 사이 gap 2개)를 3등분해서 셀 크기를 구한다.
   const galleryCellSize = (windowWidth - GRID_PADDING * 2 - GALLERY_GAP * 2) / 3;
 
-  const handleScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-    setIsScrolled(e.nativeEvent.contentOffset.y > 44);
-  };
+  // UI 스레드에서 위치만 갱신한다. 스크롤 중 목록의 높이는 바꾸지 않는다.
+  const handleScroll = useAnimatedScrollHandler({
+    onScroll: (event) => {
+      scrollY.value = Math.max(0, event.contentOffset.y);
+    },
+  });
+  const headerStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: segment === 'contest' ? 0 : -Math.min(scrollY.value, titleHeight) }],
+  }));
+  const smallTitleStyle = useAnimatedStyle(() => ({
+    opacity: segment === 'contest' ? 0 : interpolate(scrollY.value, [titleHeight * 0.4, titleHeight], [0, 1], Extrapolation.CLAMP),
+  }));
+  // 필터·탭 변경 시 새 목록과 헤더를 함께 맨 위로 맞춘다.
+  const listKey = JSON.stringify([segment, feedSort, keyword]);
+  React.useLayoutEffect(() => {
+    scrollY.value = 0;
+  }, [listKey, scrollY]);
 
   const galleryPhotos = React.useMemo(() => toGalleryPhotos(displayedPosts), [displayedPosts]);
   const galleryCells = React.useMemo(() => {
@@ -166,115 +188,51 @@ export default function CommunityFeedScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right']}>
-      <View style={{ backgroundColor: '#fff', zIndex: 5 }}>
-        <View style={{ height: normalize(36), paddingHorizontal: CONTENT_PADDING, alignItems: 'center', justifyContent: 'center' }}>
-          {isScrolled && (
-            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_LG, color: '#000', letterSpacing: -0.4 }}>
-              커뮤니티
-            </Text>
-          )}
-        </View>
-        {!isScrolled && (
-          <View className="flex-row items-center" style={{ paddingHorizontal: CONTENT_PADDING, paddingTop: normalize(6), paddingBottom: normalize(10), gap: normalize(10) }}>
-            <Text allowFontScaling={false} style={{ flex: 1, fontFamily: 'Pretendard-SemiBold', fontSize: FONT_2XL, color: '#000', letterSpacing: -1.2 }}>
-              커뮤니티
-            </Text>
-            {/* 둘 다 게시글·갤러리 대상이라 콘테스트 탭에서는 숨긴다 — 검색은 검색할 콘텐츠가 없고,
-                +는 게시글 작성으로 가서 이 탭과 무관하다(콘테스트 출품은 탭 안에 자체 CTA가 있다). */}
-            {segment !== 'contest' && (
-              <>
-                <Pressable onPress={() => setSearchVisible(true)} className="items-center justify-center" style={{ width: normalize(38), height: normalize(38), borderRadius: normalize(19), backgroundColor: SURFACE }}>
-                  <Search size={normalize(18)} color="#000" strokeWidth={1.8} />
-                </Pressable>
-                <Pressable
-                  onPress={() => rootNavigation.navigate('CommunityDetailStack', { screen: 'CommunityWrite' })}
-                  className="items-center justify-center"
-                  style={{ width: normalize(38), height: normalize(38), borderRadius: normalize(19), backgroundColor: ACCENT }}
-                >
-                  <Plus size={normalize(16)} color="#fff" strokeWidth={2} />
-                </Pressable>
-              </>
-            )}
-          </View>
-        )}
-        <View className="flex-row items-center" style={{ paddingHorizontal: CONTENT_PADDING, paddingBottom: normalize(14) }}>
-          <View className="flex-1 flex-row" style={{ backgroundColor: SURFACE, borderRadius: normalize(22), padding: normalize(3), height: normalize(36) }}>
-            {SEGMENTS.map((seg) => {
-              const isActive = seg.key === segment;
-              return (
-                <Pressable
-                  key={seg.key}
-                  onPress={() => setSegment(seg.key)}
-                  className="flex-1 items-center justify-center"
-                  style={{ borderRadius: normalize(15), backgroundColor: isActive ? '#000' : 'transparent' }}
-                >
-                  <Text allowFontScaling={false} style={{ fontFamily: isActive ? 'Pretendard-SemiBold' : 'Pretendard-Medium', fontSize: FONT_SM, color: isActive ? '#fff' : 'rgba(0,0,0,0.45)', letterSpacing: -0.2 }}>
-                    {seg.label}
-                  </Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        </View>
-        {/* 정렬은 세그먼트와 같은 행에 두면 '게시글'일 때만 세그먼트가 좁아져 탭 위치가 흔들린다 —
-            아래 행으로 내려 검색어 칩과 한 줄을 공유한다. 칩은 왼쪽, 정렬은 오른쪽 고정. */}
-        {(segment === 'posts' || (!!keyword && segment !== 'contest')) && (
-          <View className="flex-row items-center" style={{ paddingHorizontal: CONTENT_PADDING, paddingBottom: normalize(14), height: normalize(44), gap: normalize(10) }}>
-            {/* 검색어가 걸린 동안에는 게시글·갤러리가 모두 결과로 좁혀진다 — 해제 수단을 항상 보이게 둔다 */}
-            {!!keyword && (
-              <Pressable
-                onPress={() => setKeyword('')}
-                className="flex-row items-center shrink"
-                style={{ gap: normalize(6), height: normalize(30), paddingHorizontal: normalize(12), borderRadius: normalize(15), backgroundColor: '#000' }}
-              >
-                <Text allowFontScaling={false} numberOfLines={1} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, color: '#fff', letterSpacing: -0.2 }}>
-                  {`'${keyword}' 검색 결과`}
-                </Text>
-                <X size={normalize(11)} color="#fff" strokeWidth={2.4} />
-              </Pressable>
-            )}
-            {segment === 'posts' && (
-              <Pressable
-                onPress={() => setFeedSortSheetVisible(true)}
-                className="flex-row items-center"
-                style={{ marginLeft: 'auto', gap: normalize(3) }}
-              >
-                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: 'rgba(0,0,0,0.55)', letterSpacing: -0.2 }}>
-                  {feedSort}
-                </Text>
-                <ChevronDown size={normalize(12)} color="rgba(0,0,0,0.55)" strokeWidth={2} />
-              </Pressable>
-            )}
-          </View>
-        )}
-      </View>
-
-      {segment === 'contest' ? (
-        <ContestSegment
-          onSelectPastItem={goToContestResult}
-          onSeeAllEntries={goToAllEntries}
-          onOpenSubmit={goToContestSubmit}
-          onOpenEntry={goToContestEntry}
-          onOpenResult={goToContestResultByRank}
-        />
-      ) : (
-        <ScrollView
-          onScroll={handleScroll}
-          scrollEventThrottle={16}
-          contentContainerStyle={{ flexGrow: 1, paddingBottom: normalize(20) }}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={handleRefresh}
-              tintColor={ACCENT}
-              colors={[ACCENT]}
-            />
-          }
+      <View className="items-center justify-center bg-white z-[5]" style={{ height: normalize(36) }}>
+        <Animated.Text
+          allowFontScaling={false}
+          accessible={false}
+          className="font-semibold text-black tracking-[-0.4px]"
+          style={[{ fontSize: FONT_LG }, smallTitleStyle]}
         >
-          {/* contentContainerStyle의 flexGrow: 1 — 내용이 화면보다 짧아도 컨테이너가 남은 높이를
-              차지해야 아래 빈 상태 문구를 그 안에서 세로 중앙에 놓을 수 있다 */}
-          {segment === 'posts' && (
-            postsState ? (
+          커뮤니티
+        </Animated.Text>
+      </View>
+      <View className="flex-1 overflow-hidden" onLayout={(event) => setViewportHeight(event.nativeEvent.layout.height)}>
+        {segment === 'contest' ? (
+          <View className="flex-1" style={{ paddingTop: headerHeight }}>
+            <ContestSegment
+              onSelectPastItem={goToContestResult}
+              onSeeAllEntries={goToAllEntries}
+              onOpenSubmit={goToContestSubmit}
+              onOpenEntry={goToContestEntry}
+              onOpenResult={goToContestResultByRank}
+            />
+          </View>
+        ) : segment === 'posts' ? (
+          <Animated.FlatList
+            key={listKey}
+            data={postsState ? [] : displayedPosts}
+            keyExtractor={(post) => post.id}
+            renderItem={({ item: post }) => (
+              <PostCard
+                post={post}
+                onPress={() => goToPost(post)}
+                onToggleLike={() => toggleLike.mutate({ postId: post.id, next: !post.isLiked })}
+                onToggleBookmark={() => toggleBookmark.mutate({ postId: post.id, next: !post.isBookmarked })}
+                onToggleFollow={() => toggleFollow.mutate({ userId: post.author.id, next: !post.isFollowingAuthor })}
+                onPressUsername={() => goToProfile(post.author.id)}
+              />
+            )}
+            onScroll={handleScroll}
+            scrollEventThrottle={16}
+            contentContainerStyle={{ flexGrow: 1, minHeight: viewportHeight + titleHeight + 1, paddingTop: headerHeight, paddingHorizontal: GRID_PADDING, paddingBottom: normalize(20) }}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} progressViewOffset={headerHeight} tintColor={ACCENT} colors={[ACCENT]} />}
+            initialNumToRender={4}
+            maxToRenderPerBatch={4}
+            windowSize={7}
+            ItemSeparatorComponent={PostSeparator}
+            ListEmptyComponent={
               <View className="items-center justify-center" style={{ flex: 1, gap: normalize(12), paddingHorizontal: GRID_PADDING }}>
                 {postsState === 'login' && (
                   <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: TEXT_SUB, letterSpacing: -0.2 }}>
@@ -307,40 +265,30 @@ export default function CommunityFeedScreen() {
                   </Text>
                 )}
               </View>
-            ) : (
-              <View style={{ paddingHorizontal: GRID_PADDING, gap: normalize(20) }}>
-                <>
-                  {displayedPosts.map((post) => (
-                    <PostCard
-                      key={post.id}
-                      post={post}
-                      onPress={() => goToPost(post)}
-                      onToggleLike={() => toggleLike.mutate({ postId: post.id, next: !post.isLiked })}
-                      onToggleBookmark={() => toggleBookmark.mutate({ postId: post.id, next: !post.isBookmarked })}
-                      onToggleFollow={() => toggleFollow.mutate({ userId: post.author.id, next: !post.isFollowingAuthor })}
-                      onPressUsername={() => goToProfile(post.author.id)}
-                    />
-                  ))}
-                  {hasNextPage && (
-                    <Pressable
-                      onPress={() => fetchNextPage()}
-                      disabled={isFetchingNextPage}
-                      className="items-center justify-center"
-                      style={{ height: normalize(44), borderRadius: normalize(22), backgroundColor: SURFACE }}
-                    >
-                      {isFetchingNextPage ? (
-                        <ActivityIndicator color={TEXT_SUB} size="small" />
-                      ) : (
-                        <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, color: 'rgba(0,0,0,0.55)', letterSpacing: -0.2 }}>
-                          게시글 더 보기
-                        </Text>
-                      )}
-                    </Pressable>
-                  )}
-                </>
-              </View>
-            )
-          )}
+            }
+            ListFooterComponent={!postsState && hasNextPage ? (
+              <Pressable
+                onPress={() => fetchNextPage()}
+                disabled={isFetchingNextPage}
+                className="mt-5 items-center justify-center bg-card"
+                style={{ height: COMPACT_CONTROL_HEIGHT, borderRadius: COMPACT_CONTROL_RADIUS }}
+              >
+                {isFetchingNextPage ? <ActivityIndicator color={TEXT_SUB} size="small" /> : (
+                  <Text allowFontScaling={false} className="font-semibold text-black/55 tracking-[-0.2px]" style={{ fontSize: FONT_SM }}>
+                    게시글 더 보기
+                  </Text>
+                )}
+              </Pressable>
+            ) : null}
+          />
+        ) : (
+          <Animated.ScrollView
+            key={listKey}
+            onScroll={handleScroll}
+            scrollEventThrottle={16}
+            contentContainerStyle={{ flexGrow: 1, minHeight: viewportHeight + titleHeight + 1, paddingTop: headerHeight, paddingBottom: normalize(20) }}
+            refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} progressViewOffset={headerHeight} tintColor={ACCENT} colors={[ACCENT]} />}
+          >
           {segment === 'gallery' && galleryCells.length === 0 && !isLoading && (
             <View style={{ paddingVertical: normalize(48), alignItems: 'center' }}>
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: TEXT_SUB, letterSpacing: -0.2 }}>
@@ -394,8 +342,88 @@ export default function CommunityFeedScreen() {
               })}
             </View>
           )}
-        </ScrollView>
-      )}
+
+          </Animated.ScrollView>
+        )}
+        <Animated.View
+          onLayout={(event) => setHeaderHeight(event.nativeEvent.layout.height)}
+          className="absolute top-0 left-0 right-0 bg-white z-[2]"
+          style={headerStyle}
+        >
+          <View onLayout={(event) => setTitleHeight(event.nativeEvent.layout.height)} className="flex-row items-center" style={{ paddingHorizontal: CONTENT_PADDING, paddingTop: normalize(6), paddingBottom: normalize(10), gap: normalize(10) }}>
+            <Text allowFontScaling={false} style={{ flex: 1, fontFamily: 'Pretendard-SemiBold', fontSize: FONT_2XL, color: '#000', letterSpacing: -1.2 }}>
+              커뮤니티
+            </Text>
+            {/* 둘 다 게시글·갤러리 대상이라 콘테스트 탭에서는 숨긴다 — 검색은 검색할 콘텐츠가 없고,
+                +는 게시글 작성으로 가서 이 탭과 무관하다(콘테스트 출품은 탭 안에 자체 CTA가 있다). */}
+            {segment !== 'contest' && (
+              <>
+                <Pressable onPress={() => setSearchVisible(true)} className="items-center justify-center" style={{ width: normalize(38), height: normalize(38), borderRadius: normalize(19), backgroundColor: SURFACE }}>
+                  <Search size={normalize(18)} color="#000" strokeWidth={1.8} />
+                </Pressable>
+                <Pressable
+                  onPress={() => rootNavigation.navigate('CommunityDetailStack', { screen: 'CommunityWrite' })}
+                  className="items-center justify-center"
+                  style={{ width: normalize(38), height: normalize(38), borderRadius: normalize(19), backgroundColor: ACCENT }}
+                >
+                  <Plus size={normalize(16)} color="#fff" strokeWidth={2} />
+                </Pressable>
+              </>
+            )}
+          </View>
+        <View className="flex-row items-center" style={{ paddingHorizontal: CONTENT_PADDING, paddingBottom: normalize(14) }}>
+          <View className="flex-1 flex-row" style={{ backgroundColor: SURFACE, borderRadius: normalize(22), padding: normalize(3), height: normalize(36) }}>
+            {SEGMENTS.map((seg) => {
+              const isActive = seg.key === segment;
+              return (
+                <Pressable
+                  key={seg.key}
+                  onPress={() => setSegment(seg.key)}
+                  className="flex-1 items-center justify-center"
+                  style={{ borderRadius: normalize(15), backgroundColor: isActive ? '#000' : 'transparent' }}
+                >
+                  <Text allowFontScaling={false} style={{ fontFamily: isActive ? 'Pretendard-SemiBold' : 'Pretendard-Medium', fontSize: FONT_SM, color: isActive ? '#fff' : 'rgba(0,0,0,0.45)', letterSpacing: -0.2 }}>
+                    {seg.label}
+                  </Text>
+                </Pressable>
+              );
+            })}
+          </View>
+        </View>
+        {/* 정렬은 세그먼트와 같은 행에 두면 '게시글'일 때만 세그먼트가 좁아져 탭 위치가 흔들린다 —
+            아래 행으로 내려 검색어 칩과 한 줄을 공유한다. 칩은 왼쪽, 정렬은 오른쪽 고정. */}
+        {(segment === 'posts' || (!!keyword && segment !== 'contest')) && (
+          <View className="flex-row items-center" style={{ paddingHorizontal: CONTENT_PADDING, paddingBottom: normalize(14), height: normalize(44), gap: normalize(10) }}>
+            {/* 검색어가 걸린 동안에는 게시글·갤러리가 모두 결과로 좁혀진다 — 해제 수단을 항상 보이게 둔다 */}
+            {!!keyword && (
+              <Pressable
+                onPress={() => setKeyword('')}
+                className="flex-row items-center shrink"
+                style={{ gap: normalize(6), height: normalize(30), paddingHorizontal: normalize(12), borderRadius: normalize(15), backgroundColor: '#000' }}
+              >
+                <Text allowFontScaling={false} numberOfLines={1} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, color: '#fff', letterSpacing: -0.2 }}>
+                  {`'${keyword}' 검색 결과`}
+                </Text>
+                <X size={normalize(11)} color="#fff" strokeWidth={2.4} />
+              </Pressable>
+            )}
+            {segment === 'posts' && (
+              <Pressable
+                onPress={() => setFeedSortSheetVisible(true)}
+                className="flex-row items-center"
+                style={{ marginLeft: 'auto', gap: normalize(3) }}
+              >
+                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: 'rgba(0,0,0,0.55)', letterSpacing: -0.2 }}>
+                  {feedSort}
+                </Text>
+                <ChevronDown size={normalize(12)} color="rgba(0,0,0,0.55)" strokeWidth={2} />
+              </Pressable>
+            )}
+          </View>
+        )}
+
+        </Animated.View>
+      </View>
 
       <SearchOverlay
         visible={searchVisible}
