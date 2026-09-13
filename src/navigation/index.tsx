@@ -1,4 +1,5 @@
 import React from 'react';
+import { Linking } from 'react-native';
 import { NavigationContainer, createNavigationContainerRef, type NavigatorScreenParams } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import AuthStack from './AuthStack';
@@ -37,6 +38,18 @@ let pendingSpotId: string | null = null;
 let pendingInquiryId: string | null = null;
 let pendingPostId: string | null = null;
 let pendingUserId: string | null = null;
+let pendingCourseId: string | null = null;
+
+function navigateToCourseDetail(courseId: string) {
+  (navigationRef as any).navigate('Main', {
+    screen: 'CourseTab',
+    params: {
+      screen: 'CoursePlan',
+      params: { planId: String(courseId) },
+      initial: false,
+    },
+  });
+}
 
 function navigateToSpotDetail(spotId: string) {
   (navigationRef as any).navigate('SpotStack', {
@@ -112,7 +125,19 @@ function handleDeepLinkNav(deepLink: string) {
     return;
   }
 
-  // 4. 스팟 딥링크
+  // 4. 코스 딥링크 (/courses/123 또는 courseId=123)
+  const courseMatch = deepLink.match(/(?:courseId=|\/courses\/|\/course\/)(\d+)/);
+  if (courseMatch && courseMatch[1]) {
+    const courseId = courseMatch[1];
+    if (navigationRef.isReady() && isLoggedIn) {
+      navigateToCourseDetail(courseId);
+    } else {
+      pendingCourseId = courseId;
+    }
+    return;
+  }
+
+  // 5. 스팟 딥링크
   const spotIdMatch = deepLink.match(/(?:spotId=|\/spot\/|\/wishlist\/|\/spot-alerts\/|^)(\d+)/);
   if (!spotIdMatch || !spotIdMatch[1]) return;
 
@@ -147,6 +172,10 @@ export default function RootNavigator() {
         const targetInquiryId = pendingInquiryId;
         pendingInquiryId = null;
         navigateToInquiryDetail(targetInquiryId);
+      } else if (pendingCourseId) {
+        const targetCourseId = pendingCourseId;
+        pendingCourseId = null;
+        navigateToCourseDetail(targetCourseId);
       } else if (pendingPostId) {
         const targetPostId = pendingPostId;
         pendingPostId = null;
@@ -163,6 +192,17 @@ export default function RootNavigator() {
     }
   }, [isLoggedIn, isNavReady]);
 
+  // 외부 URL 및 스킴 딥링크(Linking) 리스너 연동
+  React.useEffect(() => {
+    const sub = Linking.addEventListener('url', ({ url }) => {
+      handleDeepLinkNav(url);
+    });
+    Linking.getInitialURL().then((url) => {
+      if (url) handleDeepLinkNav(url);
+    });
+    return () => sub.remove();
+  }, []);
+
   const handleContainerReady = React.useCallback(() => {
     setIsNavReady(true);
     if (isLoggedIn) {
@@ -170,6 +210,10 @@ export default function RootNavigator() {
         const targetInquiryId = pendingInquiryId;
         pendingInquiryId = null;
         navigateToInquiryDetail(targetInquiryId);
+      } else if (pendingCourseId) {
+        const targetCourseId = pendingCourseId;
+        pendingCourseId = null;
+        navigateToCourseDetail(targetCourseId);
       } else if (pendingPostId) {
         const targetPostId = pendingPostId;
         pendingPostId = null;

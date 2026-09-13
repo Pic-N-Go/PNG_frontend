@@ -1,15 +1,17 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Animated } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Animated, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FONT_SM, FONT_MD, FONT_LG, FONT_2XL, BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING, CARD_RADIUS, ICON_SM } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { IconPlus, IconChevronRight, IconCalendarEvent, IconMapPin, IconClock, IconRoute, IconAlertCircle } from '@tabler/icons-react-native';
+import { IconPlus, IconChevronRight, IconCalendarEvent, IconMapPin, IconClock, IconRoute, IconAlertCircle, IconSparkles } from '@tabler/icons-react-native';
 import Skeleton from '@/components/common/Skeleton';
 import { useQuery } from '@tanstack/react-query';
 import { useFocusEffect } from '@react-navigation/native';
 import { coursesApi } from '@/api/courses';
 import { BRAND, BRAND_TINT } from '@/constants/colors';
 import CourseCardThumbnail from '@/components/course/CourseCardThumbnail';
+import AiCoursePlannerBottomSheet from '@/components/course/AiCoursePlannerBottomSheet';
+import { useAuthStore } from '@/store/useAuthStore';
 
 const TABS = [
   { id: 'all', label: '전체' },
@@ -50,7 +52,21 @@ function getCourseDuration(startDate: string, endDate: string) {
 
 export default function CourseListScreen({ navigation }: any) {
   const [activeTab, setActiveTab] = useState('all');
+  const [aiPlannerVisible, setAiPlannerVisible] = useState(false);
   const scrollY = useRef(new Animated.Value(0)).current;
+
+  const handleOpenAiPlanner = React.useCallback(() => {
+    const isLoggedIn = !!useAuthStore.getState().accessToken;
+    if (!isLoggedIn) {
+      Alert.alert('로그인 필요', 'AI 코스 기획 기능을 이용하려면 로그인이 필요합니다.');
+      return;
+    }
+    setAiPlannerVisible(true);
+  }, []);
+
+  const handleNavigateToCourse = React.useCallback((courseId: number) => {
+    navigation.navigate('CoursePlan', { planId: String(courseId) });
+  }, [navigation]);
 
   // isError 대신 isLoadingError를 쓴다. TanStack Query는 캐시된 데이터가 있어도 백그라운드
   // 요청이 실패하면 status를 'error'로 올리는데, isError로 분기하면 화면에 이미 있는 목록이
@@ -431,6 +447,45 @@ export default function CourseListScreen({ navigation }: any) {
         </View>
         )}
       </Animated.ScrollView>
+
+      {/* AI 코스 기획 FAB */}
+      <TouchableOpacity
+        onPress={handleOpenAiPlanner}
+        activeOpacity={0.85}
+        className="flex-row items-center bg-black rounded-full"
+        style={{
+          position: 'absolute',
+          bottom: normalize(20),
+          right: CONTENT_PADDING,
+          height: normalize(44),
+          paddingHorizontal: normalize(16),
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.25,
+          shadowRadius: 6,
+          elevation: 6,
+          zIndex: 50,
+        }}
+      >
+        <IconSparkles size={normalize(16)} color="#FFFFFF" strokeWidth={2} style={{ marginRight: normalize(6) }} />
+        <Text
+          allowFontScaling={false}
+          style={{
+            fontFamily: 'Pretendard-SemiBold',
+            fontSize: FONT_SM,
+            color: '#FFFFFF',
+            letterSpacing: -0.2,
+          }}
+        >
+          AI 코스 기획
+        </Text>
+      </TouchableOpacity>
+
+      <AiCoursePlannerBottomSheet
+        visible={aiPlannerVisible}
+        onClose={() => setAiPlannerVisible(false)}
+        onSuccessNavigate={handleNavigateToCourse}
+      />
     </SafeAreaView>
   );
 }

@@ -30,6 +30,7 @@ import {
   IconPlus,
   IconAlertCircle,
   IconRoute,
+  IconSparkles,
 } from "@tabler/icons-react-native";
 import { Share as ShareIcon } from "lucide-react-native";
 import NaviSheet from "@/components/spot/NaviSheet";
@@ -375,6 +376,8 @@ function mapCourseToData(course: any) {
           travelTimeMinutes: s.travelTimeMinutes,
           travelTimeEstimated: s.travelTimeEstimated,
           navigation: s.navigation,
+          memo: s.memo || '',
+          sequenceOrder: s.sequenceOrder,
         };
       });
 
@@ -704,11 +707,14 @@ export default function CoursePlanScreen({ navigation, route }: any) {
   // 이 화면은 마커 데이터를 라우트 파라미터로 이미 들고 있어 마운트 즉시 렌더돼 특히 잘 터진다.
   const [isPlanMapReady, setPlanMapReady] = useState(false);
 
-  // 날짜가 바뀌거나 스팟이 비어 지도가 언마운트될 때 map ready 상태를 리셋하여
-  // 새 NaverMapView 인스턴스가 onInitialized 전에 자식 오버레이를 렌더하지 않도록 방어한다.
+  // 스팟이 비어 지도가 언마운트될 때만 map ready 상태를 리셋한다.
+  // currentDay 변경 시에는 기존 NaverMapView가 언마운트되지 않으므로 onInitialized가 재호출되지 않는다.
+  // 따라서 ready 상태를 유지해야 다른 Day 탭 클릭 시에도 마커와 경로선이 정상 표시된다.
   useEffect(() => {
-    setPlanMapReady(false);
-  }, [currentDay, isDayEmpty]);
+    if (isDayEmpty) {
+      setPlanMapReady(false);
+    }
+  }, [isDayEmpty]);
 
   const validDaySpots = React.useMemo(() => {
     return (data[currentDay]?.spots || []).flatMap((spot: any) => {
@@ -806,6 +812,7 @@ export default function CoursePlanScreen({ navigation, route }: any) {
                 if (validCoords.length < 2) return null;
                 return (
                   <NaverMapPathOverlay
+                    key={`plan_path_${currentDay}`}
                     coords={validCoords}
                     width={3}
                     color={currentDayColor.text}
@@ -1019,26 +1026,83 @@ export default function CoursePlanScreen({ navigation, route }: any) {
         </TouchableOpacity>
       ) : null}
 
-      {/* Tip Banner — 일몰 정보가 있을 때만. '자유로운 셔터 찬스'는 스팟 0개 빈 상태 블록으로 옮겼다 */}
-      {currentWeather && currentWeather.sunsetTime && (
-        <View className="flex-row gap-3 p-4 bg-card rounded-2xl items-center mt-9">
-          <View className="w-8 h-8 rounded-lg bg-brand/10 items-center justify-center shrink-0">
-            <IconBulb size={normalize(16)} color={BRAND} />
+      {/* Tip Banner — 일몰 정보 또는 AI 촬영 가이드가 있을 때 */}
+      {(() => {
+        const weather = currentWeather;
+        const hasWeatherTip = Boolean(weather && weather.sunsetTime);
+        const daySpotsWithMemo = (currentData?.spots || []).filter(
+          (s: any) => s.memo && typeof s.memo === 'string' && s.memo.trim().length > 0
+        );
+        const hasAiGuide = daySpotsWithMemo.length > 0;
+
+        if (!hasWeatherTip && !hasAiGuide) return null;
+
+        let weatherTipText = '';
+        if (weather && weather.sunsetTime) {
+          const { sunset, golden } = getSunsetAndGoldenHour(weather.sunsetTime);
+          const fineDust = weather.fineDustStatus ? `미세먼지 ${weather.fineDustStatus} · ` : '';
+          weatherTipText = `${weather.targetSpotName} 일몰 시간 ${sunset} · 골든아워 ${golden}\n${fineDust}일몰 포인트로 이동 추천`;
+        }
+
+        return (
+          <View className="p-4 bg-card rounded-2xl mt-9">
+            {hasWeatherTip && (
+              <View className="flex-row gap-3 items-center">
+                <View className="w-8 h-8 rounded-lg bg-brand/10 items-center justify-center shrink-0">
+                  <IconBulb size={normalize(16)} color={BRAND} />
+                </View>
+                <View className="flex-1">
+                  <Text allowFontScaling={false} className="font-semibold text-black tracking-[-0.15px] mb-0.5" style={{ fontSize: normalizeFontSize(14) }}>
+                    오늘의 촬영 팁
+                  </Text>
+                  <Text allowFontScaling={false} className="text-black/50 leading-relaxed font-normal" style={{ fontSize: FONT_XS }}>
+                    {weatherTipText}
+                  </Text>
+                </View>
+              </View>
+            )}
+
+            {hasWeatherTip && hasAiGuide && (
+              <View className="h-[0.5px] bg-black/10 my-3.5" />
+            )}
+
+            {hasAiGuide && (
+              <View>
+                <View className="flex-row items-center mb-2">
+                  <View className="w-8 h-8 rounded-lg bg-brand/10 items-center justify-center shrink-0 mr-3">
+                    <IconSparkles size={normalize(16)} color={BRAND} />
+                  </View>
+                  <View className="flex-1">
+                    <Text allowFontScaling={false} className="font-semibold text-black tracking-[-0.15px]" style={{ fontSize: normalizeFontSize(14) }}>
+                      AI 스팟별 촬영 가이드
+                    </Text>
+                  </View>
+                </View>
+
+                <View className="gap-2 mt-1">
+                  {daySpotsWithMemo.map((spot: any, idx: number) => (
+                    <View key={spot.id || idx} className="bg-white rounded-xl p-3">
+                      <View className="flex-row items-center mb-1">
+                        <View className="w-4 h-4 rounded-full bg-brand items-center justify-center mr-1.5">
+                          <Text allowFontScaling={false} className="font-bold text-white" style={{ fontSize: normalizeFontSize(10) }}>
+                            {idx + 1}
+                          </Text>
+                        </View>
+                        <Text allowFontScaling={false} className="font-semibold text-black tracking-[-0.2px] flex-1" style={{ fontSize: FONT_SM }} numberOfLines={1}>
+                          {spot.name}
+                        </Text>
+                      </View>
+                      <Text allowFontScaling={false} className="text-black/60 leading-relaxed font-normal" style={{ fontSize: FONT_XS }}>
+                        {spot.memo}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              </View>
+            )}
           </View>
-          <View className="flex-1">
-            <Text allowFontScaling={false} className="font-semibold text-black tracking-[-0.15px] mb-0.5" style={{ fontSize: normalizeFontSize(14) }}>
-              오늘의 촬영 팁
-            </Text>
-            <Text allowFontScaling={false} className="text-black/50 leading-relaxed font-normal" style={{ fontSize: FONT_XS }}>
-              {(() => {
-                const { sunset, golden } = getSunsetAndGoldenHour(currentWeather.sunsetTime);
-                const fineDust = currentWeather.fineDustStatus ? `미세먼지 ${currentWeather.fineDustStatus} · ` : '';
-                return `${currentWeather.targetSpotName} 일몰 시간 ${sunset} · 골든아워 ${golden}\n${fineDust}일몰 포인트로 이동 추천`;
-              })()}
-            </Text>
-          </View>
-        </View>
-      )}
+        );
+      })()}
 
       {/* Weather Row */}
       {weatherRow}
