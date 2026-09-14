@@ -292,6 +292,7 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
                 spotId={spot.id}
                 onWriteReview={() => navigation.navigate('ReviewWrite', { spotId: spot.id })}
                 onEditReview={(edit) => navigation.navigate('ReviewWrite', { spotId: spot.id, edit })}
+                onNotify={showToast}
               />
             )}
           </View>

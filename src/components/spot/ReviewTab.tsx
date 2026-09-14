@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Alert, Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { IconCamera, IconEdit } from '@tabler/icons-react-native';
 import Chip from '@/components/common/Chip';
@@ -8,15 +8,18 @@ import PhotoLightbox from '@/components/spot/PhotoLightbox';
 import ReviewActionSheet from '@/components/spot/ReviewActionSheet';
 import ReviewMenuButton from '@/components/spot/ReviewMenuButton';
 import ReviewTagRow from '@/components/spot/ReviewTagRow';
+import PostReportSheet from '@/components/community/PostReportSheet';
 import { useDeleteReview, useFetchReview, useSpotDetail, useSpotReviews } from '@/hooks/useSpot';
 import { ApiError } from '@/api/auth';
 import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '@/store/useAuthStore';
+import { useReportReview } from '@/hooks/useReport';
 import { SORT_TO_API } from '@/utils/spotMappers';
 import { BUTTON_HEIGHT, BUTTON_RADIUS, FONT_2XS, FONT_MD, FONT_SM, FONT_XS, GRID_PADDING, HAIRLINE_WIDTH } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import type { ReviewEditSeed } from '@/navigation/stacks/SpotStack';
 import type { Review, ReviewSortOption, ReviewSummaryData } from '@/types/spot';
+import type { ReportReasonId } from '@/types/report';
 import { BRAND, CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
 
 // 아이콘 회색은 불투명 값으로 고정한다. rgba로 두면 획이 교차하는 지점에서 알파가 두 번
@@ -36,9 +39,10 @@ interface Props {
   onWriteReview: () => void;
   /** 수정 화면으로의 이동은 화면(SpotDetailScreen)이 담당한다. 이 컴포넌트는 표현만. */
   onEditReview: (seed: ReviewEditSeed) => void;
+  onNotify: (message: string) => void;
 }
 
-export default function ReviewTab({ spotId, onWriteReview, onEditReview }: Props) {
+export default function ReviewTab({ spotId, onWriteReview, onEditReview, onNotify }: Props) {
   const [sort, setSort] = useState<ReviewSortOption>('최신순');
   const {
     data, isLoading, isError, hasNextPage, fetchNextPage, isFetchingNextPage,
@@ -46,6 +50,9 @@ export default function ReviewTab({ spotId, onWriteReview, onEditReview }: Props
 
   const myUserId = useAuthStore((s) => s.user?.id);
   const [menuTarget, setMenuTarget] = useState<Review | null>(null);
+  const [reportTarget, setReportTarget] = useState<Review | null>(null);
+  const reportReview = useReportReview();
+  const deferredRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // reviewId·photoIds는 확대 화면의 EXIF 조회용 (photoId로 EXIF 응답을 매칭한다).
   const [lightbox, setLightbox] = useState<{ photos: string[]; photoIds: number[]; index: number; reviewId: string } | null>(null);
   const deleteReview = useDeleteReview();
@@ -57,6 +64,36 @@ export default function ReviewTab({ spotId, onWriteReview, onEditReview }: Props
   const fetchReview = useFetchReview();
   const qc = useQueryClient();
   const [loadingSeed, setLoadingSeed] = useState(false);
+
+  useEffect(
+    () => () => {
+      if (deferredRef.current) clearTimeout(deferredRef.current);
+    },
+    [],
+  );
+
+  const openReportSheet = (review: Review) => {
+    setMenuTarget(null);
+    if (deferredRef.current) clearTimeout(deferredRef.current);
+    deferredRef.current = setTimeout(() => setReportTarget(review), 320);
+  };
+
+  const submitReviewReport = (reasonId: ReportReasonId, detail: string) => {
+    if (!reportTarget || reportReview.isPending) return;
+
+    reportReview.mutate(
+      { reviewId: reportTarget.id, reasonId, detail },
+      {
+        onSuccess: () => {
+          setReportTarget(null);
+          onNotify('신고가 접수되었어요');
+        },
+        onError: (error) => {
+          onNotify(error instanceof ApiError ? error.message : '신고를 접수하지 못했어요');
+        },
+      },
+    );
+  };
 
   const openMyReview = async () => {
     if (myReviewId === null || loadingSeed) return;
@@ -193,10 +230,10 @@ export default function ReviewTab({ spotId, onWriteReview, onEditReview }: Props
                     <Text className="font-normal" allowFontScaling={false} style={{ fontSize: FONT_XS, color: 'rgba(0,0,0,0.35)' }}>{review.date}</Text>
                   </View>
                 </View>
-                {/* 본인 리뷰에만 노출. 서버도 소유자를 검증하므로 이건 진입점 숨김이지 보안 장치가 아니다. */}
-                {myUserId !== undefined && review.userId === myUserId && (
-                  <ReviewMenuButton onPress={() => setMenuTarget(review)} />
-                )}
+                <ReviewMenuButton
+                  isMine={myUserId !== undefined && review.userId === myUserId}
+                  onPress={() => setMenuTarget(review)}
+                />
               </View>
 
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(14), color: 'rgba(0,0,0,0.72)', lineHeight: normalizeFontSize(14) * 1.6, letterSpacing: -0.15, marginBottom: normalize(10) }}>
@@ -295,6 +332,7 @@ export default function ReviewTab({ spotId, onWriteReview, onEditReview }: Props
       <ReviewActionSheet
         visible={menuTarget !== null}
         onClose={() => setMenuTarget(null)}
+        isMine={menuTarget?.userId === myUserId}
         onEdit={() => {
           const target = menuTarget;
           setMenuTarget(null);
@@ -311,6 +349,14 @@ export default function ReviewTab({ spotId, onWriteReview, onEditReview }: Props
           });
         }}
         onDelete={() => menuTarget && confirmDelete(menuTarget)}
+        onRequestReport={() => menuTarget && openReportSheet(menuTarget)}
+      />
+
+      <PostReportSheet
+        visible={reportTarget !== null}
+        onClose={() => setReportTarget(null)}
+        onSubmit={submitReviewReport}
+        isSubmitting={reportReview.isPending}
       />
 
       <PhotoLightbox
