@@ -239,3 +239,47 @@ export interface AdminContestReportResponse {
   createdAt: string;
 }
 
+export type AdminReportTargetType = 'POST' | 'REVIEW' | 'COMMENT' | 'CHAT_MESSAGE';
+export type AdminReportStatus = 'PENDING' | 'RESOLVED' | 'DISMISSED';
+export type AdminReportReason = 'SPAM' | 'ABUSE' | 'COPYRIGHT' | 'INAPPROPRIATE' | 'ETC';
+export type AdminReportFilter = 'ALL' | AdminReportStatus;
+
+export interface AdminReportListResponse {
+  reportId: number;
+  targetType: AdminReportTargetType;
+  targetId: number;
+  reason: AdminReportReason;
+  status: AdminReportStatus;
+  reporterId: number;
+  reporterNickname: string;
+  reportedUserId: number;
+  reportedUserNickname: string;
+  createdAt: string;
+  handledById: number | null;
+  handledAt: string | null;
+}
+
+export interface AdminReportDetailResponse extends AdminReportListResponse {
+  detail: string | null;
+  targetContentSnapshot: string;
+  handledByNickname: string | null;
+  resolutionNote: string | null;
+}
+
+export interface AdminReportProcessRequest {
+  status: 'RESOLVED' | 'DISMISSED';
+  resolutionNote?: string;
+}
+
+export interface AdminReportTargetDeleteRequest {
+  resolutionNote?: string;
+}
+
+export interface AdminReportProcessResponse {
+  reportId: number;
+  status: AdminReportStatus;
+  handledById: number;
+  handledAt: string;
+  resolutionNote: string | null;
+}
+
