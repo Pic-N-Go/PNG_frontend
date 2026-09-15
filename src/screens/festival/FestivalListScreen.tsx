@@ -52,8 +52,13 @@ export default function FestivalListScreen({ route, navigation }: Props) {
   const [selectedStatus, setSelectedStatus] = useState<StatusFilter>(initialStatus);
 
   const queryParams = useMemo(() => {
-    if (selectedStatus === 'ALL') return { size: 20 };
-    return { status: selectedStatus as 'ONGOING' | 'UPCOMING', size: 20 };
+    // 'ALL'일 때 status 파라미터를 생략하면 백엔드 기본값('ONGOING')으로 인해 예정 축제가 누락됩니다.
+    // 백엔드의 'UPCOMING'은 종료일이 미래인 모든 축제(진행중 + 예정 + 상시)를 반환하므로,
+    // 'ALL'과 'UPCOMING' 모두 'UPCOMING' 파라미터를 사용하여 축제 데이터를 온전히 가져옵니다.
+    if (selectedStatus === 'ALL' || selectedStatus === 'UPCOMING') {
+      return { status: 'UPCOMING' as const, size: 20 };
+    }
+    return { status: 'ONGOING' as const, size: 20 };
   }, [selectedStatus]);
 
   const {
@@ -72,14 +77,42 @@ export default function FestivalListScreen({ route, navigation }: Props) {
     const items = pages.flatMap((p) => p.content ?? []);
     // 중복 제거
     const seen = new Set<number>();
-    return items.filter((f) => {
+    const unique = items.filter((f) => {
       if (seen.has(f.id)) return false;
       seen.add(f.id);
       return true;
     });
-  }, [data?.pages]);
 
-  const totalCount = data?.pages[0]?.totalElements ?? festivals.length;
+    // 탭별 필터링
+    let filtered = unique;
+    if (selectedStatus === 'ONGOING') {
+      filtered = unique.filter((f) => f.progressStatus === 'ONGOING' || f.progressStatus === 'UNKNOWN');
+    } else if (selectedStatus === 'UPCOMING') {
+      filtered = unique.filter((f) => f.progressStatus === 'UPCOMING');
+    } else {
+      // 'ALL': 종료된 축제 제외하고 진행중, 예정, 상시 모두 포함
+      filtered = unique.filter((f) => f.progressStatus !== 'ENDED');
+    }
+
+    // 정렬: 날짜 있는 축제 우선, 상시운영(날짜 없음)은 맨 뒤로 배치
+    return [...filtered].sort((a, b) => {
+      const hasDateA = a.eventStartDate ? 1 : 0;
+      const hasDateB = b.eventStartDate ? 1 : 0;
+      if (hasDateA !== hasDateB) return hasDateB - hasDateA;
+
+      const order: Record<string, number> = { ONGOING: 0, UPCOMING: 1, UNKNOWN: 2, ENDED: 3 };
+      if ((order[a.progressStatus] ?? 99) !== (order[b.progressStatus] ?? 99)) {
+        return (order[a.progressStatus] ?? 99) - (order[b.progressStatus] ?? 99);
+      }
+
+      if (a.eventStartDate && b.eventStartDate) {
+        return a.eventStartDate.localeCompare(b.eventStartDate);
+      }
+      return 0;
+    });
+  }, [data?.pages, selectedStatus]);
+
+  const totalCount = festivals.length;
 
   const handleFestivalPress = (id: number) => {
     const rootNavigation = navigation as unknown as NativeStackNavigationProp<RootStackParamList>;

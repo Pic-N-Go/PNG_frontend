@@ -39,7 +39,13 @@ export default function FestivalSection({ onEventPress, onViewAll }: Props) {
       const hasDateB = b.eventStartDate ? 1 : 0;
       if (hasDateA !== hasDateB) return hasDateB - hasDateA;
       const order: Record<string, number> = { ONGOING: 0, UPCOMING: 1, UNKNOWN: 2, ENDED: 3 };
-      return (order[a.progressStatus] ?? 99) - (order[b.progressStatus] ?? 99);
+      if ((order[a.progressStatus] ?? 99) !== (order[b.progressStatus] ?? 99)) {
+        return (order[a.progressStatus] ?? 99) - (order[b.progressStatus] ?? 99);
+      }
+      if (a.eventStartDate && b.eventStartDate) {
+        return a.eventStartDate.localeCompare(b.eventStartDate);
+      }
+      return 0;
     });
 
     return sorted.slice(0, 6);
