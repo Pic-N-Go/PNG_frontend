@@ -91,6 +91,11 @@ export default function MapScreen() {
   const [isMapReady, setMapReady] = useState(false);
   const currentCameraRef = useRef({ latitude: 37.5665, longitude: 126.9780, zoom: 14 });
   const hasCenteredInitialLocationRef = useRef(false);
+  const [pendingCameraTarget, setPendingCameraTarget] = useState<{
+    latitude: number;
+    longitude: number;
+    zoom: number;
+  } | null>(null);
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const { selectedSpots, addSpot, removeSpot } = useCourseStore();
   const [activeSpot, setActiveSpot] = useState<Spot | null>(null);
@@ -303,19 +308,11 @@ export default function MapScreen() {
       const isValidCoord =
         Number.isFinite(lat) && Number.isFinite(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
       if (isValidCoord) {
-        naverMapRef.current?.animateCameraTo({
+        setPendingCameraTarget({
           latitude: lat,
           longitude: lng,
           zoom: 15,
         });
-        // 혹시 전환 애니메이션 중 네이티브 맵이 준비되는 시점 대응
-        setTimeout(() => {
-          naverMapRef.current?.animateCameraTo({
-            latitude: lat,
-            longitude: lng,
-            zoom: 15,
-          });
-        }, 300);
       }
     } else if (searchKeyword) {
       hasCenteredInitialLocationRef.current = true;
@@ -324,6 +321,14 @@ export default function MapScreen() {
 
     navigation.setParams({ searchSelectedSpot: undefined, searchKeyword: undefined, searchNonce: undefined });
   }, [route.params, navigation]);
+
+  // 지도 컴포넌트 초기화 완료 시 대기 중인 카메라 이동 좌표 적용
+  useEffect(() => {
+    if (isMapReady && pendingCameraTarget) {
+      naverMapRef.current?.animateCameraTo(pendingCameraTarget);
+      setPendingCameraTarget(null);
+    }
+  }, [isMapReady, pendingCameraTarget]);
 
   const handleBackNavigation = useCallback(() => {
     if (searchQuery || activeSpot) {

@@ -52,17 +52,23 @@ export default function ContestEntryDetailScreen() {
   const [aspectRatio, setAspectRatio] = useState<number | null>(null);
 
   useEffect(() => {
-    if (photoUrl) {
-      Image.getSize(
-        photoUrl,
-        (w, h) => {
-          if (w > 0 && h > 0) {
-            setAspectRatio(w / h);
-          }
-        },
-        () => {}
-      );
-    }
+    setAspectRatio(null);
+    if (!photoUrl) return;
+
+    let isMounted = true;
+    Image.getSize(
+      photoUrl,
+      (w, h) => {
+        if (isMounted && w > 0 && h > 0) {
+          setAspectRatio(w / h);
+        }
+      },
+      () => {}
+    );
+
+    return () => {
+      isMounted = false;
+    };
   }, [photoUrl]);
 
   // 내 작품·종료 여부는 서버가 판정한다. 진입 경로가 넘긴 값은 조회 전 첫 페인트에만 쓴다

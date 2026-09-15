@@ -349,15 +349,21 @@ function EntryDetailView({ entry, monthLabel, onBack, onOpenSpot }: { entry: Con
   const [aspectRatio, setAspectRatio] = useState<number | null>(null);
 
   useEffect(() => {
-    if (entry.photoUrl) {
-      Image.getSize(
-        entry.photoUrl,
-        (w, h) => {
-          if (w > 0 && h > 0) setAspectRatio(w / h);
-        },
-        () => {}
-      );
-    }
+    setAspectRatio(null);
+    if (!entry.photoUrl) return;
+
+    let isMounted = true;
+    Image.getSize(
+      entry.photoUrl,
+      (w, h) => {
+        if (isMounted && w > 0 && h > 0) setAspectRatio(w / h);
+      },
+      () => {}
+    );
+
+    return () => {
+      isMounted = false;
+    };
   }, [entry.photoUrl]);
 
   return (
