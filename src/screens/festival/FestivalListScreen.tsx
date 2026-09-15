@@ -34,7 +34,7 @@ const STATUS_TABS: { id: StatusFilter; label: string }[] = [
 ];
 
 function formatDateRange(startDate?: string, endDate?: string): string {
-  if (!startDate) return '상시 진행';
+  if (!startDate) return '상시 운영';
   if (!endDate || startDate === endDate) {
     return startDate.replace(/-/g, '.');
   }
@@ -188,9 +188,10 @@ export default function FestivalListScreen({ route, navigation }: Props) {
           renderItem={({ item }) => {
             const dateRange = formatDateRange(item.eventStartDate, item.eventEndDate);
             const isOngoing = item.progressStatus === 'ONGOING';
-            const statusLabel = isOngoing ? '진행중' : '개최예정';
-            const statusColor = isOngoing ? '#34c759' : '#007aff';
-            const statusBg = isOngoing ? 'rgba(52, 199, 89, 0.1)' : 'rgba(0, 122, 255, 0.1)';
+            const isUpcoming = item.progressStatus === 'UPCOMING';
+            const statusLabel = isOngoing ? '진행중' : isUpcoming ? '개최예정' : '상시운영';
+            const statusColor = isOngoing ? '#34c759' : isUpcoming ? '#007aff' : '#8e8e93';
+            const statusBg = isOngoing ? 'rgba(52, 199, 89, 0.1)' : isUpcoming ? 'rgba(0, 122, 255, 0.1)' : 'rgba(142, 142, 147, 0.1)';
             const imageUri = toHttps(item.thumbnailUrl || item.imageUrl);
             const location = regionLabelFrom(item.address) || item.address || '전국';
 

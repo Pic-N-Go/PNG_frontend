@@ -14,7 +14,7 @@ interface Props {
 }
 
 function formatDateRange(startDate?: string, endDate?: string): string {
-  if (!startDate) return '상시 진행';
+  if (!startDate) return '상시 운영';
   if (!endDate || startDate === endDate) {
     return startDate.replace(/-/g, '.');
   }
@@ -29,8 +29,8 @@ function formatDateRange(startDate?: string, endDate?: string): string {
 const CARD_WIDTH = normalize(210);
 
 export default function FestivalSection({ onEventPress, onViewAll }: Props) {
-  // 백엔드가 종료된 축제를 제외한 목록을 기본 반환하므로 단일 쿼리로 안정적이고 빠르게 호출
-  const { data: festivalData, isLoading, isError, refetch } = useFestivals({ size: 10 });
+  // UPCOMING 상태로 호출하여 현재 진행 중인 축제와 향후 예정된 축제를 함께 조회
+  const { data: festivalData, isLoading, isError, refetch } = useFestivals({ status: 'UPCOMING', size: 10 });
 
   const festivalList = React.useMemo(() => {
     const list = festivalData?.content ?? [];
@@ -120,9 +120,10 @@ export default function FestivalSection({ onEventPress, onViewAll }: Props) {
         >
           {festivalList.map((festival) => {
             const isOngoing = festival.progressStatus === 'ONGOING';
-            const statusLabel = isOngoing ? '진행중' : '개최예정';
-            const statusColor = isOngoing ? '#34c759' : '#007aff';
-            const statusBg = isOngoing ? 'rgba(52, 199, 89, 0.1)' : 'rgba(0, 122, 255, 0.1)';
+            const isUpcoming = festival.progressStatus === 'UPCOMING';
+            const statusLabel = isOngoing ? '진행중' : isUpcoming ? '개최예정' : '상시운영';
+            const statusColor = isOngoing ? '#34c759' : isUpcoming ? '#007aff' : '#8e8e93';
+            const statusBg = isOngoing ? 'rgba(52, 199, 89, 0.1)' : isUpcoming ? 'rgba(0, 122, 255, 0.1)' : 'rgba(142, 142, 147, 0.1)';
             const location = regionLabelFrom(festival.address) || festival.address || '전국';
             const categoryTag = festival.categories?.map((c: string) => SPOT_CATEGORY_MAP[c]?.label).filter(Boolean).join(' · ') || '축제 · 행사';
             const tipText = festival.overview ? festival.overview.replace(/\r?\n/g, ' ').slice(0, 24) : (festival.usetime || '인기 출사지');
