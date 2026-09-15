@@ -90,6 +90,8 @@ export default function MapScreen() {
   // (`Index n out of bounds for length 0`). 초기화 후에만 자식을 렌더한다.
   const [isMapReady, setMapReady] = useState(false);
   const currentCameraRef = useRef({ latitude: 37.5665, longitude: 126.9780, zoom: 14 });
+  const hasCenteredInitialLocationRef = useRef(false);
+  const hasMovedForKeywordRef = useRef<string | null>(null);
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const { selectedSpots, addSpot, removeSpot } = useCourseStore();
   const [activeSpot, setActiveSpot] = useState<Spot | null>(null);
@@ -129,7 +131,14 @@ export default function MapScreen() {
           if (lastKnown) {
             const sanitized = sanitizeKoreaLocation(lastKnown.coords.latitude, lastKnown.coords.longitude);
             setUserLocation({ latitude: sanitized.lat, longitude: sanitized.lng });
-            if (!isCourseView) {
+            // 코스 보기 또는 검색 스팟/키워드가 있을 때는 GPS 위치로 카메라를 덮어쓰지 않는다
+            if (
+              !isCourseView &&
+              !hasCenteredInitialLocationRef.current &&
+              !route.params?.searchSelectedSpot &&
+              !route.params?.searchKeyword
+            ) {
+              hasCenteredInitialLocationRef.current = true;
               naverMapRef.current?.animateCameraTo({
                 latitude: sanitized.lat,
                 longitude: sanitized.lng,
@@ -172,7 +181,7 @@ export default function MapScreen() {
         subscription.remove();
       }
     };
-  }, [isCourseView]);
+  }, [isCourseView, route.params?.searchSelectedSpot, route.params?.searchKeyword]);
 
   const showToast = (message: string) => {
     setToastMessage(message);
@@ -287,6 +296,7 @@ export default function MapScreen() {
     const { searchSelectedSpot, searchKeyword } = route.params;
 
     if (searchSelectedSpot) {
+      hasCenteredInitialLocationRef.current = true;
       setSearchQuery(searchSelectedSpot.name);
       setActiveSpot(searchSelectedSpot);
       const lat = Number(searchSelectedSpot.lat);
@@ -299,13 +309,43 @@ export default function MapScreen() {
           longitude: lng,
           zoom: 15,
         });
+        // 혹시 전환 애니메이션 중 네이티브 맵이 준비되는 시점 대응
+        setTimeout(() => {
+          naverMapRef.current?.animateCameraTo({
+            latitude: lat,
+            longitude: lng,
+            zoom: 15,
+          });
+        }, 300);
       }
     } else if (searchKeyword) {
+      hasCenteredInitialLocationRef.current = true;
       setSearchQuery(searchKeyword);
     }
 
     navigation.setParams({ searchSelectedSpot: undefined, searchKeyword: undefined, searchNonce: undefined });
   }, [route.params, navigation]);
+
+  // 검색어 입력으로 스팟 목록이 들어왔을 때, 첫 번째 검색 결과 위치로 지도 카메라 이동
+  useEffect(() => {
+    if (hasKeyword && searchSpotsData?.content && searchSpotsData.content.length > 0) {
+      if (hasMovedForKeywordRef.current !== debouncedKeyword) {
+        hasMovedForKeywordRef.current = debouncedKeyword;
+        const firstSpot = searchSpotsData.content[0];
+        const lat = Number(firstSpot.latitude);
+        const lng = Number(firstSpot.longitude);
+        const isValidCoord =
+          Number.isFinite(lat) && Number.isFinite(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
+        if (isValidCoord) {
+          naverMapRef.current?.animateCameraTo({
+            latitude: lat,
+            longitude: lng,
+            zoom: 15,
+          });
+        }
+      }
+    }
+  }, [hasKeyword, searchSpotsData, debouncedKeyword]);
 
   const handleBackNavigation = useCallback(() => {
     if (searchQuery || activeSpot) {

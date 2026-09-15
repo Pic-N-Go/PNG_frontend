@@ -113,16 +113,6 @@ export default function MapSearchScreen() {
     [navigation]
   );
 
-  const handleSearchSubmit = (targetQuery?: string) => {
-    const searchQuery = (targetQuery ?? query).trim();
-    if (!searchQuery) return;
-    if (targetQuery) {
-      setQuery(targetQuery);
-    }
-    addRecentSearch(searchQuery);
-    Keyboard.dismiss();
-  };
-
   const handleSelectSpot = useCallback(
     (spot: SpotResponse) => {
       addRecentSearch(spot.name);
@@ -140,6 +130,21 @@ export default function MapSearchScreen() {
     },
     [addRecentSearch, returnToMap]
   );
+
+  const handleSearchSubmit = (targetQuery?: string) => {
+    const searchQuery = (targetQuery ?? query).trim();
+    if (!searchQuery) return;
+    if (targetQuery) {
+      setQuery(targetQuery);
+    }
+    addRecentSearch(searchQuery);
+    Keyboard.dismiss();
+    if (searchResults.length > 0) {
+      handleSelectSpot(searchResults[0]);
+    } else {
+      returnToMap({ searchKeyword: searchQuery });
+    }
+  };
 
   const isQueryEmpty = query.trim().length === 0;
 

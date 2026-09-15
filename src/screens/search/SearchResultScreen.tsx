@@ -19,9 +19,8 @@ import {
   IconMapPin,
 } from '@tabler/icons-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { HomeStackParamList } from '@/navigation/stacks/HomeStack';
-import type { RootStackParamList } from '@/navigation';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import Skeleton from '@/components/common/Skeleton';
 import { useSpots, useSearchSpots } from '@/hooks/useSpot';
@@ -30,6 +29,7 @@ import { mapPopularSpot } from '@/utils/spotMappers';
 import { CATEGORY_CODES, SPOT_CATEGORY_MAP, CODE_BY_LABEL } from '@/constants/spotCategories';
 import { Sparkles } from 'lucide-react-native';
 import Chip from '@/components/common/Chip';
+import type { Spot } from '@/store/useCourseStore';
 import { FONT_LG, FONT_MD, FONT_SM, GRID_PADDING, HAIRLINE_WIDTH, SPACING_LG, SPACING_MD } from '@/constants/layout';
 import { BRAND, BRAND_TINT, CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
 
@@ -59,6 +59,8 @@ interface ResultRow {
   id: string;
   name: string;
   addr: string;
+  lat: number;
+  lng: number;
   /** 포토제닉 지수. */
   score?: number;
   tags: string[];
@@ -94,6 +96,8 @@ export default function SearchResultScreen({ route, navigation }: Props) {
           id: mapped.id,
           name: mapped.name,
           addr: mapped.location,
+          lat: s.latitude,
+          lng: s.longitude,
           score: s.photogenicScore !== undefined ? Math.round(s.photogenicScore) : undefined,
           tags: mapped.category ? [mapped.category] : [],
           categories: s.categories ?? [],
@@ -128,6 +132,8 @@ export default function SearchResultScreen({ route, navigation }: Props) {
           id: mapped.id,
           name: mapped.name,
           addr: mapped.location,
+          lat: s.latitude,
+          lng: s.longitude,
           score: s.photogenicScore !== undefined ? Math.round(s.photogenicScore) : undefined,
           tags: mapped.category ? [mapped.category] : [],
           categories: s.categories ?? [],
@@ -456,8 +462,26 @@ export default function SearchResultScreen({ route, navigation }: Props) {
               renderItem={({ item }) => (
                 <Pressable
                   onPress={() => {
-                    const rootNavigation = navigation as unknown as NativeStackNavigationProp<RootStackParamList>;
-                    rootNavigation.navigate('SpotStack', { screen: 'SpotDetail', params: { spotId: item.id } });
+                    const courseSpot: Spot = {
+                      id: item.id,
+                      name: item.name,
+                      loc: item.addr,
+                      lat: item.lat,
+                      lng: item.lng,
+                      tags: item.tags,
+                      score: item.score !== undefined ? String(item.score) : '0.0',
+                      photo: item.imageUrl || '',
+                    };
+                    (navigation as any).navigate('Main', {
+                      screen: 'MapTab',
+                      params: {
+                        screen: 'Map',
+                        params: {
+                          searchSelectedSpot: courseSpot,
+                          searchNonce: Date.now(),
+                        },
+                      },
+                    });
                   }}
                   style={{ flexDirection: 'row', gap: normalize(14), paddingVertical: normalize(14), borderBottomWidth: HAIRLINE_WIDTH, borderBottomColor: HAIRLINE }}
                 >

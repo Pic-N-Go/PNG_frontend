@@ -45,6 +45,7 @@ export type SpotInCourse = {
   latitude?: number;
   longitude?: number;
   thumbnailUrl?: string | null;
+  imageUrl?: string | null;
   photogenicScore?: number;
   navigation?: SpotNavigationDTO;
   dayNumber: number;

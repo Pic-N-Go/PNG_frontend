@@ -42,6 +42,7 @@ import { getCourseStats } from "@/utils/distance";
 import { getDayColor } from "@/constants/dayColors";
 import { FONT_XS, FONT_SM, FONT_MD, FONT_LG, CONTENT_PADDING, BUTTON_HEIGHT, BUTTON_RADIUS, CARD_RADIUS, HEADER_HEIGHT, ICON_SM , BORDER_CONTROL } from "@/constants/layout";
 import { BRAND, BRAND_MUTED, BRAND_STRONG, BRAND_TINT, CARD } from '@/constants/colors';
+import { toHttps } from "@/utils/spotMappers";
 
 import { PIN_COURSE_IMAGE } from '@/constants/pins';
 
@@ -95,7 +96,12 @@ const WeatherCell = ({ period, data }: { period: string; data: { weatherStatus: 
 
 const SpotThumbnail = ({ photo, spotId }: { photo?: string | null; spotId: string | number }) => {
   const [failed, setFailed] = useState(false);
-  const showImage = Boolean(photo && !failed);
+  const safePhoto = React.useMemo(() => toHttps(photo), [photo]);
+  const showImage = Boolean(safePhoto && !failed);
+
+  useEffect(() => {
+    setFailed(false);
+  }, [safePhoto]);
 
   return (
     <View
@@ -110,7 +116,7 @@ const SpotThumbnail = ({ photo, spotId }: { photo?: string | null; spotId: strin
       />
       {showImage ? (
         <Image
-          source={{ uri: photo! }}
+          source={{ uri: safePhoto! }}
           style={StyleSheet.absoluteFillObject}
           resizeMode="cover"
           onError={() => setFailed(true)}
@@ -142,8 +148,6 @@ const MOCK_DATA: Record<string, any> = {
         loc: "부산 수영구 · 야경/바다",
         time: "06:30 ~ 08:00",
         dur: "1시간 30분",
-        score: "87점",
-        scoreColor: "#ff9f0a",
         bg: "#0f2027",
         lat: 35.1531696,
         lng: 129.118666,
@@ -154,8 +158,6 @@ const MOCK_DATA: Record<string, any> = {
         loc: "부산 기장군 · 한옥/바다",
         time: "09:00 ~ 10:30",
         dur: "1시간 30분",
-        score: "82점",
-        scoreColor: "#ff9f0a",
         bg: "#8e7b5a",
         lat: 35.1884148,
         lng: 129.223293,
@@ -166,8 +168,6 @@ const MOCK_DATA: Record<string, any> = {
         loc: "부산 사하구 · 인물/감성",
         time: "11:00 ~ 13:00",
         dur: "2시간",
-        score: "79점",
-        scoreColor: "#34c759",
         bg: "#b44a3a",
         lat: 35.0974711,
         lng: 129.010595,
@@ -189,8 +189,6 @@ const MOCK_DATA: Record<string, any> = {
         loc: "부산 영도구 · 뷰/감성",
         time: "09:30 ~ 11:00",
         dur: "1시간 30분",
-        score: "91점",
-        scoreColor: BRAND,
         bg: "#667eea",
         lat: 35.0788,
         lng: 129.0439,
@@ -201,8 +199,6 @@ const MOCK_DATA: Record<string, any> = {
         loc: "부산 영도구 · 바다/절벽",
         time: "11:30 ~ 13:30",
         dur: "2시간",
-        score: "88점",
-        scoreColor: "#ff9f0a",
         bg: "#1a6b8a",
         lat: 35.0527,
         lng: 129.0877,
@@ -223,8 +219,6 @@ const MOCK_DATA: Record<string, any> = {
         loc: "부산 해운대구 · 전시/실내",
         time: "10:00 ~ 11:30",
         dur: "1시간 30분",
-        score: "84점",
-        scoreColor: "#ff9f0a",
         bg: "#3a4750",
         lat: 35.1682,
         lng: 129.1305,
@@ -235,8 +229,6 @@ const MOCK_DATA: Record<string, any> = {
         loc: "부산 중구 · 전통시장",
         time: "12:30 ~ 14:00",
         dur: "1시간 30분",
-        score: "76점",
-        scoreColor: "#34c759",
         bg: "#8e5a3c",
         lat: 35.1006,
         lng: 129.0284,
@@ -257,8 +249,6 @@ const MOCK_DATA: Record<string, any> = {
         loc: "부산 남구 · 바다/전망",
         time: "17:30 ~ 19:00",
         dur: "1시간 30분",
-        score: "93점",
-        scoreColor: BRAND,
         bg: "#1c4b5e",
         lat: 35.0968,
         lng: 129.1214,
@@ -269,8 +259,6 @@ const MOCK_DATA: Record<string, any> = {
         loc: "부산 남구 · 절벽/바다",
         time: "19:30 ~ 21:00",
         dur: "1시간 30분",
-        score: "89점",
-        scoreColor: "#ff9f0a",
         bg: "#0f3d3e",
         lat: 35.1219,
         lng: 129.1231,
@@ -291,8 +279,6 @@ const MOCK_DATA: Record<string, any> = {
         loc: "부산 해운대구 · 바다/서핑",
         time: "08:00 ~ 09:30",
         dur: "1시간 30분",
-        score: "80점",
-        scoreColor: "#ff9f0a",
         bg: "#2c6e91",
         lat: 35.1786,
         lng: 129.2003,
@@ -303,8 +289,6 @@ const MOCK_DATA: Record<string, any> = {
         loc: "부산 중구 · 전통시장/바다",
         time: "10:30 ~ 12:00",
         dur: "1시간 30분",
-        score: "72점",
-        scoreColor: "#34c759",
         bg: "#4a5568",
         lat: 35.0968,
         lng: 129.0306,
@@ -315,8 +299,6 @@ const MOCK_DATA: Record<string, any> = {
         loc: "부산 중구 · 전망/공원",
         time: "13:00 ~ 14:30",
         dur: "1시간 30분",
-        score: "77점",
-        scoreColor: "#34c759",
         bg: "#5c4a72",
         lat: 35.1007,
         lng: 129.0323,
@@ -360,19 +342,10 @@ function mapCourseToData(course: any) {
           loc: s.address || s.category || "",
           time: "10:00 ~ 11:00", // TODO: Add real time schedule fields
           dur: "1시간", // TODO: Add real duration
-          // 등급 기준·색은 스팟 상세(PhotogenicScoreCard)와 동일하게 맞춘다.
-          // 경계 80/60/40은 백엔드 PhotogenicResponse.gradeFrom과 같은 값이고,
-          // 색은 좋음류=핑크 / 보통=주황 / 비추천=회색. 점수가 없으면 배지를 렌더하지 않는다(아래 renderSpotRow).
-          score: typeof s.photogenicScore === "number" ? `${s.photogenicScore}점` : null,
-          scoreColor:
-            typeof s.photogenicScore !== "number" ? null
-              : s.photogenicScore >= 60 ? BRAND
-                : s.photogenicScore >= 40 ? "#E8890B"
-                  : "#9A9A9A",
           bg: "#2c6e91", // Default background color
           lat: hasNavCoord ? navLat : (s.latitude || 35.1531696),
           lng: hasNavCoord ? navLng : (s.longitude || 129.118666),
-          photo: s.thumbnailUrl || '',
+          photo: toHttps(s.thumbnailUrl || s.imageUrl || s.photo || ''),
           travelTimeMinutes: s.travelTimeMinutes,
           travelTimeEstimated: s.travelTimeEstimated,
           navigation: s.navigation,
@@ -1206,26 +1179,12 @@ export default function CoursePlanScreen({ navigation, route }: any) {
             <View
               className={`flex-1 justify-center ${isEditMode ? "pr-10" : "pr-4"}`}
             >
-              {/* 제목 + 점수 배지는 한 행. justify-between으로 밀지 않고 gap으로 붙여 한 덩어리로 읽히게 한다 */}
-              <View className="flex-row items-center gap-2 mb-1.5">
-                <Text allowFontScaling={false}
-                  className="font-semibold text-black tracking-[-0.2px] shrink" style={{ fontSize: FONT_MD }}
-                  numberOfLines={1}
-                >
-                  {item.name}
-                </Text>
-                {/* 점수가 없으면 배지를 그리지 않는다 — 색으로 최하위 등급처럼 보이는 걸 막는다 */}
-                {item.score ? (
-                  <View
-                    className="px-2.5 h-6 rounded-full items-center justify-center shrink-0"
-                    style={{ backgroundColor: item.scoreColor }}
-                  >
-                    <Text allowFontScaling={false} className="font-semibold text-white" style={{ fontSize: FONT_XS }}>
-                      {item.score}
-                    </Text>
-                  </View>
-                ) : null}
-              </View>
+              <Text allowFontScaling={false}
+                className="font-semibold text-black tracking-[-0.2px] mb-1.5" style={{ fontSize: FONT_MD }}
+                numberOfLines={1}
+              >
+                {item.name}
+              </Text>
               {Boolean(item.loc) && (
                 // 한 줄로 자르면 장소를 특정하는 도로명·번지가 잘려나가고 광역 단위만 남는다 → 2줄 허용
                 <Text allowFontScaling={false}

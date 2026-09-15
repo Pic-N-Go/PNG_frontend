@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Image, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -346,14 +346,55 @@ function RankList({ entries, myRank, onPress }: { entries: ContestPhotoEntry[]; 
 /** 수상작 상세(10b) — 출품작 상세(14g)와 같은 화면. 사진 위엔 뒤로가기만, 팔로우 버튼은 여기에만 있다. */
 function EntryDetailView({ entry, monthLabel, onBack, onOpenSpot }: { entry: ContestPhotoEntry; monthLabel: string; onBack: () => void; /** 직접 입력한 장소면 스팟이 없어 undefined다 */ onOpenSpot?: () => void }) {
   const [following, setFollowing] = useState(false);
+  const [aspectRatio, setAspectRatio] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (entry.photoUrl) {
+      Image.getSize(
+        entry.photoUrl,
+        (w, h) => {
+          if (w > 0 && h > 0) setAspectRatio(w / h);
+        },
+        () => {}
+      );
+    }
+  }, [entry.photoUrl]);
+
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={{ height: normalizeHeight(470) }}>
-          <ContestPhoto gradient={entry.gradient} photoUrl={entry.photoUrl} style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }} />
-          <LinearGradient colors={['rgba(0,0,0,0.42)', 'rgba(0,0,0,0)']} style={{ position: 'absolute', top: 0, left: 0, right: 0, height: normalize(140) }} pointerEvents="none" />
+        <View
+          style={{
+            width: '100%',
+            aspectRatio: aspectRatio ? Math.max(aspectRatio, 0.7) : undefined,
+            height: aspectRatio ? undefined : normalizeHeight(400),
+            backgroundColor: '#000',
+            overflow: 'hidden',
+          }}
+        >
+          <ContestPhoto
+            gradient={entry.gradient}
+            photoUrl={entry.photoUrl}
+            resizeMode="contain"
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+          />
+          <LinearGradient colors={['rgba(0,0,0,0.35)', 'rgba(0,0,0,0)']} style={{ position: 'absolute', top: 0, left: 0, right: 0, height: normalize(120) }} pointerEvents="none" />
           <SafeAreaView edges={['top']}>
-            <Pressable onPress={onBack} hitSlop={8} accessibilityRole="button" accessibilityLabel="뒤로" style={{ margin: normalize(12), width: normalize(40), height: normalize(40), alignItems: 'center', justifyContent: 'center' }}>
+            <Pressable
+              onPress={onBack}
+              hitSlop={8}
+              accessibilityRole="button"
+              accessibilityLabel="뒤로"
+              style={{
+                margin: normalize(12),
+                width: normalize(40),
+                height: normalize(40),
+                borderRadius: normalize(20),
+                backgroundColor: 'rgba(0,0,0,0.4)',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
               <ChevronLeft size={normalize(22)} color="#fff" strokeWidth={2} />
             </Pressable>
           </SafeAreaView>

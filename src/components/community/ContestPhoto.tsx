@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, StyleProp, View, ViewStyle } from 'react-native';
+import { Image, ImageResizeMode, StyleProp, View, ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 /**
@@ -14,12 +14,14 @@ export default function ContestPhoto({
   gradient,
   style,
   radius,
+  resizeMode = 'cover',
 }: {
   photoUrl?: string | null;
   gradient: [string, string, string];
   style?: StyleProp<ViewStyle>;
   /** 사진에도 같은 radius를 먹여야 모서리가 그라디언트와 어긋나지 않는다 */
   radius?: number;
+  resizeMode?: ImageResizeMode;
 }) {
   return (
     <View style={[{ overflow: 'hidden', borderRadius: radius }, style]}>
@@ -32,7 +34,7 @@ export default function ContestPhoto({
       {photoUrl ? (
         <Image
           source={{ uri: photoUrl }}
-          resizeMode="cover"
+          resizeMode={resizeMode}
           style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
         />
       ) : null}

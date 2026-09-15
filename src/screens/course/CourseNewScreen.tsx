@@ -33,6 +33,7 @@ import Toast from '@/components/common/Toast';
 import { BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING, FONT_LG, FONT_MD, FONT_SM, FONT_XS } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { BRAND } from '@/constants/colors';
+import { toHttps } from '@/utils/spotMappers';
 
 // --- Types ---
 type ChipType = '당일치기' | '1박 2일' | '2박 3일' | '3박 이상';
@@ -555,7 +556,7 @@ export default function CourseNewScreen() {
                         />
                         {spot.photo ? (
                           <Image
-                            source={{ uri: spot.photo }}
+                            source={{ uri: toHttps(spot.photo) }}
                             style={StyleSheet.absoluteFillObject}
                             resizeMode="cover"
                           />
@@ -577,7 +578,6 @@ export default function CourseNewScreen() {
                               <Text className="text-black/45 font-normal" style={{ fontSize: FONT_XS }}>{t}</Text>
                             </View>
                           ))}
-                          <Text className="font-semibold text-brand ml-1" style={{ fontSize: FONT_XS }}>★ {spot.score}</Text>
                         </View>
                       </View>
                       <TouchableOpacity 
