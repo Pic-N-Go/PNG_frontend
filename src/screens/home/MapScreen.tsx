@@ -91,7 +91,6 @@ export default function MapScreen() {
   const [isMapReady, setMapReady] = useState(false);
   const currentCameraRef = useRef({ latitude: 37.5665, longitude: 126.9780, zoom: 14 });
   const hasCenteredInitialLocationRef = useRef(false);
-  const hasMovedForKeywordRef = useRef<string | null>(null);
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const { selectedSpots, addSpot, removeSpot } = useCourseStore();
   const [activeSpot, setActiveSpot] = useState<Spot | null>(null);
@@ -325,27 +324,6 @@ export default function MapScreen() {
 
     navigation.setParams({ searchSelectedSpot: undefined, searchKeyword: undefined, searchNonce: undefined });
   }, [route.params, navigation]);
-
-  // 검색어 입력으로 스팟 목록이 들어왔을 때, 첫 번째 검색 결과 위치로 지도 카메라 이동
-  useEffect(() => {
-    if (hasKeyword && searchSpotsData?.content && searchSpotsData.content.length > 0) {
-      if (hasMovedForKeywordRef.current !== debouncedKeyword) {
-        hasMovedForKeywordRef.current = debouncedKeyword;
-        const firstSpot = searchSpotsData.content[0];
-        const lat = Number(firstSpot.latitude);
-        const lng = Number(firstSpot.longitude);
-        const isValidCoord =
-          Number.isFinite(lat) && Number.isFinite(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
-        if (isValidCoord) {
-          naverMapRef.current?.animateCameraTo({
-            latitude: lat,
-            longitude: lng,
-            zoom: 15,
-          });
-        }
-      }
-    }
-  }, [hasKeyword, searchSpotsData, debouncedKeyword]);
 
   const handleBackNavigation = useCallback(() => {
     if (searchQuery || activeSpot) {

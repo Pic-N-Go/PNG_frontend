@@ -139,11 +139,6 @@ export default function MapSearchScreen() {
     }
     addRecentSearch(searchQuery);
     Keyboard.dismiss();
-    if (searchResults.length > 0) {
-      handleSelectSpot(searchResults[0]);
-    } else {
-      returnToMap({ searchKeyword: searchQuery });
-    }
   };
 
   const isQueryEmpty = query.trim().length === 0;
