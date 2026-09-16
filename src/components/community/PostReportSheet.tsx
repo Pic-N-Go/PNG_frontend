@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { ScrollView, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import Animated, { FadeInLeft, FadeInRight, FadeOutLeft, FadeOutRight } from 'react-native-reanimated';
 import { ChevronLeft, ChevronRight, ShieldAlert } from 'lucide-react-native';
 import BottomSheet from '@/components/common/BottomSheet';
@@ -53,120 +53,132 @@ export default function PostReportSheet({ visible, onClose, onSubmit, isSubmitti
     <BottomSheet visible={visible} onClose={handleClose}>
       <Animated.View
         style={{
-          height: normalize(333),
+          flexShrink: 1,
           paddingHorizontal: GRID_PADDING + normalize(8),
           paddingBottom: normalize(8),
-          overflow: 'hidden',
         }}
       >
         {selectedReason === null ? (
-          <Animated.View key="reason-list" entering={FadeInLeft.duration(220)} exiting={FadeOutLeft.duration(150)} style={{ height: '100%' }}>
-            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_TITLE, letterSpacing: -0.4, color: '#000', marginBottom: normalize(3) }}>
-              신고 사유를 선택해 주세요
-            </Text>
-            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, letterSpacing: -0.1, color: TEXT_SUB, marginBottom: normalize(16) }}>
-              신고 내용은 운영팀이 확인하며 상대방에게 공개되지 않아요
-            </Text>
+          <Animated.View key="reason-list" entering={FadeInLeft.duration(220)} exiting={FadeOutLeft.duration(150)} style={{ flexShrink: 1 }}>
+            <ScrollView
+              style={{ flexShrink: 1 }}
+              contentContainerStyle={{ paddingBottom: normalize(8) }}
+              showsVerticalScrollIndicator={false}
+            >
+              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_TITLE, letterSpacing: -0.4, color: '#000', marginBottom: normalize(3) }}>
+                신고 사유를 선택해 주세요
+              </Text>
+              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, letterSpacing: -0.1, color: TEXT_SUB, marginBottom: normalize(16) }}>
+                신고 내용은 운영팀이 확인하며 상대방에게 공개되지 않아요
+              </Text>
 
-            {REPORT_REASONS.map((reason, index) => (
+              {REPORT_REASONS.map((reason, index) => (
                 <React.Fragment key={reason.id}>
-                <TouchableOpacity
-                  onPress={() => setSelectedReason(reason.id)}
-                  activeOpacity={0.55}
-                  accessibilityRole="button"
-                  accessibilityLabel={`${reason.label} 신고 사유 선택`}
-                  style={{
-                    width: '100%',
-                    minHeight: normalize(44),
-                    justifyContent: 'center',
-                  }}
-                >
-                  <View className="flex-row items-center justify-between">
-                    <View style={{ flex: 1, paddingRight: normalize(12) }}>
-                      <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_MD, letterSpacing: -0.2, color: '#111' }}>
-                        {reason.label}
-                      </Text>
-                      {reason.description && (
-                        <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: TEXT_SUB, marginTop: normalize(3) }}>
-                          {reason.description}
-                        </Text>
-                      )}
-                    </View>
-                    <ChevronRight size={normalize(16)} color={TEXT_SUB} strokeWidth={2} />
-                  </View>
-                </TouchableOpacity>
-                {index < REPORT_REASONS.length - 1 && (
-                  <View
+                  <TouchableOpacity
+                    onPress={() => setSelectedReason(reason.id)}
+                    activeOpacity={0.55}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${reason.label} 신고 사유 선택`}
                     style={{
-                      height: normalize(15),
-                      borderTopWidth: HAIRLINE_WIDTH,
-                      borderTopColor: HAIRLINE,
+                      width: '100%',
+                      minHeight: normalize(44),
+                      justifyContent: 'center',
                     }}
-                  />
-                )}
+                  >
+                    <View className="flex-row items-center justify-between">
+                      <View style={{ flex: 1, paddingRight: normalize(12) }}>
+                        <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_MD, letterSpacing: -0.2, color: '#111' }}>
+                          {reason.label}
+                        </Text>
+                        {reason.description && (
+                          <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: TEXT_SUB, marginTop: normalize(3) }}>
+                            {reason.description}
+                          </Text>
+                        )}
+                      </View>
+                      <ChevronRight size={normalize(16)} color={TEXT_SUB} strokeWidth={2} />
+                    </View>
+                  </TouchableOpacity>
+                  {index < REPORT_REASONS.length - 1 && (
+                    <View
+                      style={{
+                        height: normalize(15),
+                        borderTopWidth: HAIRLINE_WIDTH,
+                        borderTopColor: HAIRLINE,
+                      }}
+                    />
+                  )}
                 </React.Fragment>
-            ))}
+              ))}
+            </ScrollView>
           </Animated.View>
         ) : (
-          <Animated.View key="report-detail" entering={FadeInRight.duration(240)} exiting={FadeOutRight.duration(150)}>
-            <View className="flex-row items-center" style={{ marginBottom: normalize(14) }}>
-              <TouchableOpacity
-                onPress={handleBack}
-                activeOpacity={0.45}
-                hitSlop={12}
-                accessibilityRole="button"
-                accessibilityLabel="신고 사유 선택으로 돌아가기"
-                style={{ width: normalize(32), height: normalize(32), alignItems: 'center', justifyContent: 'center', marginLeft: -normalize(8) }}
-              >
-                <ChevronLeft size={normalize(24)} color="#000" strokeWidth={1.8} />
-              </TouchableOpacity>
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_TITLE, letterSpacing: -0.4, color: '#000' }}>
-                상세 내용 작성
-              </Text>
-            </View>
-
-            <View className="flex-row items-center" style={{ paddingHorizontal: normalize(12), paddingVertical: normalize(10), borderRadius: normalize(10), backgroundColor: BRAND_TINT, marginBottom: normalize(12) }}>
-              <ShieldAlert size={normalize(18)} color={BRAND} strokeWidth={2} />
-              <View style={{ flex: 1, marginLeft: normalize(9) }}>
-                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, color: BRAND }}>
-                  {selected?.label}
-                </Text>
-                {selected?.description && (
-                  <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: TEXT_SUB, marginTop: normalize(2) }}>
-                    {selected.description}
-                  </Text>
-                )}
-              </View>
-            </View>
-
-            <TextInput
-              value={detail}
-              onChangeText={setDetail}
-              placeholder="운영팀이 상황을 이해할 수 있도록 자세히 알려주세요. (선택)"
-              placeholderTextColor={TEXT_SUB}
-              multiline
-              maxLength={MAX_DETAIL_LENGTH}
-              textAlignVertical="top"
-              editable={!isSubmitting}
-              accessibilityLabel="상세 신고 내용"
-              style={{ minHeight: normalize(156), borderWidth: BORDER_CONTROL, borderColor: HAIRLINE, borderRadius: normalize(12), paddingHorizontal: normalize(13), paddingTop: normalize(12), paddingBottom: normalize(28), fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, lineHeight: normalize(20), color: '#000', backgroundColor: CARD }}
-            />
-            <Text allowFontScaling={false} style={{ alignSelf: 'flex-end', fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: TEXT_SUB, marginTop: -normalize(23), marginRight: normalize(10), marginBottom: normalize(18) }}>
-              {detail.length}/{MAX_DETAIL_LENGTH}
-            </Text>
-
-            <TouchableOpacity
-              onPress={handleSubmit}
-              disabled={isSubmitting}
-              activeOpacity={0.72}
-              accessibilityRole="button"
-              accessibilityLabel="신고 접수하기"
-              style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS, alignItems: 'center', justifyContent: 'center', backgroundColor: BRAND, opacity: isSubmitting ? 0.45 : 1 }}
+          <Animated.View key="report-detail" entering={FadeInRight.duration(240)} exiting={FadeOutRight.duration(150)} style={{ flexShrink: 1 }}>
+            <ScrollView
+              style={{ flexShrink: 1 }}
+              contentContainerStyle={{ paddingBottom: normalize(8) }}
+              showsVerticalScrollIndicator={false}
+              keyboardShouldPersistTaps="handled"
             >
-              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, color: '#FFF' }}>
-                {isSubmitting ? '접수 중...' : '신고 접수하기'}
+              <View className="flex-row items-center" style={{ marginBottom: normalize(14) }}>
+                <TouchableOpacity
+                  onPress={handleBack}
+                  activeOpacity={0.45}
+                  hitSlop={12}
+                  accessibilityRole="button"
+                  accessibilityLabel="신고 사유 선택으로 돌아가기"
+                  style={{ width: normalize(32), height: normalize(32), alignItems: 'center', justifyContent: 'center', marginLeft: -normalize(8) }}
+                >
+                  <ChevronLeft size={normalize(24)} color="#000" strokeWidth={1.8} />
+                </TouchableOpacity>
+                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_TITLE, letterSpacing: -0.4, color: '#000' }}>
+                  상세 내용 작성
+                </Text>
+              </View>
+
+              <View className="flex-row items-center" style={{ paddingHorizontal: normalize(12), paddingVertical: normalize(10), borderRadius: normalize(10), backgroundColor: BRAND_TINT, marginBottom: normalize(12) }}>
+                <ShieldAlert size={normalize(18)} color={BRAND} strokeWidth={2} />
+                <View style={{ flex: 1, marginLeft: normalize(9) }}>
+                  <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, color: BRAND }}>
+                    {selected?.label}
+                  </Text>
+                  {selected?.description && (
+                    <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: TEXT_SUB, marginTop: normalize(2) }}>
+                      {selected.description}
+                    </Text>
+                  )}
+                </View>
+              </View>
+
+              <TextInput
+                value={detail}
+                onChangeText={setDetail}
+                placeholder="운영팀이 상황을 이해할 수 있도록 자세히 알려주세요. (선택)"
+                placeholderTextColor={TEXT_SUB}
+                multiline
+                maxLength={MAX_DETAIL_LENGTH}
+                textAlignVertical="top"
+                editable={!isSubmitting}
+                accessibilityLabel="상세 신고 내용"
+                style={{ minHeight: normalize(156), borderWidth: BORDER_CONTROL, borderColor: HAIRLINE, borderRadius: normalize(12), paddingHorizontal: normalize(13), paddingTop: normalize(12), paddingBottom: normalize(28), fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, lineHeight: normalize(20), color: '#000', backgroundColor: CARD }}
+              />
+              <Text allowFontScaling={false} style={{ alignSelf: 'flex-end', fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: TEXT_SUB, marginTop: -normalize(23), marginRight: normalize(10), marginBottom: normalize(18) }}>
+                {detail.length}/{MAX_DETAIL_LENGTH}
               </Text>
-            </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleSubmit}
+                disabled={isSubmitting}
+                activeOpacity={0.72}
+                accessibilityRole="button"
+                accessibilityLabel="신고 접수하기"
+                style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS, alignItems: 'center', justifyContent: 'center', backgroundColor: BRAND, opacity: isSubmitting ? 0.45 : 1 }}
+              >
+                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, color: '#FFF' }}>
+                  {isSubmitting ? '접수 중...' : '신고 접수하기'}
+                </Text>
+              </TouchableOpacity>
+            </ScrollView>
           </Animated.View>
         )}
       </Animated.View>
