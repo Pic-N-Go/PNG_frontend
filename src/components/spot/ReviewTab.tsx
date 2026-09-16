@@ -12,7 +12,6 @@ import PostReportSheet from '@/components/community/PostReportSheet';
 import { useDeleteReview, useFetchReview, useSpotDetail, useSpotReviews } from '@/hooks/useSpot';
 import { ApiError } from '@/api/auth';
 import { useQueryClient } from '@tanstack/react-query';
-import { useAuthStore } from '@/store/useAuthStore';
 import { useReportReview } from '@/hooks/useReport';
 import { SORT_TO_API } from '@/utils/spotMappers';
 import { BUTTON_HEIGHT, BUTTON_RADIUS, FONT_2XS, FONT_MD, FONT_SM, FONT_XS, GRID_PADDING, HAIRLINE_WIDTH } from '@/constants/layout';
@@ -48,7 +47,6 @@ export default function ReviewTab({ spotId, onWriteReview, onEditReview, onNotif
     data, isLoading, isError, hasNextPage, fetchNextPage, isFetchingNextPage,
   } = useSpotReviews(spotId, SORT_TO_API[sort]);
 
-  const myUserId = useAuthStore((s) => s.user?.id);
   const [menuTarget, setMenuTarget] = useState<Review | null>(null);
   const [reportTarget, setReportTarget] = useState<Review | null>(null);
   const reportReview = useReportReview();
@@ -60,6 +58,7 @@ export default function ReviewTab({ spotId, onWriteReview, onEditReview, onNotif
   // 스팟당 1리뷰. 이미 썼으면 작성 대신 수정으로 보낸다 — 서버는 409로 막지만
   // 다 쓴 뒤에 알게 되는 건 막을 수 없어서 버튼 단계에서 갈라놓는다.
   const { data: spot } = useSpotDetail(spotId);
+  const ownershipKnown = spot !== undefined;
   const myReviewId = spot?.info.myReviewId ?? null;
   const fetchReview = useFetchReview();
   const qc = useQueryClient();
@@ -230,10 +229,12 @@ export default function ReviewTab({ spotId, onWriteReview, onEditReview, onNotif
                     <Text className="font-normal" allowFontScaling={false} style={{ fontSize: FONT_XS, color: 'rgba(0,0,0,0.35)' }}>{review.date}</Text>
                   </View>
                 </View>
-                <ReviewMenuButton
-                  isMine={myUserId !== undefined && review.userId === myUserId}
-                  onPress={() => setMenuTarget(review)}
-                />
+                {ownershipKnown && (
+                  <ReviewMenuButton
+                    isMine={myReviewId !== null && review.id === String(myReviewId)}
+                    onPress={() => setMenuTarget(review)}
+                  />
+                )}
               </View>
 
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(14), color: 'rgba(0,0,0,0.72)', lineHeight: normalizeFontSize(14) * 1.6, letterSpacing: -0.15, marginBottom: normalize(10) }}>
@@ -332,7 +333,11 @@ export default function ReviewTab({ spotId, onWriteReview, onEditReview, onNotif
       <ReviewActionSheet
         visible={menuTarget !== null}
         onClose={() => setMenuTarget(null)}
-        isMine={menuTarget?.userId === myUserId}
+        isMine={
+          ownershipKnown &&
+          myReviewId !== null &&
+          menuTarget?.id === String(myReviewId)
+        }
         onEdit={() => {
           const target = menuTarget;
           setMenuTarget(null);
