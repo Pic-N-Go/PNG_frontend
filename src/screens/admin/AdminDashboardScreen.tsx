@@ -36,6 +36,7 @@ import {
   IconCheck,
   IconBolt,
   IconTrophy,
+  IconFlag,
 } from '@tabler/icons-react-native';
 import { normalize } from '@/utils/normalize';
 import { BORDER_CONTROL, BUTTON_RADIUS, CARD_RADIUS, FONT_2XL, FONT_2XS, FONT_LG, FONT_MD, FONT_SM, FONT_XS, GRID_PADDING, SPACING_MD, SPACING_SM } from '@/constants/layout';
@@ -63,9 +64,10 @@ import {
 import { useAuthStore } from '@/store/useAuthStore';
 import Toast from '@/components/common/Toast';
 import AdminContestTab from '@/components/admin/AdminContestTab';
+import AdminReportTab from '@/components/admin/AdminReportTab';
 import { BRAND, BRAND_TINT, CARD, TEXT_SUB } from '@/constants/colors';
 
-type AdminTab = 'users' | 'inquiries' | 'embeddings' | 'tour' | 'contests';
+type AdminTab = 'users' | 'inquiries' | 'reports' | 'embeddings' | 'tour' | 'contests';
 
 export default function AdminDashboardScreen() {
   const insets = useSafeAreaInsets();
@@ -550,6 +552,31 @@ export default function AdminDashboardScreen() {
           </TouchableOpacity>
 
           <TouchableOpacity
+            onPress={() => setActiveTab('reports')}
+            style={{
+              paddingHorizontal: normalize(14),
+              height: normalize(48),
+              alignItems: 'center',
+              justifyContent: 'center',
+              borderBottomWidth: 2,
+              borderBottomColor: activeTab === 'reports' ? '#e11d48' : 'transparent',
+              flexDirection: 'row',
+              gap: normalize(5),
+            }}
+          >
+            <IconFlag
+              size={normalize(18)}
+              color={activeTab === 'reports' ? '#e11d48' : TEXT_SUB}
+              strokeWidth={activeTab === 'reports' ? 2.2 : 1.8}
+            />
+            <Text style={{
+              fontSize: FONT_SM,
+              fontFamily: activeTab === 'reports' ? 'Pretendard-SemiBold' : 'Pretendard-Medium',
+              color: activeTab === 'reports' ? '#e11d48' : TEXT_SUB,
+            }}>신고 처리</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
             onPress={() => setActiveTab('embeddings')}
             style={{
               paddingHorizontal: normalize(14),
@@ -646,6 +673,8 @@ export default function AdminDashboardScreen() {
         }}
         showsVerticalScrollIndicator={false}
       >
+        {activeTab === 'reports' && <AdminReportTab showToast={showToast} />}
+
         {/* ══════════════════════════════════════════════════════════════
             TAB 1: 회원 및 권한 관리 (/admin/users)
         ══════════════════════════════════════════════════════════════ */}

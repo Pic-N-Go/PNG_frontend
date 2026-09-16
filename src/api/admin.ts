@@ -15,6 +15,12 @@ import type {
   AdminContestDetailResponse,
   AdminContestEntryResponse,
   AdminContestReportResponse,
+  AdminReportDetailResponse,
+  AdminReportFilter,
+  AdminReportListResponse,
+  AdminReportProcessRequest,
+  AdminReportProcessResponse,
+  AdminReportTargetDeleteRequest,
 } from '@/types/admin';
 
 const BASE = process.env.EXPO_PUBLIC_API_URL ?? '';
@@ -43,7 +49,63 @@ async function fetchWithTimeout(url: string, options: RequestInit, timeoutMs = T
   }
 }
 
+function unwrapResponse<T>(json: unknown): T {
+  if (typeof json === 'object' && json !== null && 'data' in json) {
+    const data = (json as { data?: unknown }).data;
+    if (data !== undefined && data !== null) return data as T;
+  }
+  return json as T;
+}
+
 export const adminApi = {
+  getReports: async (
+    filter: AdminReportFilter,
+    page: number,
+    size: number,
+    accessToken: string
+  ): Promise<AdminPageResponse<AdminReportListResponse>> => {
+    const path = filter === 'ALL' ? '' : `/${filter.toLowerCase()}`;
+    const res = await fetchWithTimeout(`${BASE}/admin/reports${path}?page=${page}&size=${size}`, {
+      method: 'GET',
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    return unwrapResponse<AdminPageResponse<AdminReportListResponse>>(await res.json());
+  },
+
+  getReportDetail: async (reportId: number, accessToken: string): Promise<AdminReportDetailResponse> => {
+    const res = await fetchWithTimeout(`${BASE}/admin/reports/${reportId}`, {
+      method: 'GET',
+      headers: { Authorization: `Bearer ${accessToken}` },
+    });
+    return unwrapResponse<AdminReportDetailResponse>(await res.json());
+  },
+
+  processReport: async (
+    reportId: number,
+    request: AdminReportProcessRequest,
+    accessToken: string
+  ): Promise<AdminReportProcessResponse> => {
+    const res = await fetchWithTimeout(`${BASE}/admin/reports/${reportId}`, {
+      method: 'PATCH',
+      headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(request),
+    });
+    return unwrapResponse<AdminReportProcessResponse>(await res.json());
+  },
+
+  deleteReportedTarget: async (
+    reportId: number,
+    request: AdminReportTargetDeleteRequest,
+    accessToken: string
+  ): Promise<AdminReportProcessResponse> => {
+    const res = await fetchWithTimeout(`${BASE}/admin/reports/${reportId}/target`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(request),
+    });
+    return unwrapResponse<AdminReportProcessResponse>(await res.json());
+  },
+
   // ── 1. 회원 및 권한 관리 API (/admin/users) ───────────────────────
 
   // 1.1 회원 목록 및 검색 페이징 조회
