@@ -76,7 +76,7 @@ export default function RelatedSpotsCard({ spotId, spotName, onViewAll, onSpotPr
           marginBottom: normalize(12),
         }}
       >
-        이곳을 찾은 여행객들이 함께 많이 방문한 장소예요
+        이곳을 찾은 사람들이 많이 방문한 장소예요
       </Text>
 
       {/* 2개 스팟 미리보기 카드 */}

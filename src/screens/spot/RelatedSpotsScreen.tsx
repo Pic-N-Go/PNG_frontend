@@ -273,7 +273,7 @@ export default function RelatedSpotsScreen({ navigation, route }: Props) {
               lineHeight: normalize(20),
             }}
           >
-            이곳을 방문한 여행객들이 함께 가장 많이 찾은 장소들이에요!
+            이곳을 찾은 사람들이 많이 방문한 장소예요
           </Text>
           <Text
             allowFontScaling={false}
