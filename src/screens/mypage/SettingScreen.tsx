@@ -975,7 +975,7 @@ function VersionInfoSheet({ visible, onClose, onOpenDoc }: { visible: boolean; o
           <VersionRow label="앱 버전" value="v1.0.0" />
           <VersionRow label="업데이트 상태" status />
           <VersionRow label="출시일" value="2026.05.01" />
-          <VersionRow label="개발사" value="多多益Shot" last />
+          <VersionRow label="개발사" value="PNG 개발팀" last />
         </View>
 
         {/* 업데이트 확인 */}

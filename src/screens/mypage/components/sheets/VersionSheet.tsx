@@ -38,7 +38,7 @@ export default function VersionSheet({ visible, onClose }: VersionSheetProps) {
         </View>
         <View style={{ paddingVertical: normalize(10), borderBottomWidth: HAIRLINE_WIDTH, borderBottomColor: HAIRLINE, flexDirection: 'row', justifyContent: 'space-between' }}>
           <Text className="font-normal" style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.45)' }}>개발사</Text>
-          <Text className="font-medium" style={{ fontSize: FONT_SM, color: '#000' }}>多多益Shot</Text>
+          <Text className="font-medium" style={{ fontSize: FONT_SM, color: '#000' }}>PNG 개발팀</Text>
         </View>
         
         <View style={{ paddingVertical: normalize(10), borderBottomWidth: HAIRLINE_WIDTH, borderBottomColor: HAIRLINE, flexDirection: 'row', justifyContent: 'space-between' }}>
