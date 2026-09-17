@@ -9,6 +9,7 @@ export type Spot = {
   tags: string[];
   score: string;
   photo: string;
+  realSpotId?: number | string;
 };
 
 interface CourseStore {

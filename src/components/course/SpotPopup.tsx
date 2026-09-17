@@ -39,7 +39,7 @@ export default function SpotPopup({ activeSpot, onClose, renderButtons }: Props)
   }
 
   const displaySpot = activeSpot || lastSpot.current;
-  const spotId = displaySpot?.id ? String(displaySpot.id) : '';
+  const spotId = displaySpot ? String(displaySpot.realSpotId || displaySpot.id || '') : '';
 
   // 실시간 스팟 상세 통계(별점, 리뷰수, 사진수), 요약(북마크수, 실시간 점수), 사진 목록, 북마크 상태 조회
   const { data: detail } = useSpotDetail(spotId);

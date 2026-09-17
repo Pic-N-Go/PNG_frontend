@@ -4,6 +4,7 @@ import { NaverMapView, NaverMapMarkerOverlay, NaverMapPathOverlay, type NaverMap
 import * as Location from 'expo-location';
 import { IconChevronLeft, IconSearch, IconAdjustmentsHorizontal, IconFocus2, IconX, IconChevronDown, IconChevronUp, IconRoute } from '@tabler/icons-react-native';
 import { useNavigation, useRoute, useFocusEffect, CommonActions } from '@react-navigation/native';
+import { navigationRef } from '@/navigation';
 import { useCourseStore, Spot } from '@/store/useCourseStore';
 import { useSpots, useMapSpots, useSearchSpots } from '@/hooks/useSpot';
 import { useDebounce } from '@/hooks/useDebounce';
@@ -609,10 +610,16 @@ export default function MapScreen() {
             zoom: e.zoom ?? 14,
           };
           if (e.region) {
-            const swLat = e.region.latitude - e.region.latitudeDelta / 2;
-            const neLat = e.region.latitude + e.region.latitudeDelta / 2;
-            const swLng = e.region.longitude - e.region.longitudeDelta / 2;
-            const neLng = e.region.longitude + e.region.longitudeDelta / 2;
+            // @mj-studio/react-native-naver-map 규약:
+            // e.region.latitude는 남서쪽(South-West) 위도, e.region.longitude는 남서쪽 경도입니다.
+            // delta는 북동쪽(North-East)까지의 폭입니다.
+            // 화면 가장자리 이동 시 핀이 자연스럽게 선로딩되도록 15% 버퍼 마진을 둡니다.
+            const latBuffer = e.region.latitudeDelta * 0.15;
+            const lngBuffer = e.region.longitudeDelta * 0.15;
+            const swLat = e.region.latitude - latBuffer;
+            const neLat = e.region.latitude + e.region.latitudeDelta + latBuffer;
+            const swLng = e.region.longitude - lngBuffer;
+            const neLng = e.region.longitude + e.region.longitudeDelta + lngBuffer;
             setMapBounds({
               southWestLat: swLat,
               southWestLng: swLng,
@@ -1214,7 +1221,15 @@ export default function MapScreen() {
               )}
 
               <TouchableOpacity
-                onPress={() => navigation.navigate('SpotStack', { screen: 'SpotDetail', params: { spotId: popupSpot.id } })}
+                onPress={() => {
+                  const targetSpotId = String((popupSpot as any).realSpotId || popupSpot.id);
+                  if (navigationRef.isReady()) {
+                    (navigationRef as any).navigate('SpotStack', { screen: 'SpotDetail', params: { spotId: targetSpotId } });
+                  } else {
+                    const rootNav = (navigation.getParent()?.getParent() as any) || navigation;
+                    rootNav.navigate('SpotStack', { screen: 'SpotDetail', params: { spotId: targetSpotId } });
+                  }
+                }}
                 className="flex-1 bg-brand items-center justify-center"
                 style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}
               >
