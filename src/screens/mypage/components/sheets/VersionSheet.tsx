@@ -59,6 +59,13 @@ export default function VersionSheet({ visible, onClose }: VersionSheetProps) {
             <Text className="font-medium" style={{ fontSize: FONT_SM, color: BRAND }}>보기 →</Text>
           </TouchableOpacity>
         </View>
+
+        {/* 데이터 출처 표기 */}
+        <View style={{ marginTop: normalize(16), marginBottom: normalize(8), alignItems: 'center' }}>
+          <Text allowFontScaling={false} style={{ fontSize: FONT_SM, fontFamily: 'Pretendard-Regular', color: 'rgba(0,0,0,0.35)', letterSpacing: -0.2 }}>
+            출처: ⓒ한국관광공사
+          </Text>
+        </View>
       </View>
     </BottomSheet>
   );

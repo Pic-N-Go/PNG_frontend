@@ -995,6 +995,13 @@ function VersionInfoSheet({ visible, onClose, onOpenDoc }: { visible: boolean; o
             <DocRow label="오픈소스 라이선스" onPress={() => onOpenDoc('OpenSourceLicenses')} divider />
           </View>
         </View>
+
+        {/* 데이터 출처 표기 */}
+        <View style={{ marginTop: normalize(16), alignItems: 'center' }}>
+          <Text allowFontScaling={false} style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-Regular', color: 'rgba(0,0,0,0.35)', letterSpacing: -0.2 }}>
+            출처: ⓒ한국관광공사
+          </Text>
+        </View>
       </View>
     </BottomSheet>
   );

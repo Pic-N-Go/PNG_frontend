@@ -289,6 +289,12 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
                     </Text>
                   </Pressable>
                 </View>
+                {/* 데이터 출처 표기 */}
+                <View style={{ marginTop: normalize(24), marginBottom: normalize(8), alignItems: 'center' }}>
+                  <Text allowFontScaling={false} style={{ fontSize: normalizeFontSize(12), fontFamily: 'Pretendard-Regular', color: 'rgba(0,0,0,0.35)', letterSpacing: -0.2 }}>
+                    출처: ⓒ한국관광공사
+                  </Text>
+                </View>
               </View>
             )}
 
