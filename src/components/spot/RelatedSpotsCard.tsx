@@ -5,7 +5,6 @@ import { useRelatedSpots } from '@/hooks/useSpot';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { CARD_RADIUS, GRID_PADDING } from '@/constants/layout';
 import { BRAND, BRAND_TINT, BRAND_TINT_ACTIVE, CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
-import type { RelatedSpotDTO } from '@/types/spot';
 
 interface Props {
   spotId: string;
