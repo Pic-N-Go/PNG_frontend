@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Dimensions, Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import Svg, { Polygon } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, {
   Extrapolation,
@@ -19,8 +18,6 @@ import { BRAND, SCRIM } from '@/constants/colors';
 export const HERO_HEIGHT = normalize(360);
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
-
-const LANDSCAPE_POINTS = '0,60 12,40 25,55 40,20 55,38 68,10 82,30 100,15 100,100 0,100';
 
 interface Props {
   scrollY: SharedValue<number>;
@@ -157,19 +154,6 @@ export default function SpotHero({
         style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: normalize(100) }}
         pointerEvents="none"
       />
-
-      {/* 지형 실루엣 */}
-      <Svg
-        width="100%"
-        height={normalize(80)}
-        viewBox="0 0 100 100"
-        preserveAspectRatio="none"
-        style={{ position: 'absolute', bottom: 0, left: 0, right: 0 }}
-        pointerEvents="none"
-      >
-        <Polygon points={LANDSCAPE_POINTS} fill="rgba(0,0,0,0.12)" />
-      </Svg>
-      <View style={{ position: 'absolute', bottom: normalize(60), left: 0, right: 0, height: 1, backgroundColor: 'rgba(255,255,255,0.06)' }} pointerEvents="none" />
 
       {/* 액션 버튼 */}
       <View
