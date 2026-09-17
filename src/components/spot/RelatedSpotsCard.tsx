@@ -30,7 +30,7 @@ export default function RelatedSpotsCard({ spotId, spotName, onViewAll, onSpotPr
   };
 
   return (
-    <View style={{ marginTop: normalize(28), paddingHorizontal: GRID_PADDING }}>
+    <View style={{ marginTop: normalize(24), paddingHorizontal: GRID_PADDING }}>
       {/* 헤더: 제목 및 전체보기 버튼 */}
       <View
         style={{
@@ -76,7 +76,7 @@ export default function RelatedSpotsCard({ spotId, spotName, onViewAll, onSpotPr
           marginBottom: normalize(12),
         }}
       >
-        현재 스팟 방문객들이 함께 많이 찾은 인기 명소예요
+        이곳을 찾은 여행객들이 함께 많이 방문한 장소예요
       </Text>
 
       {/* 2개 스팟 미리보기 카드 */}

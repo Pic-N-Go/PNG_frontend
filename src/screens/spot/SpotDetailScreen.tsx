@@ -264,6 +264,12 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
                     });
                   }}
                 />
+                <RelatedSpotsCard
+                  spotId={spot.id}
+                  spotName={spot.name}
+                  onViewAll={() => navigation.navigate('RelatedSpots', { spotId: spot.id, spotName: spot.name })}
+                  onSpotPress={(id) => navigation.push('SpotDetail', { spotId: id })}
+                />
                 <View style={{ height: normalize(24) }} />
                 <View style={{ flexDirection: 'row', gap: normalize(12), paddingHorizontal: GRID_PADDING }}>
                   <Pressable
@@ -283,12 +289,6 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
                     </Text>
                   </Pressable>
                 </View>
-                <RelatedSpotsCard
-                  spotId={spot.id}
-                  spotName={spot.name}
-                  onViewAll={() => navigation.navigate('RelatedSpots', { spotId: spot.id, spotName: spot.name })}
-                  onSpotPress={(id) => navigation.push('SpotDetail', { spotId: id })}
-                />
               </View>
             )}
 

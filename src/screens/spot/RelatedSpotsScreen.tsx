@@ -273,7 +273,7 @@ export default function RelatedSpotsScreen({ navigation, route }: Props) {
               lineHeight: normalize(20),
             }}
           >
-            현재 스팟에 방문한 사람들이 가장 많이 방문한 스팟들이에요!
+            이곳을 방문한 여행객들이 함께 가장 많이 찾은 장소들이에요!
           </Text>
           <Text
             allowFontScaling={false}
@@ -285,7 +285,7 @@ export default function RelatedSpotsScreen({ navigation, route }: Props) {
               lineHeight: normalize(17),
             }}
           >
-            한국관광공사의 이동 및 연관 방문 데이터를 기반으로 함께 둘러보기 좋은 장소를 추천합니다.
+            한국관광공사의 이동 및 연관 방문 데이터를 바탕으로, 다음 코스로 들르기 좋은 추천 명소입니다.
           </Text>
         </View>
       </View>
@@ -349,7 +349,7 @@ export default function RelatedSpotsScreen({ navigation, route }: Props) {
               color: TEXT_SUB,
             }}
           >
-            연관 스팟 정보가 없습니다.
+            아직 연관된 스팟 정보가 없어요.
           </Text>
         </View>
       ) : (
