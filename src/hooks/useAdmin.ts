@@ -17,6 +17,12 @@ import type {
   AdminContestDetailResponse,
   AdminContestEntryResponse,
   AdminContestReportResponse,
+  AdminReportDetailResponse,
+  AdminReportFilter,
+  AdminReportListResponse,
+  AdminReportProcessRequest,
+  AdminReportProcessResponse,
+  AdminReportTargetDeleteRequest,
 } from '@/types/admin';
 
 export const ADMIN_KEYS = {
@@ -31,7 +37,59 @@ export const ADMIN_KEYS = {
     [...ADMIN_KEYS.all, 'contest-entries', contestId, page, size] as const,
   contestReports: (page?: number, size?: number) =>
     [...ADMIN_KEYS.all, 'contest-reports', page, size] as const,
+  reports: (filter: AdminReportFilter, page: number, size: number) =>
+    [...ADMIN_KEYS.all, 'reports', filter, page, size] as const,
+  reportDetail: (reportId: number) => [...ADMIN_KEYS.all, 'reports', 'detail', reportId] as const,
 };
+
+export function useAdminReports(filter: AdminReportFilter, page = 0, size = 10) {
+  const accessToken = useAuthStore((s) => s.accessToken);
+  return useQuery<AdminPageResponse<AdminReportListResponse>, Error>({
+    queryKey: ADMIN_KEYS.reports(filter, page, size),
+    queryFn: () => {
+      if (!accessToken) throw new Error('관리자 권한이 필요합니다.');
+      return adminApi.getReports(filter, page, size, accessToken);
+    },
+    enabled: !!accessToken,
+    staleTime: 1000 * 15,
+  });
+}
+
+export function useAdminReportDetail(reportId: number | null) {
+  const accessToken = useAuthStore((s) => s.accessToken);
+  return useQuery<AdminReportDetailResponse, Error>({
+    queryKey: ADMIN_KEYS.reportDetail(reportId ?? 0),
+    queryFn: () => {
+      if (!accessToken || !reportId) throw new Error('신고 정보가 유효하지 않습니다.');
+      return adminApi.getReportDetail(reportId, accessToken);
+    },
+    enabled: !!accessToken && !!reportId,
+  });
+}
+
+export function useProcessAdminReport() {
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const queryClient = useQueryClient();
+  return useMutation<AdminReportProcessResponse, Error, { reportId: number; request: AdminReportProcessRequest }>({
+    mutationFn: ({ reportId, request }) => {
+      if (!accessToken) throw new Error('관리자 권한이 필요합니다.');
+      return adminApi.processReport(reportId, request, accessToken);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: [...ADMIN_KEYS.all, 'reports'] }),
+  });
+}
+
+export function useDeleteAdminReportTarget() {
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const queryClient = useQueryClient();
+  return useMutation<AdminReportProcessResponse, Error, { reportId: number; request: AdminReportTargetDeleteRequest }>({
+    mutationFn: ({ reportId, request }) => {
+      if (!accessToken) throw new Error('관리자 권한이 필요합니다.');
+      return adminApi.deleteReportedTarget(reportId, request, accessToken);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: [...ADMIN_KEYS.all, 'reports'] }),
+  });
+}
 
 // ── 1. 회원 및 권한 관리 훅 ──────────────────────────────────────────
 

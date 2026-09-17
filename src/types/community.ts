@@ -64,9 +64,6 @@ export interface Comment {
   replyCount: number;
 }
 
-/** 신고 사유는 별도 텍스트 입력 없이 5개 고정 사유 중 선택 */
-export type ReportReasonId = 'spam' | 'abuse' | 'copyright' | 'inappropriate' | 'etc';
-
 // ── 서버 DTO (PNG_backend `community` 모듈 · `/posts`, `/users`) ──────────────
 // 위쪽 UI 타입과 1:1이 아니다. 변환은 utils/communityMappers.ts에서만 한다.
 

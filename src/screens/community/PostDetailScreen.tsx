@@ -12,6 +12,7 @@ import PhotoLightbox from '@/components/community/PhotoLightbox';
 import ConfirmModal from '@/components/common/ConfirmModal';
 import Toast from '@/components/common/Toast';
 import { useKeyboardOverlap } from '@/hooks/useKeyboardHeight';
+import { useReportPost } from '@/hooks/useReport';
 import { shareContent } from '@/utils/share';
 import {
   useComments,
@@ -29,7 +30,8 @@ import { toErrorMessage } from '@/api/auth';
 import { useAuthStore } from '@/store/useAuthStore';
 import Avatar from '@/components/common/Avatar';
 import { CommunityDetailStackParamList } from '@/navigation/stacks/CommunityDetailStack';
-import { Comment, ReportReasonId } from '@/types/community';
+import { Comment } from '@/types/community';
+import type { ReportReasonId } from '@/types/report';
 import { CONTENT_PADDING, FONT_LG, FONT_MD, FONT_SM, FONT_XS, HAIRLINE_WIDTH, HEADER_HEIGHT, SPACING_LG } from '@/constants/layout';
 import { normalize, normalizeHeight } from '@/utils/normalize';
 import { BRAND, CARD, HAIRLINE, SCRIM, TEXT_SUB } from '@/constants/colors';
@@ -65,6 +67,7 @@ export default function PostDetailScreen() {
   const deleteCommentM = useDeleteComment(postId ?? '');
   const deletePostM = useDeletePost();
   const toggleCommentLikeM = useToggleCommentLike(postId ?? '');
+  const reportPostM = useReportPost();
 
   const [commentText, setCommentText] = useState('');
   /** 답글 대상. null이면 최상위 댓글로 등록된다. */
@@ -181,12 +184,22 @@ export default function PostDetailScreen() {
     });
   }
 
-  // ponytail: 신고 API가 백엔드에 없다 — 사유를 받아 토스트만 띄우고 서버로 보내지 않는다.
-  // 신고 엔드포인트가 생기면 이 함수 본문만 교체하면 된다.
-  function handleSelectReportReason(_reasonId: ReportReasonId) {
-    setReportSheetOpen(false);
-    setActionSheetOpen(false);
-    showToast('신고가 접수되었어요');
+  function handleSubmitReport(reasonId: ReportReasonId, detail: string) {
+    if (!postId || reportPostM.isPending) return;
+
+    reportPostM.mutate(
+      { postId, reasonId, detail },
+      {
+        onSuccess: () => {
+          setReportSheetOpen(false);
+          setActionSheetOpen(false);
+          showToast('신고가 접수되었어요');
+        },
+        onError: (error) => {
+          showToast(toErrorMessage(error, '신고를 접수하지 못했어요'));
+        },
+      },
+    );
   }
 
   function resetComposer() {
@@ -631,7 +644,8 @@ export default function PostDetailScreen() {
       <PostReportSheet
         visible={reportSheetOpen}
         onClose={() => setReportSheetOpen(false)}
-        onSelectReason={handleSelectReportReason}
+        onSubmit={handleSubmitReport}
+        isSubmitting={reportPostM.isPending}
       />
 
       {post && (
