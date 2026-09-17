@@ -17,7 +17,6 @@ import FestivalSection from '@/components/home/FestivalSection';
 import SeasonalSpotSection from '@/components/home/SeasonalSpotSection';
 import { IconBell } from '@tabler/icons-react-native';
 import LinkBanner from '@/components/common/LinkBanner';
-import FilterBottomSheet from '@/components/home/FilterBottomSheet';
 import { useNotification } from '@/hooks/useNotification';
 import { queryClient } from '@/store/queryClient';
 import { useNearbySpots } from '@/hooks/useSpot';
@@ -62,9 +61,6 @@ function extractDongOrDistrict(geo: Location.LocationGeocodedAddress): string {
 }
 
 export default function HomeScreen({ navigation }: Props) {
-  const [activeFilterCount, setActiveFilterCount] = useState(0);
-  const [filterVisible, setFilterVisible] = useState(false);
-
   // 현재 사용자 GPS 위치 관리 (기본값: 서울시청)
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number; isReal: boolean; isFallback?: boolean }>({
     lat: 37.5665,
@@ -228,8 +224,6 @@ export default function HomeScreen({ navigation }: Props) {
 
         <SearchBar
           onPress={() => navigation.navigate('SearchResult', { query: '' })}
-          onFilterPress={() => setFilterVisible(true)}
-          activeFilterCount={activeFilterCount}
         />
 
         {/* 주변 스팟 섹션 */}
@@ -297,13 +291,6 @@ export default function HomeScreen({ navigation }: Props) {
         />
 
       </ScrollView>
-
-      <FilterBottomSheet
-        visible={filterVisible}
-        onClose={() => setFilterVisible(false)}
-        onApply={(count) => setActiveFilterCount(count)}
-      />
-
     </View>
   );
 }

@@ -13,7 +13,6 @@ import {
 } from 'react-native';
 import {
   IconSearch,
-  IconChevronDown,
   IconMapPin,
 } from '@tabler/icons-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -265,12 +264,10 @@ export default function SearchResultScreen({ route, navigation }: Props) {
             <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: TEXT_SUB }}>
               스팟 <Text style={{ fontFamily: 'Pretendard-SemiBold', color: '#000' }}>{resultCount}</Text>개
             </Text>
-            {/* TODO: 정렬 기능 미구현 — 정렬 옵션 시트 연결 필요 */}
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(4) }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: 'rgba(0,0,0,0.45)' }}>
                 {popularMode ? '인기순' : '관련순'}
               </Text>
-              <IconChevronDown size={normalize(10)} color={iconGray(0.45)} strokeWidth={1.5} />
             </View>
           </View>
           <View style={{ height: 1, backgroundColor: 'rgba(0,0,0,0.06)' }} />
