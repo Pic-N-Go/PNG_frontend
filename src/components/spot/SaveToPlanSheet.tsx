@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { ActivityIndicator, Alert, Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -87,6 +87,14 @@ export default function SaveToPlanSheet({ visible, onClose, spot, onSaved }: Pro
   const [step, setStep] = useState<1 | 2>(1);
   const [selectedCourseId, setSelectedCourseId] = useState<number | null>(null);
   const [selectedDayNumber, setSelectedDayNumber] = useState<number>(1);
+  const [failedThumbnailUrls, setFailedThumbnailUrls] = useState<Record<string, boolean>>({});
+
+  const handleThumbnailError = useCallback((url: string) => {
+    setFailedThumbnailUrls((prev) => {
+      if (prev[url]) return prev;
+      return { ...prev, [url]: true };
+    });
+  }, []);
 
   const { mutateAsync: addSpotToCourse, isPending: isSaving } = useAddSpotToCourse();
 
@@ -224,8 +232,16 @@ export default function SaveToPlanSheet({ visible, onClose, spot, onSaved }: Pro
                         style={{ width: normalize(52), height: normalize(52), borderRadius: normalize(12), overflow: 'hidden' }}
                       >
                         {thumbnail ? (
-                          // ponytail: onError 폴백 없음 — 실패하면 아래 배경색(CARD)이 그대로 남아 빈 상태와 같아진다
-                          <Image source={{ uri: thumbnail }} resizeMode="cover" style={{ width: '100%', height: '100%' }} />
+                          failedThumbnailUrls[thumbnail] ? (
+                            <IconRoute size={normalize(20)} color={iconGray(0.2)} strokeWidth={1.5} />
+                          ) : (
+                            <Image
+                              source={{ uri: thumbnail }}
+                              resizeMode="cover"
+                              style={{ width: '100%', height: '100%' }}
+                              onError={() => handleThumbnailError(thumbnail)}
+                            />
+                          )
                         ) : (
                           <IconRoute size={normalize(20)} color={iconGray(0.2)} strokeWidth={1.5} />
                         )}
