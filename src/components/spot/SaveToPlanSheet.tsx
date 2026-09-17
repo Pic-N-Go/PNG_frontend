@@ -1,25 +1,27 @@
-import React, { useState } from 'react';
-import { ActivityIndicator, Alert, Pressable, ScrollView, Text, View } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import React, { useCallback, useState } from 'react';
+import { ActivityIndicator, Alert, Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { IconCheck, IconChevronLeft, IconPlus } from '@tabler/icons-react-native';
+import { IconCheck, IconChevronLeft, IconPlus, IconRoute } from '@tabler/icons-react-native';
 import BottomSheet from '@/components/common/BottomSheet';
 import { BORDER_CONTROL, BUTTON_HEIGHT, BUTTON_RADIUS, GRID_PADDING } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { coursesApi } from '@/api/courses';
+import { coursesApi, type Course } from '@/api/courses';
 import { useAddSpotToCourse } from '@/hooks/useCourses';
 import { useCourseStore } from '@/store/useCourseStore';
-import { BRAND, BRAND_MUTED, BRAND_TINT, BRAND_TINT_ACTIVE, CARD, TEXT_SUB } from '@/constants/colors';
+import { BRAND, BRAND_MUTED, BRAND_TINT, BRAND_TINT_ACTIVE, CARD, iconGray, TEXT_SUB } from '@/constants/colors';
 
-const GRADIENT_PALETTES: [string, string][] = [
-  ['#f59e0b', '#c2410c'],
-  ['#3b82f6', '#1d4ed8'],
-  ['#10b981', '#065f46'],
-  ['#a78bfa', '#7c3aed'],
-  ['#ec4899', '#be185d'],
-  ['#06b6d4', '#0e7490'],
-];
+// 코스 대표 사진 1장. CourseListScreen과 같은 순서(thumbnailUrls 우선 → DAY·시퀀스 순 첫 사진)로
+// 골라야 같은 코스가 목록과 시트에서 다른 사진으로 보이지 않는다.
+// ponytail: 콜라주는 안 쓴다 — 52px에서 3분할하면 13px 조각이라 알아볼 수 없다.
+function courseThumbnail(course: Course): string | null {
+  const fromCourse = course.thumbnailUrls?.find((u) => u?.trim());
+  if (fromCourse) return fromCourse;
+  const sorted = [...(course.spots ?? [])].sort(
+    (a, b) => (a.dayNumber - b.dayNumber) || (a.sequenceOrder - b.sequenceOrder)
+  );
+  return sorted.find((s) => s.thumbnailUrl?.trim())?.thumbnailUrl ?? null;
+}
 
 /** 'YYYY-MM-DD' 문자열을 UTC가 아닌 로컬 달력 날짜(자정)로 파싱 */
 function parseLocalDate(dateString: string): Date {
@@ -85,6 +87,14 @@ export default function SaveToPlanSheet({ visible, onClose, spot, onSaved }: Pro
   const [step, setStep] = useState<1 | 2>(1);
   const [selectedCourseId, setSelectedCourseId] = useState<number | null>(null);
   const [selectedDayNumber, setSelectedDayNumber] = useState<number>(1);
+  const [failedThumbnailUrls, setFailedThumbnailUrls] = useState<Record<string, boolean>>({});
+
+  const handleThumbnailError = useCallback((url: string) => {
+    setFailedThumbnailUrls((prev) => {
+      if (prev[url]) return prev;
+      return { ...prev, [url]: true };
+    });
+  }, []);
 
   const { mutateAsync: addSpotToCourse, isPending: isSaving } = useAddSpotToCourse();
 
@@ -197,7 +207,7 @@ export default function SaveToPlanSheet({ visible, onClose, spot, onSaved }: Pro
               ) : (
                 activeCourses.map((course, idx) => {
                   const isSelected = selectedCourseId === course.id;
-                  const gradient = GRADIENT_PALETTES[idx % GRADIENT_PALETTES.length];
+                  const thumbnail = courseThumbnail(course);
                   const dateFormatted = `${course.startDate.replace(/-/g, '.')} ~ ${course.endDate.substring(5).replace(/-/g, '.')}`;
                   const spotsCount = course.spotCount ?? course.spots?.length ?? 0;
 
@@ -217,7 +227,25 @@ export default function SaveToPlanSheet({ visible, onClose, spot, onSaved }: Pro
                         marginBottom: normalize(8),
                       }}
                     >
-                      <LinearGradient colors={gradient} style={{ width: normalize(52), height: normalize(52), borderRadius: normalize(12) }} />
+                      <View
+                        className="bg-card items-center justify-center"
+                        style={{ width: normalize(52), height: normalize(52), borderRadius: normalize(12), overflow: 'hidden' }}
+                      >
+                        {thumbnail ? (
+                          failedThumbnailUrls[thumbnail] ? (
+                            <IconRoute size={normalize(20)} color={iconGray(0.2)} strokeWidth={1.5} />
+                          ) : (
+                            <Image
+                              source={{ uri: thumbnail }}
+                              resizeMode="cover"
+                              style={{ width: '100%', height: '100%' }}
+                              onError={() => handleThumbnailError(thumbnail)}
+                            />
+                          )
+                        ) : (
+                          <IconRoute size={normalize(20)} color={iconGray(0.2)} strokeWidth={1.5} />
+                        )}
+                      </View>
                       <View style={{ flex: 1 }}>
                         <Text allowFontScaling={false} numberOfLines={1} style={{ fontFamily: 'Pretendard-Medium', fontSize: normalizeFontSize(15), color: '#000', letterSpacing: -0.2 }}>
                           {course.title}

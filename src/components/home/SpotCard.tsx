@@ -2,10 +2,10 @@ import React from 'react';
 import { Image, Pressable, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { IconBookmark } from '@tabler/icons-react-native';
-import { normalize, normalizeFontSize } from '@/utils/normalize';
+import { normalize } from '@/utils/normalize';
 import { CARD_RADIUS, FONT_MD, FONT_SM, FONT_XS } from '@/constants/layout';
 import type { SpotItem } from '@/types/spot';
-import { BRAND, BRAND_STRONG, CARD, TEXT_SUB } from '@/constants/colors';
+import { BRAND, CARD, TEXT_SUB } from '@/constants/colors';
 
 interface Props {
   item: SpotItem;
@@ -19,7 +19,7 @@ interface Props {
   onBookmarkPress?: () => void;
 }
 
-// 사진도 그라디언트도 없는 스팟용 폴백. 카드가 흰 사각형으로 비는 것만 막으면 되므로 한 벌만 둔다.
+// 사진이 없는 스팟용 폴백. 카드가 흰 사각형으로 비는 것만 막으면 되므로 한 벌만 둔다.
 const FALLBACK_GRADIENT: [string, string, string] = ['#2C3E50', '#4A6572', '#8B9DA8'];
 
 export default function SpotCard({ item, onPress, onBookmarkPress }: Props) {
@@ -49,37 +49,9 @@ export default function SpotCard({ item, onPress, onBookmarkPress }: Props) {
           />
         ) : (
           <LinearGradient
-            colors={item.gradientColors ?? FALLBACK_GRADIENT}
+            colors={FALLBACK_GRADIENT}
             style={{ position: 'absolute', inset: 0 }}
           />
-        )}
-
-        {item.badge && (
-          <View
-            style={{
-              position: 'absolute',
-              top: normalize(10),
-              left: normalize(10),
-              height: normalize(22),
-              paddingHorizontal: normalize(10),
-              borderRadius: normalize(11),
-              backgroundColor: item.badge === 'HOT' ? 'rgba(0,0,0,0.45)' : BRAND_STRONG,
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Text
-              allowFontScaling={false}
-              style={{
-                fontFamily: 'Pretendard-SemiBold',
-                fontSize: normalizeFontSize(10),
-                color: '#fff',
-                letterSpacing: 0.3,
-              }}
-            >
-              {item.badge}
-            </Text>
-          </View>
         )}
 
         {onBookmarkPress && (

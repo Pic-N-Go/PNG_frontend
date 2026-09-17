@@ -352,7 +352,7 @@ export function toHttps<T extends string | null | undefined>(url: T): T {
 
 /**
  * 목록/인기/검색 공용 `SpotResponse` → 홈 카드 표시 모델.
- * badge(HOT/NEW)는 서버에 대응 값이 없어 미표시 — SpotResponse.badge는 관광공사 인증 여부라 의미가 다르다.
+ * SpotResponse.badge(관광공사 인증 여부)는 카드에 쓰지 않는다 — 상세 헤더에서만 쓴다.
  * isBookmarked는 토큰을 실어 보낸 요청에서만 채워지고, 비로그인/구버전 서버에서는 false로 떨어진다.
  */
 export function mapPopularSpot(dto: SpotResponse): SpotItem {
@@ -421,7 +421,6 @@ if (__DEV__) {
   console.assert(full.location === '부산 수영구 · 야경/해변', `location 조합 오류: ${full.location}`);
   console.assert(full.category === '야경', 'category는 enum 코드가 아니라 한글 라벨이어야 함');
   console.assert(full.imageUrl === 'https://tong.visitkorea.or.kr/t.jpg', '썸네일 우선 선택 + https 승격 오류');
-  console.assert(full.badge === undefined, '서버 badge를 카드 배지로 쓰면 안 됨');
 
   const bare = mapPopularSpot({
     ...base,
