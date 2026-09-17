@@ -7,7 +7,7 @@ import { IconChevronLeft, IconBell, IconChevronRight, IconMapPin, IconCircleChec
 
 import { useSpotAlert } from '@/hooks/useSpotAlert';
 import { mapWishlistToUI } from '@/utils/wishlistMapper';
-import { BRAND, BRAND_STRONG, BRAND_TINT, BRAND_TINT_ACTIVE, TEXT_SUB } from '@/constants/colors';
+import { BRAND, BRAND_STRONG, BRAND_TINT, BRAND_TINT_ACTIVE, TEXT_SUB, iconGray } from '@/constants/colors';
 import { SHADOW_OVERLAY } from '@/constants/shadow';
 
 export default function SpotAlertScreen({ navigation, route }: any) {
@@ -44,7 +44,7 @@ export default function SpotAlertScreen({ navigation, route }: any) {
       {/* Navigation */}
       <View className="flex-row items-center justify-between border-b-[0.5px] border-hairline bg-white z-20" style={{ height: normalize(54), paddingHorizontal: normalize(12) }}>
         <TouchableOpacity onPress={handleBack} className="items-center justify-center rounded-full" style={{ width: normalize(36), height: normalize(36) }}>
-          <IconChevronLeft size={normalize(24)} color="rgba(0,0,0,0.5)" />
+          <IconChevronLeft size={normalize(24)} color={iconGray(0.5)} />
         </TouchableOpacity>
         <Text className="font-semibold text-black tracking-tight" style={{ fontSize: normalizeFontSize(18) }}>출사 알림</Text>
         <TouchableOpacity onPress={handleAdd} className="flex-row items-center justify-center bg-brand rounded-full" style={{ height: normalize(32), paddingHorizontal: normalize(14) }}>
@@ -74,7 +74,7 @@ export default function SpotAlertScreen({ navigation, route }: any) {
           /* Empty State */
           <View className="items-center justify-center" style={{ paddingVertical: normalize(64), paddingHorizontal: normalize(40) }}>
             <View className="items-center justify-center rounded-2xl bg-card mb-2" style={{ width: normalize(64), height: normalize(64) }}>
-              <IconBell size={normalize(28)} color="rgba(0,0,0,0.2)" />
+              <IconBell size={normalize(28)} color={iconGray(0.2)} />
             </View>
             <Text className="font-semibold text-black tracking-tight mb-2" style={{ fontSize: normalizeFontSize(18) }}>설정한 출사 조건이 없어요</Text>
             <Text className="text-sub text-center leading-relaxed mb-4 font-normal" style={{ fontSize: normalizeFontSize(14) }}>
@@ -130,10 +130,10 @@ export default function SpotAlertScreen({ navigation, route }: any) {
                 <View style={{ padding: normalize(14), paddingBottom: item.notifText ? 0 : normalize(14) }}>
                   <View className="flex-row items-start justify-between mb-1">
                     <Text className="font-semibold text-black tracking-tight" style={{ fontSize: normalizeFontSize(16) }}>{item.title}</Text>
-                    <IconChevronRight size={normalize(16)} color="rgba(0,0,0,0.18)" style={{ marginTop: 2 }} />
+                    <IconChevronRight size={normalize(16)} color={iconGray(0.18)} style={{ marginTop: 2 }} />
                   </View>
                   <View className="flex-row items-center mb-2.5">
-                    <IconMapPin size={normalize(12)} color="rgba(0,0,0,0.3)" />
+                    <IconMapPin size={normalize(12)} color={iconGray(0.3)} />
                     <Text className="text-sub ml-1 font-normal" style={{ fontSize: normalizeFontSize(12) }}>{item.loc}</Text>
                   </View>
 

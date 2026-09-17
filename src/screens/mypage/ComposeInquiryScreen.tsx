@@ -28,7 +28,7 @@ import {
   BUTTON_HEIGHT,
   BUTTON_RADIUS,
 } from '@/constants/layout';
-import { BRAND, CARD, TEXT_SUB } from '@/constants/colors';
+import { BRAND, CARD, TEXT_SUB, iconGray } from '@/constants/colors';
 
 type Props = NativeStackScreenProps<MyPageStackParamList, 'ComposeInquiry'>;
 
@@ -91,7 +91,7 @@ export default function ComposeInquiryScreen({ navigation }: Props) {
             className="items-center justify-center rounded-full"
             style={{ width: normalize(36), height: normalize(36) }}
           >
-            <IconChevronLeft size={normalize(20)} color="rgba(0,0,0,0.7)" strokeWidth={1.75} />
+            <IconChevronLeft size={normalize(20)} color={iconGray(0.7)} strokeWidth={1.75} />
           </Pressable>
           <Text className="font-semibold text-black tracking-tight" style={{ fontSize: FONT_LG }}>
             1:1 문의 작성

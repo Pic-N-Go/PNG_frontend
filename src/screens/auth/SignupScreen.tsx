@@ -25,7 +25,7 @@ import ThemePill from '@/components/auth/ThemePill';
 import { THEMES, THEME_CATEGORY_MAP } from '@/constants/themes';
 import { BORDER_CONTROL, BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING, FONT_2XL, FONT_LG, FONT_MD, FONT_SM, FONT_XS, HAIRLINE_WIDTH, INPUT_HEIGHT, INPUT_RADIUS, SPACING_LG, SPACING_MD, SPACING_XL } from '@/constants/layout';
 import { NICK_RE, NICK_MAX, nicknameError, passwordError } from '@/constants/validation';
-import { BRAND, CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
+import { BRAND, CARD, HAIRLINE, TEXT_SUB, iconGray } from '@/constants/colors';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Signup'>;
 
@@ -400,7 +400,7 @@ export default function SignupScreen({ navigation }: Props) {
               isInvalid={showPwErr}
               rightElement={
                 <Pressable onPress={() => setPw1Visible((v) => !v)} hitSlop={8}>
-                  <Feather name={pw1Visible ? 'eye-off' : 'eye'} size={20} color="rgba(0,0,0,0.2)" />
+                  <Feather name={pw1Visible ? 'eye-off' : 'eye'} size={20} color={iconGray(0.2)} />
                 </Pressable>
               }
             />
@@ -742,7 +742,7 @@ function TermItem({
         }}
       >
         <Text style={{ fontSize: FONT_XS, color: 'rgba(0,0,0,0.45)', fontFamily: 'Pretendard-Medium' }}>보기</Text>
-        <Feather name="chevron-right" size={12} color="rgba(0,0,0,0.45)" />
+        <Feather name="chevron-right" size={12} color={iconGray(0.45)} />
       </Pressable>
     </View>
   );

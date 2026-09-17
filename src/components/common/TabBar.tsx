@@ -6,7 +6,7 @@ import { StackActions } from '@react-navigation/native';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { HAIRLINE_WIDTH, TAB_BAR_HEIGHT } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { BRAND, HAIRLINE } from '@/constants/colors';
+import { BRAND, HAIRLINE, TEXT_SUB } from '@/constants/colors';
 
 type TabIcon = typeof Home;
 
@@ -19,7 +19,9 @@ const TABS: { route: string; label: string; Icon: TabIcon }[] = [
 ];
 
 const ACTIVE_COLOR = BRAND;
-const INACTIVE_COLOR = 'rgba(0,0,0,0.35)';
+// 불투명 회색이어야 한다. 반투명(rgba)을 stroke에 쓰면 아이콘 안에서 선이 겹치는 지점만
+// 두 번 합성돼 점처럼 진해진다 — Home·Map·Route처럼 path가 여러 개인 아이콘에서 특히 보였다.
+const INACTIVE_COLOR = TEXT_SUB;
 
 export default function TabBar({ state, descriptors, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();

@@ -44,7 +44,7 @@ import {
   FONT_SM,
   FONT_XS,
 } from '@/constants/layout';
-import { BRAND, TEXT_SUB } from '@/constants/colors';
+import { BRAND, TEXT_SUB, iconGray } from '@/constants/colors';
 import {
   useAdminContests,
   useAdminContestDetail,
@@ -674,7 +674,7 @@ export default function AdminContestTab({ showToast }: AdminContestTabProps) {
                 borderColor: 'rgba(0,0,0,0.06)',
               }}
             >
-              <IconTrophy size={normalize(40)} color="rgba(0,0,0,0.15)" strokeWidth={1.5} />
+              <IconTrophy size={normalize(40)} color={iconGray(0.15)} strokeWidth={1.5} />
               <Text
                 style={{
                   fontSize: FONT_MD,
@@ -1566,7 +1566,7 @@ export default function AdminContestTab({ showToast }: AdminContestTabProps) {
                 </Text>
               </View>
               <TouchableOpacity onPress={() => setCreateModalVisible(false)} hitSlop={8}>
-                <IconX size={normalize(20)} color="rgba(0,0,0,0.5)" />
+                <IconX size={normalize(20)} color={iconGray(0.5)} />
               </TouchableOpacity>
             </View>
 
@@ -2042,7 +2042,7 @@ export default function AdminContestTab({ showToast }: AdminContestTabProps) {
                   </TouchableOpacity>
                 )}
                 <TouchableOpacity onPress={() => setDetailModalVisible(false)} hitSlop={8}>
-                  <IconX size={normalize(22)} color="rgba(0,0,0,0.5)" />
+                  <IconX size={normalize(22)} color={iconGray(0.5)} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -2495,7 +2495,7 @@ export default function AdminContestTab({ showToast }: AdminContestTabProps) {
                 </Text>
               </View>
               <TouchableOpacity onPress={() => setDeleteModalVisible(false)} hitSlop={8}>
-                <IconX size={normalize(20)} color="rgba(0,0,0,0.5)" />
+                <IconX size={normalize(20)} color={iconGray(0.5)} />
               </TouchableOpacity>
             </View>
 
@@ -2610,7 +2610,7 @@ export default function AdminContestTab({ showToast }: AdminContestTabProps) {
                 )}
               </View>
               <TouchableOpacity onPress={() => setEditModalVisible(false)} hitSlop={8}>
-                <IconX size={normalize(20)} color="rgba(0,0,0,0.5)" />
+                <IconX size={normalize(20)} color={iconGray(0.5)} />
               </TouchableOpacity>
             </View>
 

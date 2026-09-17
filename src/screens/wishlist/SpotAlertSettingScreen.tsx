@@ -14,7 +14,7 @@ import { useSpotAlert } from '@/hooks/useSpotAlert';
 import { useSpots, useSearchSpots } from '@/hooks/useSpot';
 import { WEATHER_API_TO_UI, TIME_API_TO_UI, DUST_API_TO_UI } from '@/utils/wishlistMapper';
 import type { WeatherCondition, TimeCondition, AirQualityCondition } from '@/api/spotAlert';
-import { BRAND, BRAND_TINT_ACTIVE, TEXT_SUB } from '@/constants/colors';
+import { BRAND, BRAND_TINT_ACTIVE, TEXT_SUB, iconGray } from '@/constants/colors';
 
 // 칩은 API enum을 그대로 id로 쓴다. 라벨은 *_API_TO_UI 한 곳에서만 정의한다 —
 // 예전처럼 화면 상수가 별도 한글 id를 들면 매퍼 키와 어긋나 조용히 다른 값으로 저장된다.
@@ -283,7 +283,7 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
       {/* Navigation */}
       <View className="flex-row items-center justify-between border-b-[0.5px] border-hairline bg-white z-20" style={{ height: normalize(54), paddingHorizontal: normalize(12) }}>
         <TouchableOpacity onPress={handleBack} className="items-center justify-center rounded-full" style={{ width: normalize(36), height: normalize(36) }}>
-          <IconChevronLeft size={normalize(24)} color="rgba(0,0,0,0.5)" />
+          <IconChevronLeft size={normalize(24)} color={iconGray(0.5)} />
         </TouchableOpacity>
         <Text className="font-semibold text-black tracking-tight" style={{ fontSize: normalizeFontSize(18) }}>출사 알림 설정</Text>
         <TouchableOpacity onPress={handleDelete} className="items-center justify-center rounded-full" style={{ width: normalize(36), height: normalize(36) }}>
@@ -461,7 +461,7 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
 
         <View className="px-5 mb-4">
           <View className="flex-row items-center bg-card rounded-xl px-3" style={{ height: normalize(44) }}>
-            <IconSearch size={normalize(18)} color="rgba(0,0,0,0.3)" />
+            <IconSearch size={normalize(18)} color={iconGray(0.3)} />
             <TextInput 
               value={searchText}
               onChangeText={setSearchText}

@@ -65,7 +65,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import Toast from '@/components/common/Toast';
 import AdminContestTab from '@/components/admin/AdminContestTab';
 import AdminReportTab from '@/components/admin/AdminReportTab';
-import { BRAND, BRAND_TINT, CARD, TEXT_SUB } from '@/constants/colors';
+import { BRAND, BRAND_TINT, CARD, TEXT_SUB, iconGray } from '@/constants/colors';
 
 type AdminTab = 'users' | 'inquiries' | 'reports' | 'embeddings' | 'tour' | 'contests';
 
@@ -443,7 +443,7 @@ export default function AdminDashboardScreen() {
             justifyContent: 'center',
           }}
         >
-          <IconChevronLeft size={normalize(24)} color="rgba(0,0,0,0.8)" strokeWidth={1.8} />
+          <IconChevronLeft size={normalize(24)} color={iconGray(0.8)} strokeWidth={1.8} />
         </TouchableOpacity>
 
         <View className="flex-row items-center" style={{ gap: normalize(6) }}>
@@ -867,7 +867,7 @@ export default function AdminDashboardScreen() {
                   justifyContent: 'center',
                 }}
               >
-                <IconUsers size={normalize(40)} color="rgba(0,0,0,0.2)" />
+                <IconUsers size={normalize(40)} color={iconGray(0.2)} />
                 <Text
                   style={{
                     fontSize: FONT_SM,
@@ -1432,7 +1432,7 @@ export default function AdminDashboardScreen() {
                   justifyContent: 'center',
                 }}
               >
-                <IconMessage2Question size={normalize(40)} color="rgba(0,0,0,0.2)" />
+                <IconMessage2Question size={normalize(40)} color={iconGray(0.2)} />
                 <Text
                   style={{
                     fontSize: FONT_SM,
@@ -2431,7 +2431,7 @@ export default function AdminDashboardScreen() {
                 </Text>
               </View>
               <TouchableOpacity onPress={handleCloseAnswerModal} hitSlop={8} style={{ padding: normalize(4) }}>
-                <IconX size={normalize(22)} color="rgba(0,0,0,0.5)" />
+                <IconX size={normalize(22)} color={iconGray(0.5)} />
               </TouchableOpacity>
             </View>
 

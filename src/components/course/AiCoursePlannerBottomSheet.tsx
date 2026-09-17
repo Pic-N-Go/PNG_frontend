@@ -29,7 +29,7 @@ import {
   FONT_TITLE,
 } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
-import { BRAND, CARD, TEXT_SUB } from '@/constants/colors';
+import { BRAND, CARD, TEXT_SUB, iconGray } from '@/constants/colors';
 import { getSeasonalSuggestions, type SuggestionChip } from '@/types/aiCourse';
 import { coursesApi } from '@/api/courses';
 
@@ -232,7 +232,7 @@ export default function AiCoursePlannerBottomSheet({ visible, onClose, onSuccess
             hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
             className="p-1.5 rounded-full bg-black/5"
           >
-            <IconX size={normalize(18)} color="rgba(0,0,0,0.5)" />
+            <IconX size={normalize(18)} color={iconGray(0.5)} />
           </TouchableOpacity>
         )}
       </View>
@@ -523,7 +523,7 @@ export default function AiCoursePlannerBottomSheet({ visible, onClose, onSuccess
                 >
                   {formatDate(targetDate)}
                 </Text>
-                <IconCalendar size={normalize(18)} color="rgba(0,0,0,0.4)" />
+                <IconCalendar size={normalize(18)} color={iconGray(0.4)} />
               </TouchableOpacity>
 
               {showDatePicker && (

@@ -19,7 +19,7 @@ import { useToggleFollow } from '@/hooks/useCommunity';
 import { toErrorMessage } from '@/api/auth';
 import { useAuthStore } from '@/store/useAuthStore';
 import type { FollowUserResponse } from '@/types/user';
-import { BRAND, CARD, HAIRLINE } from '@/constants/colors';
+import { BRAND, CARD, HAIRLINE, iconGray } from '@/constants/colors';
 
 type FollowTab = 'followers' | 'following';
 
@@ -155,7 +155,7 @@ export default function FollowScreen() {
             marginLeft: -normalize(8),
           }}
         >
-          <IconChevronLeft size={normalize(24)} color="rgba(0,0,0,0.5)" strokeWidth={2} />
+          <IconChevronLeft size={normalize(24)} color={iconGray(0.5)} strokeWidth={2} />
         </TouchableOpacity>
         <Text
           style={{

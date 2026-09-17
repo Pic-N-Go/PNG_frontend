@@ -11,7 +11,7 @@ import {
   FONT_XS,
   HAIRLINE_WIDTH,
 } from '@/constants/layout';
-import { BRAND, BRAND_TINT, CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
+import { BRAND, BRAND_TINT, CARD, HAIRLINE, TEXT_SUB, iconGray } from '@/constants/colors';
 import { normalize } from '@/utils/normalize';
 
 const TECHNICAL_FIELDS = [
@@ -133,7 +133,7 @@ export default function ExifConsentSection({
             className="items-center justify-center"
             style={{ width: normalize(26), height: normalize(26), borderRadius: normalize(13), backgroundColor: CARD }}
           >
-            <Info size={normalize(15)} color="rgba(0,0,0,0.42)" strokeWidth={2} />
+            <Info size={normalize(15)} color={iconGray(0.42)} strokeWidth={2} />
           </Pressable>
         </View>
 
@@ -182,7 +182,7 @@ export default function ExifConsentSection({
               className="items-center justify-center"
               style={{ width: normalize(30), height: normalize(30), borderRadius: normalize(15), backgroundColor: CARD }}
             >
-              <X size={normalize(14)} color="rgba(0,0,0,0.5)" strokeWidth={2} />
+              <X size={normalize(14)} color={iconGray(0.5)} strokeWidth={2} />
             </Pressable>
           </View>
 

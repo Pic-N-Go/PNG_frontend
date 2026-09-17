@@ -34,7 +34,7 @@ import { Comment } from '@/types/community';
 import type { ReportReasonId } from '@/types/report';
 import { CONTENT_PADDING, FONT_LG, FONT_MD, FONT_SM, FONT_XS, HAIRLINE_WIDTH, HEADER_HEIGHT, SPACING_LG } from '@/constants/layout';
 import { normalize, normalizeHeight } from '@/utils/normalize';
-import { BRAND, CARD, HAIRLINE, SCRIM, TEXT_SUB } from '@/constants/colors';
+import { BRAND, CARD, HAIRLINE, SCRIM, TEXT_SUB, iconGray } from '@/constants/colors';
 
 const ACCENT = BRAND;
 const SURFACE = CARD;
@@ -462,7 +462,7 @@ export default function PostDetailScreen() {
               >
                 {!!post.shotMeta.time && (
                   <>
-                    <Clock size={normalize(13)} color="rgba(0,0,0,0.35)" strokeWidth={1.8} />
+                    <Clock size={normalize(13)} color={iconGray(0.35)} strokeWidth={1.8} />
                     <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.65)', letterSpacing: -0.15 }}>
                       {post.shotMeta.time}
                     </Text>
@@ -471,7 +471,7 @@ export default function PostDetailScreen() {
                 {!!post.shotMeta.weather && (
                   <>
                     {!!post.shotMeta.time && <View style={{ width: normalize(2), height: normalize(2), borderRadius: normalize(1), backgroundColor: 'rgba(0,0,0,0.15)' }} />}
-                    <Sun size={normalize(15)} color="rgba(0,0,0,0.5)" strokeWidth={1.8} />
+                    <Sun size={normalize(15)} color={iconGray(0.5)} strokeWidth={1.8} />
                     <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.65)', letterSpacing: -0.15 }}>
                       {post.shotMeta.weather}
                     </Text>
@@ -480,7 +480,7 @@ export default function PostDetailScreen() {
                 {!!post.shotMeta.gear && (
                   <>
                     {(!!post.shotMeta.time || !!post.shotMeta.weather) && <View style={{ width: normalize(2), height: normalize(2), borderRadius: normalize(1), backgroundColor: 'rgba(0,0,0,0.15)' }} />}
-                    <Camera size={normalize(13)} color="rgba(0,0,0,0.35)" strokeWidth={1.8} />
+                    <Camera size={normalize(13)} color={iconGray(0.35)} strokeWidth={1.8} />
                     <Text allowFontScaling={false} numberOfLines={1} style={{ flex: 1, fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.65)', letterSpacing: -0.15 }}>
                       {post.shotMeta.gear}
                     </Text>
@@ -497,7 +497,7 @@ export default function PostDetailScreen() {
               {/* 포토제닉 점수 제거 — 게시글 단위 점수가 서버에 없다(스팟 단위만 존재).
                   백엔드가 생기면 목업(community-post.html)의 핑크 칩을 되살리면 된다. */}
               <View className="flex-row items-center" style={{ gap: normalize(4), marginLeft: 'auto' }}>
-                <MessageSquare size={normalize(16)} color="rgba(0,0,0,0.6)" strokeWidth={1.8} />
+                <MessageSquare size={normalize(16)} color={iconGray(0.6)} strokeWidth={1.8} />
                 <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: 'rgba(0,0,0,0.6)' }}>
                   {post.commentCount}
                 </Text>
@@ -510,7 +510,7 @@ export default function PostDetailScreen() {
                 </Text>
               </Pressable>
               <Pressable onPress={handleShare} hitSlop={8} accessibilityLabel="공유">
-                <ShareIcon size={normalize(16)} color="rgba(0,0,0,0.6)" strokeWidth={1.8} />
+                <ShareIcon size={normalize(16)} color={iconGray(0.6)} strokeWidth={1.8} />
               </Pressable>
             </View>
 

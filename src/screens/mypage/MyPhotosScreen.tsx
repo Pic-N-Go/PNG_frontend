@@ -12,7 +12,7 @@ import { FONT_LG, FONT_MD, FONT_SM, FONT_XS, HAIRLINE_WIDTH } from '@/constants/
 
 import { useMyAlbums, useMyStats } from '@/hooks/useUser';
 import { categoryLabel } from '@/constants/spotCategories';
-import { BRAND, BRAND_TINT, CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
+import { BRAND, BRAND_TINT, CARD, HAIRLINE, TEXT_SUB, iconGray } from '@/constants/colors';
 
 // Types
 type ViewMode = 'album' | 'grid';
@@ -106,7 +106,7 @@ export default function MyPhotosScreen() {
       {/* NavBar */}
       <View style={styles.navBar}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
-          <IconChevronLeft size={normalize(24)} color="rgba(0,0,0,0.65)" />
+          <IconChevronLeft size={normalize(24)} color={iconGray(0.65)} />
         </TouchableOpacity>
         <Text className="font-normal" style={styles.navTitle}>내 사진</Text>
         <View style={styles.viewToggleGroup}>
@@ -194,7 +194,7 @@ export default function MyPhotosScreen() {
                           <View style={styles.albumBadge}><Text className="font-normal" style={styles.albumBadgeText}>{categoryName}</Text></View>
                         </View>
                       </View>
-                      <IconChevronRight size={16} color="rgba(0,0,0,0.18)" />
+                      <IconChevronRight size={16} color={iconGray(0.18)} />
                     </View>
                   );
                 })}

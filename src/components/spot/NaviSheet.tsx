@@ -9,7 +9,7 @@ import type { NaviAppId, SpotNavigationDTO } from '@/types/spot';
 import { openKakaoNavi, SpotLocation } from '@/utils/kakaoNavi';
 import { openNaverMap } from '@/utils/naverMap';
 import { openAppleMap } from '@/utils/appleMap';
-import { BRAND, CARD, TEXT_SUB } from '@/constants/colors';
+import { BRAND, CARD, TEXT_SUB, iconGray } from '@/constants/colors';
 
 const NAVI_APPS: { id: NaviAppId; label: string; bg: string }[] = [
   { id: 'kakao', label: '카카오맵', bg: '#FEE500' },
@@ -135,7 +135,7 @@ export default function NaviSheet({ visible, onClose, spotName, address, spots, 
         </View>
 
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(12), borderRadius: normalize(14), backgroundColor: CARD, padding: normalize(16), marginBottom: normalize(16) }}>
-          <IconClock size={normalize(20)} color="rgba(0,0,0,0.5)" strokeWidth={2} />
+          <IconClock size={normalize(20)} color={iconGray(0.5)} strokeWidth={2} />
           <View>
             <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: normalizeFontSize(14), color: '#000' }}>현재 위치에서 차로 18분</Text>
             <Text className="font-normal" allowFontScaling={false} style={{ fontSize: normalizeFontSize(12), color: TEXT_SUB, marginTop: normalize(2) }}>약 12.4km · 실시간 교통 기준</Text>

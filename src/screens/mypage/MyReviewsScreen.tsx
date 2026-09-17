@@ -22,7 +22,7 @@ import PhotoLightbox from '@/components/spot/PhotoLightbox';
 import { useDeleteReview, useMyReviews } from '@/hooks/useSpot';
 import { useAuthStore } from '@/store/useAuthStore';
 import type { MyReview } from '@/types/spot';
-import { BRAND, BRAND_TINT, CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
+import { BRAND, BRAND_TINT, CARD, HAIRLINE, TEXT_SUB, iconGray } from '@/constants/colors';
 
 export default function MyReviewsScreen() {
   const navigation = useNavigation<NativeStackNavigationProp<RootStackParamList>>();
@@ -95,7 +95,7 @@ export default function MyReviewsScreen() {
             marginLeft: -normalize(8),
           }}
         >
-          <IconChevronLeft size={normalize(24)} color="rgba(0,0,0,0.65)" strokeWidth={2} />
+          <IconChevronLeft size={normalize(24)} color={iconGray(0.65)} strokeWidth={2} />
         </TouchableOpacity>
         <Text
           style={{

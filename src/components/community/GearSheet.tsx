@@ -6,7 +6,7 @@ import { useMyEquipments } from '@/hooks/useEquipment';
 import { GearSheetKind } from '@/types/community';
 import { BUTTON_HEIGHT, BUTTON_RADIUS, FONT_2XS, FONT_LG, FONT_MD, FONT_SM, GRID_PADDING } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
-import { BRAND, BRAND_TINT_ACTIVE, CARD, TEXT_SUB } from '@/constants/colors';
+import { BRAND, BRAND_TINT_ACTIVE, CARD, TEXT_SUB, iconGray } from '@/constants/colors';
 
 const ACCENT = BRAND;
 const SURFACE = CARD;
@@ -68,7 +68,7 @@ export default function GearSheet({ visible, kind, value, onSelect, onClose }: P
           className="flex-row items-center"
           style={{ gap: normalize(10), backgroundColor: SURFACE, borderRadius: normalize(13), paddingHorizontal: normalize(14), height: normalize(48) }}
         >
-          <Icon size={normalize(15)} color="rgba(0,0,0,0.35)" strokeWidth={1.8} />
+          <Icon size={normalize(15)} color={iconGray(0.35)} strokeWidth={1.8} />
           <TextInput
             value={input}
             onChangeText={setInput}

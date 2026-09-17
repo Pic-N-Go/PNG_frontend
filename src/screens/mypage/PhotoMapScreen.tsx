@@ -9,7 +9,7 @@ import { StatusBar } from 'expo-status-bar';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { BUTTON_HEIGHT, BUTTON_RADIUS, FONT_LG, FONT_MD, FONT_SM, FONT_XS, HAIRLINE_WIDTH } from '@/constants/layout';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { BRAND, HAIRLINE } from '@/constants/colors';
+import { BRAND, HAIRLINE, iconGray } from '@/constants/colors';
 import { useBookmarkedSpots, useReviewedSpots } from '@/hooks/useSpot';
 import { useMapCluster } from '@/hooks/useMapCluster';
 import { mergeMapSpots } from '@/utils/spotMappers';
@@ -201,7 +201,7 @@ export default function PhotoMapScreen() {
       >
         <View className="flex-row items-center justify-between" style={{ height: NAV_ROW_HEIGHT, paddingHorizontal: normalize(20) }}>
           <TouchableOpacity onPress={handleBackNavigation} className="items-center justify-center" style={{ width: normalize(36), height: normalize(36), marginLeft: -normalize(8) }}>
-            <IconChevronLeft size={normalize(24)} color="rgba(0,0,0,0.65)" />
+            <IconChevronLeft size={normalize(24)} color={iconGray(0.65)} />
           </TouchableOpacity>
           <Text className="font-semibold text-black" style={{ fontSize: FONT_LG, letterSpacing: -0.3 }}>
             PIC MAP
@@ -392,7 +392,7 @@ export default function PhotoMapScreen() {
           </TouchableOpacity>
         </View>
         <TouchableOpacity onPress={handleMyLocation} className="bg-white items-center justify-center" style={{ width: normalize(40), height: normalize(40), borderRadius: normalize(12) }}>
-          <IconFocus2 size={normalize(20)} color="rgba(0,0,0,0.45)" />
+          <IconFocus2 size={normalize(20)} color={iconGray(0.45)} />
         </TouchableOpacity>
       </View>
 
@@ -688,7 +688,7 @@ function SpotListSheet({ spots, isLoading, activeSpot, onSpotPress, filterName }
                 </View>
               )}
             </View>
-            <IconChevronRight size={normalize(18)} color="rgba(0,0,0,0.18)" />
+            <IconChevronRight size={normalize(18)} color={iconGray(0.18)} />
           </TouchableOpacity>
         ))}
       </ScrollView>

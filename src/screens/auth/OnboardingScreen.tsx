@@ -37,7 +37,7 @@ import {
   SPACING_XL,
 } from '@/constants/layout';
 import { NICK_RE, NICK_MAX, nicknameError } from '@/constants/validation';
-import { BRAND, CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
+import { BRAND, CARD, HAIRLINE, TEXT_SUB, iconGray } from '@/constants/colors';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Onboarding'>;
 
@@ -628,7 +628,7 @@ function TermItem({
         }}
       >
         <Text style={{ fontSize: FONT_XS, color: 'rgba(0,0,0,0.45)', fontFamily: 'Pretendard-Medium' }}>보기</Text>
-        <Feather name="chevron-right" size={12} color="rgba(0,0,0,0.45)" />
+        <Feather name="chevron-right" size={12} color={iconGray(0.45)} />
       </Pressable>
     </View>
   );

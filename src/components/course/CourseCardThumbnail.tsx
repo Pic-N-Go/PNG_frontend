@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { View, Image, Text, StyleSheet } from 'react-native';
 import { IconRoute } from '@tabler/icons-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
+import { iconGray } from '@/constants/colors';
 
 interface CourseCardThumbnailProps {
   courseId: number;
@@ -46,7 +47,7 @@ export default function CourseCardThumbnail({
         className="flex-1 items-center justify-center bg-card"
         style={{ width: '100%', height, gap: normalize(8) }}
       >
-        <IconRoute size={normalize(26)} color="rgba(0,0,0,0.2)" strokeWidth={1.5} />
+        <IconRoute size={normalize(26)} color={iconGray(0.2)} strokeWidth={1.5} />
         <Text
           allowFontScaling={false}
           className="font-normal tracking-tight"
