@@ -11,6 +11,7 @@ import SpotInfoHeader from '@/components/spot/SpotInfoHeader';
 import SpotTabBar, { type SpotTabKey } from '@/components/spot/SpotTabBar';
 import PhotogenicScoreCard from '@/components/spot/PhotogenicScoreCard';
 import ConvenienceInfoSection from '@/components/spot/ConvenienceInfoSection';
+import RelatedSpotsCard from '@/components/spot/RelatedSpotsCard';
 import LinkBanner from '@/components/common/LinkBanner';
 import PhotoGridTab from '@/components/spot/PhotoGridTab';
 import ReviewTab from '@/components/spot/ReviewTab';
@@ -282,6 +283,12 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
                     </Text>
                   </Pressable>
                 </View>
+                <RelatedSpotsCard
+                  spotId={spot.id}
+                  spotName={spot.name}
+                  onViewAll={() => navigation.navigate('RelatedSpots', { spotId: spot.id, spotName: spot.name })}
+                  onSpotPress={(id) => navigation.push('SpotDetail', { spotId: id })}
+                />
               </View>
             )}
 
