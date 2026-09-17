@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { ScrollView, Text, View, AppState } from 'react-native';
+import { RefreshControl, ScrollView, Text, View, AppState } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Location from 'expo-location';
 import { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -9,8 +9,7 @@ import type { RootStackParamList } from '@/navigation';
 import { CONTENT_PADDING, FONT_SM, FONT_TITLE, SPACING_LG } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
 import HeroSection from '@/components/home/HeroSection';
-import SearchBar from '@/components/home/SearchBar';
-import CategoryFilter from '@/components/home/CategoryFilter';
+import SearchBar from '@/components/common/SearchBar';
 import MapBanner from '@/components/home/MapBanner';
 import PopularSpotsSection from '@/components/home/PopularSpotsSection';
 import RecommendedSpotsSection from '@/components/home/RecommendedSpotsSection';
@@ -20,8 +19,9 @@ import { IconBell } from '@tabler/icons-react-native';
 import LinkBanner from '@/components/common/LinkBanner';
 import FilterBottomSheet from '@/components/home/FilterBottomSheet';
 import { useNotification } from '@/hooks/useNotification';
+import { queryClient } from '@/store/queryClient';
 import { useNearbySpots } from '@/hooks/useSpot';
-import { TEXT_SUB } from '@/constants/colors';
+import { BRAND, TEXT_SUB } from '@/constants/colors';
 import { isLocationInKorea, sanitizeKoreaLocation } from '@/utils/location';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'Home'>;
@@ -62,7 +62,6 @@ function extractDongOrDistrict(geo: Location.LocationGeocodedAddress): string {
 }
 
 export default function HomeScreen({ navigation }: Props) {
-  const [selectedCategory, setSelectedCategory] = useState('all');
   const [activeFilterCount, setActiveFilterCount] = useState(0);
   const [filterVisible, setFilterVisible] = useState(false);
 
@@ -183,6 +182,21 @@ export default function HomeScreen({ navigation }: Props) {
     }
   );
 
+  const [refreshing, setRefreshing] = useState(false);
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      // 좌표가 바뀌었으면 주변 스팟 쿼리 키가 따라 바뀐다 — 리페치보다 먼저 맞춰야 한 번에 끝난다.
+      await syncUserCoords();
+      // ponytail: 마운트된 쿼리를 전부 훑는다. 홈 데이터가 섹션 컴포넌트마다 흩어져 있어
+      // 화면에서 refetch를 하나로 묶을 수 없다. 다른 탭 목록까지 같이 갱신되지만 사용자가
+      // 명시적으로 당겼을 때 한 번뿐이라 감수한다 — 비용이 보이면 키 접두사로 좁힐 것.
+      await queryClient.refetchQueries({ type: 'active' });
+    } finally {
+      setRefreshing(false);
+    }
+  }, [syncUserCoords]);
+
   const { useNotificationsQuery } = useNotification();
   const { data: notifications = [] } = useNotificationsQuery();
   const hasUnread = notifications.some((item) => !item.isRead);
@@ -190,14 +204,21 @@ export default function HomeScreen({ navigation }: Props) {
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
       <ScrollView
-        bounces={false}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={BRAND} colors={[BRAND]} />
+        }
         // TAB_BAR_HEIGHT·insets.bottom을 더하지 않는다 — MainTab이 기본(non-absolute) 하단 탭
         // 내비게이터라 화면 영역이 이미 탭바 높이를 뺀 크기로 잡히고, 시스템 내비바는 탭바 자신의
         // paddingBottom(TabBar.tsx)이 덮는다. 필요한 건 마지막 콘텐츠와 탭바 사이의 최소 여백뿐이다.
         contentContainerStyle={{ paddingBottom: SPACING_LG }}
       >
-        <HeroSection onNotificationPress={() => navigation.navigate('Notification')} hasUnread={hasUnread} />
+        <HeroSection
+          onNotificationPress={() => navigation.navigate('Notification')}
+          hasUnread={hasUnread}
+          lat={userLocation.isReal ? userLocation.lat : undefined}
+          lng={userLocation.isReal ? userLocation.lng : undefined}
+        />
 
         {/* 히어로 → 흰 배경 페이드 */}
         <LinearGradient
@@ -209,11 +230,6 @@ export default function HomeScreen({ navigation }: Props) {
           onPress={() => navigation.navigate('SearchResult', { query: '' })}
           onFilterPress={() => setFilterVisible(true)}
           activeFilterCount={activeFilterCount}
-        />
-
-        <CategoryFilter
-          selected={selectedCategory}
-          onSelect={setSelectedCategory}
         />
 
         {/* 주변 스팟 섹션 */}

@@ -1,34 +1,25 @@
 import React, { useEffect, useState } from 'react';
-import { ActivityIndicator, BackHandler, Image, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, BackHandler, Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { ChevronRight, Clock, MapPin, X } from 'lucide-react-native';
+import { ChevronRight, MapPin } from 'lucide-react-native';
 import Chip from '@/components/common/Chip';
+import { RecentSearches, RecommendedSpots, SearchField, SectionLabel } from '@/components/common/SearchPanel';
 import UserRow from '@/components/common/UserRow';
 import ProfilePostsTab from '@/components/community/ProfilePostsTab';
 import { useSearchUsers } from '@/hooks/useUser';
-import { useRecommendedSpots, useSearchSpots } from '@/hooks/useSpot';
+import { useSearchSpots } from '@/hooks/useSpot';
 import { useCommunityFeed } from '@/hooks/useCommunity';
+import { useSearchStore } from '@/store/useSearchStore';
 import { FONT_SM, FONT_XS, GRID_PADDING, HAIRLINE_WIDTH } from '@/constants/layout';
-import { normalize, normalizeFontSize } from '@/utils/normalize';
+import { normalize } from '@/utils/normalize';
 import type { FollowUserResponse } from '@/types/user';
 import type { SpotResponse } from '@/types/spot';
 import type { Post, ProfilePostItem } from '@/types/community';
-import { BRAND, CARD, HAIRLINE } from '@/constants/colors';
+import { BRAND, CARD, HAIRLINE, iconGray } from '@/constants/colors';
 
 const ACCENT = BRAND;
 const SURFACE = CARD;
 
-/** 최근 검색 저장 키. 서버 API가 없어 기기에만 둔다. */
-const RECENT_KEY = 'community.recentSearches';
-const RECENT_MAX = 10;
-
-/**
- * "전체"는 종류별 미리보기만 보여준다 — 전체 목록은 각 칩이 맡는다.
- *
- * ponytail: 스팟·사용자 칩의 "전체 목록"도 서버 기본 size(20)에서 잘리고 더 있다는 표시가 없다.
- * 실사용자가 20건을 넘기면 useInfiniteQuery로 올릴 것.
- */
 const PREVIEW_ROWS = 3;
 const PREVIEW_CELLS = 6;
 
@@ -60,10 +51,10 @@ export default function SearchOverlay({ visible, onClose, onSubmitKeyword, onOpe
   // 직접 인셋만큼 내려주지 않으면 내용이 상태바 아래로 파고들고, 그 자리에 놓인
   // "취소" 버튼은 iOS가 상태바 탭을 가로채 눌리지 않는다.
   const insets = useSafeAreaInsets();
+  const addRecentSearch = useSearchStore((state) => state.addRecentSearch);
   const [query, setQuery] = useState('');
   // 아무 필터도 고르지 않은 상태가 기본이어야 한다 — 특정 칩이 미리 선택돼 있으면 결과를 조용히 좁힌다.
   const [chip, setChip] = useState<ChipKey>('all');
-  const [recentSearches, setRecentSearches] = useState<string[]>([]);
   /** 검색이 실행된 키워드. query와 분리해야 타이핑 중에 매 글자 요청이 나가지 않는다. */
   const [submitted, setSubmitted] = useState('');
 
@@ -94,17 +85,6 @@ export default function SearchOverlay({ visible, onClose, onSubmitKeyword, onOpe
     setChip('all');
   }, [visible]);
 
-  useEffect(() => {
-    AsyncStorage.getItem(RECENT_KEY)
-      .then((raw) => {
-        if (!raw) return;
-        const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed)) setRecentSearches(parsed.filter((t) => typeof t === 'string'));
-      })
-      // 저장 형식이 깨졌거나 읽기가 실패해도 검색 자체는 되어야 한다.
-      .catch(() => undefined);
-  }, []);
-
   const isAll = chip === 'all';
   const searching = !!submitted;
   // 미리보기와 전체 목록이 같은 쿼리를 쓴다(slice만 다르다) — 칩을 오가도 재요청이 없다.
@@ -113,15 +93,10 @@ export default function SearchOverlay({ visible, onClose, onSubmitKeyword, onOpe
   // 게시글 전체 목록은 피드가 맡으므로 오버레이에서는 "전체" 미리보기용으로만 받는다.
   const postResults = useCommunityFeed('LATEST', submitted, { enabled: searching && isAll });
 
-  const persistRecent = (next: string[]) => {
-    setRecentSearches(next);
-    AsyncStorage.setItem(RECENT_KEY, JSON.stringify(next)).catch(() => undefined);
-  };
-
   const submit = (keyword: string) => {
     const trimmed = keyword.trim();
     if (!trimmed) return;
-    persistRecent([trimmed, ...recentSearches.filter((t) => t !== trimmed)].slice(0, RECENT_MAX));
+    addRecentSearch(trimmed);
     setQuery(trimmed);
     setSubmitted(trimmed);
     // 게시글 칩만 화면을 옮긴다 — 피드가 키워드 필터를 이미 갖고 있다.
@@ -139,38 +114,14 @@ export default function SearchOverlay({ visible, onClose, onSubmitKeyword, onOpe
   return (
     <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, paddingTop: insets.top, backgroundColor: '#fff', zIndex: 40 }}>
       <ScrollView contentContainerStyle={{ paddingBottom: normalize(80) }} keyboardShouldPersistTaps="handled">
-        <View className="flex-row items-center" style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(6), paddingBottom: normalize(12), gap: normalize(12) }}>
-          <View className="flex-1 flex-row items-center" style={{ height: normalize(40), paddingHorizontal: normalize(14), borderRadius: normalize(20), backgroundColor: SURFACE, gap: normalize(10) }}>
-            <TextInput
-              value={query}
-              onChangeText={setQuery}
-              placeholder="스팟, 게시글, 사용자 검색"
-              placeholderTextColor="rgba(0,0,0,0.35)"
-              allowFontScaling={false}
-              autoFocus
-              returnKeyType="search"
-              onSubmitEditing={() => submit(query)}
-              style={{ flex: 1, fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(14), color: '#000', letterSpacing: -0.2 }}
-            />
-            {query.length > 0 && (
-              <Pressable
-                onPress={() => {
-                  setQuery('');
-                  setSubmitted('');
-                }}
-                className="items-center justify-center"
-                style={{ width: normalize(22), height: normalize(22), borderRadius: normalize(11), backgroundColor: 'rgba(0,0,0,0.1)' }}
-              >
-                <X size={normalize(9)} color="rgba(0,0,0,0.55)" strokeWidth={2.4} />
-              </Pressable>
-            )}
-          </View>
-          <Pressable onPress={onClose}>
-            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(14), color: ACCENT, letterSpacing: -0.2 }}>
-              취소
-            </Text>
-          </Pressable>
-        </View>
+        <SearchField
+          value={query}
+          onChangeText={setQuery}
+          onSubmit={submit}
+          onCancel={onClose}
+          onClear={() => setSubmitted('')}
+          placeholder="스팟, 게시글, 사용자 검색"
+        />
 
         <View className="flex-row" style={{ paddingHorizontal: GRID_PADDING, paddingBottom: normalize(14), gap: normalize(6) }}>
           {/* 결과 종류를 거르는 필터라 활성색은 블랙이다. 공통 Chip을 쓴다 —
@@ -189,40 +140,11 @@ export default function SearchOverlay({ visible, onClose, onSubmitKeyword, onOpe
 
         {!searching ? (
           <>
-            {recentSearches.length > 0 && (
-              <>
-                <View className="flex-row items-center justify-between" style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(8), paddingBottom: normalize(4) }}>
-                  <SectionLabel text="최근 검색" />
-                  <Pressable onPress={() => persistRecent([])}>
-                    <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: 'rgba(0,0,0,0.45)', letterSpacing: -0.2 }}>
-                      모두 지우기
-                    </Text>
-                  </Pressable>
-                </View>
-                <View style={{ paddingHorizontal: GRID_PADDING, paddingBottom: normalize(8) }}>
-                  {recentSearches.map((term) => (
-                    <Pressable key={term} onPress={() => submit(term)} className="flex-row items-center" style={{ gap: normalize(12), paddingVertical: normalize(11) }}>
-                      <Clock size={normalize(16)} color="rgba(0,0,0,0.35)" strokeWidth={1.8} />
-                      <Text allowFontScaling={false} style={{ flex: 1, fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(14), color: '#000', letterSpacing: -0.2 }}>
-                        {term}
-                      </Text>
-                      <Pressable
-                        onPress={() => persistRecent(recentSearches.filter((t) => t !== term))}
-                        accessibilityRole="button"
-                        accessibilityLabel={`${term} 최근 검색어 삭제`}
-                        style={{ padding: normalize(4) }}
-                      >
-                        <X size={normalize(12)} color="rgba(0,0,0,0.25)" strokeWidth={2} />
-                      </Pressable>
-                    </Pressable>
-                  ))}
-                </View>
-              </>
-            )}
+            <RecentSearches onSelect={submit} />
 
             {/* 인기 검색어 섹션은 제거했다 — 검색 로그 집계 API가 없어 순위를 지어낼 수밖에 없었다.
                 그 자리는 실데이터인 추천 스팟이 넓게 쓴다. */}
-            <RecommendedSpots onOpenSpot={onOpenSpot} />
+            <RecommendedSpots onOpenSpot={(spot) => onOpenSpot(spot.id)} />
           </>
         ) : isAll ? (
           <AllPreview
@@ -247,14 +169,6 @@ export default function SearchOverlay({ visible, onClose, onSubmitKeyword, onOpe
   );
 }
 
-function SectionLabel({ text }: { text: string }) {
-  return (
-    <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, color: 'rgba(0,0,0,0.45)', letterSpacing: 0.4 }}>
-      {text}
-    </Text>
-  );
-}
-
 function SectionHeader({ text, onMore }: { text: string; onMore: () => void }) {
   return (
     <View className="flex-row items-center justify-between" style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(12), paddingBottom: normalize(4) }}>
@@ -263,7 +177,7 @@ function SectionHeader({ text, onMore }: { text: string; onMore: () => void }) {
         <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: 'rgba(0,0,0,0.45)', letterSpacing: -0.2 }}>
           더보기
         </Text>
-        <ChevronRight size={normalize(14)} color="rgba(0,0,0,0.3)" strokeWidth={2} />
+        <ChevronRight size={normalize(14)} color={iconGray(0.3)} strokeWidth={2} />
       </Pressable>
     </View>
   );
@@ -336,7 +250,7 @@ function SpotRow({ spot, onPress }: { spot: SpotResponse; onPress: () => void })
         {spot.thumbnailUrl ? (
           <Image source={{ uri: spot.thumbnailUrl }} resizeMode="cover" style={{ width: '100%', height: '100%' }} />
         ) : (
-          <MapPin size={normalize(18)} color="rgba(0,0,0,0.25)" strokeWidth={1.8} />
+          <MapPin size={normalize(18)} color={iconGray(0.25)} strokeWidth={1.8} />
         )}
       </View>
       <View style={{ flex: 1, minWidth: 0 }}>
@@ -436,39 +350,6 @@ function AllPreview({
           />
         </>
       )}
-    </>
-  );
-}
-
-function RecommendedSpots({ onOpenSpot }: { onOpenSpot: (spotId: number) => void }) {
-  // 로그인해야 오는 데이터라 비로그인·실패 시에는 섹션째로 감춘다(빈 제목만 남으면 고장처럼 보인다).
-  const { data = [], isError } = useRecommendedSpots(4);
-  if (isError || data.length === 0) return null;
-
-  return (
-    <>
-      <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(8), paddingBottom: normalize(4) }}>
-        <SectionLabel text="추천 스팟" />
-      </View>
-      <View className="flex-row flex-wrap" style={{ paddingHorizontal: GRID_PADDING, paddingBottom: normalize(24), gap: normalize(8) }}>
-        {/* 게시글 수는 서버가 스팟별로 세어주지 않아 표시하지 않는다 — 리뷰 수는 실제 값이다 */}
-        {data.map((spot) => (
-          <Pressable key={spot.id} onPress={() => onOpenSpot(spot.id)} style={{ width: '47%', gap: normalize(8) }}>
-            <View className="overflow-hidden" style={{ height: normalize(100), borderRadius: normalize(12), backgroundColor: SURFACE }}>
-              {spot.thumbnailUrl ? (
-                <Image source={{ uri: spot.thumbnailUrl }} resizeMode="cover" style={{ width: '100%', height: '100%' }} />
-              ) : (
-                <View className="items-center justify-center" style={{ flex: 1 }}>
-                  <MapPin size={normalize(20)} color="rgba(0,0,0,0.2)" strokeWidth={1.8} />
-                </View>
-              )}
-            </View>
-            <Text allowFontScaling={false} numberOfLines={1} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, color: '#000', letterSpacing: -0.2 }}>
-              {spot.name}
-            </Text>
-          </Pressable>
-        ))}
-      </View>
     </>
   );
 }

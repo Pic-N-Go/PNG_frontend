@@ -26,7 +26,7 @@ import { passwordError } from '@/constants/validation';
 import { toErrorMessage } from '@/api/auth';
 import { normalize } from '@/utils/normalize';
 import { BUTTON_HEIGHT, BUTTON_RADIUS, CARD_RADIUS, FONT_2XS, FONT_LG, FONT_MD, FONT_SM, FONT_TITLE, FONT_XL, FONT_XS, GRID_PADDING, HAIRLINE_WIDTH, INPUT_HEIGHT, SPACING_LG, SPACING_SM, WHEEL_ITEM_HEIGHT, WHEEL_SELECTION_RADIUS, WHEEL_VISIBLE_HEIGHT, WHEEL_WIDTH } from '@/constants/layout';
-import { BRAND, CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
+import { BRAND, CARD, HAIRLINE, TEXT_SUB, iconGray } from '@/constants/colors';
 
 type Props = NativeStackScreenProps<MyPageStackParamList, 'Setting'>;
 
@@ -237,7 +237,7 @@ export default function SettingScreen({ route, navigation }: Props) {
         style={{ height: normalize(54), paddingHorizontal: normalize(16) }}
       >
         <Pressable onPress={() => navigation.goBack()} className="items-center justify-center rounded-full" style={{ width: normalize(36), height: normalize(36) }}>
-          <IconChevronLeft size={normalize(20)} color="rgba(0,0,0,0.7)" strokeWidth={1.75} />
+          <IconChevronLeft size={normalize(20)} color={iconGray(0.7)} strokeWidth={1.75} />
         </Pressable>
         <Text className="font-semibold text-black tracking-tight" style={{ fontSize: FONT_LG }}>설정</Text>
         <View style={{ width: normalize(36) }} />
@@ -505,7 +505,7 @@ function SectionLabel({ text, actionLabel, onActionPress }: { text: string; acti
       <Text className="font-normal" style={labelStyle}>{text}</Text>
       <Pressable onPress={onActionPress} hitSlop={8} className="flex-row items-center" style={{ paddingVertical: normalize(2), paddingLeft: normalize(8) }}>
         <Text style={{ fontSize: FONT_SM, fontFamily: 'Pretendard-Medium', color: 'rgba(0,0,0,0.48)' }}>{actionLabel}</Text>
-        <IconChevronRight size={normalize(14)} color="rgba(0,0,0,0.28)" strokeWidth={2} />
+        <IconChevronRight size={normalize(14)} color={iconGray(0.28)} strokeWidth={2} />
       </Pressable>
     </View>
   );
@@ -981,7 +981,7 @@ function VersionInfoSheet({ visible, onClose, onOpenDoc }: { visible: boolean; o
         {/* 업데이트 확인 */}
         <View className="items-center" style={{ paddingTop: normalize(14), paddingBottom: normalize(4) }}>
           <Pressable onPress={checkUpdate} hitSlop={8} className="flex-row items-center" style={{ gap: normalize(6), paddingVertical: normalize(6), paddingHorizontal: normalize(12) }}>
-            <IconRefresh size={normalize(14)} color="rgba(0,0,0,0.5)" strokeWidth={2} />
+            <IconRefresh size={normalize(14)} color={iconGray(0.5)} strokeWidth={2} />
             <Text style={{ fontSize: FONT_SM, fontFamily: 'Pretendard-Medium', color: 'rgba(0,0,0,0.55)' }}>업데이트 확인</Text>
           </Pressable>
         </View>
@@ -1070,7 +1070,7 @@ function PasswordChangeSheet({ visible, onClose }: { visible: boolean; onClose: 
             style={{ width: normalize(30), height: normalize(30), borderRadius: normalize(15) }}
             accessibilityLabel="닫기"
           >
-            <IconX size={normalize(13)} color="rgba(0,0,0,0.5)" strokeWidth={2} />
+            <IconX size={normalize(13)} color={iconGray(0.5)} strokeWidth={2} />
           </Pressable>
         </View>
 
@@ -1179,7 +1179,7 @@ function InterestThemeSheet({
             style={{ width: normalize(30), height: normalize(30), borderRadius: normalize(15) }}
             accessibilityLabel="닫기"
           >
-            <IconX size={normalize(13)} color="rgba(0,0,0,0.5)" strokeWidth={2} />
+            <IconX size={normalize(13)} color={iconGray(0.5)} strokeWidth={2} />
           </Pressable>
         </View>
 
@@ -1241,7 +1241,7 @@ function DocRow({ label, onPress, divider }: { label: string; onPress: () => voi
       style={{ paddingVertical: normalize(14), paddingHorizontal: normalize(16), borderTopWidth: divider ? HAIRLINE_WIDTH : 0, borderTopColor: HAIRLINE }}
     >
       <Text className="font-medium text-black" style={{ fontSize: FONT_MD }}>{label}</Text>
-      <IconChevronRight size={normalize(16)} color="rgba(0,0,0,0.35)" strokeWidth={2} />
+      <IconChevronRight size={normalize(16)} color={iconGray(0.35)} strokeWidth={2} />
     </Pressable>
   );
 }

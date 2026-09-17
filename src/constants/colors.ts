@@ -33,3 +33,15 @@ export const HAIRLINE = colors.hairline;
 
 /** 모달 딤·사진 위 반투명 배지 배경 */
 export const SCRIM = colors.scrim;
+
+/**
+ * 아이콘 stroke용 불투명 회색. 흰 배경 위에서 `rgba(0,0,0,alpha)`와 같은 밝기다.
+ *
+ * 아이콘에 반투명 색을 쓰면 안 된다 — SVG는 path를 하나씩 합성하므로 아이콘 안에서
+ * 선이 겹치는 지점(Home의 문선과 바닥선, Focus2의 조준선과 원, Route의 원과 경로)만
+ * 두 번 칠해져 그 부분이 점처럼 진해진다. 불투명 색은 몇 번 겹쳐도 같은 색이다.
+ */
+export const iconGray = (alpha: number) => {
+  const v = Math.round(255 * (1 - alpha));
+  return `rgb(${v},${v},${v})`;
+};

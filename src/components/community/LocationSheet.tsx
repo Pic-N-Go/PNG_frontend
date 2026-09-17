@@ -6,7 +6,7 @@ import { useDebounce } from '@/hooks/useDebounce';
 import { useSearchSpots, useSpots } from '@/hooks/useSpot';
 import { BUTTON_HEIGHT, BUTTON_RADIUS, FONT_2XS, FONT_LG, FONT_MD, FONT_SM, FONT_XS, GRID_PADDING } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
-import { BRAND, BRAND_TINT_ACTIVE, CARD, TEXT_SUB } from '@/constants/colors';
+import { BRAND, BRAND_TINT_ACTIVE, CARD, TEXT_SUB, iconGray } from '@/constants/colors';
 
 const ACCENT = BRAND;
 const SURFACE = CARD;
@@ -111,7 +111,7 @@ export default function LocationSheet({ visible, selected, onSelect, onClose }: 
             allowFontScaling={false}
             style={{ flex: 1, fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: '#000', letterSpacing: -0.2 }}
           />
-          <Search size={normalize(15)} color="rgba(0,0,0,0.3)" strokeWidth={1.8} />
+          <Search size={normalize(15)} color={iconGray(0.3)} strokeWidth={1.8} />
         </View>
 
         <ScrollView style={{ maxHeight: SCROLL_MAX }} contentContainerStyle={{ paddingTop: normalize(4), paddingBottom: normalize(4) }} keyboardShouldPersistTaps="handled">

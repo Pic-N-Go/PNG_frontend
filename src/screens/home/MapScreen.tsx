@@ -2,7 +2,7 @@ import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react'
 import { View, Text, TouchableOpacity, ScrollView, BackHandler, Image, Alert, Linking } from 'react-native';
 import { NaverMapView, NaverMapMarkerOverlay, NaverMapPathOverlay, type NaverMapViewRef } from '@mj-studio/react-native-naver-map';
 import * as Location from 'expo-location';
-import { IconChevronLeft, IconSearch, IconAdjustmentsHorizontal, IconFocus2, IconX, IconChevronDown, IconChevronUp, IconRoute } from '@tabler/icons-react-native';
+import { IconChevronLeft, IconSearch, IconFocus2, IconX, IconChevronDown, IconChevronUp, IconRoute } from '@tabler/icons-react-native';
 import { useNavigation, useRoute, useFocusEffect, CommonActions } from '@react-navigation/native';
 import { navigationRef } from '@/navigation';
 import { useCourseStore, Spot } from '@/store/useCourseStore';
@@ -23,7 +23,8 @@ import { Sparkles } from 'lucide-react-native';
 import { getDayColor, DAY_COLOR_PALETTE } from '@/constants/dayColors';
 import { BUTTON_HEIGHT, BUTTON_RADIUS, CONTROL_SIZE, FONT_LG, FONT_MD, FONT_SM, FONT_TITLE, FONT_XL, FONT_XS, HEADER_HEIGHT, ICON_SM } from '@/constants/layout';
 import Chip from '@/components/common/Chip';
-import { BRAND, TEXT_SUB } from '@/constants/colors';
+import SearchBar from '@/components/common/SearchBar';
+import { TEXT_SUB, iconGray } from '@/constants/colors';
 import { SHADOW_CONTROL, SHADOW_OVERLAY } from '@/constants/shadow';
 import { sanitizeKoreaLocation } from '@/utils/location';
 
@@ -757,7 +758,7 @@ export default function MapScreen() {
               style={{ height: '100%' }}
               activeOpacity={0.8}
             >
-              <IconSearch size={normalize(18)} color="rgba(0,0,0,0.3)" />
+              <IconSearch size={normalize(18)} color={iconGray(0.3)} />
               <Text
                 numberOfLines={1}
                 className="flex-1 ml-2 font-medium"
@@ -807,76 +808,14 @@ export default function MapScreen() {
 
             {/* 검색바 또는 모드별 헤더 */}
             {mode !== 'plan-view' ? (
-              <View
-                style={{
-                  flex: 1,
-                  height: normalize(48),
-                  borderRadius: normalize(24),
-                  backgroundColor: 'rgba(255,255,255,0.92)',
-                  borderWidth: 0.5,
-                  borderColor: 'rgba(255,255,255,0.6)',
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  paddingHorizontal: normalize(16),
-                  ...SHADOW_CONTROL,
-                }}
-              >
-                <TouchableOpacity
-                  onPress={() => navigation.navigate('MapSearch')}
-                  style={{ flex: 1, flexDirection: 'row', alignItems: 'center', height: '100%', paddingRight: normalize(32) }}
-                  activeOpacity={0.8}
-                >
-                  <IconSearch size={normalize(18)} color="rgba(0,0,0,0.3)" strokeWidth={1.5} />
-                  <Text
-                    numberOfLines={1}
-                    style={{
-                      flex: 1,
-                      marginLeft: normalize(8),
-                      fontSize: FONT_MD,
-                      color: searchQuery ? '#111' : 'rgba(0,0,0,0.3)',
-                      fontFamily: 'Pretendard-Regular',
-                      letterSpacing: -0.2,
-                    }}
-                  >
-                    {searchQuery || '장소, 테마, 키워드 검색'}
-                  </Text>
-                  {searchQuery.length > 0 && (
-                    <TouchableOpacity onPress={() => setSearchQuery('')} hitSlop={8} style={{ padding: 4 }}>
-                      <IconX size={normalize(16)} color={TEXT_SUB} strokeWidth={1.5} />
-                    </TouchableOpacity>
-                  )}
-                </TouchableOpacity>
-
-                {/* 필터 조절 아이콘 */}
-                <TouchableOpacity
-                  onPress={() => setFilterVisible(true)}
-                  hitSlop={8}
-                  style={{ position: 'absolute', right: normalize(16), top: 0, bottom: 0, justifyContent: 'center' }}
-                >
-                  <View style={{ position: 'relative' }}>
-                    <IconAdjustmentsHorizontal size={normalize(18)} color="rgba(0,0,0,0.45)" strokeWidth={1.5} />
-                    {activeFilterCount > 0 && (
-                      <View
-                        style={{
-                          position: 'absolute',
-                          top: -normalize(4),
-                          right: -normalize(4),
-                          width: normalize(14),
-                          height: normalize(14),
-                          borderRadius: normalize(7),
-                          backgroundColor: BRAND,
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                      >
-                        <Text style={{ fontSize: normalizeFontSize(8), color: '#fff', fontFamily: 'Pretendard-Medium', letterSpacing: -0.2 }}>
-                          {activeFilterCount}
-                        </Text>
-                      </View>
-                    )}
-                  </View>
-                </TouchableOpacity>
-              </View>
+              <SearchBar
+                inline
+                onPress={() => navigation.navigate('MapSearch')}
+                onFilterPress={() => setFilterVisible(true)}
+                activeFilterCount={activeFilterCount}
+                value={searchQuery}
+                onClear={() => setSearchQuery('')}
+              />
             ) : (
               /* 코스 보기 — Day 드롭다운 */
               <View style={{ flex: 1, alignItems: 'flex-end' }}>
@@ -1045,7 +984,7 @@ export default function MapScreen() {
               justifyContent: 'center',
             }}
           >
-            <IconFocus2 size={18} color="rgba(0,0,0,0.55)" />
+            <IconFocus2 size={18} color={iconGray(0.55)} />
           </TouchableOpacity>
         </View>
 

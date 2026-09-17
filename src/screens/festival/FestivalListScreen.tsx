@@ -20,7 +20,7 @@ import { useInfiniteFestivals } from '@/hooks/useFestival';
 import { regionLabelFrom, toHttps } from '@/utils/spotMappers';
 import { SPOT_CATEGORY_MAP } from '@/constants/spotCategories';
 import { CARD_RADIUS, FONT_LG, FONT_MD, FONT_SM, FONT_XS, GRID_PADDING, HAIRLINE_WIDTH, SPACING_LG } from '@/constants/layout';
-import { BRAND, CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
+import { BRAND, CARD, HAIRLINE, TEXT_SUB, iconGray } from '@/constants/colors';
 import type { FestivalResponse } from '@/types/festival';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'FestivalList'>;
@@ -193,7 +193,7 @@ export default function FestivalListScreen({ route, navigation }: Props) {
         </View>
       ) : festivals.length === 0 ? (
         <View className="flex-1 items-center justify-center" style={{ gap: normalize(12) }}>
-          <IconCalendarEvent size={normalize(48)} color="rgba(0,0,0,0.15)" strokeWidth={1.2} />
+          <IconCalendarEvent size={normalize(48)} color={iconGray(0.15)} strokeWidth={1.2} />
           <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_LG, color: 'rgba(0,0,0,0.5)' }}>
             해당하는 축제 정보가 없습니다.
           </Text>
@@ -255,7 +255,7 @@ export default function FestivalListScreen({ route, navigation }: Props) {
                     <Image source={{ uri: imageUri }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
                   ) : (
                     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                      <IconSparkles size={normalize(24)} color="rgba(0,0,0,0.2)" />
+                      <IconSparkles size={normalize(24)} color={iconGray(0.2)} />
                     </View>
                   )}
                 </View>
@@ -297,7 +297,7 @@ export default function FestivalListScreen({ route, navigation }: Props) {
 
                   {/* 장소 */}
                   <View className="flex-row items-center" style={{ gap: normalize(3), marginBottom: normalize(4) }}>
-                    <IconMapPin size={normalize(12)} color="rgba(0,0,0,0.4)" strokeWidth={1.5} />
+                    <IconMapPin size={normalize(12)} color={iconGray(0.4)} strokeWidth={1.5} />
                     <Text
                       allowFontScaling={false}
                       numberOfLines={1}

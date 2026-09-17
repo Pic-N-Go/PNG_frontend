@@ -6,7 +6,7 @@ import { FONT_2XL, FONT_XS, GRID_PADDING } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import type { SpotDetailInfo } from '@/types/spot';
 import type { FestivalProgressStatus } from '@/types/festival';
-import { BRAND, BRAND_TINT, CARD } from '@/constants/colors';
+import { BRAND, BRAND_TINT, CARD, iconGray } from '@/constants/colors';
 
 interface Props {
   spot: SpotDetailInfo;
@@ -76,7 +76,7 @@ export default function SpotInfoHeader({ spot, bookmarkCount, photoCount, eventP
       })()}
 
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(6), marginBottom: normalize(12) }}>
-        <IconMapPin size={normalize(14)} color="rgba(0,0,0,0.35)" strokeWidth={2} />
+        <IconMapPin size={normalize(14)} color={iconGray(0.35)} strokeWidth={2} />
         <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(14), color: 'rgba(0,0,0,0.45)', letterSpacing: -0.15 }}>
           {spot.address}
         </Text>

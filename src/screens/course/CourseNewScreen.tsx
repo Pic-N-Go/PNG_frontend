@@ -32,7 +32,7 @@ import Toast from '@/components/common/Toast';
 
 import { BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING, FONT_LG, FONT_MD, FONT_SM, FONT_XS } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { BRAND } from '@/constants/colors';
+import { BRAND, iconGray } from '@/constants/colors';
 import { toHttps } from '@/utils/spotMappers';
 
 // --- Types ---
@@ -530,12 +530,12 @@ export default function CourseNewScreen() {
             {daySpots[activeDay]?.length === 0 ? (
               <View className="items-center py-9 ml-[-32px]">
                 <View className="w-[52px] h-[52px] rounded-2xl bg-card items-center justify-center mb-2">
-                  <IconMapPin size={22} color="rgba(0,0,0,0.2)" />
+                  <IconMapPin size={22} color={iconGray(0.2)} />
                 </View>
                 <Text className="font-medium text-sub mb-1" style={{ fontSize: FONT_MD }}>아직 추가된 스팟이 없어요</Text>
                 <Text className="text-black/20 text-center leading-relaxed font-normal" style={{ fontSize: normalizeFontSize(14) }}>아래 버튼으로 포토스팟을{'\n'}추가해보세요</Text>
                 <TouchableOpacity onPress={() => navigation.navigate('Map', { source: 'plan' })} className="mt-6 w-full h-[54px] rounded-2xl border-[1.5px] border-dashed border-black/10 flex-row items-center justify-center">
-                  <IconPlus size={15} color="rgba(0,0,0,0.25)" />
+                  <IconPlus size={15} color={iconGray(0.25)} />
                   <Text className="font-medium text-black/25 ml-2" style={{ fontSize: FONT_MD }}>스팟 추가하기</Text>
                 </TouchableOpacity>
               </View>
@@ -569,7 +569,7 @@ export default function CourseNewScreen() {
                       <View className="flex-1 ml-3">
                         <Text className="font-semibold text-black mb-1" style={{ fontSize: FONT_MD }}>{spot.name}</Text>
                         <View className="flex-row items-center mb-1.5">
-                          <IconMapPin size={10} color="rgba(0,0,0,0.38)" />
+                          <IconMapPin size={10} color={iconGray(0.38)} />
                           <Text className="text-sub ml-1 font-normal" style={{ fontSize: FONT_XS }}>{spot.loc}</Text>
                         </View>
                         <View className="flex-row flex-wrap gap-1">
@@ -587,13 +587,13 @@ export default function CourseNewScreen() {
                           setIsDelSheetOpen(true);
                         }}
                       >
-                        <IconX size={14} color="rgba(0,0,0,0.35)" />
+                        <IconX size={14} color={iconGray(0.35)} />
                       </TouchableOpacity>
                     </View>
                   </View>
                 ))}
                 <TouchableOpacity onPress={() => navigation.navigate('Map', { source: 'plan' })} className="mt-6 w-full h-[54px] rounded-2xl border-[1.5px] border-dashed border-black/10 flex-row items-center justify-center">
-                  <IconPlus size={15} color="rgba(0,0,0,0.25)" />
+                  <IconPlus size={15} color={iconGray(0.25)} />
                   <Text className="font-medium text-black/25 ml-2" style={{ fontSize: FONT_MD }}>스팟 추가하기</Text>
                 </TouchableOpacity>
               </View>
@@ -635,7 +635,7 @@ export default function CourseNewScreen() {
             <View className="flex-row items-center justify-between px-5 pt-3">
               <Text className="font-semibold" style={{ fontSize: FONT_LG }}>{pickPhase === 'start' ? '출발일 선택' : '도착일 선택'}</Text>
               <TouchableOpacity onPress={() => setIsDateSheetOpen(false)} className="w-8 h-8 rounded-full bg-black/5 items-center justify-center">
-                <IconX size={18} color="rgba(0,0,0,0.5)" />
+                <IconX size={18} color={iconGray(0.5)} />
               </TouchableOpacity>
             </View>
 

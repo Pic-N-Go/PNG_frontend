@@ -7,6 +7,7 @@ import { MyPageStackParamList } from '@/navigation/stacks/MyPageStack';
 import { normalize } from '@/utils/normalize';
 import LIBS from '@/constants/licenses.json';
 import { FONT_XS, FONT_SM, FONT_MD, FONT_LG } from '@/constants/layout';
+import { iconGray } from '@/constants/colors';
 
 type Props = NativeStackScreenProps<MyPageStackParamList, 'OpenSourceLicenses'>;
 
@@ -32,7 +33,7 @@ export default function OpenSourceLicensesScreen({ navigation }: Props) {
       {/* 검색 */}
       <View style={{ paddingHorizontal: normalize(24), paddingTop: normalize(12), paddingBottom: normalize(8) }}>
         <View className="flex-row items-center bg-card" style={{ gap: normalize(8), height: normalize(40), paddingHorizontal: normalize(14), borderRadius: normalize(12) }}>
-          <IconSearch size={normalize(16)} color="rgba(0,0,0,0.48)" strokeWidth={2} />
+          <IconSearch size={normalize(16)} color={iconGray(0.48)} strokeWidth={2} />
           <TextInput
             value={query}
             onChangeText={setQuery}

@@ -5,7 +5,7 @@ import Avatar from '@/components/common/Avatar';
 import { Post, PostShotMeta } from '@/types/community';
 import { FONT_XS, FONT_SM, FONT_MD } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
-import { BRAND, BRAND_TINT, CARD } from '@/constants/colors';
+import { BRAND, BRAND_TINT, CARD, iconGray } from '@/constants/colors';
 
 const ACCENT = BRAND;
 
@@ -82,7 +82,7 @@ export default function PostCard({ post, onPress, onToggleLike, onToggleBookmark
               className="items-center justify-center"
               style={{ width: normalize(30), height: normalize(30) }}
             >
-              <MoreHorizontal size={normalize(18)} color="rgba(0,0,0,0.45)" strokeWidth={2} />
+              <MoreHorizontal size={normalize(18)} color={iconGray(0.45)} strokeWidth={2} />
             </Pressable>
           )}
           {/* 탈퇴 계정은 팔로우할 수 없다 — 서버가 요청을 거절하므로 버튼을 아예 두지 않는다 */}
@@ -114,7 +114,7 @@ export default function PostCard({ post, onPress, onToggleLike, onToggleBookmark
           <View className="flex-row items-center" style={{ gap: normalize(6), paddingVertical: normalize(10), paddingHorizontal: normalize(12), backgroundColor: '#fff', borderRadius: normalize(12), marginBottom: normalize(12) }}>
             {!!post.shotMeta.time && (
               <>
-                <Clock size={normalize(13)} color="rgba(0,0,0,0.3)" strokeWidth={1.8} />
+                <Clock size={normalize(13)} color={iconGray(0.3)} strokeWidth={1.8} />
                 <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.6)', letterSpacing: -0.15 }}>
                   {post.shotMeta.time}
                 </Text>
@@ -125,7 +125,7 @@ export default function PostCard({ post, onPress, onToggleLike, onToggleBookmark
                 {!!post.shotMeta.time && <View style={{ width: normalize(2), height: normalize(2), borderRadius: normalize(1), backgroundColor: 'rgba(0,0,0,0.15)' }} />}
                 {(() => {
                   const WeatherIcon = WEATHER_ICONS[post.shotMeta!.weatherIcon] ?? Cloud;
-                  return <WeatherIcon size={normalize(13)} color="rgba(0,0,0,0.3)" strokeWidth={1.8} />;
+                  return <WeatherIcon size={normalize(13)} color={iconGray(0.3)} strokeWidth={1.8} />;
                 })()}
                 <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.6)', letterSpacing: -0.15 }}>
                   {post.shotMeta.weather}
@@ -135,7 +135,7 @@ export default function PostCard({ post, onPress, onToggleLike, onToggleBookmark
             {!!post.shotMeta.gear && (
               <>
                 {(!!post.shotMeta.time || !!post.shotMeta.weather) && <View style={{ width: normalize(2), height: normalize(2), borderRadius: normalize(1), backgroundColor: 'rgba(0,0,0,0.15)' }} />}
-                <Camera size={normalize(13)} color="rgba(0,0,0,0.3)" strokeWidth={1.8} />
+                <Camera size={normalize(13)} color={iconGray(0.3)} strokeWidth={1.8} />
                 <Text allowFontScaling={false} numberOfLines={1} style={{ flex: 1, fontFamily: 'Pretendard-Regular', fontSize: FONT_XS, color: 'rgba(0,0,0,0.6)', letterSpacing: -0.15 }}>
                   {post.shotMeta.gear}
                 </Text>
@@ -150,7 +150,7 @@ export default function PostCard({ post, onPress, onToggleLike, onToggleBookmark
       <View className="flex-row items-center" style={{ paddingHorizontal: normalize(16), paddingTop: normalize(8), paddingBottom: normalize(14), gap: normalize(16) }}>
         {!!post.location && (
           <View className="flex-row items-center" style={{ gap: normalize(4), flex: 1, minWidth: 0 }}>
-            <MapPin size={normalize(14)} color="rgba(0,0,0,0.45)" strokeWidth={1.8} />
+            <MapPin size={normalize(14)} color={iconGray(0.45)} strokeWidth={1.8} />
             <Text
               allowFontScaling={false}
               numberOfLines={1}
@@ -161,7 +161,7 @@ export default function PostCard({ post, onPress, onToggleLike, onToggleBookmark
           </View>
         )}
         <View className="flex-row items-center" style={{ gap: normalize(4), marginLeft: 'auto' }}>
-          <MessageSquare size={normalize(15)} color="rgba(0,0,0,0.55)" strokeWidth={1.8} />
+          <MessageSquare size={normalize(15)} color={iconGray(0.55)} strokeWidth={1.8} />
           <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: 'rgba(0,0,0,0.55)', letterSpacing: -0.2 }}>
             {post.commentCount}
           </Text>

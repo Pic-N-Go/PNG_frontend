@@ -199,7 +199,7 @@ export default function SaveToPlanSheet({ visible, onClose, spot, onSaved }: Pro
                   const isSelected = selectedCourseId === course.id;
                   const gradient = GRADIENT_PALETTES[idx % GRADIENT_PALETTES.length];
                   const dateFormatted = `${course.startDate.replace(/-/g, '.')} ~ ${course.endDate.substring(5).replace(/-/g, '.')}`;
-                  const spotsCount = course.spots?.length ?? 0;
+                  const spotsCount = course.spotCount ?? course.spots?.length ?? 0;
 
                   return (
                     <Pressable
