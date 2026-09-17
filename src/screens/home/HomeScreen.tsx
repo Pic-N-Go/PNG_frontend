@@ -1,12 +1,12 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { RefreshControl, ScrollView, Text, View, AppState } from 'react-native';
+import { RefreshControl, ScrollView, Text, View, AppState, Linking, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import * as Location from 'expo-location';
 import { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
 import { HomeStackParamList } from '@/navigation/stacks/HomeStack';
 import type { RootStackParamList } from '@/navigation';
-import { CONTENT_PADDING, FONT_SM, FONT_TITLE, SPACING_LG } from '@/constants/layout';
+import { BUTTON_RADIUS, CARD_RADIUS, CONTENT_PADDING, FONT_SM, FONT_TITLE, FONT_XS, SPACING_LG } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
 import HeroSection from '@/components/home/HeroSection';
 import SearchBar from '@/components/common/SearchBar';
@@ -15,13 +15,12 @@ import PopularSpotsSection from '@/components/home/PopularSpotsSection';
 import RecommendedSpotsSection from '@/components/home/RecommendedSpotsSection';
 import FestivalSection from '@/components/home/FestivalSection';
 import SeasonalSpotSection from '@/components/home/SeasonalSpotSection';
-import { IconBell } from '@tabler/icons-react-native';
+import { IconBell, IconMapPin } from '@tabler/icons-react-native';
 import LinkBanner from '@/components/common/LinkBanner';
-import FilterBottomSheet from '@/components/home/FilterBottomSheet';
 import { useNotification } from '@/hooks/useNotification';
 import { queryClient } from '@/store/queryClient';
 import { useNearbySpots } from '@/hooks/useSpot';
-import { BRAND, TEXT_SUB } from '@/constants/colors';
+import { BRAND, BRAND_TINT, CARD, TEXT_SUB } from '@/constants/colors';
 import { isLocationInKorea, sanitizeKoreaLocation } from '@/utils/location';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'Home'>;
@@ -62,8 +61,7 @@ function extractDongOrDistrict(geo: Location.LocationGeocodedAddress): string {
 }
 
 export default function HomeScreen({ navigation }: Props) {
-  const [activeFilterCount, setActiveFilterCount] = useState(0);
-  const [filterVisible, setFilterVisible] = useState(false);
+  const [isPermissionDenied, setIsPermissionDenied] = useState(false);
 
   // 현재 사용자 GPS 위치 관리 (기본값: 서울시청)
   const [userLocation, setUserLocation] = useState<{ lat: number; lng: number; isReal: boolean; isFallback?: boolean }>({
@@ -94,6 +92,7 @@ export default function HomeScreen({ navigation }: Props) {
       }
 
       if (status === Location.PermissionStatus.GRANTED) {
+        setIsPermissionDenied(false);
         const lastKnown = await Location.getLastKnownPositionAsync();
         if (lastKnown) {
           const sanitized = sanitizeKoreaLocation(lastKnown.coords.latitude, lastKnown.coords.longitude);
@@ -114,6 +113,8 @@ export default function HomeScreen({ navigation }: Props) {
             isFallback: sanitized.isFallback,
           });
         }
+      } else {
+        setIsPermissionDenied(true);
       }
     } catch (err) {
       console.warn('[HomeScreen] syncUserCoords error:', err);
@@ -228,8 +229,6 @@ export default function HomeScreen({ navigation }: Props) {
 
         <SearchBar
           onPress={() => navigation.navigate('SearchResult', { query: '' })}
-          onFilterPress={() => setFilterVisible(true)}
-          activeFilterCount={activeFilterCount}
         />
 
         {/* 주변 스팟 섹션 */}
@@ -244,22 +243,65 @@ export default function HomeScreen({ navigation }: Props) {
             allowFontScaling={false}
             style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: TEXT_SUB, marginTop: normalize(4), marginBottom: normalize(14) }}
           >
-            {userLocation.isReal ? `${userAddress} 기준 · 반경 5km · 탭하면 전체 지도로 이동` : '위치 탐색 중 · 반경 5km · 탭하면 전체 지도로 이동'}
+            {isPermissionDenied
+              ? '위치 권한이 꺼져 있어요'
+              : userLocation.isReal
+              ? `${userAddress} 기준 · 반경 5km · 탭하면 전체 지도로 이동`
+              : '위치 탐색 중 · 반경 5km · 탭하면 전체 지도로 이동'}
           </Text>
-          <MapBanner
-            onPress={() => {
-              const parent = navigation.getParent();
-              if (parent) {
-                parent.navigate('MapTab' as never);
-              } else {
-                (navigation as any).navigate('MapTab');
-              }
-            }}
-            spotCount={userLocation.isReal ? nearbySpots.length : 0}
-            isLoading={!userLocation.isReal || isNearbyLoading}
-            userLocation={userLocation.isReal ? { lat: userLocation.lat, lng: userLocation.lng } : undefined}
-            spots={userLocation.isReal ? nearbySpots : []}
-          />
+          {isPermissionDenied ? (
+            <View
+              style={{
+                width: '100%',
+                height: normalize(160),
+                borderRadius: CARD_RADIUS,
+                backgroundColor: CARD,
+                paddingHorizontal: normalize(20),
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: normalize(10),
+              }}
+            >
+              <View style={{ width: normalize(40), height: normalize(40), borderRadius: normalize(20), backgroundColor: BRAND_TINT, alignItems: 'center', justifyContent: 'center' }}>
+                <IconMapPin size={normalize(20)} color={BRAND} />
+              </View>
+              <Text
+                allowFontScaling={false}
+                style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: '#000', textAlign: 'center', letterSpacing: -0.2 }}
+              >
+                위치 권한을 허용하면 내 주변 포토스팟을 볼 수 있어요
+              </Text>
+              <Pressable
+                onPress={() => Linking.openSettings()}
+                hitSlop={8}
+                style={{
+                  backgroundColor: BRAND,
+                  paddingHorizontal: normalize(16),
+                  paddingVertical: normalize(8),
+                  borderRadius: BUTTON_RADIUS,
+                }}
+              >
+                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, color: '#fff' }}>
+                  설정에서 권한 켜기
+                </Text>
+              </Pressable>
+            </View>
+          ) : (
+            <MapBanner
+              onPress={() => {
+                const parent = navigation.getParent();
+                if (parent) {
+                  parent.navigate('MapTab' as never);
+                } else {
+                  (navigation as any).navigate('MapTab');
+                }
+              }}
+              spotCount={userLocation.isReal ? nearbySpots.length : 0}
+              isLoading={!userLocation.isReal || isNearbyLoading}
+              userLocation={userLocation.isReal ? { lat: userLocation.lat, lng: userLocation.lng } : undefined}
+              spots={userLocation.isReal ? nearbySpots : []}
+            />
+          )}
         </View>
 
         <PopularSpotsSection
@@ -297,13 +339,6 @@ export default function HomeScreen({ navigation }: Props) {
         />
 
       </ScrollView>
-
-      <FilterBottomSheet
-        visible={filterVisible}
-        onClose={() => setFilterVisible(false)}
-        onApply={(count) => setActiveFilterCount(count)}
-      />
-
     </View>
   );
 }

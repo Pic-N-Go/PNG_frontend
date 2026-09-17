@@ -1,18 +1,19 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, TextInput, Switch, ActivityIndicator, Alert, Keyboard } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, TextInput, Switch, ActivityIndicator, Alert, Keyboard, Image } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING, FONT_TITLE } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { useKeyboardOverlap } from '@/hooks/useKeyboardHeight';
 import { 
   IconChevronLeft, IconTrash, IconX, IconCheck, IconSearch,
-  IconSun, IconCloud, IconCloudRain, IconCloudSnow
+  IconSun, IconCloud, IconCloudRain, IconCloudSnow, IconMapPin
 } from '@tabler/icons-react-native';
 
 import BottomSheet from '@/components/common/BottomSheet';
 import { useSpotAlert } from '@/hooks/useSpotAlert';
 import { useSpots, useSearchSpots } from '@/hooks/useSpot';
 import { WEATHER_API_TO_UI, TIME_API_TO_UI, DUST_API_TO_UI } from '@/utils/wishlistMapper';
+import { toHttps } from '@/utils/spotMappers';
 import type { WeatherCondition, TimeCondition, AirQualityCondition } from '@/api/spotAlert';
 import { BRAND, BRAND_TINT_ACTIVE, TEXT_SUB, iconGray } from '@/constants/colors';
 
@@ -61,6 +62,11 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
   } = useSpotAlert();
 
   const [selectedSpot, setSelectedSpot] = useState<any>(null);
+  const [selectedSpotPhotoFailed, setSelectedSpotPhotoFailed] = useState(false);
+
+  useEffect(() => {
+    setSelectedSpotPhotoFailed(false);
+  }, [selectedSpot?.photo]);
 
   // 조회 대상은 "현재 화면이 편집 중인 스팟"이어야 한다. 진입 시점의 route.params.id로
   // 고정해 두면 스팟을 바꿔도 이전 스팟의 조건이 폼에 남아 새 스팟에 덮어써진다.
@@ -91,6 +97,7 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
     name: spot.spotName || spot.title || spot.name || '스팟',
     loc: spot.address || spot.location || spot.district || '위치 정보 없음',
     score: spot.photogenicScore || spot.score || 90,
+    photo: toHttps(spot.thumbnailUrl || spot.imageUrl || spot.photo || null),
     bg: '#2b2a29',
     tags: spot.tags || ['#스팟', '#출사'],
   }));
@@ -121,6 +128,7 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
         name: initData.spotName,
         loc: initData.address,
         score: initData.photogenicScore,
+        photo: toHttps((initData as any).thumbnailUrl || (initData as any).imageUrl || (initData as any).photo || null),
         bg: '#2b2a29',
         tags: initData.tags || [],
       });
@@ -309,18 +317,29 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
           className="overflow-hidden relative" 
           style={{ backgroundColor: selectedSpot?.bg || '#2b2a29', marginTop: normalize(16), marginBottom: normalize(28), borderRadius: normalize(16), padding: normalize(18), paddingBottom: normalize(14) }}
         >
+          {selectedSpot?.photo && !selectedSpotPhotoFailed && (
+            <>
+              <Image
+                source={{ uri: selectedSpot.photo }}
+                style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+                resizeMode="cover"
+                onError={() => setSelectedSpotPhotoFailed(true)}
+              />
+              <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)' }} />
+            </>
+          )}
           <Text className="font-semibold text-white tracking-tight mb-1" style={{ fontSize: normalizeFontSize(18) }}>{selectedSpot?.name || '스팟을 선택해 주세요'}</Text>
-          <Text className="text-white/50 mb-2.5 font-normal" style={{ fontSize: normalizeFontSize(12) }}>
+          <Text className="text-white/70 mb-2.5 font-normal" style={{ fontSize: normalizeFontSize(12) }}>
             {selectedSpot ? `${selectedSpot.loc} · 포토제닉 ${selectedSpot.score}점` : '아래 버튼으로 알림을 받을 스팟을 고르세요'}
           </Text>
           <View className="flex-row gap-1.5 z-0">
             {(selectedSpot?.tags || []).map((tag: string) => (
-              <View key={tag} className="bg-white/10 items-center justify-center rounded-full" style={{ paddingVertical: normalize(2), paddingHorizontal: normalize(12) }}>
-                <Text className="text-white/75 font-normal" style={{ fontSize: normalizeFontSize(10) }}>{tag}</Text>
+              <View key={tag} className="bg-white/20 items-center justify-center rounded-full" style={{ paddingVertical: normalize(2), paddingHorizontal: normalize(12) }}>
+                <Text className="text-white/80 font-normal" style={{ fontSize: normalizeFontSize(10) }}>{tag}</Text>
               </View>
             ))}
           </View>
-          <View className="absolute bottom-3 right-3 bg-white/15 rounded-full items-center justify-center z-20" style={{ height: normalize(28), paddingHorizontal: normalize(12) }}>
+          <View className="absolute bottom-3 right-3 bg-white/20 rounded-full items-center justify-center z-20" style={{ height: normalize(28), paddingHorizontal: normalize(12) }}>
             <Text className="font-medium text-white" style={{ fontSize: normalizeFontSize(11) }}>스팟 변경 →</Text>
           </View>
         </TouchableOpacity>
@@ -505,7 +524,7 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
                   className={`flex-row items-center rounded-2xl mb-2 ${isSelected ? 'bg-white border border-brand' : 'bg-card'}`} 
                   style={{ padding: normalize(14) }}
                 >
-                  <View className="rounded-xl mr-3" style={{ width: normalize(48), height: normalize(48), backgroundColor: s.bg }} />
+                  <SpotSheetThumbnail photo={s.photo} bg={s.bg} />
                   <View className="flex-1">
                     <Text className="font-semibold text-black mb-1" style={{ fontSize: normalizeFontSize(16) }}>{s.name}</Text>
                     <Text className="text-sub mb-1 font-normal" style={{ fontSize: normalizeFontSize(12) }}>{s.loc}</Text>
@@ -535,5 +554,30 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
       </BottomSheet>
 
     </SafeAreaView>
+  );
+}
+
+function SpotSheetThumbnail({ photo, bg }: { photo?: string | null; bg?: string }) {
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    setFailed(false);
+  }, [photo]);
+
+  return (
+    <View className="rounded-xl mr-3 overflow-hidden" style={{ width: normalize(48), height: normalize(48), backgroundColor: bg }}>
+      {photo && !failed ? (
+        <Image
+          source={{ uri: photo }}
+          style={{ width: '100%', height: '100%' }}
+          resizeMode="cover"
+          onError={() => setFailed(true)}
+        />
+      ) : (
+        <View className="w-full h-full items-center justify-center">
+          <IconMapPin size={normalize(20)} color={iconGray(0.3)} />
+        </View>
+      )}
+    </View>
   );
 }
