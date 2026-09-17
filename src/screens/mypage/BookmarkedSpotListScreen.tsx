@@ -6,7 +6,7 @@ import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { MyPageStackParamList } from '@/navigation/stacks/MyPageStack';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { CARD_RADIUS, FONT_LG, FONT_MD, GRID_PADDING, SPACING_LG } from '@/constants/layout';
-import { TEXT_SUB } from '@/constants/colors';
+import { TEXT_SUB, iconGray } from '@/constants/colors';
 import Chip from '@/components/common/Chip';
 import Skeleton from '@/components/common/Skeleton';
 import BookmarkSheet from '@/components/spot/BookmarkSheet';
@@ -69,7 +69,7 @@ export default function BookmarkedSpotListScreen({ navigation, route }: Props) {
           className="items-center justify-center"
           style={{ width: normalize(36), height: normalize(36), marginLeft: -normalize(8) }}
         >
-          <IconChevronLeft size={normalize(24)} color="rgba(0,0,0,0.65)" />
+          <IconChevronLeft size={normalize(24)} color={iconGray(0.65)} />
         </Pressable>
         <Text
           allowFontScaling={false}
@@ -81,7 +81,7 @@ export default function BookmarkedSpotListScreen({ navigation, route }: Props) {
         <View style={{ width: normalize(36) }} />
       </View>
 
-      {/* 컬렉션 필터 — 홈 CategoryFilter와 같은 공용 Chip을 쓴다.
+      {/* 컬렉션 필터 — 레포 공용 Chip을 쓴다.
           활성색은 블랙: 같은 화면 안에서 목록만 거르는 중립 컨트롤이다.
           컬렉션이 하나뿐이면 고를 게 없어 그리지 않는다(기본 "내 즐겨찾기"만 있는 상태). */}
       {(collections.length > 1 || collectionId !== null) && (

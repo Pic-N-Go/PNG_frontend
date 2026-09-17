@@ -8,7 +8,7 @@ import { hasAnyExif } from '@/utils/spotMappers';
 import { isLocationInKorea } from '@/utils/location';
 import { BOTTOM_SHEET_RADIUS, FONT_2XS, FONT_LG, FONT_SM, FONT_XS, GRID_PADDING, HAIRLINE_WIDTH, MAP_MINI_PIN_SIZE, MAP_PREVIEW_HEIGHT } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { BRAND, BRAND_TINT, CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
+import { BRAND, BRAND_TINT, CARD, HAIRLINE, TEXT_SUB, iconGray } from '@/constants/colors';
 import { PIN_SPOT_IMAGE } from '@/constants/pins';
 
 const SURFACE = CARD;
@@ -74,7 +74,7 @@ const MAP_BOX_STYLE = {
 function MapPlaceholder() {
   return (
     <View className="items-center justify-center" style={MAP_BOX_STYLE}>
-      <MapPin size={normalize(28)} color="rgba(0,0,0,0.25)" strokeWidth={1.6} />
+      <MapPin size={normalize(28)} color={iconGray(0.25)} strokeWidth={1.6} />
     </View>
   );
 }
@@ -223,7 +223,7 @@ export function PhotoExifSheetContent({
           style={{ width: normalize(30), height: normalize(30), borderRadius: normalize(15), backgroundColor: SURFACE }}
           accessibilityLabel="닫기"
         >
-          <X size={normalize(13)} color="rgba(0,0,0,0.5)" strokeWidth={2} />
+          <X size={normalize(13)} color={iconGray(0.5)} strokeWidth={2} />
         </Pressable>
       </View>
 

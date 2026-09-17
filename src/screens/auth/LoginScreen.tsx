@@ -25,7 +25,7 @@ import { useKeyboardOverlap } from "@/hooks/useKeyboardHeight";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { normalizeFontSize } from "@/utils/normalize";
 import { BORDER_CONTROL, BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING, FONT_2XL, FONT_LG, FONT_MD, FONT_SM, FONT_TITLE, FONT_XL, FONT_XS, INPUT_HEIGHT, INPUT_RADIUS, SOCIAL_BUTTON_HEIGHT, SOCIAL_BUTTON_RADIUS, SPACING_LG, SPACING_MD } from "@/constants/layout";
-import { BRAND, CARD, SCRIM, TEXT_SUB } from '@/constants/colors';
+import { BRAND, CARD, SCRIM, TEXT_SUB, iconGray } from '@/constants/colors';
 
 type Props = NativeStackScreenProps<AuthStackParamList, "Login">;
 
@@ -457,7 +457,7 @@ export default function LoginScreen({ navigation }: Props) {
                     <Feather
                       name={pwVisible ? "eye-off" : "eye"}
                       size={20}
-                      color="rgba(0,0,0,0.2)"
+                      color={iconGray(0.2)}
                     />
                   </Pressable>
                 }
@@ -999,7 +999,7 @@ export default function LoginScreen({ navigation }: Props) {
                         <Feather
                           name={newPwVisible ? "eye-off" : "eye"}
                           size={20}
-                          color="rgba(0,0,0,0.2)"
+                          color={iconGray(0.2)}
                         />
                       </Pressable>
                     </View>

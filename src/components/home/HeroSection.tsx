@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { FONT_MD, FONT_XS, GRID_PADDING, ICON_MD } from '@/constants/layout';
 import { BRAND } from '@/constants/colors';
+import { useCurrentWeather } from '@/hooks/useCurrentWeather';
 
 const HERO_COLORS = ['#1a1530', '#2d1b4e', '#8b4a6b', '#d4856a', '#e8a87c', '#f0c89a'] as const;
 const HERO_LOCS = [0, 0.2, 0.45, 0.65, 0.82, 1.0] as const;
@@ -22,10 +23,26 @@ const STARS: { top: number; left: number; opacity: number }[] = [
 interface Props {
   onNotificationPress?: () => void;
   hasUnread?: boolean;
+  /** 현재 위치. 없으면(권한 거부·측위 전) 날씨 줄을 비워둔다. */
+  lat?: number;
+  lng?: number;
 }
 
-export default function HeroSection({ onNotificationPress, hasUnread }: Props) {
+export default function HeroSection({ onNotificationPress, hasUnread, lat, lng }: Props) {
   const insets = useSafeAreaInsets();
+  const { data: weather } = useCurrentWeather(lat, lng);
+
+  // 서버가 항목별로 실패를 허용한다 — 온 것만 이어 붙인다. 하나도 없으면 줄 자체를 그리지 않는다
+  // (자리만 남으면 로딩이 끝난 뒤에도 고장난 것처럼 보인다).
+  const weatherLine = [
+    weather?.region,
+    weather?.weatherStatus,
+    weather?.fineDust?.grade && `미세먼지 ${weather.fineDust.grade}`,
+    // "다음" 없이 시각만 붙이면 현재 시각으로 읽힌다 — 실제로는 아직 오지 않은 시작 시각이다.
+    weather?.goldenHour && `다음 골든아워 ${weather.goldenHour}`,
+  ]
+    .filter(Boolean)
+    .join(' · ');
 
   return (
     <View style={{ height: HERO_HEIGHT }}>
@@ -167,19 +184,21 @@ export default function HeroSection({ onNotificationPress, hasUnread }: Props) {
         >
           {'오늘의 출사,\n어디로 떠나볼까요?'}
         </Text>
-        {/* TODO: 날씨 API 연동 시 실제 데이터로 교체 */}
-        <Text
-          allowFontScaling={false}
-          style={{
-            fontFamily: 'Pretendard-Regular',
-            fontSize: FONT_MD,
-            color: 'rgba(255,255,255,0.65)',
-            letterSpacing: -0.15,
-            marginTop: normalize(10),
-          }}
-        >
-          서울 · 맑음 · 미세먼지 좋음 · 골든아워 18:42
-        </Text>
+        {weatherLine.length > 0 && (
+          <Text
+            allowFontScaling={false}
+            numberOfLines={1}
+            style={{
+              fontFamily: 'Pretendard-Regular',
+              fontSize: FONT_MD,
+              color: 'rgba(255,255,255,0.65)',
+              letterSpacing: -0.15,
+              marginTop: normalize(10),
+            }}
+          >
+            {weatherLine}
+          </Text>
+        )}
       </View>
     </View>
   );

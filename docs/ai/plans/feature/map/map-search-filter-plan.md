@@ -11,7 +11,13 @@
 
 - **검색 및 필터 UI**:
   - `MapScreen.tsx` 내부의 상단 오버레이 레이아웃을 수정하여 목업의 둥근 모서리, 흰색 배경, 그림자 처리와 스크롤 칩 디자인을 완벽히 매칭.
+    - **2026-09-17 후속**: 이 상단 검색 pill은 `MapScreen` 안에 복붙돼 있던 83줄이었고,
+      홈과 같은 `components/common/SearchBar.tsx`로 교체됐다(`inline` prop). AC1의 "홈 화면과 동일"이
+      이제 문자 그대로 같은 컴포넌트를 쓴다는 뜻이 된다.
   - 카테고리 필터는 `CategoryFilter.tsx` 컴포넌트를 사용하고 있었으나, 목업과 완벽히 맞추기 위해 NativeWind 스타일을 미세 조정하거나 `MapScreen` 내에서 직접 칩 리스트를 렌더링하도록 커스텀 처리.
+    - **2026-09-17 후속**: 여기서 벗어난 `CategoryFilter.tsx`는 이후 홈에서도 제거되며 파일째 삭제됐다.
+      `MapScreen`의 14종 칩은 그대로 유지된다(공용 `Chip` 사용). 같은 시기 삭제된 것은
+      `MapSearchScreen`(지도 검색 화면)의 `전체`/`스팟` 2개짜리 칩으로, 거르는 게 없어 뺐다.
   - **상세 필터 모달**: 홈 화면과 규격을 맞춰 `FilterBottomSheet`를 임포트하고 검색 바 영역 우측에 배치. 필터링 로직 구현을 위해 선택된 필터 조건에 맞게 `spots` 배열을 동적으로 가공하여 WebView로 갱신 주입.
 - **지도 컨트롤 WebView 통신**:
   - React Native 영역의 줌 인/아웃, 내 위치 버튼 터치 시, WebView 인스턴스에 `injectJavaScript`를 호출하여 WebView 내부의 카카오 맵 API를 원격 제어.

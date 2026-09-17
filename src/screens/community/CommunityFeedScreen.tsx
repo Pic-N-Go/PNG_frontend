@@ -16,7 +16,7 @@ import { ContestPastMonthItem, ContestSubmitTarget, Post, PostSortApi } from '@/
 import { COMPACT_CONTROL_HEIGHT, COMPACT_CONTROL_RADIUS, CONTENT_PADDING, FONT_LG, FONT_SM, FONT_2XL, FONT_2XS, GRID_PADDING } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
 import { layoutGalleryGrid } from '@/utils/galleryGrid';
-import { BRAND, CARD, TEXT_SUB } from '@/constants/colors';
+import { BRAND, CARD, TEXT_SUB, iconGray } from '@/constants/colors';
 
 const GALLERY_POPULAR_COUNT = 2;
 const GALLERY_GAP = normalize(3);
@@ -416,7 +416,7 @@ export default function CommunityFeedScreen() {
                 <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: 'rgba(0,0,0,0.55)', letterSpacing: -0.2 }}>
                   {feedSort}
                 </Text>
-                <ChevronDown size={normalize(12)} color="rgba(0,0,0,0.55)" strokeWidth={2} />
+                <ChevronDown size={normalize(12)} color={iconGray(0.55)} strokeWidth={2} />
               </Pressable>
             )}
           </View>

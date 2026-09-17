@@ -12,9 +12,7 @@ import {
   View,
 } from 'react-native';
 import {
-  IconChevronLeft,
   IconSearch,
-  IconX,
   IconChevronDown,
   IconMapPin,
 } from '@tabler/icons-react-native';
@@ -30,8 +28,9 @@ import { mapPopularSpot } from '@/utils/spotMappers';
 import { CATEGORY_CODES, SPOT_CATEGORY_MAP, CODE_BY_LABEL } from '@/constants/spotCategories';
 import { Sparkles } from 'lucide-react-native';
 import Chip from '@/components/common/Chip';
-import { FONT_LG, FONT_MD, FONT_SM, GRID_PADDING, HAIRLINE_WIDTH, SPACING_LG, SPACING_MD } from '@/constants/layout';
-import { BRAND, BRAND_TINT, CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
+import { RecentSearches, RecommendedSpots, SearchField } from '@/components/common/SearchPanel';
+import { FONT_LG, FONT_MD, FONT_SM, GRID_PADDING, HAIRLINE_WIDTH, SPACING_LG } from '@/constants/layout';
+import { BRAND, BRAND_TINT, CARD, HAIRLINE, TEXT_SUB, iconGray } from '@/constants/colors';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'SearchResult'>;
 
@@ -43,16 +42,6 @@ const CATEGORIES = [
     icon: SPOT_CATEGORY_MAP[code].Icon,
   })),
 ];
-
-const POPULAR = [
-  { rank: 1, text: '광안리 해수욕장', badge: '▲ 2', badgeType: 'up' as const },
-  { rank: 2, text: '제주 오름', badge: '▲ 1', badgeType: 'up' as const },
-  { rank: 3, text: '경복궁 야경', badge: 'NEW', badgeType: 'new' as const },
-  { rank: 4, text: '순천만 갈대밭', badge: '▼ 1', badgeType: 'down' as const },
-  { rank: 5, text: '해운대 블루라인', badge: '▲ 3', badgeType: 'up' as const },
-];
-
-const BADGE_COLOR = { up: '#34c759', down: 'rgba(0,0,0,0.25)', new: BRAND } as const;
 
 // 결과 행에 필요한 최소 정보. 검색과 인기순 두 소스가 같은 행을 그린다.
 interface ResultRow {
@@ -75,7 +64,7 @@ export default function SearchResultScreen({ route, navigation }: Props) {
   const [query, setQuery] = useState(route.params?.query ?? '');
   const [submitted, setSubmitted] = useState(!!route.params?.query);
   const [selectedCategory, setSelectedCategory] = useState('all');
-  const { recentSearches, addRecentSearch, removeRecentSearch, clearRecentSearches } = useSearchStore();
+  const addRecentSearch = useSearchStore((state) => state.addRecentSearch);
 
   // 홈 "모두 보기"로 들어온 인기순 전체 목록 모드. 검색어를 입력하면 평소 검색으로 넘어간다.
   const popularMode = route.params?.sort === 'popular' && !submitted;
@@ -155,6 +144,11 @@ export default function SearchResultScreen({ route, navigation }: Props) {
     Keyboard.dismiss();
   }
 
+  function openSpot(spotId: string) {
+    const rootNavigation = navigation as unknown as NativeStackNavigationProp<RootStackParamList>;
+    rootNavigation.navigate('SpotStack', { screen: 'SpotDetail', params: { spotId } });
+  }
+
   function backToFocus() {
     setSubmitted(false);
     setSelectedCategory('all');
@@ -203,77 +197,16 @@ export default function SearchResultScreen({ route, navigation }: Props) {
       style={{ flex: 1, backgroundColor: '#fff' }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      {/* 검색 입력 행 */}
-      <View
-        style={{
-          paddingTop: insets.top + normalize(12),
-          paddingBottom: normalize(10),
-          paddingHorizontal: normalize(16),
-          flexDirection: 'row',
-          alignItems: 'center',
-          gap: normalize(10),
-        }}
-      >
-        <Pressable onPress={submitted ? backToFocus : () => navigation.goBack()} hitSlop={8}>
-          <IconChevronLeft size={normalize(18)} color="rgba(0,0,0,0.5)" strokeWidth={1.5} />
-        </Pressable>
-
-        <View
-          style={{
-            flex: 1,
-            height: normalize(42),
-            backgroundColor: CARD,
-            borderRadius: normalize(12),
-            flexDirection: 'row',
-            alignItems: 'center',
-            paddingHorizontal: normalize(14),
-            gap: normalize(8),
-          }}
-        >
-          <IconSearch size={normalize(15)} color="rgba(0,0,0,0.28)" strokeWidth={1.5} />
-          <TextInput
-            ref={inputRef}
-            value={query}
-            onChangeText={setQuery}
-            placeholder="장소, 테마, 키워드 검색"
-            placeholderTextColor="rgba(0,0,0,0.3)"
-            autoFocus={!submitted && route.params?.sort !== 'popular'}
-            returnKeyType="search"
-            onSubmitEditing={() => submit(query)}
-            style={{
-              flex: 1,
-              fontFamily: 'Pretendard-Regular',
-              fontSize: FONT_MD,
-              color: '#000',
-              letterSpacing: -0.2,
-            }}
-          />
-          {query.length > 0 && (
-            <Pressable
-              onPress={() => { setQuery(''); setSubmitted(false); setTimeout(() => inputRef.current?.focus(), 50); }}
-              hitSlop={8}
-              style={{
-                width: normalize(18),
-                height: normalize(18),
-                borderRadius: normalize(9),
-                backgroundColor: 'rgba(0,0,0,0.15)',
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <IconX size={normalize(8)} color="#fff" strokeWidth={1.5} />
-            </Pressable>
-          )}
-        </View>
-
-        <Pressable onPress={() => navigation.goBack()} hitSlop={8}>
-          <Text
-            allowFontScaling={false}
-            style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_MD, color: 'rgba(0,0,0,0.45)' }}
-          >
-            취소
-          </Text>
-        </Pressable>
+      <View style={{ paddingTop: insets.top + normalize(6) }}>
+        <SearchField
+          inputRef={inputRef}
+          value={query}
+          onChangeText={setQuery}
+          onSubmit={submit}
+          onCancel={() => navigation.goBack()}
+          onClear={backToFocus}
+          autoFocus={!submitted && route.params?.sort !== 'popular'}
+        />
       </View>
 
       <View style={{ height: 1, backgroundColor: 'rgba(0,0,0,0.06)' }} />
@@ -286,86 +219,8 @@ export default function SearchResultScreen({ route, navigation }: Props) {
           contentContainerStyle={{ paddingBottom: SPACING_LG }}
         >
           <>
-              {/* 최근 검색어 */}
-              <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(18) }}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: normalize(12) }}>
-                  <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, color: 'rgba(0,0,0,0.35)', letterSpacing: 0.1 }}>
-                    최근 검색어
-                  </Text>
-                  <Pressable onPress={clearRecentSearches} hitSlop={8}>
-                    <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: 'rgba(0,0,0,0.35)' }}>
-                      전체 삭제
-                    </Text>
-                  </Pressable>
-                </View>
-                {recentSearches.length === 0 ? (
-                  <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_MD, color: 'rgba(0,0,0,0.3)', paddingVertical: SPACING_MD }}>
-                    최근 검색어가 없어요
-                  </Text>
-                ) : (
-                  recentSearches.map((item) => (
-                    <Pressable
-                      key={item}
-                      onPress={() => submit(item)}
-                      style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: normalize(11), borderBottomWidth: HAIRLINE_WIDTH, borderBottomColor: HAIRLINE }}
-                    >
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(10) }}>
-                        <IconSearch size={normalize(14)} color="rgba(0,0,0,0.2)" strokeWidth={1.5} />
-                        <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_MD, color: '#000', letterSpacing: -0.2 }}>
-                          {item}
-                        </Text>
-                      </View>
-                      <Pressable onPress={() => removeRecentSearch(item)} hitSlop={8}>
-                        <IconX size={normalize(10)} color="rgba(0,0,0,0.2)" strokeWidth={1.5} />
-                      </Pressable>
-                    </Pressable>
-                  ))
-                )}
-              </View>
-
-              {/* 인기 검색어 */}
-              <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(26) }}>
-                <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, color: 'rgba(0,0,0,0.35)', letterSpacing: 0.1, marginBottom: normalize(12) }}>
-                  인기 검색어
-                </Text>
-                {POPULAR.map((item) => (
-                  <Pressable
-                    key={item.rank}
-                    onPress={() => submit(item.text)}
-                    style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(12), paddingVertical: normalize(11), borderBottomWidth: HAIRLINE_WIDTH, borderBottomColor: HAIRLINE }}
-                  >
-                    <Text
-                      allowFontScaling={false}
-                      style={{
-                        fontFamily: 'Pretendard-SemiBold',
-                        fontSize: FONT_MD,
-                        color: item.rank <= 2 ? '#000' : BRAND,
-                        width: normalize(18),
-                        textAlign: 'center',
-                      }}
-                    >
-                      {item.rank}
-                    </Text>
-                    <Text allowFontScaling={false} style={{ flex: 1, fontFamily: 'Pretendard-Regular', fontSize: FONT_MD, color: '#000', letterSpacing: -0.2 }}>
-                      {item.text}
-                    </Text>
-                    <Text
-                      allowFontScaling={false}
-                      style={{
-                        fontFamily: item.badgeType === 'new' ? 'Pretendard-SemiBold' : 'Pretendard-Regular',
-                        fontSize: FONT_SM,
-                        color: BADGE_COLOR[item.badgeType],
-                        backgroundColor: item.badgeType === 'new' ? BRAND_TINT : 'transparent',
-                        paddingHorizontal: item.badgeType === 'new' ? normalize(7) : 0,
-                        paddingVertical: item.badgeType === 'new' ? normalize(2) : 0,
-                        borderRadius: item.badgeType === 'new' ? normalize(10) : 0,
-                      }}
-                    >
-                      {item.badge}
-                    </Text>
-                  </Pressable>
-                ))}
-              </View>
+            <RecentSearches onSelect={submit} />
+            <RecommendedSpots onOpenSpot={(spot) => openSpot(String(spot.id))} />
           </>
         </ScrollView>
       )}
@@ -408,7 +263,7 @@ export default function SearchResultScreen({ route, navigation }: Props) {
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, color: 'rgba(0,0,0,0.45)' }}>
                 {popularMode ? '인기순' : '관련순'}
               </Text>
-              <IconChevronDown size={normalize(10)} color="rgba(0,0,0,0.45)" strokeWidth={1.5} />
+              <IconChevronDown size={normalize(10)} color={iconGray(0.45)} strokeWidth={1.5} />
             </View>
           </View>
           <View style={{ height: 1, backgroundColor: 'rgba(0,0,0,0.06)' }} />
@@ -434,7 +289,7 @@ export default function SearchResultScreen({ route, navigation }: Props) {
             // paddingBottom을 두지 않는다 — 탭바가 빠진 영역 안에서 그냥 가운데 정렬하면 된다.
             // 탭바 높이를 더하면 빈 상태가 위로 치우쳐 보인다.
             <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: normalize(12) }}>
-              <IconSearch size={normalize(48)} color="rgba(0,0,0,0.12)" strokeWidth={1} />
+              <IconSearch size={normalize(48)} color={iconGray(0.12)} strokeWidth={1} />
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_LG, color: 'rgba(0,0,0,0.5)' }}>
                 {popularMode ? '아직 인기 스팟이 없어요' : '검색 결과가 없어요'}
               </Text>
@@ -455,10 +310,7 @@ export default function SearchResultScreen({ route, navigation }: Props) {
               contentContainerStyle={{ paddingHorizontal: GRID_PADDING, paddingBottom: SPACING_LG }}
               renderItem={({ item }) => (
                 <Pressable
-                  onPress={() => {
-                    const rootNavigation = navigation as unknown as NativeStackNavigationProp<RootStackParamList>;
-                    rootNavigation.navigate('SpotStack', { screen: 'SpotDetail', params: { spotId: item.id } });
-                  }}
+                  onPress={() => openSpot(item.id)}
                   style={{ flexDirection: 'row', gap: normalize(14), paddingVertical: normalize(14), borderBottomWidth: HAIRLINE_WIDTH, borderBottomColor: HAIRLINE }}
                 >
                   <View style={{ width: normalize(80), height: normalize(80), borderRadius: normalize(12), backgroundColor: CARD, overflow: 'hidden', flexShrink: 0 }}>
@@ -466,7 +318,7 @@ export default function SearchResultScreen({ route, navigation }: Props) {
                       <Image source={{ uri: item.imageUrl }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
                     ) : (
                       <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                        <IconMapPin size={normalize(24)} color="rgba(0,0,0,0.2)" />
+                        <IconMapPin size={normalize(24)} color={iconGray(0.2)} />
                       </View>
                     )}
                   </View>

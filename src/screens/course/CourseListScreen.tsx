@@ -8,7 +8,7 @@ import Skeleton from '@/components/common/Skeleton';
 import { useQuery } from '@tanstack/react-query';
 import { useFocusEffect } from '@react-navigation/native';
 import { coursesApi } from '@/api/courses';
-import { BRAND, BRAND_TINT } from '@/constants/colors';
+import { BRAND, BRAND_TINT, iconGray } from '@/constants/colors';
 import CourseCardThumbnail from '@/components/course/CourseCardThumbnail';
 import AiCoursePlannerBottomSheet from '@/components/course/AiCoursePlannerBottomSheet';
 import { useAuthStore } from '@/store/useAuthStore';
@@ -405,11 +405,11 @@ export default function CourseListScreen({ navigation }: any) {
                     <Text className="font-semibold text-black tracking-tight" numberOfLines={1} style={{ fontSize: normalizeFontSize(18) }}>
                       {plan.title}
                     </Text>
-                    <IconChevronRight size={normalize(18)} color="rgba(0,0,0,0.2)" />
+                    <IconChevronRight size={normalize(18)} color={iconGray(0.2)} />
                   </View>
                   
                   <View className="flex-row items-center mb-3">
-                    <IconCalendarEvent size={normalize(12)} color="rgba(0,0,0,0.3)" />
+                    <IconCalendarEvent size={normalize(12)} color={iconGray(0.3)} />
                     <Text className="text-sub ml-1 font-normal" style={{ fontSize: normalizeFontSize(12) }}>
                       {plan.date} · {plan.duration}
                     </Text>
@@ -417,15 +417,15 @@ export default function CourseListScreen({ navigation }: any) {
 
                   <View className="flex-row items-center gap-x-3">
                     <View className="flex-row items-center">
-                      <IconMapPin size={normalize(12)} color="rgba(0,0,0,0.3)" />
+                      <IconMapPin size={normalize(12)} color={iconGray(0.3)} />
                       <Text className="text-sub ml-1 font-normal" style={{ fontSize: normalizeFontSize(12) }}>포토스팟 {plan.spots}곳</Text>
                     </View>
                     <View className="flex-row items-center">
-                      <IconClock size={normalize(12)} color="rgba(0,0,0,0.3)" />
+                      <IconClock size={normalize(12)} color={iconGray(0.3)} />
                       <Text className="text-sub ml-1 font-normal" style={{ fontSize: normalizeFontSize(12) }}>{plan.estimatedTime}</Text>
                     </View>
                     <View className="flex-row items-center">
-                      <IconRoute size={normalize(12)} color="rgba(0,0,0,0.3)" />
+                      <IconRoute size={normalize(12)} color={iconGray(0.3)} />
                       <Text className="text-sub ml-1 font-normal" style={{ fontSize: normalizeFontSize(12) }}>{plan.distance}</Text>
                     </View>
                   </View>

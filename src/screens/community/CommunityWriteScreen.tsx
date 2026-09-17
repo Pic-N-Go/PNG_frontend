@@ -23,7 +23,7 @@ import { GearSheetKind, PostWeatherApi } from '@/types/community';
 import { THEMES } from '@/constants/themes';
 import { BORDER_CONTROL, BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING, FONT_2XS, FONT_LG, FONT_MD, FONT_SM, FONT_XS, HAIRLINE_WIDTH, HEADER_HEIGHT, INPUT_HEIGHT } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
-import { BRAND, BRAND_TINT, BRAND_TINT_ACTIVE, CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
+import { BRAND, BRAND_TINT, BRAND_TINT_ACTIVE, CARD, HAIRLINE, TEXT_SUB, iconGray } from '@/constants/colors';
 
 const ACCENT = BRAND;
 const SURFACE = CARD;
@@ -71,7 +71,7 @@ function MetaTile({ label, value, sub, Icon, editable, placeholder, onPress }: M
   return (
     <Wrapper onPress={editable ? onPress : undefined} style={{ flex: 1, flexBasis: 0 }}>
     <View className="flex-row items-start" style={{ gap: normalize(10), backgroundColor: SURFACE, borderRadius: normalize(12), padding: normalize(12) }}>
-      <Icon size={normalize(17)} color="rgba(0,0,0,0.35)" strokeWidth={1.8} style={{ marginTop: normalize(1) }} />
+      <Icon size={normalize(17)} color={iconGray(0.35)} strokeWidth={1.8} style={{ marginTop: normalize(1) }} />
       <View style={{ flex: 1, minWidth: 0 }}>
         <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_2XS, color: 'rgba(0,0,0,0.45)', letterSpacing: 0.3 }}>
           {label}
@@ -533,7 +533,7 @@ export default function CommunityWriteScreen() {
                     </Text>
                   )}
                 </View>
-                <ChevronRight size={normalize(14)} color="rgba(0,0,0,0.25)" strokeWidth={2} />
+                <ChevronRight size={normalize(14)} color={iconGray(0.25)} strokeWidth={2} />
               </Pressable>
             </View>
 

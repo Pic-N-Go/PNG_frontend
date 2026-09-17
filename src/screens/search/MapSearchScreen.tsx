@@ -2,7 +2,6 @@ import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   ScrollView,
   Image,
@@ -11,7 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { IconSearch, IconX, IconClock, IconMapPin, IconChevronRight, IconChevronLeft } from '@tabler/icons-react-native';
+import { IconMapPin, IconChevronRight } from '@tabler/icons-react-native';
 import { useSearchStore } from '@/store/useSearchStore';
 import { useSpots, useSearchSpots } from '@/hooks/useSpot';
 import { useDebounce } from '@/hooks/useDebounce';
@@ -19,18 +18,9 @@ import { Spot } from '@/store/useCourseStore';
 import { SpotResponse } from '@/types/spot';
 import { normalize } from '@/utils/normalize';
 import { FONT_XS, FONT_SM, FONT_MD, GRID_PADDING } from '@/constants/layout';
-import Chip from '@/components/common/Chip';
-import { BRAND } from '@/constants/colors';
+import { RecentSearches, RecommendedSpots, SearchField } from '@/components/common/SearchPanel';
+import { BRAND, iconGray } from '@/constants/colors';
 
-
-const POPULAR_KEYWORDS = ['골든아워', '벚꽃 명소', '야경', '스냅사진', '해변', '경복궁'];
-
-const CATEGORIES = [
-  { id: 'all', label: '전체' },
-  { id: 'spot', label: '스팟' },
-] as const;
-
-type SearchCategory = (typeof CATEGORIES)[number]['id'];
 
 /**
  * 지도 탭 검색 화면.
@@ -49,12 +39,11 @@ export default function MapSearchScreen() {
   const navigation = useNavigation<any>();
 
   const [query, setQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<SearchCategory>('spot');
 
-  const { recentSearches, addRecentSearch, removeRecentSearch, clearRecentSearches } = useSearchStore();
+  const addRecentSearch = useSearchStore((state) => state.addRecentSearch);
 
-  // 추천 스팟 목록 (포토제닉 점수 순)
-  const { data: recSpotsData, isLoading: isRecLoading } = useSpots({ sort: 'score' });
+  // 디바운스가 끝나기 전까지 즉시 보여줄 로컬 필터용 풀 (포토제닉 점수 순)
+  const { data: recSpotsData } = useSpots({ sort: 'score' });
   const recSpots: SpotResponse[] = React.useMemo(
     () => recSpotsData?.content || [],
     [recSpotsData?.content]
@@ -66,11 +55,9 @@ export default function MapSearchScreen() {
   const {
     data: searchResultsData,
     isLoading: isSearchLoading,
+    isError: isSearchError,
     isPlaceholderData: isSearchPlaceholder,
-  } = useSearchSpots({
-    keyword: debouncedQuery,
-    category: selectedCategory === 'all' || selectedCategory === 'spot' ? undefined : selectedCategory,
-  });
+  } = useSearchSpots({ keyword: debouncedQuery });
   const apiResults: SpotResponse[] = React.useMemo(
     () => searchResultsData?.content || [],
     [searchResultsData?.content]
@@ -80,30 +67,19 @@ export default function MapSearchScreen() {
     const trimmedQuery = query.trim();
     if (!trimmedQuery) return [];
 
-    let baseResults: SpotResponse[] = [];
-
+    // 검색 API가 0건을 돌려준 것도 확정된 답이다 — 로컬 필터로 흘려보내면 서버가 없다고 한
+    // 스팟이 결과처럼 뜬다. 로컬 폴백은 아직 응답이 없거나(placeholder) 요청이 실패했을 때만.
     const isDebouncedMatch = debouncedQuery.trim().toLowerCase() === trimmedQuery.toLowerCase();
-    if (isDebouncedMatch && apiResults.length > 0 && !isSearchPlaceholder) {
-      baseResults = apiResults;
-    } else {
-      const q = trimmedQuery.toLowerCase();
-      baseResults = recSpots.filter(
-        (s) =>
-          s.name.toLowerCase().includes(q) ||
-          s.address?.toLowerCase().includes(q) ||
-          s.categories?.some((c) => c.toLowerCase().includes(q))
-      );
-    }
+    if (isDebouncedMatch && !isSearchPlaceholder && !isSearchError) return apiResults;
 
-    if (selectedCategory === 'all' || selectedCategory === 'spot') {
-      return baseResults;
-    }
-
-    const catTarget = String(selectedCategory).toLowerCase();
-    return baseResults.filter((s) =>
-      s.categories?.some((c) => c.toLowerCase().includes(catTarget))
+    const q = trimmedQuery.toLowerCase();
+    return recSpots.filter(
+      (s) =>
+        s.name.toLowerCase().includes(q) ||
+        s.address?.toLowerCase().includes(q) ||
+        s.categories?.some((c) => c.toLowerCase().includes(q))
     );
-  }, [query, debouncedQuery, apiResults, isSearchPlaceholder, recSpots, selectedCategory]);
+  }, [query, debouncedQuery, apiResults, isSearchPlaceholder, isSearchError, recSpots]);
 
   // 같은 값을 다시 골라도 지도 쪽 effect가 다시 돌도록 매번 새 nonce를 붙인다.
   const returnToMap = useCallback(
@@ -145,77 +121,15 @@ export default function MapSearchScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-white" edges={['top', 'left', 'right', 'bottom']}>
-      {/* ── 1. 헤더 (뒤로가기 버튼 + 검색 입력창) ── */}
-      <View
-        className="flex-row items-center border-b-[0.5px] border-hairline bg-white"
-        style={{ paddingHorizontal: GRID_PADDING, paddingVertical: normalize(10), gap: normalize(10) }}
-      >
-        <TouchableOpacity onPress={() => navigation.goBack()} hitSlop={8} style={{ paddingRight: normalize(2) }}>
-          <IconChevronLeft size={normalize(24)} color="#111" strokeWidth={2} />
-        </TouchableOpacity>
+      <SearchField
+        value={query}
+        onChangeText={setQuery}
+        onSubmit={(keyword) => handleSearchSubmit(keyword)}
+        onCancel={() => navigation.goBack()}
+        placeholder="스팟 검색"
+      />
 
-        <View
-          className="flex-1 flex-row items-center bg-card"
-          style={{
-            height: normalize(44),
-            borderRadius: normalize(22),
-            paddingHorizontal: normalize(14),
-          }}
-        >
-          <IconSearch size={normalize(18)} color="rgba(0,0,0,0.35)" strokeWidth={1.75} />
-          <TextInput
-            value={query}
-            onChangeText={setQuery}
-            placeholder="스팟 검색"
-            placeholderTextColor="rgba(0,0,0,0.35)"
-            allowFontScaling={false}
-            returnKeyType="search"
-            onSubmitEditing={() => handleSearchSubmit()}
-            autoFocus
-            style={{
-              flex: 1,
-              marginLeft: normalize(8),
-              fontFamily: 'Pretendard-Regular',
-              fontSize: FONT_MD,
-              color: '#111',
-              paddingVertical: 0,
-            }}
-          />
-          {query.length > 0 && (
-            <TouchableOpacity onPress={() => setQuery('')} hitSlop={8}>
-              <View
-                className="items-center justify-center rounded-full bg-black/15"
-                style={{ width: normalize(18), height: normalize(18) }}
-              >
-                <IconX size={normalize(12)} color="#fff" strokeWidth={2} />
-              </View>
-            </TouchableOpacity>
-          )}
-        </View>
-      </View>
-
-      {/* ── 2. 카테고리 탭 칩 ── */}
-      <View style={{ paddingVertical: normalize(12) }}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={{ paddingHorizontal: GRID_PADDING, gap: normalize(8) }}
-        >
-          {/* 필터 칩·입력창 회색은 디자인 토큰 #f5f5f7 한 벌만 쓴다 */}
-          {CATEGORIES.map((cat) => (
-            <Chip
-              key={cat.id}
-              label={cat.label}
-              selected={selectedCategory === cat.id}
-              onPress={() => setSelectedCategory(cat.id)}
-              height={normalize(34)}
-              paddingHorizontal={normalize(16)}
-            />
-          ))}
-        </ScrollView>
-      </View>
-
-      {/* ── 3. 메인 콘텐츠 ── */}
+      {/* ── 2. 메인 콘텐츠 ── */}
       <ScrollView
         className="flex-1"
         keyboardShouldPersistTaps="handled"
@@ -224,140 +138,13 @@ export default function MapSearchScreen() {
         {isQueryEmpty ? (
           /* ── 검색어 입력 전 (기본 뷰) ── */
           <View>
-            {/* 최근 검색어 */}
-            {recentSearches.length > 0 && (
-              <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(8), paddingBottom: normalize(16) }}>
-                <View className="flex-row items-center justify-between" style={{ marginBottom: normalize(8) }}>
-                  <Text className="font-semibold text-black/70" style={{ fontSize: FONT_SM }}>
-                    최근 검색
-                  </Text>
-                  <TouchableOpacity onPress={clearRecentSearches} hitSlop={8}>
-                    <Text className="font-medium text-sub" style={{ fontSize: FONT_XS }}>
-                      모두 지우기
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-
-                <View style={{ gap: normalize(12) }}>
-                  {recentSearches.map((item, index) => (
-                    <View key={index} className="flex-row items-center justify-between">
-                      <TouchableOpacity
-                        className="flex-1 flex-row items-center"
-                        style={{ gap: normalize(10) }}
-                        onPress={() => {
-                          setQuery(item);
-                          handleSearchSubmit(item);
-                        }}
-                      >
-                        <IconClock size={normalize(16)} color="rgba(0,0,0,0.35)" strokeWidth={1.75} />
-                        <Text className="font-medium text-black/85 flex-1" style={{ fontSize: FONT_MD }}>
-                          {item}
-                        </Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity onPress={() => removeRecentSearch(item)} hitSlop={8}>
-                        <IconX size={normalize(14)} color="rgba(0,0,0,0.25)" strokeWidth={1.75} />
-                      </TouchableOpacity>
-                    </View>
-                  ))}
-                </View>
-              </View>
-            )}
-
-            {/* 인기 검색어 */}
-            <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(8), paddingBottom: normalize(20) }}>
-              <Text className="font-semibold text-black/70" style={{ fontSize: FONT_SM, marginBottom: normalize(12) }}>
-                인기 검색어
-              </Text>
-              <View className="flex-row flex-wrap" style={{ gap: normalize(8) }}>
-                {POPULAR_KEYWORDS.map((keyword, idx) => (
-                  <TouchableOpacity
-                    key={idx}
-                    onPress={() => {
-                      setQuery(keyword);
-                      handleSearchSubmit(keyword);
-                    }}
-                    className="flex-row items-center bg-card"
-                    style={{
-                      paddingHorizontal: normalize(14),
-                      paddingVertical: normalize(8),
-                      borderRadius: normalize(12),
-                      gap: normalize(6),
-                    }}
-                  >
-                    <Text className="font-bold" style={{ fontSize: FONT_SM, color: idx < 3 ? BRAND : 'rgba(0,0,0,0.5)' }}>
-                      {idx + 1}
-                    </Text>
-                    <Text className="font-medium text-black/80" style={{ fontSize: FONT_SM }}>
-                      {keyword}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-
-            {/* 추천 스팟 (가로 카드 뷰) */}
-            <View style={{ paddingTop: normalize(8) }}>
-              <View className="flex-row items-center justify-between" style={{ paddingHorizontal: GRID_PADDING, marginBottom: normalize(12) }}>
-                <Text className="font-semibold text-black/70" style={{ fontSize: FONT_SM }}>
-                  추천 스팟
-                </Text>
-              </View>
-
-              {isRecLoading ? (
-                <View style={{ paddingVertical: normalize(20) }}>
-                  <ActivityIndicator size="small" color={BRAND} />
-                </View>
-              ) : (
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={{ paddingHorizontal: GRID_PADDING, gap: normalize(12) }}
-                >
-                  {recSpots.slice(0, 8).map((spot) => (
-                    <TouchableOpacity
-                      key={spot.id}
-                      onPress={() => handleSelectSpot(spot)}
-                      style={{ width: normalize(160) }}
-                    >
-                      <View
-                        className="overflow-hidden bg-[#e5e5ea]"
-                        style={{
-                          width: normalize(160),
-                          height: normalize(110),
-                          borderRadius: normalize(14),
-                        }}
-                      >
-                        {spot.thumbnailUrl || spot.imageUrl ? (
-                          <Image
-                            source={{ uri: spot.thumbnailUrl || spot.imageUrl || '' }}
-                            className="w-full h-full"
-                            resizeMode="cover"
-                          />
-                        ) : (
-                          <View className="w-full h-full items-center justify-center bg-gray-200">
-                            <IconMapPin size={normalize(24)} color="rgba(0,0,0,0.3)" />
-                          </View>
-                        )}
-                      </View>
-                      <Text
-                        className="font-bold text-black tracking-tight"
-                        numberOfLines={1}
-                        style={{ fontSize: FONT_MD, marginTop: normalize(8) }}
-                      >
-                        {spot.name}
-                      </Text>
-                      <Text
-                        className="font-medium text-sub"
-                        numberOfLines={1}
-                        style={{ fontSize: FONT_XS, marginTop: normalize(2) }}
-                      >
-                        {spot.address || spot.categories?.[0] || '포토 스팟'}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              )}
-            </View>
+            <RecentSearches
+              onSelect={(keyword) => {
+                setQuery(keyword);
+                handleSearchSubmit(keyword);
+              }}
+            />
+            <RecommendedSpots onOpenSpot={handleSelectSpot} />
           </View>
         ) : (
           /* ── 검색어 입력 후 (검색 결과 목록) ── */
@@ -401,7 +188,7 @@ export default function MapSearchScreen() {
                         <Image source={{ uri: spot.thumbnailUrl || spot.imageUrl || '' }} className="w-full h-full" resizeMode="cover" />
                       ) : (
                         <View className="w-full h-full items-center justify-center bg-gray-200">
-                          <IconMapPin size={normalize(20)} color="rgba(0,0,0,0.3)" />
+                          <IconMapPin size={normalize(20)} color={iconGray(0.3)} />
                         </View>
                       )}
                     </View>
@@ -420,7 +207,7 @@ export default function MapSearchScreen() {
                       )}
                     </View>
 
-                    <IconChevronRight size={normalize(16)} color="rgba(0,0,0,0.25)" strokeWidth={1.75} />
+                    <IconChevronRight size={normalize(16)} color={iconGray(0.25)} strokeWidth={1.75} />
                   </TouchableOpacity>
                 ))}
               </View>

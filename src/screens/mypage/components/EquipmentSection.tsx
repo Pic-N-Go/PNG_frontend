@@ -6,7 +6,7 @@ import { BORDER_CONTROL, CARD_RADIUS, EMPTY_CARD_HEIGHT, FONT_SM, FONT_TITLE, FO
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useCreateEquipment, useDeleteEquipment, useMyEquipments } from '@/hooks/useEquipment';
 import { toErrorMessage } from '@/api/auth';
-import { BRAND, BRAND_TINT, CARD, HAIRLINE, SCRIM, TEXT_SUB } from '@/constants/colors';
+import { BRAND, BRAND_TINT, CARD, HAIRLINE, SCRIM, TEXT_SUB, iconGray } from '@/constants/colors';
 
 // 서버 EquipmentType은 CAMERA·LENS 둘뿐이다. 목업에 있던 "드론"은 저장할 곳이 없어 뺐다.
 const CATEGORIES = [
@@ -283,7 +283,7 @@ export default function EquipmentSection() {
                 <Text className="font-medium tracking-tight" style={{ fontSize: normalizeFontSize(13), color: 'rgba(0,0,0,0.25)' }}>
                   +{items.length - 2}
                 </Text>
-                <IconChevronRight size={normalize(14)} color="rgba(0,0,0,0.25)" strokeWidth={2} />
+                <IconChevronRight size={normalize(14)} color={iconGray(0.25)} strokeWidth={2} />
               </TouchableOpacity>
             )}
           </TouchableOpacity>

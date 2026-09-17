@@ -65,6 +65,11 @@
 
 ### Task 3 — Hero 섹션 + 검색바 + 카테고리 필터
 
+> **2026-09-17 후속 변경** — 카테고리 필터는 제거됐고(`CategoryFilter.tsx` 삭제),
+> `SearchBar.tsx`는 `components/common/`으로 이동했으며(지도와 공용),
+> HeroSection의 날씨 텍스트는 `GET /weather/current` 실데이터로 교체됐다.
+> 아래 원문은 최초 구현 시점 기록이다.
+
 - 대상 파일:
   - `src/screens/home/HomeScreen.tsx`
   - `src/components/home/HeroSection.tsx` (신규)
@@ -73,9 +78,9 @@
 - 변경 내용:
   - HeroSection: LinearGradient(로그인 화면 동일 색상), 별/태양/지형 레이어, 상단 네비(로고 + 알림), 제목/날씨 텍스트 (목업 하드코딩)
   - SearchBar: `#F5F5F7` 배경 pill, 검색 아이콘, 필터 버튼 → 탭 시 FilterBottomSheet 열기
-  - CategoryFilter: `ScrollView horizontal`, 선택 상태 `#E31B59` pill
-  - HomeScreen: ScrollView 래퍼, 세 컴포넌트 조합
-- 완료 조건: 히어로 그라디언트 렌더링, 카테고리 단일 선택 동작
+  - ~~CategoryFilter: `ScrollView horizontal`, 선택 상태 `#E31B59` pill~~ → 제거됨
+  - HomeScreen: ScrollView 래퍼, 세 컴포넌트 조합 (현재는 히어로 + 검색바 둘)
+- 완료 조건: 히어로 그라디언트 렌더링, ~~카테고리 단일 선택 동작~~ → 히어로 날씨 실데이터 렌더링
 - 검증 방법: tsc + lint, TODO: iOS/Android 시뮬레이터 육안 확인
 
 ### Task 4 — 지도 배너 + 인기 스팟 섹션
@@ -137,7 +142,9 @@
 - [ ] `pnpm lint` 통과
 - [ ] 탭바 5개 탭 아이콘/레이블 정상 렌더링, 활성 탭 `#E31B59` 색상 (수동)
 - [ ] iOS/Android 하단 Safe Area 여백 정상 (탭바가 시스템 바에 가리지 않음) (수동)
-- [ ] 카테고리 단일 선택 동작 (수동)
+- [x] ~~카테고리 단일 선택 동작 (수동)~~ → 필터 제거로 폐기
+- [ ] 히어로 날씨 줄이 실데이터로 표시 (수동)
+- [ ] 당겨서 새로고침 동작 (수동)
 - [ ] 검색 포커스 패널 → 결과 패널 전환 (수동)
 - [ ] 지도 배너 탭 → MapScreen 이동 (수동)
 - [ ] 필터 바텀시트 열기/닫기/초기화 (수동)
@@ -145,13 +152,15 @@
 ## 5) 롤백 계획
 
 - 영향 파일: `src/navigation/MainTab.tsx`, `src/screens/home/HomeScreen.tsx`, `src/screens/search/SearchResultScreen.tsx`, `src/types/spot.ts`, `src/components/common/TabBar.tsx` (신규), `src/components/home/` (신규 파일들)
-- 되돌림 방법: `git restore src/navigation/MainTab.tsx src/screens/home/HomeScreen.tsx src/screens/search/SearchResultScreen.tsx src/types/spot.ts` + `git clean -fd src/components/home/ src/components/common/`
+  - 2026-09-17 이후 추가: `src/components/common/SearchBar.tsx`(이동), `src/components/common/SearchPanel.tsx`(신규), `src/api/weather.ts`(신규), `src/hooks/useCurrentWeather.ts`(신규), `src/store/queryClient.ts`
+- 되돌림 방법: `git restore src/navigation/MainTab.tsx src/screens/home/HomeScreen.tsx src/screens/search/SearchResultScreen.tsx src/types/spot.ts src/store/queryClient.ts` + `git clean -fd src/components/home/ src/components/common/ src/api/weather.ts src/hooks/useCurrentWeather.ts`
 - 데이터 영향: 없음 (목업 데이터만)
 
 ## 6) PR 구성
 
 - PR 제목(컨벤션): `feat: 홈 화면 React Native 구현`
 - 변경 요약: 공통 탭바 커스텀 컴포넌트 구현, 홈 화면 전 섹션(히어로/검색/카테고리/지도배너/인기스팟/캘린더) RN 구현, SearchResultScreen 포커스+결과 패널, 필터 바텀시트 UI 완성 (목업 데이터 기반)
+  - 2026-09-17 후속: 카테고리 섹션 제거, 히어로 날씨 API 연동, 당겨서 새로고침 추가
 - 리뷰 요청 포인트:
   - TabBar Safe Area 처리 방식 (iOS/Android 모두 확인 필요)
   - MapBanner SVG 렌더링 방식 (RN SVG vs View 조합)

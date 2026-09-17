@@ -4,7 +4,7 @@ import { Camera, ChevronDown, ChevronRight, MapPin } from 'lucide-react-native';
 import { ProfileSpotItem } from '@/types/community';
 import { GRID_PADDING, FONT_2XS, FONT_MD, FONT_SM, FONT_XS } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
-import { CARD, TEXT_SUB } from '@/constants/colors';
+import { CARD, TEXT_SUB, iconGray } from '@/constants/colors';
 
 const SURFACE = CARD;
 
@@ -26,7 +26,7 @@ export default function ProfileSpotsTab({ items, totalCount, onSelectSpot }: Pro
           <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: 'rgba(0,0,0,0.5)', letterSpacing: -0.2 }}>
             자주 간 순
           </Text>
-          <ChevronDown size={normalize(11)} color="rgba(0,0,0,0.5)" strokeWidth={2} />
+          <ChevronDown size={normalize(11)} color={iconGray(0.5)} strokeWidth={2} />
         </View>
         <View className="flex-row" style={{ marginLeft: 'auto', gap: normalize(6) }}>
           {REGIONS.map((region) => {
@@ -86,7 +86,7 @@ export default function ProfileSpotsTab({ items, totalCount, onSelectSpot }: Pro
                 </Text>
               </View>
             </View>
-            <ChevronRight size={normalize(14)} color="rgba(0,0,0,0.2)" strokeWidth={2} style={{ alignSelf: 'center' }} />
+            <ChevronRight size={normalize(14)} color={iconGray(0.2)} strokeWidth={2} style={{ alignSelf: 'center' }} />
           </Pressable>
         ))}
       </View>

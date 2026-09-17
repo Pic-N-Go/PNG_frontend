@@ -3,7 +3,7 @@ import { Pressable, Text, View } from 'react-native';
 import { IconChevronRight } from '@tabler/icons-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { CARD_RADIUS, GRID_PADDING, FONT_XS } from '@/constants/layout';
-import { BRAND, BRAND_TINT } from '@/constants/colors';
+import { BRAND, BRAND_TINT, iconGray } from '@/constants/colors';
 
 interface Props {
   /** 좌측 타일 아이콘 (tabler) */
@@ -54,7 +54,7 @@ export default function LinkBanner({ icon: Icon, title, subtitle, onPress, margi
           </View>
 
           <View className="shrink-0">
-            <IconChevronRight size={normalize(16)} color="rgba(0,0,0,0.2)" strokeWidth={1.5} />
+            <IconChevronRight size={normalize(16)} color={iconGray(0.2)} strokeWidth={1.5} />
           </View>
         </View>
       </Pressable>

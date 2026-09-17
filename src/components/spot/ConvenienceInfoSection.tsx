@@ -18,7 +18,7 @@ import { FONT_MD, FONT_SM, FONT_TITLE, FONT_XS, GRID_PADDING, HAIRLINE_WIDTH } f
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import type { ConvenienceInfo, FacilityChipData, FacilityKey, FacilityStatus } from '@/types/spot';
 import type { FestivalProgressStatus } from '@/types/festival';
-import { BRAND, BRAND_TINT, CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
+import { BRAND, BRAND_TINT, CARD, HAIRLINE, TEXT_SUB, iconGray } from '@/constants/colors';
 
 const ACCENT = BRAND; // 앱 브랜드 핑크 (디자인 핸드오프의 #F5335F 대신 프로젝트 토큰 사용)
 
@@ -246,7 +246,7 @@ export default function ConvenienceInfoSection({ info, eventPeriod }: Props) {
               {info.phone}
             </Text>
           </View>
-          {telHref ? <ChevronRight size={normalize(20)} color="rgba(0,0,0,0.2)" /> : null}
+          {telHref ? <ChevronRight size={normalize(20)} color={iconGray(0.2)} /> : null}
         </Pressable>
       ) : null}
     </View>

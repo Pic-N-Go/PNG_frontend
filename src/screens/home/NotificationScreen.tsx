@@ -21,7 +21,7 @@ import {
   GRID_PADDING,
   SPACING_LG,
 } from '@/constants/layout';
-import { BRAND, BRAND_TINT, CARD, TEXT_SUB } from '@/constants/colors';
+import { BRAND, BRAND_TINT, CARD, TEXT_SUB, iconGray } from '@/constants/colors';
 
 type TabKey = 'all' | 'wishlist' | 'weather' | 'community';
 
@@ -204,7 +204,7 @@ export default function NotificationScreen({ navigation }: Props) {
       >
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(10) }}>
           <Pressable onPress={() => navigation.goBack()} hitSlop={8}>
-            <IconChevronLeft size={normalize(20)} color="rgba(0,0,0,0.6)" strokeWidth={1.5} />
+            <IconChevronLeft size={normalize(20)} color={iconGray(0.6)} strokeWidth={1.5} />
           </Pressable>
           <Text
             allowFontScaling={false}
@@ -342,7 +342,7 @@ export default function NotificationScreen({ navigation }: Props) {
                 marginBottom: normalize(6),
               }}
             >
-              <IconBell size={normalize(24)} color="rgba(0,0,0,0.25)" strokeWidth={1.5} />
+              <IconBell size={normalize(24)} color={iconGray(0.25)} strokeWidth={1.5} />
             </View>
             <Text
               allowFontScaling={false}

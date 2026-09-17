@@ -41,7 +41,7 @@ import CourseChecklistSection from "@/components/course/CourseChecklistSection";
 import { getCourseStats } from "@/utils/distance";
 import { getDayColor } from "@/constants/dayColors";
 import { FONT_XS, FONT_SM, FONT_MD, FONT_LG, CONTENT_PADDING, BUTTON_HEIGHT, BUTTON_RADIUS, CARD_RADIUS, HEADER_HEIGHT, ICON_SM , BORDER_CONTROL } from "@/constants/layout";
-import { BRAND, BRAND_MUTED, BRAND_STRONG, BRAND_TINT, CARD } from '@/constants/colors';
+import { BRAND, BRAND_MUTED, BRAND_STRONG, BRAND_TINT, CARD, iconGray } from '@/constants/colors';
 
 import { PIN_COURSE_IMAGE } from '@/constants/pins';
 
@@ -763,7 +763,7 @@ export default function CoursePlanScreen({ navigation, route }: any) {
             className="bg-card items-center justify-center"
             style={{ height: normalize(210), gap: 8 }}
           >
-            <IconRoute size={normalize(26)} color="rgba(0,0,0,0.2)" strokeWidth={1.5} />
+            <IconRoute size={normalize(26)} color={iconGray(0.2)} strokeWidth={1.5} />
             <Text className="font-normal" allowFontScaling={false} style={{ fontSize: FONT_SM, color: "rgba(0,0,0,0.3)", letterSpacing: -0.2 }}>
               표시할 경로가 없어요
             </Text>
@@ -910,7 +910,7 @@ export default function CoursePlanScreen({ navigation, route }: any) {
             <IconCloudQuestion
               size={normalize(32)}
               strokeWidth={1.5}
-              color="rgba(0,0,0,0.25)"
+              color={iconGray(0.25)}
               style={{ marginBottom: normalize(12) }}
             />
             <Text allowFontScaling={false} className="font-semibold text-black" style={{ fontSize: FONT_MD, marginBottom: normalize(4) }}>
@@ -1238,7 +1238,7 @@ export default function CoursePlanScreen({ navigation, route }: any) {
               )}
               {/* TODO: 추후 스팟별 방문 시간/체류 시간 기능 추가 시 활성화 */}
               {/* <View className="flex-row items-center gap-1.5 mt-1">
-                <IconClock size={12} color="rgba(0,0,0,0.3)" />
+                <IconClock size={12} color={iconGray(0.3)} />
                 <Text className="text-black/50 font-normal" style={{ fontSize: normalizeFontSize(12) }}>
                   {item.time} <Text className="text-black/25 font-normal">{item.dur}</Text>
                 </Text>
@@ -1257,7 +1257,7 @@ export default function CoursePlanScreen({ navigation, route }: any) {
                   justifyContent: "center",
                 }}
               >
-                <IconGripVertical size={18} color="rgba(0,0,0,0.3)" />
+                <IconGripVertical size={18} color={iconGray(0.3)} />
               </Sortable.Handle>
             )}
           </View>
@@ -1267,9 +1267,9 @@ export default function CoursePlanScreen({ navigation, route }: any) {
           <View className="mb-3 py-2">
             <View className="self-start flex-row items-center gap-1.5 h-8 px-3.5 rounded-full bg-white border border-black/5">
               {transport.type === "car" ? (
-                <IconCar size={14} color="rgba(0,0,0,0.3)" />
+                <IconCar size={14} color={iconGray(0.3)} />
               ) : (
-                <IconWalk size={14} color="rgba(0,0,0,0.3)" />
+                <IconWalk size={14} color={iconGray(0.3)} />
               )}
               <Text className="text-black/45 font-normal" style={{ fontSize: normalizeFontSize(12) }}>
                 {transport.label}
@@ -1293,7 +1293,7 @@ export default function CoursePlanScreen({ navigation, route }: any) {
           onPress={() => navigation.goBack()}
           className="w-8 h-8 rounded-full bg-black/5 items-center justify-center shrink-0"
         >
-          <IconChevronLeft size={20} color="rgba(0,0,0,0.6)" />
+          <IconChevronLeft size={20} color={iconGray(0.6)} />
         </TouchableOpacity>
         <View className="flex-1 mx-3">
           <Text
@@ -1311,13 +1311,13 @@ export default function CoursePlanScreen({ navigation, route }: any) {
             onPress={handleShare}
             className="w-8 h-8 rounded-full bg-black/5 items-center justify-center"
           >
-            <ShareIcon size={18} color="rgba(0,0,0,0.6)" />
+            <ShareIcon size={18} color={iconGray(0.6)} />
           </TouchableOpacity>
           <TouchableOpacity 
             onPress={handleMorePress}
             className="w-8 h-8 rounded-full bg-black/5 items-center justify-center"
           >
-            <IconDots size={18} color="rgba(0,0,0,0.6)" />
+            <IconDots size={18} color={iconGray(0.6)} />
           </TouchableOpacity>
         </View>
       </View>
