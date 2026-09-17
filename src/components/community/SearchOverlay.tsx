@@ -12,6 +12,7 @@ import { useCommunityFeed } from '@/hooks/useCommunity';
 import { useSearchStore } from '@/store/useSearchStore';
 import { FONT_SM, FONT_XS, GRID_PADDING, HAIRLINE_WIDTH } from '@/constants/layout';
 import { normalize } from '@/utils/normalize';
+import { toHttps } from '@/utils/spotMappers';
 import type { FollowUserResponse } from '@/types/user';
 import type { SpotResponse } from '@/types/spot';
 import type { Post, ProfilePostItem } from '@/types/community';
@@ -238,6 +239,10 @@ function UserResults({ query, onOpenUser }: { query: UserQuery; onOpenUser: (use
 }
 
 function SpotRow({ spot, onPress }: { spot: SpotResponse; onPress: () => void }) {
+  const [failed, setFailed] = useState(false);
+  const imageUri = toHttps(spot.thumbnailUrl || spot.imageUrl);
+  useEffect(() => setFailed(false), [imageUri]);
+
   return (
     <Pressable
       onPress={onPress}
@@ -247,8 +252,13 @@ function SpotRow({ spot, onPress }: { spot: SpotResponse; onPress: () => void })
       style={{ gap: normalize(12), paddingVertical: normalize(12), borderBottomWidth: HAIRLINE_WIDTH, borderBottomColor: HAIRLINE }}
     >
       <View className="items-center justify-center overflow-hidden" style={{ width: normalize(44), height: normalize(44), borderRadius: normalize(12), backgroundColor: SURFACE }}>
-        {spot.thumbnailUrl ? (
-          <Image source={{ uri: spot.thumbnailUrl }} resizeMode="cover" style={{ width: '100%', height: '100%' }} />
+        {imageUri && !failed ? (
+          <Image
+            source={{ uri: imageUri }}
+            resizeMode="cover"
+            onError={() => setFailed(true)}
+            style={{ width: '100%', height: '100%' }}
+          />
         ) : (
           <MapPin size={normalize(18)} color={iconGray(0.25)} strokeWidth={1.8} />
         )}

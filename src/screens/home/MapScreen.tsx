@@ -18,6 +18,7 @@ import { StatusBar } from 'expo-status-bar';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { getCourseStats } from '@/utils/distance';
 import { type Coordinate, parseValidCoordinate } from '@/utils/geo';
+import { toHttps } from '@/utils/spotMappers';
 import { CATEGORY_CODES, SPOT_CATEGORY_MAP, CODE_BY_LABEL } from '@/constants/spotCategories';
 import { Sparkles } from 'lucide-react-native';
 import { getDayColor, DAY_COLOR_PALETTE } from '@/constants/dayColors';
@@ -267,7 +268,7 @@ export default function MapScreen() {
         tags,
         score: spot.photogenicScore ?? 0,
         loc: spot.address ?? '',
-        photo: spot.thumbnailUrl || spot.imageUrl || '',
+        photo: toHttps(spot.thumbnailUrl || spot.imageUrl || ''),
         badge: spot.badge ?? false,
       };
     });
@@ -1088,7 +1089,7 @@ export default function MapScreen() {
           {activeSpot && (
             <View className="px-5 pb-5 pt-2">
               <View className="flex-row items-center mb-6">
-                <Image source={{ uri: activeSpot.photo }} className="rounded-xl mr-3" style={{ width: normalize(64), height: normalize(64) }} />
+                <Image source={{ uri: toHttps(activeSpot.photo) }} className="rounded-xl mr-3" style={{ width: normalize(64), height: normalize(64) }} />
                 <View className="flex-1 justify-center">
                   <Text className="font-semibold text-black mb-1" style={{ fontSize: FONT_TITLE }}>{activeSpot.name}</Text>
                   <Text className="text-sub mb-2.5 font-normal" style={{ fontSize: normalizeFontSize(14) }}>{activeSpot.loc}</Text>

@@ -1,4 +1,5 @@
 import { WeatherCondition, TimeCondition, AirQualityCondition, SpotAlertSettingResponse } from '@/api/spotAlert';
+import { toHttps } from '@/utils/spotMappers';
 
 // 조건 값은 화면 state에서도 API enum 그대로 들고 다닌다.
 // 예전에는 한글 UI 문자열을 state에 담고 저장 직전에 enum으로 되돌렸는데,
@@ -93,6 +94,12 @@ export const mapSpotAlertToUI = (data: SpotAlertSettingResponse) => {
   }));
 
   const thumbnails = ['#2c3e50', '#34495e', '#7f8c8d'];
+  const rawPhoto =
+    (data as any).thumbnailUrl ||
+    (data as any).imageUrl ||
+    (data as any).photo ||
+    null;
+  const photo = toHttps(rawPhoto);
   const shortLoc = data.address ? data.address.split(' ').slice(0, 2).join(' ') : '위치 정보 없음';
 
   return {
@@ -106,6 +113,7 @@ export const mapSpotAlertToUI = (data: SpotAlertSettingResponse) => {
     notifText: data.isAlertEnabled ? '설정한 조건에 맞춰 알림 설정됨' : null,
     isAlertEnabled: data.isAlertEnabled,
     thumbnails,
+    photo,
     rawData: data,
   };
 };

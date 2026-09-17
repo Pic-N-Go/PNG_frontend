@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Modal, Pressable } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Modal, Pressable, Image } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FONT_SM, BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING, CARD_RADIUS } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { IconChevronLeft, IconBell, IconChevronRight, IconMapPin, IconCircleCheck, IconCheck, IconChevronDown } from '@tabler/icons-react-native';
 
 import { useSpotAlert } from '@/hooks/useSpotAlert';
+import { useSpotSummary } from '@/hooks/useSpot';
 import { mapWishlistToUI } from '@/utils/wishlistMapper';
+import { toHttps } from '@/utils/spotMappers';
 import { BRAND, BRAND_STRONG, BRAND_TINT, BRAND_TINT_ACTIVE, TEXT_SUB, iconGray } from '@/constants/colors';
 import { SHADOW_OVERLAY } from '@/constants/shadow';
 
@@ -98,75 +101,11 @@ export default function SpotAlertScreen({ navigation, route }: any) {
             </View>
 
             {sortedWishlists.map((item) => (
-              <TouchableOpacity
+              <WishlistCardItem
                 key={item.id}
-                activeOpacity={0.9}
+                item={item}
                 onPress={() => navigation.navigate('WishlistSetting', { id: item.id, wishlist: item })}
-                className="bg-card overflow-hidden"
-                style={{ marginHorizontal: CONTENT_PADDING, marginBottom: normalize(12), borderRadius: CARD_RADIUS }}
-              >
-                {/* Thumbnails */}
-                <View className="flex-row relative" style={{ height: normalize(100) }}>
-                  {item.thumbnails.map((c, i) => (
-                    <View key={i} className="flex-1" style={{ backgroundColor: c }} />
-                  ))}
-                  {/* Status Badge */}
-                  <View 
-                    className="absolute flex-row items-center justify-center rounded-full"
-                    style={{ 
-                      top: normalize(10), left: normalize(10), 
-                      height: normalize(22), paddingHorizontal: normalize(10),
-                      backgroundColor: item.status === 'hit' ? 'rgba(52,199,89,0.9)' : item.status === 'soon' ? BRAND_STRONG : 'rgba(0,0,0,0.35)'
-                    }}
-                  >
-                    {(item.status === 'soon' || item.status === 'hit') && (
-                      <View className="bg-white rounded-full mr-1" style={{ width: normalize(6), height: normalize(6) }} />
-                    )}
-                    <Text className="font-semibold text-white" style={{ fontSize: normalizeFontSize(10) }}>{item.statusText}</Text>
-                  </View>
-                </View>
-
-                {/* Body */}
-                <View style={{ padding: normalize(14), paddingBottom: item.notifText ? 0 : normalize(14) }}>
-                  <View className="flex-row items-start justify-between mb-1">
-                    <Text className="font-semibold text-black tracking-tight" style={{ fontSize: normalizeFontSize(16) }}>{item.title}</Text>
-                    <IconChevronRight size={normalize(16)} color={iconGray(0.18)} style={{ marginTop: 2 }} />
-                  </View>
-                  <View className="flex-row items-center mb-2.5">
-                    <IconMapPin size={normalize(12)} color={iconGray(0.3)} />
-                    <Text className="text-sub ml-1 font-normal" style={{ fontSize: normalizeFontSize(12) }}>{item.loc}</Text>
-                  </View>
-
-                  {/* Conditions */}
-                  <View className="flex-row flex-wrap gap-1 mb-2.5">
-                    {item.conditions.map((cond, i) => (
-                      <View key={i} className="flex-row items-center rounded-full" style={{ height: normalize(22), paddingHorizontal: normalize(9), backgroundColor: cond.active ? BRAND_TINT_ACTIVE : 'rgba(255,255,255,1)' }}>
-                        <Text className="font-medium" style={{ fontSize: normalizeFontSize(11), color: cond.active ? BRAND : 'rgba(0,0,0,0.45)' }}>{cond.text}</Text>
-                      </View>
-                    ))}
-                  </View>
-
-                  {/* Forecast */}
-                  <View className="flex-row border-t-[0.5px] border-hairline" style={{ paddingTop: normalize(10), gap: normalize(4) }}>
-                    {item.forecast.map((f, i) => (
-                      <View key={i} className="flex-1 items-center gap-1">
-                        <Text className="font-normal" style={{ fontSize: normalizeFontSize(9), color: 'rgba(0,0,0,0.28)' }}>{f.day}</Text>
-                        <View className="items-center justify-center rounded-full bg-white border border-black/5" style={{ width: normalize(28), height: normalize(28), borderColor: f.hit ? BRAND : 'rgba(0,0,0,0.08)', backgroundColor: f.hit ? BRAND_TINT : '#fff' }}>
-                          <IconCircleCheck size={normalize(16)} color={f.hit ? BRAND : 'rgba(0,0,0,0.15)'} />
-                        </View>
-                      </View>
-                    ))}
-                  </View>
-                </View>
-
-                {/* Notif */}
-                {item.notifText && (
-                  <View className="flex-row items-center border-t-[0.5px] mt-3" style={{ paddingVertical: normalize(10), paddingHorizontal: normalize(14), backgroundColor: item.status === 'hit' ? BRAND_TINT : 'rgba(52,199,89,0.05)', borderColor: item.status === 'hit' ? BRAND_TINT : 'rgba(52,199,89,0.12)' }}>
-                    <View className="rounded-full mr-2" style={{ width: normalize(6), height: normalize(6), backgroundColor: item.status === 'hit' ? BRAND : '#34C759' }} />
-                    <Text className="font-medium" style={{ fontSize: normalizeFontSize(12), color: item.status === 'hit' ? BRAND : '#34C759' }}>{item.notifText}</Text>
-                  </View>
-                )}
-              </TouchableOpacity>
+              />
             ))}
           </View>
         )}
@@ -201,5 +140,100 @@ export default function SpotAlertScreen({ navigation, route }: any) {
         </Pressable>
       </Modal>
     </SafeAreaView>
+  );
+}
+
+function WishlistCardItem({ item, onPress }: { item: any; onPress: () => void }) {
+  const { data: summary } = useSpotSummary(item.photo ? null : item.id);
+  const photoUri = item.photo || toHttps(summary?.thumbnailUrl);
+  const [imageFailed, setImageFailed] = React.useState(false);
+  React.useEffect(() => setImageFailed(false), [photoUri]);
+
+  return (
+    <TouchableOpacity
+      activeOpacity={0.9}
+      onPress={onPress}
+      className="bg-card overflow-hidden"
+      style={{ marginHorizontal: CONTENT_PADDING, marginBottom: normalize(12), borderRadius: CARD_RADIUS }}
+    >
+      {/* Thumbnail Header */}
+      <View className="relative overflow-hidden" style={{ height: normalize(110), backgroundColor: '#2b2a29' }}>
+        {photoUri && !imageFailed ? (
+          <Image
+            source={{ uri: photoUri }}
+            style={{ width: '100%', height: '100%' }}
+            resizeMode="cover"
+            onError={() => setImageFailed(true)}
+          />
+        ) : (
+          <LinearGradient colors={['#3a3a3c', '#2c2c2e']} style={{ width: '100%', height: '100%' }} />
+        )}
+        <View
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0,0,0,0.2)',
+          }}
+        />
+        {/* Status Badge */}
+        <View 
+          className="absolute flex-row items-center justify-center rounded-full"
+          style={{ 
+            top: normalize(10), left: normalize(10), 
+            height: normalize(22), paddingHorizontal: normalize(10),
+            backgroundColor: item.status === 'hit' ? 'rgba(52,199,89,0.9)' : item.status === 'soon' ? BRAND_STRONG : 'rgba(0,0,0,0.45)'
+          }}
+        >
+          {(item.status === 'soon' || item.status === 'hit') && (
+            <View className="bg-white rounded-full mr-1" style={{ width: normalize(6), height: normalize(6) }} />
+          )}
+          <Text className="font-semibold text-white" style={{ fontSize: normalizeFontSize(10) }}>{item.statusText}</Text>
+        </View>
+      </View>
+
+      {/* Body */}
+      <View style={{ padding: normalize(14), paddingBottom: item.notifText ? 0 : normalize(14) }}>
+        <View className="flex-row items-start justify-between mb-1">
+          <Text className="font-semibold text-black tracking-tight" style={{ fontSize: normalizeFontSize(16) }}>{item.title}</Text>
+          <IconChevronRight size={normalize(16)} color={iconGray(0.18)} style={{ marginTop: 2 }} />
+        </View>
+        <View className="flex-row items-center mb-2.5">
+          <IconMapPin size={normalize(12)} color={iconGray(0.3)} />
+          <Text className="text-sub ml-1 font-normal" style={{ fontSize: normalizeFontSize(12) }}>{item.loc}</Text>
+        </View>
+
+        {/* Conditions */}
+        <View className="flex-row flex-wrap gap-1 mb-2.5">
+          {item.conditions.map((cond: any, i: number) => (
+            <View key={i} className="flex-row items-center rounded-full" style={{ height: normalize(22), paddingHorizontal: normalize(9), backgroundColor: cond.active ? BRAND_TINT_ACTIVE : 'rgba(255,255,255,1)' }}>
+              <Text className="font-medium" style={{ fontSize: normalizeFontSize(11), color: cond.active ? BRAND : 'rgba(0,0,0,0.45)' }}>{cond.text}</Text>
+            </View>
+          ))}
+        </View>
+
+        {/* Forecast */}
+        <View className="flex-row border-t-[0.5px] border-hairline" style={{ paddingTop: normalize(10), gap: normalize(4) }}>
+          {item.forecast.map((f: any, i: number) => (
+            <View key={i} className="flex-1 items-center gap-1">
+              <Text className="font-normal" style={{ fontSize: normalizeFontSize(9), color: 'rgba(0,0,0,0.28)' }}>{f.day}</Text>
+              <View className="items-center justify-center rounded-full bg-white border border-black/5" style={{ width: normalize(28), height: normalize(28), borderColor: f.hit ? BRAND : 'rgba(0,0,0,0.08)', backgroundColor: f.hit ? BRAND_TINT : '#fff' }}>
+                <IconCircleCheck size={normalize(16)} color={f.hit ? BRAND : 'rgba(0,0,0,0.15)'} />
+              </View>
+            </View>
+          ))}
+        </View>
+      </View>
+
+      {/* Notif */}
+      {item.notifText && (
+        <View className="flex-row items-center border-t-[0.5px] mt-3" style={{ paddingVertical: normalize(10), paddingHorizontal: normalize(14), backgroundColor: item.status === 'hit' ? BRAND_TINT : 'rgba(52,199,89,0.05)', borderColor: item.status === 'hit' ? BRAND_TINT : 'rgba(52,199,89,0.12)' }}>
+          <View className="rounded-full mr-2" style={{ width: normalize(6), height: normalize(6), backgroundColor: item.status === 'hit' ? BRAND : '#34C759' }} />
+          <Text className="font-medium" style={{ fontSize: normalizeFontSize(12), color: item.status === 'hit' ? BRAND : '#34C759' }}>{item.notifText}</Text>
+        </View>
+      )}
+    </TouchableOpacity>
   );
 }

@@ -6,6 +6,7 @@ import { useSeasonalSpots } from '@/hooks/useSeasonalSpots';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { FONT_SM, FONT_XS, GRID_PADDING } from '@/constants/layout';
 import { BRAND, CARD, iconGray } from '@/constants/colors';
+import { toHttps } from '@/utils/spotMappers';
 import type { SpotResponse } from '@/types/spot';
 
 /**
@@ -151,10 +152,38 @@ export function RecentSearches({ onSelect }: { onSelect: (keyword: string) => vo
   );
 }
 
-/**
- * 추천 스팟 2열 그리드. 홈 "이달의 추천 출사스팟"과 같은 결과를 쓴다(회의 결정).
- * 게시글 수는 서버가 스팟별로 세어주지 않아 표시하지 않는다.
- */
+function RecommendedSpotCard({ spot, onPress }: { spot: SpotResponse; onPress: () => void }) {
+  const [failed, setFailed] = React.useState(false);
+  const imageUri = toHttps(spot.thumbnailUrl || spot.imageUrl);
+  React.useEffect(() => setFailed(false), [imageUri]);
+
+  return (
+    <Pressable onPress={onPress} style={{ width: '47%', gap: normalize(8) }}>
+      <View className="overflow-hidden" style={{ height: normalize(100), borderRadius: normalize(12), backgroundColor: CARD }}>
+        {imageUri && !failed ? (
+          <Image
+            source={{ uri: imageUri }}
+            resizeMode="cover"
+            onError={() => setFailed(true)}
+            style={{ width: '100%', height: '100%' }}
+          />
+        ) : (
+          <View className="items-center justify-center" style={{ flex: 1 }}>
+            <MapPin size={normalize(20)} color={iconGray(0.2)} strokeWidth={1.8} />
+          </View>
+        )}
+      </View>
+      <Text
+        allowFontScaling={false}
+        numberOfLines={1}
+        style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, color: '#000', letterSpacing: -0.2 }}
+      >
+        {spot.name}
+      </Text>
+    </Pressable>
+  );
+}
+
 export function RecommendedSpots({ onOpenSpot, count = 4 }: { onOpenSpot: (spot: SpotResponse) => void; count?: number }) {
   const { spots, isLoading } = useSeasonalSpots(count);
   // 빈 제목만 남으면 고장처럼 보인다 — 결과가 없으면 섹션째로 감춘다.
@@ -170,24 +199,7 @@ export function RecommendedSpots({ onOpenSpot, count = 4 }: { onOpenSpot: (spot:
         style={{ paddingHorizontal: GRID_PADDING, paddingBottom: normalize(24), gap: normalize(8) }}
       >
         {spots.map((spot) => (
-          <Pressable key={spot.id} onPress={() => onOpenSpot(spot)} style={{ width: '47%', gap: normalize(8) }}>
-            <View className="overflow-hidden" style={{ height: normalize(100), borderRadius: normalize(12), backgroundColor: CARD }}>
-              {spot.thumbnailUrl ? (
-                <Image source={{ uri: spot.thumbnailUrl }} resizeMode="cover" style={{ width: '100%', height: '100%' }} />
-              ) : (
-                <View className="items-center justify-center" style={{ flex: 1 }}>
-                  <MapPin size={normalize(20)} color={iconGray(0.2)} strokeWidth={1.8} />
-                </View>
-              )}
-            </View>
-            <Text
-              allowFontScaling={false}
-              numberOfLines={1}
-              style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_SM, color: '#000', letterSpacing: -0.2 }}
-            >
-              {spot.name}
-            </Text>
-          </Pressable>
+          <RecommendedSpotCard key={spot.id} spot={spot} onPress={() => onOpenSpot(spot)} />
         ))}
       </View>
     </>

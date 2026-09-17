@@ -23,7 +23,7 @@ import { normalize, normalizeFontSize } from '@/utils/normalize';
 import Skeleton from '@/components/common/Skeleton';
 import { useSpots, useSearchSpots } from '@/hooks/useSpot';
 import { useSearchStore } from '@/store/useSearchStore';
-import { mapPopularSpot } from '@/utils/spotMappers';
+import { mapPopularSpot, toHttps } from '@/utils/spotMappers';
 import { CATEGORY_CODES, SPOT_CATEGORY_MAP, CODE_BY_LABEL } from '@/constants/spotCategories';
 import { Sparkles } from 'lucide-react-native';
 import Chip from '@/components/common/Chip';
@@ -90,7 +90,7 @@ export default function SearchResultScreen({ route, navigation }: Props) {
           score: s.photogenicScore !== undefined ? Math.round(s.photogenicScore) : undefined,
           tags: mapped.category ? [mapped.category] : [],
           categories: s.categories ?? [],
-          imageUrl: mapped.imageUrl,
+          imageUrl: mapped.imageUrl || toHttps(s.thumbnailUrl || s.imageUrl || null),
         };
       }),
     [popularData?.content],
@@ -126,7 +126,7 @@ export default function SearchResultScreen({ route, navigation }: Props) {
           score: s.photogenicScore !== undefined ? Math.round(s.photogenicScore) : undefined,
           tags: mapped.category ? [mapped.category] : [],
           categories: s.categories ?? [],
-          imageUrl: mapped.imageUrl,
+          imageUrl: mapped.imageUrl || toHttps(s.thumbnailUrl || s.imageUrl || null),
         };
       }),
     [searchData?.content],
@@ -313,7 +313,8 @@ export default function SearchResultScreen({ route, navigation }: Props) {
               // 탭바 높이·인셋을 더하지 않는다 — 화면 영역에서 이미 빠져 있다(HomeScreen 주석 참고).
               contentContainerStyle={{ paddingHorizontal: GRID_PADDING, paddingBottom: SPACING_LG }}
               renderItem={({ item }) => (
-                <Pressable
+                <SearchResultRowItem
+                  item={item}
                   onPress={() => {
                     const courseSpot: Spot = {
                       id: item.id,
@@ -323,7 +324,7 @@ export default function SearchResultScreen({ route, navigation }: Props) {
                       lng: item.lng,
                       tags: item.tags,
                       score: item.score !== undefined ? String(item.score) : '0.0',
-                      photo: item.imageUrl || '',
+                      photo: toHttps(item.imageUrl) || '',
                     };
                     (navigation as any).navigate('Main', {
                       screen: 'MapTab',
@@ -336,49 +337,133 @@ export default function SearchResultScreen({ route, navigation }: Props) {
                       },
                     });
                   }}
-                  style={{ flexDirection: 'row', gap: normalize(14), paddingVertical: normalize(14), borderBottomWidth: HAIRLINE_WIDTH, borderBottomColor: HAIRLINE }}
-                >
-                  <View style={{ width: normalize(80), height: normalize(80), borderRadius: normalize(12), backgroundColor: CARD, overflow: 'hidden', flexShrink: 0 }}>
-                    {item.imageUrl ? (
-                      <Image source={{ uri: item.imageUrl }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
-                    ) : (
-                      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-                        <IconMapPin size={normalize(24)} color={iconGray(0.2)} />
-                      </View>
-                    )}
-                  </View>
-                  <View style={{ flex: 1, justifyContent: 'space-between' }}>
-                    <View>
-                      <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, color: '#000', letterSpacing: -0.3, marginBottom: normalize(3) }}>
-                        {item.name}
-                      </Text>
-                      <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(12), color: TEXT_SUB, marginBottom: normalize(8) }}>
-                        {item.addr}
-                      </Text>
-                    </View>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(6), flexWrap: 'wrap' }}>
-                      {item.score !== undefined && (
-                        <View style={{ backgroundColor: BRAND_TINT, paddingHorizontal: normalize(8), paddingVertical: normalize(2), borderRadius: normalize(8) }}>
-                          <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(12), color: BRAND }}>
-                            {item.score}점
-                          </Text>
-                        </View>
-                      )}
-                      {item.tags.map((tag) => (
-                        <View key={tag} style={{ backgroundColor: CARD, paddingHorizontal: normalize(8), paddingVertical: normalize(2), borderRadius: normalize(8) }}>
-                          <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(12), color: TEXT_SUB }}>
-                            {tag}
-                          </Text>
-                        </View>
-                      ))}
-                    </View>
-                  </View>
-                </Pressable>
+                />
               )}
             />
           )}
         </>
       )}
     </KeyboardAvoidingView>
+  );
+}
+
+function SearchResultRowItem({
+  item,
+  onPress,
+}: {
+  item: ResultRow;
+  onPress: () => void;
+}) {
+  const [failed, setFailed] = useState(false);
+  const imageUri = toHttps(item.imageUrl);
+  useEffect(() => setFailed(false), [imageUri]);
+
+  return (
+    <Pressable
+      onPress={onPress}
+      style={{
+        flexDirection: 'row',
+        gap: normalize(14),
+        paddingVertical: normalize(14),
+        borderBottomWidth: HAIRLINE_WIDTH,
+        borderBottomColor: HAIRLINE,
+      }}
+    >
+      <View
+        style={{
+          width: normalize(80),
+          height: normalize(80),
+          borderRadius: normalize(12),
+          backgroundColor: CARD,
+          overflow: 'hidden',
+          flexShrink: 0,
+        }}
+      >
+        {imageUri && !failed ? (
+          <Image
+            source={{ uri: imageUri }}
+            style={{ width: '100%', height: '100%' }}
+            resizeMode="cover"
+            onError={() => setFailed(true)}
+          />
+        ) : (
+          <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+            <IconMapPin size={normalize(24)} color={iconGray(0.2)} />
+          </View>
+        )}
+      </View>
+      <View style={{ flex: 1, justifyContent: 'space-between' }}>
+        <View>
+          <Text
+            allowFontScaling={false}
+            style={{
+              fontFamily: 'Pretendard-SemiBold',
+              fontSize: FONT_MD,
+              color: '#000',
+              letterSpacing: -0.3,
+              marginBottom: normalize(3),
+            }}
+          >
+            {item.name}
+          </Text>
+          <Text
+            allowFontScaling={false}
+            style={{
+              fontFamily: 'Pretendard-Regular',
+              fontSize: normalizeFontSize(12),
+              color: TEXT_SUB,
+              marginBottom: normalize(8),
+            }}
+          >
+            {item.addr}
+          </Text>
+        </View>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(6), flexWrap: 'wrap' }}>
+          {item.score !== undefined && (
+            <View
+              style={{
+                backgroundColor: BRAND_TINT,
+                paddingHorizontal: normalize(8),
+                paddingVertical: normalize(2),
+                borderRadius: normalize(8),
+              }}
+            >
+              <Text
+                allowFontScaling={false}
+                style={{
+                  fontFamily: 'Pretendard-SemiBold',
+                  fontSize: normalizeFontSize(12),
+                  color: BRAND,
+                }}
+              >
+                {item.score}점
+              </Text>
+            </View>
+          )}
+          {item.tags.map((tag) => (
+            <View
+              key={tag}
+              style={{
+                backgroundColor: CARD,
+                paddingHorizontal: normalize(8),
+                paddingVertical: normalize(2),
+                borderRadius: normalize(8),
+              }}
+            >
+              <Text
+                allowFontScaling={false}
+                style={{
+                  fontFamily: 'Pretendard-Regular',
+                  fontSize: normalizeFontSize(12),
+                  color: TEXT_SUB,
+                }}
+              >
+                {tag}
+              </Text>
+            </View>
+          ))}
+        </View>
+      </View>
+    </Pressable>
   );
 }

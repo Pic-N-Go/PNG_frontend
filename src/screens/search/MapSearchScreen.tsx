@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   View,
   Text,
@@ -17,6 +17,7 @@ import { useDebounce } from '@/hooks/useDebounce';
 import { Spot } from '@/store/useCourseStore';
 import { SpotResponse } from '@/types/spot';
 import { normalize } from '@/utils/normalize';
+import { toHttps } from '@/utils/spotMappers';
 import { FONT_XS, FONT_SM, FONT_MD, GRID_PADDING } from '@/constants/layout';
 import { RecentSearches, RecommendedSpots, SearchField } from '@/components/common/SearchPanel';
 import { BRAND, iconGray } from '@/constants/colors';
@@ -100,7 +101,7 @@ export default function MapSearchScreen() {
         lng: spot.longitude,
         tags: spot.categories || [],
         score: spot.photogenicScore !== undefined ? spot.photogenicScore.toFixed(1) : '0.0',
-        photo: spot.thumbnailUrl || spot.imageUrl || '',
+        photo: toHttps(spot.thumbnailUrl || spot.imageUrl || ''),
       };
       returnToMap({ searchSelectedSpot: courseSpot });
     },
@@ -166,49 +167,7 @@ export default function MapSearchScreen() {
             ) : (
               <View style={{ gap: normalize(12) }}>
                 {searchResults.map((spot) => (
-                  <TouchableOpacity
-                    key={spot.id}
-                    onPress={() => handleSelectSpot(spot)}
-                    className="flex-row items-center bg-card"
-                    style={{
-                      padding: normalize(12),
-                      borderRadius: normalize(16),
-                      gap: normalize(12),
-                    }}
-                  >
-                    <View
-                      className="overflow-hidden bg-gray-200"
-                      style={{
-                        width: normalize(56),
-                        height: normalize(56),
-                        borderRadius: normalize(12),
-                      }}
-                    >
-                      {spot.thumbnailUrl || spot.imageUrl ? (
-                        <Image source={{ uri: spot.thumbnailUrl || spot.imageUrl || '' }} className="w-full h-full" resizeMode="cover" />
-                      ) : (
-                        <View className="w-full h-full items-center justify-center bg-gray-200">
-                          <IconMapPin size={normalize(20)} color={iconGray(0.3)} />
-                        </View>
-                      )}
-                    </View>
-
-                    <View className="flex-1">
-                      <Text className="font-semibold text-black" numberOfLines={1} style={{ fontSize: FONT_MD }}>
-                        {spot.name}
-                      </Text>
-                      <Text className="font-medium text-black/45" numberOfLines={1} style={{ fontSize: FONT_XS, marginTop: normalize(2) }}>
-                        {spot.address || '위치 정보 없음'}
-                      </Text>
-                      {spot.photogenicScore !== undefined && (
-                        <Text className="font-medium" style={{ fontSize: FONT_XS, color: BRAND, marginTop: normalize(4) }}>
-                          ★ 포토제닉 {spot.photogenicScore.toFixed(1)}
-                        </Text>
-                      )}
-                    </View>
-
-                    <IconChevronRight size={normalize(16)} color={iconGray(0.25)} strokeWidth={1.75} />
-                  </TouchableOpacity>
+                  <MapSearchResultRow key={spot.id} spot={spot} onPress={() => handleSelectSpot(spot)} />
                 ))}
               </View>
             )}
@@ -216,5 +175,61 @@ export default function MapSearchScreen() {
         )}
       </ScrollView>
     </SafeAreaView>
+  );
+}
+
+function MapSearchResultRow({ spot, onPress }: { spot: SpotResponse; onPress: () => void }) {
+  const [failed, setFailed] = useState(false);
+  const photoUri = toHttps(spot.thumbnailUrl || spot.imageUrl || null);
+  useEffect(() => setFailed(false), [photoUri]);
+
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      className="flex-row items-center bg-card"
+      style={{
+        padding: normalize(12),
+        borderRadius: normalize(16),
+        gap: normalize(12),
+      }}
+    >
+      <View
+        className="overflow-hidden bg-gray-200"
+        style={{
+          width: normalize(56),
+          height: normalize(56),
+          borderRadius: normalize(12),
+        }}
+      >
+        {photoUri && !failed ? (
+          <Image
+            source={{ uri: photoUri }}
+            className="w-full h-full"
+            resizeMode="cover"
+            onError={() => setFailed(true)}
+          />
+        ) : (
+          <View className="w-full h-full items-center justify-center bg-gray-200">
+            <IconMapPin size={normalize(20)} color={iconGray(0.3)} />
+          </View>
+        )}
+      </View>
+
+      <View className="flex-1">
+        <Text className="font-semibold text-black" numberOfLines={1} style={{ fontSize: FONT_MD }}>
+          {spot.name}
+        </Text>
+        <Text className="font-medium text-black/45" numberOfLines={1} style={{ fontSize: FONT_XS, marginTop: normalize(2) }}>
+          {spot.address || '위치 정보 없음'}
+        </Text>
+        {spot.photogenicScore !== undefined && (
+          <Text className="font-medium" style={{ fontSize: FONT_XS, color: BRAND, marginTop: normalize(4) }}>
+            ★ 포토제닉 {spot.photogenicScore.toFixed(1)}
+          </Text>
+        )}
+      </View>
+
+      <IconChevronRight size={normalize(16)} color={iconGray(0.25)} strokeWidth={1.75} />
+    </TouchableOpacity>
   );
 }
