@@ -784,7 +784,10 @@ export default function MapScreen() {
                 onFilterPress={() => setFilterVisible(true)}
                 activeFilterCount={activeFilterCount}
                 value={searchQuery}
-                onClear={() => setSearchQuery('')}
+                onClear={() => {
+                  setSearchQuery('');
+                  setActiveSpot(null);
+                }}
               />
             ) : (
               /* 코스 보기 — Day 드롭다운 */

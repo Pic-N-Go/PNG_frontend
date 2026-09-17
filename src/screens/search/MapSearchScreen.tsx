@@ -55,6 +55,7 @@ export default function MapSearchScreen() {
   const {
     data: searchResultsData,
     isLoading: isSearchLoading,
+    isError: isSearchError,
     isPlaceholderData: isSearchPlaceholder,
   } = useSearchSpots({ keyword: debouncedQuery });
   const apiResults: SpotResponse[] = React.useMemo(
@@ -66,8 +67,10 @@ export default function MapSearchScreen() {
     const trimmedQuery = query.trim();
     if (!trimmedQuery) return [];
 
+    // 검색 API가 0건을 돌려준 것도 확정된 답이다 — 로컬 필터로 흘려보내면 서버가 없다고 한
+    // 스팟이 결과처럼 뜬다. 로컬 폴백은 아직 응답이 없거나(placeholder) 요청이 실패했을 때만.
     const isDebouncedMatch = debouncedQuery.trim().toLowerCase() === trimmedQuery.toLowerCase();
-    if (isDebouncedMatch && apiResults.length > 0 && !isSearchPlaceholder) return apiResults;
+    if (isDebouncedMatch && !isSearchPlaceholder && !isSearchError) return apiResults;
 
     const q = trimmedQuery.toLowerCase();
     return recSpots.filter(
@@ -76,7 +79,7 @@ export default function MapSearchScreen() {
         s.address?.toLowerCase().includes(q) ||
         s.categories?.some((c) => c.toLowerCase().includes(q))
     );
-  }, [query, debouncedQuery, apiResults, isSearchPlaceholder, recSpots]);
+  }, [query, debouncedQuery, apiResults, isSearchPlaceholder, isSearchError, recSpots]);
 
   // 같은 값을 다시 골라도 지도 쪽 effect가 다시 돌도록 매번 새 nonce를 붙인다.
   const returnToMap = useCallback(

@@ -153,7 +153,7 @@
 
 - 영향 파일: `src/navigation/MainTab.tsx`, `src/screens/home/HomeScreen.tsx`, `src/screens/search/SearchResultScreen.tsx`, `src/types/spot.ts`, `src/components/common/TabBar.tsx` (신규), `src/components/home/` (신규 파일들)
   - 2026-09-17 이후 추가: `src/components/common/SearchBar.tsx`(이동), `src/components/common/SearchPanel.tsx`(신규), `src/api/weather.ts`(신규), `src/hooks/useCurrentWeather.ts`(신규), `src/store/queryClient.ts`
-- 되돌림 방법: `git restore src/navigation/MainTab.tsx src/screens/home/HomeScreen.tsx src/screens/search/SearchResultScreen.tsx src/types/spot.ts` + `git clean -fd src/components/home/ src/components/common/`
+- 되돌림 방법: `git restore src/navigation/MainTab.tsx src/screens/home/HomeScreen.tsx src/screens/search/SearchResultScreen.tsx src/types/spot.ts src/store/queryClient.ts` + `git clean -fd src/components/home/ src/components/common/ src/api/weather.ts src/hooks/useCurrentWeather.ts`
 - 데이터 영향: 없음 (목업 데이터만)
 
 ## 6) PR 구성
