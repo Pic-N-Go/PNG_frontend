@@ -4,6 +4,7 @@ import { NaverMapView, NaverMapMarkerOverlay, type NaverMapViewRef } from '@mj-s
 import * as Location from 'expo-location';
 import { IconChevronLeft, IconMapPin, IconFocus2, IconChevronRight } from '@tabler/icons-react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import { navigationRef } from '@/navigation';
 import BottomSheet from '@/components/common/BottomSheet';
 import { StatusBar } from 'expo-status-bar';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
@@ -252,10 +253,14 @@ export default function PhotoMapScreen() {
             zoom: e.zoom ?? 10,
           };
           if (e.region) {
-            const swLat = e.region.latitude - e.region.latitudeDelta / 2;
-            const neLat = e.region.latitude + e.region.latitudeDelta / 2;
-            const swLng = e.region.longitude - e.region.longitudeDelta / 2;
-            const neLng = e.region.longitude + e.region.longitudeDelta / 2;
+            // @mj-studio/react-native-naver-map 규약:
+            // e.region.latitude는 남서쪽(South-West) 위도, e.region.longitude는 남서쪽 경도입니다.
+            const latBuffer = e.region.latitudeDelta * 0.15;
+            const lngBuffer = e.region.longitudeDelta * 0.15;
+            const swLat = e.region.latitude - latBuffer;
+            const neLat = e.region.latitude + e.region.latitudeDelta + latBuffer;
+            const swLng = e.region.longitude - lngBuffer;
+            const neLng = e.region.longitude + e.region.longitudeDelta + lngBuffer;
             setMapBounds({
               southWestLat: swLat,
               southWestLng: swLng,
@@ -484,7 +489,15 @@ export default function PhotoMapScreen() {
               <TouchableOpacity
                 className="flex-1 bg-brand items-center justify-center"
                 style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}
-                onPress={() => navigation.navigate('SpotStack', { screen: 'SpotDetail', params: { spotId: activeSpot.id } })}
+                onPress={() => {
+                  const targetSpotId = String((activeSpot as any).realSpotId || activeSpot.id);
+                  if (navigationRef.isReady()) {
+                    (navigationRef as any).navigate('SpotStack', { screen: 'SpotDetail', params: { spotId: targetSpotId } });
+                  } else {
+                    const rootNav = (navigation.getParent()?.getParent() as any) || navigation;
+                    rootNav.navigate('SpotStack', { screen: 'SpotDetail', params: { spotId: targetSpotId } });
+                  }
+                }}
               >
                 <Text className="font-semibold text-white" style={{ fontSize: FONT_MD }}>상세 보기</Text>
               </TouchableOpacity>

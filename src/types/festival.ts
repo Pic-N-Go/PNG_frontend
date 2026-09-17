@@ -1,4 +1,4 @@
-export type FestivalProgressStatus = 'ONGOING' | 'UPCOMING';
+export type FestivalProgressStatus = 'ONGOING' | 'UPCOMING' | 'ENDED' | 'UNKNOWN';
 
 export interface FestivalResponse {
   id: number;
@@ -19,7 +19,7 @@ export interface FestivalResponse {
 }
 
 export interface FestivalListParams {
-  status?: 'ONGOING' | 'UPCOMING';
+  status?: 'ONGOING' | 'UPCOMING' | 'ENDED' | 'ALL';
   date?: string; // YYYY-MM-DD
   page?: number;
   size?: number;

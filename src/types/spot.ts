@@ -562,3 +562,17 @@ export interface PageSpotResponse {
   totalPages: number;
   number: number;
 }
+
+export interface RelatedSpotDTO {
+  rank: number;
+  name: string;
+  category: string;
+  region: string;
+  spotId: number | null;
+  imageUrl: string | null;
+  rating: number;
+  reviewCount: number;
+  distanceKm: number | null;
+  matched: boolean;
+}
+

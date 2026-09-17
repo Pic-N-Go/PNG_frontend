@@ -21,6 +21,7 @@ import type {
   SpotSummaryResponse,
   NearbySpotResponse,
   RecommendedSpotResponse,
+  RelatedSpotDTO,
 } from '@/types/spot';
 
 /** RN이 파일 파트로 인식하는 최소 형태 (expo/RN 이미지 피커 결과 그대로) */
@@ -297,4 +298,11 @@ export const spotApi = {
   // 스팟 소속 통째 동기화 (체크된 집합 → 추가+제거, 빈 배열=전체 제거). 204.
   syncSpotBookmarks: (spotId: string | number, collectionIds: number[], token: string) =>
     request<void>(`/spots/${spotId}/bookmark-collections`, { method: 'PUT', body: { collectionIds }, token }),
+
+  /**
+   * 한국관광공사 연관 관광지 정보(TarRlteTarService1) 기반 다음으로 방문하기 좋은 스팟 목록 조회.
+   * permitAll이라 토큰 불필요.
+   */
+  getRelatedSpots: (id: string | number, limit: number = 10) =>
+    request<RelatedSpotDTO[]>(`/spots/${id}/related?limit=${limit}`),
 };

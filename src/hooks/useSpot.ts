@@ -101,6 +101,16 @@ export function useRecommendedSpots(limit = 10, options?: QueryToggle) {
   });
 }
 
+/** 한국관광공사 연관 관광지 정보 기반 다음으로 방문하기 좋은 스팟 목록 */
+export function useRelatedSpots(spotId?: string | number | null, limit = 10, options?: QueryToggle) {
+  return useQuery({
+    queryKey: ['spots', 'related', spotId ? String(spotId) : null, limit],
+    queryFn: () => spotApi.getRelatedSpots(spotId!, limit),
+    enabled: !!spotId && (options?.enabled ?? true),
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
 /** MY 탭 "즐겨찾기 스팟". 북마크 저장 시 무효화 대상이라 키를 내보낸다. */
 export const BOOKMARKED_SPOTS_KEY = ['spots', 'bookmarked'] as const;
 

@@ -12,6 +12,7 @@ import { BRAND, BRAND_TINT, iconGray } from '@/constants/colors';
 import CourseCardThumbnail from '@/components/course/CourseCardThumbnail';
 import AiCoursePlannerBottomSheet from '@/components/course/AiCoursePlannerBottomSheet';
 import { useAuthStore } from '@/store/useAuthStore';
+import { toHttps } from '@/utils/spotMappers';
 
 const TABS = [
   { id: 'all', label: '전체' },
@@ -90,13 +91,17 @@ export default function CourseListScreen({ navigation }: any) {
     // 이미지가 존재하는 스팟만 순서대로 추출 (DAY 순서 -> 시퀀스 순서대로 스캔, 최대 3개)
     const rawThumbs: string[] = [];
     if (course.thumbnailUrls && course.thumbnailUrls.length > 0) {
-      rawThumbs.push(...course.thumbnailUrls);
+      for (const u of course.thumbnailUrls) {
+        const safe = toHttps(u);
+        if (safe) rawThumbs.push(safe);
+      }
     } else if (course.spots && course.spots.length > 0) {
       const sortedSpots = [...course.spots].sort(
         (a, b) => (a.dayNumber - b.dayNumber) || (a.sequenceOrder - b.sequenceOrder)
       );
       for (const s of sortedSpots) {
-        if (s.thumbnailUrl) rawThumbs.push(s.thumbnailUrl);
+        const url = toHttps(s.thumbnailUrl || (s as any).imageUrl);
+        if (url) rawThumbs.push(url);
       }
     }
     const thumbnails = rawThumbs

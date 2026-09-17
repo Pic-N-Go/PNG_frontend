@@ -13,6 +13,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import BookmarkSheet from '@/components/spot/BookmarkSheet';
 import Toast from '@/components/common/Toast';
 import { BRAND, TEXT_SUB } from '@/constants/colors';
+import { toHttps } from '@/utils/spotMappers';
 
 interface Props {
   activeSpot: Spot | null;
@@ -38,7 +39,7 @@ export default function SpotPopup({ activeSpot, onClose, renderButtons }: Props)
   }
 
   const displaySpot = activeSpot || lastSpot.current;
-  const spotId = displaySpot?.id ? String(displaySpot.id) : '';
+  const spotId = displaySpot ? String(displaySpot.realSpotId || displaySpot.id || '') : '';
 
   // 실시간 스팟 상세 통계(별점, 리뷰수, 사진수), 요약(북마크수, 실시간 점수), 사진 목록, 북마크 상태 조회
   const { data: detail } = useSpotDetail(spotId);
@@ -80,7 +81,7 @@ export default function SpotPopup({ activeSpot, onClose, renderButtons }: Props)
     const score = summary?.photogenicScore !== undefined
       ? String(summary.photogenicScore)
       : (displaySpot.score ?? '0');
-    const photo = detail?.info?.imageUrl || summary?.thumbnailUrl || displaySpot.photo;
+    const photo = toHttps(detail?.info?.imageUrl || summary?.thumbnailUrl || (summary as any)?.imageUrl || displaySpot.photo);
     const tags = detail?.info?.tags?.length
       ? detail.info.tags
       : (displaySpot.tags?.length
@@ -98,10 +99,14 @@ export default function SpotPopup({ activeSpot, onClose, renderButtons }: Props)
 
   const displayPhotos = useMemo(() => {
     const list: string[] = [];
-    if (effectiveSpot?.photo) list.push(effectiveSpot.photo);
+    if (effectiveSpot?.photo) {
+      const safe = toHttps(effectiveSpot.photo);
+      if (safe) list.push(safe);
+    }
     if (photos && Array.isArray(photos)) {
       photos.forEach((p) => {
-        if (p && !list.includes(p)) list.push(p);
+        const safe = toHttps(p);
+        if (safe && !list.includes(safe)) list.push(safe);
       });
     }
     return list.slice(0, 3);

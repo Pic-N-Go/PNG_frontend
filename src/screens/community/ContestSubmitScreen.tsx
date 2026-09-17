@@ -29,6 +29,8 @@ const CAPTION_MAX = 80;
 interface Photo {
   id: string;
   uri: string;
+  width?: number;
+  height?: number;
   /**
    * 원본에서 읽은 촬영 시각. 피커가 quality 옵션으로 재인코딩하면서 EXIF를 떨어뜨려
    * 업로드된 파일에는 남지 않으므로, 고르는 시점에 붙잡아 둔다
@@ -117,6 +119,8 @@ export default function ContestSubmitScreen() {
         .map((asset) => ({
           id: asset.assetId ?? asset.uri,
           uri: asset.uri,
+          width: asset.width,
+          height: asset.height,
           shotAt: parseExifDateTime(asset.exif) ?? undefined,
         }))
         .filter((p) => !seen.has(p.id));
@@ -263,18 +267,26 @@ export default function ContestSubmitScreen() {
               </View>
             )}
 
-            <View style={{ marginHorizontal: CONTENT_PADDING, aspectRatio: 334 / 188, borderRadius: CARD_RADIUS, overflow: 'hidden', backgroundColor: SURFACE }}>
-              <Image source={{ uri: currentPhoto.uri }} resizeMode="cover" style={{ width: '100%', height: '100%' }} />
-              <Pressable
-                onPress={removeCurrentPhoto}
-                hitSlop={8}
-                accessibilityRole="button"
-                accessibilityLabel="사진 제거"
-                style={{ position: 'absolute', top: normalize(10), right: normalize(10), width: normalize(28), height: normalize(28), borderRadius: normalize(14), backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center' }}
-              >
-                <X size={normalize(14)} color="#fff" strokeWidth={2.2} />
-              </Pressable>
-            </View>
+            {(() => {
+              const ratio = currentPhoto.width && currentPhoto.height && currentPhoto.height > 0
+                ? currentPhoto.width / currentPhoto.height
+                : (334 / 188);
+              const clampedRatio = Math.min(Math.max(ratio, 0.7), 2.2);
+              return (
+                <View style={{ marginHorizontal: CONTENT_PADDING, aspectRatio: clampedRatio, borderRadius: CARD_RADIUS, overflow: 'hidden', backgroundColor: '#1c1c1e' }}>
+                  <Image source={{ uri: currentPhoto.uri }} resizeMode="contain" style={{ width: '100%', height: '100%' }} />
+                  <Pressable
+                    onPress={removeCurrentPhoto}
+                    hitSlop={8}
+                    accessibilityRole="button"
+                    accessibilityLabel="사진 제거"
+                    style={{ position: 'absolute', top: normalize(10), right: normalize(10), width: normalize(28), height: normalize(28), borderRadius: normalize(14), backgroundColor: 'rgba(0,0,0,0.5)', alignItems: 'center', justifyContent: 'center' }}
+                  >
+                    <X size={normalize(14)} color="#fff" strokeWidth={2.2} />
+                  </Pressable>
+                </View>
+              );
+            })()}
 
             <View style={{ paddingHorizontal: CONTENT_PADDING, paddingTop: normalize(22) }}>
               <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, letterSpacing: -0.1, color: '#8e8e93' }}>

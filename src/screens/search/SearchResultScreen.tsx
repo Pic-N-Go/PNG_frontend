@@ -28,6 +28,7 @@ import { mapPopularSpot } from '@/utils/spotMappers';
 import { CATEGORY_CODES, SPOT_CATEGORY_MAP, CODE_BY_LABEL } from '@/constants/spotCategories';
 import { Sparkles } from 'lucide-react-native';
 import Chip from '@/components/common/Chip';
+import type { Spot } from '@/store/useCourseStore';
 import { RecentSearches, RecommendedSpots, SearchField } from '@/components/common/SearchPanel';
 import { FONT_LG, FONT_MD, FONT_SM, GRID_PADDING, HAIRLINE_WIDTH, SPACING_LG } from '@/constants/layout';
 import { BRAND, BRAND_TINT, CARD, HAIRLINE, TEXT_SUB, iconGray } from '@/constants/colors';
@@ -48,6 +49,8 @@ interface ResultRow {
   id: string;
   name: string;
   addr: string;
+  lat: number;
+  lng: number;
   /** 포토제닉 지수. */
   score?: number;
   tags: string[];
@@ -83,6 +86,8 @@ export default function SearchResultScreen({ route, navigation }: Props) {
           id: mapped.id,
           name: mapped.name,
           addr: mapped.location,
+          lat: s.latitude,
+          lng: s.longitude,
           score: s.photogenicScore !== undefined ? Math.round(s.photogenicScore) : undefined,
           tags: mapped.category ? [mapped.category] : [],
           categories: s.categories ?? [],
@@ -117,6 +122,8 @@ export default function SearchResultScreen({ route, navigation }: Props) {
           id: mapped.id,
           name: mapped.name,
           addr: mapped.location,
+          lat: s.latitude,
+          lng: s.longitude,
           score: s.photogenicScore !== undefined ? Math.round(s.photogenicScore) : undefined,
           tags: mapped.category ? [mapped.category] : [],
           categories: s.categories ?? [],
@@ -310,7 +317,28 @@ export default function SearchResultScreen({ route, navigation }: Props) {
               contentContainerStyle={{ paddingHorizontal: GRID_PADDING, paddingBottom: SPACING_LG }}
               renderItem={({ item }) => (
                 <Pressable
-                  onPress={() => openSpot(item.id)}
+                  onPress={() => {
+                    const courseSpot: Spot = {
+                      id: item.id,
+                      name: item.name,
+                      loc: item.addr,
+                      lat: item.lat,
+                      lng: item.lng,
+                      tags: item.tags,
+                      score: item.score !== undefined ? String(item.score) : '0.0',
+                      photo: item.imageUrl || '',
+                    };
+                    (navigation as any).navigate('Main', {
+                      screen: 'MapTab',
+                      params: {
+                        screen: 'Map',
+                        params: {
+                          searchSelectedSpot: courseSpot,
+                          searchNonce: Date.now(),
+                        },
+                      },
+                    });
+                  }}
                   style={{ flexDirection: 'row', gap: normalize(14), paddingVertical: normalize(14), borderBottomWidth: HAIRLINE_WIDTH, borderBottomColor: HAIRLINE }}
                 >
                   <View style={{ width: normalize(80), height: normalize(80), borderRadius: normalize(12), backgroundColor: CARD, overflow: 'hidden', flexShrink: 0 }}>

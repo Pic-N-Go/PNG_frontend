@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { View, Image, Text, StyleSheet } from 'react-native';
 import { IconRoute } from '@tabler/icons-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
+import { toHttps } from '@/utils/spotMappers';
 import { iconGray } from '@/constants/colors';
 
 interface CourseCardThumbnailProps {
@@ -17,8 +18,8 @@ export default function CourseCardThumbnail({
 }: CourseCardThumbnailProps) {
   const initialThumbnails = useMemo(() => {
     return (thumbnails || [])
-      .map((u) => (typeof u === 'string' ? u.trim() : ''))
-      .filter((u) => u.length > 0)
+      .map((u) => (typeof u === 'string' ? toHttps(u.trim()) : ''))
+      .filter((u): u is string => Boolean(u && u.length > 0))
       .filter((u, idx, arr) => arr.indexOf(u) === idx)
       .slice(0, 3);
   }, [thumbnails]);

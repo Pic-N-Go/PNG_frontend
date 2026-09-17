@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { Image, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -47,6 +47,29 @@ export default function ContestEntryDetailScreen() {
 
   const dto = entryQuery.data ?? null;
   const entry = dto ? mapContestEntry(dto) : null;
+
+  const photoUrl = entry?.photoUrl;
+  const [aspectRatio, setAspectRatio] = useState<number | null>(null);
+
+  useEffect(() => {
+    setAspectRatio(null);
+    if (!photoUrl) return;
+
+    let isMounted = true;
+    Image.getSize(
+      photoUrl,
+      (w, h) => {
+        if (isMounted && w > 0 && h > 0) {
+          setAspectRatio(w / h);
+        }
+      },
+      () => {}
+    );
+
+    return () => {
+      isMounted = false;
+    };
+  }, [photoUrl]);
 
   // 내 작품·종료 여부는 서버가 판정한다. 진입 경로가 넘긴 값은 조회 전 첫 페인트에만 쓴다
   const isMine = dto?.mine ?? route.params.isMine ?? false;
@@ -142,6 +165,56 @@ export default function ContestEntryDetailScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#fff' }}>
+      {/* 고정 상단 네비게이션 버튼: 뒤로가기 / 더보기 */}
+      <View
+        pointerEvents="box-none"
+        style={{
+          position: 'absolute',
+          top: insets.top,
+          left: 0,
+          right: 0,
+          zIndex: 20,
+          flexDirection: 'row',
+          alignItems: 'center',
+          paddingHorizontal: normalize(12),
+          height: HEADER_HEIGHT,
+        }}
+      >
+        <Pressable
+          onPress={() => navigation.goBack()}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel="뒤로"
+          style={{
+            width: normalize(40),
+            height: normalize(40),
+            borderRadius: normalize(20),
+            backgroundColor: 'rgba(0,0,0,0.4)',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <ChevronLeft size={normalize(22)} color="#fff" strokeWidth={2} />
+        </Pressable>
+        <View style={{ flex: 1 }} pointerEvents="none" />
+        <Pressable
+          onPress={() => setActionSheetVisible(true)}
+          hitSlop={8}
+          accessibilityRole="button"
+          accessibilityLabel="더보기"
+          style={{
+            width: normalize(40),
+            height: normalize(40),
+            borderRadius: normalize(20),
+            backgroundColor: 'rgba(0,0,0,0.4)',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <MoreHorizontal size={normalize(22)} color="#fff" strokeWidth={2} />
+        </Pressable>
+      </View>
+
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: insets.bottom }}
@@ -154,24 +227,26 @@ export default function ContestEntryDetailScreen() {
           />
         }
       >
-        <View style={{ height: normalizeHeight(600) }}>
+        <View
+          style={{
+            width: '100%',
+            aspectRatio: aspectRatio ? Math.max(aspectRatio, 0.7) : undefined,
+            height: aspectRatio ? undefined : normalizeHeight(400),
+            backgroundColor: '#000',
+            overflow: 'hidden',
+          }}
+        >
           <ContestPhoto
             gradient={entry?.gradient ?? ['#1a1530', '#5a3355', '#d4856a']}
             photoUrl={entry?.photoUrl}
+            resizeMode="contain"
             style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
           />
-          <LinearGradient colors={['rgba(0,0,0,0.42)', 'rgba(0,0,0,0)']} style={{ position: 'absolute', top: 0, left: 0, right: 0, height: normalize(150) }} pointerEvents="none" />
-          <View style={{ paddingTop: insets.top }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: normalize(12), height: HEADER_HEIGHT, marginTop: normalize(2) }}>
-              <Pressable onPress={() => navigation.goBack()} hitSlop={8} accessibilityRole="button" accessibilityLabel="뒤로" style={{ width: normalize(40), height: normalize(40), alignItems: 'center', justifyContent: 'center' }}>
-                <ChevronLeft size={normalize(22)} color="#fff" strokeWidth={2} />
-              </Pressable>
-              <View style={{ flex: 1 }} />
-              <Pressable onPress={() => setActionSheetVisible(true)} hitSlop={8} accessibilityRole="button" accessibilityLabel="더보기" style={{ width: normalize(40), height: normalize(40), alignItems: 'center', justifyContent: 'center' }}>
-                <MoreHorizontal size={normalize(22)} color="#fff" strokeWidth={2} />
-              </Pressable>
-            </View>
-          </View>
+          <LinearGradient
+            colors={['rgba(0,0,0,0.35)', 'rgba(0,0,0,0)']}
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, height: insets.top + normalize(50) }}
+            pointerEvents="none"
+          />
         </View>
 
         {/* 아바타·팔로우 버튼 없음 — 콘테스트에서 중요한 건 작품이지 작성자 관계가 아니다 */}

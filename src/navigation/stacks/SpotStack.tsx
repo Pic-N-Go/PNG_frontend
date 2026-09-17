@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import SpotDetailScreen from '@/screens/spot/SpotDetailScreen';
 import ReviewWriteScreen from '@/screens/spot/ReviewWriteScreen';
 import PhotoDetailScreen from '@/screens/spot/PhotoDetailScreen';
+import RelatedSpotsScreen from '@/screens/spot/RelatedSpotsScreen';
 import type { ReviewPhotoDTO, ReviewTagApi, TimePeriodApi } from '@/types/spot';
 
 /** 수정 모드로 진입할 때 넘기는 원본값. 네비게이션 파라미터라 직렬화 가능한 값만 담는다. */
@@ -26,6 +27,7 @@ export type SpotStackParamList = {
   SpotDetail: { spotId: string };
   ReviewWrite: { spotId: string; edit?: ReviewEditSeed };
   PhotoDetail: { photoId: string; spotId: string };
+  RelatedSpots: { spotId: string; spotName?: string };
 };
 
 const Stack = createNativeStackNavigator<SpotStackParamList>();
@@ -36,6 +38,7 @@ export default function SpotStack() {
       <Stack.Screen name="SpotDetail" component={SpotDetailScreen} />
       <Stack.Screen name="ReviewWrite" component={ReviewWriteScreen} />
       <Stack.Screen name="PhotoDetail" component={PhotoDetailScreen} />
+      <Stack.Screen name="RelatedSpots" component={RelatedSpotsScreen} />
     </Stack.Navigator>
   );
 }

@@ -4,6 +4,7 @@ import { NaverMapView, NaverMapMarkerOverlay, NaverMapPathOverlay, type NaverMap
 import * as Location from 'expo-location';
 import { IconChevronLeft, IconSearch, IconFocus2, IconX, IconChevronDown, IconChevronUp, IconRoute } from '@tabler/icons-react-native';
 import { useNavigation, useRoute, useFocusEffect, CommonActions } from '@react-navigation/native';
+import { navigationRef } from '@/navigation';
 import { useCourseStore, Spot } from '@/store/useCourseStore';
 import { useSpots, useMapSpots, useSearchSpots } from '@/hooks/useSpot';
 import { useDebounce } from '@/hooks/useDebounce';
@@ -91,6 +92,12 @@ export default function MapScreen() {
   // (`Index n out of bounds for length 0`). 초기화 후에만 자식을 렌더한다.
   const [isMapReady, setMapReady] = useState(false);
   const currentCameraRef = useRef({ latitude: 37.5665, longitude: 126.9780, zoom: 14 });
+  const hasCenteredInitialLocationRef = useRef(false);
+  const [pendingCameraTarget, setPendingCameraTarget] = useState<{
+    latitude: number;
+    longitude: number;
+    zoom: number;
+  } | null>(null);
   const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(null);
   const { selectedSpots, addSpot, removeSpot } = useCourseStore();
   const [activeSpot, setActiveSpot] = useState<Spot | null>(null);
@@ -130,7 +137,14 @@ export default function MapScreen() {
           if (lastKnown) {
             const sanitized = sanitizeKoreaLocation(lastKnown.coords.latitude, lastKnown.coords.longitude);
             setUserLocation({ latitude: sanitized.lat, longitude: sanitized.lng });
-            if (!isCourseView) {
+            // 코스 보기 또는 검색 스팟/키워드가 있을 때는 GPS 위치로 카메라를 덮어쓰지 않는다
+            if (
+              !isCourseView &&
+              !hasCenteredInitialLocationRef.current &&
+              !route.params?.searchSelectedSpot &&
+              !route.params?.searchKeyword
+            ) {
+              hasCenteredInitialLocationRef.current = true;
               naverMapRef.current?.animateCameraTo({
                 latitude: sanitized.lat,
                 longitude: sanitized.lng,
@@ -173,7 +187,7 @@ export default function MapScreen() {
         subscription.remove();
       }
     };
-  }, [isCourseView]);
+  }, [isCourseView, route.params?.searchSelectedSpot, route.params?.searchKeyword]);
 
   const showToast = (message: string) => {
     setToastMessage(message);
@@ -288,6 +302,7 @@ export default function MapScreen() {
     const { searchSelectedSpot, searchKeyword } = route.params;
 
     if (searchSelectedSpot) {
+      hasCenteredInitialLocationRef.current = true;
       setSearchQuery(searchSelectedSpot.name);
       setActiveSpot(searchSelectedSpot);
       const lat = Number(searchSelectedSpot.lat);
@@ -295,18 +310,27 @@ export default function MapScreen() {
       const isValidCoord =
         Number.isFinite(lat) && Number.isFinite(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
       if (isValidCoord) {
-        naverMapRef.current?.animateCameraTo({
+        setPendingCameraTarget({
           latitude: lat,
           longitude: lng,
           zoom: 15,
         });
       }
     } else if (searchKeyword) {
+      hasCenteredInitialLocationRef.current = true;
       setSearchQuery(searchKeyword);
     }
 
     navigation.setParams({ searchSelectedSpot: undefined, searchKeyword: undefined, searchNonce: undefined });
   }, [route.params, navigation]);
+
+  // 지도 컴포넌트 초기화 완료 시 대기 중인 카메라 이동 좌표 적용
+  useEffect(() => {
+    if (isMapReady && pendingCameraTarget) {
+      naverMapRef.current?.animateCameraTo(pendingCameraTarget);
+      setPendingCameraTarget(null);
+    }
+  }, [isMapReady, pendingCameraTarget]);
 
   const handleBackNavigation = useCallback(() => {
     if (searchQuery || activeSpot) {
@@ -587,10 +611,16 @@ export default function MapScreen() {
             zoom: e.zoom ?? 14,
           };
           if (e.region) {
-            const swLat = e.region.latitude - e.region.latitudeDelta / 2;
-            const neLat = e.region.latitude + e.region.latitudeDelta / 2;
-            const swLng = e.region.longitude - e.region.longitudeDelta / 2;
-            const neLng = e.region.longitude + e.region.longitudeDelta / 2;
+            // @mj-studio/react-native-naver-map 규약:
+            // e.region.latitude는 남서쪽(South-West) 위도, e.region.longitude는 남서쪽 경도입니다.
+            // delta는 북동쪽(North-East)까지의 폭입니다.
+            // 화면 가장자리 이동 시 핀이 자연스럽게 선로딩되도록 15% 버퍼 마진을 둡니다.
+            const latBuffer = e.region.latitudeDelta * 0.15;
+            const lngBuffer = e.region.longitudeDelta * 0.15;
+            const swLat = e.region.latitude - latBuffer;
+            const neLat = e.region.latitude + e.region.latitudeDelta + latBuffer;
+            const swLng = e.region.longitude - lngBuffer;
+            const neLng = e.region.longitude + e.region.longitudeDelta + lngBuffer;
             setMapBounds({
               southWestLat: swLat,
               southWestLng: swLng,
@@ -1133,7 +1163,15 @@ export default function MapScreen() {
               )}
 
               <TouchableOpacity
-                onPress={() => navigation.navigate('SpotStack', { screen: 'SpotDetail', params: { spotId: popupSpot.id } })}
+                onPress={() => {
+                  const targetSpotId = String((popupSpot as any).realSpotId || popupSpot.id);
+                  if (navigationRef.isReady()) {
+                    (navigationRef as any).navigate('SpotStack', { screen: 'SpotDetail', params: { spotId: targetSpotId } });
+                  } else {
+                    const rootNav = (navigation.getParent()?.getParent() as any) || navigation;
+                    rootNav.navigate('SpotStack', { screen: 'SpotDetail', params: { spotId: targetSpotId } });
+                  }
+                }}
                 className="flex-1 bg-brand items-center justify-center"
                 style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}
               >
