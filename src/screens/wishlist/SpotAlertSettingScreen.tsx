@@ -62,6 +62,11 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
   } = useSpotAlert();
 
   const [selectedSpot, setSelectedSpot] = useState<any>(null);
+  const [selectedSpotPhotoFailed, setSelectedSpotPhotoFailed] = useState(false);
+
+  useEffect(() => {
+    setSelectedSpotPhotoFailed(false);
+  }, [selectedSpot?.photo]);
 
   // 조회 대상은 "현재 화면이 편집 중인 스팟"이어야 한다. 진입 시점의 route.params.id로
   // 고정해 두면 스팟을 바꿔도 이전 스팟의 조건이 폼에 남아 새 스팟에 덮어써진다.
@@ -312,12 +317,13 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
           className="overflow-hidden relative" 
           style={{ backgroundColor: selectedSpot?.bg || '#2b2a29', marginTop: normalize(16), marginBottom: normalize(28), borderRadius: normalize(16), padding: normalize(18), paddingBottom: normalize(14) }}
         >
-          {selectedSpot?.photo && (
+          {selectedSpot?.photo && !selectedSpotPhotoFailed && (
             <>
               <Image
                 source={{ uri: selectedSpot.photo }}
                 style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
                 resizeMode="cover"
+                onError={() => setSelectedSpotPhotoFailed(true)}
               />
               <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)' }} />
             </>
@@ -518,15 +524,7 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
                   className={`flex-row items-center rounded-2xl mb-2 ${isSelected ? 'bg-white border border-brand' : 'bg-card'}`} 
                   style={{ padding: normalize(14) }}
                 >
-                  <View className="rounded-xl mr-3 overflow-hidden" style={{ width: normalize(48), height: normalize(48), backgroundColor: s.bg }}>
-                    {s.photo ? (
-                      <Image source={{ uri: s.photo }} style={{ width: '100%', height: '100%' }} resizeMode="cover" />
-                    ) : (
-                      <View className="w-full h-full items-center justify-center">
-                        <IconMapPin size={normalize(20)} color={iconGray(0.3)} />
-                      </View>
-                    )}
-                  </View>
+                  <SpotSheetThumbnail photo={s.photo} bg={s.bg} />
                   <View className="flex-1">
                     <Text className="font-semibold text-black mb-1" style={{ fontSize: normalizeFontSize(16) }}>{s.name}</Text>
                     <Text className="text-sub mb-1 font-normal" style={{ fontSize: normalizeFontSize(12) }}>{s.loc}</Text>
@@ -556,5 +554,30 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
       </BottomSheet>
 
     </SafeAreaView>
+  );
+}
+
+function SpotSheetThumbnail({ photo, bg }: { photo?: string | null; bg?: string }) {
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    setFailed(false);
+  }, [photo]);
+
+  return (
+    <View className="rounded-xl mr-3 overflow-hidden" style={{ width: normalize(48), height: normalize(48), backgroundColor: bg }}>
+      {photo && !failed ? (
+        <Image
+          source={{ uri: photo }}
+          style={{ width: '100%', height: '100%' }}
+          resizeMode="cover"
+          onError={() => setFailed(true)}
+        />
+      ) : (
+        <View className="w-full h-full items-center justify-center">
+          <IconMapPin size={normalize(20)} color={iconGray(0.3)} />
+        </View>
+      )}
+    </View>
   );
 }

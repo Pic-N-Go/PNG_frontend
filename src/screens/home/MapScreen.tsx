@@ -2,7 +2,7 @@ import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react'
 import { View, Text, TouchableOpacity, ScrollView, BackHandler, Image, Alert, Linking } from 'react-native';
 import { NaverMapView, NaverMapMarkerOverlay, NaverMapPathOverlay, type NaverMapViewRef } from '@mj-studio/react-native-naver-map';
 import * as Location from 'expo-location';
-import { IconChevronLeft, IconSearch, IconFocus2, IconX, IconChevronDown, IconChevronUp, IconRoute } from '@tabler/icons-react-native';
+import { IconChevronLeft, IconSearch, IconFocus2, IconX, IconChevronDown, IconChevronUp, IconRoute, IconMapPin } from '@tabler/icons-react-native';
 import { useNavigation, useRoute, useFocusEffect, CommonActions } from '@react-navigation/native';
 import { navigationRef } from '@/navigation';
 import { useCourseStore, Spot } from '@/store/useCourseStore';
@@ -1089,7 +1089,7 @@ export default function MapScreen() {
           {activeSpot && (
             <View className="px-5 pb-5 pt-2">
               <View className="flex-row items-center mb-6">
-                <Image source={{ uri: toHttps(activeSpot.photo) }} className="rounded-xl mr-3" style={{ width: normalize(64), height: normalize(64) }} />
+                <WishlistChangeSpotThumbnail photo={activeSpot.photo} />
                 <View className="flex-1 justify-center">
                   <Text className="font-semibold text-black mb-1" style={{ fontSize: FONT_TITLE }}>{activeSpot.name}</Text>
                   <Text className="text-sub mb-2.5 font-normal" style={{ fontSize: normalizeFontSize(14) }}>{activeSpot.loc}</Text>
@@ -1204,6 +1204,33 @@ export default function MapScreen() {
           setDetailFilter(filterState);
         }}
       />
+    </View>
+  );
+}
+
+function WishlistChangeSpotThumbnail({ photo }: { photo?: string | null }) {
+  const [failed, setFailed] = useState(false);
+  const photoUri = toHttps(photo || null);
+
+  useEffect(() => {
+    setFailed(false);
+  }, [photoUri]);
+
+  return (
+    <View
+      className="rounded-xl mr-3 overflow-hidden bg-gray-200 items-center justify-center"
+      style={{ width: normalize(64), height: normalize(64) }}
+    >
+      {photoUri && !failed ? (
+        <Image
+          source={{ uri: photoUri }}
+          className="w-full h-full"
+          resizeMode="cover"
+          onError={() => setFailed(true)}
+        />
+      ) : (
+        <IconMapPin size={normalize(24)} color={iconGray(0.3)} />
+      )}
     </View>
   );
 }
