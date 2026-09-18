@@ -10,6 +10,7 @@ import type {
   EmbeddingBackfillResponse,
   EmbeddingSingleResponse,
   TourSyncStatusResponse,
+  PhotoAwardSyncStatusResponse,
   AdminPageResponse,
   ContestCreateRequest,
   ContestUpdateRequest,
@@ -31,6 +32,7 @@ export const ADMIN_KEYS = {
   userDetail: (userId: number) => [...ADMIN_KEYS.all, 'user', userId] as const,
   embeddings: () => [...ADMIN_KEYS.all, 'embeddings'] as const,
   tourSyncStatus: () => [...ADMIN_KEYS.all, 'tour-sync-status'] as const,
+  photoAwardSyncStatus: () => [...ADMIN_KEYS.all, 'photo-award-sync-status'] as const,
   contests: (page?: number, size?: number) => [...ADMIN_KEYS.all, 'contests', page, size] as const,
   contestDetail: (contestId: number) => [...ADMIN_KEYS.all, 'contest', contestId] as const,
   contestEntries: (contestId: number, page?: number, size?: number) =>
@@ -258,6 +260,57 @@ export function useTourSyncStatus() {
       return query.state.data?.isRunning ? 3000 : 10000;
     },
     staleTime: 2000,
+  });
+}
+
+// 3.5 사진공모전 특정 지역 동기화 뮤테이션
+export function useSyncPhotoAwardAreaMutation() {
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const queryClient = useQueryClient();
+
+  return useMutation<string, Error, number>({
+    mutationFn: (lDongRegnCd: number) => {
+      if (!accessToken) throw new Error('관리자 권한이 필요합니다.');
+      return adminApi.syncPhotoAwardArea(lDongRegnCd, accessToken);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ADMIN_KEYS.photoAwardSyncStatus() });
+    },
+  });
+}
+
+// 3.6 사진공모전 전국 17개 지역 전체 동기화 뮤테이션
+export function useSyncPhotoAwardAllMutation() {
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const queryClient = useQueryClient();
+
+  return useMutation<string, Error, void>({
+    mutationFn: () => {
+      if (!accessToken) throw new Error('관리자 권한이 필요합니다.');
+      return adminApi.syncPhotoAwardAll(accessToken);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ADMIN_KEYS.photoAwardSyncStatus() });
+    },
+  });
+}
+
+// 3.7 사진공모전 실시간 동기화 진행 상태 조회 훅 (GET /admin/photo-award/sync/status)
+export function usePhotoAwardSyncStatus() {
+  const accessToken = useAuthStore((s) => s.accessToken);
+
+  return useQuery<PhotoAwardSyncStatusResponse, Error>({
+    queryKey: ADMIN_KEYS.photoAwardSyncStatus(),
+    queryFn: () => {
+      if (!accessToken) throw new Error('관리자 권한이 필요합니다.');
+      return adminApi.getPhotoAwardSyncStatus(accessToken);
+    },
+    enabled: !!accessToken,
+    refetchInterval: (query) => {
+      // 백그라운드 진행 중(isRunning)일 때는 2초마다 폴링, 대기 중일 때는 10초마다 갱신
+      return query.state.data?.isRunning ? 2000 : 10000;
+    },
+    staleTime: 1000,
   });
 }
 

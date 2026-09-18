@@ -1166,11 +1166,16 @@ export default function MapScreen() {
               <TouchableOpacity
                 onPress={() => {
                   const targetSpotId = String((popupSpot as any).realSpotId || popupSpot.id);
+                  const initialDate = route.params?.targetDate;
+                  const navParams = {
+                    spotId: targetSpotId,
+                    ...(initialDate ? { initialDate } : {}),
+                  };
                   if (navigationRef.isReady()) {
-                    (navigationRef as any).navigate('SpotStack', { screen: 'SpotDetail', params: { spotId: targetSpotId } });
+                    (navigationRef as any).navigate('SpotStack', { screen: 'SpotDetail', params: navParams });
                   } else {
                     const rootNav = (navigation.getParent()?.getParent() as any) || navigation;
-                    rootNav.navigate('SpotStack', { screen: 'SpotDetail', params: { spotId: targetSpotId } });
+                    rootNav.navigate('SpotStack', { screen: 'SpotDetail', params: navParams });
                   }
                 }}
                 className="flex-1 bg-brand items-center justify-center"

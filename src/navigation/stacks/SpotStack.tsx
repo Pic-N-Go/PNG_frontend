@@ -24,7 +24,7 @@ export interface ReviewEditSeed {
 }
 
 export type SpotStackParamList = {
-  SpotDetail: { spotId: string };
+  SpotDetail: { spotId: string; initialDate?: string };
   ReviewWrite: { spotId: string; edit?: ReviewEditSeed };
   PhotoDetail: { photoId: string; spotId: string };
   RelatedSpots: { spotId: string; spotName?: string };

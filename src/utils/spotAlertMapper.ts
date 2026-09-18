@@ -105,7 +105,7 @@ export const mapSpotAlertToUI = (data: SpotAlertSettingResponse) => {
   return {
     id: data.spotId,
     title: data.spotName,
-    loc: `${shortLoc} · 포토제닉 ${data.photogenicScore}점`,
+    loc: shortLoc,
     status,
     statusText,
     conditions,

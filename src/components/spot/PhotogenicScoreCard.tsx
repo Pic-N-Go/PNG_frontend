@@ -137,9 +137,10 @@ function PhotogenicSkeleton() {
 interface Props {
   spotId: string;
   spotName: string;
+  initialDate?: string;
 }
 
-export default function PhotogenicScoreCard({ spotId, spotName }: Props) {
+export default function PhotogenicScoreCard({ spotId, spotName, initialDate }: Props) {
   // 날짜 옵션: 오늘 ~ +2일 (동적)
   const dateOptions = useMemo(() => {
     return [0, 1, 2].map((offset) => {
@@ -150,7 +151,26 @@ export default function PhotogenicScoreCard({ spotId, spotName }: Props) {
     });
   }, []);
 
-  const [selectedDateLabel, setSelectedDateLabel] = useState(dateOptions[0].label);
+  const defaultDateLabel = useMemo(() => {
+    if (initialDate) {
+      const match = dateOptions.find((o) => o.iso === initialDate);
+      if (match) return match.label;
+    }
+    return dateOptions[0].label;
+  }, [dateOptions, initialDate]);
+
+  const [selectedDateLabel, setSelectedDateLabel] = useState(defaultDateLabel);
+
+  // initialDate가 변경되면 선택 라벨 갱신
+  React.useEffect(() => {
+    if (initialDate) {
+      const match = dateOptions.find((o) => o.iso === initialDate);
+      if (match) {
+        setSelectedDateLabel(match.label);
+      }
+    }
+  }, [initialDate, dateOptions]);
+
   const [selectedTime, setSelectedTime] = useState(() => new Date());
   const [dateSheetVisible, setDateSheetVisible] = useState(false);
   const [timeSheetVisible, setTimeSheetVisible] = useState(false);

@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { ActivityIndicator, Pressable, Text, View } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { ActivityIndicator, Image, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { useAnimatedRef, useAnimatedScrollHandler, useSharedValue, runOnJS } from 'react-native-reanimated';
-import { IconBell, IconChevronLeft } from '@tabler/icons-react-native';
+import { IconBell, IconCalendarEvent, IconChevronLeft, IconClock } from '@tabler/icons-react-native';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { SpotStackParamList } from '@/navigation/stacks/SpotStack';
 import Toast from '@/components/common/Toast';
@@ -10,6 +10,7 @@ import SpotHero from '@/components/spot/SpotHero';
 import SpotInfoHeader from '@/components/spot/SpotInfoHeader';
 import SpotTabBar, { type SpotTabKey } from '@/components/spot/SpotTabBar';
 import PhotogenicScoreCard from '@/components/spot/PhotogenicScoreCard';
+import SpotCongestionCard from '@/components/spot/SpotCongestionCard';
 import ConvenienceInfoSection from '@/components/spot/ConvenienceInfoSection';
 import RelatedSpotsCard from '@/components/spot/RelatedSpotsCard';
 import LinkBanner from '@/components/common/LinkBanner';
@@ -23,20 +24,31 @@ import PhotoLightbox from '@/components/spot/PhotoLightbox';
 import { useBookmarkCollections, useSpotDetail, useSpotPhotogenicScore, useSpotPhotos, useSpotSummary } from '@/hooks/useSpot';
 import { useFestival } from '@/hooks/useFestival';
 import { useKeyboardOverlap } from '@/hooks/useKeyboardHeight';
-import { exifFromPhotoUrl } from '@/utils/spotMappers';
-import { BUTTON_RADIUS, GRID_PADDING, SPACING_LG } from '@/constants/layout';
+import { exifFromPhotoUrl, toHttps } from '@/utils/spotMappers';
+import { BUTTON_RADIUS, FONT_TITLE, GRID_PADDING, HAIRLINE_WIDTH, SPACING_LG } from '@/constants/layout';
 import { shareContent } from '@/utils/share';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
-import { BRAND, CARD } from '@/constants/colors';
+import { BRAND, BRAND_TINT, CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
 
 type Props = NativeStackScreenProps<SpotStackParamList, 'SpotDetail'>;
 
 export default function SpotDetailScreen({ navigation, route }: Props) {
-  const { spotId } = route.params;
+  const { spotId, initialDate } = route.params;
   const insets = useSafeAreaInsets();
   const keyboardOverlap = useKeyboardOverlap();
   const scrollRef = useAnimatedRef<Animated.ScrollView>();
   const scrollY = useSharedValue(0);
+
+  const [selectedPlanDate, setSelectedPlanDate] = useState<string | undefined>(initialDate);
+
+  const dateDiffDays = useMemo(() => {
+    if (!selectedPlanDate) return 0;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const target = new Date(selectedPlanDate);
+    target.setHours(0, 0, 0, 0);
+    return Math.round((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  }, [selectedPlanDate]);
 
   const { data: detail, isLoading, isError, refetch } = useSpotDetail(spotId);
   const spot = detail?.info;
@@ -90,6 +102,7 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
     // 성공 토스트는 띄우지 않는다 — Android는 취소해도 성공으로 오므로 거짓이 된다.
     if (!ok) showToast('공유 화면을 열지 못했어요');
   }
+
 
   function handleTabChange(tab: SpotTabKey) {
     setActiveTab(tab);
@@ -241,7 +254,264 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
           <View>
             {activeTab === 'info' && (
               <View>
-                <PhotogenicScoreCard spotId={spot.id} spotName={spot.name} />
+                {/* 코스에서 날짜를 지정하여 진입했을 때 상단 안내 배너 */}
+                {selectedPlanDate && (
+                  <View
+                    style={{
+                      marginHorizontal: GRID_PADDING,
+                      marginTop: normalize(16),
+                      marginBottom: normalize(4),
+                      backgroundColor: '#F0F5FA',
+                      borderRadius: normalize(14),
+                      paddingVertical: normalize(10),
+                      paddingHorizontal: normalize(14),
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                    }}
+                  >
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(8), flex: 1 }}>
+                      <IconCalendarEvent size={normalize(16)} color={BRAND} strokeWidth={2} />
+                      <Text
+                        allowFontScaling={false}
+                        style={{
+                          fontFamily: 'Pretendard-Medium',
+                          fontSize: normalizeFontSize(13),
+                          color: '#333',
+                        }}
+                      >
+                        선택한 코스 일정 ({selectedPlanDate}) 기준
+                      </Text>
+                    </View>
+                    <Pressable
+                      onPress={() => setSelectedPlanDate(undefined)}
+                      hitSlop={8}
+                      style={{
+                        paddingVertical: normalize(4),
+                        paddingHorizontal: normalize(8),
+                        borderRadius: normalize(6),
+                        backgroundColor: '#fff',
+                      }}
+                    >
+                      <Text
+                        allowFontScaling={false}
+                        style={{
+                          fontFamily: 'Pretendard-Medium',
+                          fontSize: normalizeFontSize(11.5),
+                          color: TEXT_SUB,
+                        }}
+                      >
+                        오늘 기준
+                      </Text>
+                    </Pressable>
+                  </View>
+                )}
+
+                {/* D+0 ~ D+2: 단기예보 범위 (포토제닉 점수 + 혼잡도) */}
+                {(!selectedPlanDate || (dateDiffDays >= 0 && dateDiffDays <= 2)) && (
+                  <>
+                    <PhotogenicScoreCard spotId={spot.id} spotName={spot.name} initialDate={selectedPlanDate} />
+                    <SpotCongestionCard
+                      spotId={spot.id}
+                      spotName={spot.name}
+                      targetDate={selectedPlanDate}
+                    />
+                  </>
+                )}
+
+                {/* D+3 ~ D+30: 중기 범위 (단기예보 준비 중 안내 + 30일 집중률 혼잡도 핵심 표시) */}
+                {selectedPlanDate && dateDiffDays >= 3 && dateDiffDays <= 30 && (
+                  <>
+                    <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(20) }}>
+                      <Text
+                        allowFontScaling={false}
+                        style={{
+                          fontFamily: 'Pretendard-SemiBold',
+                          fontSize: FONT_TITLE,
+                          color: '#000',
+                          letterSpacing: -0.4,
+                          marginBottom: normalize(12),
+                        }}
+                      >
+                        포토제닉 지수
+                      </Text>
+                      <View
+                        style={{
+                          backgroundColor: CARD,
+                          borderRadius: normalize(20),
+                          padding: normalize(20),
+                          alignItems: 'center',
+                        }}
+                      >
+                        <View
+                          style={{
+                            width: normalize(44),
+                            height: normalize(44),
+                            borderRadius: normalize(22),
+                            backgroundColor: BRAND_TINT,
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            marginBottom: normalize(10),
+                          }}
+                        >
+                          <IconClock size={normalize(22)} color={BRAND} strokeWidth={2} />
+                        </View>
+                        <Text
+                          allowFontScaling={false}
+                          style={{
+                            fontFamily: 'Pretendard-SemiBold',
+                            fontSize: normalizeFontSize(15),
+                            color: '#000',
+                            marginBottom: normalize(4),
+                          }}
+                        >
+                          방문 3일 전부터 날씨 예보가 제공돼요
+                        </Text>
+                        <Text
+                          allowFontScaling={false}
+                          style={{
+                            fontFamily: 'Pretendard-Regular',
+                            fontSize: normalizeFontSize(13),
+                            color: TEXT_SUB,
+                            textAlign: 'center',
+                            lineHeight: normalize(18),
+                          }}
+                        >
+                          선택하신 일정({selectedPlanDate})은 기상청 단기예보 범위 외 일정이에요.{'\n'}
+                          아래의 30일 빅데이터 혼잡도 추이를 확인해 보세요!
+                        </Text>
+                      </View>
+                    </View>
+
+                    <SpotCongestionCard
+                      spotId={spot.id}
+                      spotName={spot.name}
+                      targetDate={selectedPlanDate}
+                    />
+                  </>
+                )}
+
+                {/* D+31 이상 또는 과거 일정: 예보 및 혼잡도 범위 초과 안내 */}
+                {selectedPlanDate && (dateDiffDays > 30 || dateDiffDays < 0) && (
+                  <View style={{ paddingHorizontal: GRID_PADDING, paddingTop: normalize(20) }}>
+                    <View
+                      style={{
+                        backgroundColor: CARD,
+                        borderRadius: normalize(20),
+                        padding: normalize(22),
+                        alignItems: 'center',
+                      }}
+                    >
+                      <IconCalendarEvent size={normalize(28)} color="rgba(0,0,0,0.3)" strokeWidth={1.8} />
+                      <Text
+                        allowFontScaling={false}
+                        style={{
+                          fontFamily: 'Pretendard-SemiBold',
+                          fontSize: normalizeFontSize(15),
+                          color: '#000',
+                          marginTop: normalize(10),
+                          marginBottom: normalize(4),
+                        }}
+                      >
+                        출사 예측 범위 외 일정이에요
+                      </Text>
+                      <Text
+                        allowFontScaling={false}
+                        style={{
+                          fontFamily: 'Pretendard-Regular',
+                          fontSize: normalizeFontSize(13),
+                          color: TEXT_SUB,
+                          textAlign: 'center',
+                          lineHeight: normalize(18),
+                          marginBottom: normalize(14),
+                        }}
+                      >
+                        선택하신 일정({selectedPlanDate})은 장기 일정이에요.{'\n'}
+                        날씨 예보는 방문 3일 전부터, 혼잡도 예측은 30일 전부터 확인하실 수 있어요.
+                      </Text>
+                      <Pressable
+                        onPress={() => setSelectedPlanDate(undefined)}
+                        style={{
+                          paddingHorizontal: normalize(16),
+                          paddingVertical: normalize(10),
+                          borderRadius: normalize(10),
+                          backgroundColor: '#000',
+                        }}
+                      >
+                        <Text
+                          allowFontScaling={false}
+                          style={{
+                            fontFamily: 'Pretendard-Medium',
+                            fontSize: normalizeFontSize(13),
+                            color: '#fff',
+                          }}
+                        >
+                          오늘 날씨 및 스팟 정보 보기
+                        </Text>
+                      </Pressable>
+                    </View>
+                  </View>
+                )}
+
+                {/* 관광사진 공모전 수상작 레퍼런스 카드 (해당 스팟 수상작 존재 시 노출) */}
+                {spot.photoAward && (
+                  <View style={{ marginHorizontal: GRID_PADDING, marginTop: normalize(20) }}>
+                    <View
+                      style={{
+                        backgroundColor: CARD,
+                        borderRadius: normalize(16),
+                        padding: normalize(16),
+                        borderWidth: HAIRLINE_WIDTH,
+                        borderColor: HAIRLINE,
+                      }}
+                    >
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(6), marginBottom: normalize(10) }}>
+                        <View style={{ backgroundColor: BRAND_TINT, paddingHorizontal: normalize(8), paddingVertical: normalize(4), borderRadius: normalize(6) }}>
+                          <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: normalizeFontSize(11.5), color: BRAND }}>
+                            대한민국 관광공모전 {spot.photoAward.awardName ? `· ${spot.photoAward.awardName}` : '수상작'}
+                          </Text>
+                        </View>
+                        <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: normalizeFontSize(12), color: TEXT_SUB }}>
+                          공식 레퍼런스
+                        </Text>
+                      </View>
+
+                      <View style={{ flexDirection: 'row', gap: normalize(14) }}>
+                        {toHttps(spot.photoAward.imageUrl || spot.photoAward.thumbnailUrl) ? (
+                          <Image
+                            source={{ uri: toHttps(spot.photoAward.imageUrl || spot.photoAward.thumbnailUrl)! }}
+                            style={{ width: normalize(84), height: normalize(84), borderRadius: normalize(10), backgroundColor: '#f0f0f0' }}
+                            resizeMode="cover"
+                          />
+                        ) : null}
+
+                        <View style={{ flex: 1, justifyContent: 'center' }}>
+                          <Text
+                            allowFontScaling={false}
+                            numberOfLines={1}
+                            style={{ fontFamily: 'Pretendard-Bold', fontSize: normalizeFontSize(14.5), color: '#222', marginBottom: normalize(4) }}
+                          >
+                            {spot.photoAward.title}
+                          </Text>
+                          {spot.photoAward.photographer && (
+                            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(12.5), color: TEXT_SUB, marginBottom: normalize(2) }}>
+                              촬영: {spot.photoAward.photographer}
+                            </Text>
+                          )}
+                          {spot.photoAward.awardYearMonth && (
+                            <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(11.5), color: TEXT_SUB, marginBottom: normalize(4) }}>
+                              촬영연월: {spot.photoAward.awardYearMonth}
+                            </Text>
+                          )}
+                          <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Regular', fontSize: normalizeFontSize(10.5), color: '#999' }}>
+                            {spot.photoAward.copyrightNotice}
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+                  </View>
+                )}
+
                 <View style={{ height: 1, backgroundColor: 'rgba(0,0,0,0.06)', marginHorizontal: GRID_PADDING, marginVertical: normalize(24) }} />
                 <ConvenienceInfoSection
                   info={convenience}

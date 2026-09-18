@@ -534,7 +534,15 @@ export default function CourseNewScreen() {
                 </View>
                 <Text className="font-medium text-sub mb-1" style={{ fontSize: FONT_MD }}>아직 추가된 스팟이 없어요</Text>
                 <Text className="text-black/20 text-center leading-relaxed font-normal" style={{ fontSize: normalizeFontSize(14) }}>아래 버튼으로 포토스팟을{'\n'}추가해보세요</Text>
-                <TouchableOpacity onPress={() => navigation.navigate('Map', { source: 'plan' })} className="mt-6 w-full h-[54px] rounded-2xl border-[1.5px] border-dashed border-black/10 flex-row items-center justify-center">
+                <TouchableOpacity
+                  onPress={() => {
+                    const targetDate = startDate
+                      ? toLocalDateString(new Date(startDate.getTime() + (activeDay - 1) * 24 * 60 * 60 * 1000))
+                      : undefined;
+                    navigation.navigate('Map', { source: 'plan', targetDate });
+                  }}
+                  className="mt-6 w-full h-[54px] rounded-2xl border-[1.5px] border-dashed border-black/10 flex-row items-center justify-center"
+                >
                   <IconPlus size={15} color={iconGray(0.25)} />
                   <Text className="font-medium text-black/25 ml-2" style={{ fontSize: FONT_MD }}>스팟 추가하기</Text>
                 </TouchableOpacity>
@@ -592,7 +600,15 @@ export default function CourseNewScreen() {
                     </View>
                   </View>
                 ))}
-                <TouchableOpacity onPress={() => navigation.navigate('Map', { source: 'plan' })} className="mt-6 w-full h-[54px] rounded-2xl border-[1.5px] border-dashed border-black/10 flex-row items-center justify-center">
+                <TouchableOpacity
+                  onPress={() => {
+                    const targetDate = startDate
+                      ? toLocalDateString(new Date(startDate.getTime() + (activeDay - 1) * 24 * 60 * 60 * 1000))
+                      : undefined;
+                    navigation.navigate('Map', { source: 'plan', targetDate });
+                  }}
+                  className="mt-6 w-full h-[54px] rounded-2xl border-[1.5px] border-dashed border-black/10 flex-row items-center justify-center"
+                >
                   <IconPlus size={15} color={iconGray(0.25)} />
                   <Text className="font-medium text-black/25 ml-2" style={{ fontSize: FONT_MD }}>스팟 추가하기</Text>
                 </TouchableOpacity>

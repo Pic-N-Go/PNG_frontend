@@ -239,6 +239,14 @@ export default function CoursePlanScreen({ navigation, route }: any) {
     enabled: !!planId,
   });
 
+  const currentTargetDate = React.useMemo(() => {
+    if (!course?.startDate) return undefined;
+    const dayNum = parseInt(currentDay, 10) || 1;
+    const start = new Date(course.startDate);
+    const target = new Date(start.getTime() + (dayNum - 1) * 24 * 60 * 60 * 1000);
+    return `${target.getFullYear()}-${String(target.getMonth() + 1).padStart(2, '0')}-${String(target.getDate()).padStart(2, '0')}`;
+  }, [course?.startDate, currentDay]);
+
   // 공유할 웹 URL이 없어 텍스트만 보낸다. 계획 공유 링크가 생기면 url을 함께 넘긴다.
   const handleShare = async () => {
     // 로딩·실패 중에는 제목도 날짜도 없어 "출사 계획" 한 줄만 나간다 — 받는 쪽에 아무 정보가 없다.
@@ -617,7 +625,7 @@ export default function CoursePlanScreen({ navigation, route }: any) {
               className="absolute top-3 right-3 bg-white/90 items-center justify-center rounded-lg shadow-sm"
               style={{ width: normalize(32), height: normalize(32) }}
               activeOpacity={0.8}
-              onPress={() => navigation.navigate('Map', { source: 'plan-view', planData: data, initialDay: currentDay, from: 'CoursePlan' })}
+              onPress={() => navigation.navigate('Map', { source: 'plan-view', planData: data, initialDay: currentDay, from: 'CoursePlan', targetDate: currentTargetDate })}
             >
               <IconArrowsMaximize size={normalize(20)} color="#000" />
             </TouchableOpacity>
@@ -718,7 +726,7 @@ export default function CoursePlanScreen({ navigation, route }: any) {
     [currentDay, currentWeather, hasValidWeather]
   );
 
-  const handleAddSpot = () => navigation.navigate("Map", { source: "plan" });
+  const handleAddSpot = () => navigation.navigate("Map", { source: "plan", targetDate: currentTargetDate });
 
   // 현재 Day에 스팟이 0개일 때만 노출. 편집 모드와 무관 — 편집할 대상이 없으니 이 블록이 유일한 추가 진입점이다.
   // 기본 카드 규칙은 무테지만, 기존 점선 '+ 스팟 추가하기' 카드의 시각 언어를 계승하기 위한 의도적 예외.
