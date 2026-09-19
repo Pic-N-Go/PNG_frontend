@@ -45,6 +45,18 @@ const MAX_TRIP_DAYS = 15;
 const toLocalDateString = (date: Date) =>
   `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 
+// YYYY-MM-DD 문자열을 로컬 Date로 파싱한다.
+// new Date("YYYY-MM-DD")는 UTC 기준(00:00Z)으로 파싱되어 타임존에 따라 전날로 밀리는 버그를 방지한다.
+const parseLocalDate = (dateStr?: string | null): Date | null => {
+  if (!dateStr) return null;
+  const parts = dateStr.split('-').map(Number);
+  if (parts.length === 3 && !parts.some(isNaN)) {
+    return new Date(parts[0], parts[1] - 1, parts[2]);
+  }
+  const d = new Date(dateStr);
+  return isNaN(d.getTime()) ? null : d;
+};
+
 export default function CourseNewScreen() {
   const navigation = useNavigation<any>();
 
@@ -57,8 +69,8 @@ export default function CourseNewScreen() {
   const [tripName, setTripName] = useState(route.params?.initialTitle || '');
 
   // Dates
-  const [startDate, setStartDate] = useState<Date | null>(route.params?.initialStartDate ? new Date(route.params.initialStartDate) : null);
-  const [endDate, setEndDate] = useState<Date | null>(route.params?.initialEndDate ? new Date(route.params.initialEndDate) : null);
+  const [startDate, setStartDate] = useState<Date | null>(() => parseLocalDate(route.params?.initialStartDate));
+  const [endDate, setEndDate] = useState<Date | null>(() => parseLocalDate(route.params?.initialEndDate));
   const [selectedChip, setSelectedChip] = useState<ChipType | null>(null);
 
   const [toastVisible, setToastVisible] = useState(false);

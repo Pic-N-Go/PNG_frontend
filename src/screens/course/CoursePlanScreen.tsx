@@ -242,8 +242,10 @@ export default function CoursePlanScreen({ navigation, route }: any) {
   const currentTargetDate = React.useMemo(() => {
     if (!course?.startDate) return undefined;
     const dayNum = parseInt(currentDay, 10) || 1;
-    const start = new Date(course.startDate);
-    const target = new Date(start.getTime() + (dayNum - 1) * 24 * 60 * 60 * 1000);
+    const parts = course.startDate.split('-').map(Number);
+    if (parts.length !== 3 || parts.some(isNaN)) return undefined;
+    const target = new Date(parts[0], parts[1] - 1, parts[2]);
+    target.setDate(target.getDate() + (dayNum - 1));
     return `${target.getFullYear()}-${String(target.getMonth() + 1).padStart(2, '0')}-${String(target.getDate()).padStart(2, '0')}`;
   }, [course?.startDate, currentDay]);
 
