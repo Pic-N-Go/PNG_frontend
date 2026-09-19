@@ -48,23 +48,17 @@ const STATUS_ICON_BG: Record<FacilityStatus, string> = { good: 'rgba(52,199,89,0
 const STATUS_ICON_COLOR: Record<FacilityStatus, string> = { good: C.green, neutral: TEXT_SUB, missing: C.muted, accent: ACCENT };
 const STATUS_VALUE_COLOR: Record<FacilityStatus, string> = { good: C.green, neutral: C.text, missing: C.muted, accent: C.text };
 
-function FacilityChip({ chip }: { chip: FacilityChipData }) {
+function FacilityChip({ chip, onPress }: { chip: FacilityChipData; onPress?: () => void }) {
   const { key, label, value, status } = chip;
   const Icon = FACILITY_ICON[key];
   const present = status !== 'missing';
-  return (
-    <View
-      style={{
-        width: '48%',
-        flexGrow: 1,
-        borderRadius: normalize(14),
-        padding: normalize(13),
-        gap: normalize(11),
-        backgroundColor: CARD,
-      }}
-    >
-      <View style={{ width: normalize(34), height: normalize(34), borderRadius: normalize(9), backgroundColor: STATUS_ICON_BG[status], alignItems: 'center', justifyContent: 'center' }}>
-        <Icon size={normalize(19)} color={STATUS_ICON_COLOR[status]} />
+  const content = (
+    <>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+        <View style={{ width: normalize(34), height: normalize(34), borderRadius: normalize(9), backgroundColor: STATUS_ICON_BG[status], alignItems: 'center', justifyContent: 'center' }}>
+          <Icon size={normalize(19)} color={STATUS_ICON_COLOR[status]} />
+        </View>
+        {onPress ? <ChevronRight size={normalize(17)} color={iconGray(0.3)} /> : null}
       </View>
       <View>
         <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_SM, color: present ? C.label : C.labelMuted, marginBottom: normalize(3) }}>
@@ -74,12 +68,42 @@ function FacilityChip({ chip }: { chip: FacilityChipData }) {
           {value}
         </Text>
       </View>
+    </>
+  );
+  const style = {
+    width: '48%' as const,
+    flexGrow: 1,
+    borderRadius: normalize(14),
+    padding: normalize(13),
+    gap: normalize(11),
+    backgroundColor: CARD,
+  };
+
+  if (onPress) {
+    return (
+      <Pressable
+        onPress={onPress}
+        accessibilityRole="button"
+        accessibilityLabel={`${label} 상세 정보 보기`}
+        android_ripple={{ color: 'rgba(0,0,0,0.05)' }}
+        style={style}
+      >
+        {content}
+      </Pressable>
+    );
+  }
+
+  return (
+    <View style={style}>
+      {content}
     </View>
   );
 }
 
 interface Props {
   info: ConvenienceInfo;
+  onPressPetInfo?: () => void;
+  onPressAccessibilityInfo?: () => void;
   eventPeriod?: {
     startDate?: string;
     endDate?: string;
@@ -87,7 +111,7 @@ interface Props {
   };
 }
 
-export default function ConvenienceInfoSection({ info, eventPeriod }: Props) {
+export default function ConvenienceInfoSection({ info, eventPeriod, onPressPetInfo, onPressAccessibilityInfo }: Props) {
   const [hoursOpen, setHoursOpen] = useState(false);
 
   const isOngoing = eventPeriod?.status === 'ONGOING';
@@ -113,7 +137,11 @@ export default function ConvenienceInfoSection({ info, eventPeriod }: Props) {
       {/* 편의 항목 그리드 (2열) */}
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: normalize(10) }}>
         {info.facilities.map((f) => (
-          <FacilityChip key={f.key} chip={f} />
+          <FacilityChip
+            key={f.key}
+            chip={f}
+            onPress={f.key === 'pet' ? onPressPetInfo : f.key === 'wheel' ? onPressAccessibilityInfo : undefined}
+          />
         ))}
       </View>
 
