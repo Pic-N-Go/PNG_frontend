@@ -65,6 +65,7 @@ import { useAuthStore } from '@/store/useAuthStore';
 import Toast from '@/components/common/Toast';
 import AdminContestTab from '@/components/admin/AdminContestTab';
 import AdminReportTab from '@/components/admin/AdminReportTab';
+import TourSyncPipelineStatusCard from '@/components/admin/TourSyncPipelineStatusCard';
 import { BRAND, BRAND_TINT, CARD, TEXT_SUB, iconGray } from '@/constants/colors';
 
 type AdminTab = 'users' | 'inquiries' | 'reports' | 'embeddings' | 'tour' | 'contests';
@@ -179,7 +180,12 @@ export default function AdminDashboardScreen() {
   const syncAreaMutation = useSyncAreaTourApi();
   const syncAllMutation = useSyncAllTourApi();
   const syncSampleMutation = useSyncSampleTourApi();
-  const { data: tourSyncStatus } = useTourSyncStatus();
+  const {
+    data: tourSyncStatus,
+    isLoading: isTourSyncStatusLoading,
+    isError: isTourSyncStatusError,
+    refetch: refetchTourSyncStatus,
+  } = useTourSyncStatus();
   const syncProgressPercent = useMemo(() => {
     if (tourSyncStatus?.progressPercent !== undefined && tourSyncStatus?.progressPercent !== null) {
       return Math.min(100, Math.max(0, tourSyncStatus.progressPercent));
@@ -2039,6 +2045,18 @@ export default function AdminDashboardScreen() {
             </View>
 
             {/* 1. 실시간 백그라운드 동기화 상태 모니터 (RabbitMQ 비동기 큐 상태) */}
+            {isTourSyncStatusLoading || isTourSyncStatusError || tourSyncStatus?.spot || tourSyncStatus?.pet || tourSyncStatus?.accessibility ? (
+              <View style={{ marginBottom: SPACING_SM }}>
+                <TourSyncPipelineStatusCard
+                  status={tourSyncStatus}
+                  isLoading={isTourSyncStatusLoading}
+                  isError={isTourSyncStatusError}
+                  onRetry={() => {
+                    void refetchTourSyncStatus();
+                  }}
+                />
+              </View>
+            ) : (
             <View
               style={{
                 backgroundColor: tourSyncStatus?.isRunning ? '#eff6ff' : '#ffffff',
@@ -2170,6 +2188,7 @@ export default function AdminDashboardScreen() {
                 </View>
               )}
             </View>
+            )}
 
             {/* 2. 테스트/개발용 샘플 동기화 (신규) */}
             <View
