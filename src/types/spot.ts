@@ -277,10 +277,61 @@ export interface SpotDetailResponse {
   overview: string;
   tags: string[];
   convenience: ConvenienceDTO;
+  /** 별도 반려동물 상세정보가 저장되어 있는지 여부 */
+  hasPetInfo: boolean;
+  /** 별도 무장애 상세정보가 저장되어 있는지 여부 */
+  hasAccessibilityInfo: boolean;
   stats: { avgRating: number; reviewCount: number; photoCount: number };
   isBookmarked: boolean;
   /** 로그인 유저가 이 스팟에 쓴 리뷰 id. 없으면 null — 작성/수정 분기에 쓴다. */
   myReviewId: number | null;
+}
+
+/** GET /spots/{id}/pet-info */
+export interface SpotPetInfoResponse {
+  spotId: number;
+  accompanyType: string | null;
+  allowedCompanion: string | null;
+  requiredItems: string | null;
+  additionalInfo: string | null;
+  facilities: string | null;
+  providedItems: string | null;
+  purchasableItems: string | null;
+  rentalItems: string | null;
+  accidentRiskInfo: string | null;
+}
+
+/** GET /spots/{id}/accessibility-info */
+export interface SpotAccessibilityInfoResponse {
+  spotId: number;
+  parking: string | null;
+  publicTransport: string | null;
+  route: string | null;
+  ticketOffice: string | null;
+  promotion: string | null;
+  wheelchair: string | null;
+  entranceExit: string | null;
+  elevator: string | null;
+  restroom: string | null;
+  auditorium: string | null;
+  room: string | null;
+  physicalDisabilityEtc: string | null;
+  brailleBlock: string | null;
+  helpDog: string | null;
+  humanGuide: string | null;
+  audioGuide: string | null;
+  largePrint: string | null;
+  braillePromotion: string | null;
+  guideSystem: string | null;
+  visualDisabilityEtc: string | null;
+  signGuide: string | null;
+  videoGuide: string | null;
+  hearingRoom: string | null;
+  hearingDisabilityEtc: string | null;
+  stroller: string | null;
+  lactationRoom: string | null;
+  babyChair: string | null;
+  infantFamilyEtc: string | null;
 }
 
 // GET /spots/{id}/photos — TourAPI 사진만 포함 (유저 업로드 제외), stats.photoCount보다 적을 수 있음

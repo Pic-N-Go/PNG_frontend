@@ -59,6 +59,26 @@ export function useSpotSummary(id?: string | number | null) {
   });
 }
 
+/** 편의 정보의 반려동물 항목을 눌렀을 때만 상세 정보를 조회한다. */
+export function useSpotPetInfo(id: string | number, enabled: boolean) {
+  return useQuery({
+    queryKey: ['spot', String(id), 'pet-info'],
+    queryFn: () => spotApi.getPetInfo(id),
+    enabled: enabled && !!id,
+    staleTime: Infinity,
+  });
+}
+
+/** 편의 정보의 휠체어 항목을 눌렀을 때만 무장애 상세 정보를 조회한다. */
+export function useSpotAccessibilityInfo(id: string | number, enabled: boolean) {
+  return useQuery({
+    queryKey: ['spot', String(id), 'accessibility-info'],
+    queryFn: () => spotApi.getAccessibilityInfo(id),
+    enabled: enabled && !!id,
+    staleTime: Infinity,
+  });
+}
+
 // 스팟 목록류는 자주 바뀌지 않으므로 1분간 fresh로 취급한다.
 // 지도 이동마다 마운트/재조회가 반복되는 것을 막는 용도.
 const SPOTS_STALE_TIME = 60 * 1000;

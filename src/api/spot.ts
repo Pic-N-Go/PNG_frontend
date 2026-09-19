@@ -19,6 +19,8 @@ import type {
   SpotResponse,
   SpotMapResponse,
   SpotSummaryResponse,
+  SpotPetInfoResponse,
+  SpotAccessibilityInfoResponse,
   NearbySpotResponse,
   RecommendedSpotResponse,
   RelatedSpotDTO,
@@ -208,6 +210,14 @@ export const spotApi = {
 
   // 5. 스팟 요약 카드 조회 (GET /spots/{id}/summary)
   getSummary: (id: string | number) => request<SpotSummaryResponse>(`/spots/${id}/summary`),
+
+  // 상세 정보가 아직 동기화되지 않은 스팟은 서버가 204를 반환한다.
+  // TanStack Query는 undefined 데이터를 허용하지 않으므로 null로 정규화한다.
+  getPetInfo: async (id: string | number): Promise<SpotPetInfoResponse | null> =>
+    (await request<SpotPetInfoResponse | undefined>(`/spots/${id}/pet-info`)) ?? null,
+
+  getAccessibilityInfo: async (id: string | number): Promise<SpotAccessibilityInfoResponse | null> =>
+    (await request<SpotAccessibilityInfoResponse | undefined>(`/spots/${id}/accessibility-info`)) ?? null,
 
   getPhotos: (id: string | number) => request<SpotPhotosResponse>(`/spots/${id}/photos`),
 
