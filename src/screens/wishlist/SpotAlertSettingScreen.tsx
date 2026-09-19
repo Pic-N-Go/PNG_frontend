@@ -15,7 +15,7 @@ import { useSpots, useSearchSpots } from '@/hooks/useSpot';
 import { WEATHER_API_TO_UI, TIME_API_TO_UI, DUST_API_TO_UI } from '@/utils/wishlistMapper';
 import { toHttps } from '@/utils/spotMappers';
 import type { WeatherCondition, TimeCondition, AirQualityCondition } from '@/api/spotAlert';
-import { BRAND, BRAND_TINT_ACTIVE, TEXT_SUB, iconGray } from '@/constants/colors';
+import { BRAND, TEXT_SUB, iconGray } from '@/constants/colors';
 
 // 칩은 API enum을 그대로 id로 쓴다. 라벨은 *_API_TO_UI 한 곳에서만 정의한다 —
 // 예전처럼 화면 상수가 별도 한글 id를 들면 매퍼 키와 어긋나 조용히 다른 값으로 저장된다.
@@ -65,7 +65,6 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
     useSpotAlertDetailQuery, 
     useUpdateSpotAlertMutation, 
     useDeleteSpotAlertMutation,
-    useToggleSpotAlertActiveMutation 
   } = useSpotAlert();
 
   const [selectedSpot, setSelectedSpot] = useState<any>(null);

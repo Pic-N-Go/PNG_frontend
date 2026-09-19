@@ -3,13 +3,12 @@ import { Pressable, Text, View } from 'react-native';
 import {
   IconCalendarEvent,
   IconChevronRight,
-  IconInfoCircle,
   IconUsers,
 } from '@tabler/icons-react-native';
 import Skeleton from '@/components/common/Skeleton';
 import CongestionCalendarSheet, { CONGESTION_LEVEL_CONFIG } from '@/components/spot/CongestionCalendarSheet';
 import { useSpotCongestion } from '@/hooks/useSpot';
-import { BRAND, BRAND_TINT, CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
+import { BRAND, CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
 import { FONT_TITLE, GRID_PADDING, HAIRLINE_WIDTH } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 
