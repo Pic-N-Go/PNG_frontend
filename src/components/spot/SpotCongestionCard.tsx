@@ -4,7 +4,6 @@ import {
   IconCalendarEvent,
   IconChevronRight,
   IconInfoCircle,
-  IconSparkles,
   IconUsers,
 } from '@tabler/icons-react-native';
 import Skeleton from '@/components/common/Skeleton';
@@ -298,7 +297,6 @@ export default function SpotCongestionCard({
                   borderTopColor: HAIRLINE,
                 }}
               >
-                <IconSparkles size={normalize(15)} color="#007AFF" strokeWidth={2} />
                 <Text
                   allowFontScaling={false}
                   numberOfLines={1}

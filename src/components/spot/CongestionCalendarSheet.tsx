@@ -1,6 +1,6 @@
 import React from 'react';
 import { Pressable, ScrollView, Text, useWindowDimensions, View } from 'react-native';
-import { IconSparkles, IconX } from '@tabler/icons-react-native';
+import { IconX } from '@tabler/icons-react-native';
 import BottomSheet from '@/components/common/BottomSheet';
 import type { CongestionLevel, SpotCongestionResponse } from '@/types/spot';
 import { BRAND, BRAND_TINT, CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
@@ -144,8 +144,7 @@ export default function CongestionCalendarSheet({
                 borderColor: '#D4E8FF',
               }}
             >
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(6), marginBottom: normalize(6) }}>
-                <IconSparkles size={normalize(16)} color="#007AFF" strokeWidth={2} />
+              <View style={{ marginBottom: normalize(6) }}>
                 <Text
                   allowFontScaling={false}
                   style={{
