@@ -374,7 +374,7 @@ export function mapPopularSpot(dto: SpotResponse): SpotItem {
     rating: dto.reviewAverage ?? 0,
     reviewCount: dto.reviewCount ?? 0,
     isBookmarked: dto.isBookmarked ?? false,
-    imageUrl: toHttps(dto.thumbnailUrl ?? dto.imageUrl),
+    imageUrl: toHttps(dto.thumbnailUrl || dto.imageUrl || null),
   };
 }
 
@@ -458,7 +458,7 @@ export function mapSpotDetail(dto: SpotDetailResponse): { info: SpotDetailInfo; 
   return {
     info: {
       id: String(dto.id),
-      badge: dto.badge ? '관광공사 인증' : null,
+      badge: dto.photoAward ? '공모전 수상작' : (dto.badge ? '관광공사 인증' : null),
       imageUrl: toHttps(dto.imageUrl),
       name: dto.name,
       address: dto.address,
@@ -473,6 +473,7 @@ export function mapSpotDetail(dto: SpotDetailResponse): { info: SpotDetailInfo; 
       latitude: dto.latitude,
       longitude: dto.longitude,
       navigation: dto.navigation,
+      photoAward: dto.photoAward ?? null,
     },
     convenience: mapConvenience(dto.convenience),
   };
@@ -552,17 +553,17 @@ export function mapReviewPages(
 }
 
 // ── 포토제닉 ──────────────────────────────
-// 팩터별 만점(총 80) + 디자인 색/라벨 (클라 고정)
+// 팩터별 만점(총 100) + 디자인 색/라벨 (클라 고정)
 const PG_FACTOR_META: Record<
   PhotogenicFactorKey,
   { label: string; max: number; valueColor: string; iconBg: string; iconColor: string }
 > = {
   // 색은 팩터 "종류" 고정 (핸드오프 디자인). value 텍스트는 공통 text색, 아이콘만 종류색.
-  weather: { label: '날씨', max: 30, valueColor: '#1F1E1D', iconBg: '#E4EEFD', iconColor: '#2E7BF6' },
-  dust: { label: '미세먼지', max: 20, valueColor: '#1F1E1D', iconBg: '#E7F6EC', iconColor: '#16A34A' },
+  weather: { label: '날씨', max: 35, valueColor: '#1F1E1D', iconBg: '#E4EEFD', iconColor: '#2E7BF6' },
+  dust: { label: '미세먼지', max: 25, valueColor: '#1F1E1D', iconBg: '#E7F6EC', iconColor: '#16A34A' },
   ozone: { label: '오존', max: 10, valueColor: '#1F1E1D', iconBg: '#EEE9FE', iconColor: '#7C4DFF' },
-  goldenHour: { label: '골든아워', max: 5, valueColor: '#1F1E1D', iconBg: '#FEF3E2', iconColor: '#E8890B' },
-  season: { label: '시즌', max: 15, valueColor: '#1F1E1D', iconBg: '#FDE8EF', iconColor: '#E31B59' },
+  goldenHour: { label: '골든아워', max: 10, valueColor: '#1F1E1D', iconBg: '#FEF3E2', iconColor: '#E8890B' },
+  season: { label: '시즌', max: 20, valueColor: '#1F1E1D', iconBg: '#FDE8EF', iconColor: '#E31B59' },
 };
 
 function toFactor(key: PhotogenicFactorKey, dtoLabel: string, score: number): PhotogenicFactor {
@@ -583,13 +584,13 @@ export function mapPhotogenicScore(dto: PhotogenicScoreResponse): PhotogenicScor
   const gh = dto.goldenHour;
   return {
     score: dto.score,
-    maxScore: 80,
+    maxScore: 100,
     grade: dto.grade,
     goldenHour: {
       label: gh.label,
       minutesUntilStart: gh.minutesUntilStart,
       startTime: gh.startTime,
-      isActive: gh.minutesUntilStart === null && gh.score === 5,
+      isActive: gh.minutesUntilStart === null && (gh.score === 10 || gh.score > 0),
     },
     // 표시 순서: 날씨·미세먼지·오존·골든아워 (소형) → 시즌 (와이드)
     factors: [
@@ -729,10 +730,10 @@ if (__DEV__) {
   delete noPhotosKey.photos;
   console.assert(mapReview(noPhotosKey as ReviewDTO).photos === undefined, 'photos 키 누락 시 방어 실패');
 
-  const pgBase = { score: 69, grade: '좋음', weather: { label: '맑음', score: 30 }, fineDust: { label: '좋음', score: 20 }, ozone: { label: '보통', score: 6 }, season: { label: '벚꽃 47%', score: 7 } };
-  const active = mapPhotogenicScore({ ...pgBase, goldenHour: { label: '골든아워', score: 5, minutesUntilStart: null, startTime: null } });
+  const pgBase = { score: 86, grade: '매우 좋음', weather: { label: '맑음', score: 35 }, fineDust: { label: '좋음', score: 25 }, ozone: { label: '보통', score: 6 }, season: { label: '벚꽃 50%', score: 10 } };
+  const active = mapPhotogenicScore({ ...pgBase, goldenHour: { label: '골든아워', score: 10, minutesUntilStart: null, startTime: null } });
   console.assert(active.goldenHour.isActive === true, '골든아워 진행중 판정 오류');
-  console.assert(active.maxScore === 80, 'maxScore 오류');
+  console.assert(active.maxScore === 100, 'maxScore 오류');
   console.assert(active.factors.find((f) => f.key === 'weather')?.barPercent === 100, 'weather barPercent 오류');
   console.assert(active.factors.find((f) => f.key === 'ozone')?.barPercent === 60, 'ozone barPercent 오류');
   const ended = mapPhotogenicScore({ ...pgBase, goldenHour: { label: '해당 없음', score: 0, minutesUntilStart: null, startTime: null } });

@@ -130,193 +130,12 @@ const SpotThumbnail = ({ photo, spotId }: { photo?: string | null; spotId: strin
   );
 };
 
-const MOCK_DATA: Record<string, any> = {
-  "1": {
-    date: "5월 17일 토요일",
-    tip: "광안리 일출 시간 05:32 · 골든아워 06:00~06:40\n미세먼지 좋음 · 일출 포인트로 이동 추천",
-    checklist: [
-      "삼각대",
-      "광각렌즈 (16-35mm)",
-      "ND 필터",
-      "보조배터리",
-      "편한 신발",
-    ],
-    spots: [
-      {
-        id: "spot1",
-        name: "광안리 해수욕장",
-        loc: "부산 수영구 · 야경/바다",
-        time: "06:30 ~ 08:00",
-        dur: "1시간 30분",
-        bg: "#0f2027",
-        lat: 35.1531696,
-        lng: 129.118666,
-      },
-      {
-        id: "spot2",
-        name: "해동용궁사",
-        loc: "부산 기장군 · 한옥/바다",
-        time: "09:00 ~ 10:30",
-        dur: "1시간 30분",
-        bg: "#8e7b5a",
-        lat: 35.1884148,
-        lng: 129.223293,
-      },
-      {
-        id: "spot3",
-        name: "감천문화마을",
-        loc: "부산 사하구 · 인물/감성",
-        time: "11:00 ~ 13:00",
-        dur: "2시간",
-        bg: "#b44a3a",
-        lat: 35.0974711,
-        lng: 129.010595,
-      },
-    ],
-    transports: {
-      spot1__spot2: { type: "car", label: "차량 25분 · 18km" },
-      spot2__spot3: { type: "walk", label: "도보 12분· 0.8km" },
-    },
-  },
-  "2": {
-    date: "5월 18일 일요일",
-    tip: "영도 일몰 시간 19:22 · 골든아워 18:40~19:22\n미세먼지 보통 · 흰여울마을 오전 방문 추천",
-    checklist: ["편광 필터", "드론", "삼각대", "여분의 메모리카드"],
-    spots: [
-      {
-        id: "spot4",
-        name: "흰여울문화마을",
-        loc: "부산 영도구 · 뷰/감성",
-        time: "09:30 ~ 11:00",
-        dur: "1시간 30분",
-        bg: "#667eea",
-        lat: 35.0788,
-        lng: 129.0439,
-      },
-      {
-        id: "spot5",
-        name: "태종대 유원지",
-        loc: "부산 영도구 · 바다/절벽",
-        time: "11:30 ~ 13:30",
-        dur: "2시간",
-        bg: "#1a6b8a",
-        lat: 35.0527,
-        lng: 129.0877,
-      },
-    ],
-    transports: {
-      spot4__spot5: { type: "car", label: "차량 15분 · 7km" },
-    },
-  },
-  "3": {
-    date: "5월 19일 월요일",
-    tip: "국제시장 방문 추천 시간 10:00~12:00\n미세먼지 보통 · 실내 위주 일정",
-    checklist: ["보조배터리", "편한 신발"],
-    spots: [
-      {
-        id: "spot6",
-        name: "부산 시립미술관",
-        loc: "부산 해운대구 · 전시/실내",
-        time: "10:00 ~ 11:30",
-        dur: "1시간 30분",
-        bg: "#3a4750",
-        lat: 35.1682,
-        lng: 129.1305,
-      },
-      {
-        id: "spot7",
-        name: "국제시장",
-        loc: "부산 중구 · 전통시장",
-        time: "12:30 ~ 14:00",
-        dur: "1시간 30분",
-        bg: "#8e5a3c",
-        lat: 35.1006,
-        lng: 129.0284,
-      },
-    ],
-    transports: {
-      spot6__spot7: { type: "car", label: "차량 22분 · 14km" },
-    },
-  },
-  "4": {
-    date: "5월 20일 화요일",
-    tip: "오륙도 스카이워크 일몰 시간 19:10 · 골든아워 18:30~19:10\n미세먼지 좋음 · 해안 산책로 이동 추천",
-    checklist: ["삼각대", "편광 필터", "드론"],
-    spots: [
-      {
-        id: "spot8",
-        name: "오륙도 스카이워크",
-        loc: "부산 남구 · 바다/전망",
-        time: "17:30 ~ 19:00",
-        dur: "1시간 30분",
-        bg: "#1c4b5e",
-        lat: 35.0968,
-        lng: 129.1214,
-      },
-      {
-        id: "spot9",
-        name: "이기대 해안산책로",
-        loc: "부산 남구 · 절벽/바다",
-        time: "19:30 ~ 21:00",
-        dur: "1시간 30분",
-        bg: "#0f3d3e",
-        lat: 35.1219,
-        lng: 129.1231,
-      },
-    ],
-    transports: {
-      spot8__spot9: { type: "walk", label: "도보 15분 · 1.1km" },
-    },
-  },
-  "5": {
-    date: "5월 21일 수요일",
-    tip: null,
-    checklist: [],
-    spots: [
-      {
-        id: "spot10",
-        name: "송정해수욕장",
-        loc: "부산 해운대구 · 바다/서핑",
-        time: "08:00 ~ 09:30",
-        dur: "1시간 30분",
-        bg: "#2c6e91",
-        lat: 35.1786,
-        lng: 129.2003,
-      },
-      {
-        id: "spot11",
-        name: "자갈치시장",
-        loc: "부산 중구 · 전통시장/바다",
-        time: "10:30 ~ 12:00",
-        dur: "1시간 30분",
-        bg: "#4a5568",
-        lat: 35.0968,
-        lng: 129.0306,
-      },
-      {
-        id: "spot12",
-        name: "용두산공원",
-        loc: "부산 중구 · 전망/공원",
-        time: "13:00 ~ 14:30",
-        dur: "1시간 30분",
-        bg: "#5c4a72",
-        lat: 35.1007,
-        lng: 129.0323,
-      },
-    ],
-    transports: {
-      spot10__spot11: { type: "car", label: "차량 18분 · 11km" },
-      spot11__spot12: { type: "walk", label: "도보 8분 · 0.5km" },
-    },
-  },
-};
-
 // toLocaleDateString('ko-KR')은 안드로이드 Hermes에 ICU 데이터가 없으면 영어로 떨어져 배열로 뽑는다
 const WEEKDAYS = ["일요일", "월요일", "화요일", "수요일", "목요일", "금요일", "토요일"];
 
 function mapCourseToData(course: any) {
   const result: Record<string, any> = {};
-  if (!course) return MOCK_DATA;
+  if (!course) return {};
   
   const start = new Date(course.startDate);
   const end = new Date(course.endDate);
@@ -405,7 +224,7 @@ export default function CoursePlanScreen({ navigation, route }: any) {
   const [isEditMode, setIsEditMode] = useState(false);
   const [isDepartModalVisible, setIsDepartModalVisible] = useState(false);
   const [isMoreSheetVisible, setIsMoreSheetVisible] = useState(false);
-  const [data, setData] = useState<Record<string, any>>(MOCK_DATA);
+  const [data, setData] = useState<Record<string, any>>({});
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
 
@@ -419,6 +238,16 @@ export default function CoursePlanScreen({ navigation, route }: any) {
     queryFn: () => coursesApi.getCourse(Number(planId)),
     enabled: !!planId,
   });
+
+  const currentTargetDate = React.useMemo(() => {
+    if (!course?.startDate) return undefined;
+    const dayNum = parseInt(currentDay, 10) || 1;
+    const parts = course.startDate.split('-').map(Number);
+    if (parts.length !== 3 || parts.some(isNaN)) return undefined;
+    const target = new Date(parts[0], parts[1] - 1, parts[2]);
+    target.setDate(target.getDate() + (dayNum - 1));
+    return `${target.getFullYear()}-${String(target.getMonth() + 1).padStart(2, '0')}-${String(target.getDate()).padStart(2, '0')}`;
+  }, [course?.startDate, currentDay]);
 
   // 공유할 웹 URL이 없어 텍스트만 보낸다. 계획 공유 링크가 생기면 url을 함께 넘긴다.
   const handleShare = async () => {
@@ -798,7 +627,7 @@ export default function CoursePlanScreen({ navigation, route }: any) {
               className="absolute top-3 right-3 bg-white/90 items-center justify-center rounded-lg shadow-sm"
               style={{ width: normalize(32), height: normalize(32) }}
               activeOpacity={0.8}
-              onPress={() => navigation.navigate('Map', { source: 'plan-view', planData: data, initialDay: currentDay, from: 'CoursePlan' })}
+              onPress={() => navigation.navigate('Map', { source: 'plan-view', planData: data, initialDay: currentDay, from: 'CoursePlan', targetDate: currentTargetDate })}
             >
               <IconArrowsMaximize size={normalize(20)} color="#000" />
             </TouchableOpacity>
@@ -899,7 +728,7 @@ export default function CoursePlanScreen({ navigation, route }: any) {
     [currentDay, currentWeather, hasValidWeather]
   );
 
-  const handleAddSpot = () => navigation.navigate("Map", { source: "plan" });
+  const handleAddSpot = () => navigation.navigate("Map", { source: "plan", targetDate: currentTargetDate });
 
   // 현재 Day에 스팟이 0개일 때만 노출. 편집 모드와 무관 — 편집할 대상이 없으니 이 블록이 유일한 추가 진입점이다.
   // 기본 카드 규칙은 무테지만, 기존 점선 '+ 스팟 추가하기' 카드의 시각 언어를 계승하기 위한 의도적 예외.

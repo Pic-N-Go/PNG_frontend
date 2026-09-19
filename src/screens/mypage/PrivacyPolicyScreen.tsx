@@ -2,39 +2,83 @@ import React from 'react';
 import { View, Text, ScrollView, Pressable, Share } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { IconChevronLeft, IconHistory } from '@tabler/icons-react-native';
+import { IconChevronLeft } from '@tabler/icons-react-native';
 import { Info, Share as ShareIcon } from 'lucide-react-native';
 import { MyPageStackParamList } from '@/navigation/stacks/MyPageStack';
 import { normalize } from '@/utils/normalize';
 import { FONT_XS, FONT_SM, FONT_MD, FONT_LG } from '@/constants/layout';
-import { BRAND, CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
+import { BRAND, CARD, HAIRLINE } from '@/constants/colors';
 
 type Props = NativeStackScreenProps<MyPageStackParamList, 'PrivacyPolicy'>;
 
 const TEXT2 = 'rgba(0,0,0,0.55)';
 const BODY = 'rgba(0,0,0,0.7)';
 
-const META = { effectiveDate: '2026.05.01', version: 'v1.3', totalItems: 12 };
+const META = { effectiveDate: '2026.05.01', version: 'v1.0', totalItems: 7 };
 
 const SUMMARY = [
-  '수집 항목: 이메일, 프로필, 위치(선택), 사진 EXIF',
-  '보관 기간: 회원 탈퇴 후 30일 (복구 목적) 뒤 파기 (법정 보관 제외)',
-  '제3자 제공 없음',
+  '수집 항목: 이메일, 닉네임, 프로필, 위치(선택), 사진 EXIF',
+  '보관 기간: 회원 탈퇴 후 30일 (복구 목적) 뒤 완전 파기 (법정 보관 제외)',
+  '제3자 제공 없음 (인증·지도 등 필수 API 연동 제외)',
+  '보호책임자: 다다익샷 (PNG 개발팀 / picngoservice@gmail.com)',
 ];
 
 const SECTIONS = [
-  { title: '1. 수집하는 개인정보 항목', body: '회사는 회원가입, 서비스 제공, 고객 상담을 위해 최소한의 개인정보를 수집합니다.\n필수: 이메일 주소, 닉네임\n선택: 프로필 사진, 위치 정보, 업로드 사진의 EXIF 메타데이터' },
-  { title: '2. 개인정보의 이용 목적', body: '수집한 개인정보는 서비스 제공, 회원 관리, 부정 이용 방지, 신규 서비스 개발 및 통계 분석 목적으로 이용됩니다.' },
-  // 서버는 탈퇴를 소프트 삭제로 처리하고 30일 뒤 개인정보를 파기한다(UserPurgeScheduler).
-  // "즉시 파기"로 두면 방침과 실제 동작이 달라진다.
-  { title: '3. 개인정보의 보유 및 이용 기간', body: '회원 탈퇴 시 계정을 즉시 비활성화하고 닉네임·프로필 사진을 \'탈퇴한 사용자\'로 대체하여 다른 이용자에게 노출되지 않도록 합니다. 계정 복구를 위해 탈퇴일로부터 30일간 보관한 뒤 개인정보를 파기합니다. 30일 이내에는 동일한 계정으로 로그인하여 복구할 수 있습니다.\n\n작성한 게시글·댓글은 작성자를 식별할 수 없는 형태(\'탈퇴한 사용자\')로 유지됩니다.\n\n단, 관계 법령에 따라 일정 기간 보관이 필요한 정보(전자상거래법상 계약·결제 기록 5년 등)는 해당 기간 동안 보관합니다.' },
-  { title: '4. 개인정보 보호책임자', body: '성명: 김담당\n이메일: privacy@dadaikshot.example' },
+  {
+    title: '1. 수집하는 개인정보 항목 및 수집방법',
+    body: '회사는 회원가입, 서비스 제공, 고객 상담을 위해 최소한의 개인정보를 수집합니다.\n\n· 필수 항목: 이메일 주소, 닉네임, SNS 계정 식별자(간편 로그인 시)\n· 선택 항목: 프로필 사진, 위치 정보(GPS), 업로드 사진의 EXIF 메타데이터\n· 자동 수집 항목: 기기 식별자(FCM 토큰), OS 버전, 서비스 이용 기록, 접속 로그',
+  },
+  {
+    title: '2. 개인정보의 수집 및 이용 목적',
+    body: '수집한 개인정보는 다음 목적으로만 이용됩니다.\n\n· 회원 관리: 회원제 서비스 이용에 따른 본인확인, 가입 의사 확인, 고객 상담\n· 서비스 제공: 맞춤형 출사지 및 사진 촬영 명소 추천, 스마트 출사 플래너(골든아워/날씨 연동), 지도 기반 위치 서비스 제공, 사진 및 게시글 등록/공유\n· 알림 및 공지: 서비스 공지사항 및 이벤트 알림(푸시 알림)',
+  },
+  {
+    title: '3. 개인정보의 보유 및 이용 기간',
+    body: '회원 탈퇴 시 계정을 즉시 비활성화하고 닉네임·프로필 사진을 \'탈퇴한 사용자\'로 대체하여 다른 이용자에게 노출되지 않도록 합니다. 계정 복구를 위해 탈퇴일로부터 30일간 보관한 뒤 개인정보를 완전히 파기합니다. 30일 이내에는 동일한 계정으로 로그인하여 복구할 수 있습니다.\n\n단, 관계 법령(통신비밀보호법에 따른 로그인 기록 3개월, 전자상거래법상 소비자 분쟁 기록 3년 등)에 따라 보관이 필요한 정보는 해당 기간 동안 보관합니다.',
+  },
+  {
+    title: '4. 개인정보의 제3자 제공 및 처리 위탁',
+    body: '회사는 이용자의 동의 없이 개인정보를 제3자에게 제공하지 않습니다. 다만, 원활한 서비스 제공을 위해 아래와 같이 개인정보 처리 업무를 전문 업체에 위탁하고 있습니다.\n\n' +
+      '① 카카오 (Kakao Corp.)\n' +
+      '· 위탁 업무: 카카오 간편 로그인 및 회원 식별\n' +
+      '· 처리 항목: 카카오 계정 고유 식별자, 이메일, 닉네임, 카카오 액세스 토큰\n' +
+      '· 보유 및 이용 기간: 회원 탈퇴 후 30일 또는 위탁 계약 종료 시까지\n\n' +
+      '② 네이버클라우드 (NCP - Naver Cloud Platform)\n' +
+      '· 위탁 업무: NaverMapView 지도 렌더링 및 주변 출사지 위치 검색\n' +
+      '· 처리 항목: 기기 GPS 위치 좌표(위·경도)\n' +
+      '· 보유 및 이용 기간: 지도 화면 표시 및 API 호출 즉시 일시 처리(별도 보관 없음)\n\n' +
+      '③ 구글 (Google LLC / Firebase)\n' +
+      '· 위탁 업무: FCM(Firebase Cloud Messaging) 푸시 알림 발송\n' +
+      '· 처리 항목: 기기 식별자, Firebase FCM 등록 토큰\n' +
+      '· 보유 및 이용 기간: 앱 삭제 또는 알림 수신 동의 철회 시까지',
+  },
+  {
+    title: '5. 이용자의 권리와 행사 방법',
+    body: '이용자는 언제든지 앱 내 \'마이페이지\' 또는 고객센터를 통해 자신의 개인정보를 조회, 수정, 삭제(회원 탈퇴)를 요청할 수 있습니다. 또한 스마트폰 설정의 앱 권한 관리에서 위치 접근 권한을 언제든지 철회할 수 있습니다.',
+  },
+  {
+    title: '6. 개인정보의 파기 절차 및 방법',
+    body: '수집 및 이용 목적이 달성된 개인정보는 내부 방침 및 법령에 따라 일정 기간 저장된 후 파기됩니다. 전자적 파일 형태로 저장된 개인정보는 기록을 재생할 수 없는 기술적 방법을 사용하여 안전하게 삭제합니다.',
+  },
+  {
+    title: '7. 개인정보 보호책임자 및 문의처',
+    body: '회사는 개인정보 처리에 관한 업무를 총괄해서 책임지고, 이용자의 불만 처리 및 피해 구제를 위하여 아래와 같이 개인정보 보호책임자를 지정하고 있습니다.\n\n· 성명(담당자): 다다익샷\n· 소속: PNG 개발팀\n· 문의 이메일: picngoservice@gmail.com',
+  },
 ];
 
 export default function PrivacyPolicyScreen({ navigation }: Props) {
   const onShare = React.useCallback(async () => {
     try {
-      await Share.share({ title: '多多益Shot 개인정보처리방침', message: `多多益Shot 개인정보처리방침 (${META.version})` });
+      const shareContent = [
+        `[PNG(다다익샷) 개인정보처리방침 (${META.version})]`,
+        `시행일자: ${META.effectiveDate}`,
+        '',
+        '[핵심 요약]',
+        ...SUMMARY.map((s) => `· ${s}`),
+        '',
+        ...SECTIONS.map((s) => `${s.title}\n${s.body}`),
+      ].join('\n\n');
+      await Share.share({ title: 'PNG 개인정보처리방침', message: shareContent });
     } catch { /* 취소 */ }
   }, []);
 
@@ -85,21 +129,14 @@ export default function PrivacyPolicyScreen({ navigation }: Props) {
               <Text className="font-normal" style={{ fontSize: FONT_SM, color: BODY, lineHeight: normalize(22) }}>{sec.body}</Text>
             </View>
           ))}
-          <Text className="text-center font-normal" style={{ fontSize: FONT_XS, color: TEXT_SUB, paddingTop: normalize(12) }}>
-            — 이하 생략 · 총 {META.totalItems}개 항목 —
-          </Text>
         </View>
       </ScrollView>
 
       {/* Footer */}
-      <View className="flex-row border-t-[0.5px] border-hairline" style={{ gap: normalize(8), paddingHorizontal: normalize(20), paddingTop: normalize(12), paddingBottom: normalize(12), borderTopColor: HAIRLINE }}>
-        <Pressable onPress={onShare} className="flex-1 flex-row items-center justify-center border-[1.5px] border-black/10 bg-white" style={{ height: normalize(44), borderRadius: normalize(12) }}>
+      <View className="border-t-[0.5px] border-hairline" style={{ paddingHorizontal: normalize(20), paddingTop: normalize(12), paddingBottom: normalize(12), borderTopColor: HAIRLINE }}>
+        <Pressable onPress={onShare} className="w-full flex-row items-center justify-center border-[1.5px] border-black/10 bg-white" style={{ height: normalize(44), borderRadius: normalize(12) }}>
           <ShareIcon size={normalize(14)} color="#000" strokeWidth={2} />
-          <Text className="font-semibold text-black" style={{ fontSize: FONT_SM, marginLeft: normalize(6) }}>공유</Text>
-        </Pressable>
-        <Pressable className="flex-1 flex-row items-center justify-center bg-black" style={{ height: normalize(44), borderRadius: normalize(12) }}>
-          <IconHistory size={normalize(14)} color="#fff" strokeWidth={2} />
-          <Text className="font-semibold text-white" style={{ fontSize: FONT_SM, marginLeft: normalize(6) }}>이전 버전 보기</Text>
+          <Text className="font-semibold text-black" style={{ fontSize: FONT_SM, marginLeft: normalize(6) }}>방침 공유</Text>
         </Pressable>
       </View>
     </SafeAreaView>

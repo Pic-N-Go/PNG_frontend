@@ -38,7 +38,7 @@ export default function VersionSheet({ visible, onClose }: VersionSheetProps) {
         </View>
         <View style={{ paddingVertical: normalize(10), borderBottomWidth: HAIRLINE_WIDTH, borderBottomColor: HAIRLINE, flexDirection: 'row', justifyContent: 'space-between' }}>
           <Text className="font-normal" style={{ fontSize: FONT_SM, color: 'rgba(0,0,0,0.45)' }}>개발사</Text>
-          <Text className="font-medium" style={{ fontSize: FONT_SM, color: '#000' }}>多多益Shot</Text>
+          <Text className="font-medium" style={{ fontSize: FONT_SM, color: '#000' }}>PNG 개발팀</Text>
         </View>
         
         <View style={{ paddingVertical: normalize(10), borderBottomWidth: HAIRLINE_WIDTH, borderBottomColor: HAIRLINE, flexDirection: 'row', justifyContent: 'space-between' }}>
@@ -58,6 +58,13 @@ export default function VersionSheet({ visible, onClose }: VersionSheetProps) {
           <TouchableOpacity onPress={() => console.log('오픈소스 라이선스')}>
             <Text className="font-medium" style={{ fontSize: FONT_SM, color: BRAND }}>보기 →</Text>
           </TouchableOpacity>
+        </View>
+
+        {/* 데이터 출처 표기 */}
+        <View style={{ marginTop: normalize(16), marginBottom: normalize(8), alignItems: 'center' }}>
+          <Text allowFontScaling={false} style={{ fontSize: FONT_SM, fontFamily: 'Pretendard-Regular', color: 'rgba(0,0,0,0.35)', letterSpacing: -0.2 }}>
+            출처: ⓒ한국관광공사
+          </Text>
         </View>
       </View>
     </BottomSheet>

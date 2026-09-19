@@ -177,7 +177,7 @@ export default function RelatedSpotsScreen({ navigation, route }: Props) {
                   color: TEXT_SUB,
                 }}
               >
-                관광공사 추천 명소
+                관광공사 연관 관광지
               </Text>
             )}
           </View>

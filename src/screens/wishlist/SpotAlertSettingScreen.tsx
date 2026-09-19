@@ -1,20 +1,21 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, TextInput, Switch, ActivityIndicator, Alert, Keyboard } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, TextInput, Switch, ActivityIndicator, Alert, Keyboard, Image } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING, FONT_TITLE } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { useKeyboardOverlap } from '@/hooks/useKeyboardHeight';
 import { 
   IconChevronLeft, IconTrash, IconX, IconCheck, IconSearch,
-  IconSun, IconCloud, IconCloudRain, IconCloudSnow
+  IconSun, IconCloud, IconCloudRain, IconCloudSnow, IconMapPin
 } from '@tabler/icons-react-native';
 
 import BottomSheet from '@/components/common/BottomSheet';
 import { useSpotAlert } from '@/hooks/useSpotAlert';
 import { useSpots, useSearchSpots } from '@/hooks/useSpot';
 import { WEATHER_API_TO_UI, TIME_API_TO_UI, DUST_API_TO_UI } from '@/utils/wishlistMapper';
+import { toHttps } from '@/utils/spotMappers';
 import type { WeatherCondition, TimeCondition, AirQualityCondition } from '@/api/spotAlert';
-import { BRAND, BRAND_TINT_ACTIVE, TEXT_SUB, iconGray } from '@/constants/colors';
+import { BRAND, TEXT_SUB, iconGray } from '@/constants/colors';
 
 // 칩은 API enum을 그대로 id로 쓴다. 라벨은 *_API_TO_UI 한 곳에서만 정의한다 —
 // 예전처럼 화면 상수가 별도 한글 id를 들면 매퍼 키와 어긋나 조용히 다른 값으로 저장된다.
@@ -26,6 +27,13 @@ const DUST_CHIPS: AirQualityCondition[] = ['GOOD', 'NORMAL_OR_BETTER', 'NONE'];
 const DEFAULT_WEATHERS: WeatherCondition[] = ['CLEAR'];
 const DEFAULT_TIMES: TimeCondition[] = ['SUNSET', 'NIGHT'];
 const DEFAULT_DUST: AirQualityCondition = 'GOOD';
+
+const TIMING_OPTIONS = [
+  { days: 0, title: '당일', desc: '출사 당일 아침에 알려드려요' },
+  { days: 1, title: '1일 전', desc: '출사 전날 미리 알려드려요 (기본/추천)' },
+  { days: 2, title: '2일 전', desc: '출사 2일 전에 여유있게 알려드려요' },
+  { days: 3, title: '3일 전', desc: '출사 3일 전에 미리 알려드려요' },
+];
 
 const uniq = <T,>(arr: T[]): T[] => Array.from(new Set(arr));
 
@@ -57,10 +65,14 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
     useSpotAlertDetailQuery, 
     useUpdateSpotAlertMutation, 
     useDeleteSpotAlertMutation,
-    useToggleSpotAlertActiveMutation 
   } = useSpotAlert();
 
   const [selectedSpot, setSelectedSpot] = useState<any>(null);
+  const [selectedSpotPhotoFailed, setSelectedSpotPhotoFailed] = useState(false);
+
+  useEffect(() => {
+    setSelectedSpotPhotoFailed(false);
+  }, [selectedSpot?.photo]);
 
   // 조회 대상은 "현재 화면이 편집 중인 스팟"이어야 한다. 진입 시점의 route.params.id로
   // 고정해 두면 스팟을 바꿔도 이전 스팟의 조건이 폼에 남아 새 스팟에 덮어써진다.
@@ -90,7 +102,8 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
     id: spot.id,
     name: spot.spotName || spot.title || spot.name || '스팟',
     loc: spot.address || spot.location || spot.district || '위치 정보 없음',
-    score: spot.photogenicScore || spot.score || 90,
+    score: spot.photogenicScore || spot.score || 0,
+    photo: toHttps(spot.thumbnailUrl || spot.imageUrl || spot.photo || null),
     bg: '#2b2a29',
     tags: spot.tags || ['#스팟', '#출사'],
   }));
@@ -121,6 +134,7 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
         name: initData.spotName,
         loc: initData.address,
         score: initData.photogenicScore,
+        photo: toHttps((initData as any).thumbnailUrl || (initData as any).imageUrl || (initData as any).photo || null),
         bg: '#2b2a29',
         tags: initData.tags || [],
       });
@@ -136,8 +150,8 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
         setSelectedDust(DUST_CHIPS.includes(initData.airQualityCondition) ? initData.airQualityCondition : DEFAULT_DUST);
       }
       setNotifEnabled(initData.isAlertEnabled ?? true);
-      if (initData.alertTimingDays) {
-        setNotifTiming(`${initData.alertTimingDays}일 전`);
+      if (initData.alertTimingDays !== undefined && initData.alertTimingDays !== null) {
+        setNotifTiming(initData.alertTimingDays === 0 ? '당일' : `${initData.alertTimingDays}일 전`);
       }
       if (initData.dndStartTime) setDndStart(initData.dndStartTime);
       if (initData.dndEndTime) setDndEnd(initData.dndEndTime);
@@ -152,7 +166,8 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
         id: newSpot.id,
         name: newSpot.name || newSpot.spotName || newSpot.title,
         loc: newSpot.loc || newSpot.address || newSpot.location || '위치 정보 없음',
-        score: newSpot.score || newSpot.photogenicScore || 90,
+        score: newSpot.score || newSpot.photogenicScore || 0,
+        photo: toHttps(newSpot.thumbnailUrl || newSpot.imageUrl || newSpot.photo || null),
         bg: '#2b2a29',
         tags: newSpot.tags || ['#스팟', '#출사'],
       });
@@ -161,31 +176,17 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
   }, [route.params?.newSpot, setDirty]);
 
   const [spotSheetVisible, setSpotSheetVisible] = useState(false);
+  const [timingSheetVisible, setTimingSheetVisible] = useState(false);
 
   const scrollViewRef = useRef<ScrollView>(null);
   const updateMutation = useUpdateSpotAlertMutation();
   const deleteMutation = useDeleteSpotAlertMutation();
-  const toggleActiveMutation = useToggleSpotAlertActiveMutation();
 
   const markDirty = () => setDirty(true);
 
   const handleToggleNotif = (value: boolean) => {
     setNotifEnabled(value);
     markDirty();
-    if (targetSpotId) {
-      toggleActiveMutation.mutate(
-        {
-          spotId: Number(targetSpotId),
-          isAlertEnabled: value,
-        },
-        {
-          onError: () => {
-            setNotifEnabled(!value);
-            Alert.alert('알림 설정 실패', '알림 상태를 변경하지 못했습니다.');
-          },
-        }
-      );
-    }
   };
 
   const handleBack = () => {
@@ -212,7 +213,7 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
       timeConditions: uniq(selectedTimes),
       airQualityCondition: selectedDust,
       isAlertEnabled: notifEnabled,
-      alertTimingDays: parseInt(notifTiming.replace(/[^0-9]/g, '')) || 1,
+      alertTimingDays: notifTiming.includes('당일') ? 0 : (parseInt(notifTiming.replace(/[^0-9]/g, ''), 10) || 1),
       dndStartTime: dndStart,
       dndEndTime: dndEnd,
     };
@@ -309,18 +310,29 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
           className="overflow-hidden relative" 
           style={{ backgroundColor: selectedSpot?.bg || '#2b2a29', marginTop: normalize(16), marginBottom: normalize(28), borderRadius: normalize(16), padding: normalize(18), paddingBottom: normalize(14) }}
         >
+          {selectedSpot?.photo && !selectedSpotPhotoFailed && (
+            <>
+              <Image
+                source={{ uri: selectedSpot.photo }}
+                style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+                resizeMode="cover"
+                onError={() => setSelectedSpotPhotoFailed(true)}
+              />
+              <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)' }} />
+            </>
+          )}
           <Text className="font-semibold text-white tracking-tight mb-1" style={{ fontSize: normalizeFontSize(18) }}>{selectedSpot?.name || '스팟을 선택해 주세요'}</Text>
-          <Text className="text-white/50 mb-2.5 font-normal" style={{ fontSize: normalizeFontSize(12) }}>
-            {selectedSpot ? `${selectedSpot.loc} · 포토제닉 ${selectedSpot.score}점` : '아래 버튼으로 알림을 받을 스팟을 고르세요'}
+          <Text className="text-white/70 mb-2.5 font-normal" style={{ fontSize: normalizeFontSize(12) }}>
+            {selectedSpot ? selectedSpot.loc : '아래 버튼으로 알림을 받을 스팟을 고르세요'}
           </Text>
           <View className="flex-row gap-1.5 z-0">
             {(selectedSpot?.tags || []).map((tag: string) => (
-              <View key={tag} className="bg-white/10 items-center justify-center rounded-full" style={{ paddingVertical: normalize(2), paddingHorizontal: normalize(12) }}>
-                <Text className="text-white/75 font-normal" style={{ fontSize: normalizeFontSize(10) }}>{tag}</Text>
+              <View key={tag} className="bg-white/20 items-center justify-center rounded-full" style={{ paddingVertical: normalize(2), paddingHorizontal: normalize(12) }}>
+                <Text className="text-white/80 font-normal" style={{ fontSize: normalizeFontSize(10) }}>{tag}</Text>
               </View>
             ))}
           </View>
-          <View className="absolute bottom-3 right-3 bg-white/15 rounded-full items-center justify-center z-20" style={{ height: normalize(28), paddingHorizontal: normalize(12) }}>
+          <View className="absolute bottom-3 right-3 bg-white/20 rounded-full items-center justify-center z-20" style={{ height: normalize(28), paddingHorizontal: normalize(12) }}>
             <Text className="font-medium text-white" style={{ fontSize: normalizeFontSize(11) }}>스팟 변경 →</Text>
           </View>
         </TouchableOpacity>
@@ -405,6 +417,18 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
               thumbColor="#fff"
             />
           </View>
+
+          <TouchableOpacity 
+            onPress={() => setTimingSheetVisible(true)} 
+            className="flex-row items-center justify-between bg-card rounded-2xl mb-2" 
+            style={{ padding: normalize(16) }}
+          >
+            <View>
+              <Text className="font-medium text-black mb-0.5" style={{ fontSize: normalizeFontSize(14) }}>알림 시점</Text>
+              <Text className="text-sub font-normal" style={{ fontSize: normalizeFontSize(12) }}>출사 며칠 전에 알려드릴까요?</Text>
+            </View>
+            <Text className="font-medium text-brand" style={{ fontSize: normalizeFontSize(14) }}>{notifTiming} →</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Section 5: Memo */}
@@ -505,13 +529,10 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
                   className={`flex-row items-center rounded-2xl mb-2 ${isSelected ? 'bg-white border border-brand' : 'bg-card'}`} 
                   style={{ padding: normalize(14) }}
                 >
-                  <View className="rounded-xl mr-3" style={{ width: normalize(48), height: normalize(48), backgroundColor: s.bg }} />
+                  <SpotSheetThumbnail photo={s.photo} bg={s.bg} />
                   <View className="flex-1">
                     <Text className="font-semibold text-black mb-1" style={{ fontSize: normalizeFontSize(16) }}>{s.name}</Text>
-                    <Text className="text-sub mb-1 font-normal" style={{ fontSize: normalizeFontSize(12) }}>{s.loc}</Text>
-                    <View className="self-start rounded-full items-center justify-center" style={{ backgroundColor: isSelected ? BRAND_TINT_ACTIVE : 'rgba(0,0,0,0.05)', paddingHorizontal: normalize(6), paddingVertical: normalize(2) }}>
-                      <Text style={{ fontSize: normalizeFontSize(9), color: isSelected ? BRAND : 'rgba(0,0,0,0.3)', fontFamily: 'Pretendard-SemiBold' }}>포토제닉 {s.score}점</Text>
-                    </View>
+                    <Text className="text-sub font-normal" style={{ fontSize: normalizeFontSize(12) }}>{s.loc}</Text>
                   </View>
                   {isSelected && (
                     <View className="items-center justify-center bg-brand rounded-full" style={{ width: normalize(22), height: normalize(22) }}>
@@ -534,6 +555,69 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
         </View>
       </BottomSheet>
 
+      {/* Timing Selection Sheet */}
+      <BottomSheet visible={timingSheetVisible} onClose={() => setTimingSheetVisible(false)}>
+        <View className="flex-row items-center justify-between px-5 pb-3">
+          <Text className="font-semibold text-black" style={{ fontSize: FONT_TITLE }}>알림 시점</Text>
+          <TouchableOpacity onPress={() => setTimingSheetVisible(false)} className="bg-black/5 items-center justify-center rounded-full" style={{ width: normalize(32), height: normalize(32) }}>
+            <IconX size={normalize(14)} color={TEXT_SUB} />
+          </TouchableOpacity>
+        </View>
+
+        <View className="px-5 pb-6">
+          {TIMING_OPTIONS.map((item) => {
+            const isSelected = notifTiming.startsWith(`${item.days}일`) || (item.days === 0 && notifTiming.includes('당일'));
+            return (
+              <TouchableOpacity
+                key={item.days}
+                onPress={() => {
+                  setNotifTiming(item.days === 0 ? '당일' : `${item.days}일 전`);
+                  setTimingSheetVisible(false);
+                  markDirty();
+                }}
+                className={`flex-row items-center justify-between rounded-2xl mb-2.5 ${isSelected ? 'bg-brand/5 border border-brand' : 'bg-card border border-transparent'}`}
+                style={{ padding: normalize(16) }}
+              >
+                <View>
+                  <Text className={`font-semibold mb-0.5 ${isSelected ? 'text-brand' : 'text-black'}`} style={{ fontSize: normalizeFontSize(15) }}>
+                    {item.title}
+                  </Text>
+                  <Text className="text-sub font-normal" style={{ fontSize: normalizeFontSize(12) }}>
+                    {item.desc}
+                  </Text>
+                </View>
+                {isSelected && <IconCheck size={normalize(18)} color={BRAND} strokeWidth={2.5} />}
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </BottomSheet>
+
     </SafeAreaView>
+  );
+}
+
+function SpotSheetThumbnail({ photo, bg }: { photo?: string | null; bg?: string }) {
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => {
+    setFailed(false);
+  }, [photo]);
+
+  return (
+    <View className="rounded-xl mr-3 overflow-hidden" style={{ width: normalize(48), height: normalize(48), backgroundColor: bg }}>
+      {photo && !failed ? (
+        <Image
+          source={{ uri: photo }}
+          style={{ width: '100%', height: '100%' }}
+          resizeMode="cover"
+          onError={() => setFailed(true)}
+        />
+      ) : (
+        <View className="w-full h-full items-center justify-center">
+          <IconMapPin size={normalize(20)} color={iconGray(0.3)} />
+        </View>
+      )}
+    </View>
   );
 }

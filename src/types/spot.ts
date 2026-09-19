@@ -71,6 +71,18 @@ export interface SpotDetailInfo {
   latitude?: number;
   longitude?: number;
   navigation?: SpotNavigationDTO;
+  photoAward?: PhotoAwardRef | null;
+}
+
+export interface PhotoAwardRef {
+  id: number;
+  title: string;
+  awardName: string;
+  photographer: string | null;
+  awardYearMonth: string | null;
+  imageUrl: string | null;
+  thumbnailUrl: string | null;
+  copyrightNotice: string;
 }
 
 export type PhotogenicFactorKey = 'weather' | 'goldenHour' | 'dust' | 'ozone' | 'season';
@@ -281,6 +293,7 @@ export interface SpotDetailResponse {
   isBookmarked: boolean;
   /** 로그인 유저가 이 스팟에 쓴 리뷰 id. 없으면 null — 작성/수정 분기에 쓴다. */
   myReviewId: number | null;
+  photoAward?: PhotoAwardRef | null;
 }
 
 // GET /spots/{id}/photos — TourAPI 사진만 포함 (유저 업로드 제외), stats.photoCount보다 적을 수 있음
@@ -432,6 +445,26 @@ export interface PhotogenicScoreResponse {
   ozone: PhotogenicFactorDTO;
   season: PhotogenicFactorDTO;
   goldenHour: PhotogenicGoldenHourDTO;
+}
+
+export type CongestionLevel = 'RELAXED' | 'NORMAL' | 'CROWDED' | 'VERY_CROWDED';
+
+export interface CongestionDayInfo {
+  date: string; // "YYYY-MM-DD"
+  dayOfWeek: string; // "월", "화" 등
+  rate: number; // e.g. 32.1
+  level: CongestionLevel;
+  levelLabel: string; // "여유", "보통", "혼잡", "매우 혼잡"
+}
+
+export interface SpotCongestionResponse {
+  spotId: number;
+  spotName: string;
+  matchedAttractionName?: string | null;
+  hasData: boolean;
+  bestCleanDay: CongestionDayInfo | null;
+  targetDay: CongestionDayInfo | null;
+  days: CongestionDayInfo[];
 }
 
 export interface SpotMapResponse {
