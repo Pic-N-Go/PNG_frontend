@@ -166,7 +166,7 @@ export default function CongestionCalendarSheet({
                     letterSpacing: -0.2,
                   }}
                 >
-                  {bestDay.date} ({bestDay.dayOfWeek}) · {bestDay.rate.toFixed(1)}% (여유)
+                  {bestDay.date} ({bestDay.dayOfWeek}) · {bestDay.rate.toFixed(1)}% ({CONGESTION_LEVEL_CONFIG[bestDay.level]?.label || '여유'})
                 </Text>
               </View>
             </View>

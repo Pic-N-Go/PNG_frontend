@@ -165,9 +165,9 @@ export default function PhotogenicScoreCard({ spotId, spotName, initialDate }: P
   React.useEffect(() => {
     if (initialDate) {
       const match = dateOptions.find((o) => o.iso === initialDate);
-      if (match) {
-        setSelectedDateLabel(match.label);
-      }
+      setSelectedDateLabel(match ? match.label : dateOptions[0].label);
+    } else {
+      setSelectedDateLabel(dateOptions[0].label);
     }
   }, [initialDate, dateOptions]);
 

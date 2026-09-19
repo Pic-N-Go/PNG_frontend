@@ -26,7 +26,9 @@ export default function SpotCongestionCard({
   const [sheetVisible, setSheetVisible] = useState(false);
   const { data: congestion, isLoading } = useSpotCongestion(spotId, targetDate);
 
-  const activeDay = congestion?.targetDay || congestion?.days?.[0] || congestion?.bestCleanDay;
+  const activeDay = targetDate
+    ? congestion?.targetDay
+    : (congestion?.targetDay || congestion?.days?.[0] || congestion?.bestCleanDay);
   const bestDay = congestion?.bestCleanDay;
   const cfg = activeDay
     ? CONGESTION_LEVEL_CONFIG[activeDay.level] || CONGESTION_LEVEL_CONFIG.NORMAL
@@ -118,7 +120,7 @@ export default function SpotCongestionCard({
             <Skeleton width="100%" height={normalize(10)} borderRadius={normalize(5)} style={{ marginVertical: normalize(6) }} />
             <Skeleton width="70%" height={normalize(16)} borderRadius={normalize(6)} />
           </View>
-        ) : !congestion || !congestion.hasData ? (
+        ) : !congestion || !congestion.hasData || !activeDay ? (
           // 한국관광공사 예측 대상 외 스팟 (솔직한 안내)
           <View style={{ alignItems: 'center', paddingVertical: normalize(14), gap: normalize(6) }}>
             <View
@@ -143,7 +145,7 @@ export default function SpotCongestionCard({
                 letterSpacing: -0.2,
               }}
             >
-              혼잡도 예측 데이터가 없는 스팟이에요
+              {targetDate ? '선택한 일정의 혼잡도 예측 정보가 없어요' : '혼잡도 예측 데이터가 없는 스팟이에요'}
             </Text>
             <Text
               allowFontScaling={false}
@@ -156,7 +158,9 @@ export default function SpotCongestionCard({
                 letterSpacing: -0.2,
               }}
             >
-              인기 관광지 및 주요 명소 위주로 빅데이터 추이가 제공됩니다.
+              {targetDate
+                ? '한국관광공사 빅데이터는 향후 30일 이내의 일정에 대해서만 예측 정보를 제공합니다.'
+                : '인기 관광지 및 주요 명소 위주로 빅데이터 추이가 제공됩니다.'}
             </Text>
           </View>
         ) : (

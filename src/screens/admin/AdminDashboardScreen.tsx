@@ -198,7 +198,17 @@ export default function AdminDashboardScreen() {
   // ── 5. 사진공모전 수상작 동기화 상태 및 훅 ──────────────────────────
   const syncPhotoAwardAreaMutation = useSyncPhotoAwardAreaMutation();
   const syncPhotoAwardAllMutation = useSyncPhotoAwardAllMutation();
-  const { data: photoAwardSyncStatus } = usePhotoAwardSyncStatus();
+  const {
+    data: photoAwardSyncStatus,
+    isPending: isPhotoAwardStatusPending,
+    isError: isPhotoAwardStatusError,
+  } = usePhotoAwardSyncStatus();
+  const isPhotoAwardSyncBlocked =
+    isPhotoAwardStatusPending ||
+    isPhotoAwardStatusError ||
+    !!photoAwardSyncStatus?.isRunning ||
+    syncPhotoAwardAreaMutation.isPending ||
+    syncPhotoAwardAllMutation.isPending;
   const [selectedLegalDong, setSelectedLegalDong] = useState<LegalDongRegion>(LEGAL_DONG_REGIONS[0]); // 기본 서울(11)
   const photoAwardProgressPercent = useMemo(() => {
     if (photoAwardSyncStatus?.progressPercent !== undefined && photoAwardSyncStatus?.progressPercent !== null) {
@@ -392,8 +402,8 @@ export default function AdminDashboardScreen() {
 
   // ── 사진공모전 전국 전체 동기화 핸들러 ─────────────────────────────
   const handleSyncPhotoAwardAll = () => {
-    if (photoAwardSyncStatus?.isRunning) {
-      Alert.alert('동기화 진행 중', '현재 백그라운드에서 사진공모전 동기화 작업이 진행 중입니다.');
+    if (isPhotoAwardSyncBlocked) {
+      Alert.alert('동기화 진행 중', '현재 사진공모전 동기화 작업이 진행 중이거나 준비 중입니다.');
       return;
     }
 
@@ -421,8 +431,8 @@ export default function AdminDashboardScreen() {
 
   // ── 사진공모전 특정 지역 동기화 핸들러 ─────────────────────────────
   const handleSyncPhotoAwardArea = () => {
-    if (photoAwardSyncStatus?.isRunning) {
-      Alert.alert('동기화 진행 중', '현재 백그라운드에서 사진공모전 동기화 작업이 진행 중입니다.');
+    if (isPhotoAwardSyncBlocked) {
+      Alert.alert('동기화 진행 중', '현재 사진공모전 동기화 작업이 진행 중이거나 준비 중입니다.');
       return;
     }
 
@@ -2659,11 +2669,11 @@ export default function AdminDashboardScreen() {
 
                 <TouchableOpacity
                   onPress={handleSyncPhotoAwardAll}
-                  disabled={syncPhotoAwardAllMutation.isPending || !!photoAwardSyncStatus?.isRunning}
+                  disabled={isPhotoAwardSyncBlocked}
                   style={{
                     height: normalize(46),
                     borderRadius: BUTTON_RADIUS,
-                    backgroundColor: (syncPhotoAwardAllMutation.isPending || photoAwardSyncStatus?.isRunning) ? '#9ca3af' : '#d97706',
+                    backgroundColor: isPhotoAwardSyncBlocked ? '#9ca3af' : '#d97706',
                     alignItems: 'center',
                     justifyContent: 'center',
                     flexDirection: 'row',
@@ -2742,11 +2752,11 @@ export default function AdminDashboardScreen() {
                 {/* 선택 지역 동기화 실행 버튼 */}
                 <TouchableOpacity
                   onPress={handleSyncPhotoAwardArea}
-                  disabled={syncPhotoAwardAreaMutation.isPending || !!photoAwardSyncStatus?.isRunning}
+                  disabled={isPhotoAwardSyncBlocked}
                   style={{
                     height: normalize(46),
                     borderRadius: BUTTON_RADIUS,
-                    backgroundColor: (syncPhotoAwardAreaMutation.isPending || photoAwardSyncStatus?.isRunning) ? '#9ca3af' : '#78350f',
+                    backgroundColor: isPhotoAwardSyncBlocked ? '#9ca3af' : '#78350f',
                     alignItems: 'center',
                     justifyContent: 'center',
                     flexDirection: 'row',
