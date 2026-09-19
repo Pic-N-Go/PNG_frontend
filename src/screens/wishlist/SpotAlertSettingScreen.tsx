@@ -167,6 +167,7 @@ export default function SpotAlertSettingScreen({ navigation, route }: any) {
         name: newSpot.name || newSpot.spotName || newSpot.title,
         loc: newSpot.loc || newSpot.address || newSpot.location || '위치 정보 없음',
         score: newSpot.score || newSpot.photogenicScore || 0,
+        photo: toHttps(newSpot.thumbnailUrl || newSpot.imageUrl || newSpot.photo || null),
         bg: '#2b2a29',
         tags: newSpot.tags || ['#스팟', '#출사'],
       });

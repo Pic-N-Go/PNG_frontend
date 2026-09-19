@@ -43,11 +43,12 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
 
   const dateDiffDays = useMemo(() => {
     if (!selectedPlanDate) return 0;
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const target = new Date(selectedPlanDate);
-    target.setHours(0, 0, 0, 0);
-    return Math.round((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    const parts = selectedPlanDate.split('-').map(Number);
+    if (parts.length !== 3 || parts.some(isNaN)) return 0;
+    const now = new Date();
+    const todayUtc = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
+    const targetUtc = Date.UTC(parts[0], parts[1] - 1, parts[2]);
+    return Math.round((targetUtc - todayUtc) / (1000 * 60 * 60 * 24));
   }, [selectedPlanDate]);
 
   const { data: detail, isLoading, isError, refetch } = useSpotDetail(spotId);
