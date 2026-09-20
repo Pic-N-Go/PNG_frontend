@@ -8,8 +8,8 @@ import { SHADOW_CONTROL } from '@/constants/shadow';
 
 interface Props {
   onPress: () => void;
-  onFilterPress: () => void;
-  activeFilterCount: number;
+  onFilterPress?: () => void;
+  activeFilterCount?: number;
   /** 지도처럼 고른 키워드를 바에 남겨두는 화면용. 비우면 placeholder가 보인다. */
   value?: string;
   onClear?: () => void;
@@ -22,7 +22,7 @@ interface Props {
 export default function SearchBar({
   onPress,
   onFilterPress,
-  activeFilterCount,
+  activeFilterCount = 0,
   value = '',
   onClear,
   inline = false,
@@ -50,7 +50,7 @@ export default function SearchBar({
           flexDirection: 'row',
           alignItems: 'center',
           paddingLeft: normalize(16),
-          paddingRight: normalize(52),
+          paddingRight: onFilterPress ? normalize(52) : normalize(16),
         }}
       >
         <IconSearch size={normalize(18)} color={iconGray(0.3)} strokeWidth={1.5} />
@@ -76,11 +76,12 @@ export default function SearchBar({
       </Pressable>
 
       {/* 필터 버튼 */}
-      <Pressable
-        onPress={onFilterPress}
-        hitSlop={8}
-        style={{ position: 'absolute', right: normalize(16), top: 0, bottom: 0, justifyContent: 'center' }}
-      >
+      {onFilterPress && (
+        <Pressable
+          onPress={onFilterPress}
+          hitSlop={8}
+          style={{ position: 'absolute', right: normalize(16), top: 0, bottom: 0, justifyContent: 'center' }}
+        >
         <View style={{ position: 'relative' }}>
           <IconAdjustmentsHorizontal size={normalize(18)} color={TEXT_SUB} strokeWidth={1.5} />
           {activeFilterCount > 0 && (
@@ -107,6 +108,7 @@ export default function SearchBar({
           )}
         </View>
       </Pressable>
+      )}
     </View>
   );
 }

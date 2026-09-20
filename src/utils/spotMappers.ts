@@ -374,7 +374,7 @@ export function mapPopularSpot(dto: SpotResponse): SpotItem {
     rating: dto.reviewAverage ?? 0,
     reviewCount: dto.reviewCount ?? 0,
     isBookmarked: dto.isBookmarked ?? false,
-    imageUrl: toHttps(dto.thumbnailUrl ?? dto.imageUrl),
+    imageUrl: toHttps(dto.thumbnailUrl || dto.imageUrl || null),
   };
 }
 

@@ -1,11 +1,14 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Image } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { IconBellFilled, IconBellOff } from '@tabler/icons-react-native';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
 import { CARD_RADIUS, EMPTY_CARD_HEIGHT, FONT_MD, FONT_SM, FONT_TITLE, FONT_XS, GRID_PADDING } from '@/constants/layout';
 import { useSpotAlert } from '@/hooks/useSpotAlert';
+import { useSpotSummary } from '@/hooks/useSpot';
 import { mapSpotAlertToUI } from '@/utils/spotAlertMapper';
+import { toHttps } from '@/utils/spotMappers';
 import { BRAND, BRAND_STRONG, CARD, TEXT_SUB } from '@/constants/colors';
 
 export default function SpotAlertPreview() {
@@ -106,68 +109,127 @@ export default function SpotAlertPreview() {
           contentContainerStyle={{ gap: normalize(10) }}
         >
           {uiItems.map((item) => (
-            <TouchableOpacity
+            <SpotAlertPreviewCard
               key={item.id}
-              activeOpacity={0.8}
+              item={item}
               onPress={() => navigation.navigate('WishlistSetting', { id: item.id })}
-              style={{
-                width: normalize(200),
-                borderRadius: CARD_RADIUS,
-                backgroundColor: CARD,
-                overflow: 'hidden',
-              }}
-            >
-              <View
-                style={{
-                  height: normalize(100),
-                  backgroundColor: '#2b2a29',
-                  position: 'relative',
-                  padding: normalize(12),
-                  justifyContent: 'space-between'
-                }}
-              >
-                <View className="flex-row items-center justify-between">
-                  <View className="bg-white/10 rounded-full px-2 py-0.5 self-start">
-                    <Text className="text-white/80 font-semibold" style={{ fontSize: normalizeFontSize(10) }}>
-                      {item.statusText}
-                    </Text>
-                  </View>
-                  <TouchableOpacity
-                    onPress={() => toggleAlarm(item)}
-                    hitSlop={8}
-                    style={{
-                      width: normalize(28),
-                      height: normalize(28),
-                      borderRadius: normalize(14), // 원형 = height / 2. 카드 radius 아님
-                      backgroundColor: item.isAlertEnabled ? BRAND_STRONG : 'rgba(0,0,0,0.3)',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    {item.isAlertEnabled ? (
-                      <IconBellFilled size={normalize(16)} color="#fff" />
-                    ) : (
-                      <IconBellOff size={normalize(16)} color="#fff" />
-                    )}
-                  </TouchableOpacity>
-                </View>
-              </View>
-
-              <View style={{ padding: normalize(10), paddingBottom: normalize(12) }}>
-                <Text className="font-semibold text-black tracking-tight" style={{ fontSize: FONT_MD, marginBottom: normalize(2) }}>
-                  {item.title}
-                </Text>
-                <Text className="tracking-tight font-normal" style={{ fontSize: normalizeFontSize(12), color: TEXT_SUB, marginBottom: normalize(6) }}>
-                  {item.loc}
-                </Text>
-                <Text className="font-medium tracking-tight" style={{ fontSize: FONT_XS, color: BRAND }}>
-                  {item.notifText || '조건 맞춤 알림'}
-                </Text>
-              </View>
-            </TouchableOpacity>
+              onToggle={() => toggleAlarm(item)}
+            />
           ))}
         </ScrollView>
       )}
     </View>
+  );
+}
+
+function SpotAlertPreviewCard({
+  item,
+  onPress,
+  onToggle,
+}: {
+  item: any;
+  onPress: () => void;
+  onToggle: () => void;
+}) {
+  const { data: summary } = useSpotSummary(item.photo ? null : item.id);
+  const photoUri = item.photo || toHttps(summary?.thumbnailUrl);
+  const [imageFailed, setImageFailed] = React.useState(false);
+  React.useEffect(() => setImageFailed(false), [photoUri]);
+
+  return (
+    <TouchableOpacity
+      activeOpacity={0.8}
+      onPress={onPress}
+      style={{
+        width: normalize(200),
+        borderRadius: CARD_RADIUS,
+        backgroundColor: CARD,
+        overflow: 'hidden',
+      }}
+    >
+      <View
+        style={{
+          height: normalize(100),
+          backgroundColor: '#2b2a29',
+          position: 'relative',
+          overflow: 'hidden',
+          padding: normalize(12),
+          justifyContent: 'space-between',
+        }}
+      >
+        {photoUri && !imageFailed ? (
+          <Image
+            source={{ uri: photoUri }}
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+            resizeMode="cover"
+            onError={() => setImageFailed(true)}
+          />
+        ) : (
+          <LinearGradient
+            colors={['#3a3a3c', '#2c2c2e']}
+            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+          />
+        )}
+        <View
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0,0,0,0.3)',
+          }}
+        />
+        <View className="flex-row items-center justify-between" style={{ zIndex: 1 }}>
+          <View className="bg-white/20 rounded-full px-2 py-0.5 self-start">
+            <Text className="text-white font-semibold" style={{ fontSize: normalizeFontSize(10) }}>
+              {item.statusText}
+            </Text>
+          </View>
+          <TouchableOpacity
+            onPress={onToggle}
+            hitSlop={8}
+            style={{
+              width: normalize(28),
+              height: normalize(28),
+              borderRadius: normalize(14),
+              backgroundColor: item.isAlertEnabled ? BRAND_STRONG : 'rgba(0,0,0,0.4)',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            {item.isAlertEnabled ? (
+              <IconBellFilled size={normalize(16)} color="#fff" />
+            ) : (
+              <IconBellOff size={normalize(16)} color="#fff" />
+            )}
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <View style={{ padding: normalize(10), paddingBottom: normalize(12) }}>
+        <Text
+          className="font-semibold text-black tracking-tight"
+          numberOfLines={1}
+          style={{ fontSize: FONT_MD, marginBottom: normalize(2) }}
+        >
+          {item.title}
+        </Text>
+        <Text
+          className="tracking-tight font-normal"
+          numberOfLines={1}
+          style={{ fontSize: normalizeFontSize(12), color: TEXT_SUB, marginBottom: normalize(6) }}
+        >
+          {item.loc}
+        </Text>
+        <Text
+          className="font-medium tracking-tight"
+          numberOfLines={1}
+          style={{ fontSize: FONT_XS, color: BRAND }}
+        >
+          {item.notifText || '조건 맞춤 알림'}
+        </Text>
+      </View>
+    </TouchableOpacity>
   );
 }

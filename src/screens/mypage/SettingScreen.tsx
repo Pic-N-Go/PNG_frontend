@@ -975,7 +975,7 @@ function VersionInfoSheet({ visible, onClose, onOpenDoc }: { visible: boolean; o
           <VersionRow label="앱 버전" value="v1.0.0" />
           <VersionRow label="업데이트 상태" status />
           <VersionRow label="출시일" value="2026.05.01" />
-          <VersionRow label="개발사" value="多多益Shot" last />
+          <VersionRow label="개발사" value="PNG 개발팀" last />
         </View>
 
         {/* 업데이트 확인 */}
@@ -994,6 +994,13 @@ function VersionInfoSheet({ visible, onClose, onOpenDoc }: { visible: boolean; o
             <DocRow label="개인정보처리방침" onPress={() => onOpenDoc('PrivacyPolicy')} divider />
             <DocRow label="오픈소스 라이선스" onPress={() => onOpenDoc('OpenSourceLicenses')} divider />
           </View>
+        </View>
+
+        {/* 데이터 출처 표기 */}
+        <View style={{ marginTop: normalize(16), alignItems: 'center' }}>
+          <Text allowFontScaling={false} style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-Regular', color: 'rgba(0,0,0,0.35)', letterSpacing: -0.2 }}>
+            출처: ⓒ한국관광공사
+          </Text>
         </View>
       </View>
     </BottomSheet>
