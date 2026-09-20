@@ -2,9 +2,9 @@ const naverMapClientId = process.env.EXPO_PUBLIC_NAVER_MAP_CLIENT_ID || '4h3ni6e
 
 module.exports = {
   expo: {
-    name: 'PNG',
+    name: 'Pic N Go',
     slug: 'png',
-    version: '1.0.0',
+    version: '1.1.0',
     orientation: 'portrait',
     icon: './assets/images/logo/icon.png',
     userInterfaceStyle: 'light',
