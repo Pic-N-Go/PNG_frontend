@@ -55,7 +55,7 @@ export default function CourseMoreSheet({
             <IconEdit size={20} color="#333" strokeWidth={1.5} />
           </View>
           <View className="flex-1 justify-center">
-            <Text className="font-semibold text-black tracking-[-0.3px]" style={{ fontSize: normalizeFontSize(16) }}>이름 변경</Text>
+            <Text className="font-semibold text-black tracking-[-0.3px]" style={{ fontSize: normalizeFontSize(16) }}>코스 수정</Text>
           </View>
         </TouchableOpacity>
 
@@ -101,7 +101,7 @@ export default function CourseMoreSheet({
           </View>
           <View className="flex-1 justify-center">
             <Text className="font-semibold text-brand tracking-[-0.3px]" style={{ fontSize: normalizeFontSize(16) }}>이 계획 전체 삭제</Text>
-            <Text className="font-normal text-brand opacity-70 mt-0.5 tracking-[-0.2px]" style={{ fontSize: normalizeFontSize(12) }}>{"스팟 개별 삭제는 '코스 편집'에서 · 되돌릴 수 없어요"}</Text>
+            <Text className="font-normal text-brand opacity-70 mt-0.5 tracking-[-0.2px]" style={{ fontSize: normalizeFontSize(12) }}>{"스팟 개별 삭제는 '스팟 변경'에서 · 되돌릴 수 없어요"}</Text>
           </View>
         </TouchableOpacity>
       </View>

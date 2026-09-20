@@ -953,7 +953,7 @@ export default function CoursePlanScreen({ navigation, route }: any) {
             style={{ height: BUTTON_HEIGHT }}
           >
             <Text allowFontScaling={false} className="font-medium text-black" style={{ fontSize: FONT_MD }}>
-              코스 편집
+              스팟 변경
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
