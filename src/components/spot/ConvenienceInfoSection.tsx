@@ -140,7 +140,15 @@ export default function ConvenienceInfoSection({ info, eventPeriod, onPressPetIn
           <FacilityChip
             key={f.key}
             chip={f}
-            onPress={f.key === 'pet' ? onPressPetInfo : f.key === 'wheel' ? onPressAccessibilityInfo : undefined}
+            onPress={
+              f.status === 'missing'
+                ? undefined
+                : f.key === 'pet'
+                  ? onPressPetInfo
+                  : f.key === 'wheel'
+                    ? onPressAccessibilityInfo
+                    : undefined
+            }
           />
         ))}
       </View>
