@@ -5,13 +5,14 @@
 - 기능명: spot-detail-api (스팟 상세 화면 API 연동)
 - 담당자: 박예은 (정보 탭 · `api/spot.ts`·`useSpot.ts` 공동)
 - 관련 이슈: 없음
+- 관련 도메인: spot
 - 대상 플랫폼: iOS / Android
 
 ## 2) 문제와 목표
 
 - 해결하려는 문제: `SpotDetailScreen` UI는 완료됐으나 모든 데이터가 하드코딩(`MOCK_*`)이고 `api/spot.ts`·`useSpot.ts`는 빈 스텁 상태.
 - 사용자 가치: 실제 스팟 상세·편의정보·리뷰·체크리스트를 서버에서 받아 표시.
-- 완료 기준(한 줄): 정보 탭(스팟 상세·편의정보·체크리스트)과 리뷰 탭이 실 API로 동작하고, 로딩/에러 상태를 처리한다.
+- 완료 기준(한 줄): 정보 탭(스팟 상세·편의정보·체크리스트·반려동물·무장애 상세)과 리뷰 탭이 실 API로 동작하고, 로딩/에러/빈 상태를 처리한다.
 
 ## 3) 범위
 
@@ -20,6 +21,10 @@
   - 리뷰 목록 조회 `GET /spots/{id}/reviews` (`timePeriod` 배지 포함, 정렬)
   - 체크리스트 조회/추가/삭제/숨김/복원 `GET·POST·DELETE /spots/{id}/checklist`
   - **포토제닉 지수 `GET /spots/{id}/photogenic-score?date=&time=`** (2차 확장 — API 팀이 date/time 재조회 + 골든아워 카운트다운 필드 제공하며 언블록됨)
+  - 편의정보의 반려동물·휠체어 항목을 통한 상세정보 지연 조회
+    - `GET /spots/{id}/pet-info`
+    - `GET /spots/{id}/accessibility-info`
+- 반려동물·접근성 상세정보 바텀 시트(로딩·오류·빈 상태 포함)
   - `api/spot.ts`, `hooks/useSpot.ts`, `types/spot.ts` 구현/보강
   - 정보 탭·리뷰 탭·체크리스트 섹션·포토제닉 카드 컴포넌트를 props/훅 기반으로 전환
 - 제외(Out of Scope):
@@ -48,6 +53,10 @@
   - Given: 정보 탭 포토제닉 카드
   - When: 날짜(오늘~+2일) 또는 시간(5분 단위) 셀렉터 변경
   - Then: `date`/`time` 파라미터로 재조회, 점수·등급·링·5개 팩터·골든아워 콜아웃 갱신 (로딩 표시)
+- 시나리오 E — 반려동물·접근성 상세정보 확인:
+  - Given: 정보 탭의 편의정보가 표시된 상태
+  - When: 반려동물 또는 휠체어 카드를 선택
+  - Then: 선택한 상세 API를 최초 선택 시 조회하고, 값이 있는 필드만 그룹별 바텀 시트로 표시
 
 ## 5) UI/UX 요구사항
 
@@ -56,6 +65,7 @@
 - 빈 상태: 리뷰 0건 시 목록 빈 처리 / 체크리스트 미등록 시 편집(추가) 상태
 - 에러 상태: 조회 실패 시 재시도 가능한 최소 에러 표시(Toast 또는 인라인)
 - 로딩 상태: 상세 로딩 시 헤더/편의정보 스켈레톤(기존 `ConvenienceInfoSection.loading` 계약 활용), 리뷰 로딩 시 스피너/플레이스홀더
+- 반려동물·접근성 상세정보: API 호출 중 로딩 표시, 조회 실패 시 재시도 제공, `204 No Content` 또는 표시 가능한 필드가 없으면 빈 상태 표시
 
 ## 6) 데이터/API 요구사항
 
@@ -63,7 +73,7 @@ Base URL: `http://localhost:8080` (`EXPO_PUBLIC_API_URL`). 체크리스트는 `A
 
 | 용도 | 메서드 · 경로 | 인증 | 비고 |
 |---|---|---|---|
-| 상세 | `GET /spots/{id}` | X | `convenience`·`stats`·`tags`·`isBookmarked` 포함 |
+| 상세 | `GET /spots/{id}` | X | `convenience`·`stats`·`tags`·`isBookmarked`·`hasPetInfo`·`hasAccessibilityInfo` 포함 |
 | 리뷰 | `GET /spots/{id}/reviews?sort=&page=&size=` | X | `summary` + 페이지네이션. **1페이지만** (load-more 후속) |
 | 체크리스트 조회 | `GET /spots/{id}/checklist` | O | `defaultItems` + `userItems` |
 | 체크리스트 추가 | `POST /spots/{id}/checklist` | O | body `{content}`, 최대 10·20자, `201` |
@@ -72,6 +82,8 @@ Base URL: `http://localhost:8080` (`EXPO_PUBLIC_API_URL`). 체크리스트는 `A
 | 기본 항목 복원 | `POST /spots/{id}/checklist/default/{defaultItemId}/restore` | O | 숨김 해제, 멱등(숨겨져 있지 않아도 `204`) |
 | 사진 목록 | `GET /spots/{id}/photos` | X | TourAPI 사진만(유저 업로드 제외). `detailImage2`가 대표 사진(`firstimage`)을 응답에서 빼므로 `imageUrl`은 이 목록에 **없다** → 고유 장수 = `photos` + 대표 1 |
 | 포토제닉 | `GET /spots/{id}/photogenic-score?date=&time=` | X | `date`(yyyy-MM-dd)·`time`(HH:mm) 선택 파라미터. 5팩터 + 골든아워 카운트다운 |
+| 반려동물 상세 | `GET /spots/{id}/pet-info` | X | 상세정보가 없으면 `204`; 클라이언트에서 `null`로 정규화 |
+| 무장애 상세 | `GET /spots/{id}/accessibility-info` | X | 상세정보가 없으면 `204`; 클라이언트에서 `null`로 정규화 |
 
 **응답 → 뷰 모델 매핑**
 
@@ -82,6 +94,7 @@ Base URL: `http://localhost:8080` (`EXPO_PUBLIC_API_URL`). 체크리스트는 `A
 - 편의정보(`convenience`) → `ConvenienceInfo`:
   - transport 카드: `parking`, `subwayAccess`
   - cells: **주차장**(`parking`), 휠체어(`wheelchairAccess`), 유모차(`strollerAccess`), 반려동물(`petFriendly`), 지하철(`subwayAccess`), 문의(`infocenter`) — 값이 "가능/있음"이면 `green`, 아니면 `default`
+  - 반려동물·접근성 정보 카드는 기존 문자열 대신 `hasPetInfo`·`hasAccessibilityInfo`를 기준으로 `상세정보 확인`/`미제공`을 표시한다.
 - 리뷰: `distribution`(카운트) → percent 변환, `nickname` → 이름·이니셜(첫 글자)·아바타색(클라 생성), **`timePeriod`**(SUNRISE/**DAYTIME**/SUNSET/NIGHT) → 배지 라벨(일출/낮/일몰/야간), **`timePeriod === null`이면 배지 미표시**, `equipmentInfo`→장비, **`photos`는 `{photoId, url}` 객체 배열** → `url`만 추출해 사용
   - ⚠️ 필드명은 `timeSlot`이 아니라 `timePeriod`, "낮"은 `DAY`가 아니라 `DAYTIME`. `photos`도 URL 문자열 배열이 아님 — 셋 다 실제 응답으로 확인함(2026-08-10)
 - 정렬: 최신순→`LATEST`, 별점 높은순→`RATING_HIGH`, 별점 낮은순→`RATING_LOW`
@@ -93,14 +106,15 @@ Base URL: `http://localhost:8080` (`EXPO_PUBLIC_API_URL`). 체크리스트는 `A
   - 골든아워 콜아웃: `minutesUntilStart`/`startTime` 사용. **null 규칙** — `minutesUntilStart=null & score=5` → "진행 중", `=null & score=0` → "오늘 종료", 그 외 "N분 후 시작 · HH:mm"
   - "데이터 없음"/"해당 없음" label은 그대로 노출(score 0, bar 0)
 - 포토제닉 재조회: 날짜(오늘~+2일, `yyyy-MM-dd`)·시간(`HH:mm`, 5분 단위) 셀렉터 → `date`/`time` 파라미터로 재조회. 쿼리키 `['spot', id, 'photogenic', date, time]`
+- 반려동물·무장애 상세정보: 카드 선택 전에는 호출하지 않으며 각각 `['spot', id, 'pet-info']`, `['spot', id, 'accessibility-info']`로 캐시. 빈 문자열 필드는 바텀 시트에서 제외
 
 - 실패 처리: `api/auth.ts`의 `ApiError`/`toErrorMessage` 재사용, 타임아웃 10s
 - 캐싱/무효화: 상세·리뷰는 `spotId`(+`sort`) 쿼리키. 체크리스트 add/delete 성공 시 `['spot', id, 'checklist']` invalidate
 
 ## 7) 상태 관리
 
-- 서버 상태: TanStack Query (`hooks/useSpot.ts`) — `useQuery` 4종(상세·리뷰·체크리스트·포토제닉) + `useMutation` 2종
-- 클라이언트 상태: 리뷰 정렬 선택, 체크리스트 체크 토글(로컬), 포토제닉 날짜/시간 선택, 인증 토큰은 `useAuthStore.accessToken`
+- 서버 상태: TanStack Query (`hooks/useSpot.ts`) — 상세·리뷰·체크리스트·포토제닉·반려동물·무장애 조회와 체크리스트 mutation 관리
+- 클라이언트 상태: 리뷰 정렬 선택, 체크리스트 체크 토글(로컬), 포토제닉 날짜/시간 선택, 열려 있는 여행정보 시트 종류, 인증 토큰은 `useAuthStore.accessToken`
 - 영속화: 불필요
 
 ## 8) 기술 제약 체크
@@ -119,12 +133,14 @@ Base URL: `http://localhost:8080` (`EXPO_PUBLIC_API_URL`). 체크리스트는 `A
 - [ ] AC4: 상세/리뷰 조회 로딩·에러 상태가 크래시 없이 처리된다.
 - [ ] AC5: `tsc --noEmit`·`lint` 통과, `MOCK_*` 상수가 화면 렌더 경로에서 제거된다.
 - [ ] AC6: 포토제닉 카드가 실 API로 렌더되고(5팩터·골든아워 카운트다운), 날짜/시간 셀렉터 변경 시 `date`/`time`으로 재조회되어 값이 갱신된다.
+- [ ] AC7: 반려동물·휠체어 카드를 선택할 때만 해당 상세 API를 호출하고, 값이 있는 응답 필드를 그룹별 바텀 시트에 표시한다.
+- [ ] AC8: 반려동물·무장애 상세 API의 로딩·실패·`204 No Content` 상태가 크래시 없이 처리된다.
 
 ## 10) 테스트 시나리오
 
 - 정상: 유효 `spotId`로 상세·리뷰·체크리스트·포토제닉 정상 표시
-- 경계: 리뷰 0건, 체크리스트 userItems 0건, 태그 빈 배열, `equipmentInfo`/`photos` 누락, 골든아워 `minutesUntilStart=null`(진행 중/종료), 팩터 "데이터 없음"
-- 실패: 404(없는 스팟), 401(체크리스트 미인증), 네트워크 타임아웃
+- 경계: 리뷰 0건, 체크리스트 userItems 0건, 태그 빈 배열, `equipmentInfo`/`photos` 누락, 골든아워 `minutesUntilStart=null`(진행 중/종료), 팩터 "데이터 없음", 여행정보 `204`, 일부 필드 빈 문자열
+- 실패: 404(없는 스팟), 401(체크리스트 미인증), 반려동물·무장애 상세 조회 실패, 네트워크 타임아웃
 
 ## 11) 결정 사항 (확정)
 

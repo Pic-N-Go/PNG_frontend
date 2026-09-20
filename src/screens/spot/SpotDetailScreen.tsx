@@ -21,7 +21,16 @@ import SaveToPlanSheet from '@/components/spot/SaveToPlanSheet';
 import NaviSheet from '@/components/spot/NaviSheet';
 import BookmarkSheet from '@/components/spot/BookmarkSheet';
 import PhotoLightbox from '@/components/spot/PhotoLightbox';
-import { useBookmarkCollections, useSpotDetail, useSpotPhotogenicScore, useSpotPhotos, useSpotSummary } from '@/hooks/useSpot';
+import { AccessibilityInfoSheet, PetInfoSheet } from '@/components/spot/TravelInfoSheet';
+import {
+  useBookmarkCollections,
+  useSpotAccessibilityInfo,
+  useSpotDetail,
+  useSpotPetInfo,
+  useSpotPhotogenicScore,
+  useSpotPhotos,
+  useSpotSummary,
+} from '@/hooks/useSpot';
 import { useFestival } from '@/hooks/useFestival';
 import { useKeyboardOverlap } from '@/hooks/useKeyboardHeight';
 import { exifFromPhotoUrl, toHttps } from '@/utils/spotMappers';
@@ -84,6 +93,9 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
   const [saveSheetVisible, setSaveSheetVisible] = useState(false);
   const [naviSheetVisible, setNaviSheetVisible] = useState(false);
   const [bookmarkSheetVisible, setBookmarkSheetVisible] = useState(false);
+  const [travelInfoSheet, setTravelInfoSheet] = useState<'pet' | 'accessibility' | null>(null);
+  const petInfo = useSpotPetInfo(spotId, travelInfoSheet === 'pet');
+  const accessibilityInfo = useSpotAccessibilityInfo(spotId, travelInfoSheet === 'accessibility');
 
   const [toastVisible, setToastVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
@@ -517,6 +529,8 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
                 <ConvenienceInfoSection
                   info={convenience}
                   eventPeriod={eventPeriodData}
+                  onPressPetInfo={() => setTravelInfoSheet('pet')}
+                  onPressAccessibilityInfo={() => setTravelInfoSheet('accessibility')}
                 />
                 <View style={{ height: normalize(24) }} />
                 <LinkBanner
@@ -611,6 +625,26 @@ export default function SpotDetailScreen({ navigation, route }: Props) {
         onSaved={(count) => {
           setBookmarkSheetVisible(false);
           showToast(count > 0 ? `${count}개 컬렉션에 저장됐어요` : '즐겨찾기에서 제거됐어요');
+        }}
+      />
+      <PetInfoSheet
+        visible={travelInfoSheet === 'pet'}
+        onClose={() => setTravelInfoSheet(null)}
+        data={petInfo.data}
+        isLoading={petInfo.isLoading}
+        isError={petInfo.isError}
+        onRetry={() => {
+          void petInfo.refetch();
+        }}
+      />
+      <AccessibilityInfoSheet
+        visible={travelInfoSheet === 'accessibility'}
+        onClose={() => setTravelInfoSheet(null)}
+        data={accessibilityInfo.data}
+        isLoading={accessibilityInfo.isLoading}
+        isError={accessibilityInfo.isError}
+        onRetry={() => {
+          void accessibilityInfo.refetch();
         }}
       />
 

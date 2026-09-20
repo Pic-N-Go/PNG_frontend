@@ -379,9 +379,8 @@ export const adminApi = {
       },
       10_000
     );
-    const json = (await res.json()) as any;
-    const body = json?.data !== undefined && json.data !== null ? json.data : json;
-    return body as TourSyncStatusResponse;
+    const json: unknown = await res.json();
+    return unwrapResponse<TourSyncStatusResponse>(json);
   },
 
   // 3.5 사진공모전 특정 지역 동기화 (POST /admin/photo-award/sync?lDongRegnCd=...)

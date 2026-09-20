@@ -140,15 +140,29 @@ function parseSchedule(raw: string | null): ScheduleGroup[] | null {
   return groups;
 }
 
-export function mapConvenience(c: ConvenienceDTO): ConvenienceInfo {
+export function mapConvenience(
+  c: ConvenienceDTO,
+  hasPetInfo = false,
+  hasAccessibilityInfo = false,
+): ConvenienceInfo {
   const holiday = clean(c.restdate);
   const schedule = parseSchedule(c.usetime);
   return {
     facilities: [
       { key: 'parking', label: '주차장', value: facilityValue(c.parking), status: availStatus(c.parking) },
-      { key: 'wheel', label: '휠체어 접근', value: facilityValue(c.wheelchairAccess), status: availStatus(c.wheelchairAccess) },
+      {
+        key: 'wheel',
+        label: '접근성 정보',
+        value: hasAccessibilityInfo ? '상세정보 확인' : NOT_PROVIDED,
+        status: hasAccessibilityInfo ? 'good' : 'missing',
+      },
       { key: 'stroller', label: '유모차', value: facilityValue(c.strollerAccess), status: availStatus(c.strollerAccess) },
-      { key: 'pet', label: '반려동물', value: facilityValue(c.petFriendly), status: availStatus(c.petFriendly) },
+      {
+        key: 'pet',
+        label: '반려동물',
+        value: hasPetInfo ? '상세정보 확인' : NOT_PROVIDED,
+        status: hasPetInfo ? 'good' : 'missing',
+      },
       { key: 'subway', label: '지하철', value: facilityValue(c.subwayAccess), status: availStatus(c.subwayAccess) },
       { key: 'holiday', label: '휴무일', value: holiday || NOT_PROVIDED, status: holiday ? 'accent' : 'missing' },
     ],
@@ -475,7 +489,7 @@ export function mapSpotDetail(dto: SpotDetailResponse): { info: SpotDetailInfo; 
       navigation: dto.navigation,
       photoAward: dto.photoAward ?? null,
     },
-    convenience: mapConvenience(dto.convenience),
+    convenience: mapConvenience(dto.convenience, dto.hasPetInfo, dto.hasAccessibilityInfo),
   };
 }
 

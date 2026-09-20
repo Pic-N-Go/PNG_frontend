@@ -113,6 +113,27 @@ export interface TourSyncStatusResponse {
   startedAt?: string | null;
   lastCompletedAt?: string | null;
   lastError?: string | null;
+  jobId?: string | null;
+  overallStatus?: TourSyncStageStatus | null;
+  spot?: TourSyncStageResponse | null;
+  pet?: TourSyncStageResponse | null;
+  accessibility?: TourSyncStageResponse | null;
+}
+
+export type TourSyncStageStatus =
+  | 'PENDING'
+  | 'IN_PROGRESS'
+  | 'RETRYING'
+  | 'COMPLETED'
+  | 'FAILED';
+
+export interface TourSyncStageResponse {
+  status: TourSyncStageStatus;
+  processedCount: number;
+  totalCount: number;
+  progressPercent: number;
+  message: string;
+  lastError?: string | null;
 }
 
 export interface PhotoAwardSyncStatusResponse {

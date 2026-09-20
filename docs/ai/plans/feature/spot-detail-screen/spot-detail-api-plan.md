@@ -3,8 +3,9 @@
 ## 1) 입력 스펙
 
 - 스펙 문서: `docs/ai/specs/feature/spot-detail-screen/spot-detail-api.md`
+- 관련 도메인: spot
 - 관련 목업: `src/components/ui/spot/spot-detail.html` (정보/리뷰 탭)
-- 완료 목표: 정보 탭(상세·편의정보·체크리스트) + 리뷰 탭이 실 API로 동작, 로딩/에러 처리, `MOCK_*` 제거(포토제닉 제외)
+- 완료 목표: 정보 탭(상세·편의정보·체크리스트·반려동물·무장애 상세) + 리뷰 탭이 실 API로 동작, 로딩/에러/빈 상태 처리, `MOCK_*` 제거(포토제닉 제외)
 
 ## 2) 구현 전략
 
@@ -141,21 +142,40 @@
 - 완료 조건: 셀렉터 변경 시 재조회·갱신, 크래시 없음
 - 검증 방법: `tsc`/`lint`
 
+### Task 11 — 반려동물·무장애 상세정보 지연 조회
+
+- 대상 파일:
+  - `src/types/spot.ts`
+  - `src/api/spot.ts`
+  - `src/hooks/useSpot.ts`
+  - `src/components/spot/ConvenienceInfoSection.tsx`
+  - `src/components/spot/TravelInfoSheet.tsx` (신규)
+  - `src/screens/spot/SpotDetailScreen.tsx`
+- 변경 내용:
+  - 백엔드 응답과 동일한 반려동물·무장애 DTO 타입 추가
+  - `204 No Content`를 `null`로 정규화하는 공개 상세 API 함수 추가
+  - 반려동물·휠체어 카드를 선택할 때만 실행되는 TanStack Query 훅 추가
+  - 값이 있는 필드만 그룹별로 노출하는 공통 여행정보 바텀 시트 추가
+  - 로딩·오류 및 재시도·빈 상태 처리
+- 완료 조건: 두 카드가 각각의 상세정보 시트를 열고 상태별 UI가 크래시 없이 표시됨
+- 검증 방법: `tsc`/`lint`; 백엔드 이용 가능 시 정상 응답·204·실패 수동 확인
+
 ## 4) 검증 체크포인트
 
 - [ ] `pnpm exec tsc --noEmit`
 - [ ] `pnpm lint`
 - [ ] 정보 탭·리뷰 탭·포토제닉 주요 시나리오 수동 검증 (TODO: 백엔드 기동 필요)
+- [ ] 반려동물·무장애 상세 시트 정상 응답·204·재시도 수동 검증 (TODO: 백엔드 기동 필요)
 - [ ] `MOCK_*` 잔존 확인 (전 도메인)
 
 ## 5) 롤백 계획
 
-- 영향 파일: `types/spot.ts`, `utils/spotMappers.ts`, `api/spot.ts`, `hooks/useSpot.ts`, `screens/spot/SpotDetailScreen.tsx`, `components/spot/{ConvenienceInfoSection,ChecklistSection,ReviewTab}.tsx`
+- 영향 파일: `types/spot.ts`, `utils/spotMappers.ts`, `api/spot.ts`, `hooks/useSpot.ts`, `screens/spot/SpotDetailScreen.tsx`, `components/spot/{ConvenienceInfoSection,TravelInfoSheet,ChecklistSection,ReviewTab}.tsx`
 - 되돌림: `git restore <파일>` (커밋 전) / 커밋 후 revert
 - 데이터 영향: 없음(읽기 위주, 체크리스트 add/delete는 서버 상태 변경)
 
 ## 6) PR 구성
 
-- PR 제목: `feat(spot): 스팟 상세 정보/리뷰/체크리스트 API 연동`
-- 변경 요약: 상세·리뷰·체크리스트 실 API 연동, 편의정보 주차장 셀 교체, 정보/리뷰 탭 mock 제거
-- 리뷰 요청 포인트: 체크리스트 UI 재구성 방향, DTO→뷰모델 매퍼, 쿼리 무효화
+- PR 제목: `feat(spot): 스팟 상세 정보 API 연동`
+- 변경 요약: 상세·리뷰·체크리스트·반려동물·무장애 실 API 연동, 편의정보 주차장 셀 교체, 정보/리뷰 탭 mock 제거
+- 리뷰 요청 포인트: 체크리스트 UI 재구성 방향, DTO→뷰모델 매퍼, 여행정보 지연 조회와 `204` 처리, 쿼리 무효화
