@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { useFocusEffect } from "@react-navigation/native";
-import { View, Text, TouchableOpacity, ScrollView, Alert, Image, KeyboardAvoidingView, Platform, StyleSheet } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView, Alert, Image, KeyboardAvoidingView, Platform, StyleSheet, RefreshControl } from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { getFallbackGradient } from "@/utils/gradient";
 import { coursesApi } from "@/api/courses";
@@ -263,11 +263,22 @@ export default function CoursePlanScreen({ navigation, route }: any) {
     if (!ok) showToast('공유 화면을 열지 못했어요');
   };
 
-  const { data: weatherData } = useQuery({
+  const { data: weatherData, refetch: refetchWeather } = useQuery({
     queryKey: ['courseWeather', planId],
     queryFn: () => coursesApi.getCourseWeather(Number(planId)),
     enabled: !!planId,
   });
+
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await Promise.allSettled([refetch(), refetchWeather()]);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refetch, refetchWeather]);
 
   useEffect(() => {
     if (course) {
@@ -942,7 +953,7 @@ export default function CoursePlanScreen({ navigation, route }: any) {
             style={{ height: BUTTON_HEIGHT }}
           >
             <Text allowFontScaling={false} className="font-medium text-black" style={{ fontSize: FONT_MD }}>
-              코스 편집
+              스팟 변경
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
@@ -1114,6 +1125,16 @@ export default function CoursePlanScreen({ navigation, route }: any) {
         ref={scrollRef}
         className="flex-1 bg-white"
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          isEditMode ? undefined : (
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor={BRAND}
+              colors={[BRAND]}
+            />
+          )
+        }
       >
         <View
           onLayout={(e) => {

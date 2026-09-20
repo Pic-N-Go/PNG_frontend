@@ -109,6 +109,17 @@ export default function CourseNewScreen() {
   const [isDateSheetOpen, setIsDateSheetOpen] = useState(false);
   const [isUnsavedSheetOpen, setIsUnsavedSheetOpen] = useState(false);
   const [isDelSheetOpen, setIsDelSheetOpen] = useState(false);
+  // 코스 수정 중 날짜를 기존 일차보다 짧게 줄일 때 뜨는 경고
+  const [isShortenWarnOpen, setIsShortenWarnOpen] = useState(false);
+  const [pendingDate, setPendingDate] = useState<{ start: Date; end: Date } | null>(null);
+
+  // 코스 수정 진입 시점의 원래 일차 수 — 이보다 짧아지면 초과 일차가 삭제된다.
+  const originalDaysCount = useMemo(() => {
+    const oStart = parseLocalDate(route.params?.initialStartDate);
+    const oEnd = parseLocalDate(route.params?.initialEndDate);
+    if (!oStart || !oEnd) return 0;
+    return Math.round((oEnd.getTime() - oStart.getTime()) / (1000 * 60 * 60 * 24)) + 1;
+  }, [route.params?.initialStartDate, route.params?.initialEndDate]);
   
   // Date Picker internal state
   const [pickPhase, setPickPhase] = useState<'start' | 'end'>('start');
@@ -384,6 +395,13 @@ export default function CourseNewScreen() {
     }
   };
 
+  const applyDate = (start: Date | null, end: Date | null) => {
+    setStartDate(start);
+    setEndDate(end);
+    setIsDateSheetOpen(false);
+    markDirty();
+  };
+
   const confirmDate = () => {
     if (tempStart && tempEnd) {
       const diffDays = Math.round((tempEnd.getTime() - tempStart.getTime()) / (1000 * 60 * 60 * 24)) + 1;
@@ -391,11 +409,14 @@ export default function CourseNewScreen() {
         showToast(`출사 계획은 최대 ${MAX_TRIP_DAYS}일까지 만들 수 있어요.`);
         return;
       }
+      // 코스 수정에서 기존 일차보다 짧게 줄이면, 초과 일차가 삭제되므로 먼저 확인받는다.
+      if (editMode && originalDaysCount > 0 && diffDays < originalDaysCount) {
+        setPendingDate({ start: tempStart, end: tempEnd });
+        setIsShortenWarnOpen(true);
+        return;
+      }
     }
-    setStartDate(tempStart);
-    setEndDate(tempEnd);
-    setIsDateSheetOpen(false);
-    markDirty();
+    applyDate(tempStart, tempEnd);
   };
 
   // Calendar rendering variables
@@ -416,7 +437,7 @@ export default function CourseNewScreen() {
         <TouchableOpacity onPress={handleBack} className="w-9 h-9 items-center justify-center rounded-full bg-white/10">
           <IconChevronLeft size={24} color="#fff" />
         </TouchableOpacity>
-        <Text className="font-semibold text-white tracking-[-0.4px]" style={{ fontSize: FONT_LG }}>새 출사 계획</Text>
+        <Text className="font-semibold text-white tracking-[-0.4px]" style={{ fontSize: FONT_LG }}>{editMode ? '코스 수정' : '새 출사 계획'}</Text>
         <View className="w-9" />
       </View>
 
@@ -773,6 +794,39 @@ export default function CourseNewScreen() {
               <Text className="font-medium text-white" style={{ fontSize: FONT_SM }}>삭제하기</Text>
             </TouchableOpacity>
             <TouchableOpacity onPress={() => setIsDelSheetOpen(false)} className="w-full bg-card items-center justify-center" style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}>
+              <Text className="font-medium text-black" style={{ fontSize: FONT_SM }}>취소</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* 일차 단축 경고 시트 — 기존 일차보다 짧게 날짜를 줄일 때 */}
+      <Modal visible={isShortenWarnOpen} transparent animationType="slide">
+        <View className="flex-1 justify-end bg-black/40">
+          <Pressable className="absolute inset-0" onPress={() => setIsShortenWarnOpen(false)} />
+          <View className="bg-white rounded-t-[24px] px-5 pb-8 pt-3 items-center">
+            <View className="w-9 h-1 rounded-full bg-black/10 mb-7" />
+            <Text className="font-semibold text-black mb-2" style={{ fontSize: FONT_MD }}>현재 일차보다 짧게 변경하시겠습니까?</Text>
+            <Text className="text-black/45 mb-7 text-center font-normal" style={{ fontSize: FONT_SM }}>초과된 일차는 저장되지 않고 삭제됩니다.</Text>
+            <TouchableOpacity
+              onPress={() => {
+                if (pendingDate) applyDate(pendingDate.start, pendingDate.end);
+                setPendingDate(null);
+                setIsShortenWarnOpen(false);
+              }}
+              className="w-full bg-brand items-center justify-center mb-2.5"
+              style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}
+            >
+              <Text className="font-medium text-white" style={{ fontSize: FONT_SM }}>확인</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => {
+                setPendingDate(null);
+                setIsShortenWarnOpen(false);
+              }}
+              className="w-full bg-card items-center justify-center"
+              style={{ height: BUTTON_HEIGHT, borderRadius: BUTTON_RADIUS }}
+            >
               <Text className="font-medium text-black" style={{ fontSize: FONT_SM }}>취소</Text>
             </TouchableOpacity>
           </View>

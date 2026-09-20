@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, Animated, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Animated, Alert, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { FONT_SM, FONT_MD, FONT_LG, FONT_2XL, BUTTON_HEIGHT, BUTTON_RADIUS, CONTENT_PADDING, CARD_RADIUS, ICON_SM } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
@@ -76,6 +76,17 @@ export default function CourseListScreen({ navigation }: any) {
     queryKey: ['courses'],
     queryFn: coursesApi.getCourses,
   });
+
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await refetch();
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refetch]);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -186,6 +197,14 @@ export default function CourseListScreen({ navigation }: any) {
       <Animated.ScrollView
         className="flex-1 bg-white"
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor={BRAND}
+            colors={[BRAND]}
+          />
+        }
         // 칩 줄을 렌더하지 않을 때는 sticky 대상도 없다. 인덱스를 그대로 두면
         // React.Children.toArray가 false를 걸러내 콘텐츠 블록이 sticky가 된다.
         stickyHeaderIndices={hasNoPlans ? [] : [1]}

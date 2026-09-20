@@ -7,9 +7,11 @@ import { CARD_RADIUS, FONT_2XS, FONT_MD, FONT_SM, FONT_TITLE, FONT_XS, GRID_PADD
 import { BRAND, BRAND_TINT, CARD, TEXT_SUB } from '@/constants/colors';
 import Skeleton from '@/components/common/Skeleton';
 import BookmarkSheet from '@/components/spot/BookmarkSheet';
+import { useQueries } from '@tanstack/react-query';
 import { useAuthStore } from '@/store/useAuthStore';
 import { useSpots } from '@/hooks/useSpot';
-import { regionLabelFrom, toHttps } from '@/utils/spotMappers';
+import { spotApi } from '@/api/spot';
+import { mapPhotogenicScore, regionLabelFrom, toHttps } from '@/utils/spotMappers';
 import { SPOT_CATEGORY_MAP } from '@/constants/spotCategories';
 import type { SpotResponse } from '@/types/spot';
 
@@ -202,7 +204,9 @@ function BestSpotCard({
                   color: BRAND,
                 }}
               >
-                포토제닉 {Math.round(spot.photogenicScore)}점
+                {Math.round(spot.photogenicScore) > 0
+                  ? `포토제닉 ${Math.round(spot.photogenicScore)}점`
+                  : '인기 출사지'}
               </Text>
             </View>
 
@@ -240,12 +244,49 @@ export default function TodayBestSpotsSection({ onSpotPress, onViewAll }: Props)
   const isLoggedIn = useAuthStore((s) => !!s.accessToken);
   const [sheetSpotId, setSheetSpotId] = useState<string | null>(null);
 
-  // 백엔드 SpotService.resolveSort('score') -> photogenicScore DESC 정렬된 상위 5개 스팟
-  const { data, isLoading, isError, refetch } = useSpots({ sort: 'score', size: 5 });
+  // 1. 전국 인기 출사지 후보군 조회 (북마크/리뷰 상위 스팟)
+  const { data, isLoading, isError, refetch } = useSpots({ sort: 'popular', size: 8 });
 
-  const spots = useMemo(() => {
-    return (data?.content ?? []).slice(0, 5);
+  const candidateSpots = useMemo(() => {
+    return data?.content ?? [];
   }, [data?.content]);
+
+  // 2. 각 후보 스팟의 실시간 포토제닉 점수(실시간 날씨·미세먼지·골든아워 등 종합 계산) 병렬 조회
+  const scoreQueries = useQueries({
+    queries: candidateSpots.map((spot) => ({
+      queryKey: ['spot', String(spot.id), 'photogenic', null, null],
+      queryFn: () => spotApi.getPhotogenicScore(spot.id),
+      select: mapPhotogenicScore,
+      staleTime: 1000 * 60 * 10,
+      enabled: candidateSpots.length > 0,
+    })),
+  });
+
+  const isScoresLoading = scoreQueries.length > 0 && scoreQueries.some((q) => q.isLoading);
+
+  // 3. 실시간 계산된 포토제닉 점수를 반영하고, 점수 내림차순으로 상위 5개 선별
+  const spots = useMemo(() => {
+    if (candidateSpots.length === 0) return [];
+
+    const spotsWithScore = candidateSpots.map((spot, index) => {
+      const liveScore = scoreQueries[index]?.data?.score;
+      return {
+        ...spot,
+        photogenicScore: liveScore !== undefined && liveScore > 0 ? liveScore : spot.photogenicScore,
+      };
+    });
+
+    return [...spotsWithScore]
+      .sort((a, b) => b.photogenicScore - a.photogenicScore)
+      .slice(0, 5);
+  }, [candidateSpots, scoreQueries]);
+
+  const showSkeleton = isLoading || (candidateSpots.length > 0 && isScoresLoading && spots.every((s) => s.photogenicScore === 0));
+
+  const handleRefetch = () => {
+    void refetch();
+    scoreQueries.forEach((q) => void q.refetch());
+  };
 
   return (
     <View style={{ marginTop: normalize(28) }}>
@@ -295,7 +336,7 @@ export default function TodayBestSpotsSection({ onSpotPress, onViewAll }: Props)
       </Text>
 
       {/* 가로 카드 목록 */}
-      {isLoading ? (
+      {showSkeleton ? (
         <View style={{ flexDirection: 'row', ...ROW_STYLE }}>
           {[0, 1, 2].map((i) => (
             <Skeleton key={i} width={CARD_WIDTH} height={CARD_HEIGHT} borderRadius={CARD_RADIUS} />
@@ -309,7 +350,7 @@ export default function TodayBestSpotsSection({ onSpotPress, onViewAll }: Props)
           >
             베스트 출사지를 불러오지 못했어요.
           </Text>
-          <Pressable onPress={() => void refetch()} hitSlop={8} style={{ marginTop: normalize(6) }}>
+          <Pressable onPress={handleRefetch} hitSlop={8} style={{ marginTop: normalize(6) }}>
             <Text
               allowFontScaling={false}
               style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_MD, color: BRAND }}
