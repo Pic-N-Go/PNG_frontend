@@ -394,6 +394,16 @@ export function useSpotPhotogenicScore(id: string, date?: string, time?: string)
   });
 }
 
+export function useSpotCongestion(id: string | number, date?: string) {
+  return useQuery({
+    queryKey: ['spot', String(id), 'congestion', date ?? null],
+    queryFn: () => spotApi.getSpotCongestion(id, date),
+    enabled: !!id,
+    placeholderData: keepPreviousData,
+    staleTime: 1000 * 60 * 30, // 30분
+  });
+}
+
 const bookmarkKey = (id: string) => ['bookmark-collections', id] as const;
 
 // 화면(별표)과 시트가 같은 키로 공유 → 한 번만 fetch, 캐시 공유

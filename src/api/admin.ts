@@ -8,6 +8,7 @@ import type {
   EmbeddingBackfillResponse,
   EmbeddingSingleResponse,
   TourSyncStatusResponse,
+  PhotoAwardSyncStatusResponse,
   AdminPageResponse,
   ContestCreateRequest,
   ContestUpdateRequest,
@@ -381,6 +382,55 @@ export const adminApi = {
     const json = (await res.json()) as any;
     const body = json?.data !== undefined && json.data !== null ? json.data : json;
     return body as TourSyncStatusResponse;
+  },
+
+  // 3.5 사진공모전 특정 지역 동기화 (POST /admin/photo-award/sync?lDongRegnCd=...)
+  syncPhotoAwardArea: async (lDongRegnCd: number, accessToken: string): Promise<string> => {
+    const res = await fetchWithTimeout(
+      `${BASE}/admin/photo-award/sync?lDongRegnCd=${lDongRegnCd}`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+      60_000
+    );
+    const text = await res.text();
+    return text || '사진공모전 지역 동기화 작업이 큐에 등록되었습니다.';
+  },
+
+  // 3.6 사진공모전 전국 17개 지역 전체 동기화 (POST /admin/photo-award/sync/all)
+  syncPhotoAwardAll: async (accessToken: string): Promise<string> => {
+    const res = await fetchWithTimeout(
+      `${BASE}/admin/photo-award/sync/all`,
+      {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+      60_000
+    );
+    const text = await res.text();
+    return text || '사진공모전 전국 전체 동기화 작업이 큐에 등록되었습니다.';
+  },
+
+  // 3.7 사진공모전 실시간 동기화 진행 상태 조회 (GET /admin/photo-award/sync/status)
+  getPhotoAwardSyncStatus: async (accessToken: string): Promise<PhotoAwardSyncStatusResponse> => {
+    const res = await fetchWithTimeout(
+      `${BASE}/admin/photo-award/sync/status`,
+      {
+        method: 'GET',
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      },
+      10_000
+    );
+    const json = (await res.json()) as any;
+    const body = json?.data !== undefined && json.data !== null ? json.data : json;
+    return body as PhotoAwardSyncStatusResponse;
   },
 
   // ── 4. 콘테스트 운영 관리 API (/admin/contests) ──────────────────────

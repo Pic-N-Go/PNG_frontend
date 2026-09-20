@@ -37,6 +37,7 @@ import {
   IconBolt,
   IconTrophy,
   IconFlag,
+  IconPhoto,
 } from '@tabler/icons-react-native';
 import { normalize } from '@/utils/normalize';
 import { BORDER_CONTROL, BUTTON_RADIUS, CARD_RADIUS, FONT_2XL, FONT_2XS, FONT_LG, FONT_MD, FONT_SM, FONT_XS, GRID_PADDING, SPACING_MD, SPACING_SM } from '@/constants/layout';
@@ -50,10 +51,13 @@ import {
   useSyncAllTourApi,
   useSyncSampleTourApi,
   useTourSyncStatus,
+  useSyncPhotoAwardAreaMutation,
+  useSyncPhotoAwardAllMutation,
+  usePhotoAwardSyncStatus,
 } from '@/hooks/useAdmin';
 import { useAdminInquiries, useAnswerInquiry } from '@/hooks/useInquiries';
 import { useKeyboardOverlap } from '@/hooks/useKeyboardHeight';
-import { AREA_CODES, type AreaCodeItem, type AdminUser } from '@/types/admin';
+import { AREA_CODES, LEGAL_DONG_REGIONS, type AreaCodeItem, type LegalDongRegion, type AdminUser } from '@/types/admin';
 import {
   INQUIRY_TYPES,
   INQUIRY_ANSWER_TEMPLATES,
@@ -190,6 +194,31 @@ export default function AdminDashboardScreen() {
     return 0;
   }, [tourSyncStatus?.progressPercent, tourSyncStatus?.totalCount, tourSyncStatus?.processedCount]);
   const [selectedArea, setSelectedArea] = useState<AreaCodeItem>(AREA_CODES[0]); // 기본 서울(1)
+
+  // ── 5. 사진공모전 수상작 동기화 상태 및 훅 ──────────────────────────
+  const syncPhotoAwardAreaMutation = useSyncPhotoAwardAreaMutation();
+  const syncPhotoAwardAllMutation = useSyncPhotoAwardAllMutation();
+  const {
+    data: photoAwardSyncStatus,
+    isPending: isPhotoAwardStatusPending,
+    isError: isPhotoAwardStatusError,
+  } = usePhotoAwardSyncStatus();
+  const isPhotoAwardSyncBlocked =
+    isPhotoAwardStatusPending ||
+    isPhotoAwardStatusError ||
+    !!photoAwardSyncStatus?.isRunning ||
+    syncPhotoAwardAreaMutation.isPending ||
+    syncPhotoAwardAllMutation.isPending;
+  const [selectedLegalDong, setSelectedLegalDong] = useState<LegalDongRegion>(LEGAL_DONG_REGIONS[0]); // 기본 서울(11)
+  const photoAwardProgressPercent = useMemo(() => {
+    if (photoAwardSyncStatus?.progressPercent !== undefined && photoAwardSyncStatus?.progressPercent !== null) {
+      return Math.min(100, Math.max(0, photoAwardSyncStatus.progressPercent));
+    }
+    if (photoAwardSyncStatus?.totalCount && photoAwardSyncStatus.totalCount > 0) {
+      return Math.min(100, Math.max(0, ((photoAwardSyncStatus.processedCount || 0) / photoAwardSyncStatus.totalCount) * 100));
+    }
+    return 0;
+  }, [photoAwardSyncStatus?.progressPercent, photoAwardSyncStatus?.totalCount, photoAwardSyncStatus?.processedCount]);
 
   // ── 피드백 토스트 ───────────────────────────────────────────────────
   const [toastVisible, setToastVisible] = useState(false);
@@ -365,6 +394,64 @@ export default function AdminDashboardScreen() {
                 },
               }
             );
+          },
+        },
+      ]
+    );
+  };
+
+  // ── 사진공모전 전국 전체 동기화 핸들러 ─────────────────────────────
+  const handleSyncPhotoAwardAll = () => {
+    if (isPhotoAwardSyncBlocked) {
+      Alert.alert('동기화 진행 중', '현재 사진공모전 동기화 작업이 진행 중이거나 준비 중입니다.');
+      return;
+    }
+
+    Alert.alert(
+      '전국 사진공모전 수상작 전체 동기화',
+      '전국 17개 시도의 한국관광공사 사진공모전 수상작 데이터를 일괄 비동기 수집하고 지오코딩 및 스팟 매칭을 진행합니다.\nRabbitMQ 백그라운드 큐에서 안전하게 처리됩니다. 계속하시겠습니까?',
+      [
+        { text: '취소', style: 'cancel' },
+        {
+          text: '전체 동기화 시작',
+          onPress: () => {
+            syncPhotoAwardAllMutation.mutate(undefined, {
+              onSuccess: (resText) => {
+                showToast(resText || '사진공모전 전국 동기화 작업이 백그라운드에 등록되었습니다.');
+              },
+              onError: (err) => {
+                Alert.alert('동기화 요청 실패', err.message || '요청 중 오류가 발생했습니다.');
+              },
+            });
+          },
+        },
+      ]
+    );
+  };
+
+  // ── 사진공모전 특정 지역 동기화 핸들러 ─────────────────────────────
+  const handleSyncPhotoAwardArea = () => {
+    if (isPhotoAwardSyncBlocked) {
+      Alert.alert('동기화 진행 중', '현재 사진공모전 동기화 작업이 진행 중이거나 준비 중입니다.');
+      return;
+    }
+
+    Alert.alert(
+      `[${selectedLegalDong.name}] 사진공모전 동기화`,
+      `${selectedLegalDong.name}(법정동 코드: ${selectedLegalDong.code}) 지역의 사진공모전 수상작 동기화를 백그라운드 작업으로 등록하시겠습니까?`,
+      [
+        { text: '취소', style: 'cancel' },
+        {
+          text: '동기화 실행',
+          onPress: () => {
+            syncPhotoAwardAreaMutation.mutate(selectedLegalDong.code, {
+              onSuccess: (resText) => {
+                showToast(resText || `[${selectedLegalDong.name}] 사진공모전 동기화 작업이 백그라운드에 등록되었습니다.`);
+              },
+              onError: (err) => {
+                Alert.alert('동기화 요청 실패', err.message || '요청 중 오류가 발생했습니다.');
+              },
+            });
           },
         },
       ]
@@ -2379,6 +2466,341 @@ export default function AdminDashboardScreen() {
                     : `[${selectedArea.name}] 데이터 동기화 실행`}
                 </Text>
               </TouchableOpacity>
+            </View>
+
+            {/* 5. 한국관광공사 사진공모전 수상작 스팟 동기화 카드 (신규) */}
+            <View
+              style={{
+                backgroundColor: '#fff',
+                borderRadius: CARD_RADIUS,
+                padding: normalize(16),
+                marginTop: SPACING_MD,
+                borderWidth: 1.5,
+                borderColor: '#e5e7eb',
+              }}
+            >
+              {/* 섹션 헤더 */}
+              <View className="flex-row items-center justify-between" style={{ marginBottom: normalize(8) }}>
+                <View className="flex-row items-center" style={{ gap: normalize(8) }}>
+                  <View
+                    style={{
+                      width: normalize(32),
+                      height: normalize(32),
+                      borderRadius: normalize(8),
+                      backgroundColor: '#fef3c7',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <IconPhoto size={normalize(18)} color="#d97706" strokeWidth={2} />
+                  </View>
+                  <View>
+                    <Text
+                      style={{
+                        fontSize: FONT_MD,
+                        fontFamily: 'Pretendard-Bold',
+                        color: '#111827',
+                      }}
+                    >
+                      사진공모전 수상작 스팟 동기화
+                    </Text>
+                    <Text
+                      style={{
+                        fontSize: FONT_2XS,
+                        fontFamily: 'Pretendard-Regular',
+                        color: '#6b7280',
+                      }}
+                    >
+                      한국관광공사 PhokoAwrdService 연동
+                    </Text>
+                  </View>
+                </View>
+
+                {/* 상태 배지 */}
+                <View
+                  style={{
+                    backgroundColor: photoAwardSyncStatus?.isRunning ? '#fef3c7' : '#f3f4f6',
+                    paddingHorizontal: normalize(8),
+                    paddingVertical: normalize(3),
+                    borderRadius: normalize(6),
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    gap: normalize(4),
+                  }}
+                >
+                  {photoAwardSyncStatus?.isRunning && (
+                    <ActivityIndicator size="small" color="#d97706" style={{ transform: [{ scale: 0.7 }] }} />
+                  )}
+                  <Text
+                    style={{
+                      fontSize: FONT_2XS,
+                      fontFamily: 'Pretendard-SemiBold',
+                      color: photoAwardSyncStatus?.isRunning ? '#b45309' : '#4b5563',
+                    }}
+                  >
+                    {photoAwardSyncStatus?.isRunning ? '백그라운드 진행 중' : '대기 상태'}
+                  </Text>
+                </View>
+              </View>
+
+              <Text
+                style={{
+                  fontSize: FONT_SM,
+                  fontFamily: 'Pretendard-Regular',
+                  color: 'rgba(0,0,0,0.6)',
+                  lineHeight: normalize(20),
+                  marginBottom: normalize(14),
+                }}
+              >
+                대한민국 관광사진 공모전 수상작 데이터를 수집하고 카카오 로컬 검색으로 지오코딩합니다. 반경 300m 이내 기존 스팟은 공식 인증 뱃지 및 고화질 사진을 보강하며, DB에 없는 숨은 명소는 신규 스팟으로 자동 적재합니다.
+              </Text>
+
+              {/* 진행 상태 패널 */}
+              {photoAwardSyncStatus?.isRunning ? (
+                <View
+                  style={{
+                    backgroundColor: '#fffbeb',
+                    borderRadius: normalize(10),
+                    padding: normalize(12),
+                    marginBottom: normalize(14),
+                    borderWidth: 1,
+                    borderColor: '#fde68a',
+                  }}
+                >
+                  <Text
+                    style={{
+                      fontSize: FONT_SM,
+                      fontFamily: 'Pretendard-SemiBold',
+                      color: '#92400e',
+                      marginBottom: normalize(2),
+                    }}
+                  >
+                    {photoAwardSyncStatus.currentJob || '공모전 동기화 처리 중...'}
+                  </Text>
+                  <Text
+                    style={{
+                      fontSize: FONT_XS,
+                      fontFamily: 'Pretendard-Regular',
+                      color: '#b45309',
+                      marginBottom: normalize(10),
+                    }}
+                  >
+                    {photoAwardSyncStatus.statusMessage || '진행 상태를 수신하고 있습니다.'}
+                  </Text>
+
+                  {/* 프로그레스 바 */}
+                  <View
+                    style={{
+                      height: normalize(8),
+                      backgroundColor: '#fde68a',
+                      borderRadius: normalize(4),
+                      overflow: 'hidden',
+                      marginBottom: normalize(6),
+                    }}
+                  >
+                    <View
+                      style={{
+                        height: '100%',
+                        width: `${photoAwardProgressPercent}%`,
+                        backgroundColor: '#d97706',
+                        borderRadius: normalize(4),
+                      }}
+                    />
+                  </View>
+
+                  <View className="flex-row items-center justify-between">
+                    <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Medium', color: '#b45309' }}>
+                      진행률: {photoAwardProgressPercent.toFixed(1)}%
+                    </Text>
+                    {photoAwardSyncStatus.totalCount !== undefined && photoAwardSyncStatus.totalCount > 0 && (
+                      <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Medium', color: '#92400e' }}>
+                        처리 {photoAwardSyncStatus.processedCount || 0}/{photoAwardSyncStatus.totalCount}건 (신규 {photoAwardSyncStatus.createdCount || 0}건, 보강 {photoAwardSyncStatus.enrichedCount || 0}건)
+                      </Text>
+                    )}
+                  </View>
+                </View>
+              ) : (
+                <View
+                  style={{
+                    backgroundColor: '#f9fafb',
+                    borderRadius: normalize(10),
+                    padding: normalize(12),
+                    marginBottom: normalize(14),
+                  }}
+                >
+                  <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-Regular', color: '#6b7280' }}>
+                    현재 대기 중입니다.
+                    {photoAwardSyncStatus?.lastCompletedAt && (
+                      <Text style={{ color: '#059669', fontFamily: 'Pretendard-Medium' }}>
+                        {'\n'}최근 완료 시각: {new Date(photoAwardSyncStatus.lastCompletedAt).toLocaleString('ko-KR')}
+                      </Text>
+                    )}
+                    {photoAwardSyncStatus?.lastError && (
+                      <Text style={{ color: '#dc2626', fontFamily: 'Pretendard-Medium' }}>
+                        {'\n'}최근 오류: {photoAwardSyncStatus.lastError}
+                      </Text>
+                    )}
+                  </Text>
+                </View>
+              )}
+
+              {/* 전국 17개 지역 사진공모전 전체 동기화 버튼 */}
+              <View style={{ marginBottom: normalize(16) }}>
+                <Text
+                  style={{
+                    fontSize: FONT_SM,
+                    fontFamily: 'Pretendard-SemiBold',
+                    color: '#111827',
+                    marginBottom: normalize(4),
+                  }}
+                >
+                  전국 17개 지역 전체 동기화
+                </Text>
+                <Text
+                  style={{
+                    fontSize: FONT_XS,
+                    fontFamily: 'Pretendard-Regular',
+                    color: 'rgba(0,0,0,0.5)',
+                    marginBottom: normalize(8),
+                  }}
+                >
+                  전국 17개 시도의 사진공모전 수상작 전체를 백그라운드 큐에서 순차적으로 수집 및 적재합니다.
+                </Text>
+
+                <TouchableOpacity
+                  onPress={handleSyncPhotoAwardAll}
+                  disabled={isPhotoAwardSyncBlocked}
+                  style={{
+                    height: normalize(46),
+                    borderRadius: BUTTON_RADIUS,
+                    backgroundColor: isPhotoAwardSyncBlocked ? '#9ca3af' : '#d97706',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexDirection: 'row',
+                    gap: normalize(6),
+                  }}
+                >
+                  {syncPhotoAwardAllMutation.isPending ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <IconRefresh size={normalize(18)} color="#fff" strokeWidth={2} />
+                  )}
+                  <Text style={{ fontSize: FONT_SM, fontFamily: 'Pretendard-SemiBold', color: '#fff' }}>
+                    {photoAwardSyncStatus?.isRunning
+                      ? '동기화 진행 중 (추가 실행 제한)'
+                      : syncPhotoAwardAllMutation.isPending
+                      ? '요청 등록 중...'
+                      : '전국 사진공모전 수상작 전체 동기화'}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* 지역별 선택 수동 동기화 */}
+              <View>
+                <Text
+                  style={{
+                    fontSize: FONT_SM,
+                    fontFamily: 'Pretendard-SemiBold',
+                    color: '#111827',
+                    marginBottom: normalize(4),
+                  }}
+                >
+                  지역별 선택 수동 동기화
+                </Text>
+                <Text
+                  style={{
+                    fontSize: FONT_XS,
+                    fontFamily: 'Pretendard-Regular',
+                    color: 'rgba(0,0,0,0.5)',
+                    marginBottom: normalize(10),
+                  }}
+                >
+                  동기화할 시/도 지역(법정동 코드 기준)을 선택하세요.
+                </Text>
+
+                {/* 법정동 시도 칩 그리드 */}
+                <View className="flex-row flex-wrap" style={{ gap: normalize(8), marginBottom: normalize(14) }}>
+                  {LEGAL_DONG_REGIONS.map((reg) => {
+                    const isSelected = selectedLegalDong.code === reg.code;
+                    return (
+                      <TouchableOpacity
+                        key={reg.code}
+                        onPress={() => setSelectedLegalDong(reg)}
+                        style={{
+                          paddingHorizontal: normalize(14),
+                          paddingVertical: normalize(9),
+                          borderRadius: normalize(10),
+                          backgroundColor: isSelected ? '#d97706' : '#f3f4f6',
+                          borderWidth: BORDER_CONTROL,
+                          borderColor: isSelected ? '#d97706' : 'rgba(0,0,0,0.08)',
+                        }}
+                      >
+                        <Text
+                          style={{
+                            fontSize: FONT_SM,
+                            fontFamily: isSelected ? 'Pretendard-SemiBold' : 'Pretendard-Medium',
+                            color: isSelected ? '#fff' : '#374151',
+                          }}
+                        >
+                          {reg.name}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+
+                {/* 선택 지역 동기화 실행 버튼 */}
+                <TouchableOpacity
+                  onPress={handleSyncPhotoAwardArea}
+                  disabled={isPhotoAwardSyncBlocked}
+                  style={{
+                    height: normalize(46),
+                    borderRadius: BUTTON_RADIUS,
+                    backgroundColor: isPhotoAwardSyncBlocked ? '#9ca3af' : '#78350f',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    flexDirection: 'row',
+                    gap: normalize(6),
+                  }}
+                >
+                  {syncPhotoAwardAreaMutation.isPending ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <IconMapPin size={normalize(18)} color="#fff" strokeWidth={2} />
+                  )}
+                  <Text style={{ fontSize: FONT_SM, fontFamily: 'Pretendard-SemiBold', color: '#fff' }}>
+                    {photoAwardSyncStatus?.isRunning
+                      ? '동기화 진행 중 (추가 실행 제한)'
+                      : syncPhotoAwardAreaMutation.isPending
+                      ? '요청 등록 중...'
+                      : `[${selectedLegalDong.name}] 사진공모전 동기화 실행`}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* 정책 안내 가이드 박스 */}
+              <View
+                style={{
+                  marginTop: normalize(14),
+                  padding: normalize(12),
+                  backgroundColor: '#f8fafc',
+                  borderRadius: normalize(8),
+                  borderLeftWidth: 3,
+                  borderLeftColor: '#d97706',
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: FONT_2XS,
+                    fontFamily: 'Pretendard-Regular',
+                    color: '#475569',
+                    lineHeight: normalize(16),
+                  }}
+                >
+                  저작권 안내: 공공누리 제1유형 출처표시 조건에 따라 수상작의 고화질 원본 및 썸네일을 안전하게 활용합니다.{'\n'}
+                  스팟 처리 기준: 위경도 반경 300m 내 기존 스팟이 있을 경우 뱃지 부여 및 사진을 보강하며, 없을 경우 신규 명소(PHOTO_CONTEST)로 등록됩니다.
+                </Text>
+              </View>
             </View>
           </View>
         )}

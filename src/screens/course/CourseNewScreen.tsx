@@ -45,6 +45,18 @@ const MAX_TRIP_DAYS = 15;
 const toLocalDateString = (date: Date) =>
   `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 
+// YYYY-MM-DD 문자열을 로컬 Date로 파싱한다.
+// new Date("YYYY-MM-DD")는 UTC 기준(00:00Z)으로 파싱되어 타임존에 따라 전날로 밀리는 버그를 방지한다.
+const parseLocalDate = (dateStr?: string | null): Date | null => {
+  if (!dateStr) return null;
+  const parts = dateStr.split('-').map(Number);
+  if (parts.length === 3 && !parts.some(isNaN)) {
+    return new Date(parts[0], parts[1] - 1, parts[2]);
+  }
+  const d = new Date(dateStr);
+  return isNaN(d.getTime()) ? null : d;
+};
+
 export default function CourseNewScreen() {
   const navigation = useNavigation<any>();
 
@@ -57,8 +69,8 @@ export default function CourseNewScreen() {
   const [tripName, setTripName] = useState(route.params?.initialTitle || '');
 
   // Dates
-  const [startDate, setStartDate] = useState<Date | null>(route.params?.initialStartDate ? new Date(route.params.initialStartDate) : null);
-  const [endDate, setEndDate] = useState<Date | null>(route.params?.initialEndDate ? new Date(route.params.initialEndDate) : null);
+  const [startDate, setStartDate] = useState<Date | null>(() => parseLocalDate(route.params?.initialStartDate));
+  const [endDate, setEndDate] = useState<Date | null>(() => parseLocalDate(route.params?.initialEndDate));
   const [selectedChip, setSelectedChip] = useState<ChipType | null>(null);
 
   const [toastVisible, setToastVisible] = useState(false);
@@ -534,7 +546,15 @@ export default function CourseNewScreen() {
                 </View>
                 <Text className="font-medium text-sub mb-1" style={{ fontSize: FONT_MD }}>아직 추가된 스팟이 없어요</Text>
                 <Text className="text-black/20 text-center leading-relaxed font-normal" style={{ fontSize: normalizeFontSize(14) }}>아래 버튼으로 포토스팟을{'\n'}추가해보세요</Text>
-                <TouchableOpacity onPress={() => navigation.navigate('Map', { source: 'plan' })} className="mt-6 w-full h-[54px] rounded-2xl border-[1.5px] border-dashed border-black/10 flex-row items-center justify-center">
+                <TouchableOpacity
+                  onPress={() => {
+                    const targetDate = startDate
+                      ? toLocalDateString(new Date(startDate.getTime() + (activeDay - 1) * 24 * 60 * 60 * 1000))
+                      : undefined;
+                    navigation.navigate('Map', { source: 'plan', targetDate });
+                  }}
+                  className="mt-6 w-full h-[54px] rounded-2xl border-[1.5px] border-dashed border-black/10 flex-row items-center justify-center"
+                >
                   <IconPlus size={15} color={iconGray(0.25)} />
                   <Text className="font-medium text-black/25 ml-2" style={{ fontSize: FONT_MD }}>스팟 추가하기</Text>
                 </TouchableOpacity>
@@ -592,7 +612,15 @@ export default function CourseNewScreen() {
                     </View>
                   </View>
                 ))}
-                <TouchableOpacity onPress={() => navigation.navigate('Map', { source: 'plan' })} className="mt-6 w-full h-[54px] rounded-2xl border-[1.5px] border-dashed border-black/10 flex-row items-center justify-center">
+                <TouchableOpacity
+                  onPress={() => {
+                    const targetDate = startDate
+                      ? toLocalDateString(new Date(startDate.getTime() + (activeDay - 1) * 24 * 60 * 60 * 1000))
+                      : undefined;
+                    navigation.navigate('Map', { source: 'plan', targetDate });
+                  }}
+                  className="mt-6 w-full h-[54px] rounded-2xl border-[1.5px] border-dashed border-black/10 flex-row items-center justify-center"
+                >
                   <IconPlus size={15} color={iconGray(0.25)} />
                   <Text className="font-medium text-black/25 ml-2" style={{ fontSize: FONT_MD }}>스팟 추가하기</Text>
                 </TouchableOpacity>

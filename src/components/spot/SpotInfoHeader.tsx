@@ -1,6 +1,6 @@
 import React from 'react';
 import { Text, View } from 'react-native';
-import { IconMapPin } from '@tabler/icons-react-native';
+import { IconMapPin, IconTrophy } from '@tabler/icons-react-native';
 import StarRating from '@/components/common/StarRating';
 import { FONT_2XL, FONT_XS, GRID_PADDING } from '@/constants/layout';
 import { normalize, normalizeFontSize } from '@/utils/normalize';
@@ -25,6 +25,10 @@ interface Props {
 }
 
 export default function SpotInfoHeader({ spot, bookmarkCount, photoCount, eventPeriod }: Props) {
+  const isAward = Boolean(spot.photoAward || spot.badge === '공모전 수상작');
+  const badgeBg = isAward ? '#fef3c7' : BRAND_TINT;
+  const badgeColor = isAward ? '#b45309' : BRAND;
+
   return (
     <View style={{ paddingHorizontal: GRID_PADDING, paddingVertical: normalize(20) }}>
       {spot.badge && (
@@ -32,15 +36,23 @@ export default function SpotInfoHeader({ spot, bookmarkCount, photoCount, eventP
           style={{
             alignSelf: 'flex-start',
             height: normalize(24),
-            paddingHorizontal: normalize(10),
+            paddingHorizontal: isAward ? normalize(8) : normalize(10),
             borderRadius: normalize(6),
-            backgroundColor: BRAND_TINT,
+            backgroundColor: badgeBg,
+            flexDirection: 'row',
             alignItems: 'center',
-            justifyContent: 'center',
+            gap: normalize(4),
             marginBottom: normalize(12),
           }}
         >
-          <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, color: BRAND, letterSpacing: 0.3 }}>
+          {isAward && (
+            <IconTrophy
+              size={normalize(13)}
+              color={badgeColor}
+              strokeWidth={2}
+            />
+          )}
+          <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-SemiBold', fontSize: FONT_XS, color: badgeColor, letterSpacing: 0.3 }}>
             {spot.badge}
           </Text>
         </View>

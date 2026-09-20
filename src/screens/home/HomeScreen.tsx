@@ -11,6 +11,7 @@ import { normalize } from '@/utils/normalize';
 import HeroSection from '@/components/home/HeroSection';
 import SearchBar from '@/components/common/SearchBar';
 import MapBanner from '@/components/home/MapBanner';
+import TodayBestSpotsSection from '@/components/home/TodayBestSpotsSection';
 import PopularSpotsSection from '@/components/home/PopularSpotsSection';
 import RecommendedSpotsSection from '@/components/home/RecommendedSpotsSection';
 import FestivalSection from '@/components/home/FestivalSection';
@@ -230,6 +231,9 @@ export default function HomeScreen({ navigation }: Props) {
         <SearchBar
           onPress={() => navigation.navigate('SearchResult', { query: '' })}
         />
+
+        {/* 오늘의 베스트 출사지 TOP 5 */}
+        <TodayBestSpotsSection onSpotPress={goToSpotDetail} />
 
         {/* 주변 스팟 섹션 */}
         <View style={{ paddingHorizontal: CONTENT_PADDING, marginTop: normalize(28) }}>

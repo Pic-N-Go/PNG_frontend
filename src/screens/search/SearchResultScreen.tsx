@@ -30,7 +30,7 @@ import Chip from '@/components/common/Chip';
 import type { Spot } from '@/store/useCourseStore';
 import { RecentSearches, RecommendedSpots, SearchField } from '@/components/common/SearchPanel';
 import { FONT_LG, FONT_MD, FONT_SM, GRID_PADDING, HAIRLINE_WIDTH, SPACING_LG } from '@/constants/layout';
-import { BRAND, BRAND_TINT, CARD, HAIRLINE, TEXT_SUB, iconGray } from '@/constants/colors';
+import { BRAND, CARD, HAIRLINE, TEXT_SUB, iconGray } from '@/constants/colors';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'SearchResult'>;
 
@@ -419,27 +419,6 @@ function SearchResultRowItem({
           </Text>
         </View>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(6), flexWrap: 'wrap' }}>
-          {item.score !== undefined && (
-            <View
-              style={{
-                backgroundColor: BRAND_TINT,
-                paddingHorizontal: normalize(8),
-                paddingVertical: normalize(2),
-                borderRadius: normalize(8),
-              }}
-            >
-              <Text
-                allowFontScaling={false}
-                style={{
-                  fontFamily: 'Pretendard-SemiBold',
-                  fontSize: normalizeFontSize(12),
-                  color: BRAND,
-                }}
-              >
-                {item.score}점
-              </Text>
-            </View>
-          )}
           {item.tags.map((tag) => (
             <View
               key={tag}

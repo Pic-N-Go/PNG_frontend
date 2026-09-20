@@ -7,7 +7,7 @@ import { Share as ShareIcon } from 'lucide-react-native';
 import { MyPageStackParamList } from '@/navigation/stacks/MyPageStack';
 import { normalize } from '@/utils/normalize';
 import { FONT_XS, FONT_SM, FONT_MD, FONT_LG } from '@/constants/layout';
-import { CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
+import { CARD, HAIRLINE } from '@/constants/colors';
 
 type Props = NativeStackScreenProps<MyPageStackParamList, 'TermsOfService'>;
 
@@ -31,7 +31,13 @@ const ARTICLES = [
 export default function TermsOfServiceScreen({ navigation }: Props) {
   const onShare = React.useCallback(async () => {
     try {
-      await Share.share({ title: 'PNG 이용약관', message: `PNG 이용약관 (${META.version})` });
+      const shareContent = [
+        `[PNG(다다익샷) 이용약관 (${META.version})]`,
+        `최종 개정일: ${META.lastRevision}`,
+        '',
+        ...ARTICLES.map((a) => `${a.title}\n${a.body}`),
+      ].join('\n\n');
+      await Share.share({ title: 'PNG 이용약관', message: shareContent });
     } catch { /* 사용자가 공유 취소 */ }
   }, []);
 

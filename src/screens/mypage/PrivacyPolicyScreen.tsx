@@ -7,7 +7,7 @@ import { Info, Share as ShareIcon } from 'lucide-react-native';
 import { MyPageStackParamList } from '@/navigation/stacks/MyPageStack';
 import { normalize } from '@/utils/normalize';
 import { FONT_XS, FONT_SM, FONT_MD, FONT_LG } from '@/constants/layout';
-import { BRAND, CARD, HAIRLINE, TEXT_SUB } from '@/constants/colors';
+import { BRAND, CARD, HAIRLINE } from '@/constants/colors';
 
 type Props = NativeStackScreenProps<MyPageStackParamList, 'PrivacyPolicy'>;
 
@@ -37,8 +37,20 @@ const SECTIONS = [
     body: '회원 탈퇴 시 계정을 즉시 비활성화하고 닉네임·프로필 사진을 \'탈퇴한 사용자\'로 대체하여 다른 이용자에게 노출되지 않도록 합니다. 계정 복구를 위해 탈퇴일로부터 30일간 보관한 뒤 개인정보를 완전히 파기합니다. 30일 이내에는 동일한 계정으로 로그인하여 복구할 수 있습니다.\n\n단, 관계 법령(통신비밀보호법에 따른 로그인 기록 3개월, 전자상거래법상 소비자 분쟁 기록 3년 등)에 따라 보관이 필요한 정보는 해당 기간 동안 보관합니다.',
   },
   {
-    title: '4. 개인정보의 제3자 제공 및 위탁',
-    body: '회사는 이용자의 개인정보를 원칙적으로 외부에 제공하지 않습니다. 다만 원활한 서비스 제공을 위해 아래와 같은 필수 외부 인프라를 이용합니다.\n\n· 카카오: 간편 로그인 인증\n· 네이버 클라우드 플랫폼(NCP): 지도 및 위치 기반 서비스\n· Google Firebase: 푸시 알림(FCM) 발송 및 기기 식별',
+    title: '4. 개인정보의 제3자 제공 및 처리 위탁',
+    body: '회사는 이용자의 동의 없이 개인정보를 제3자에게 제공하지 않습니다. 다만, 원활한 서비스 제공을 위해 아래와 같이 개인정보 처리 업무를 전문 업체에 위탁하고 있습니다.\n\n' +
+      '① 카카오 (Kakao Corp.)\n' +
+      '· 위탁 업무: 카카오 간편 로그인 및 회원 식별\n' +
+      '· 처리 항목: 카카오 계정 고유 식별자, 이메일, 닉네임, 카카오 액세스 토큰\n' +
+      '· 보유 및 이용 기간: 회원 탈퇴 후 30일 또는 위탁 계약 종료 시까지\n\n' +
+      '② 네이버클라우드 (NCP - Naver Cloud Platform)\n' +
+      '· 위탁 업무: NaverMapView 지도 렌더링 및 주변 출사지 위치 검색\n' +
+      '· 처리 항목: 기기 GPS 위치 좌표(위·경도)\n' +
+      '· 보유 및 이용 기간: 지도 화면 표시 및 API 호출 즉시 일시 처리(별도 보관 없음)\n\n' +
+      '③ 구글 (Google LLC / Firebase)\n' +
+      '· 위탁 업무: FCM(Firebase Cloud Messaging) 푸시 알림 발송\n' +
+      '· 처리 항목: 기기 식별자, Firebase FCM 등록 토큰\n' +
+      '· 보유 및 이용 기간: 앱 삭제 또는 알림 수신 동의 철회 시까지',
   },
   {
     title: '5. 이용자의 권리와 행사 방법',
@@ -57,7 +69,16 @@ const SECTIONS = [
 export default function PrivacyPolicyScreen({ navigation }: Props) {
   const onShare = React.useCallback(async () => {
     try {
-      await Share.share({ title: 'PNG 개인정보처리방침', message: `PNG 개인정보처리방침 (${META.version})` });
+      const shareContent = [
+        `[PNG(다다익샷) 개인정보처리방침 (${META.version})]`,
+        `시행일자: ${META.effectiveDate}`,
+        '',
+        '[핵심 요약]',
+        ...SUMMARY.map((s) => `· ${s}`),
+        '',
+        ...SECTIONS.map((s) => `${s.title}\n${s.body}`),
+      ].join('\n\n');
+      await Share.share({ title: 'PNG 개인정보처리방침', message: shareContent });
     } catch { /* 취소 */ }
   }, []);
 

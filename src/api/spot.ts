@@ -4,6 +4,7 @@ import { ApiError, fetchWithAuthRetry, toHttpError } from '@/api/auth';
 import type {
   BookmarkCollectionDTO,
   PhotogenicScoreResponse,
+  SpotCongestionResponse,
   ReviewCreateRequest,
   ReviewUpdateRequest,
   MyReviewListResponse,
@@ -270,6 +271,11 @@ export const spotApi = {
     if (time) qs.push(`time=${encodeURIComponent(time)}`);
     const suffix = qs.length ? `?${qs.join('&')}` : '';
     return request<PhotogenicScoreResponse>(`/spots/${id}/photogenic-score${suffix}`);
+  },
+
+  getSpotCongestion: (id: string | number, date?: string) => {
+    const suffix = date ? `?date=${date}` : '';
+    return request<SpotCongestionResponse>(`/spots/${id}/congestion${suffix}`);
   },
 
   // 북마크 컬렉션 — 유저별. 최초 조회 시 서버가 "내 즐겨찾기" 자동 생성.

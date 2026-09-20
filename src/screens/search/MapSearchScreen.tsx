@@ -222,11 +222,6 @@ function MapSearchResultRow({ spot, onPress }: { spot: SpotResponse; onPress: ()
         <Text className="font-medium text-black/45" numberOfLines={1} style={{ fontSize: FONT_XS, marginTop: normalize(2) }}>
           {spot.address || '위치 정보 없음'}
         </Text>
-        {spot.photogenicScore !== undefined && (
-          <Text className="font-medium" style={{ fontSize: FONT_XS, color: BRAND, marginTop: normalize(4) }}>
-            ★ 포토제닉 {spot.photogenicScore.toFixed(1)}
-          </Text>
-        )}
       </View>
 
       <IconChevronRight size={normalize(16)} color={iconGray(0.25)} strokeWidth={1.75} />
