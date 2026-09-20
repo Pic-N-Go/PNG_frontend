@@ -1,5 +1,5 @@
 <resources>
-  <string name="app_name">PNG</string>
+  <string name="app_name">Pic N Go</string>
   <string name="expo_splash_screen_resize_mode" translatable="false">contain</string>
   <string name="expo_splash_screen_status_bar_translucent" translatable="false">false</string>
   <string name="kakao_app_key">fd7f9b8d273c9b33fbf31e8ba7cb4dc6</string>

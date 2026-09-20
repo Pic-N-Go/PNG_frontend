@@ -128,6 +128,8 @@ export function useRelatedSpots(spotId?: string | number | null, limit = 10, opt
     queryFn: () => spotApi.getRelatedSpots(spotId!, limit),
     enabled: !!spotId && (options?.enabled ?? true),
     staleTime: 5 * 60 * 1000,
+    // 서버가 http URL을 주면 RN Image가 로드하지 못해 썸네일이 안 뜬다 → https로 정규화한다.
+    select: (res) => res.map((item) => ({ ...item, imageUrl: toHttps(item.imageUrl) })),
   });
 }
 
