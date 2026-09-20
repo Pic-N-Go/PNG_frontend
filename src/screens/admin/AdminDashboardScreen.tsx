@@ -67,6 +67,7 @@ import AdminContestTab from '@/components/admin/AdminContestTab';
 import AdminReportTab from '@/components/admin/AdminReportTab';
 import TourSyncPipelineStatusCard from '@/components/admin/TourSyncPipelineStatusCard';
 import { BRAND, BRAND_TINT, CARD, TEXT_SUB, iconGray } from '@/constants/colors';
+import { hasTourSyncPipelineFields } from '@/utils/tourSyncStatus';
 
 type AdminTab = 'users' | 'inquiries' | 'reports' | 'embeddings' | 'tour' | 'contests';
 
@@ -2045,7 +2046,7 @@ export default function AdminDashboardScreen() {
             </View>
 
             {/* 1. 실시간 백그라운드 동기화 상태 모니터 (RabbitMQ 비동기 큐 상태) */}
-            {isTourSyncStatusLoading || isTourSyncStatusError || tourSyncStatus?.spot || tourSyncStatus?.pet || tourSyncStatus?.accessibility ? (
+            {isTourSyncStatusLoading || isTourSyncStatusError || hasTourSyncPipelineFields(tourSyncStatus) ? (
               <View style={{ marginBottom: SPACING_SM }}>
                 <TourSyncPipelineStatusCard
                   status={tourSyncStatus}

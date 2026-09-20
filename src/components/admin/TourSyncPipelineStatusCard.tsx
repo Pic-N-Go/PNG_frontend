@@ -11,6 +11,7 @@ import {
 import { BORDER_CONTROL, CARD_RADIUS, FONT_2XS, FONT_MD, FONT_SM, FONT_XS } from '@/constants/layout';
 import type { TourSyncStageResponse, TourSyncStageStatus, TourSyncStatusResponse } from '@/types/admin';
 import { normalize } from '@/utils/normalize';
+import { hasTourSyncPipelineFields } from '@/utils/tourSyncStatus';
 
 interface Props {
   status?: TourSyncStatusResponse;
@@ -135,7 +136,7 @@ function overallState(status?: TourSyncStatusResponse): TourSyncStageStatus {
 export default function TourSyncPipelineStatusCard({ status, isLoading, isError, onRetry }: Props) {
   const overall = overallState(status);
   const overallColor = STATUS_COLOR[overall];
-  const hasPipelineStages = Boolean(status?.spot || status?.pet || status?.accessibility);
+  const hasPipelineStages = hasTourSyncPipelineFields(status);
 
   return (
     <View
