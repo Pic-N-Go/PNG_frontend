@@ -1,4 +1,6 @@
 import { ApiError, fetchWithAuthRetry, toHttpError, tokenFromHeaders } from '@/api/auth';
+import { appendFilePart, appendJsonPart, upload as uploadMultipart } from '@/api/http';
+import type { ContestResponseDTO } from '@/types/contest';
 import type {
   AdminUser,
   AdminUserPageResponse,
@@ -11,6 +13,7 @@ import type {
   PhotoAwardSyncStatusResponse,
   AdminPageResponse,
   ContestCreateRequest,
+  ContestThemeImageFile,
   ContestUpdateRequest,
   AdminContestSummaryResponse,
   AdminContestDetailResponse,
@@ -437,18 +440,22 @@ export const adminApi = {
   // 4.1 콘테스트 회차 개설
   createContest: async (
     data: ContestCreateRequest,
+    themeImage: ContestThemeImageFile | null,
     accessToken: string
-  ): Promise<any> => {
-    const res = await fetchWithTimeout(`${BASE}/admin/contests`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${accessToken}`,
-      },
-      body: JSON.stringify(data),
-    });
-    const json = (await res.json()) as any;
-    return json?.data !== undefined && json.data !== null ? json.data : json;
+  ): Promise<ContestResponseDTO> => {
+    const formData = new FormData();
+    appendJsonPart(formData, 'request', data);
+
+    if (themeImage) {
+      appendFilePart(formData, 'themeImage', {
+        uri: themeImage.uri,
+        name: themeImage.name || 'contest-theme.jpg',
+        type: themeImage.type || 'image/jpeg',
+      });
+    }
+
+    const json = await uploadMultipart<unknown>('/admin/contests', 'POST', formData, accessToken);
+    return unwrapResponse<ContestResponseDTO>(json);
   },
 
   // 4.2 콘테스트 전체 목록 조회 (최신순 페이징)
@@ -488,54 +495,30 @@ export const adminApi = {
   updateContest: async (
     contestId: number,
     data: ContestUpdateRequest,
+    themeImage: ContestThemeImageFile | null,
     accessToken: string
   ): Promise<AdminContestDetailResponse> => {
-    const res = await fetchWithTimeout(`${BASE}/admin/contests/${contestId}`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${accessToken}`,
-      },
-      body: JSON.stringify(data),
-    });
-    const json = (await res.json()) as any;
-    const body = json?.data !== undefined && json.data !== null ? json.data : json;
-    return body as AdminContestDetailResponse;
-  },
-
-  // 4.5 콘테스트 테마 대표 사진 업로드 (POST /admin/contests/theme-image)
-  uploadContestThemeImage: async (
-    file: { uri: string; name?: string; type?: string },
-    accessToken: string
-  ): Promise<{ imageUrl: string; key?: string }> => {
     const formData = new FormData();
-    const ext = file.uri.split('.').pop()?.toLowerCase();
-    const safeExt = ext && /^(jpe?g|png|webp|heic)$/.test(ext) ? ext : 'jpg';
-    const mimeType = safeExt === 'png' ? 'image/png' : safeExt === 'webp' ? 'image/webp' : 'image/jpeg';
+    appendJsonPart(formData, 'request', data);
 
-    formData.append('image', {
-      uri: file.uri,
-      name: file.name || `theme-${Date.now()}.${safeExt}`,
-      type: file.type || mimeType,
-    } as any);
+    if (themeImage) {
+      appendFilePart(formData, 'themeImage', {
+        uri: themeImage.uri,
+        name: themeImage.name || 'contest-theme.jpg',
+        type: themeImage.type || 'image/jpeg',
+      });
+    }
 
-    const res = await fetchWithTimeout(
-      `${BASE}/admin/contests/theme-image`,
-      {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-        },
-        body: formData,
-      },
-      180_000
+    const json = await uploadMultipart<unknown>(
+      `/admin/contests/${contestId}`,
+      'PATCH',
+      formData,
+      accessToken
     );
-    const json = (await res.json()) as any;
-    const body = json?.data !== undefined && json.data !== null ? json.data : json;
-    return body;
+    return unwrapResponse<AdminContestDetailResponse>(json);
   },
 
-  // 4.6 콘테스트 출품 시작 알림 수동 발송
+  // 4.5 콘테스트 출품 시작 알림 수동 발송
   sendContestStartNotification: async (
     contestId: number,
     accessToken: string
@@ -551,7 +534,7 @@ export const adminApi = {
     return body;
   },
 
-  // 4.5 콘테스트 강제 마감 및 즉시 결과 발표 (POST /admin/contests/{contestId}/publish-result)
+  // 4.6 콘테스트 강제 마감 및 즉시 결과 발표 (POST /admin/contests/{contestId}/publish-result)
   publishContestResult: async (
     contestId: number,
     accessToken: string
@@ -567,7 +550,7 @@ export const adminApi = {
     return body as AdminContestDetailResponse;
   },
 
-  // 4.6 콘테스트 결과 발표 알림 수동 발송 (POST /admin/contests/{contestId}/notifications/result)
+  // 4.7 콘테스트 결과 발표 알림 수동 발송 (POST /admin/contests/{contestId}/notifications/result)
   sendContestResultNotification: async (
     contestId: number,
     accessToken: string
