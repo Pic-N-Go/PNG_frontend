@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { adminApi } from '@/api/admin';
 import { useAuthStore } from '@/store/useAuthStore';
+import type { ContestResponseDTO } from '@/types/contest';
 import type {
   AdminUser,
   AdminUserPageResponse,
@@ -13,6 +14,7 @@ import type {
   PhotoAwardSyncStatusResponse,
   AdminPageResponse,
   ContestCreateRequest,
+  ContestThemeImageFile,
   ContestUpdateRequest,
   AdminContestSummaryResponse,
   AdminContestDetailResponse,
@@ -351,10 +353,14 @@ export function useCreateContest() {
   const accessToken = useAuthStore((s) => s.accessToken);
   const queryClient = useQueryClient();
 
-  return useMutation<any, Error, ContestCreateRequest>({
-    mutationFn: (data) => {
+  return useMutation<
+    ContestResponseDTO,
+    Error,
+    { data: ContestCreateRequest; themeImage: ContestThemeImageFile | null }
+  >({
+    mutationFn: ({ data, themeImage }) => {
       if (!accessToken) throw new Error('관리자 권한이 필요합니다.');
-      return adminApi.createContest(data, accessToken);
+      return adminApi.createContest(data, themeImage, accessToken);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [...ADMIN_KEYS.all, 'contests'] });
@@ -370,11 +376,11 @@ export function useUpdateContest() {
   return useMutation<
     AdminContestDetailResponse,
     Error,
-    { contestId: number; data: ContestUpdateRequest }
+    { contestId: number; data: ContestUpdateRequest; themeImage: ContestThemeImageFile | null }
   >({
-    mutationFn: ({ contestId, data }) => {
+    mutationFn: ({ contestId, data, themeImage }) => {
       if (!accessToken) throw new Error('관리자 권한이 필요합니다.');
-      return adminApi.updateContest(contestId, data, accessToken);
+      return adminApi.updateContest(contestId, data, themeImage, accessToken);
     },
     onSuccess: (_, { contestId }) => {
       queryClient.invalidateQueries({ queryKey: [...ADMIN_KEYS.all, 'contests'] });
@@ -383,23 +389,7 @@ export function useUpdateContest() {
   });
 }
 
-// 4.5 콘테스트 테마 대표 사진 업로드 뮤테이션
-export function useUploadContestThemeImage() {
-  const accessToken = useAuthStore((s) => s.accessToken);
-
-  return useMutation<
-    { imageUrl: string; key?: string },
-    Error,
-    { uri: string; name?: string; type?: string }
-  >({
-    mutationFn: (file) => {
-      if (!accessToken) throw new Error('관리자 권한이 필요합니다.');
-      return adminApi.uploadContestThemeImage(file, accessToken);
-    },
-  });
-}
-
-// 4.6 출품 시작 알림 수동 발송 뮤테이션
+// 4.5 출품 시작 알림 수동 발송 뮤테이션
 export function useSendContestStartNotification() {
   const accessToken = useAuthStore((s) => s.accessToken);
   const queryClient = useQueryClient();
@@ -416,7 +406,7 @@ export function useSendContestStartNotification() {
   });
 }
 
-// 4.5 콘테스트 강제 마감 및 즉시 결과 발표 뮤테이션
+// 4.6 콘테스트 강제 마감 및 즉시 결과 발표 뮤테이션
 export function usePublishContestResult() {
   const accessToken = useAuthStore((s) => s.accessToken);
   const queryClient = useQueryClient();
@@ -434,7 +424,7 @@ export function usePublishContestResult() {
   });
 }
 
-// 4.6 결과 발표 알림 수동 발송 뮤테이션
+// 4.7 결과 발표 알림 수동 발송 뮤테이션
 export function useSendContestResultNotification() {
   const accessToken = useAuthStore((s) => s.accessToken);
   const queryClient = useQueryClient();
@@ -451,7 +441,7 @@ export function useSendContestResultNotification() {
   });
 }
 
-// 4.7 콘테스트 출품작 목록 조회 훅
+// 4.8 콘테스트 출품작 목록 조회 훅
 export function useAdminContestEntries(contestId: number | null, page = 0, size = 20) {
   const accessToken = useAuthStore((s) => s.accessToken);
 
@@ -466,7 +456,7 @@ export function useAdminContestEntries(contestId: number | null, page = 0, size 
   });
 }
 
-// 4.6 부적격 출품작 관리자 강제 삭제 뮤테이션
+// 4.9 부적격 출품작 관리자 강제 삭제 뮤테이션
 export function useDeleteAdminContestEntry() {
   const accessToken = useAuthStore((s) => s.accessToken);
   const queryClient = useQueryClient();
@@ -489,7 +479,7 @@ export function useDeleteAdminContestEntry() {
   });
 }
 
-// 4.7 접수된 출품작 신고 목록 조회 훅
+// 4.10 접수된 출품작 신고 목록 조회 훅
 export function useAdminContestReports(page = 0, size = 20) {
   const accessToken = useAuthStore((s) => s.accessToken);
 
