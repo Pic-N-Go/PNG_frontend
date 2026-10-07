@@ -50,7 +50,6 @@ import {
   useAdminContestDetail,
   useCreateContest,
   useUpdateContest,
-  useUploadContestThemeImage,
   useSendContestStartNotification,
   usePublishContestResult,
   useSendContestResultNotification,
@@ -63,6 +62,8 @@ import {
   CONTEST_REPORT_REASON_LABELS,
   type ContestPhase,
   type ContestReportReason,
+  type ContestUpdateRequest,
+  type ContestThemeImageFile,
 } from '@/types/admin';
 
 interface AdminContestTabProps {
@@ -70,6 +71,22 @@ interface AdminContestTabProps {
 }
 
 type ContestSubTab = 'contests' | 'reports';
+
+const MAX_THEME_IMAGE_BYTES = 20 * 1024 * 1024;
+const THEME_IMAGE_MIME_TYPES = new Set([
+  'image/jpeg',
+  'image/jpg',
+  'image/png',
+  'image/heic',
+  'image/heif',
+]);
+const THEME_IMAGE_EXTENSIONS = new Set(['jpg', 'jpeg', 'png', 'heic', 'heif']);
+
+function isSupportedThemeImage(asset: ImagePicker.ImagePickerAsset): boolean {
+  const extension = asset.fileName?.split('.').pop()?.toLowerCase();
+  if (asset.mimeType) return THEME_IMAGE_MIME_TYPES.has(asset.mimeType.toLowerCase());
+  return !extension || THEME_IMAGE_EXTENSIONS.has(extension);
+}
 
 const PHASE_COLORS: Record<ContestPhase, { bg: string; text: string }> = {
   UPCOMING: { bg: '#e0f2fe', text: '#0284c7' },
@@ -136,17 +153,16 @@ export default function AdminContestTab({ showToast }: AdminContestTabProps) {
   const [createModalVisible, setCreateModalVisible] = useState(false);
   const [createTitle, setCreateTitle] = useState('');
   const [createDescription, setCreateDescription] = useState('');
-  const [createThemeImageUrl, setCreateThemeImageUrl] = useState('');
+  const [createThemeImage, setCreateThemeImage] = useState<ContestThemeImageFile | null>(null);
+  const [createExternalThemeImageUrl, setCreateExternalThemeImageUrl] = useState('');
   const [createMaxEntries, setCreateMaxEntries] = useState('3');
   const [createVoteLimit, setCreateVoteLimit] = useState('3');
   const [createSubmitStartAt, setCreateSubmitStartAt] = useState('');
-  const [isUploadingCreateImage, setIsUploadingCreateImage] = useState(false);
   const [showCreateDatePicker, setShowCreateDatePicker] = useState(false);
   const [showCreateUrlInput, setShowCreateUrlInput] = useState(false);
 
   const createContestMutation = useCreateContest();
   const updateContestMutation = useUpdateContest();
-  const uploadThemeImageMutation = useUploadContestThemeImage();
   const sendStartNotificationMutation = useSendContestStartNotification();
   const publishResultMutation = usePublishContestResult();
   const sendResultNotificationMutation = useSendContestResultNotification();
@@ -157,9 +173,11 @@ export default function AdminContestTab({ showToast }: AdminContestTabProps) {
   const [editingContestPhase, setEditingContestPhase] = useState<ContestPhase>('UPCOMING');
   const [editTitle, setEditTitle] = useState('');
   const [editDescription, setEditDescription] = useState('');
-  const [editThemeImageUrl, setEditThemeImageUrl] = useState('');
+  const [editCurrentThemeImageUrl, setEditCurrentThemeImageUrl] = useState('');
+  const [editThemeImage, setEditThemeImage] = useState<ContestThemeImageFile | null>(null);
+  const [editExternalThemeImageUrl, setEditExternalThemeImageUrl] = useState('');
+  const [editRemoveThemeImage, setEditRemoveThemeImage] = useState(false);
   const [editSubmitStartAt, setEditSubmitStartAt] = useState('');
-  const [isUploadingEditImage, setIsUploadingEditImage] = useState(false);
   const [showEditDatePicker, setShowEditDatePicker] = useState(false);
   const [showEditUrlInput, setShowEditUrlInput] = useState(false);
 
@@ -231,28 +249,36 @@ export default function AdminContestTab({ showToast }: AdminContestTabProps) {
       if (result.canceled || !result.assets || result.assets.length === 0) return;
 
       const asset = result.assets[0];
-      if (target === 'create') setIsUploadingCreateImage(true);
-      else setIsUploadingEditImage(true);
+      if (!isSupportedThemeImage(asset)) {
+        Alert.alert('지원하지 않는 형식', 'JPG, PNG, HEIC, HEIF 이미지만 선택할 수 있습니다.');
+        return;
+      }
+      if (asset.fileSize && asset.fileSize > MAX_THEME_IMAGE_BYTES) {
+        Alert.alert('파일 용량 초과', '대표 이미지는 20MB 이하만 선택할 수 있습니다.');
+        return;
+      }
 
-      try {
-        const uploadRes = await uploadThemeImageMutation.mutateAsync({
+      if (target === 'create') {
+        setCreateThemeImage({
           uri: asset.uri,
           name: asset.fileName || 'contest_theme.jpg',
           type: asset.mimeType || 'image/jpeg',
         });
-
-        if (target === 'create') {
-          setCreateThemeImageUrl(uploadRes.imageUrl);
-        } else {
-          setEditThemeImageUrl(uploadRes.imageUrl);
-        }
-        showToast('대표 이미지가 성공적으로 업로드되었습니다.');
-      } catch (uploadErr: any) {
-        Alert.alert('이미지 업로드 실패', uploadErr?.message || '이미지를 업로드하는 중 오류가 발생했습니다.');
-      } finally {
-        if (target === 'create') setIsUploadingCreateImage(false);
-        else setIsUploadingEditImage(false);
+        setCreateExternalThemeImageUrl('');
+        setShowCreateUrlInput(false);
+        showToast('대표 이미지가 선택되었습니다.');
+        return;
       }
+
+      setEditThemeImage({
+        uri: asset.uri,
+        name: asset.fileName || 'contest_theme.jpg',
+        type: asset.mimeType || 'image/jpeg',
+      });
+      setEditExternalThemeImageUrl('');
+      setEditRemoveThemeImage(false);
+      setShowEditUrlInput(false);
+      showToast('새 대표 이미지가 선택되었습니다.');
     } catch (err: any) {
       Alert.alert('사진 선택 오류', err?.message || '사진을 가져오는 중 오류가 발생했습니다.');
     }
@@ -282,13 +308,13 @@ export default function AdminContestTab({ showToast }: AdminContestTabProps) {
   const handleOpenCreateModal = () => {
     setCreateTitle('');
     setCreateDescription('');
-    setCreateThemeImageUrl('');
+    setCreateThemeImage(null);
+    setCreateExternalThemeImageUrl('');
     setCreateMaxEntries('3');
     setCreateVoteLimit('3');
     setCreateSubmitStartAt('');
     setShowCreateDatePicker(false);
     setShowCreateUrlInput(false);
-    setIsUploadingCreateImage(false);
     setCreateModalVisible(true);
   };
 
@@ -303,12 +329,15 @@ export default function AdminContestTab({ showToast }: AdminContestTabProps) {
 
     createContestMutation.mutate(
       {
-        title: createTitle.trim(),
-        description: createDescription.trim() || undefined,
-        themeImageUrl: createThemeImageUrl.trim() || undefined,
-        maxEntriesPerUser: maxEntries,
-        voteLimit: voteLimit,
-        submitStartAt: createSubmitStartAt.trim() || undefined,
+        data: {
+          title: createTitle.trim(),
+          description: createDescription.trim() || undefined,
+          externalThemeImageUrl: createExternalThemeImageUrl.trim() || undefined,
+          maxEntriesPerUser: maxEntries,
+          voteLimit: voteLimit,
+          submitStartAt: createSubmitStartAt.trim() || undefined,
+        },
+        themeImage: createThemeImage,
       },
       {
         onSuccess: () => {
@@ -335,11 +364,13 @@ export default function AdminContestTab({ showToast }: AdminContestTabProps) {
     setEditingContestPhase(contest.phase);
     setEditTitle(contest.title || '');
     setEditDescription(contest.description || '');
-    setEditThemeImageUrl(contest.themeImageUrl || '');
+    setEditCurrentThemeImageUrl(contest.themeImageUrl || '');
+    setEditThemeImage(null);
+    setEditExternalThemeImageUrl('');
+    setEditRemoveThemeImage(false);
     setEditSubmitStartAt(contest.submitStartAt ? contest.submitStartAt.slice(0, 19) : '');
     setShowEditDatePicker(false);
     setShowEditUrlInput(false);
-    setIsUploadingEditImage(false);
     setEditModalVisible(true);
   };
 
@@ -350,15 +381,11 @@ export default function AdminContestTab({ showToast }: AdminContestTabProps) {
       return;
     }
 
-    const payload: {
-      title: string;
-      description?: string;
-      themeImageUrl?: string;
-      submitStartAt?: string;
-    } = {
+    const payload: ContestUpdateRequest = {
       title: editTitle.trim(),
       description: editDescription.trim() || undefined,
-      themeImageUrl: editThemeImageUrl.trim() || undefined,
+      externalThemeImageUrl: editExternalThemeImageUrl.trim() || undefined,
+      removeThemeImage: editRemoveThemeImage || undefined,
     };
 
     if (editingContestPhase === 'UPCOMING' && editSubmitStartAt.trim()) {
@@ -369,6 +396,7 @@ export default function AdminContestTab({ showToast }: AdminContestTabProps) {
       {
         contestId: editingContestId,
         data: payload,
+        themeImage: editThemeImage,
       },
       {
         onSuccess: () => {
@@ -498,6 +526,10 @@ export default function AdminContestTab({ showToast }: AdminContestTabProps) {
       }
     );
   };
+
+  const editThemeImagePreviewUri = editRemoveThemeImage
+    ? ''
+    : editThemeImage?.uri || editExternalThemeImageUrl.trim() || editCurrentThemeImageUrl;
 
   return (
     <View style={{ gap: normalize(14) }}>
@@ -1630,15 +1662,21 @@ export default function AdminContestTab({ showToast }: AdminContestTabProps) {
                     </Text>
                     <TouchableOpacity
                       onPress={() => setShowCreateUrlInput((v) => !v)}
+                      disabled={createThemeImage !== null}
                       hitSlop={6}
+                      style={{ opacity: createThemeImage ? 0.4 : 1 }}
                     >
                       <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Regular', color: TEXT_SUB }}>
-                        {showCreateUrlInput ? '직접 입력 닫기' : '직접 URL 입력'}
+                        {createThemeImage
+                          ? '사진 삭제 후 URL 입력 가능'
+                          : showCreateUrlInput
+                            ? '직접 입력 닫기'
+                            : '직접 URL 입력'}
                       </Text>
                     </TouchableOpacity>
                   </View>
 
-                  {createThemeImageUrl ? (
+                  {createThemeImage ? (
                     <View
                       style={{
                         borderRadius: normalize(10),
@@ -1649,7 +1687,7 @@ export default function AdminContestTab({ showToast }: AdminContestTabProps) {
                       }}
                     >
                       <Image
-                        source={{ uri: createThemeImageUrl }}
+                        source={{ uri: createThemeImage.uri }}
                         style={{
                           width: '100%',
                           height: normalize(150),
@@ -1675,12 +1713,11 @@ export default function AdminContestTab({ showToast }: AdminContestTabProps) {
                             marginRight: normalize(8),
                           }}
                         >
-                          {createThemeImageUrl}
+                          {createThemeImage.name || createThemeImage.uri}
                         </Text>
                         <View className="flex-row items-center" style={{ gap: normalize(6) }}>
                           <TouchableOpacity
                             onPress={() => handlePickThemeImage('create')}
-                            disabled={isUploadingCreateImage}
                             style={{
                               paddingHorizontal: normalize(8),
                               paddingVertical: normalize(4),
@@ -1697,7 +1734,7 @@ export default function AdminContestTab({ showToast }: AdminContestTabProps) {
                             </Text>
                           </TouchableOpacity>
                           <TouchableOpacity
-                            onPress={() => setCreateThemeImageUrl('')}
+                            onPress={() => setCreateThemeImage(null)}
                             style={{
                               paddingHorizontal: normalize(8),
                               paddingVertical: normalize(4),
@@ -1719,7 +1756,7 @@ export default function AdminContestTab({ showToast }: AdminContestTabProps) {
                   ) : (
                     <TouchableOpacity
                       onPress={() => handlePickThemeImage('create')}
-                      disabled={isUploadingCreateImage}
+                      disabled={Boolean(createExternalThemeImageUrl.trim())}
                       activeOpacity={0.8}
                       style={{
                         height: normalize(110),
@@ -1729,46 +1766,41 @@ export default function AdminContestTab({ showToast }: AdminContestTabProps) {
                         borderRadius: normalize(10),
                         alignItems: 'center',
                         justifyContent: 'center',
-                        backgroundColor: '#fcfcfc',
+                        backgroundColor: createExternalThemeImageUrl.trim() ? '#f3f4f6' : '#fcfcfc',
+                        opacity: createExternalThemeImageUrl.trim() ? 0.5 : 1,
                       }}
                     >
-                      {isUploadingCreateImage ? (
-                        <View style={{ alignItems: 'center', gap: normalize(6) }}>
-                          <ActivityIndicator size="small" color={BRAND} />
-                          <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-Medium', color: BRAND }}>
-                            이미지 업로드 중...
-                          </Text>
+                      <View style={{ alignItems: 'center', gap: normalize(4) }}>
+                        <View
+                          style={{
+                            width: normalize(38),
+                            height: normalize(38),
+                            borderRadius: normalize(19),
+                            backgroundColor: '#eef2ff',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <IconPhoto size={normalize(20)} color={BRAND} />
                         </View>
-                      ) : (
-                        <View style={{ alignItems: 'center', gap: normalize(4) }}>
-                          <View
-                            style={{
-                              width: normalize(38),
-                              height: normalize(38),
-                              borderRadius: normalize(19),
-                              backgroundColor: '#eef2ff',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                            }}
-                          >
-                            <IconPhoto size={normalize(20)} color={BRAND} />
-                          </View>
-                          <Text style={{ fontSize: FONT_SM, fontFamily: 'Pretendard-SemiBold', color: '#111' }}>
-                            앨범에서 사진 선택
-                          </Text>
-                          <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Regular', color: TEXT_SUB }}>
-                            권장 비율 16:9 · JPG, PNG, WEBP (최대 10MB)
-                          </Text>
-                        </View>
-                      )}
+                        <Text style={{ fontSize: FONT_SM, fontFamily: 'Pretendard-SemiBold', color: '#111' }}>
+                          {createExternalThemeImageUrl.trim() ? '직접 URL 사용 중' : '앨범에서 사진 선택'}
+                        </Text>
+                        <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Regular', color: TEXT_SUB }}>
+                          권장 비율 16:9 · JPG, PNG, HEIC (최대 20MB)
+                        </Text>
+                      </View>
                     </TouchableOpacity>
                   )}
 
                   {showCreateUrlInput && (
                     <View style={{ marginTop: normalize(8) }}>
                       <TextInput
-                        value={createThemeImageUrl}
-                        onChangeText={setCreateThemeImageUrl}
+                        value={createExternalThemeImageUrl}
+                        onChangeText={(value) => {
+                          setCreateExternalThemeImageUrl(value);
+                          if (value.trim()) setCreateThemeImage(null);
+                        }}
                         placeholder="https://example.com/theme.jpg"
                         placeholderTextColor="rgba(0,0,0,0.3)"
                         autoCapitalize="none"
@@ -2699,15 +2731,23 @@ export default function AdminContestTab({ showToast }: AdminContestTabProps) {
                     </Text>
                     <TouchableOpacity
                       onPress={() => setShowEditUrlInput((v) => !v)}
+                      disabled={editThemeImage !== null || editRemoveThemeImage}
                       hitSlop={6}
+                      style={{ opacity: editThemeImage || editRemoveThemeImage ? 0.4 : 1 }}
                     >
                       <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Regular', color: TEXT_SUB }}>
-                        {showEditUrlInput ? '직접 입력 닫기' : '직접 URL 입력'}
+                        {editThemeImage
+                          ? '사진 삭제 후 URL 입력 가능'
+                          : editRemoveThemeImage
+                            ? '삭제 취소 후 URL 입력 가능'
+                            : showEditUrlInput
+                              ? '직접 입력 닫기'
+                              : '직접 URL 입력'}
                       </Text>
                     </TouchableOpacity>
                   </View>
 
-                  {editThemeImageUrl ? (
+                  {editThemeImagePreviewUri ? (
                     <View
                       style={{
                         borderRadius: normalize(10),
@@ -2718,7 +2758,7 @@ export default function AdminContestTab({ showToast }: AdminContestTabProps) {
                       }}
                     >
                       <Image
-                        source={{ uri: editThemeImageUrl }}
+                        source={{ uri: editThemeImagePreviewUri }}
                         style={{
                           width: '100%',
                           height: normalize(150),
@@ -2744,12 +2784,12 @@ export default function AdminContestTab({ showToast }: AdminContestTabProps) {
                             marginRight: normalize(8),
                           }}
                         >
-                          {editThemeImageUrl}
+                          {editThemeImage?.name || editExternalThemeImageUrl.trim() || editCurrentThemeImageUrl}
                         </Text>
                         <View className="flex-row items-center" style={{ gap: normalize(6) }}>
                           <TouchableOpacity
                             onPress={() => handlePickThemeImage('edit')}
-                            disabled={isUploadingEditImage}
+                            disabled={Boolean(editExternalThemeImageUrl.trim())}
                             style={{
                               paddingHorizontal: normalize(8),
                               paddingVertical: normalize(4),
@@ -2766,7 +2806,12 @@ export default function AdminContestTab({ showToast }: AdminContestTabProps) {
                             </Text>
                           </TouchableOpacity>
                           <TouchableOpacity
-                            onPress={() => setEditThemeImageUrl('')}
+                            onPress={() => {
+                              setEditThemeImage(null);
+                              setEditExternalThemeImageUrl('');
+                              setEditRemoveThemeImage(true);
+                              setShowEditUrlInput(false);
+                            }}
                             style={{
                               paddingHorizontal: normalize(8),
                               paddingVertical: normalize(4),
@@ -2788,7 +2833,7 @@ export default function AdminContestTab({ showToast }: AdminContestTabProps) {
                   ) : (
                     <TouchableOpacity
                       onPress={() => handlePickThemeImage('edit')}
-                      disabled={isUploadingEditImage}
+                      disabled={Boolean(editExternalThemeImageUrl.trim())}
                       activeOpacity={0.8}
                       style={{
                         height: normalize(110),
@@ -2798,46 +2843,55 @@ export default function AdminContestTab({ showToast }: AdminContestTabProps) {
                         borderRadius: normalize(10),
                         alignItems: 'center',
                         justifyContent: 'center',
-                        backgroundColor: '#fcfcfc',
+                        backgroundColor: editExternalThemeImageUrl.trim() ? '#f3f4f6' : '#fcfcfc',
+                        opacity: editExternalThemeImageUrl.trim() ? 0.5 : 1,
                       }}
                     >
-                      {isUploadingEditImage ? (
-                        <View style={{ alignItems: 'center', gap: normalize(6) }}>
-                          <ActivityIndicator size="small" color={BRAND} />
-                          <Text style={{ fontSize: FONT_XS, fontFamily: 'Pretendard-Medium', color: BRAND }}>
-                            이미지 업로드 중...
-                          </Text>
+                      <View style={{ alignItems: 'center', gap: normalize(4) }}>
+                        <View
+                          style={{
+                            width: normalize(38),
+                            height: normalize(38),
+                            borderRadius: normalize(19),
+                            backgroundColor: '#eef2ff',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <IconPhoto size={normalize(20)} color={BRAND} />
                         </View>
-                      ) : (
-                        <View style={{ alignItems: 'center', gap: normalize(4) }}>
-                          <View
-                            style={{
-                              width: normalize(38),
-                              height: normalize(38),
-                              borderRadius: normalize(19),
-                              backgroundColor: '#eef2ff',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                            }}
-                          >
-                            <IconPhoto size={normalize(20)} color={BRAND} />
-                          </View>
-                          <Text style={{ fontSize: FONT_SM, fontFamily: 'Pretendard-SemiBold', color: '#111' }}>
-                            앨범에서 사진 선택
-                          </Text>
-                          <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Regular', color: TEXT_SUB }}>
-                            권장 비율 16:9 · JPG, PNG, WEBP (최대 10MB)
-                          </Text>
-                        </View>
-                      )}
+                        <Text style={{ fontSize: FONT_SM, fontFamily: 'Pretendard-SemiBold', color: '#111' }}>
+                          {editRemoveThemeImage ? '새 대표 이미지 선택' : '앨범에서 사진 선택'}
+                        </Text>
+                        <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Regular', color: TEXT_SUB }}>
+                          권장 비율 16:9 · JPG, PNG, HEIC (최대 20MB)
+                        </Text>
+                      </View>
+                    </TouchableOpacity>
+                  )}
+
+                  {editRemoveThemeImage && (
+                    <TouchableOpacity
+                      onPress={() => setEditRemoveThemeImage(false)}
+                      style={{ marginTop: normalize(8), alignSelf: 'flex-start' }}
+                    >
+                      <Text style={{ fontSize: FONT_2XS, fontFamily: 'Pretendard-Medium', color: BRAND }}>
+                        이미지 삭제 취소
+                      </Text>
                     </TouchableOpacity>
                   )}
 
                   {showEditUrlInput && (
                     <View style={{ marginTop: normalize(8) }}>
                       <TextInput
-                        value={editThemeImageUrl}
-                        onChangeText={setEditThemeImageUrl}
+                        value={editExternalThemeImageUrl}
+                        onChangeText={(value) => {
+                          setEditExternalThemeImageUrl(value);
+                          if (value.trim()) {
+                            setEditThemeImage(null);
+                            setEditRemoveThemeImage(false);
+                          }
+                        }}
                         placeholder="https://example.com/theme.jpg"
                         placeholderTextColor="rgba(0,0,0,0.3)"
                         autoCapitalize="none"

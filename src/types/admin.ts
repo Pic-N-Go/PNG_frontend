@@ -213,16 +213,23 @@ export const CONTEST_REPORT_REASON_LABELS: Record<ContestReportReason, string> =
 export interface ContestCreateRequest {
   title: string;
   description?: string;
-  themeImageUrl?: string;
+  externalThemeImageUrl?: string;
   submitStartAt?: string;
   maxEntriesPerUser?: number;
   voteLimit?: number;
 }
 
+export interface ContestThemeImageFile {
+  uri: string;
+  name?: string;
+  type?: string;
+}
+
 export interface ContestUpdateRequest {
   title?: string;
   description?: string;
-  themeImageUrl?: string;
+  externalThemeImageUrl?: string;
+  removeThemeImage?: boolean;
   submitStartAt?: string;
 }
 

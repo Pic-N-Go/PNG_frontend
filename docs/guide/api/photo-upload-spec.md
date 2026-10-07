@@ -229,6 +229,34 @@ GPS가 있는 원본 사진도 백엔드에 전달된 파일에서 GPS 태그 �
 
 ---
 
+## 콘테스트 테마 대표 이미지
+
+관리자 콘테스트 생성·수정은 이미지 선업로드 API를 사용하지 않는다. 관리자가 최종 저장을
+누를 때 JSON과 선택한 이미지 파일을 한 multipart 요청으로 보낸다.
+
+| 작업 | 엔드포인트 | JSON 파트 | 파일 파트 |
+|---|---|---|---|
+| 생성 | `POST /admin/contests` | `request` | `themeImage` (선택) |
+| 수정 | `PATCH /admin/contests/{contestId}` | `request` | `themeImage` (선택) |
+
+- `request` 파트의 Content-Type은 `application/json`이다.
+- 파일을 전송할 때는 `themeImage` 파트를 사용하며 서버는 `contests/themes/`에 저장한다.
+- DB에는 presigned URL이 아니라 S3 object key를 저장하고, 조회 응답에서만 presigned URL로 변환한다.
+- 직접 입력한 외부 이미지는 `request.externalThemeImageUrl`로 전송하며 URL을 그대로 저장한다.
+- 이미지 파일과 외부 URL은 동시에 보낼 수 없다. 프론트 UI에서 한쪽을 선택하면 다른 쪽을
+  비활성화하고, 서버도 중복 입력을 400으로 거절한다.
+- 수정 시 `removeThemeImage: true`는 기존 대표 이미지를 삭제한다. 파일·외부 URL·삭제 요청 중
+  하나만 사용할 수 있다.
+- 생성 또는 수정이 실패하면 새로 업로드한 S3 객체를 정리한다. 교체·삭제가 커밋되면 기존 S3
+  객체를 삭제한다.
+- 폐기된 `POST /admin/contests/theme-image` 선업로드 API는 사용하지 않는다.
+
+프론트는 공통 multipart 유틸리티(`src/api/http.ts`의 `appendJsonPart`, `appendFilePart`,
+`upload`)를 사용한다. FormData 요청의 `Content-Type` 헤더는 직접 지정하지 않고 런타임이
+boundary를 포함해 생성하도록 둔다.
+
+---
+
 ## 콘테스트 출품 추가 제한
 
 일반 게시글 업로드 기준에 더해 아래 조건을 추가 적용합니다.
