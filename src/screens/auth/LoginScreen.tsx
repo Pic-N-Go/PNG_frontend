@@ -16,6 +16,7 @@ import { Feather } from "@expo/vector-icons";
 import { useMutation } from "@tanstack/react-query";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { login as kakaoLogin } from "@react-native-seoul/kakao-login";
+import * as AppleAuthentication from "expo-apple-authentication";
 import { AuthStackParamList } from "@/navigation/AuthStack";
 import { useAuthStore } from "@/store/useAuthStore";
 import { authApi, isErrorCode, toErrorMessage } from "@/api/auth";
@@ -190,6 +191,59 @@ export default function LoginScreen({ navigation }: Props) {
         rawMsg = e.trim();
       }
       showToast(rawMsg || "카카오 로그인에 실패했어요");
+    },
+  });
+
+  // Android와, 네이티브 모듈이 아직 빌드에 포함되지 않은 iOS 개발 빌드에서는 false다.
+  // Platform.OS만 보면 후자에서 버튼을 그리다 크래시한다.
+  const [appleAvailable, setAppleAvailable] = useState(false);
+  useEffect(() => {
+    AppleAuthentication.isAvailableAsync().then(setAppleAvailable).catch(() => {});
+  }, []);
+
+  // 복구는 방금 받은 identityToken을 그대로 쓴다. 다시 받으려면 Face ID 시트를 한 번 더 띄워야 한다.
+  const appleRestoreMutation = useMutation({
+    mutationFn: (identityToken: string) => authApi.restoreWithApple(identityToken),
+    onSuccess: (data) => setAuth(data),
+    onError: (err: unknown) =>
+      showToast(toErrorMessage(err, "계정을 복구하지 못했어요. 잠시 후 다시 시도해주세요.")),
+  });
+
+  const appleLoginMutation = useMutation({
+    mutationFn: async () => {
+      // 이름·이메일 scope는 요청하지 않는다 — 닉네임은 온보딩에서 받고, 이메일은 토큰에 들어 있다.
+      const credential = await AppleAuthentication.signInAsync();
+      if (!credential.identityToken) throw new Error("Apple 인증 정보를 받지 못했어요");
+      const identityToken = credential.identityToken;
+      try {
+        return await authApi.loginWithApple(identityToken);
+      } catch (err) {
+        if (!isErrorCode(err, "ACCOUNT_WITHDRAWN")) throw err;
+        Alert.alert(
+          "탈퇴 대기 중인 계정이에요",
+          "30일 안에는 계정을 되돌릴 수 있어요. 지금 복구할까요?",
+          [
+            { text: "취소", style: "cancel" },
+            { text: "복구하기", onPress: () => appleRestoreMutation.mutate(identityToken) },
+          ],
+        );
+        return null;
+      }
+    },
+    onSuccess: (data) => {
+      if (!data) return;
+      // 카카오와 같다 — 신규 가입은 온보딩에서 닉네임을 확정한 뒤 로그인을 완료시킨다.
+      if (data.isNewUser) {
+        navigation.navigate('Onboarding', { provider: 'apple', tokens: data });
+        return;
+      }
+      return setAuth(data);
+    },
+    onError: (e: unknown) => {
+      // 사용자가 Apple 시트를 닫은 경우
+      if ((e as { code?: string })?.code === "ERR_REQUEST_CANCELED") return;
+      console.error("[AppleLogin Error]", e);
+      showToast(toErrorMessage(e, "Apple 로그인에 실패했어요"));
     },
   });
 
@@ -541,13 +595,12 @@ export default function LoginScreen({ navigation }: Props) {
               />
             </View>
 
-            {/* Social */}
-            <View style={{ flexDirection: "row", gap: 14 }}>
+            {/* Social — 한 줄에 하나씩. Apple 시스템 버튼은 좁으면 글씨가 줄어들어 나란히 두지 않는다. */}
+            <View style={{ gap: 10 }}>
               <Pressable
                 onPress={() => kakaoLoginMutation.mutate()}
                 disabled={kakaoLoginMutation.isPending}
                 style={{
-                  flex: 1,
                   height: SOCIAL_BUTTON_HEIGHT,
                   borderRadius: SOCIAL_BUTTON_RADIUS,
                   backgroundColor: "#FEE500",
@@ -575,37 +628,22 @@ export default function LoginScreen({ navigation }: Props) {
                     fontFamily: "Pretendard-Medium",
                   }}
                 >
-                  카카오
+                  카카오로 로그인
                 </Text>
               </Pressable>
 
-              {/* Apple 로그인 — 카카오 우선 진행으로 잠정 보류, 재개 시 주석 해제
-              <Pressable
-                onPress={() => navigation.navigate('Onboarding', { provider: 'apple' })}
-                style={{
-                  flex: 1,
-                  height: SOCIAL_BUTTON_HEIGHT,
-                  borderRadius: SOCIAL_BUTTON_RADIUS,
-                  backgroundColor: '#000',
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: 6,
-                }}
-              >
-                <Feather name="smartphone" size={14} color="#fff" />
-                <Text
-                  style={{
-                    fontSize: FONT_MD,
-                    color: '#fff',
-                    letterSpacing: -0.2,
-                    fontFamily: 'Pretendard-Medium',
+              {/* Apple 가이드라인상 로그인 버튼은 시스템 제공 버튼을 써야 한다. 문구는 기기 언어를 따른다. */}
+              {appleAvailable && (
+                <AppleAuthentication.AppleAuthenticationButton
+                  buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
+                  buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+                  cornerRadius={SOCIAL_BUTTON_RADIUS}
+                  onPress={() => {
+                    if (!appleLoginMutation.isPending) appleLoginMutation.mutate();
                   }}
-                >
-                  Apple
-                </Text>
-              </Pressable>
-              */}
+                  style={{ height: SOCIAL_BUTTON_HEIGHT }}
+                />
+              )}
             </View>
 
             {/* Signup link */}

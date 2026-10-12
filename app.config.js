@@ -34,6 +34,7 @@ module.exports = {
       // 배포 프로비저닝 프로필에 맞춰 서명 단계에서 production으로 바뀐다.
       entitlements: {
         'aps-environment': 'development',
+        'com.apple.developer.applesignin': ['Default'],
       },
     },
     android: {
@@ -124,6 +125,7 @@ module.exports = {
       '@react-native-community/datetimepicker',
       '@react-native-firebase/app',
       '@react-native-firebase/messaging',
+      'expo-apple-authentication',
     ],
     extra: {
       eas: {
