@@ -211,7 +211,8 @@ export default function LoginScreen({ navigation }: Props) {
 
   const appleLoginMutation = useMutation({
     mutationFn: async () => {
-      // 이름·이메일 scope는 요청하지 않는다 — 닉네임은 온보딩에서 받고, 이메일은 토큰에 들어 있다.
+      // 이름·이메일 scope는 요청하지 않는다 — 닉네임은 온보딩에서 받는다. scope 없이는 토큰에
+      // 이메일이 없어 서버가 `{sub}@apple.local`로 가입시킨다(카카오 이메일 미동의와 같은 처리).
       const credential = await AppleAuthentication.signInAsync();
       if (!credential.identityToken) throw new Error("Apple 인증 정보를 받지 못했어요");
       const identityToken = credential.identityToken;
@@ -632,17 +633,22 @@ export default function LoginScreen({ navigation }: Props) {
                 </Text>
               </Pressable>
 
-              {/* Apple 가이드라인상 로그인 버튼은 시스템 제공 버튼을 써야 한다. 문구는 기기 언어를 따른다. */}
+              {/* Apple 가이드라인상 로그인 버튼은 시스템 제공 버튼을 써야 한다. 문구가 기기 언어를
+                  따르려면 Info.plist의 CFBundleAllowMixedLocalizations가 필요하다. */}
               {appleAvailable && (
-                <AppleAuthentication.AppleAuthenticationButton
-                  buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
-                  buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
-                  cornerRadius={SOCIAL_BUTTON_RADIUS}
-                  onPress={() => {
-                    if (!appleLoginMutation.isPending) appleLoginMutation.mutate();
-                  }}
-                  style={{ height: SOCIAL_BUTTON_HEIGHT }}
-                />
+                // 시스템 버튼에는 disabled가 없어 감싼 View로 요청 중 표시와 입력 차단을 한다.
+                <View
+                  pointerEvents={appleLoginMutation.isPending ? "none" : "auto"}
+                  style={{ opacity: appleLoginMutation.isPending ? 0.6 : 1 }}
+                >
+                  <AppleAuthentication.AppleAuthenticationButton
+                    buttonType={AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN}
+                    buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+                    cornerRadius={SOCIAL_BUTTON_RADIUS}
+                    onPress={() => appleLoginMutation.mutate()}
+                    style={{ height: SOCIAL_BUTTON_HEIGHT }}
+                  />
+                </View>
               )}
             </View>
 

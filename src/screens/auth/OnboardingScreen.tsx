@@ -127,7 +127,7 @@ export default function OnboardingScreen({ navigation, route }: Props) {
       setShowTermsErr(true);
       return;
     }
-    // 애플은 아직 미연동이라 토큰 없이 들어온다 — setAuth로 가짜 세션을 만들지 말 것.
+    // 토큰 없이 들어온 경우의 방어 — setAuth로 가짜 세션을 만들지 말 것.
     if (!accessToken || !user) {
       Alert.alert('준비 중', '아직 지원하지 않는 로그인 방식이에요.');
       return;

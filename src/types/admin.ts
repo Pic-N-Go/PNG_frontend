@@ -5,7 +5,7 @@ export interface AdminUser {
   nickname: string;
   profileImageUrl: string | null;
   role: 'USER' | 'ADMIN';
-  provider: 'LOCAL' | 'KAKAO';
+  provider: 'LOCAL' | 'KAKAO' | 'APPLE';
   createdAt: string;
 }
 

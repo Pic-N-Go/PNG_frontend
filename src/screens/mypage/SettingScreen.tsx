@@ -42,14 +42,19 @@ export default function SettingScreen({ route, navigation }: Props) {
   const isAdmin = user?.role === 'ADMIN';
   // 서버 UserResponse.provider가 가입 경로를 알려준다. LOCAL은 이메일 가입이라 연결된 소셜이 없다.
   // user가 아직 안 왔을 때(재수화 직후) 둘 중 하나로 단정하지 않고 행을 비워 둔다.
-  const socialDesc = user == null ? undefined : user.provider === 'KAKAO' ? '카카오 연결됨' : '연결된 계정 없음';
-  const isSocialAccount = user?.provider === 'KAKAO';
+  const socialDesc = user == null ? undefined
+    : user.provider === 'KAKAO' ? '카카오 연결됨'
+    : user.provider === 'APPLE' ? 'Apple 연결됨'
+    : '연결된 계정 없음';
+  // 소셜 계정은 비밀번호가 없다. KAKAO만 고르면 새 제공자가 추가될 때마다 이메일 계정으로 취급된다.
+  const isSocialAccount = user != null && user.provider !== 'LOCAL';
   /**
    * 카카오는 이메일 제공이 선택 동의라, 동의하지 않은 계정은 서버가 `{providerId}@kakao.local`을
    * 대신 저장한다(KakaoAuthClient). 실제로 존재하지 않는 주소라 화면에 보여주지 않는다 —
    * 보여주면 사용자가 자기 이메일이 저렇게 바뀐 줄 안다.
+   * Apple은 이메일을 요청하지 않아 항상 `{sub}@apple.local`이다(AppleAuthClient).
    */
-  const accountEmail = user?.email && !user.email.endsWith('@kakao.local') ? user.email : undefined;
+  const accountEmail = user?.email && !/@(kakao|apple)\.local$/.test(user.email) ? user.email : undefined;
   const [dndTimeSheetVisible, setDndTimeSheetVisible] = React.useState(false);
   const [dndRepeatSheetVisible, setDndRepeatSheetVisible] = React.useState(false);
   const [versionSheetVisible, setVersionSheetVisible] = React.useState(false);
