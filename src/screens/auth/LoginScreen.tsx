@@ -17,6 +17,9 @@ import { useMutation } from "@tanstack/react-query";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 import { login as kakaoLogin } from "@react-native-seoul/kakao-login";
 import * as AppleAuthentication from "expo-apple-authentication";
+
+/** Apple 로그인과 복구가 같은 자격증명을 쓴다. 복구는 로그인 응답을 보고 이어지므로 함께 넘긴다. */
+type AppleCredential = { identityToken: string; authorizationCode: string | null };
 import { AuthStackParamList } from "@/navigation/AuthStack";
 import { useAuthStore } from "@/store/useAuthStore";
 import { authApi, isErrorCode, toErrorMessage } from "@/api/auth";
@@ -201,9 +204,10 @@ export default function LoginScreen({ navigation }: Props) {
     AppleAuthentication.isAvailableAsync().then(setAppleAvailable).catch(() => {});
   }, []);
 
-  // 복구는 방금 받은 identityToken을 그대로 쓴다. 다시 받으려면 Face ID 시트를 한 번 더 띄워야 한다.
+  // 복구는 방금 받은 자격증명을 그대로 쓴다. 다시 받으려면 Apple 시트를 한 번 더 띄워야 한다.
   const appleRestoreMutation = useMutation({
-    mutationFn: (identityToken: string) => authApi.restoreWithApple(identityToken),
+    mutationFn: ({ identityToken, authorizationCode }: AppleCredential) =>
+      authApi.restoreWithApple(identityToken, authorizationCode),
     onSuccess: (data) => setAuth(data),
     onError: (err: unknown) =>
       showToast(toErrorMessage(err, "계정을 복구하지 못했어요. 잠시 후 다시 시도해주세요.")),
@@ -216,8 +220,11 @@ export default function LoginScreen({ navigation }: Props) {
       const credential = await AppleAuthentication.signInAsync();
       if (!credential.identityToken) throw new Error("Apple 인증 정보를 받지 못했어요");
       const identityToken = credential.identityToken;
+      // 탈퇴 때 Apple 토큰을 폐기하려면 서버가 이 값을 교환해 둬야 한다(가이드라인 5.1.1(v)).
+      // Apple이 주지 않는 경우가 있어 null을 그대로 보낸다 — 서버에서 선택 값이다.
+      const authorizationCode = credential.authorizationCode;
       try {
-        return await authApi.loginWithApple(identityToken);
+        return await authApi.loginWithApple(identityToken, authorizationCode);
       } catch (err) {
         if (!isErrorCode(err, "ACCOUNT_WITHDRAWN")) throw err;
         Alert.alert(
@@ -225,7 +232,10 @@ export default function LoginScreen({ navigation }: Props) {
           "30일 안에는 계정을 되돌릴 수 있어요. 지금 복구할까요?",
           [
             { text: "취소", style: "cancel" },
-            { text: "복구하기", onPress: () => appleRestoreMutation.mutate(identityToken) },
+            {
+              text: "복구하기",
+              onPress: () => appleRestoreMutation.mutate({ identityToken, authorizationCode }),
+            },
           ],
         );
         return null;
