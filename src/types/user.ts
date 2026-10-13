@@ -35,7 +35,7 @@ export type UserResponse = {
   hasUploadedProfileImage: boolean;
   bio: string | null;
   role: 'USER' | 'ADMIN';
-  provider: 'LOCAL' | 'KAKAO';
+  provider: 'LOCAL' | 'KAKAO' | 'APPLE';
   spotCategories: string[];
 };
 
