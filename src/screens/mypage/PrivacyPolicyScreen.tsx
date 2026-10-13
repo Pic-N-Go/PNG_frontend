@@ -43,11 +43,15 @@ const SECTIONS = [
       '· 위탁 업무: 카카오 간편 로그인 및 회원 식별\n' +
       '· 처리 항목: 카카오 계정 고유 식별자, 이메일, 닉네임, 카카오 액세스 토큰\n' +
       '· 보유 및 이용 기간: 회원 탈퇴 후 30일 또는 위탁 계약 종료 시까지\n\n' +
-      '② 네이버클라우드 (NCP - Naver Cloud Platform)\n' +
+      '② Apple (Apple Inc.)\n' +
+      '· 위탁 업무: Apple 간편 로그인(Sign in with Apple) 및 회원 식별\n' +
+      '· 처리 항목: Apple 계정 고유 식별자, Apple 인증 토큰(identity token, authorization code)\n' +
+      '· 보유 및 이용 기간: 회원 탈퇴 시 Apple에 연동 해제(토큰 폐기)를 요청하며, 그 외에는 위탁 계약 종료 시까지\n\n' +
+      '③ 네이버클라우드 (NCP - Naver Cloud Platform)\n' +
       '· 위탁 업무: NaverMapView 지도 렌더링 및 주변 출사지 위치 검색\n' +
       '· 처리 항목: 기기 GPS 위치 좌표(위·경도)\n' +
       '· 보유 및 이용 기간: 지도 화면 표시 및 API 호출 즉시 일시 처리(별도 보관 없음)\n\n' +
-      '③ 구글 (Google LLC / Firebase)\n' +
+      '④ 구글 (Google LLC / Firebase)\n' +
       '· 위탁 업무: FCM(Firebase Cloud Messaging) 푸시 알림 발송\n' +
       '· 처리 항목: 기기 식별자, Firebase FCM 등록 토큰\n' +
       '· 보유 및 이용 기간: 앱 삭제 또는 알림 수신 동의 철회 시까지',
