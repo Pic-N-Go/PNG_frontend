@@ -132,12 +132,12 @@ export default function SettingScreen({ route, navigation }: Props) {
   }, [checkPushPermission, checkLocationPermission]);
 
 
-  // 카카오 계정의 이메일은 카카오가 소유한다. 우리 쪽에서 바꾸면 다음 로그인 때 되돌아오거나
+  // 소셜 계정의 이메일은 해당 소셜 서비스가 소유한다. 우리 쪽에서 바꾸면 다음 로그인 때 되돌아오거나
   // 로그인 식별자가 어긋난다 — 행을 숨기는 대신 왜 안 되는지 알려준다.
   const openSocialEmailAlert = () => {
     Alert.alert(
       '이메일을 변경할 수 없어요',
-      '카카오 계정으로 로그인 중이에요. 이메일은 카카오에서 관리돼요.',
+      '소셜 계정으로 로그인 중이에요. 이메일은 로그인한 소셜 서비스에서 관리돼요.',
     );
   };
 
@@ -146,7 +146,7 @@ export default function SettingScreen({ route, navigation }: Props) {
   const openSocialPasswordAlert = () => {
     Alert.alert(
       '비밀번호를 변경할 수 없어요',
-      '카카오 계정으로 로그인 중이에요. 비밀번호 없이 카카오로 로그인해요.',
+      '소셜 계정으로 로그인 중이에요. 비밀번호 없이 소셜 로그인을 사용해요.',
     );
   };
 
