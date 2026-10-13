@@ -26,6 +26,14 @@ module.exports = {
       googleServicesFile: './GoogleService-Info.plist',
       infoPlist: {
         KAKAO_APP_KEY: process.env.EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY,
+        // HTTPS 외 자체 암호화가 없다. 선언해 두지 않으면 업로드마다 수출 규정 질문에 답해야 한다.
+        ITSAppUsesNonExemptEncryption: false,
+        UIBackgroundModes: ['remote-notification'],
+      },
+      // FCM 푸시에 필요. 값은 development로 두면 되고, 스토어용 아카이브에서는
+      // 배포 프로비저닝 프로필에 맞춰 서명 단계에서 production으로 바뀐다.
+      entitlements: {
+        'aps-environment': 'development',
       },
     },
     android: {
@@ -44,7 +52,12 @@ module.exports = {
       favicon: './assets/images/logo/icon.png',
     },
     plugins: [
-      'expo-secure-store',
+      [
+        // 생체 인증(requireAuthentication)을 쓰지 않으므로 Face ID 권한 문구를 넣지 않는다.
+        // 기본값이면 플러그인이 영문 NSFaceIDUsageDescription을 무조건 추가한다.
+        'expo-secure-store',
+        { faceIDPermission: false },
+      ],
       [
         // top-level splash는 SDK 52+에서 deprecated. 이 플러그인만이 Android 12+의
         // windowSplashScreenBackground/AnimatedIcon을 넣어준다 — 없으면 시스템이
