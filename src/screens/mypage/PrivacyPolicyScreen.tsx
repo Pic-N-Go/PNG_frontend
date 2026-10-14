@@ -14,7 +14,7 @@ type Props = NativeStackScreenProps<MyPageStackParamList, 'PrivacyPolicy'>;
 const TEXT2 = 'rgba(0,0,0,0.55)';
 const BODY = 'rgba(0,0,0,0.7)';
 
-const META = { effectiveDate: '2026.05.01', version: 'v1.0', totalItems: 7 };
+const META = { effectiveDate: '2026.09.01', version: 'v1.0', totalItems: 7 };
 
 const SUMMARY = [
   '수집 항목: 이메일, 닉네임, 프로필, 위치(선택), 사진 EXIF',
