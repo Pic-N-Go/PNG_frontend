@@ -1,0 +1,53 @@
+# 개인정보처리방침 공개 사이트. App Store Connect 제출에 공개 URL이 필수다.
+#
+# Pages를 /docs 폴더로 켜면 docs/ 아래 전부(내부 개발 문서 93개 포함)가 사이트가 된다.
+# 그래서 폴더를 통째로 넘기지 않고, 공개할 파일만 site/로 복사해 그 디렉터리만 빌드한다.
+# 여기 적힌 파일 외에는 무엇을 추가해도 공개되지 않는다 — 공개 범위가 denylist가 아니라
+# 이 복사 단계로 정해진다.
+name: Pages
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'docs/privacy-policy.md'
+      - '.github/pages/**'
+      - '.github/workflows/pages.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 배포는 한 번에 하나만. 진행 중인 배포를 취소하지 않는다(중간 상태로 공개되면 안 된다).
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      # ↓ 공개 대상은 여기가 전부다. 늘리려면 이 줄을 늘려야 한다.
+      - name: 공개할 파일만 추린다
+        run: |
+          mkdir -p site
+          cp docs/privacy-policy.md site/index.md
+          cp .github/pages/_config.yml site/_config.yml
+          echo "--- 공개되는 파일 ---"
+          find site -type f
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/jekyll-build-pages@v1
+        with:
+          source: site
+          destination: _site
+      - uses: actions/upload-pages-artifact@v3
+      - id: deployment
+        uses: actions/deploy-pages@v4
