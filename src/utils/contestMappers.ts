@@ -151,6 +151,7 @@ export function mapContestEntry(dto: ContestEntryDTO): ContestEntry {
   return {
     id: String(dto.entryId),
     author: dto.authorNickname,
+    authorId: dto.authorId,
     spot: dto.spotName ?? undefined,
     shotAtLabel: shotAtLabel(dto.shotAt) || undefined,
     createdAgoLabel: formatRelativeTime(dto.createdAt),

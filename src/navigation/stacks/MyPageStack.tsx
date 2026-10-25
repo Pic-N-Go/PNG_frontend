@@ -13,6 +13,7 @@ import PrivacyPolicyScreen from '@/screens/mypage/PrivacyPolicyScreen';
 import OpenSourceLicensesScreen from '@/screens/mypage/OpenSourceLicensesScreen';
 import ProfileEditScreen from '@/screens/mypage/ProfileEditScreen';
 import FollowScreen from '@/screens/mypage/FollowScreen';
+import BlockedUsersScreen from '@/screens/mypage/BlockedUsersScreen';
 import MyPhotosScreen from '@/screens/mypage/MyPhotosScreen';
 import MyPostsScreen from '@/screens/mypage/MyPostsScreen';
 import MyReviewsScreen from '@/screens/mypage/MyReviewsScreen';
@@ -35,6 +36,7 @@ export type MyPageStackParamList = {
   PrivacyPolicy: undefined;
   OpenSourceLicenses: undefined;
   Follow: { initialTab: 'followers' | 'following'; userId?: number };
+  BlockedUsers: undefined;
   MyPhotos: undefined;
   MyPosts: undefined;
   MyReviews: undefined;
@@ -60,6 +62,7 @@ export default function MyPageStack() {
       <Stack.Screen name="OpenSourceLicenses" component={OpenSourceLicensesScreen} />
       <Stack.Screen name="ProfileEdit" component={ProfileEditScreen} />
       <Stack.Screen name="Follow" component={FollowScreen} />
+      <Stack.Screen name="BlockedUsers" component={BlockedUsersScreen} />
       <Stack.Screen name="MyPhotos" component={MyPhotosScreen} />
       <Stack.Screen name="MyPosts" component={MyPostsScreen} />
       <Stack.Screen name="MyReviews" component={MyReviewsScreen} />

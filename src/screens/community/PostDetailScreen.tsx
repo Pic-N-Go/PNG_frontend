@@ -20,6 +20,7 @@ import {
   useDeleteComment,
   useDeletePost,
   usePost,
+  useToggleBlock,
   useToggleBookmark,
   useToggleCommentLike,
   useUpdateComment,
@@ -62,6 +63,7 @@ export default function PostDetailScreen() {
   const toggleLikeM = useToggleLike();
   const toggleBookmarkM = useToggleBookmark();
   const toggleFollowM = useToggleFollow();
+  const toggleBlockM = useToggleBlock();
   const createComment = useCreateComment(postId ?? '');
   const updateCommentM = useUpdateComment(postId ?? '');
   const deleteCommentM = useDeleteComment(postId ?? '');
@@ -76,6 +78,7 @@ export default function PostDetailScreen() {
   const [editing, setEditing] = useState<Comment | null>(null);
 
   const [actionSheetOpen, setActionSheetOpen] = useState(false);
+  const [blockModalOpen, setBlockModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [reportSheetOpen, setReportSheetOpen] = useState(false);
   /** 삭제 확인 중인 댓글 id. 게시글 삭제와 같이 한 번 확인받는다(되돌릴 수 없다). */
@@ -182,6 +185,29 @@ export default function PostDetailScreen() {
       onSuccess: () => showToast('게시글이 삭제되었어요', () => navigation.goBack()),
       onError: (err) => showToast(toErrorMessage(err, '게시글을 삭제하지 못했어요')),
     });
+  }
+
+  /**
+   * 차단. 서버가 멱등이라 중복 호출을 막지 않고, 성공하면 상세 화면을 빠져나간다 —
+   * 차단한 사람의 글을 계속 보고 있으면 차단된 것처럼 느껴지지 않는다.
+   */
+  function handleConfirmBlock() {
+    if (!post || toggleBlockM.isPending) return;
+    const nickname = post.author.handle;
+    toggleBlockM.mutate(
+      { userId: post.author.id, next: true },
+      {
+        onSuccess: () => {
+          setBlockModalOpen(false);
+          setActionSheetOpen(false);
+          showToast(`${nickname}님을 차단했어요`, () => navigation.goBack());
+        },
+        onError: (err) => {
+          setBlockModalOpen(false);
+          showToast(toErrorMessage(err, '차단하지 못했어요'));
+        },
+      },
+    );
   }
 
   function handleSubmitReport(reasonId: ReportReasonId, detail: string) {
@@ -619,6 +645,7 @@ export default function PostDetailScreen() {
         onEdit={() => openAfterActionSheet(() => navigation.navigate('CommunityWrite', { postId }))}
         onRequestDelete={() => openAfterActionSheet(() => setDeleteModalOpen(true))}
         onRequestReport={() => openAfterActionSheet(() => setReportSheetOpen(true))}
+        onRequestBlock={() => openAfterActionSheet(() => setBlockModalOpen(true))}
       />
 
       <ConfirmModal
@@ -629,6 +656,16 @@ export default function PostDetailScreen() {
         cancelLabel="취소"
         onConfirm={handleConfirmDelete}
         onCancel={() => setDeleteModalOpen(false)}
+      />
+
+      <ConfirmModal
+        visible={blockModalOpen}
+        title={post ? `${post.author.handle}님을 차단할까요?` : '차단할까요?'}
+        body="차단하면 이 사용자의 게시글이 보이지 않고 서로의 팔로우가 해제돼요. 설정 > 차단 목록에서 해제할 수 있어요."
+        confirmLabel="차단"
+        cancelLabel="취소"
+        onConfirm={handleConfirmBlock}
+        onCancel={() => setBlockModalOpen(false)}
       />
 
       <ConfirmModal

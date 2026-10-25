@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Check, ChevronLeft, MapPin, MoreHorizontal, Share as ShareIcon, Flag, Trash2, ThumbsUp } from 'lucide-react-native';
+import { Ban, Check, ChevronLeft, MapPin, MoreHorizontal, Share as ShareIcon, Flag, Trash2, ThumbsUp } from 'lucide-react-native';
 import BottomSheet from '@/components/common/BottomSheet';
 import ConfirmModal from '@/components/common/ConfirmModal';
 import Toast from '@/components/common/Toast';
@@ -17,6 +17,7 @@ import {
   useReportContestEntry,
   useToggleVote,
 } from '@/hooks/useContest';
+import { useToggleBlock } from '@/hooks/useCommunity';
 import { announceLabel, dayLabel, mapContestEntry } from '@/utils/contestMappers';
 import { CommunityDetailStackParamList } from '@/navigation/stacks/CommunityDetailStack';
 import type { RootStackParamList } from '@/navigation';
@@ -44,6 +45,7 @@ export default function ContestEntryDetailScreen() {
   const voteMutation = useToggleVote(contestId);
   const deleteMutation = useDeleteContestEntry(contestId);
   const reportMutation = useReportContestEntry();
+  const toggleBlock = useToggleBlock();
 
   const dto = entryQuery.data ?? null;
   const entry = dto ? mapContestEntry(dto) : null;
@@ -92,6 +94,7 @@ export default function ContestEntryDetailScreen() {
 
   const [actionSheetVisible, setActionSheetVisible] = useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [blockModalVisible, setBlockModalVisible] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [toastVisible, setToastVisible] = useState(false);
 
@@ -390,6 +393,19 @@ export default function ContestEntryDetailScreen() {
             </Pressable>
           )}
 
+          {/* 가이드라인 1.2는 신고와 별개로 차단 수단을 요구한다. 콘테스트 작품도 UGC다. */}
+          {!isMine && !!entry && (
+            <Pressable
+              onPress={() => setBlockModalVisible(true)}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: normalize(12), height: normalize(56), borderTopWidth: HAIRLINE_WIDTH, borderTopColor: HAIRLINE }}
+            >
+              <Ban size={normalize(19)} color={ACCENT} strokeWidth={1.8} />
+              <Text allowFontScaling={false} style={{ fontFamily: 'Pretendard-Medium', fontSize: FONT_MD, letterSpacing: -0.3, color: ACCENT }}>
+                이 사용자 차단하기
+              </Text>
+            </Pressable>
+          )}
+
           {isMine && (
             <Text allowFontScaling={false} style={{ marginTop: normalize(4), fontFamily: 'Pretendard-Regular', fontSize: FONT_SM, lineHeight: FONT_SM * 1.5, letterSpacing: -0.2, color: '#5c5c60' }}>
               수정은 할 수 없어요. 삭제하면 받은 표도 함께 사라집니다.
@@ -422,6 +438,29 @@ export default function ContestEntryDetailScreen() {
           }}
           cancelLabel="취소"
           onCancel={() => setDeleteModalVisible(false)}
+        />
+
+        <ConfirmModal
+          visible={blockModalVisible}
+          title={entry ? `${entry.author}님을 차단할까요?` : '차단할까요?'}
+          body="차단하면 이 사용자의 게시글이 보이지 않고 서로의 팔로우가 해제돼요. 설정 > 차단 목록에서 해제할 수 있어요."
+          confirmLabel="차단"
+          onConfirm={() => {
+            if (!entry || toggleBlock.isPending) return;
+            setBlockModalVisible(false);
+            setActionSheetVisible(false);
+            toggleBlock.mutate(
+              { userId: entry.authorId, next: true },
+              {
+                // 작품 자체는 콘테스트에 남는다(표가 걸려 있어 서버가 지우지 않는다) —
+                // 그래서 게시글 상세와 달리 화면을 떠나지 않고 토스트만 띄운다.
+                onSuccess: () => showToast(`${entry.author}님을 차단했어요`),
+                onError: (err) => showToast(toErrorMessage(err, '차단하지 못했어요')),
+              },
+            );
+          }}
+          cancelLabel="취소"
+          onCancel={() => setBlockModalVisible(false)}
         />
       </BottomSheet>
 

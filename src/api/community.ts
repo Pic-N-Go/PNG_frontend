@@ -3,6 +3,7 @@
 // 백엔드: PNG_backend `community` 모듈(PostController·PostCommentController) + `user` 모듈(UserController).
 import { ApiError, fetchWithAuthRetry, toHttpError } from '@/api/auth';
 import type {
+  BlockedUserDTO,
   CommentPageResponseDTO,
   CommentResponseDTO,
   FollowUserDTO,
@@ -202,4 +203,13 @@ export const communityApi = {
   getFollowing: (userId: string | number, token?: string) => request<FollowUserDTO[]>(`/users/${userId}/following`, { token }),
   follow: (userId: string | number, token: string) => request<void>(`/users/${userId}/follow`, { method: 'POST', token }),
   unfollow: (userId: string | number, token: string) => request<void>(`/users/${userId}/follow`, { method: 'DELETE', token }),
+
+  // 9. 사용자 차단 — App Store 가이드라인 1.2가 UGC 앱에 요구한다(신고만으로는 충족되지 않는다).
+  //    block/unblock 둘 다 서버에서 멱등이라, 중복 호출을 프론트에서 막을 필요가 없다.
+  //    차단하면 서버가 양방향 팔로우까지 끊고, 피드 조회에서 그 사람 글을 빼준다.
+  getBlockedUsers: (token: string) => request<BlockedUserDTO[]>('/users/me/blocks', { token }),
+  blockUser: (userId: string | number, token: string) =>
+    request<void>(`/users/me/blocks/${userId}`, { method: 'POST', token }),
+  unblockUser: (userId: string | number, token: string) =>
+    request<void>(`/users/me/blocks/${userId}`, { method: 'DELETE', token }),
 };
