@@ -1,0 +1,31 @@
+{
+  "cli": {
+    "version": ">= 21.7.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal"
+    },
+    "preview": {
+      "distribution": "internal"
+    },
+    "onestore": {
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "production": {
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://api.picngo.site",
+        "EXPO_PUBLIC_KAKAO_NATIVE_APP_KEY": "fd7f9b8d273c9b33fbf31e8ba7cb4dc6",
+        "EXPO_PUBLIC_KAKAO_ANDROID_NATIVE_APP_KEY": "fd7f9b8d273c9b33fbf31e8ba7cb4dc6"
+      }
+    }
+  },
+  "submit": {
+    "production": {}
+  }
+}
