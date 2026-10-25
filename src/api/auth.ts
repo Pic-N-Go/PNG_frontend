@@ -210,9 +210,14 @@ export const authApi = {
   loginWithKakao: (accessToken: string) =>
     post<TokenResponse>('/auth/login/social', { accessToken }),
 
-  /** identityToken은 Sign in with Apple이 발급한 JWT. 서버가 Apple 공개 키로 서명을 검증한다. */
-  loginWithApple: (identityToken: string) =>
-    post<TokenResponse>('/auth/login/apple', { identityToken }),
+  /**
+   * identityToken은 Sign in with Apple이 발급한 JWT. 서버가 Apple 공개 키로 서명을 검증한다.
+   *
+   * authorizationCode는 탈퇴 시 Apple 토큰을 폐기하는 데만 쓴다(App Store 가이드라인 5.1.1(v)).
+   * Apple이 주지 않는 경우가 있어 서버에서도 선택 값이다 — 없다고 로그인을 막지 않는다.
+   */
+  loginWithApple: (identityToken: string, authorizationCode: string | null) =>
+    post<TokenResponse>('/auth/login/apple', { identityToken, authorizationCode }),
 
   refreshToken: (refreshToken: string) =>
     post<TokenResponse>('/auth/token/refresh', { refreshToken }),
@@ -227,8 +232,8 @@ export const authApi = {
   restoreWithKakao: (accessToken: string) =>
     post<TokenResponse>('/auth/restore/social', { accessToken }),
 
-  restoreWithApple: (identityToken: string) =>
-    post<TokenResponse>('/auth/restore/apple', { identityToken }),
+  restoreWithApple: (identityToken: string, authorizationCode: string | null) =>
+    post<TokenResponse>('/auth/restore/apple', { identityToken, authorizationCode }),
 
   sendPasswordResetCode: (email: string) =>
     post<EmailVerificationResponse>('/auth/password/reset/code', { email }),
