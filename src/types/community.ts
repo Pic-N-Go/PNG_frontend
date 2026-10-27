@@ -213,6 +213,14 @@ export interface FollowUserDTO {
   profileImageUrl: string | null;
 }
 
+/** 차단 목록 한 줄. 백엔드 BlockedUserResponse와 1:1이다 (bio는 응답에 없다). */
+export interface BlockedUserDTO {
+  id: number;
+  nickname: string;
+  profileImageUrl: string | null;
+  blockedAt: string;
+}
+
 export interface ContestPhotoEntry {
   id: string;
   rank: number;
@@ -321,6 +329,8 @@ export interface ContestInfo {
 export interface ContestEntry {
   id: string;
   author: string;
+  /** 출품자 id. 차단(가이드라인 1.2)에 필요하다 — 표시는 author(닉네임)로 한다. */
+  authorId: number;
   spot?: string;
   shotAtLabel?: string;
   createdAgoLabel?: string;

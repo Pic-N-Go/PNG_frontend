@@ -36,6 +36,7 @@ const commentsKey = (postId: string) => ['community', 'comments', postId] as con
 const repliesKey = (postId: string, commentId: string) =>
   ['community', 'replies', postId, commentId] as const;
 const followingKey = (userId: string | number) => ['community', 'following', String(userId)] as const;
+const blockedKey = () => ['community', 'blocked'] as const;
 
 function useAuth() {
   const token = useAuthStore((s) => s.accessToken);
@@ -607,6 +608,50 @@ export function useToggleFollow() {
         qc.invalidateQueries({ queryKey: USER_KEYS.followers(myUserId) });
       }
       qc.invalidateQueries({ queryKey: USER_KEYS.followers(Number(userId)) });
+    },
+  });
+}
+
+// ── 사용자 차단 ──────────────────────────────────────────────────────
+// App Store 가이드라인 1.2. 차단/해제 모두 서버가 멱등으로 처리하므로 낙관적 갱신을 두지
+// 않고 성공 후 무효화만 한다 — 목록이 짧고(페이징 없음) 재조회가 싸다.
+
+/** 내가 차단한 사용자 목록. 설정 > 차단 목록 화면에서만 쓴다. */
+export function useBlockedUsers() {
+  const { token } = useAuth();
+  return useQuery({
+    queryKey: blockedKey(),
+    queryFn: () => communityApi.getBlockedUsers(token!),
+    enabled: !!token,
+  });
+}
+
+/**
+ * 차단/해제 토글. next=true면 차단이다.
+ *
+ * 피드·게시글·프로필을 모두 비운다 — 차단은 서버가 조회 단계에서 글을 걸러내므로,
+ * 캐시가 남아 있으면 차단한 직후에도 그 사람 글이 계속 보인다. 팔로우 관계도 서버가
+ * 함께 끊으므로 팔로잉 목록과 팔로워 수도 같이 지운다.
+ */
+export function useToggleBlock() {
+  const { token, myUserId } = useAuth();
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ userId, next }: { userId: string | number; next: boolean }) => {
+      if (!token) throw new Error('로그인이 필요해요.');
+      return next ? communityApi.blockUser(userId, token) : communityApi.unblockUser(userId, token);
+    },
+    onSuccess: (_res, { userId }) => {
+      qc.invalidateQueries({ queryKey: blockedKey() });
+      qc.invalidateQueries({ queryKey: ['community', 'posts'] });
+      qc.invalidateQueries({ queryKey: ['community', 'post'] });
+      qc.invalidateQueries({ queryKey: ['community', 'profile', String(userId)] });
+      if (myUserId != null) {
+        qc.invalidateQueries({ queryKey: followingKey(myUserId) });
+        qc.invalidateQueries({ queryKey: USER_KEYS.following(myUserId) });
+        qc.invalidateQueries({ queryKey: USER_KEYS.followers(myUserId) });
+      }
+      qc.invalidateQueries({ queryKey: USER_KEYS.stats() });
     },
   });
 }

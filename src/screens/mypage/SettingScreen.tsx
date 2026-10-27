@@ -150,13 +150,8 @@ export default function SettingScreen({ route, navigation }: Props) {
     );
   };
 
-  // BETA 배지만으로는 눌러보기 전까지 모른다 — 눌렀을 때도 같은 이야기를 해준다.
-  const openBlockListAlert = () => {
-    Alert.alert('준비 중이에요', '차단 목록 관리 기능을 준비하고 있어요.');
-  };
-
   // 일반 계정의 이메일 변경은 서버에 엔드포인트가 없다. 셰브런이 달려 있어 눌러지는 것처럼
-  // 보이므로, 아무 일도 안 나는 대신 왜 그런지 알려준다(차단 목록과 같은 방식).
+  // 보이므로, 아무 일도 안 나는 대신 왜 그런지 알려준다.
   const openEmailChangeAlert = () => {
     Alert.alert('준비 중이에요', '이메일 변경 기능을 준비하고 있어요.');
   };
@@ -379,10 +374,8 @@ export default function SettingScreen({ route, navigation }: Props) {
               icon={IconBan}
               label="차단 목록"
               desc="차단한 사용자 관리"
-              // 위치 권한 행의 '허용됨'과 같은 자리(화살표 왼쪽)를 쓴다.
-              right={<BetaBadge />}
               chevron
-              onPress={openBlockListAlert}
+              onPress={() => navigation.navigate('BlockedUsers')}
             />
           </Card>
         </View>
@@ -512,18 +505,6 @@ function SectionLabel({ text, actionLabel, onActionPress }: { text: string; acti
         <Text style={{ fontSize: FONT_SM, fontFamily: 'Pretendard-Medium', color: 'rgba(0,0,0,0.48)' }}>{actionLabel}</Text>
         <IconChevronRight size={normalize(14)} color={iconGray(0.28)} strokeWidth={2} />
       </Pressable>
-    </View>
-  );
-}
-
-/** 아직 다듬는 중인 기능 표시. 상태 라벨이라 블랙을 쓴다 — 핑크는 화면 전환·데이터 변경용이다. */
-function BetaBadge() {
-  return (
-    <View
-      className="items-center justify-center bg-black"
-      style={{ height: normalize(18), paddingHorizontal: normalize(6), borderRadius: normalize(9), marginRight: normalize(6) }}
-    >
-      <Text className="font-semibold text-white" style={{ fontSize: FONT_2XS, letterSpacing: 0.4 }}>BETA</Text>
     </View>
   );
 }
